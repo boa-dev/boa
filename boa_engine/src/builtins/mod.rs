@@ -281,6 +281,14 @@ impl Realm {
             temporal::TimeZone::init(self);
             temporal::Temporal::init(self);
             temporal::Instant::init(self);
+            temporal::Duration::init(self);
+            temporal::PlainDate::init(self);
+            temporal::PlainTime::init(self);
+            temporal::PlainDateTime::init(self);
+            temporal::PlainMonthDay::init(self);
+            temporal::PlainYearMonth::init(self);
+            temporal::ZonedDateTime::init(self);
+            temporal::Calendar::init(self);
         }
     }
 }

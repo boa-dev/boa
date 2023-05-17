@@ -1,28 +1,24 @@
 #![allow(dead_code, unused_variables)]
-
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     realm::Realm,
-    Context, JsObject, JsResult, JsSymbol, JsValue,
+    Context, JsBigInt, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
 
-/// The `Temporal.PlainDate` object.
+/// The `Temporal.Calendar` object.
 #[derive(Debug, Clone)]
-pub struct PlainDate {
-    pub(crate) iso_year: i32,
-    pub(crate) iso_month: i32,
-    pub(crate) iso_day: i32,
-    pub(crate) calendar: JsObject,
+pub struct Calendar {
+    identifier: JsString,
 }
 
-impl BuiltInObject for PlainDate {
-    const NAME: &'static str = "Temporal.PlainDate";
+impl BuiltInObject for Calendar {
+    const NAME: &'static str = "Temporal.Calendar";
 }
 
-impl IntrinsicObject for PlainDate {
+impl IntrinsicObject for Calendar {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
@@ -40,11 +36,11 @@ impl IntrinsicObject for PlainDate {
     }
 }
 
-impl BuiltInConstructor for PlainDate {
+impl BuiltInConstructor for Calendar {
     const LENGTH: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
-        StandardConstructors::plain_date;
+        StandardConstructors::calendar;
 
     fn constructor(
         new_target: &JsValue,
@@ -53,4 +49,12 @@ impl BuiltInConstructor for PlainDate {
     ) -> JsResult<JsValue> {
         todo!()
     }
+}
+
+// -- `Calendar` Abstract Operations --
+
+
+/// 12.2.4 CalendarDateAdd ( calendar, date, duration [ , options [ , dateAdd ] ] )
+pub(crate) fn calendar_date_add(calendar: &JsObject, date: &JsObject, duration: JsObject, options: JsValue, date_add: Option<&JsValue>) -> JsResult<JsValue> {
+    todo!()
 }

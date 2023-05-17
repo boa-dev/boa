@@ -9,8 +9,13 @@ use crate::{
 use boa_profiler::Profiler;
 
 /// The `Temporal.PlainMonthDay` object.
-#[derive(Debug, Clone, Copy)]
-pub struct PlainMonthDay;
+#[derive(Debug, Clone)]
+pub struct PlainMonthDay {
+    iso_year: i32,
+    iso_month: i32,
+    iso_day: i32,
+    calendar: JsObject,
+}
 
 impl BuiltInObject for PlainMonthDay {
     const NAME: &'static str = "Temporal.PlainMonthDay";

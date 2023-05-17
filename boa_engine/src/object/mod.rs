@@ -56,7 +56,10 @@ use crate::{
         set::ordered_set::OrderedSet,
         set::SetIterator,
         string::StringIterator,
-        temporal::{Duration, Instant, TimeZone},
+        temporal::{
+            Calendar, Duration, Instant, PlainDate, PlainDateTime, PlainMonthDay, PlainTime,
+            PlainYearMonth, TimeZone, ZonedDateTime,
+        },
         typed_array::{integer_indexed_object::IntegerIndexed, TypedArrayKind},
         DataView, Date, Promise, RegExp,
     },
@@ -454,23 +457,23 @@ pub enum ObjectKind {
 
     /// The `Temporal.PlainDateTime` object kind.
     #[cfg(feature = "temporal")]
-    PlainDateTime,
+    PlainDateTime(PlainDateTime),
 
     /// The `Temporal.PlainDate` object kind.
     #[cfg(feature = "temporal")]
-    PlainDate,
+    PlainDate(PlainDate),
 
     /// The `Temporal.PlainTime` object kind.
     #[cfg(feature = "temporal")]
-    PlainTime,
+    PlainTime(PlainTime),
 
     /// The `Temporal.PlainYearMonth` object kind.
     #[cfg(feature = "temporal")]
-    PlainYearMonth,
+    PlainYearMonth(PlainYearMonth),
 
     /// The `Temporal.PlainMonthDay` object kind.
     #[cfg(feature = "temporal")]
-    PlainMonthDay,
+    PlainMonthDay(PlainMonthDay),
 
     /// The `Temporal.TimeZone` object kind.
     #[cfg(feature = "temporal")]
@@ -479,6 +482,14 @@ pub enum ObjectKind {
     /// The `Temporal.Duration` object kind.
     #[cfg(feature = "temporal")]
     Duration(Duration),
+
+    /// The `Temporal.ZonedDateTime` object kind.
+    #[cfg(feature = "temporal")]
+    ZonedDateTime(ZonedDateTime),
+
+    /// The `Temporal.Calendar` object kind.
+    #[cfg(feature = "temporal")]
+    Calendar(Box<Calendar>),
 }
 
 unsafe impl Trace for ObjectKind {
@@ -537,7 +548,16 @@ unsafe impl Trace for ObjectKind {
             | Self::Number(_)
             | Self::Symbol(_) => {}
             #[cfg(feature = "temporal")]
-            Self::Instant(_) | Self::PlainDateTime | Self::PlainDate | Self::PlainTime | Self::PlainYearMonth | Self::PlainMonthDay | Self::TimeZone(_) | Self::Duration(_) => {}
+            Self::Instant(_)
+            | Self::PlainDateTime(_)
+            | Self::PlainDate(_)
+            | Self::PlainTime(_)
+            | Self::PlainYearMonth(_)
+            | Self::PlainMonthDay(_)
+            | Self::TimeZone(_)
+            | Self::Calendar(_)
+            | Self::Duration(_)
+            | Self::ZonedDateTime(_) => {}
         }
     }}
 }
@@ -966,9 +986,9 @@ impl ObjectData {
     /// Create the `Segments` object data
     #[cfg(feature = "intl")]
     #[must_use]
-    pub fn instant() -> Self {
+    pub fn segments(segments: Segments) -> Self {
         Self {
-            kind: ObjectKind::Instant,
+            kind: ObjectKind::Segments(segments),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -1002,21 +1022,22 @@ impl ObjectData {
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
     /// Create the `PlainDateTime` object data
     #[cfg(feature = "temporal")]
     #[must_use]
-    pub fn plain_date_time() -> Self {
+    pub fn plain_date_time(date_time: PlainDateTime) -> Self {
         Self {
-            kind: ObjectKind::PlainDateTime,
+            kind: ObjectKind::PlainDateTime(date_time),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     /// Create the `PlainDate` object data
     #[cfg(feature = "temporal")]
     #[must_use]
-    pub fn plain_date() -> Self {
+    pub fn plain_date(date: PlainDate) -> Self {
         Self {
-            kind: ObjectKind::PlainDate,
+            kind: ObjectKind::PlainDate(date),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -1024,9 +1045,9 @@ impl ObjectData {
     /// Create the `PlainTime` object data
     #[cfg(feature = "temporal")]
     #[must_use]
-    pub fn plain_time() -> Self {
+    pub fn plain_time(time: PlainTime) -> Self {
         Self {
-            kind: ObjectKind::PlainTime,
+            kind: ObjectKind::PlainTime(time),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -1034,9 +1055,9 @@ impl ObjectData {
     /// Create the `PlainYearMonth` object data
     #[cfg(feature = "temporal")]
     #[must_use]
-    pub fn plain_year_month() -> Self {
+    pub fn plain_year_month(year_month: PlainYearMonth) -> Self {
         Self {
-            kind: ObjectKind::PlainYearMonth,
+            kind: ObjectKind::PlainYearMonth(year_month),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -1044,9 +1065,9 @@ impl ObjectData {
     /// Create the `PlainMonthDay` object data
     #[cfg(feature = "temporal")]
     #[must_use]
-    pub fn plain_month_day() -> Self {
+    pub fn plain_month_day(month_day: PlainMonthDay) -> Self {
         Self {
-            kind: ObjectKind::PlainMonthDay,
+            kind: ObjectKind::PlainMonthDay(month_day),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -1067,6 +1088,26 @@ impl ObjectData {
     pub fn duration(duration: Duration) -> Self {
         Self {
             kind: ObjectKind::Duration(duration),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `ZonedDateTime` object data.
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn zoned_date_time(zoned_date_time: ZonedDateTime) -> Self {
+        Self {
+            kind: ObjectKind::ZonedDateTime(zoned_date_time),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `Calendar` object data.
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn calendar(calendar: Calendar) -> Self {
+        Self {
+            kind: ObjectKind::Calendar(Box::new(calendar)),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -1132,19 +1173,23 @@ impl Debug for ObjectKind {
             #[cfg(feature = "temporal")]
             Self::Instant(_) => "Instant",
             #[cfg(feature = "temporal")]
-            Self::PlainDateTime => "PlainDateTime",
+            Self::PlainDateTime(_) => "PlainDateTime",
             #[cfg(feature = "temporal")]
-            Self::PlainDate => "PlainDate",
+            Self::PlainDate(_) => "PlainDate",
             #[cfg(feature = "temporal")]
-            Self::PlainTime => "PlainTime",
+            Self::PlainTime(_) => "PlainTime",
             #[cfg(feature = "temporal")]
-            Self::PlainYearMonth => "PlainYearMonth",
+            Self::PlainYearMonth(_) => "PlainYearMonth",
             #[cfg(feature = "temporal")]
-            Self::PlainMonthDay => "PlainMonthDay",
+            Self::PlainMonthDay(_) => "PlainMonthDay",
             #[cfg(feature = "temporal")]
             Self::TimeZone(_) => "TimeZone",
             #[cfg(feature = "temporal")]
             Self::Duration(_) => "Duration",
+            #[cfg(feature = "temporal")]
+            Self::ZonedDateTime(_) => "ZonedDateTime",
+            #[cfg(feature = "temporal")]
+            Self::Calendar(_) => "Calendar",
         })
     }
 }
@@ -2107,6 +2152,13 @@ impl Object {
         }
     }
 
+    /// Checks if the object is a `TimeZone` object.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn is_time_zone(&self) -> bool {
+        matches!(self.kind, ObjectKind::TimeZone(_))
+    }
+
     /// Gets a mutable reference to `Instant` data if the object is a `Temporal.Instant`.
     #[inline]
     #[cfg(feature = "temporal")]
@@ -2152,6 +2204,37 @@ impl Object {
             ObjectKind::Duration(dur) => Some(dur),
             _ => None,
         }
+    }
+
+    /// Checks if object is a `PlainDate` object.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn is_plain_date(&self) -> bool {
+        matches!(self.kind, ObjectKind::PlainDate(_))
+    }
+
+    /// Gets the `PlainDate` data if the object is a `Temporal.PlainDate`.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn as_plain_date(&self) -> Option<&PlainDate> {
+        match &self.kind {
+            ObjectKind::PlainDate(date) => Some(date),
+            _ => None,
+        }
+    }
+
+    /// Checks if the object is a `ZonedDateTime` object.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn is_zoned_date_time(&self) -> bool {
+        matches!(self.kind, ObjectKind::ZonedDateTime(_))
+    }
+
+    /// Checks if the object is a `Calendar` object.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn is_calendar(&self) -> bool {
+        matches!(self.kind, ObjectKind::Calendar(_))
     }
 
     /// Return `true` if it is a native object and the native type is `T`.

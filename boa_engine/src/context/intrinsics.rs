@@ -182,6 +182,10 @@ pub struct StandardConstructors {
     time_zone: StandardConstructor,
     #[cfg(feature = "temporal")]
     duration: StandardConstructor,
+    #[cfg(feature = "temporal")]
+    zoned_date_time: StandardConstructor,
+    #[cfg(feature = "temporal")]
+    calendar: StandardConstructor,
 }
 
 impl Default for StandardConstructors {
@@ -274,6 +278,10 @@ impl Default for StandardConstructors {
             time_zone: StandardConstructor::default(),
             #[cfg(feature = "temporal")]
             duration: StandardConstructor::default(),
+            #[cfg(feature = "temporal")]
+            zoned_date_time: StandardConstructor::default(),
+            #[cfg(feature = "temporal")]
+            calendar: StandardConstructor::default(),
         }
     }
 }
@@ -925,7 +933,7 @@ impl StandardConstructors {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plainmonthday-constructor
     #[inline]
     #[cfg(feature = "temporal")]
     pub const fn plain_month_day(&self) -> &StandardConstructor {
@@ -937,7 +945,7 @@ impl StandardConstructors {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.timezone
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal=timezone-constructor
     #[inline]
     #[cfg(feature = "temporal")]
     pub const fn time_zone(&self) -> &StandardConstructor {
@@ -949,11 +957,35 @@ impl StandardConstructors {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-duration-constructor
     #[inline]
     #[cfg(feature = "temporal")]
     pub const fn duration(&self) -> &StandardConstructor {
         &self.duration
+    }
+
+    /// Returns the `Temporal.ZonedDateTime` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-zoneddatetime-constructor
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub const fn zoned_date_time(&self) -> &StandardConstructor {
+        &self.zoned_date_time
+    }
+
+    /// Returns the `Temporal.Calendar` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-zoneddatetime-constructor
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub const fn calendar(&self) -> &StandardConstructor {
+        &self.calendar
     }
 }
 

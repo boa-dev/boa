@@ -3,7 +3,10 @@
 
 use crate::{
     builtins::{
-        temporal::{Duration, copy_options, get_diff_settings, round_duration, to_temporal_duration_record, create_temporal_duration},
+        temporal::{
+            copy_options, create_temporal_duration, get_diff_settings, round_duration,
+            to_temporal_duration_record, Duration,
+        },
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -19,15 +22,16 @@ use num_traits::ToPrimitive;
 
 use super::{
     get_option_object, get_temporal_unit, round_to_increment_as_if_positive,
-    to_temporal_rounding_increment, to_temporal_rounding_mode,
-    HOUR, MICROSECOND, MICRO_PER_DAY, MILLISECOND,
-    MILLI_PER_DAY, MINUTE, NANOSECOND, NS_MAX_INSTANT, NS_MIN_INSTANT, NS_PER_DAY, SECOND,
+    to_temporal_rounding_increment, to_temporal_rounding_mode, HOUR, MICROSECOND, MICRO_PER_DAY,
+    MILLISECOND, MILLI_PER_DAY, MINUTE, NANOSECOND, NS_MAX_INSTANT, NS_MIN_INSTANT, NS_PER_DAY,
+    SECOND,
 };
 
 const NANOSECONDS_PER_SECOND: i64 = 10_000_000_000;
 const NANOSECONDS_PER_MINUTE: i64 = 600_000_000_000;
 const NANOSECONDS_PER_HOUR: i64 = 36_000_000_000_000;
 
+/// The `Temporal.Instant` object.
 #[derive(Debug, Clone)]
 pub struct Instant {
     pub(crate) nanoseconds: JsBigInt,
@@ -518,7 +522,7 @@ fn create_temporal_instant(
 
 /// 8.5.3 ToTemporalInstant ( item )
 #[inline]
-fn to_temporal_instant(item: &JsValue) -> JsResult<Instant> {
+fn to_temporal_instant(_: &JsValue) -> JsResult<Instant> {
     todo!()
 }
 
@@ -605,7 +609,7 @@ fn diff_instant(
         context,
     )?;
     // 7. Assert: roundResult.[[Days]] is 0.
-    assert!(round_result.days)
+    assert_eq!(round_result.0.days, 0_f64);
     // 8. Return ! BalanceDuration(0, roundResult.[[Hours]], roundResult.[[Minutes]],
     //    roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]],
     //    roundResult.[[Nanoseconds]], largestUnit).
@@ -708,9 +712,10 @@ fn diff_temporal_instant(
         sign * result.milliseconds,
         sign * result.microseconds,
         sign * result.nanoseconds,
-        &context.realm().intrinsics().constructors().duration().constructor().into(),
-        context
-    )?.into())
+        None,
+        context,
+    )?
+    .into())
 }
 
 /// 8.5.11 AddDurationToOrSubtractDurationFromInstant ( operation, instant, temporalDurationLike )

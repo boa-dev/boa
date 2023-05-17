@@ -736,7 +736,7 @@ impl JsObject {
         self.borrow().is_ordinary()
     }
 
-    /// Checks if current object is a `Duration` object.
+    /// Checks if current object is a `Temporal.Duration` object.
     ///
     /// # Panics
     ///
@@ -746,6 +746,54 @@ impl JsObject {
     #[cfg(feature = "temporal")]
     pub fn is_duration(&self) -> bool {
         self.borrow().is_duration()
+    }
+
+    /// Checks if current object is a `Temporal.TimeZone` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    #[cfg(feature = "temporal")]
+    pub fn is_time_zone(&self) -> bool {
+        self.borrow().is_time_zone()
+    }
+
+    /// Checks if current object is a `Temporal.PlainDate` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    #[cfg(feature = "temporal")]
+    pub fn is_plain_date(&self) -> bool {
+        self.borrow().is_plain_date()
+    }
+
+    /// Checks if current object is a `Temporal.PlainDate` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    #[cfg(feature = "temporal")]
+    pub fn is_zoned_date_time(&self) -> bool {
+        self.borrow().is_zoned_date_time()
+    }
+
+    /// Checks if current object is a `Temporal.Calendar` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    #[cfg(feature = "temporal")]
+    pub fn is_calendar(&self) -> bool {
+        self.borrow().is_calendar()
     }
 
     /// Checks if it's a proxy object.

@@ -5,6 +5,8 @@
 //! [spec]: https://tc39.es/proposal-temporal/
 #![allow(unreachable_code, dead_code, unused_imports)] // Unimplemented
 
+mod calendar;
+mod date_equations;
 mod duration;
 mod instant;
 mod now;
@@ -14,10 +16,12 @@ mod plain_month_day;
 mod plain_time;
 mod plain_year_month;
 mod time_zone;
+mod zoned_date_time;
 
+use self::date_equations::mathematical_days_in_year;
 pub use self::{
-    duration::*, instant::*, now::*, plain_date::*, plain_date_time::*, plain_month_day::*,
-    plain_time::*, plain_year_month::*, time_zone::*,
+    calendar::*, duration::*, instant::*, now::*, plain_date::*, plain_date_time::*,
+    plain_month_day::*, plain_time::*, plain_year_month::*, time_zone::*, zoned_date_time::*,
 };
 use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
 use crate::{
@@ -213,6 +217,21 @@ impl IntrinsicObject for Temporal {
 /// and `minLength` (a non-negative integer) and returns a String.
 fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
     format!("{n:0min_length$}")
+}
+
+/// 13.2 ISODateToEpochDays ( year, month, date )
+pub(crate) fn iso_date_to_epoch_days(year: i32, month: i32, date: i32) -> i32 {
+    // 1. Let resolvedYear be year + floor(month / 12).
+    let resolved_year = year + (month as f64 / 12_f64).floor() as i32;
+    // 2. Let resolvedMonth be month modulo 12.
+    let resolved_month = month % 12;
+
+    // 3. Find a time t such that EpochTimeToEpochYear(t) is resolvedYear, EpochTimeToMonthInYear(t) is resolvedMonth, and EpochTimeToDate(t) is 1.
+    let year_t = self::date_equations::epoch_time_for_year(resolved_year as f64);
+    let month_t = self::date_equations::epoch_time_for_month_given_year(resolved_month, resolved_year);
+
+    // 4. Return EpochTimeToDayNumber(t) + date - 1.
+    self::date_equations::epoch_time_to_day_number(year_t + month_t) as i32 + date - 1
 }
 
 /// Abstract Operation 13.5 GetOptionsObject ( options )
@@ -683,7 +702,7 @@ pub(crate) fn round_to_increment_as_if_positive(
 
 /// Abstract operation 13.45 `ToIntegerIfIntegral( argument )`
 #[inline]
-pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -> JsResult<i32> {
     // 1. Let number be ? ToNumber(argument).
     // 2. If IsIntegralNumber(number) is false, throw a RangeError exception.
     // 3. Return ℝ(number).
@@ -693,8 +712,7 @@ pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -
             .into());
     }
 
-    let number = arg.to_number(context)?;
-    Ok(number)
+    arg.to_i32(context)
 }
 
 /// 13.47 GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )

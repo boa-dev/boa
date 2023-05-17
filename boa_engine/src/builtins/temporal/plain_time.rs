@@ -10,7 +10,14 @@ use boa_profiler::Profiler;
 
 /// The `Temporal.PlainTime` object.
 #[derive(Debug, Clone, Copy)]
-pub struct PlainTime;
+pub struct PlainTime {
+    iso_hour: i32,        // integer between 0-23
+    iso_minute: i32,      // integer between 0-59
+    iso_second: i32,      // integer between 0-59
+    iso_millisecond: i32, // integer between 0-999
+    iso_microsecond: i32, // integer between 0-999
+    iso_nanosecond: i32,  // integer between 0-999
+}
 
 impl BuiltInObject for PlainTime {
     const NAME: &'static str = "Temporal.PlainTime";

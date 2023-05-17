@@ -9,8 +9,19 @@ use crate::{
 use boa_profiler::Profiler;
 
 /// The `Temporal.PlainDateTime` object.
-#[derive(Debug, Clone, Copy)]
-pub struct PlainDateTime;
+#[derive(Debug, Clone)]
+pub struct PlainDateTime {
+    iso_year: i32,
+    iso_month: i32,
+    iso_day: i32,
+    iso_hour: i32,        // integer between 0-23
+    iso_minute: i32,      // integer between 0-59
+    iso_second: i32,      // integer between 0-59
+    iso_millisecond: i32, // integer between 0-999
+    iso_microsecond: i32, // integer between 0-999
+    iso_nanosecond: i32,  // integer between 0-999
+    calendar: JsObject,
+}
 
 impl BuiltInObject for PlainDateTime {
     const NAME: &'static str = "Temporal.PlainDateTime";
