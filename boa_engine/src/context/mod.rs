@@ -112,6 +112,9 @@ pub struct Context<'host> {
 
     optimizer_options: OptimizerOptions,
     root_shape: SharedShape,
+
+    /// Unique identifier for each parser instance used during the context lifetime.
+    parser_identifier: u32,
 }
 
 impl std::fmt::Debug for Context<'_> {
@@ -230,6 +233,7 @@ impl<'host> Context<'host> {
     ) -> Result<StatementList, ParseError> {
         let _timer = Profiler::global().start_event("Script parsing", "Main");
         let mut parser = Parser::new(src);
+        parser.set_identifier(self.next_parser_identifier());
         if self.strict {
             parser.set_strict();
         }
@@ -247,6 +251,7 @@ impl<'host> Context<'host> {
     ) -> Result<ModuleItemList, ParseError> {
         let _timer = Profiler::global().start_event("Module parsing", "Main");
         let mut parser = Parser::new(src);
+        parser.set_identifier(self.next_parser_identifier());
         parser.parse_module(&mut self.interner)
     }
 
@@ -656,6 +661,12 @@ impl Context<'_> {
         std::mem::swap(&mut self.realm, realm);
     }
 
+    /// Increment and get the parser identifier.
+    pub(crate) fn next_parser_identifier(&mut self) -> u32 {
+        self.parser_identifier += 1;
+        self.parser_identifier
+    }
+
     /// `CanDeclareGlobalFunction ( N )`
     ///
     /// More information:
@@ -1025,6 +1036,7 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
             }),
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
+            parser_identifier: 0,
         };
 
         builtins::set_default_global_bindings(&mut context)?;

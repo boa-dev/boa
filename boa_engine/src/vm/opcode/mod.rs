@@ -27,6 +27,7 @@ mod rest_parameter;
 mod set;
 mod swap;
 mod switch;
+mod templates;
 mod to;
 mod unary_ops;
 mod value;
@@ -78,6 +79,8 @@ pub(crate) use set::*;
 pub(crate) use swap::*;
 #[doc(inline)]
 pub(crate) use switch::*;
+#[doc(inline)]
+pub(crate) use templates::*;
 #[doc(inline)]
 pub(crate) use to::*;
 #[doc(inline)]
@@ -1601,6 +1604,20 @@ generate_impl! {
         ///
         /// Stack: value **=>** is_object
         IsObject,
+
+        /// Lookup if a tagged template object is cached and skip the creation if it is.
+        ///
+        /// Operands: jump: `u32`, site: `u64`
+        ///
+        /// Stack: **=>** template (if cached)
+        TemplateLookup,
+
+        /// Create a new tagged template object and cache it.
+        ///
+        /// Operands: count: `u32`, site: `u64`
+        ///
+        /// Stack: count * (cooked_value, raw_value) **=>** template
+        TemplateCreate,
 
         /// No-operation instruction, does nothing.
         ///

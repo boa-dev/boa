@@ -21,6 +21,7 @@ pub struct TaggedTemplate {
     raws: Box<[Sym]>,
     cookeds: Box<[Option<Sym>]>,
     exprs: Box<[Expression]>,
+    identifier: u64,
 }
 
 impl TaggedTemplate {
@@ -33,12 +34,14 @@ impl TaggedTemplate {
         raws: Box<[Sym]>,
         cookeds: Box<[Option<Sym>]>,
         exprs: Box<[Expression]>,
+        identifier: u64,
     ) -> Self {
         Self {
             tag: tag.into(),
             raws,
             cookeds,
             exprs,
+            identifier,
         }
     }
 
@@ -68,6 +71,13 @@ impl TaggedTemplate {
     #[must_use]
     pub const fn exprs(&self) -> &[Expression] {
         &self.exprs
+    }
+
+    /// Gets the unique identifier of the template.
+    #[inline]
+    #[must_use]
+    pub const fn identifier(&self) -> u64 {
+        self.identifier
     }
 }
 

@@ -84,6 +84,7 @@ where
                         raws.into_boxed_slice(),
                         cookeds.into_boxed_slice(),
                         exprs.into_boxed_slice(),
+                        cursor.tagged_template_identifier(),
                     ));
                 }
                 _ => {

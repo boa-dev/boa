@@ -300,6 +300,13 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!("{operand1}, {operand2}")
             }
+            Opcode::TemplateLookup | Opcode::TemplateCreate => {
+                let operand1 = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                let operand2 = self.read::<u64>(*pc);
+                *pc += size_of::<u64>();
+                format!("{operand1}, {operand2}")
+            }
             Opcode::GeneratorAsyncDelegateResume => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();

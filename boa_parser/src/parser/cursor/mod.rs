@@ -36,6 +36,13 @@ pub(super) struct Cursor<R> {
 
     /// Indicate if the cursor is used in `JSON.parse`.
     json_parse: bool,
+
+    /// A unique identifier for each parser instance.
+    /// This is used to generate unique identifiers tagged template literals.
+    identifier: u32,
+
+    /// Tracks the number of tagged templates that are currently being parsed.
+    tagged_templates_count: u32,
 }
 
 impl<R> Cursor<R>
@@ -50,6 +57,8 @@ where
             private_environment_root_index: 0,
             arrow: false,
             json_parse: false,
+            identifier: 0,
+            tagged_templates_count: 0,
         }
     }
 
@@ -167,6 +176,23 @@ where
     #[inline]
     pub(super) const fn in_class(&self) -> bool {
         self.private_environment_nested_index != 0
+    }
+
+    /// Set the identifier of the cursor.
+    #[inline]
+    pub(super) fn set_identifier(&mut self, identifier: u32) {
+        self.identifier = identifier;
+    }
+
+    /// Get the identifier for a tagged template.
+    #[inline]
+    pub(super) fn tagged_template_identifier(&mut self) -> u64 {
+        self.tagged_templates_count += 1;
+
+        let identifier = u64::from(self.identifier);
+        let count = u64::from(self.tagged_templates_count);
+
+        (count << 32) | identifier
     }
 
     /// Returns an error if the next token is not of kind `kind`.

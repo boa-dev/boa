@@ -586,17 +586,22 @@ impl BuiltInFunctionObject {
                 let parameters = parameters.join(utf16!(","));
 
                 // TODO: make parser generic to u32 iterators
-                let parameters =
-                    match Parser::new(Source::from_bytes(&String::from_utf16_lossy(&parameters)))
-                        .parse_formal_parameters(context.interner_mut(), generator, r#async)
-                    {
-                        Ok(parameters) => parameters,
-                        Err(e) => {
-                            return Err(JsNativeError::syntax()
-                                .with_message(format!("failed to parse function parameters: {e}"))
-                                .into())
-                        }
-                    };
+                let parameters = String::from_utf16_lossy(&parameters);
+                let mut parser = Parser::new(Source::from_bytes(&parameters));
+                parser.set_identifier(context.next_parser_identifier());
+
+                let parameters = match parser.parse_formal_parameters(
+                    context.interner_mut(),
+                    generator,
+                    r#async,
+                ) {
+                    Ok(parameters) => parameters,
+                    Err(e) => {
+                        return Err(JsNativeError::syntax()
+                            .with_message(format!("failed to parse function parameters: {e}"))
+                            .into())
+                    }
+                };
 
                 if generator && contains(&parameters, ContainsSymbol::YieldExpression) {
                     return Err(JsNativeError::syntax().with_message(
@@ -626,11 +631,11 @@ impl BuiltInFunctionObject {
             let body = b"\n".chain(body_arg.as_bytes()).chain(b"\n".as_slice());
 
             // TODO: make parser generic to u32 iterators
-            let body = match Parser::new(Source::from_reader(body, None)).parse_function_body(
-                context.interner_mut(),
-                generator,
-                r#async,
-            ) {
+            let mut parser = Parser::new(Source::from_reader(body, None));
+            parser.set_identifier(context.next_parser_identifier());
+
+            let body = match parser.parse_function_body(context.interner_mut(), generator, r#async)
+            {
                 Ok(statement_list) => statement_list,
                 Err(e) => {
                     return Err(JsNativeError::syntax()

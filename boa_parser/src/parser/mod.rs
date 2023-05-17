@@ -218,6 +218,14 @@ impl<R> Parser<'_, R> {
     {
         self.cursor.set_json_parse(true);
     }
+
+    /// Set the unique identifier for the parser.
+    pub fn set_identifier(&mut self, identifier: u32)
+    where
+        R: Read,
+    {
+        self.cursor.set_identifier(identifier);
+    }
 }
 
 /// Parses a full script.
