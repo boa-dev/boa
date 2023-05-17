@@ -469,7 +469,7 @@ fn string_list_from_iterable(
     }
 
     // 2. Let iteratorRecord be ? GetIterator(iterable).
-    let iterator = iterable.get_iterator(context, None, None)?;
+    let mut iterator = iterable.get_iterator(context, None, None)?;
 
     // 3. Let list be a new empty List.
     let mut list = Vec::new();
@@ -478,9 +478,9 @@ fn string_list_from_iterable(
     // 5. Repeat, while next is not false,
     //     a. Set next to ? IteratorStep(iteratorRecord).
     //     b. If next is not false, then
-    while let Some(item) = iterator.step(context)? {
+    while !iterator.step(context)? {
+        let item = iterator.value(context)?;
         //    i. Let nextValue be ? IteratorValue(next).
-        let item = item.value(context)?;
         //    ii. If Type(nextValue) is not String, then
         let Some(s) = item.as_string().cloned() else {
             //    1. Let error be ThrowCompletion(a newly created TypeError object).

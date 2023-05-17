@@ -1,16 +1,16 @@
+use std::matches;
+
 use crate::{
-    builtins::{
-        iterable::{IteratorRecord, IteratorResult},
-        Array,
-    },
-    vm::{opcode::Operation, CompletionType},
-    Context, JsNativeError, JsResult,
+    builtins::Array,
+    js_string,
+    vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
+    Context, JsResult,
 };
 
 /// `IteratorNext` implements the Opcode Operation for `Opcode::IteratorNext`
 ///
 /// Operation:
-///  - Calls the `next` method of `iterator` and puts its return value on the stack.
+///  - Calls the `next` method of `iterator`, updating its record with the next value.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct IteratorNext;
 
@@ -19,149 +19,171 @@ impl Operation for IteratorNext {
     const INSTRUCTION: &'static str = "INST - IteratorNext";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let next_method = context.vm.pop();
-        let iterator = context.vm.pop();
-        let next_result = next_method.call(&iterator, &[], context)?;
-        context.vm.push(iterator);
-        context.vm.push(next_method);
-        context.vm.push(next_result);
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `IteratorNextSetDone` implements the Opcode Operation for `Opcode::IteratorNextSetDone`
-///
-/// Operation:
-///  - Calls the `next` method of `iterator`, puts its return value on the stack
-///    and sets the `[[Done]]` value of the iterator on the call frame.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct IteratorNextSetDone;
-
-impl Operation for IteratorNextSetDone {
-    const NAME: &'static str = "IteratorNextSetDone";
-    const INSTRUCTION: &'static str = "INST - IteratorNextSetDone";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let next_method = context.vm.pop();
-        let iterator = context.vm.pop();
-        let mut done = true;
-        let result = next_method
-            .call(&iterator, &[], context)
-            .and_then(|next_result| {
-                next_method
-                    .as_object()
-                    .cloned()
-                    .map(IteratorResult::new)
-                    .ok_or_else(|| {
-                        JsNativeError::typ()
-                            .with_message("next value should be an object")
-                            .into()
-                    })
-                    .and_then(|iterator_result| {
-                        iterator_result.complete(context).map(|d| {
-                            done = d;
-                            context.vm.push(iterator);
-                            context.vm.push(next_method);
-                            context.vm.push(next_result);
-                            CompletionType::Normal
-                        })
-                    })
-            });
-
-        context
+        let mut iterator = context
             .vm
             .frame_mut()
             .iterators
-            .last_mut()
-            .expect("iterator on the call frame must exist")
-            .1 = done;
+            .pop()
+            .expect("iterator stack should have at least an iterator");
 
-        result
-    }
-}
+        iterator.step(context)?;
 
-/// `IteratorUnwrapNext` implements the Opcode Operation for `Opcode::IteratorUnwrapNext`
-///
-/// Operation:
-///  - Gets the `value` and `done` properties of an iterator result.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct IteratorUnwrapNext;
-
-impl Operation for IteratorUnwrapNext {
-    const NAME: &'static str = "IteratorUnwrapNext";
-    const INSTRUCTION: &'static str = "INST - IteratorUnwrapNext";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let next_result = context.vm.pop();
-        let next_result = next_result
-            .as_object()
-            .cloned()
-            .map(IteratorResult::new)
-            .ok_or_else(|| JsNativeError::typ().with_message("next value should be an object"))?;
-        let complete = next_result.complete(context)?;
-        let value = next_result.value(context)?;
-        context.vm.push(complete);
-        context.vm.push(value);
+        context.vm.frame_mut().iterators.push(iterator);
 
         Ok(CompletionType::Normal)
     }
 }
 
-/// `IteratorUnwrapValue` implements the Opcode Operation for `Opcode::IteratorUnwrapValue`
+/// `IteratorFinishAsyncNext` implements the Opcode Operation for `Opcode::IteratorFinishAsyncNext`.
 ///
 /// Operation:
-///  - Gets the `value` property of an iterator result.
+///  - Finishes the call to `Opcode::IteratorNext` within a `for await` loop by setting the current
+/// result of the current iterator.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct IteratorUnwrapValue;
+pub(crate) struct IteratorFinishAsyncNext;
 
-impl Operation for IteratorUnwrapValue {
-    const NAME: &'static str = "IteratorUnwrapValue";
-    const INSTRUCTION: &'static str = "INST - IteratorUnwrapValue";
+impl Operation for IteratorFinishAsyncNext {
+    const NAME: &'static str = "IteratorFinishAsyncNext";
+    const INSTRUCTION: &'static str = "INST - IteratorFinishAsyncNext";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let next_result = context.vm.pop();
-        let next_result = next_result
-            .as_object()
-            .cloned()
-            .map(IteratorResult::new)
-            .ok_or_else(|| JsNativeError::typ().with_message("next value should be an object"))?;
-        let value = next_result.value(context)?;
-        context.vm.push(value);
+        let mut iterator = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .expect("iterator on the call frame must exist");
 
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `IteratorUnwrapNextOrJump` implements the Opcode Operation for `Opcode::IteratorUnwrapNextOrJump`
-///
-/// Operation:
-///  - Gets the `value` and `done` properties of an iterator result, or jump to `address` if
-///    `done` is true.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct IteratorUnwrapNextOrJump;
-
-impl Operation for IteratorUnwrapNextOrJump {
-    const NAME: &'static str = "IteratorUnwrapNextOrJump";
-    const INSTRUCTION: &'static str = "INST - IteratorUnwrapNextOrJump";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let address = context.vm.read::<u32>();
-
-        let next_result = context.vm.pop();
-        let next_result = next_result
-            .as_object()
-            .cloned()
-            .map(IteratorResult::new)
-            .ok_or_else(|| JsNativeError::typ().with_message("next value should be an object"))?;
-
-        if next_result.complete(context)? {
-            context.vm.frame_mut().pc = address;
-            context.vm.push(true);
-        } else {
-            context.vm.push(false);
-            let value = next_result.value(context)?;
-            context.vm.push(value);
+        if matches!(
+            context.vm.frame().generator_resume_kind,
+            GeneratorResumeKind::Throw
+        ) {
+            // If after awaiting the `next` call the iterator returned an error, it can be considered
+            // as poisoned, meaning we can remove it from the iterator stack to avoid calling
+            // cleanup operations on it.
+            return Ok(CompletionType::Normal);
         }
+
+        let next_result = context.vm.pop();
+
+        iterator.update_result(next_result, context)?;
+
+        context.vm.frame_mut().iterators.push(iterator);
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `IteratorResult` implements the Opcode Operation for `Opcode::IteratorResult`
+///
+/// Operation:
+///  - Gets the last iteration result of the current iterator record.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorResult;
+
+impl Operation for IteratorResult {
+    const NAME: &'static str = "IteratorResult";
+    const INSTRUCTION: &'static str = "INST - IteratorResult";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let last_result = context
+            .vm
+            .frame()
+            .iterators
+            .last()
+            .expect("iterator on the call frame must exist")
+            .last_result()
+            .object()
+            .clone();
+
+        context.vm.push(last_result);
+
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `IteratorValue` implements the Opcode Operation for `Opcode::IteratorValue`
+///
+/// Operation:
+///  - Gets the `value` property of the current iterator record.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorValue;
+
+impl Operation for IteratorValue {
+    const NAME: &'static str = "IteratorValue";
+    const INSTRUCTION: &'static str = "INST - IteratorValue";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let mut iterator = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .expect("iterator on the call frame must exist");
+
+        let value = iterator.value(context)?;
+        context.vm.push(value);
+
+        context.vm.frame_mut().iterators.push(iterator);
+
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `IteratorDone` implements the Opcode Operation for `Opcode::IteratorDone`
+///
+/// Operation:
+///  - Returns `true` if the current iterator is done, or `false` otherwise
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorDone;
+
+impl Operation for IteratorDone {
+    const NAME: &'static str = "IteratorDone";
+    const INSTRUCTION: &'static str = "INST - IteratorDone";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let done = context
+            .vm
+            .frame()
+            .iterators
+            .last()
+            .expect("iterator on the call frame must exist")
+            .done();
+
+        context.vm.push(done);
+
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `IteratorReturn` implements the Opcode Operation for `Opcode::IteratorReturn`
+///
+/// Operation:
+///  - Calls `return` on the current iterator and returns the result.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorReturn;
+
+impl Operation for IteratorReturn {
+    const NAME: &'static str = "IteratorReturn";
+    const INSTRUCTION: &'static str = "INST - IteratorReturn";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let record = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .expect("iterator on the call frame must exist");
+
+        let Some(ret) = record.iterator().get_method(js_string!("return"), context)? else {
+            context.vm.push(false);
+            return Ok(CompletionType::Normal);
+        };
+
+        let value = ret.call(&record.iterator().clone().into(), &[], context)?;
+
+        context.vm.push(value);
+        context.vm.push(true);
+
         Ok(CompletionType::Normal)
     }
 }
@@ -178,83 +200,78 @@ impl Operation for IteratorToArray {
     const INSTRUCTION: &'static str = "INST - IteratorToArray";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let next_method = context.vm.pop();
-        let iterator = context.vm.pop();
-        let iterator = iterator.as_object().expect("iterator was not an object");
-
-        let iterator_record = IteratorRecord::new(iterator.clone(), next_method.clone(), false);
-        let mut values = Vec::new();
-
-        let err = loop {
-            match iterator_record.step(context) {
-                Ok(Some(result)) => match result.value(context) {
-                    Ok(value) => values.push(value),
-                    Err(err) => break Some(err),
-                },
-                Ok(None) => break None,
-                Err(err) => break Some(err),
-            }
-        };
-
-        context
+        let mut iterator = context
             .vm
             .frame_mut()
             .iterators
-            .last_mut()
-            .expect("should exist")
-            .1 = true;
-        if let Some(err) = err {
-            return Err(err);
+            .pop()
+            .expect("iterator on the call frame must exist");
+
+        let mut values = Vec::new();
+
+        loop {
+            let done = match iterator.step(context) {
+                Ok(done) => done,
+                Err(err) => {
+                    context.vm.frame_mut().iterators.push(iterator);
+                    return Err(err);
+                }
+            };
+
+            if done {
+                break;
+            }
+
+            match iterator.value(context) {
+                Ok(value) => values.push(value),
+                Err(err) => {
+                    context.vm.frame_mut().iterators.push(iterator);
+                    return Err(err);
+                }
+            }
         }
+
+        context.vm.frame_mut().iterators.push(iterator);
 
         let array = Array::create_array_from_list(values, context);
 
-        context.vm.push(iterator.clone());
-        context.vm.push(next_method);
         context.vm.push(array);
+
         Ok(CompletionType::Normal)
     }
 }
 
-/// `IteratorClosePush` implements the Opcode Operation for `Opcode::IteratorClosePush`
-///
-/// Operation:
-///  - Push an iterator to the call frame close iterator stack.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct IteratorClosePush;
-
-impl Operation for IteratorClosePush {
-    const NAME: &'static str = "IteratorClosePush";
-    const INSTRUCTION: &'static str = "INST - IteratorClosePush";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let next_method = context.vm.pop();
-        let iterator = context.vm.pop();
-        let iterator_object = iterator.as_object().expect("iterator was not an object");
-        context
-            .vm
-            .frame_mut()
-            .iterators
-            .push((iterator_object.clone(), false));
-        context.vm.push(iterator);
-        context.vm.push(next_method);
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `IteratorClosePop` implements the Opcode Operation for `Opcode::IteratorClosePop`
+/// `IteratorPop` implements the Opcode Operation for `Opcode::IteratorPop`
 ///
 /// Operation:
 ///  - Pop an iterator from the call frame close iterator stack.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct IteratorClosePop;
+pub(crate) struct IteratorPop;
 
-impl Operation for IteratorClosePop {
-    const NAME: &'static str = "IteratorClosePop";
-    const INSTRUCTION: &'static str = "INST - IteratorClosePop";
+impl Operation for IteratorPop {
+    const NAME: &'static str = "IteratorPop";
+    const INSTRUCTION: &'static str = "INST - IteratorPop";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         context.vm.frame_mut().iterators.pop();
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `IteratorStackEmpty` implements the Opcode Operation for `Opcode::IteratorStackEmpty`
+///
+/// Operation:
+/// - Pushes `true` to the stack if the iterator stack is empty.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorStackEmpty;
+
+impl Operation for IteratorStackEmpty {
+    const NAME: &'static str = "IteratorStackEmpty";
+    const INSTRUCTION: &'static str = "INST - IteratorStackEmpty";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let is_empty = context.vm.frame().iterators.is_empty();
+        context.vm.push(is_empty);
         Ok(CompletionType::Normal)
     }
 }

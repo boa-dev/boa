@@ -4,6 +4,29 @@ use crate::{
     Context, JsResult,
 };
 
+/// `IteratorLoopStart` implements the Opcode Operation for `Opcode::IteratorLoopStart`
+///
+/// Operation:
+///  - Push iterator loop start marker.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorLoopStart;
+
+impl Operation for IteratorLoopStart {
+    const NAME: &'static str = "IteratorLoopStart";
+    const INSTRUCTION: &'static str = "INST - IteratorLoopStart";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let start = context.vm.read::<u32>();
+        let exit = context.vm.read::<u32>();
+
+        // Create and push loop evironment entry.
+        let entry = EnvStackEntry::new(start, exit)
+            .with_iterator_loop_flag(1, context.vm.frame().iterators.len() - 1);
+        context.vm.frame_mut().env_stack.push(entry);
+        Ok(CompletionType::Normal)
+    }
+}
+
 /// `LoopStart` implements the Opcode Operation for `Opcode::LoopStart`
 ///
 /// Operation:

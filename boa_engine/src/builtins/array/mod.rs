@@ -561,7 +561,7 @@ impl Array {
         };
 
         // c. Let iteratorRecord be ? GetIterator(items, sync, usingIterator).
-        let iterator_record =
+        let mut iterator_record =
             items.get_iterator(context, Some(IteratorHint::Sync), Some(using_iterator))?;
 
         // d. Let k be 0.
@@ -571,19 +571,16 @@ impl Array {
         //     x. Set k to k + 1.
         for k in 0..9_007_199_254_740_991_u64 {
             // iii. Let next be ? IteratorStep(iteratorRecord).
-            let next = iterator_record.step(context)?;
+            if iterator_record.step(context)? {
+                // 1. Perform ? Set(A, "length", 𝔽(k), true).
+                a.set(utf16!("length"), k, true, context)?;
+                // 2. Return A.
+                return Ok(a.into());
+            }
 
             // iv. If next is false, then
-            let Some(next) = next else {
-                    // 1. Perform ? Set(A, "length", 𝔽(k), true).
-                    a.set(utf16!("length"), k, true, context)?;
-
-                    // 2. Return A.
-                    return Ok(a.into());
-                };
-
             // v. Let nextValue be ? IteratorValue(next).
-            let next_value = next.value(context)?;
+            let next_value = iterator_record.value(context)?;
 
             // vi. If mapping is true, then
             let mapped_value = if let Some(mapfn) = mapping {

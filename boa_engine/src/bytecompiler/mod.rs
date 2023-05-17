@@ -495,10 +495,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         self.emit_opcode_with_operand(Opcode::JumpIfFalse)
     }
 
-    fn jump_if_not_undefined(&mut self) -> Label {
-        self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined)
-    }
-
     fn jump_if_null_or_undefined(&mut self) -> Label {
         self.emit_opcode_with_operand(Opcode::JumpIfNullOrUndefined)
     }

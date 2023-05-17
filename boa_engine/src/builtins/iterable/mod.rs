@@ -285,24 +285,32 @@ impl JsValue {
 
         // 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 7. Return iteratorRecord.
-        Ok(IteratorRecord::new(
-            iterator_obj.clone(),
-            next_method,
-            false,
-        ))
+        Ok(IteratorRecord::new(iterator_obj.clone(), next_method))
     }
 }
 
 /// The result of the iteration process.
-#[derive(Debug)]
+#[derive(Debug, Clone, Trace, Finalize)]
 pub struct IteratorResult {
     object: JsObject,
 }
 
 impl IteratorResult {
-    /// Create a new `IteratorResult`.
-    pub(crate) fn new(object: JsObject) -> Self {
-        Self { object }
+    /// Gets a new `IteratorResult` from a value. Returns `Err` if
+    /// the value is not a [`JsObject`]
+    pub(crate) fn from_value(value: JsValue) -> JsResult<Self> {
+        if let JsValue::Object(o) = value {
+            Ok(Self { object: o })
+        } else {
+            Err(JsNativeError::typ()
+                .with_message("next value should be an object")
+                .into())
+        }
+    }
+
+    /// Gets the inner object of this `IteratorResult`.
+    pub(crate) const fn object(&self) -> &JsObject {
+        &self.object
     }
 
     /// `IteratorComplete ( iterResult )`
@@ -362,16 +370,22 @@ pub struct IteratorRecord {
     ///
     /// Whether the iterator has been closed.
     done: bool,
+
+    /// The result of the last call to `next`.
+    last_result: IteratorResult,
 }
 
 impl IteratorRecord {
     /// Creates a new `IteratorRecord` with the given iterator object, next method and `done` flag.
     #[inline]
-    pub fn new(iterator: JsObject, next_method: JsValue, done: bool) -> Self {
+    pub fn new(iterator: JsObject, next_method: JsValue) -> Self {
         Self {
             iterator,
             next_method,
-            done,
+            done: false,
+            last_result: IteratorResult {
+                object: JsObject::with_null_proto(),
+            },
         }
     }
 
@@ -380,9 +394,32 @@ impl IteratorRecord {
         &self.iterator
     }
 
-    /// Get the `[[NextMethod]]` field of the `IteratorRecord`.
+    /// Gets the `[[NextMethod]]` field of the `IteratorRecord`.
     pub(crate) const fn next_method(&self) -> &JsValue {
         &self.next_method
+    }
+
+    /// Gets the last result object of the iterator record.
+    pub(crate) const fn last_result(&self) -> &IteratorResult {
+        &self.last_result
+    }
+
+    /// Runs `f`, setting the `done` field of this `IteratorRecord` to `true` if `f` returns
+    /// an error.
+    fn set_done_on_err<R, F>(&mut self, f: F) -> JsResult<R>
+    where
+        F: FnOnce(&mut Self) -> JsResult<R>,
+    {
+        let result = f(self);
+        if result.is_err() {
+            self.done = true;
+        }
+        result
+    }
+
+    /// Gets the current value of the `IteratorRecord`.
+    pub(crate) fn value(&mut self, context: &mut Context<'_>) -> JsResult<JsValue> {
+        self.set_done_on_err(|iter| iter.last_result.value(context))
     }
 
     /// Get the `[[Done]]` field of the `IteratorRecord`.
@@ -390,9 +427,30 @@ impl IteratorRecord {
         self.done
     }
 
-    /// Sets the `[[Done]]` field of the `IteratorRecord`.
-    pub(crate) fn set_done(&mut self, done: bool) {
-        self.done = done;
+    /// Updates the current result value of this iterator record.
+    pub(crate) fn update_result(
+        &mut self,
+        result: JsValue,
+        context: &mut Context<'_>,
+    ) -> JsResult<()> {
+        self.set_done_on_err(|iter| {
+            // 3. If Type(result) is not Object, throw a TypeError exception.
+            // 4. Return result.
+            // `IteratorResult::from_value` does this for us.
+
+            // `IteratorStep(iteratorRecord)`
+            // https://tc39.es/ecma262/#sec-iteratorstep
+
+            // 1. Let result be ? IteratorNext(iteratorRecord).
+            let result = IteratorResult::from_value(result)?;
+            // 2. Let done be ? IteratorComplete(result).
+            // 3. If done is true, return false.
+            iter.done = result.complete(context)?;
+
+            iter.last_result = result;
+
+            Ok(())
+        })
     }
 
     /// `IteratorNext ( iteratorRecord [ , value ] )`
@@ -405,63 +463,43 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
-    pub(crate) fn next(
-        &self,
+    pub(crate) fn step_with(
+        &mut self,
         value: Option<&JsValue>,
         context: &mut Context<'_>,
-    ) -> JsResult<IteratorResult> {
-        let _timer = Profiler::global().start_event("IteratorRecord::next", "iterator");
+    ) -> JsResult<bool> {
+        let _timer = Profiler::global().start_event("IteratorRecord::step_with", "iterator");
 
-        // 1. If value is not present, then
-        //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
-        // 2. Else,
-        //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
-        let result = self.next_method.call(
-            &self.iterator.clone().into(),
-            value.map_or(&[], std::slice::from_ref),
-            context,
-        )?;
+        self.set_done_on_err(|iter| {
+            // 1. If value is not present, then
+            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
+            // 2. Else,
+            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
+            let result = iter.next_method.call(
+                &iter.iterator.clone().into(),
+                value.map_or(&[], std::slice::from_ref),
+                context,
+            )?;
 
-        // 3. If Type(result) is not Object, throw a TypeError exception.
-        // 4. Return result.
-        result
-            .as_object()
-            .map(|o| IteratorResult { object: o.clone() })
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("next value should be an object")
-                    .into()
-            })
+            iter.update_result(result, context)?;
+
+            // 4. Return result.
+            Ok(iter.done)
+        })
     }
 
     /// `IteratorStep ( iteratorRecord )`
     ///
-    /// The abstract operation `IteratorStep` takes argument `iteratorRecord` (an `Iterator`
-    /// Record) and returns either a normal completion containing either an `Object` or `false`, or
-    /// a throw completion. It requests the next value from `iteratorRecord.[[Iterator]]` by
-    /// calling `iteratorRecord.[[NextMethod]]` and returns either `false` indicating that the
-    /// iterator has reached its end or the `IteratorResult` object if a next value is available.
+    /// Updates the `IteratorRecord` and returns `true` if the next result record returned
+    /// `done: true`, otherwise returns `false`. This differs slightly from the spec, but also
+    /// simplifies some logic around iterators.
     ///
     /// More information:
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorstep
-    pub(crate) fn step(&self, context: &mut Context<'_>) -> JsResult<Option<IteratorResult>> {
-        let _timer = Profiler::global().start_event("IteratorRecord::step", "iterator");
-
-        // 1. Let result be ? IteratorNext(iteratorRecord).
-        let result = self.next(None, context)?;
-
-        // 2. Let done be ? IteratorComplete(result).
-        let done = result.complete(context)?;
-
-        // 3. If done is true, return false.
-        if done {
-            return Ok(None);
-        }
-
-        // 4. Return result.
-        Ok(Some(result))
+    pub(crate) fn step(&mut self, context: &mut Context<'_>) -> JsResult<bool> {
+        self.step_with(None, context)
     }
 
     /// `IteratorClose ( iteratorRecord, completion )`
@@ -548,7 +586,7 @@ pub(crate) fn iterable_to_list(
     // a. Let iteratorRecord be ? GetIterator(items, sync, method).
     // 2. Else,
     // a. Let iteratorRecord be ? GetIterator(items, sync).
-    let iterator_record = items.get_iterator(context, Some(IteratorHint::Sync), method)?;
+    let mut iterator_record = items.get_iterator(context, Some(IteratorHint::Sync), method)?;
 
     // 3. Let values be a new empty List.
     let mut values = Vec::new();
@@ -559,9 +597,8 @@ pub(crate) fn iterable_to_list(
     //     b. If next is not false, then
     //         i. Let nextValue be ? IteratorValue(next).
     //         ii. Append nextValue to the end of the List values.
-    while let Some(next) = iterator_record.step(context)? {
-        let next_value = next.value(context)?;
-        values.push(next_value);
+    while !iterator_record.step(context)? {
+        values.push(iterator_record.value(context)?);
     }
 
     // 6. Return values.
