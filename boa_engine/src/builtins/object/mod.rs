@@ -1281,7 +1281,7 @@ impl Object {
         // 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
         // obj and performs the following steps when called:
         let closure = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_, args, obj, context| {
                     let key = args.get_or_undefined(0);

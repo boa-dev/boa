@@ -210,6 +210,21 @@ impl TryFromJs for u64 {
     }
 }
 
+impl TryFromJs for usize {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Integer(i) => (*i).try_into().map_err(|e| {
+                JsNativeError::typ()
+                    .with_message(format!("cannot convert value to a usize: {e}"))
+                    .into()
+            }),
+            _ => Err(JsNativeError::typ()
+                .with_message("cannot convert value to a usize")
+                .into()),
+        }
+    }
+}
+
 impl TryFromJs for i128 {
     fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
         match value {

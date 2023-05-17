@@ -319,7 +319,7 @@ impl AsyncFromSyncIterator {
         // that captures done and performs the following steps when called:
         // 9. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, "", « »).
         let on_fulfilled = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure(move |_this, args, context| {
                 // a. Return CreateIterResultObject(value, done).
                 Ok(create_iter_result_object(

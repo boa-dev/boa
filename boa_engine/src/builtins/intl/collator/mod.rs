@@ -441,7 +441,7 @@ impl Collator {
             f
         } else {
             let bound_compare = FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 // 10.3.3.1. Collator Compare Functions
                 // https://tc39.es/ecma402/#sec-collator-compare-functions
                 NativeFunction::from_copy_closure_with_captures(

@@ -1267,7 +1267,7 @@ impl SourceTextModule {
         // 4. Let fulfilledClosure be a new Abstract Closure with no parameters that captures module and performs the following steps when called:
         // 5. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, "", « »).
         let on_fulfilled = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_, _, module, context| {
                     //     a. Perform AsyncModuleExecutionFulfilled(module).
@@ -1283,7 +1283,7 @@ impl SourceTextModule {
         // 6. Let rejectedClosure be a new Abstract Closure with parameters (error) that captures module and performs the following steps when called:
         // 7. Let onRejected be CreateBuiltinFunction(rejectedClosure, 0, "", « »).
         let on_rejected = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_, args, module, context| {
                     let error = JsError::from_opaque(args.get_or_undefined(0).clone());

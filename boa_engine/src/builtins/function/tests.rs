@@ -145,7 +145,7 @@ fn closure_capture_clone() {
                 .unwrap();
 
             let func = FunctionObjectBuilder::new(
-                ctx,
+                ctx.realm(),
                 NativeFunction::from_copy_closure_with_captures(
                     |_, _, captures, context| {
                         let (string, object) = &captures;
