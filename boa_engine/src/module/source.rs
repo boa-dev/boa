@@ -86,24 +86,32 @@ enum Status {
 }
 
 // SAFETY: This must be synced with `Status` to mark any new data added that needs to be traced.
-// This implementation is necessary to be able to transition from one state to another by destructuring,
-// which saves us some unnecessary clones.
+// `Status` doesn't implement `Drop`, making this manual implementation safe.
+//
+// The `Trace` macro adds an empty `Drop` implementation to encourage using `Finalize` instead.
+// However, this has the downside of disallowing destructuring, which is pretty
+// useful to have for state machines like `Status`. This is solved by manually implementing
+// `Trace`.
 unsafe impl Trace for Status {
     custom_trace!(this, {
         match this {
-            Status::Unlinked | Status::Linking { .. } | Status::Linked { .. } => {}
-            Status::PreLinked { context, .. } => mark(context),
+            Status::Unlinked | Status::Linking { info: _ } => {}
+            Status::PreLinked { context, info: _ } | Status::Linked { context, info: _ } => {
+                mark(context);
+            }
             Status::Evaluating {
                 top_level_capability,
                 cycle_root,
                 context,
-                ..
+                info: _,
+                async_eval_index: _,
             }
             | Status::EvaluatingAsync {
                 top_level_capability,
                 cycle_root,
                 context,
-                ..
+                pending_async_dependencies: _,
+                async_eval_index: _,
             } => {
                 mark(top_level_capability);
                 mark(cycle_root);
@@ -325,11 +333,11 @@ impl SourceTextModule {
                             _ => None,
                         })
                     {
-                        //  3. Else,
-                        //      a. NOTE: This is a re-export of a single name.
-                        //      b. Append the ExportEntry Record { [[ModuleRequest]]: ie.[[ModuleRequest]],
-                        //         [[ImportName]]: ie.[[ImportName]], [[LocalName]]: null,
-                        //         [[ExportName]]: ee.[[ExportName]] } to indirectExportEntries.
+                        // 3. Else,
+                        //    a. NOTE: This is a re-export of a single name.
+                        //    b. Append the ExportEntry Record { [[ModuleRequest]]: ie.[[ModuleRequest]],
+                        //       [[ImportName]]: ie.[[ImportName]], [[LocalName]]: null,
+                        //       [[ExportName]]: ee.[[ExportName]] } to indirectExportEntries.
                         indirect_export_entries.push(IndirectExportEntry::new(
                             module,
                             ReExportImportName::Name(import),
@@ -337,22 +345,22 @@ impl SourceTextModule {
                         ));
                     } else {
                         // i. If importedBoundNames does not contain ee.[[LocalName]], then
-                        //     1. Append ee to localExportEntries.
+                        //    1. Append ee to localExportEntries.
 
-                        //     2. If ie.[[ImportName]] is namespace-object, then
-                        //         a. NOTE: This is a re-export of an imported module namespace object.
-                        //         b. Append ee to localExportEntries.
+                        //    2. If ie.[[ImportName]] is namespace-object, then
+                        //       a. NOTE: This is a re-export of an imported module namespace object.
+                        //       b. Append ee to localExportEntries.
                         local_export_entries.push(entry);
                     }
                 }
                 // b. Else if ee.[[ImportName]] is all-but-default, then
                 ExportEntry::StarReExport { module_request } => {
-                    //     i. Assert: ee.[[ExportName]] is null.
-                    //     ii. Append ee to starExportEntries.
+                    // i. Assert: ee.[[ExportName]] is null.
+                    // ii. Append ee to starExportEntries.
                     star_export_entries.push(module_request);
                 }
                 // c. Else,
-                //     i. Append ee to indirectExportEntries.
+                //    i. Append ee to indirectExportEntries.
                 ExportEntry::ReExport(entry) => indirect_export_entries.push(entry),
             }
         }
@@ -411,17 +419,17 @@ impl SourceTextModule {
                 .set(state.pending_modules.get() + requested.len());
             // d. For each String required of module.[[RequestedModules]], do
             for &required in requested {
-                //     i. If module.[[LoadedModules]] contains a Record whose [[Specifier]] is required, then
+                // i. If module.[[LoadedModules]] contains a Record whose [[Specifier]] is required, then
                 let loaded = self.inner.loaded_modules.borrow().get(&required).cloned();
                 if let Some(loaded) = loaded {
-                    //         1. Let record be that Record.
-                    //         2. Perform InnerModuleLoading(state, record.[[Module]]).
+                    // 1. Let record be that Record.
+                    // 2. Perform InnerModuleLoading(state, record.[[Module]]).
                     loaded.inner_load(state, context);
                 } else {
-                    //     ii. Else,
-                    //         1. Perform HostLoadImportedModule(module, required, state.[[HostDefined]], state).
-                    //         2. NOTE: HostLoadImportedModule will call FinishLoadingImportedModule, which re-enters
-                    //            the graph loading process through ContinueModuleLoading.
+                    //    ii. Else,
+                    //       1. Perform HostLoadImportedModule(module, required, state.[[HostDefined]], state).
+                    //       2. NOTE: HostLoadImportedModule will call FinishLoadingImportedModule, which re-enters
+                    //          the graph loading process through ContinueModuleLoading.
                     let name_specifier: JsString = context
                         .interner()
                         .resolve_expect(required)
@@ -439,13 +447,13 @@ impl SourceTextModule {
                             if let Ok(loaded) = &completion {
                                 // a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
                                 // b. Else,
-                                //     i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
+                                //    i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
                                 let mut loaded_modules = src.inner.loaded_modules.borrow_mut();
                                 let entry = loaded_modules
                                     .entry(required)
                                     .or_insert_with(|| loaded.clone());
 
-                                //     i. Assert: That Record's [[Module]] is result.[[Value]].
+                                //    i. Assert: That Record's [[Module]] is result.[[Value]].
                                 debug_assert_eq!(entry, loaded);
                             }
 
@@ -490,7 +498,7 @@ impl SourceTextModule {
                         context,
                     );
                 }
-                //     iii. If state.[[IsLoading]] is false, return unused.
+                // iii. If state.[[IsLoading]] is false, return unused.
                 if !state.loading.get() {
                     return;
                 }
@@ -510,8 +518,8 @@ impl SourceTextModule {
 
         // 3. If exportStarSet contains module, then
         if export_star_set.contains(self) {
-            //     a. Assert: We've reached the starting point of an export * circularity.
-            //     b. Return a new empty List.
+            // a. Assert: We've reached the starting point of an export * circularity.
+            // b. Return a new empty List.
             return FxHashSet::default();
         }
 
@@ -523,30 +531,30 @@ impl SourceTextModule {
 
         // 6. For each ExportEntry Record e of module.[[LocalExportEntries]], do
         for e in &self.inner.code.local_export_entries {
-            //     a. Assert: module provides the direct binding for this export.
-            //     b. Append e.[[ExportName]] to exportedNames.
+            // a. Assert: module provides the direct binding for this export.
+            // b. Append e.[[ExportName]] to exportedNames.
             exported_names.insert(e.export_name());
         }
 
         // 7. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
         for e in &self.inner.code.indirect_export_entries {
-            //     a. Assert: module imports a specific binding for this export.
-            //     b. Append e.[[ExportName]] to exportedNames.
+            // a. Assert: module imports a specific binding for this export.
+            // b. Append e.[[ExportName]] to exportedNames.
             exported_names.insert(e.export_name());
         }
 
         // 8. For each ExportEntry Record e of module.[[StarExportEntries]], do
         for e in &self.inner.code.star_export_entries {
-            //     a. Let requestedModule be GetImportedModule(module, e.[[ModuleRequest]]).
+            // a. Let requestedModule be GetImportedModule(module, e.[[ModuleRequest]]).
             let requested_module = self.inner.loaded_modules.borrow()[e].clone();
 
-            //     b. Let starNames be requestedModule.GetExportedNames(exportStarSet).
-            //     c. For each element n of starNames, do
+            // b. Let starNames be requestedModule.GetExportedNames(exportStarSet).
+            // c. For each element n of starNames, do
             for n in requested_module.get_exported_names(export_star_set) {
-                //         i. If SameValue(n, "default") is false, then
+                // i. If SameValue(n, "default") is false, then
                 if n != Sym::DEFAULT {
-                    //             1. If exportedNames does not contain n, then
-                    //                 a. Append n to exportedNames.
+                    // 1. If exportedNames does not contain n, then
+                    //    a. Append n to exportedNames.
                     exported_names.insert(n);
                 }
             }
@@ -569,10 +577,10 @@ impl SourceTextModule {
         // 1. Assert: module.[[Status]] is not new.
         // 2. If resolveSet is not present, set resolveSet to a new empty List.
         // 3. For each Record { [[Module]], [[ExportName]] } r of resolveSet, do
-        //     a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
+        //    a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
         if resolve_set.contains(&(parent.clone(), export_name)) {
-            //         i. Assert: This is a circular import request.
-            //         ii. Return null.
+            //   i. Assert: This is a circular import request.
+            //   ii. Return null.
             return Err(ResolveExportError::NotFound);
         }
 
@@ -581,10 +589,10 @@ impl SourceTextModule {
 
         // 5. For each ExportEntry Record e of module.[[LocalExportEntries]], do
         for e in &self.inner.code.local_export_entries {
-            //     a. If SameValue(exportName, e.[[ExportName]]) is true, then
+            // a. If SameValue(exportName, e.[[ExportName]]) is true, then
             if export_name == e.export_name() {
-                //         i. Assert: module provides the direct binding for this export.
-                //         ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
+                // i. Assert: module provides the direct binding for this export.
+                // ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
                 return Ok(ResolvedBinding {
                     module: parent,
                     binding_name: BindingName::Name(e.local_name()),
@@ -594,22 +602,22 @@ impl SourceTextModule {
 
         // 6. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
         for e in &self.inner.code.indirect_export_entries {
-            //     a. If SameValue(exportName, e.[[ExportName]]) is true, then
+            // a. If SameValue(exportName, e.[[ExportName]]) is true, then
             if export_name == e.export_name() {
-                //         i. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
+                // i. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
                 let imported_module =
                     self.inner.loaded_modules.borrow()[&e.module_request()].clone();
                 return match e.import_name() {
-                    //         ii. If e.[[ImportName]] is all, then
-                    //             1. Assert: module does not provide the direct binding for this export.
-                    //             2. Return ResolvedBinding Record { [[Module]]: importedModule, [[BindingName]]: namespace }.
+                    // ii. If e.[[ImportName]] is all, then
+                    //    1. Assert: module does not provide the direct binding for this export.
+                    //    2. Return ResolvedBinding Record { [[Module]]: importedModule, [[BindingName]]: namespace }.
                     ReExportImportName::Star => Ok(ResolvedBinding {
                         module: imported_module,
                         binding_name: BindingName::Namespace,
                     }),
-                    //         iii. Else,
-                    //             1. Assert: module imports a specific binding for this export.
-                    //             2. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
+                    // iii. Else,
+                    //    1. Assert: module imports a specific binding for this export.
+                    //    2. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
                     ReExportImportName::Name(_) => {
                         imported_module.resolve_export(export_name, resolve_set)
                     }
@@ -619,9 +627,9 @@ impl SourceTextModule {
 
         // 7. If SameValue(exportName, "default") is true, then
         if export_name == Sym::DEFAULT {
-            //     a. Assert: A default export was not explicitly defined by this module.
-            //     b. Return null.
-            //     c. NOTE: A default export cannot be provided by an export * from "mod" declaration.
+            // a. Assert: A default export was not explicitly defined by this module.
+            // b. Return null.
+            // c. NOTE: A default export cannot be provided by an export * from "mod" declaration.
             return Err(ResolveExportError::NotFound);
         }
 
@@ -630,45 +638,45 @@ impl SourceTextModule {
 
         // 9. For each ExportEntry Record e of module.[[StarExportEntries]], do
         for e in &self.inner.code.star_export_entries {
-            //     a. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
+            // a. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
             let imported_module = self.inner.loaded_modules.borrow()[e].clone();
-            //     b. Let resolution be importedModule.ResolveExport(exportName, resolveSet).
+            // b. Let resolution be importedModule.ResolveExport(exportName, resolveSet).
             let resolution = match imported_module.resolve_export(export_name, resolve_set) {
-                //     d. If resolution is not null, then
+                // d. If resolution is not null, then
                 Ok(resolution) => resolution,
-                //     c. If resolution is ambiguous, return ambiguous.
+                // c. If resolution is ambiguous, return ambiguous.
                 Err(e @ ResolveExportError::Ambiguous) => return Err(e),
                 Err(ResolveExportError::NotFound) => continue,
             };
 
-            //         i. Assert: resolution is a ResolvedBinding Record.
+            // i. Assert: resolution is a ResolvedBinding Record.
             if let Some(star_resolution) = &star_resolution {
-                //         iii. Else,
-                //             1. Assert: There is more than one * import that includes the requested name.
-                //             2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record,
-                //                return ambiguous.
+                // iii. Else,
+                //    1. Assert: There is more than one * import that includes the requested name.
+                //    2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record,
+                //       return ambiguous.
                 if resolution.module != star_resolution.module {
                     return Err(ResolveExportError::Ambiguous);
                 }
                 match (resolution.binding_name, star_resolution.binding_name) {
-                    //             3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
-                    //                resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
-                    //                return ambiguous.
+                    // 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
+                    //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
+                    //    return ambiguous.
                     (BindingName::Namespace, BindingName::Name(_))
                     | (BindingName::Name(_), BindingName::Namespace) => {
                         return Err(ResolveExportError::Ambiguous);
                     }
-                    //             4. If resolution.[[BindingName]] is a String, starResolution.[[BindingName]] is a
-                    //                String, and SameValue(resolution.[[BindingName]], starResolution.[[BindingName]])
-                    //                is false, return ambiguous.
+                    // 4. If resolution.[[BindingName]] is a String, starResolution.[[BindingName]] is a
+                    //    String, and SameValue(resolution.[[BindingName]], starResolution.[[BindingName]])
+                    //    is false, return ambiguous.
                     (BindingName::Name(res), BindingName::Name(star)) if res != star => {
                         return Err(ResolveExportError::Ambiguous);
                     }
                     _ => {}
                 }
             } else {
-                //         ii. If starResolution is null, then
-                //             1. Set starResolution to resolution.
+                // ii. If starResolution is null, then
+                //    1. Set starResolution to resolution.
                 star_resolution = Some(resolution);
             }
         }
@@ -696,16 +704,16 @@ impl SourceTextModule {
         // 3. Let result be Completion(InnerModuleLinking(module, stack, 0)).
         // 4. If result is an abrupt completion, then
         if let Err(err) = self.inner_link(&mut stack, 0, context) {
-            //     a. For each Cyclic Module Record m of stack, do
+            // a. For each Cyclic Module Record m of stack, do
             for m in stack {
-                //         i. Assert: m.[[Status]] is linking.
+                // i. Assert: m.[[Status]] is linking.
                 debug_assert!(matches!(&*m.inner.status.borrow(), Status::Linking { .. }));
-                //         ii. Set m.[[Status]] to unlinked.
+                // ii. Set m.[[Status]] to unlinked.
                 *m.inner.status.borrow_mut() = Status::Unlinked;
             }
-            //     b. Assert: module.[[Status]] is unlinked.
+            // b. Assert: module.[[Status]] is unlinked.
             assert!(matches!(&*self.inner.status.borrow(), Status::Unlinked));
-            //     c. Return ? result.
+            // c. Return ? result.
             return Err(err);
         }
 
@@ -739,7 +747,7 @@ impl SourceTextModule {
                 | Status::EvaluatingAsync { .. }
                 | Status::Evaluated { .. }
         ) {
-            //     a. Return index.
+            // a. Return index.
             return Ok(index);
         }
 
@@ -765,15 +773,15 @@ impl SourceTextModule {
         // 9. For each String required of module.[[RequestedModules]], do
 
         for required in &self.inner.code.requested_modules {
-            //     a. Let requiredModule be GetImportedModule(module, required).
+            // a. Let requiredModule be GetImportedModule(module, required).
             let required_module = self.inner.loaded_modules.borrow()[required].clone();
 
-            //     b. Set index to ? InnerModuleLinking(requiredModule, stack, index).
+            // b. Set index to ? InnerModuleLinking(requiredModule, stack, index).
             index = required_module.inner_link(stack, index, context)?;
-            //     c. If requiredModule is a Cyclic Module Record, then
+            // c. If requiredModule is a Cyclic Module Record, then
             if let ModuleKind::SourceText(required_module) = required_module.kind() {
-                //         i. Assert: requiredModule.[[Status]] is one of linking, linked, evaluating-async, or evaluated.
-                //         ii. Assert: requiredModule.[[Status]] is linking if and only if stack contains requiredModule.
+                // i. Assert: requiredModule.[[Status]] is one of linking, linked, evaluating-async, or evaluated.
+                // ii. Assert: requiredModule.[[Status]] is linking if and only if stack contains requiredModule.
                 debug_assert!(match &*required_module.inner.status.borrow() {
                     Status::PreLinked { .. }
                     | Status::Linked { .. }
@@ -783,7 +791,7 @@ impl SourceTextModule {
                     _ => false,
                 });
 
-                //         iii. If requiredModule.[[Status]] is linking, then
+                // iii. If requiredModule.[[Status]] is linking, then
                 let required_index = if let Status::Linking {
                     info:
                         DfsInfo {
@@ -791,8 +799,8 @@ impl SourceTextModule {
                         },
                 } = &*required_module.inner.status.borrow()
                 {
-                    //             1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]],
-                    //                requiredModule.[[DFSAncestorIndex]]).
+                    // 1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]],
+                    //    requiredModule.[[DFSAncestorIndex]]).
 
                     Some(*dfs_ancestor_index)
                 } else {
@@ -839,11 +847,11 @@ impl SourceTextModule {
             //     a. Let done be false.
             //     b. Repeat, while done is false,
             Some(info) if info.dfs_ancestor_index == info.dfs_index => loop {
-                //         i. Let requiredModule be the last element of stack.
-                //         ii. Remove the last element of stack.
-                //         iii. Assert: requiredModule is a Cyclic Module Record.
+                //    i. Let requiredModule be the last element of stack.
+                //    ii. Remove the last element of stack.
+                //    iii. Assert: requiredModule is a Cyclic Module Record.
                 let last = stack.pop().expect("should have at least one element");
-                //         iv. Set requiredModule.[[Status]] to linked.
+                //    iv. Set requiredModule.[[Status]] to linked.
                 last.inner
                     .status
                     .borrow_mut()
@@ -856,7 +864,7 @@ impl SourceTextModule {
                         }
                     });
 
-                //         v. If requiredModule and module are the same Module Record, set done to true.
+                //    v. If requiredModule and module are the same Module Record, set done to true.
                 if &last == self {
                     break;
                 }
@@ -928,15 +936,15 @@ impl SourceTextModule {
                 //     a. Assert: module.[[Status]] is either evaluating-async or evaluated.
                 assert!(match &*module.inner.status.borrow() {
                     Status::EvaluatingAsync { .. } => true,
-                    //     b. Assert: module.[[EvaluationError]] is empty.
+                    // b. Assert: module.[[EvaluationError]] is empty.
                     Status::Evaluated { error, .. } if error.is_none() => true,
                     _ => false,
                 });
 
                 //     c. If module.[[AsyncEvaluation]] is false, then
                 if matches!(&*module.inner.status.borrow(), Status::Evaluated { .. }) {
-                    //         i. Assert: module.[[Status]] is evaluated.
-                    //         ii. Perform ! Call(capability.[[Resolve]], undefined, « undefined »).
+                    //    i. Assert: module.[[Status]] is evaluated.
+                    //    ii. Perform ! Call(capability.[[Resolve]], undefined, « undefined »).
                     capability
                         .resolve()
                         .call(&JsValue::undefined(), &[], context)
@@ -1070,15 +1078,15 @@ impl SourceTextModule {
 
         // 11. For each String required of module.[[RequestedModules]], do
         for &required in &self.inner.code.requested_modules {
-            //     a. Let requiredModule be GetImportedModule(module, required).
+            // a. Let requiredModule be GetImportedModule(module, required).
             let required_module = self.inner.loaded_modules.borrow()[&required].clone();
-            //     b. Set index to ? InnerModuleEvaluation(requiredModule, stack, index).
+            // b. Set index to ? InnerModuleEvaluation(requiredModule, stack, index).
             index = required_module.inner_evaluate(stack, index, context)?;
 
-            //     c. If requiredModule is a Cyclic Module Record, then
+            // c. If requiredModule is a Cyclic Module Record, then
             if let ModuleKind::SourceText(required_module) = required_module.kind() {
-                //         i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated.
-                //         ii. Assert: requiredModule.[[Status]] is evaluating if and only if stack contains requiredModule.
+                // i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated.
+                // ii. Assert: requiredModule.[[Status]] is evaluating if and only if stack contains requiredModule.
                 debug_assert!(match &*required_module.inner.status.borrow() {
                     Status::EvaluatingAsync { .. } | Status::Evaluated { .. } => true,
                     Status::Evaluating { .. } if stack.contains(required_module) => true,
@@ -1086,23 +1094,23 @@ impl SourceTextModule {
                 });
 
                 let (required_module, async_eval, req_info) = match &*required_module.inner.status.borrow() {
-                    //         iii. If requiredModule.[[Status]] is evaluating, then
+                    // iii. If requiredModule.[[Status]] is evaluating, then
                     Status::Evaluating {
                         info,
                         async_eval_index,
                         ..
                     } => {
-                        //             1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
+                        // 1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
                         (required_module.clone(), async_eval_index.is_some(), Some(*info))
                     }
-                    //         iv. Else,
+                    // iv. Else,
                     Status::EvaluatingAsync { cycle_root, .. }
                     | Status::Evaluated { cycle_root, .. } => {
-                        //             1. Set requiredModule to requiredModule.[[CycleRoot]].
-                        //             2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated.
+                        // 1. Set requiredModule to requiredModule.[[CycleRoot]].
+                        // 2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated.
                         match &*cycle_root.inner.status.borrow() {
                             Status::EvaluatingAsync { .. } => (cycle_root.clone(), true, None),
-                            //             3. If requiredModule.[[EvaluationError]] is not empty, return ? requiredModule.[[EvaluationError]].
+                            // 3. If requiredModule.[[EvaluationError]] is not empty, return ? requiredModule.[[EvaluationError]].
                             Status::Evaluated { error: Some(error), .. } => return Err(error.clone()),
                             Status::Evaluated { .. } => (cycle_root.clone(), false, None),
                             _ => unreachable!("2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated."),
@@ -1120,11 +1128,11 @@ impl SourceTextModule {
                         usize::min(info.dfs_ancestor_index, req_info.dfs_ancestor_index);
                 }
 
-                //         v. If requiredModule.[[AsyncEvaluation]] is true, then
+                // v. If requiredModule.[[AsyncEvaluation]] is true, then
                 if async_eval {
-                    //             1. Set module.[[PendingAsyncDependencies]] to module.[[PendingAsyncDependencies]] + 1.
+                    // 1. Set module.[[PendingAsyncDependencies]] to module.[[PendingAsyncDependencies]] + 1.
                     pending_async_dependencies += 1;
-                    //             2. Append module to requiredModule.[[AsyncParentModules]].
+                    // 2. Append module to requiredModule.[[AsyncParentModules]].
                     required_module
                         .inner
                         .async_parent_modules
@@ -1136,14 +1144,14 @@ impl SourceTextModule {
 
         // 12. If module.[[PendingAsyncDependencies]] > 0 or module.[[HasTLA]] is true, then
         if pending_async_dependencies > 0 || self.inner.code.has_tla {
-            //     a. Assert: module.[[AsyncEvaluation]] is false and was never previously set to true.
+            // a. Assert: module.[[AsyncEvaluation]] is false and was never previously set to true.
             {
                 let Status::Evaluating { async_eval_index, .. } = &mut *self.inner.status.borrow_mut() else {
                     unreachable!("self should still be in the evaluating state")
                 };
 
-                //     b. Set module.[[AsyncEvaluation]] to true.
-                //     c. NOTE: The order in which module records have their [[AsyncEvaluation]] fields transition to true is significant. (See 16.2.1.5.3.4.)
+                // b. Set module.[[AsyncEvaluation]] to true.
+                // c. NOTE: The order in which module records have their [[AsyncEvaluation]] fields transition to true is significant. (See 16.2.1.5.3.4.)
                 *async_eval_index = Some(get_async_eval_index()?);
             }
 
@@ -1153,7 +1161,7 @@ impl SourceTextModule {
             }
         } else {
             // 13. Else,
-            //     a. Perform ? module.ExecuteModule().
+            //    a. Perform ? module.ExecuteModule().
             self.execute(None, context)?;
         }
 
@@ -1168,17 +1176,17 @@ impl SourceTextModule {
 
         // 16. If module.[[DFSAncestorIndex]] = module.[[DFSIndex]], then
         if dfs_info.dfs_ancestor_index == dfs_info.dfs_index {
-            //     a. Let done be false.
-            //     b. Repeat, while done is false,
+            // a. Let done be false.
+            // b. Repeat, while done is false,
             loop {
-                //         i. Let requiredModule be the last element of stack.
-                //         ii. Remove the last element of stack.
+                // i. Let requiredModule be the last element of stack.
+                // ii. Remove the last element of stack.
                 let required_module = stack
                     .pop()
                     .expect("should at least have `self` in the stack");
                 let is_self = self == &required_module;
 
-                //         iii. Assert: requiredModule is a Cyclic Module Record.
+                // iii. Assert: requiredModule is a Cyclic Module Record.
                 required_module.inner.status.borrow_mut().transition(|current| match current {
                 Status::Evaluating {
                             top_level_capability,
@@ -1187,10 +1195,10 @@ impl SourceTextModule {
                             context,
                             ..
                         } => if let Some(async_eval_index) = async_eval_index {
-                            //         v. Otherwise, set requiredModule.[[Status]] to evaluating-async.
+                            // v. Otherwise, set requiredModule.[[Status]] to evaluating-async.
                             Status::EvaluatingAsync {
                                 top_level_capability,
-                                //         vii. Set requiredModule.[[CycleRoot]] to module.
+                                // vii. Set requiredModule.[[CycleRoot]] to module.
                                 cycle_root: if is_self {
                                     cycle_root
                                 } else {
@@ -1201,7 +1209,7 @@ impl SourceTextModule {
                                 context
                             }
                         } else {
-                            //         iv. If requiredModule.[[AsyncEvaluation]] is false, set requiredModule.[[Status]] to evaluated.
+                            // iv. If requiredModule.[[AsyncEvaluation]] is false, set requiredModule.[[Status]] to evaluated.
                             Status::Evaluated {
                                 top_level_capability,
                                 cycle_root: if is_self {
@@ -1218,7 +1226,7 @@ impl SourceTextModule {
                     }
                 );
 
-                //         vi. If requiredModule and module are the same Module Record, set done to true.
+                // vi. If requiredModule and module are the same Module Record, set done to true.
                 if is_self {
                     break;
                 }
@@ -1271,9 +1279,9 @@ impl SourceTextModule {
             NativeFunction::from_copy_closure_with_captures(
                 |_, args, module, context| {
                     let error = JsError::from_opaque(args.get_or_undefined(0).clone());
-                    //     a. Perform AsyncModuleExecutionRejected(module, error).
+                    // a. Perform AsyncModuleExecutionRejected(module, error).
                     async_module_execution_rejected(module, &error, context);
-                    //     b. Return undefined.
+                    // b. Return undefined.
                     Ok(JsValue::undefined())
                 },
                 self.clone(),
@@ -1303,39 +1311,39 @@ impl SourceTextModule {
     fn gather_available_ancestors(&self, exec_list: &mut FxHashSet<Self>) {
         // 1. For each Cyclic Module Record m of module.[[AsyncParentModules]], do
         for m in &*self.inner.async_parent_modules.borrow() {
-            //     a. If execList does not contain m and m.[[CycleRoot]].[[EvaluationError]] is empty, then
-            // 2. Return unused.
+            // a. If execList does not contain m and m.[[CycleRoot]].[[EvaluationError]] is empty, then
             if !exec_list.contains(m)
                 && m.inner.status.borrow().cycle_root().map_or(false, |cr| {
                     cr.inner.status.borrow().evaluation_error().is_none()
                 })
             {
                 let (deps, has_tla) = {
-                    //         i. Assert: m.[[Status]] is evaluating-async.
-                    //         ii. Assert: m.[[EvaluationError]] is empty.
-                    //         iii. Assert: m.[[AsyncEvaluation]] is true.
+                    // i. Assert: m.[[Status]] is evaluating-async.
+                    // ii. Assert: m.[[EvaluationError]] is empty.
+                    // iii. Assert: m.[[AsyncEvaluation]] is true.
                     let Status::EvaluatingAsync { pending_async_dependencies, .. } = &mut *m.inner.status.borrow_mut() else {
                         unreachable!("i. Assert: m.[[Status]] is evaluating-async.");
                     };
-                    //         iv. Assert: m.[[PendingAsyncDependencies]] > 0.
+                    // iv. Assert: m.[[PendingAsyncDependencies]] > 0.
                     assert!(*pending_async_dependencies > 0);
 
-                    //         v. Set m.[[PendingAsyncDependencies]] to m.[[PendingAsyncDependencies]] - 1.
+                    // v. Set m.[[PendingAsyncDependencies]] to m.[[PendingAsyncDependencies]] - 1.
                     *pending_async_dependencies -= 1;
                     (*pending_async_dependencies, m.inner.code.has_tla)
                 };
 
-                //         vi. If m.[[PendingAsyncDependencies]] = 0, then
+                // vi. If m.[[PendingAsyncDependencies]] = 0, then
                 if deps == 0 {
-                    //             1. Append m to execList.
+                    // 1. Append m to execList.
                     exec_list.insert(m.clone());
-                    //             2. If m.[[HasTLA]] is false, perform GatherAvailableAncestors(m, execList).
+                    // 2. If m.[[HasTLA]] is false, perform GatherAvailableAncestors(m, execList).
                     if !has_tla {
                         m.gather_available_ancestors(exec_list);
                     }
                 }
             }
         }
+        // 2. Return unused.
     }
 
     /// Abstract operation [`InitializeEnvironment ( )`][spec].
@@ -1359,10 +1367,10 @@ impl SourceTextModule {
         {
             // 1. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
             for e in &self.inner.code.indirect_export_entries {
-                //     a. Let resolution be module.ResolveExport(e.[[ExportName]]).
+                // a. Let resolution be module.ResolveExport(e.[[ExportName]]).
                 parent
                     .resolve_export(e.export_name(), &mut HashSet::default())
-                    //     b. If resolution is either null or ambiguous, throw a SyntaxError exception.
+                    // b. If resolution is either null or ambiguous, throw a SyntaxError exception.
                     .map_err(|err| match err {
                         ResolveExportError::NotFound => {
                             JsNativeError::syntax().with_message(format!(
@@ -1377,7 +1385,7 @@ impl SourceTextModule {
                             ))
                         }
                     })?;
-                //     c. Assert: resolution is a ResolvedBinding Record.
+                // c. Assert: resolution is a ResolvedBinding Record.
             }
         }
 
@@ -1402,17 +1410,17 @@ impl SourceTextModule {
         let codeblock = {
             // 7. For each ImportEntry Record in of module.[[ImportEntries]], do
             for entry in &self.inner.code.import_entries {
-                //     a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
+                // a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
                 let imported_module =
                     self.inner.loaded_modules.borrow()[&entry.module_request()].clone();
 
                 if let ImportName::Name(name) = entry.import_name() {
-                    //     c. Else,
-                    //         i. Let resolution be importedModule.ResolveExport(in.[[ImportName]]).
+                    // c. Else,
+                    //    i. Let resolution be importedModule.ResolveExport(in.[[ImportName]]).
                     let resolution =
                         imported_module
                             .resolve_export(name, &mut HashSet::default())
-                            //         ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
+                            // ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
                             .map_err(|err| match err {
                                 ResolveExportError::NotFound => JsNativeError::syntax()
                                     .with_message(format!(
@@ -1426,15 +1434,15 @@ impl SourceTextModule {
                                     )),
                             })?;
 
-                    //             2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
-                    //             3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
+                    // 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
+                    // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
                     compiler.create_immutable_binding(entry.local_name(), true);
                     let locator = compiler.initialize_immutable_binding(entry.local_name());
 
                     if let BindingName::Name(_) = resolution.binding_name {
-                        //     1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
-                        //        resolution.[[BindingName]]).
-                        //        deferred to initialization below
+                        // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
+                        //    resolution.[[BindingName]]).
+                        //    deferred to initialization below
                         imports.push(ImportBinding::Single {
                             locator,
                             export_locator: resolution,
@@ -1448,14 +1456,14 @@ impl SourceTextModule {
                         });
                     }
                 } else {
-                    //     b. If in.[[ImportName]] is namespace-object, then
-                    //         ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
+                    // b. If in.[[ImportName]] is namespace-object, then
+                    //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     compiler.create_immutable_binding(entry.local_name(), true);
-                    //         iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
+                    //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
                     let locator = compiler.initialize_immutable_binding(entry.local_name());
 
-                    //          i. Let namespace be GetModuleNamespace(importedModule).
-                    //             deferred to initialization below
+                    //    i. Let namespace be GetModuleNamespace(importedModule).
+                    //       deferred to initialization below
                     imports.push(ImportBinding::Namespace {
                         locator,
                         module: imported_module.clone(),
@@ -1470,18 +1478,18 @@ impl SourceTextModule {
             let mut declared_var_names = Vec::new();
             // 21. For each element d of varDeclarations, do
             for var in var_declarations {
-                //     a. For each element dn of the BoundNames of d, do
+                // a. For each element dn of the BoundNames of d, do
                 for name in var.bound_names() {
-                    //         i. If declaredVarNames does not contain dn, then
+                    // i. If declaredVarNames does not contain dn, then
                     if !declared_var_names.contains(&name) {
-                        //             1. Perform ! env.CreateMutableBinding(dn, false).
+                        // 1. Perform ! env.CreateMutableBinding(dn, false).
                         compiler.create_mutable_binding(name, false);
-                        //             2. Perform ! env.InitializeBinding(dn, undefined).
+                        // 2. Perform ! env.InitializeBinding(dn, undefined).
                         let binding = compiler.initialize_mutable_binding(name, false);
                         let index = compiler.get_or_insert_binding(binding);
                         compiler.emit_opcode(Opcode::PushUndefined);
                         compiler.emit(Opcode::DefInitVar, &[index]);
-                        //             3. Append dn to declaredVarNames.
+                        // 3. Append dn to declaredVarNames.
                         declared_var_names.push(name);
                     }
                 }
@@ -1493,59 +1501,59 @@ impl SourceTextModule {
             // 24. For each element d of lexDeclarations, do
             for declaration in lex_declarations {
                 match &declaration {
-                    //         i. If IsConstantDeclaration of d is true, then
+                    // i. If IsConstantDeclaration of d is true, then
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
-                        //     a. For each element dn of the BoundNames of d, do
+                        // a. For each element dn of the BoundNames of d, do
                         for name in bound_names(declaration) {
-                            //             1. Perform ! env.CreateImmutableBinding(dn, true).
+                            // 1. Perform ! env.CreateImmutableBinding(dn, true).
                             compiler.create_immutable_binding(name, true);
                         }
                     }
-                    //         ii. Else,
+                    // ii. Else,
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
-                        //     a. For each element dn of the BoundNames of d, do
+                        // a. For each element dn of the BoundNames of d, do
                         for name in bound_names(declaration) {
-                            //             1. Perform ! env.CreateMutableBinding(dn, false).
+                            // 1. Perform ! env.CreateMutableBinding(dn, false).
                             compiler.create_mutable_binding(name, false);
                         }
                     }
-                    //         iii. If d is either a FunctionDeclaration, a GeneratorDeclaration, an
-                    //              AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
+                    // iii. If d is either a FunctionDeclaration, a GeneratorDeclaration, an
+                    //      AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
                     Declaration::Function(function) => {
-                        //             1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        //             2. Perform ! env.InitializeBinding(dn, fo).
+                        // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
+                        // 2. Perform ! env.InitializeBinding(dn, fo).
                         for name in bound_names(function) {
                             compiler.create_mutable_binding(name, false);
                         }
                         compiler.function(function.into(), NodeKind::Declaration, false);
                     }
                     Declaration::Generator(function) => {
-                        //             1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        //             2. Perform ! env.InitializeBinding(dn, fo).
+                        // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
+                        // 2. Perform ! env.InitializeBinding(dn, fo).
                         for name in bound_names(function) {
                             compiler.create_mutable_binding(name, false);
                         }
                         compiler.function(function.into(), NodeKind::Declaration, false);
                     }
                     Declaration::AsyncFunction(function) => {
-                        //             1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        //             2. Perform ! env.InitializeBinding(dn, fo).
+                        // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
+                        // 2. Perform ! env.InitializeBinding(dn, fo).
                         for name in bound_names(function) {
                             compiler.create_mutable_binding(name, false);
                         }
                         compiler.function(function.into(), NodeKind::Declaration, false);
                     }
                     Declaration::AsyncGenerator(function) => {
-                        //             1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        //             2. Perform ! env.InitializeBinding(dn, fo).
+                        // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
+                        // 2. Perform ! env.InitializeBinding(dn, fo).
                         for name in bound_names(function) {
                             compiler.create_mutable_binding(name, false);
                         }
                         compiler.function(function.into(), NodeKind::Declaration, false);
                     }
                     Declaration::Class(class) => {
-                        //             1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        //             2. Perform ! env.InitializeBinding(dn, fo).
+                        // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
+                        // 2. Perform ! env.InitializeBinding(dn, fo).
                         for name in bound_names(class) {
                             compiler.create_mutable_binding(name, false);
                         }
@@ -1568,8 +1576,10 @@ impl SourceTextModule {
         // 15. Set the PrivateEnvironment of moduleContext to null.
         std::mem::swap(&mut context.vm.environments, &mut envs);
         let stack = std::mem::take(&mut context.vm.stack);
+
         // 9. Set the Function of moduleContext to null.
         let active_function = context.vm.active_function.take();
+
         // 10. Assert: module.[[Realm]] is not undefined.
         // 11. Set the Realm of moduleContext to module.[[Realm]].
         context.swap_realm(&mut realm);
@@ -1579,7 +1589,7 @@ impl SourceTextModule {
         for import in imports {
             match import {
                 ImportBinding::Namespace { locator, module } => {
-                    //         i. Let namespace be GetModuleNamespace(importedModule).
+                    // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
                     context.vm.environments.put_lexical_value(
                         locator.environment_index(),
@@ -1680,14 +1690,14 @@ impl SourceTextModule {
         context.vm.push_frame(callframe);
 
         // 9. If module.[[HasTLA]] is false, then
-        //     a. Assert: capability is not present.
-        //     b. Push moduleContext onto the execution context stack; moduleContext is now the running execution context.
-        //     c. Let result be Completion(Evaluation of module.[[ECMAScriptCode]]).
-        //     d. Suspend moduleContext and remove it from the execution context stack.
-        //     e. Resume the context that is now on the top of the execution context stack as the running execution context.
+        //    a. Assert: capability is not present.
+        //    b. Push moduleContext onto the execution context stack; moduleContext is now the running execution context.
+        //    c. Let result be Completion(Evaluation of module.[[ECMAScriptCode]]).
+        //    d. Suspend moduleContext and remove it from the execution context stack.
+        //    e. Resume the context that is now on the top of the execution context stack as the running execution context.
         // 10. Else,
-        //     a. Assert: capability is a PromiseCapability Record.
-        //     b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
+        //    a. Assert: capability is a PromiseCapability Record.
+        //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
         let result = context.run();
 
         std::mem::swap(&mut context.vm.environments, &mut environments);
@@ -1698,7 +1708,7 @@ impl SourceTextModule {
 
         //     f. If result is an abrupt completion, then
         if let CompletionRecord::Throw(err) = result {
-            //         i. Return ? result.
+            //    i. Return ? result.
             Err(err)
         } else {
             // 11. Return unused.
@@ -1744,10 +1754,10 @@ fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut Con
 
     // 7. If module.[[TopLevelCapability]] is not empty, then
     if let Some(cap) = module.inner.status.borrow().top_level_capability() {
-        //     a. Assert: module.[[CycleRoot]] is module.
+        // a. Assert: module.[[CycleRoot]] is module.
         debug_assert_eq!(module.inner.status.borrow().cycle_root(), Some(module));
 
-        //     b. Perform ! Call(module.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
+        // b. Perform ! Call(module.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
         cap.resolve()
             .call(&JsValue::undefined(), &[], context)
             .expect("default `resolve` function cannot fail");
@@ -1773,30 +1783,30 @@ fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut Con
 
     // 12. For each Cyclic Module Record m of sortedExecList, do
     for m in ancestors {
-        //     a. If m.[[Status]] is evaluated, then
+        // a. If m.[[Status]] is evaluated, then
         if let Status::Evaluated { error, .. } = &*m.inner.status.borrow() {
-            //         i. Assert: m.[[EvaluationError]] is not empty.
+            // i. Assert: m.[[EvaluationError]] is not empty.
             assert!(error.is_some());
             continue;
         }
 
-        //     b. Else if m.[[HasTLA]] is true, then
+        // b. Else if m.[[HasTLA]] is true, then
         let has_tla = m.inner.code.has_tla;
         if has_tla {
-            //         i. Perform ExecuteAsyncModule(m).
+            // i. Perform ExecuteAsyncModule(m).
             m.execute_async(context);
         } else {
-            //     c. Else,
-            //         i. Let result be m.ExecuteModule().
+            // c. Else,
+            //    i. Let result be m.ExecuteModule().
             let result = m.execute(None, context);
 
-            //         ii. If result is an abrupt completion, then
+            //    ii. If result is an abrupt completion, then
             if let Err(e) = result {
-                //             1. Perform AsyncModuleExecutionRejected(m, result.[[Value]]).
+                //    1. Perform AsyncModuleExecutionRejected(m, result.[[Value]]).
                 async_module_execution_rejected(module, &e, context);
             } else {
-                //         iii. Else,
-                //             1. Set m.[[Status]] to evaluated.
+                // iii. Else,
+                //    1. Set m.[[Status]] to evaluated.
                 m.inner
                     .status
                     .borrow_mut()
@@ -1814,12 +1824,12 @@ fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut Con
                     });
 
                 let status = m.inner.status.borrow();
-                //             2. If m.[[TopLevelCapability]] is not empty, then
+                // 2. If m.[[TopLevelCapability]] is not empty, then
                 if let Some(cap) = status.top_level_capability() {
-                    //                 a. Assert: m.[[CycleRoot]] is m.
+                    // a. Assert: m.[[CycleRoot]] is m.
                     debug_assert_eq!(status.cycle_root(), Some(&m));
 
-                    //                 b. Perform ! Call(m.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
+                    // b. Perform ! Call(m.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
                     cap.resolve()
                         .call(&JsValue::undefined(), &[], context)
                         .expect("default `resolve` function cannot fail");
@@ -1870,17 +1880,17 @@ fn async_module_execution_rejected(
 
     // 7. For each Cyclic Module Record m of module.[[AsyncParentModules]], do
     for m in &*module.inner.async_parent_modules.borrow() {
-        //     a. Perform AsyncModuleExecutionRejected(m, error).
+        // a. Perform AsyncModuleExecutionRejected(m, error).
         async_module_execution_rejected(m, error, context);
     }
 
     let status = module.inner.status.borrow();
     // 8. If module.[[TopLevelCapability]] is not empty, then
     if let Some(cap) = status.top_level_capability() {
-        //     a. Assert: module.[[CycleRoot]] is module.
+        // a. Assert: module.[[CycleRoot]] is module.
         debug_assert_eq!(status.cycle_root(), Some(module));
 
-        //     b. Perform ! Call(module.[[TopLevelCapability]].[[Reject]], undefined, « error »).
+        // b. Perform ! Call(module.[[TopLevelCapability]].[[Reject]], undefined, « error »).
         cap.reject()
             .call(&JsValue::undefined(), &[error.to_opaque(context)], context)
             .expect("default `reject` function cannot fail");

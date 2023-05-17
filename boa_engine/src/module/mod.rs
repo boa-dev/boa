@@ -399,13 +399,13 @@ impl Module {
         // 5. If state.[[PendingModulesCount]] = 0, then
 
         if state.pending_modules.get() == 0 {
-            //     a. Set state.[[IsLoading]] to false.
+            // a. Set state.[[IsLoading]] to false.
             state.loading.set(false);
-            //     b. For each Cyclic Module Record loaded of state.[[Visited]], do
-            //         i. If loaded.[[Status]] is new, set loaded.[[Status]] to unlinked.
+            // b. For each Cyclic Module Record loaded of state.[[Visited]], do
+            //    i. If loaded.[[Status]] is new, set loaded.[[Status]] to unlinked.
             // By default, all modules start on `unlinked`.
 
-            //     c. Perform ! Call(state.[[PromiseCapability]].[[Resolve]], undefined, « undefined »).
+            // c. Perform ! Call(state.[[PromiseCapability]].[[Resolve]], undefined, « undefined »).
             state
                 .capability
                 .resolve()
@@ -530,17 +530,17 @@ impl Module {
             // 1. If module is not a Cyclic Module Record, then
             #[allow(unused, clippy::diverging_sub_expression)]
             ModuleKind::Synthetic => {
-                //     a. Let promise be ! module.Evaluate().
+                // a. Let promise be ! module.Evaluate().
                 let promise: JsPromise = todo!("module.Evaluate()");
                 let state = promise.state()?;
                 match state {
                     PromiseState::Pending => {
                         unreachable!("b. Assert: promise.[[PromiseState]] is not pending.")
                     }
-                    //     d. Return index.
+                    // d. Return index.
                     PromiseState::Fulfilled(_) => Ok(index),
-                    //     c. If promise.[[PromiseState]] is rejected, then
-                    //         i. Return ThrowCompletion(promise.[[PromiseResult]]).
+                    // c. If promise.[[PromiseState]] is rejected, then
+                    //    i. Return ThrowCompletion(promise.[[PromiseResult]]).
                     PromiseState::Rejected(err) => Err(JsError::from_opaque(err)),
                 }
             }
@@ -628,6 +628,7 @@ impl Module {
         // 1. Assert: If module is a Cyclic Module Record, then module.[[Status]] is not new or unlinked.
         // 2. Let namespace be module.[[Namespace]].
         // 3. If namespace is empty, then
+        // 4. Return namespace.
         self.inner
             .namespace
             .borrow_mut()
@@ -649,7 +650,6 @@ impl Module {
                     .collect();
 
                 //     d. Set namespace to ModuleNamespaceCreate(module, unambiguousNames).
-                // 4. Return namespace.
                 ModuleNamespace::create(self.clone(), unambiguous_names, context)
             })
             .clone()
