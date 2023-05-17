@@ -1,16 +1,6 @@
 //! Boa's **`boa_engine`** crate implements ECMAScript's standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
-//! # About Boa
-//!
-//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and
-//! executing ECMAScript/JavaScript. Currently, Boa supports some of the [language][boa-conformance].
-//! More information can be viewed at [Boa's website][boa-web].
-//!
-//! Try out the most recent release with Boa's live demo [playground][boa-playground].
-//!
-//! For information related to Web API features, please see [boa_runtime](runtime-docs).
-//!
 //! # Example usage
 //!
 //! You can find multiple examples of the usage of Boa in the [`boa_examples`][examples] crate. In
@@ -53,23 +43,10 @@
 //!  - **profiler** - Enables profiling with measureme (this is mostly internal).
 //!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
 //!
-//! # Boa Crates
-//!  - **`boa_ast`** - Boa's ECMAScript Abstract Syntax Tree.
-//!  - **`boa_engine`** - Boa's implementation of ECMAScript builtin objects and execution.
-//!  - **`boa_gc`** - Boa's garbage collector.
-//!  - **`boa_interner`** - Boa's string interner.
-//!  - **`boa_parser`** - Boa's lexer and parser.
-//!  - **`boa_profiler`** - Boa's code profiler.
-//!  - **`boa_unicode`** - Boa's Unicode identifier.
-//!  - **`boa_icu_provider`** - Boa's ICU4X data provider.
-//!
 //! [ecma-402]: https://tc39.es/ecma402
-//! [boa-conformance]: https://boajs.dev/boa/test262/
-//! [boa-web]: https://boajs.dev/
-//! [boa-playground]: https://boajs.dev/boa/playground/
-//! [runtime-docs]: https://boajs.dev/boa/doc/boa_runtime/index.html
 //! [examples]: https://github.com/boa-dev/boa/tree/main/boa_examples
-
+//!
+#![doc = include_str!("../../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
