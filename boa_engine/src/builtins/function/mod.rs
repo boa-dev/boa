@@ -268,7 +268,16 @@ unsafe impl Trace for FunctionKind {
     custom_trace! {this, {
         match this {
             Self::Native { function, .. } => {mark(function)}
-            Self::Ordinary { code, environments, home_object, fields, private_methods, class_object, .. } => {
+            Self::Ordinary {
+                code,
+                environments,
+                home_object,
+                fields,
+                private_methods,
+                class_object,
+                script_or_module,
+                ..
+            } => {
                 mark(code);
                 mark(environments);
                 mark(home_object);
@@ -279,6 +288,7 @@ unsafe impl Trace for FunctionKind {
                     mark(elem);
                 }
                 mark(class_object);
+                mark(script_or_module);
             }
             Self::Async { code, environments, home_object, class_object, script_or_module }
             | Self::Generator { code, environments, home_object, class_object, script_or_module}

@@ -201,7 +201,7 @@ pub trait JobQueue {
     ///     such that execution is prepared to evaluate ECMAScript code at the time of job's invocation.
     /// > - Let `scriptOrModule` be `GetActiveScriptOrModule()` at the time `HostEnqueuePromiseJob` is invoked. If realm
     ///     is not null, each time job is invoked the implementation must perform implementation-defined steps such that
-    ///     scriptOrModule is the active script or module at the time of job's invocation.
+    ///     `scriptOrModule` is the active script or module at the time of job's invocation.
     /// > - Jobs must run in the same order as the `HostEnqueuePromiseJob` invocations that scheduled them.
     ///
     /// Of all the requirements, Boa guarantees the first two by its internal implementation of `NativeJob`, meaning

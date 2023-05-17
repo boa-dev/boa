@@ -130,6 +130,8 @@ impl Script {
     ///
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
+    ///
+    /// [`JobQueue::run_jobs`]: crate::job::JobQueue::run_jobs
     pub fn evaluate(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Execution", "Main");
 
