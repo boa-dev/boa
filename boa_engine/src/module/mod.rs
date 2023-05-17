@@ -1,17 +1,19 @@
 //! Boa's implementation of the ECMAScript's module system.
 //!
-//! This module contains the [`Module`] type, which represents an [**Abstract Module Record**][module].
+//! This module contains the [`Module`] type, which represents an [**Abstract Module Record**][module],
+//! a [`ModuleLoader`] trait for custom module loader implementations, and [`SimpleModuleLoader`],
+//! the default `ModuleLoader` for [`Context`] which can be used for most simple usecases.
+//!
 //! Every module roughly follows the same lifecycle:
 //! - Parse using [`Module::parse`].
 //! - Load all its dependencies using [`Module::load`].
 //! - Link its dependencies together using [`Module::link`].
 //! - Evaluate the module and its dependencies using [`Module::evaluate`].
 //!
-//! Additionally, the [`ModuleLoader`] trait allows customizing the "load" step on the lifecycle
+//! The [`ModuleLoader`] trait allows customizing the "load" step on the lifecycle
 //! of a module, which allows doing things like fetching modules from urls, having multiple
 //! "modpaths" from where to import modules, or using Rust futures to avoid blocking the main thread
-//! on loads. There's a default [`SimpleModuleLoader`] implementation that just loads modules
-//! relative to a root path, which should hopefully cover most simple usecases.
+//! on loads.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

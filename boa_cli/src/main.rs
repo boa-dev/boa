@@ -163,8 +163,8 @@ struct Opt {
     module: bool,
 
     /// Root path from where the module resolver will try to load the modules.
-    #[arg(long, default_value_os_t = PathBuf::from("."), requires = "mod")]
-    modpath: PathBuf,
+    #[arg(long, short = 'r', default_value_os_t = PathBuf::from("."), requires = "mod")]
+    root: PathBuf,
 }
 
 impl Opt {
@@ -346,7 +346,7 @@ fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
     let queue: &dyn JobQueue = &Jobs::default();
-    let loader = &SimpleModuleLoader::new(&args.modpath)
+    let loader = &SimpleModuleLoader::new(&args.root)
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
     let dyn_loader: &dyn ModuleLoader = loader;
     let mut context = ContextBuilder::new()
