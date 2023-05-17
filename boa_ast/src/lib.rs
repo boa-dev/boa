@@ -10,27 +10,9 @@
 //! [`Statement`]s, with [`StatementList`] being the primordial Parse Node that combines
 //! all of them to create a proper AST.
 //!
-//! # About Boa
-//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
-//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa's website][boa-web].
-//!
-//! Try out the most recent release with Boa's live demo [playground][boa-playground].  
-//!
-//! # Boa Crates
-//!  - **`boa_ast`** - Boa's ECMAScript Abstract Syntax Tree.
-//!  - **`boa_engine`** - Boa's implementation of ECMAScript builtin objects and execution.
-//!  - **`boa_gc`** - Boa's garbage collector.
-//!  - **`boa_interner`** - Boa's string interner.
-//!  - **`boa_parser`** - Boa's lexer and parser.
-//!  - **`boa_profiler`** - Boa's code profiler.
-//!  - **`boa_unicode`** - Boa's Unicode identifier.
-//!  - **`boa_icu_provider`** - Boa's ICU4X data provider.
-//!
 //! [grammar]: https://tc39.es/ecma262/#sec-syntactic-grammar
 //! [early]: https://tc39.es/ecma262/#sec-static-semantic-rules
-//! [boa-conformance]: https://boajs.dev/boa/test262/
-//! [boa-web]: https://boajs.dev/
-//! [boa-playground]: https://boajs.dev/boa/playground/
+#![doc = include_str!("../../ABOUT.md")]
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
