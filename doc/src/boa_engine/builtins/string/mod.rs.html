@@ -2755,10 +2755,6 @@
 <a href="#2754" id="2754">2754</a>
 <a href="#2755" id="2755">2755</a>
 <a href="#2756" id="2756">2756</a>
-<a href="#2757" id="2757">2757</a>
-<a href="#2758" id="2758">2758</a>
-<a href="#2759" id="2759">2759</a>
-<a href="#2760" id="2760">2760</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -5360,9 +5356,6 @@
     // 8. Let tailPos be position + matchLength.
     </span><span class="kw">let </span>tail_pos = position + match_length;
 
-    <span class="comment">// 9. Let m be the number of elements in captures.
-    </span><span class="kw">let </span>m = captures.len();
-
     <span class="comment">// 10. Let result be the String value derived from replacement by copying code unit elements
     //     from replacement to result while performing replacements as specified in Table 58.
     //     These $ replacements are done left-to-right, and, once such a replacement is performed,
@@ -5377,35 +5370,25 @@
                 .and_then(CodePoint::as_char)
                 .as_ref()
                 .map_or(<span class="bool-val">false</span>, char::is_ascii_digit);
-            <span class="comment">// we use peek so that it is still in the iterator if not used
-            </span><span class="kw">let </span>third = <span class="kw">if </span>second_is_digit {
-                chars.peek().copied()
-            } <span class="kw">else </span>{
-                <span class="prelude-val">None
-            </span>};
-            <span class="kw">let </span>third_is_digit = third
-                .and_then(CodePoint::as_char)
-                .as_ref()
-                .map_or(<span class="bool-val">false</span>, char::is_ascii_digit);
 
-            <span class="kw">match </span>(second, third) {
+            <span class="kw">match </span>second {
                 <span class="comment">// $$
-                </span>(<span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;$&#39;</span>)), <span class="kw">_</span>) =&gt; {
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;$&#39;</span>)) =&gt; {
                     <span class="comment">// $
                     </span>result.push(<span class="string">&#39;$&#39; </span><span class="kw">as </span>u16);
                 }
                 <span class="comment">// $&amp;
-                </span>(<span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;&amp;&#39;</span>)), <span class="kw">_</span>) =&gt; {
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;&amp;&#39;</span>)) =&gt; {
                     <span class="comment">// matched
                     </span>result.extend_from_slice(matched);
                 }
                 <span class="comment">// $`
-                </span>(<span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;`&#39;</span>)), <span class="kw">_</span>) =&gt; {
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;`&#39;</span>)) =&gt; {
                     <span class="comment">// The replacement is the substring of str from 0 to position.
                     </span>result.extend_from_slice(<span class="kw-2">&amp;</span>str[..position]);
                 }
                 <span class="comment">// $&#39;
-                </span>(<span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;\&#39;&#39;</span>)), <span class="kw">_</span>) =&gt; {
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;\&#39;&#39;</span>)) =&gt; {
                     <span class="comment">// If tailPos ≥ stringLength, the replacement is the empty String.
                     // Otherwise the replacement is the substring of str from tailPos.
                     </span><span class="kw">if </span>tail_pos &lt; str_length {
@@ -5413,52 +5396,61 @@
                     }
                 }
                 <span class="comment">// $nn
-                </span>(<span class="prelude-val">Some</span>(CodePoint::Unicode(second)), <span class="prelude-val">Some</span>(CodePoint::Unicode(third)))
-                    <span class="kw">if </span>second_is_digit &amp;&amp; third_is_digit =&gt;
-                {
-                    <span class="comment">// The nnth element of captures, where nn is a two-digit decimal number in the range 01 to 99.
-                    </span><span class="kw">let </span>tens = second
+                // f. Else if templateRemainder starts with &quot;$&quot; followed by 1 or more decimal digits, then
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(second)) <span class="kw">if </span>second_is_digit =&gt; {
+                    <span class="comment">// i. If templateRemainder starts with &quot;$&quot; followed by 2 or more decimal digits, let digitCount be 2. Otherwise, let digitCount be 1.
+                    // ii. Let ref be the substring of templateRemainder from 0 to 1 + digitCount.
+                    // iii. Let digits be the substring of templateRemainder from 1 to 1 + digitCount.
+                    // iv. Let index be ℝ(StringToNumber(digits)).
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>index = second
                         .to_digit(<span class="number">10</span>)
                         .expect(<span class="string">&quot;could not convert character to digit after checking it&quot;</span>)
                         <span class="kw">as </span>usize;
-                    <span class="kw">let </span>units = third
-                        .to_digit(<span class="number">10</span>)
-                        .expect(<span class="string">&quot;could not convert character to digit after checking it&quot;</span>)
-                        <span class="kw">as </span>usize;
-                    <span class="kw">let </span>nn = <span class="number">10 </span>* tens + units;
 
-                    <span class="comment">// If nn ≤ m and the nnth element of captures is undefined, use the empty String instead.
-                    // If nn is 00 or nn &gt; m, no replacement is done.
-                    </span><span class="kw">if </span>nn == <span class="number">0 </span>|| nn &gt; m {
-                        result.extend_from_slice(<span class="kw-2">&amp;</span>[<span class="string">&#39;$&#39; </span><span class="kw">as </span>u16, second <span class="kw">as </span>u16, third <span class="kw">as </span>u16]);
-                    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(capture) = captures.get(nn - <span class="number">1</span>) {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = capture.as_string() {
-                            result.extend_from_slice(s);
+                    <span class="comment">// vi. Let captureLen be the number of elements in captures.
+                    </span><span class="kw">let </span>capture_len = captures.len();
+
+                    <span class="comment">// NOTE(HalidOdat): We deviate from the spec, because of a bug in GetSubstitutions
+                    //
+                    // See: https://github.com/tc39/ecma262/issues/1426
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(digit) = chars
+                        .peek()
+                        .copied()
+                        .and_then(CodePoint::as_char)
+                        .and_then(|n| n.to_digit(<span class="number">10</span>))
+                    {
+                        <span class="comment">// If there is two digits, and it&#39;s not in range fallback to one digit.
+                        </span><span class="kw">let </span>two_digit_index = index * <span class="number">10 </span>+ digit <span class="kw">as </span>usize;
+                        <span class="kw">if </span>(<span class="number">1</span>..=capture_len).contains(<span class="kw-2">&amp;</span>two_digit_index) {
+                            index = two_digit_index;
+                            chars.next();
                         }
                     }
 
-                    chars.next();
-                }
-                <span class="comment">// $n
-                </span>(<span class="prelude-val">Some</span>(CodePoint::Unicode(second)), <span class="kw">_</span>) <span class="kw">if </span>second_is_digit =&gt; {
-                    <span class="comment">// The nth element of captures, where n is a single digit in the range 1 to 9.
-                    </span><span class="kw">let </span>n = second
-                        .to_digit(<span class="number">10</span>)
-                        .expect(<span class="string">&quot;could not convert character to digit after checking it&quot;</span>)
-                        <span class="kw">as </span>usize;
+                    <span class="comment">// v. Assert: 0 ≤ index ≤ 99.
+                    </span><span class="macro">debug_assert!</span>((<span class="number">0</span>..=<span class="number">99</span>).contains(<span class="kw-2">&amp;</span>index));
 
-                    <span class="comment">// If n ≤ m and the nth element of captures is undefined, use the empty String instead.
-                    // If n &gt; m, no replacement is done.
-                    </span><span class="kw">if </span>n == <span class="number">0 </span>|| n &gt; m {
-                        result.extend_from_slice(<span class="kw-2">&amp;</span>[<span class="string">&#39;$&#39; </span><span class="kw">as </span>u16, second <span class="kw">as </span>u16]);
-                    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(capture) = captures.get(n - <span class="number">1</span>) {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = capture.as_string() {
-                            result.extend_from_slice(s);
+                    <span class="comment">// vii. If 1 ≤ index ≤ captureLen, then
+                    </span><span class="kw">if </span>(<span class="number">1</span>..=capture_len).contains(<span class="kw-2">&amp;</span>index) {
+                        <span class="comment">// 1. Let capture be captures[index - 1].
+                        // 2. If capture is undefined, then
+                        //     a. Let refReplacement be the empty String.
+                        // 3. Else,
+                        //     a. Let refReplacement be capture.
+                        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(capture) = captures.get(index - <span class="number">1</span>) {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = capture.as_string() {
+                                result.extend_from_slice(s);
+                            }
                         }
+
+                    <span class="comment">// viii. Else,
+                    </span>} <span class="kw">else </span>{
+                        <span class="comment">// 1. Let refReplacement be ref.
+                        </span>result.extend_from_slice(<span class="kw-2">&amp;</span>[<span class="string">&#39;$&#39; </span><span class="kw">as </span>u16, second <span class="kw">as </span>u16]);
                     }
                 }
                 <span class="comment">// $&lt;
-                </span>(<span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;&lt;&#39;</span>)), <span class="kw">_</span>) =&gt; {
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;&lt;&#39;</span>)) =&gt; {
                     <span class="comment">// 1. If namedCaptures is undefined, the replacement text is the String &quot;$&lt;&quot;.
                     // 2. Else,
                     </span><span class="kw">if </span>named_captures.is_undefined() {

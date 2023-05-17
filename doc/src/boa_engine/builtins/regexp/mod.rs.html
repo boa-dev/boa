@@ -1779,6 +1779,29 @@
 <a href="#1778" id="1778">1778</a>
 <a href="#1779" id="1779">1779</a>
 <a href="#1780" id="1780">1780</a>
+<a href="#1781" id="1781">1781</a>
+<a href="#1782" id="1782">1782</a>
+<a href="#1783" id="1783">1783</a>
+<a href="#1784" id="1784">1784</a>
+<a href="#1785" id="1785">1785</a>
+<a href="#1786" id="1786">1786</a>
+<a href="#1787" id="1787">1787</a>
+<a href="#1788" id="1788">1788</a>
+<a href="#1789" id="1789">1789</a>
+<a href="#1790" id="1790">1790</a>
+<a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
+<a href="#1795" id="1795">1795</a>
+<a href="#1796" id="1796">1796</a>
+<a href="#1797" id="1797">1797</a>
+<a href="#1798" id="1798">1798</a>
+<a href="#1799" id="1799">1799</a>
+<a href="#1800" id="1800">1800</a>
+<a href="#1801" id="1801">1801</a>
+<a href="#1802" id="1802">1802</a>
+<a href="#1803" id="1803">1803</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -3048,8 +3071,14 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// Helper enum.
+        </span><span class="kw">enum </span>CallableOrString&lt;<span class="lifetime">&#39;a</span>&gt; {
+            FunctionalReplace(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>JsObject),
+            ReplaceValue(JsString),
+        }
+
         <span class="comment">// 1. Let rx be the this value.
-        // 2. If Type(rx) is not Object, throw a TypeError exception.
+        // 2. If rx is not an Object, throw a TypeError exception.
         </span><span class="kw">let </span>rx = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(
                 <span class="string">&quot;RegExp.prototype[Symbol.replace] method called on incompatible value&quot;</span>,
@@ -3057,84 +3086,101 @@
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let S be ? ToString(string).
-        </span><span class="kw">let </span>arg_str = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>s = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Let lengthS be the number of code unit elements in S.
-        </span><span class="kw">let </span>length_arg_str = arg_str.len();
+        <span class="comment">// 4. Let lengthS be the length of S.
+        </span><span class="kw">let </span>length_s = s.len();
+
+        <span class="kw">let </span>replace_value = args.get_or_undefined(<span class="number">1</span>);
 
         <span class="comment">// 5. Let functionalReplace be IsCallable(replaceValue).
-        </span><span class="kw">let </span>replace_value = args.get_or_undefined(<span class="number">1</span>).clone();
-        <span class="kw">let </span>replace = <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = replace_value.as_callable() {
-            <span class="prelude-val">Ok</span>(f)
+        </span><span class="kw">let </span>functional_replace = replace_value.as_callable();
+
+        <span class="comment">// 6. If functionalReplace is false, then
+        </span><span class="kw">let </span>replace_value = <span class="kw">if let </span><span class="prelude-val">Some</span>(callable) = functional_replace {
+            CallableOrString::FunctionalReplace(callable)
         } <span class="kw">else </span>{
-            <span class="comment">// 6. If functionalReplace is false, then
-            // a. Set replaceValue to ? ToString(replaceValue).
-            </span><span class="prelude-val">Err</span>(replace_value.to_string(context)<span class="question-mark">?</span>)
+            <span class="comment">// a. Set replaceValue to ? ToString(replaceValue).
+            </span>CallableOrString::ReplaceValue(replace_value.to_string(context)<span class="question-mark">?</span>)
         };
 
-        <span class="comment">// 7. Let global be ! ToBoolean(? Get(rx, &quot;global&quot;)).
-        </span><span class="kw">let </span>global = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;global&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
+        <span class="comment">// 7. Let flags be ? ToString(? Get(rx, &quot;flags&quot;)).
+        </span><span class="kw">let </span>flags = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 8. If global is true, then
-        </span><span class="kw">let </span><span class="kw-2">mut </span>unicode = <span class="bool-val">false</span>;
-        <span class="kw">if </span>global {
-            <span class="comment">// a. Let fullUnicode be ! ToBoolean(? Get(rx, &quot;unicode&quot;)).
-            </span>unicode = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;unicode&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
+        <span class="comment">// 8. If flags contains &quot;g&quot;, let global be true. Otherwise, let global be false.
+        </span><span class="kw">let </span>global = flags.as_slice().contains(<span class="kw-2">&amp;</span>u16::from(<span class="string">b&#39;g&#39;</span>));
+
+        <span class="comment">// 9. If global is true, then
+        </span><span class="kw">let </span>full_unicode = <span class="kw">if </span>global {
+            <span class="comment">// a. If flags contains &quot;u&quot;, let fullUnicode be true. Otherwise, let fullUnicode be false.
+            </span><span class="kw">let </span>full_unicode = flags.contains(<span class="kw-2">&amp;</span>u16::from(<span class="string">b&#39;u&#39;</span>));
 
             <span class="comment">// b. Perform ? Set(rx, &quot;lastIndex&quot;, +0𝔽, true).
             </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
-        }
 
-        <span class="comment">//  9. Let results be a new empty List.
+            full_unicode
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>};
+
+        <span class="comment">// 10. Let results be a new empty List.
         </span><span class="kw">let </span><span class="kw-2">mut </span>results = Vec::new();
 
-        <span class="comment">// 10. Let done be false.
-        // 11. Repeat, while done is false,
+        <span class="comment">// SKIPPED: 11. Let done be false.
+        //
+        // NOTE(HalidOdat): We don&#39;t keep track of `done`, we just break when done is true.
+
+        // 12. Repeat, while done is false,
         </span><span class="kw">loop </span>{
             <span class="comment">// a. Let result be ? RegExpExec(rx, S).
-            </span><span class="kw">let </span>result = <span class="self">Self</span>::abstract_exec(rx, arg_str.clone(), context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>result = <span class="self">Self</span>::abstract_exec(rx, s.clone(), context)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If result is null, set done to true.
-            // c. Else,
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result {
-                <span class="comment">// i. Append result to the end of results.
-                </span>results.push(result.clone());
+            </span><span class="kw">let </span><span class="prelude-val">Some</span>(result) = result <span class="kw">else </span>{
+                <span class="comment">// SKIPPED: 1. Set done to true.
+                </span><span class="kw">break</span>;
+            };
 
-                <span class="comment">// ii. If global is false, set done to true.
+            <span class="comment">// c. Else,
+            //  i. Append result to results.
+            </span>results.push(result.clone());
 
-                </span><span class="kw">if </span>!global {
-                    <span class="kw">break</span>;
-                }
-                <span class="comment">// iii. Else,
-                // 1. Let matchStr be ? ToString(? Get(result, &quot;0&quot;)).
-                </span><span class="kw">let </span>match_str = result.get(<span class="number">0</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
+            <span class="comment">//  ii. If global is false, then
+            </span><span class="kw">if </span>!global {
+                <span class="comment">// SKIPPED: 1. Set done to true.
+                </span><span class="kw">break</span>;
+            }
 
-                <span class="comment">// 2. If matchStr is the empty String, then
-                </span><span class="kw">if </span>match_str.is_empty() {
-                    <span class="comment">// a. Let thisIndex be ℝ(? ToLength(? Get(rx, &quot;lastIndex&quot;))).
-                    </span><span class="kw">let </span>this_index = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
+            <span class="comment">//  iii. Else,
+            //    1. Let matchStr be ? ToString(? Get(result, &quot;0&quot;)).
+            </span><span class="kw">let </span>match_str = result.get(<span class="number">0</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
-                    </span><span class="kw">let </span>next_index = advance_string_index(<span class="kw-2">&amp;</span>arg_str, this_index, unicode);
+            <span class="comment">//    2. If matchStr is the empty String, then
+            </span><span class="kw">if </span>match_str.is_empty() {
+                <span class="comment">// a. Let thisIndex be ℝ(? ToLength(? Get(rx, &quot;lastIndex&quot;))).
+                </span><span class="kw">let </span>this_index = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// c. Perform ? Set(rx, &quot;lastIndex&quot;, 𝔽(nextIndex), true).
-                    </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), JsValue::new(next_index), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
-                }
-            } <span class="kw">else </span>{
-                <span class="kw">break</span>;
+                <span class="comment">// b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
+                </span><span class="kw">let </span>next_index = advance_string_index(<span class="kw-2">&amp;</span>s, this_index, full_unicode);
+
+                <span class="comment">// c. Perform ? Set(rx, &quot;lastIndex&quot;, 𝔽(nextIndex), true).
+                </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), JsValue::new(next_index), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
             }
         }
 
-        <span class="comment">// 12. Let accumulatedResult be the empty String.
+        <span class="comment">// 16. If nextSourcePosition ≥ lengthS, return accumulatedResult.
+        // 17. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
+
+        // 13. Let accumulatedResult be the empty String.
         </span><span class="kw">let </span><span class="kw-2">mut </span>accumulated_result = <span class="macro">vec!</span>[];
 
-        <span class="comment">// 13. Let nextSourcePosition be 0.
+        <span class="comment">// 14. Let nextSourcePosition be 0.
         </span><span class="kw">let </span><span class="kw-2">mut </span>next_source_position = <span class="number">0</span>;
 
-        <span class="comment">// 14. For each element result of results, do
+        <span class="comment">// 15. For each element result of results, do
         </span><span class="kw">for </span>result <span class="kw">in </span>results {
             <span class="comment">// a. Let resultLength be ? LengthOfArrayLike(result).
-            </span><span class="kw">let </span>result_length = result.length_of_array_like(context)<span class="question-mark">? </span><span class="kw">as </span>isize;
+            </span><span class="kw">let </span>result_length = result.length_of_array_like(context)<span class="question-mark">? </span><span class="kw">as </span>i64;
 
             <span class="comment">// b. Let nCaptures be max(resultLength - 1, 0).
             </span><span class="kw">let </span>n_captures = std::cmp::max(result_length - <span class="number">1</span>, <span class="number">0</span>);
@@ -3142,7 +3188,7 @@
             <span class="comment">// c. Let matched be ? ToString(? Get(result, &quot;0&quot;)).
             </span><span class="kw">let </span>matched = result.get(<span class="number">0</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
 
-            <span class="comment">// d. Let matchLength be the number of code units in matched.
+            <span class="comment">// d. Let matchLength be the length of matched.
             </span><span class="kw">let </span>match_length = matched.len();
 
             <span class="comment">// e. Let position be ? ToIntegerOrInfinity(? Get(result, &quot;index&quot;)).
@@ -3151,13 +3197,12 @@
                 </span>.to_integer_or_infinity(context)<span class="question-mark">?</span>;
 
             <span class="comment">// f. Set position to the result of clamping position between 0 and lengthS.
-            //position = position.
-            </span><span class="kw">let </span>position = position.clamp_finite(<span class="number">0</span>, length_arg_str <span class="kw">as </span>i64) <span class="kw">as </span>usize;
+            </span><span class="kw">let </span>position = position.clamp_finite(<span class="number">0</span>, length_s <span class="kw">as </span>i64) <span class="kw">as </span>usize;
 
-            <span class="comment">// h. Let captures be a new empty List.
+            <span class="comment">// g. Let captures be a new empty List.
             </span><span class="kw">let </span><span class="kw-2">mut </span>captures = Vec::new();
 
-            <span class="comment">// g. Let n be 1.
+            <span class="comment">// h. Let n be 1.
             // i. Repeat, while n ≤ nCaptures,
             </span><span class="kw">for </span>n <span class="kw">in </span><span class="number">1</span>..=n_captures {
                 <span class="comment">// i. Let capN be ? Get(result, ! ToString(𝔽(n))).
@@ -3169,42 +3214,43 @@
                     </span>cap_n = cap_n.to_string(context)<span class="question-mark">?</span>.into();
                 }
 
-                <span class="comment">// iii. Append capN as the last element of captures.
+                <span class="comment">// iii. Append capN to captures.
                 </span>captures.push(cap_n);
 
-                <span class="comment">// iv. Set n to n + 1.
+                <span class="comment">// iv. NOTE: When n = 1, the preceding step puts the first element into captures (at index 0).
+                //     More generally, the nth capture (the characters captured by the nth set of capturing parentheses)
+                //     is at captures[n - 1].
+                //
+                // v. Set n to n + 1.
             </span>}
 
             <span class="comment">// j. Let namedCaptures be ? Get(result, &quot;groups&quot;).
             </span><span class="kw">let </span><span class="kw-2">mut </span>named_captures = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;groups&quot;</span>), context)<span class="question-mark">?</span>;
 
-            <span class="comment">// k. If functionalReplace is true, then
-            </span><span class="kw">let </span>replacement = <span class="kw">match </span>replace {
-                <span class="prelude-val">Ok</span>(replace_fn) =&gt; {
-                    <span class="comment">// i. Let replacerArgs be « matched ».
+            <span class="kw">let </span>replacement = <span class="kw">match </span>replace_value {
+                <span class="comment">// k. If functionalReplace is true, then
+                </span>CallableOrString::FunctionalReplace(replace_value) =&gt; {
+                    <span class="comment">// i. Let replacerArgs be the list-concatenation of « matched », captures, and « 𝔽(position), S ».
                     </span><span class="kw">let </span><span class="kw-2">mut </span>replacer_args = <span class="macro">vec!</span>[JsValue::new(matched)];
+                    replacer_args.extend(captures);
+                    replacer_args.push(position.into());
+                    replacer_args.push(s.clone().into());
 
-                    <span class="comment">// ii. Append in List order the elements of captures to the end of the List replacerArgs.
-                    </span>replacer_args.extend(captures);
-
-                    <span class="comment">// iii. Append 𝔽(position) and S to replacerArgs.
-                    </span>replacer_args.push(position.into());
-                    replacer_args.push(arg_str.clone().into());
-
-                    <span class="comment">// iv. If namedCaptures is not undefined, then
+                    <span class="comment">// ii. If namedCaptures is not undefined, then
                     </span><span class="kw">if </span>!named_captures.is_undefined() {
-                        <span class="comment">// 1. Append namedCaptures as the last element of replacerArgs.
+                        <span class="comment">// 1. Append namedCaptures to replacerArgs.
                         </span>replacer_args.push(named_captures);
                     }
 
-                    <span class="comment">// v. Let replValue be ? Call(replaceValue, undefined, replacerArgs).
-                    // vi. Let replacement be ? ToString(replValue).
-                    </span>replace_fn
-                        .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>replacer_args, context)<span class="question-mark">?
-                        </span>.to_string(context)<span class="question-mark">?
+                    <span class="comment">// iii. Let replValue be ? Call(replaceValue, undefined, replacerArgs).
+                    </span><span class="kw">let </span>repl_value =
+                        replace_value.call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>replacer_args, context)<span class="question-mark">?</span>;
+
+                    <span class="comment">// iv. Let replacement be ? ToString(replValue).
+                    </span>repl_value.to_string(context)<span class="question-mark">?
                 </span>}
                 <span class="comment">// l. Else,
-                </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>replace_str) =&gt; {
+                </span>CallableOrString::ReplaceValue(<span class="kw-2">ref </span>replace_value) =&gt; {
                     <span class="comment">// i. If namedCaptures is not undefined, then
                     </span><span class="kw">if </span>!named_captures.is_undefined() {
                         <span class="comment">// 1. Set namedCaptures to ? ToObject(namedCaptures).
@@ -3214,11 +3260,11 @@
                     <span class="comment">// ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
                     </span>string::get_substitution(
                         <span class="kw-2">&amp;</span>matched,
-                        <span class="kw-2">&amp;</span>arg_str,
+                        <span class="kw-2">&amp;</span>s,
                         position,
                         <span class="kw-2">&amp;</span>captures,
                         <span class="kw-2">&amp;</span>named_captures,
-                        replace_str,
+                        replace_value,
                         context,
                     )<span class="question-mark">?
                 </span>}
@@ -3227,12 +3273,12 @@
             <span class="comment">// m. If position ≥ nextSourcePosition, then
             </span><span class="kw">if </span>position &gt;= next_source_position {
                 <span class="comment">// i. NOTE: position should not normally move backwards.
-                //    If it does, it is an indication of an ill-behaving RegExp subclass
-                //    or use of an access triggered side-effect to change the global flag or other characteristics of rx.
+                //    If it does, it is an indication of an ill-behaving RegExp subclass or use of
+                //    an access triggered side-effect to change the global flag or other characteristics of rx.
                 //    In such cases, the corresponding substitution is ignored.
-                // ii. Set accumulatedResult to the string-concatenation of accumulatedResult,
-                //     the substring of S from nextSourcePosition to position, and replacement.
-                </span>accumulated_result.extend_from_slice(<span class="kw-2">&amp;</span>arg_str[next_source_position..position]);
+
+                // ii. Set accumulatedResult to the string-concatenation of accumulatedResult, the substring of S from nextSourcePosition to position, and replacement.
+                </span>accumulated_result.extend_from_slice(<span class="kw-2">&amp;</span>s[next_source_position..position]);
                 accumulated_result.extend_from_slice(<span class="kw-2">&amp;</span>replacement);
 
                 <span class="comment">// iii. Set nextSourcePosition to position + matchLength.
@@ -3240,13 +3286,13 @@
             }
         }
 
-        <span class="comment">// 15. If nextSourcePosition ≥ lengthS, return accumulatedResult.
-        </span><span class="kw">if </span>next_source_position &gt;= length_arg_str {
+        <span class="comment">// 16. If nextSourcePosition ≥ lengthS, return accumulatedResult.
+        </span><span class="kw">if </span>next_source_position &gt;= length_s {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(accumulated_result).into());
         }
 
-        <span class="comment">// 16. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
-        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>accumulated_result[..], <span class="kw-2">&amp;</span>arg_str[next_source_position..]).into())
+        <span class="comment">// 17. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
+        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>accumulated_result[..], <span class="kw-2">&amp;</span>s[next_source_position..]).into())
     }
 
     <span class="doccomment">/// `RegExp.prototype[ @@search ]( string )`
