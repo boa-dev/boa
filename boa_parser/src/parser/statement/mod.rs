@@ -421,7 +421,7 @@ where
             ) => Declaration::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)
                 .map(ast::StatementListItem::from),
-            TokenKind::Keyword((Keyword::Async, _)) => {
+            TokenKind::Keyword((Keyword::Async, false)) => {
                 let skip_n = if cursor.peek_is_line_terminator(0, interner).or_abrupt()? {
                     2
                 } else {

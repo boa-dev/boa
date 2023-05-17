@@ -47,7 +47,7 @@ where
 
         let next_token = cursor.peek(0, interner).or_abrupt()?;
         match next_token.kind() {
-            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Async, true)) => {
+            TokenKind::Keyword((Keyword::Function | Keyword::Class, true)) => {
                 return Err(Error::general(
                     "Keyword must not contain escaped characters",
                     next_token.span().start(),
@@ -69,9 +69,7 @@ where
                     .peek_is_line_terminator(skip_n, interner)?
                     .unwrap_or(true);
 
-                if is_line_terminator {
-                    {}
-                } else {
+                if !is_line_terminator {
                     let next_token = cursor.peek(1, interner).or_abrupt()?;
                     match next_token.kind() {
                         TokenKind::Keyword((Keyword::Function, true)) => {
