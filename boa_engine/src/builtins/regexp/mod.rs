@@ -1267,8 +1267,14 @@ impl RegExp {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        // Helper enum.
+        enum CallableOrString<'a> {
+            FunctionalReplace(&'a JsObject),
+            ReplaceValue(JsString),
+        }
+
         // 1. Let rx be the this value.
-        // 2. If Type(rx) is not Object, throw a TypeError exception.
+        // 2. If rx is not an Object, throw a TypeError exception.
         let rx = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(
                 "RegExp.prototype[Symbol.replace] method called on incompatible value",
@@ -1276,84 +1282,101 @@ impl RegExp {
         })?;
 
         // 3. Let S be ? ToString(string).
-        let arg_str = args.get_or_undefined(0).to_string(context)?;
+        let s = args.get_or_undefined(0).to_string(context)?;
 
-        // 4. Let lengthS be the number of code unit elements in S.
-        let length_arg_str = arg_str.len();
+        // 4. Let lengthS be the length of S.
+        let length_s = s.len();
+
+        let replace_value = args.get_or_undefined(1);
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
-        let replace_value = args.get_or_undefined(1).clone();
-        let replace = if let Some(f) = replace_value.as_callable() {
-            Ok(f)
+        let functional_replace = replace_value.as_callable();
+
+        // 6. If functionalReplace is false, then
+        let replace_value = if let Some(callable) = functional_replace {
+            CallableOrString::FunctionalReplace(callable)
         } else {
-            // 6. If functionalReplace is false, then
             // a. Set replaceValue to ? ToString(replaceValue).
-            Err(replace_value.to_string(context)?)
+            CallableOrString::ReplaceValue(replace_value.to_string(context)?)
         };
 
-        // 7. Let global be ! ToBoolean(? Get(rx, "global")).
-        let global = rx.get(utf16!("global"), context)?.to_boolean();
+        // 7. Let flags be ? ToString(? Get(rx, "flags")).
+        let flags = rx.get(utf16!("flags"), context)?.to_string(context)?;
 
-        // 8. If global is true, then
-        let mut unicode = false;
-        if global {
-            // a. Let fullUnicode be ! ToBoolean(? Get(rx, "unicode")).
-            unicode = rx.get(utf16!("unicode"), context)?.to_boolean();
+        // 8. If flags contains "g", let global be true. Otherwise, let global be false.
+        let global = flags.as_slice().contains(&u16::from(b'g'));
+
+        // 9. If global is true, then
+        let full_unicode = if global {
+            // a. If flags contains "u", let fullUnicode be true. Otherwise, let fullUnicode be false.
+            let full_unicode = flags.contains(&u16::from(b'u'));
 
             // b. Perform ? Set(rx, "lastIndex", +0𝔽, true).
             rx.set(utf16!("lastIndex"), 0, true, context)?;
-        }
 
-        //  9. Let results be a new empty List.
+            full_unicode
+        } else {
+            false
+        };
+
+        // 10. Let results be a new empty List.
         let mut results = Vec::new();
 
-        // 10. Let done be false.
-        // 11. Repeat, while done is false,
+        // SKIPPED: 11. Let done be false.
+        //
+        // NOTE(HalidOdat): We don't keep track of `done`, we just break when done is true.
+
+        // 12. Repeat, while done is false,
         loop {
             // a. Let result be ? RegExpExec(rx, S).
-            let result = Self::abstract_exec(rx, arg_str.clone(), context)?;
+            let result = Self::abstract_exec(rx, s.clone(), context)?;
 
             // b. If result is null, set done to true.
-            // c. Else,
-            if let Some(result) = result {
-                // i. Append result to the end of results.
-                results.push(result.clone());
-
-                // ii. If global is false, set done to true.
-
-                if !global {
-                    break;
-                }
-                // iii. Else,
-                // 1. Let matchStr be ? ToString(? Get(result, "0")).
-                let match_str = result.get(0, context)?.to_string(context)?;
-
-                // 2. If matchStr is the empty String, then
-                if match_str.is_empty() {
-                    // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                    let this_index = rx.get(utf16!("lastIndex"), context)?.to_length(context)?;
-
-                    // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
-                    let next_index = advance_string_index(&arg_str, this_index, unicode);
-
-                    // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
-                    rx.set(utf16!("lastIndex"), JsValue::new(next_index), true, context)?;
-                }
-            } else {
+            let Some(result) = result else {
+                // SKIPPED: 1. Set done to true.
                 break;
+            };
+
+            // c. Else,
+            //  i. Append result to results.
+            results.push(result.clone());
+
+            //  ii. If global is false, then
+            if !global {
+                // SKIPPED: 1. Set done to true.
+                break;
+            }
+
+            //  iii. Else,
+            //    1. Let matchStr be ? ToString(? Get(result, "0")).
+            let match_str = result.get(0, context)?.to_string(context)?;
+
+            //    2. If matchStr is the empty String, then
+            if match_str.is_empty() {
+                // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
+                let this_index = rx.get(utf16!("lastIndex"), context)?.to_length(context)?;
+
+                // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
+                let next_index = advance_string_index(&s, this_index, full_unicode);
+
+                // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
+                rx.set(utf16!("lastIndex"), JsValue::new(next_index), true, context)?;
             }
         }
 
-        // 12. Let accumulatedResult be the empty String.
+        // 16. If nextSourcePosition ≥ lengthS, return accumulatedResult.
+        // 17. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
+
+        // 13. Let accumulatedResult be the empty String.
         let mut accumulated_result = vec![];
 
-        // 13. Let nextSourcePosition be 0.
+        // 14. Let nextSourcePosition be 0.
         let mut next_source_position = 0;
 
-        // 14. For each element result of results, do
+        // 15. For each element result of results, do
         for result in results {
             // a. Let resultLength be ? LengthOfArrayLike(result).
-            let result_length = result.length_of_array_like(context)? as isize;
+            let result_length = result.length_of_array_like(context)? as i64;
 
             // b. Let nCaptures be max(resultLength - 1, 0).
             let n_captures = std::cmp::max(result_length - 1, 0);
@@ -1361,7 +1384,7 @@ impl RegExp {
             // c. Let matched be ? ToString(? Get(result, "0")).
             let matched = result.get(0, context)?.to_string(context)?;
 
-            // d. Let matchLength be the number of code units in matched.
+            // d. Let matchLength be the length of matched.
             let match_length = matched.len();
 
             // e. Let position be ? ToIntegerOrInfinity(? Get(result, "index")).
@@ -1370,13 +1393,12 @@ impl RegExp {
                 .to_integer_or_infinity(context)?;
 
             // f. Set position to the result of clamping position between 0 and lengthS.
-            //position = position.
-            let position = position.clamp_finite(0, length_arg_str as i64) as usize;
+            let position = position.clamp_finite(0, length_s as i64) as usize;
 
-            // h. Let captures be a new empty List.
+            // g. Let captures be a new empty List.
             let mut captures = Vec::new();
 
-            // g. Let n be 1.
+            // h. Let n be 1.
             // i. Repeat, while n ≤ nCaptures,
             for n in 1..=n_captures {
                 // i. Let capN be ? Get(result, ! ToString(𝔽(n))).
@@ -1388,42 +1410,43 @@ impl RegExp {
                     cap_n = cap_n.to_string(context)?.into();
                 }
 
-                // iii. Append capN as the last element of captures.
+                // iii. Append capN to captures.
                 captures.push(cap_n);
 
-                // iv. Set n to n + 1.
+                // iv. NOTE: When n = 1, the preceding step puts the first element into captures (at index 0).
+                //     More generally, the nth capture (the characters captured by the nth set of capturing parentheses)
+                //     is at captures[n - 1].
+                //
+                // v. Set n to n + 1.
             }
 
             // j. Let namedCaptures be ? Get(result, "groups").
             let mut named_captures = result.get(utf16!("groups"), context)?;
 
-            // k. If functionalReplace is true, then
-            let replacement = match replace {
-                Ok(replace_fn) => {
-                    // i. Let replacerArgs be « matched ».
+            let replacement = match replace_value {
+                // k. If functionalReplace is true, then
+                CallableOrString::FunctionalReplace(replace_value) => {
+                    // i. Let replacerArgs be the list-concatenation of « matched », captures, and « 𝔽(position), S ».
                     let mut replacer_args = vec![JsValue::new(matched)];
-
-                    // ii. Append in List order the elements of captures to the end of the List replacerArgs.
                     replacer_args.extend(captures);
-
-                    // iii. Append 𝔽(position) and S to replacerArgs.
                     replacer_args.push(position.into());
-                    replacer_args.push(arg_str.clone().into());
+                    replacer_args.push(s.clone().into());
 
-                    // iv. If namedCaptures is not undefined, then
+                    // ii. If namedCaptures is not undefined, then
                     if !named_captures.is_undefined() {
-                        // 1. Append namedCaptures as the last element of replacerArgs.
+                        // 1. Append namedCaptures to replacerArgs.
                         replacer_args.push(named_captures);
                     }
 
-                    // v. Let replValue be ? Call(replaceValue, undefined, replacerArgs).
-                    // vi. Let replacement be ? ToString(replValue).
-                    replace_fn
-                        .call(&JsValue::undefined(), &replacer_args, context)?
-                        .to_string(context)?
+                    // iii. Let replValue be ? Call(replaceValue, undefined, replacerArgs).
+                    let repl_value =
+                        replace_value.call(&JsValue::undefined(), &replacer_args, context)?;
+
+                    // iv. Let replacement be ? ToString(replValue).
+                    repl_value.to_string(context)?
                 }
                 // l. Else,
-                Err(ref replace_str) => {
+                CallableOrString::ReplaceValue(ref replace_value) => {
                     // i. If namedCaptures is not undefined, then
                     if !named_captures.is_undefined() {
                         // 1. Set namedCaptures to ? ToObject(namedCaptures).
@@ -1433,11 +1456,11 @@ impl RegExp {
                     // ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
                     string::get_substitution(
                         &matched,
-                        &arg_str,
+                        &s,
                         position,
                         &captures,
                         &named_captures,
-                        replace_str,
+                        replace_value,
                         context,
                     )?
                 }
@@ -1446,12 +1469,12 @@ impl RegExp {
             // m. If position ≥ nextSourcePosition, then
             if position >= next_source_position {
                 // i. NOTE: position should not normally move backwards.
-                //    If it does, it is an indication of an ill-behaving RegExp subclass
-                //    or use of an access triggered side-effect to change the global flag or other characteristics of rx.
+                //    If it does, it is an indication of an ill-behaving RegExp subclass or use of
+                //    an access triggered side-effect to change the global flag or other characteristics of rx.
                 //    In such cases, the corresponding substitution is ignored.
-                // ii. Set accumulatedResult to the string-concatenation of accumulatedResult,
-                //     the substring of S from nextSourcePosition to position, and replacement.
-                accumulated_result.extend_from_slice(&arg_str[next_source_position..position]);
+
+                // ii. Set accumulatedResult to the string-concatenation of accumulatedResult, the substring of S from nextSourcePosition to position, and replacement.
+                accumulated_result.extend_from_slice(&s[next_source_position..position]);
                 accumulated_result.extend_from_slice(&replacement);
 
                 // iii. Set nextSourcePosition to position + matchLength.
@@ -1459,13 +1482,13 @@ impl RegExp {
             }
         }
 
-        // 15. If nextSourcePosition ≥ lengthS, return accumulatedResult.
-        if next_source_position >= length_arg_str {
+        // 16. If nextSourcePosition ≥ lengthS, return accumulatedResult.
+        if next_source_position >= length_s {
             return Ok(js_string!(accumulated_result).into());
         }
 
-        // 16. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
-        Ok(js_string!(&accumulated_result[..], &arg_str[next_source_position..]).into())
+        // 17. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
+        Ok(js_string!(&accumulated_result[..], &s[next_source_position..]).into())
     }
 
     /// `RegExp.prototype[ @@search ]( string )`

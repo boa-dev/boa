@@ -2599,9 +2599,6 @@ pub(crate) fn get_substitution(
     // 8. Let tailPos be position + matchLength.
     let tail_pos = position + match_length;
 
-    // 9. Let m be the number of elements in captures.
-    let m = captures.len();
-
     // 10. Let result be the String value derived from replacement by copying code unit elements
     //     from replacement to result while performing replacements as specified in Table 58.
     //     These $ replacements are done left-to-right, and, once such a replacement is performed,
@@ -2616,35 +2613,25 @@ pub(crate) fn get_substitution(
                 .and_then(CodePoint::as_char)
                 .as_ref()
                 .map_or(false, char::is_ascii_digit);
-            // we use peek so that it is still in the iterator if not used
-            let third = if second_is_digit {
-                chars.peek().copied()
-            } else {
-                None
-            };
-            let third_is_digit = third
-                .and_then(CodePoint::as_char)
-                .as_ref()
-                .map_or(false, char::is_ascii_digit);
 
-            match (second, third) {
+            match second {
                 // $$
-                (Some(CodePoint::Unicode('$')), _) => {
+                Some(CodePoint::Unicode('$')) => {
                     // $
                     result.push('$' as u16);
                 }
                 // $&
-                (Some(CodePoint::Unicode('&')), _) => {
+                Some(CodePoint::Unicode('&')) => {
                     // matched
                     result.extend_from_slice(matched);
                 }
                 // $`
-                (Some(CodePoint::Unicode('`')), _) => {
+                Some(CodePoint::Unicode('`')) => {
                     // The replacement is the substring of str from 0 to position.
                     result.extend_from_slice(&str[..position]);
                 }
                 // $'
-                (Some(CodePoint::Unicode('\'')), _) => {
+                Some(CodePoint::Unicode('\'')) => {
                     // If tailPos ≥ stringLength, the replacement is the empty String.
                     // Otherwise the replacement is the substring of str from tailPos.
                     if tail_pos < str_length {
@@ -2652,52 +2639,61 @@ pub(crate) fn get_substitution(
                     }
                 }
                 // $nn
-                (Some(CodePoint::Unicode(second)), Some(CodePoint::Unicode(third)))
-                    if second_is_digit && third_is_digit =>
-                {
-                    // The nnth element of captures, where nn is a two-digit decimal number in the range 01 to 99.
-                    let tens = second
+                // f. Else if templateRemainder starts with "$" followed by 1 or more decimal digits, then
+                Some(CodePoint::Unicode(second)) if second_is_digit => {
+                    // i. If templateRemainder starts with "$" followed by 2 or more decimal digits, let digitCount be 2. Otherwise, let digitCount be 1.
+                    // ii. Let ref be the substring of templateRemainder from 0 to 1 + digitCount.
+                    // iii. Let digits be the substring of templateRemainder from 1 to 1 + digitCount.
+                    // iv. Let index be ℝ(StringToNumber(digits)).
+                    let mut index = second
                         .to_digit(10)
                         .expect("could not convert character to digit after checking it")
                         as usize;
-                    let units = third
-                        .to_digit(10)
-                        .expect("could not convert character to digit after checking it")
-                        as usize;
-                    let nn = 10 * tens + units;
 
-                    // If nn ≤ m and the nnth element of captures is undefined, use the empty String instead.
-                    // If nn is 00 or nn > m, no replacement is done.
-                    if nn == 0 || nn > m {
-                        result.extend_from_slice(&['$' as u16, second as u16, third as u16]);
-                    } else if let Some(capture) = captures.get(nn - 1) {
-                        if let Some(s) = capture.as_string() {
-                            result.extend_from_slice(s);
+                    // vi. Let captureLen be the number of elements in captures.
+                    let capture_len = captures.len();
+
+                    // NOTE(HalidOdat): We deviate from the spec, because of a bug in GetSubstitutions
+                    //
+                    // See: https://github.com/tc39/ecma262/issues/1426
+                    if let Some(digit) = chars
+                        .peek()
+                        .copied()
+                        .and_then(CodePoint::as_char)
+                        .and_then(|n| n.to_digit(10))
+                    {
+                        // If there is two digits, and it's not in range fallback to one digit.
+                        let two_digit_index = index * 10 + digit as usize;
+                        if (1..=capture_len).contains(&two_digit_index) {
+                            index = two_digit_index;
+                            chars.next();
                         }
                     }
 
-                    chars.next();
-                }
-                // $n
-                (Some(CodePoint::Unicode(second)), _) if second_is_digit => {
-                    // The nth element of captures, where n is a single digit in the range 1 to 9.
-                    let n = second
-                        .to_digit(10)
-                        .expect("could not convert character to digit after checking it")
-                        as usize;
+                    // v. Assert: 0 ≤ index ≤ 99.
+                    debug_assert!((0..=99).contains(&index));
 
-                    // If n ≤ m and the nth element of captures is undefined, use the empty String instead.
-                    // If n > m, no replacement is done.
-                    if n == 0 || n > m {
-                        result.extend_from_slice(&['$' as u16, second as u16]);
-                    } else if let Some(capture) = captures.get(n - 1) {
-                        if let Some(s) = capture.as_string() {
-                            result.extend_from_slice(s);
+                    // vii. If 1 ≤ index ≤ captureLen, then
+                    if (1..=capture_len).contains(&index) {
+                        // 1. Let capture be captures[index - 1].
+                        // 2. If capture is undefined, then
+                        //     a. Let refReplacement be the empty String.
+                        // 3. Else,
+                        //     a. Let refReplacement be capture.
+                        if let Some(capture) = captures.get(index - 1) {
+                            if let Some(s) = capture.as_string() {
+                                result.extend_from_slice(s);
+                            }
                         }
+
+                    // viii. Else,
+                    } else {
+                        // 1. Let refReplacement be ref.
+                        result.extend_from_slice(&['$' as u16, second as u16]);
                     }
                 }
                 // $<
-                (Some(CodePoint::Unicode('<')), _) => {
+                Some(CodePoint::Unicode('<')) => {
                     // 1. If namedCaptures is undefined, the replacement text is the String "$<".
                     // 2. Else,
                     if named_captures.is_undefined() {
