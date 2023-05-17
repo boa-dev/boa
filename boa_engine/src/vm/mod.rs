@@ -259,8 +259,8 @@ impl Context<'_> {
 
                 let instant = Instant::now();
                 let result = self.execute_instruction();
-                let duration = instant.elapsed();
 
+                let duration = instant.elapsed();
                 println!(
                     "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {}",
                     format!("{}μs", duration.as_micros()),
@@ -270,7 +270,7 @@ impl Context<'_> {
                         Some(value) if value.is_object() => "[object]".to_string(),
                         Some(value) => value.display().to_string(),
                         None => "<empty>".to_string(),
-                    }
+                    },
                 );
 
                 result
@@ -330,8 +330,8 @@ impl Context<'_> {
 
         // Early return immediately after loop.
         if self.vm.frame().r#yield {
-            let result = self.vm.pop();
             self.vm.frame_mut().r#yield = false;
+            let result = self.vm.pop();
             return CompletionRecord::Return(result);
         }
 

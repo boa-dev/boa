@@ -160,17 +160,19 @@ impl ByteCompiler<'_, '_> {
 
         let early_exit = self.jump_if_null_or_undefined();
         self.emit_opcode(Opcode::CreateForInIterator);
-        self.emit_opcode(Opcode::PushFalse);
 
-        let (loop_start, exit_label) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
+        let (loop_start, exit_label) =
+            self.emit_opcode_with_two_operands(Opcode::IteratorLoopStart);
         let start_address = self.next_opcode_location();
         self.push_loop_control_info_for_of_in_loop(label, start_address);
         self.emit_opcode(Opcode::LoopContinue);
         self.patch_jump_with_target(loop_start, start_address);
 
-        self.emit_opcode(Opcode::Pop); // pop the `done` value.
         self.emit_opcode(Opcode::IteratorNext);
-        let exit = self.emit_opcode_with_operand(Opcode::IteratorUnwrapNextOrJump);
+        self.emit_opcode(Opcode::IteratorDone);
+        let exit = self.jump_if_true();
+
+        self.emit_opcode(Opcode::IteratorValue);
 
         let iteration_environment = if initializer_bound_names.is_empty() {
             None
@@ -245,11 +247,8 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(exit_label);
         self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
-        self.emit_opcode(Opcode::RotateRight);
-        self.emit_u8(4);
-        self.emit_opcode(Opcode::Pop);
-        self.emit_opcode(Opcode::Pop);
-        self.emit_opcode(Opcode::Pop);
+
+        self.iterator_close(false);
 
         let skip_early_exit = self.jump();
         self.patch_jump(early_exit);
@@ -293,21 +292,27 @@ impl ByteCompiler<'_, '_> {
         } else {
             self.emit_opcode(Opcode::GetIterator);
         }
-        self.emit_opcode(Opcode::PushFalse);
 
-        let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
+        let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::IteratorLoopStart);
         let start_address = self.next_opcode_location();
-        self.push_loop_control_info_for_of_in_loop(label, start_address);
+        if for_of_loop.r#await() {
+            self.push_loop_control_info_for_await_of_loop(label, start_address);
+        } else {
+            self.push_loop_control_info_for_of_in_loop(label, start_address);
+        }
         self.emit_opcode(Opcode::LoopContinue);
         self.patch_jump_with_target(loop_start, start_address);
 
-        self.emit_opcode(Opcode::Pop); // pop the `done` value.
         self.emit_opcode(Opcode::IteratorNext);
         if for_of_loop.r#await() {
+            self.emit_opcode(Opcode::IteratorResult);
             self.emit_opcode(Opcode::Await);
+            self.emit_opcode(Opcode::IteratorFinishAsyncNext);
             self.emit_opcode(Opcode::GeneratorNext);
         }
-        let exit = self.emit_opcode_with_operand(Opcode::IteratorUnwrapNextOrJump);
+        self.emit_opcode(Opcode::IteratorDone);
+        let exit = self.jump_if_true();
+        self.emit_opcode(Opcode::IteratorValue);
 
         let iteration_environment = if initializer_bound_names.is_empty() {
             None
@@ -388,9 +393,9 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(loop_exit);
         self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
-        self.emit_opcode(Opcode::RotateRight);
-        self.emit_u8(4);
+
         self.iterator_close(for_of_loop.r#await());
+
         if !use_expr {
             self.emit_opcode(Opcode::Pop);
         }

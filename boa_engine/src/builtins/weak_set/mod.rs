@@ -101,17 +101,17 @@ impl BuiltInConstructor for WeakSet {
             .ok_or_else(|| JsNativeError::typ().with_message("WeakSet: 'add' is not a function"))?;
 
         // 7. Let iteratorRecord be ? GetIterator(iterable).
-        let iterator_record = iterable.clone().get_iterator(context, None, None)?;
+        let mut iterator_record = iterable.clone().get_iterator(context, None, None)?;
 
         // 8. Repeat,
         // a. Let next be ? IteratorStep(iteratorRecord).
-        while let Some(next) = iterator_record.step(context)? {
+        while !iterator_record.step(context)? {
             // c. Let nextValue be ? IteratorValue(next).
-            let next_value = next.value(context)?;
+            let next = iterator_record.value(context)?;
 
             // d. Let status be Completion(Call(adder, set, « nextValue »)).
             // e. IfAbruptCloseIterator(status, iteratorRecord).
-            if let Err(status) = adder.call(&weak_set.clone().into(), &[next_value], context) {
+            if let Err(status) = adder.call(&weak_set.clone().into(), &[next], context) {
                 return iterator_record.close(Err(status), context);
             }
         }

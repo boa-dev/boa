@@ -138,7 +138,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Opcode::LoopStart => {
+                Opcode::LoopStart | Opcode::IteratorLoopStart => {
                     let start_address = self.read::<u32>(pc);
                     pc += size_of::<u32>();
                     let end_address = self.read::<u32>(pc);
@@ -228,9 +228,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, address, None, Color::None, EdgeStyle::Line);
                 }
-                Opcode::IteratorUnwrapNextOrJump
-                | Opcode::GeneratorAsyncResumeYield
-                | Opcode::GeneratorNextDelegate => {
+                Opcode::GeneratorAsyncResumeYield => {
                     let address = self.read::<u32>(pc) as usize;
                     pc += size_of::<u32>();
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
@@ -243,7 +241,7 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
-                Opcode::GeneratorAsyncDelegateNext => {
+                Opcode::GeneratorDelegateNext => {
                     let throw_method_undefined = self.read::<u32>(pc) as usize;
                     let return_method_undefined = self.read::<u32>(pc) as usize;
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
@@ -262,12 +260,18 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
-                Opcode::GeneratorAsyncDelegateResume => {
-                    self.read::<u32>(pc);
-                    self.read::<u32>(pc);
+                Opcode::GeneratorDelegateResume => {
+                    let return_gen = self.read::<u32>(pc) as usize;
                     let exit = self.read::<u32>(pc) as usize;
                     pc += size_of::<u32>();
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(
+                        previous_pc,
+                        return_gen,
+                        Some("RETURN".into()),
+                        Color::None,
+                        EdgeStyle::Line,
+                    );
                     graph.add_edge(
                         previous_pc,
                         exit,
@@ -562,12 +566,14 @@ impl CodeBlock {
                 | Opcode::GetIterator
                 | Opcode::GetAsyncIterator
                 | Opcode::IteratorNext
-                | Opcode::IteratorNextSetDone
-                | Opcode::IteratorUnwrapNext
-                | Opcode::IteratorUnwrapValue
+                | Opcode::IteratorFinishAsyncNext
+                | Opcode::IteratorValue
+                | Opcode::IteratorResult
+                | Opcode::IteratorDone
                 | Opcode::IteratorToArray
-                | Opcode::IteratorClosePush
-                | Opcode::IteratorClosePop
+                | Opcode::IteratorPop
+                | Opcode::IteratorReturn
+                | Opcode::IteratorStackEmpty
                 | Opcode::RequireObjectCoercible
                 | Opcode::ValueNotNullOrUndefined
                 | Opcode::RestParameterInit
@@ -676,8 +682,7 @@ impl CodeBlock {
                 | Opcode::Reserved52
                 | Opcode::Reserved53
                 | Opcode::Reserved54
-                | Opcode::Reserved55
-                | Opcode::Reserved56 => unreachable!("Reserved opcodes are unrechable"),
+                | Opcode::Reserved55 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

@@ -1,5 +1,5 @@
 use crate::{
-    builtins::{iterable::IteratorRecord, Array},
+    builtins::Array,
     object::ObjectData,
     string::utf16,
     vm::{opcode::Operation, CompletionType},
@@ -90,15 +90,17 @@ impl Operation for PushIteratorToArray {
     const INSTRUCTION: &'static str = "INST - PushIteratorToArray";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let next_method = context.vm.pop();
-        let iterator = context.vm.pop();
-        let iterator = iterator.as_object().expect("iterator was not an object");
+        let mut iterator = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .expect("iterator stack should have at least an iterator");
         let array = context.vm.pop();
 
-        let iterator = IteratorRecord::new(iterator.clone(), next_method, false);
-        while let Some(next) = iterator.step(context)? {
-            let next_value = next.value(context)?;
-            Array::push(&array, &[next_value], context)?;
+        while !iterator.step(context)? {
+            let next = iterator.value(context)?;
+            Array::push(&array, &[next], context)?;
         }
 
         context.vm.push(array);

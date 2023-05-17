@@ -6,7 +6,9 @@ mod abrupt_record;
 mod env_stack;
 
 use crate::{
-    builtins::promise::PromiseCapability, environments::BindingLocator, object::JsObject,
+    builtins::{iterable::IteratorRecord, promise::PromiseCapability},
+    environments::BindingLocator,
+    object::JsObject,
     vm::CodeBlock,
 };
 use boa_gc::{Finalize, Gc, Trace};
@@ -39,7 +41,7 @@ pub struct CallFrame {
     pub(crate) async_generator: Option<JsObject>,
 
     // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
-    pub(crate) iterators: ThinVec<(JsObject, bool)>,
+    pub(crate) iterators: ThinVec<IteratorRecord>,
 
     // The stack of bindings being updated.
     pub(crate) binding_stack: Vec<BindingLocator>,
@@ -110,8 +112,9 @@ impl CallFrame {
 }
 
 /// Indicates how a generator function that has been called/resumed should return.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub(crate) enum GeneratorResumeKind {
+    #[default]
     Normal,
     Throw,
     Return,

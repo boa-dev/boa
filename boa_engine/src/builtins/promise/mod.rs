@@ -542,59 +542,40 @@ impl Promise {
         // 4. Repeat,
         loop {
             // a. Let next be Completion(IteratorStep(iteratorRecord)).
-            let next = iterator_record.step(context);
+            // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+            // c. ReturnIfAbrupt(next).
+            let done = iterator_record.step(context)?;
 
-            let next_value = match next {
-                Err(e) => {
-                    // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
-                    iterator_record.set_done(true);
+            // d. If next is false, then
+            // i. Set iteratorRecord.[[Done]] to true.
+            if done {
+                // ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                remaining_elements_count.set(remaining_elements_count.get() - 1);
 
-                    // c. ReturnIfAbrupt(next).
-                    return Err(e);
+                // iii. If remainingElementsCount.[[Value]] is 0, then
+                if remaining_elements_count.get() == 0 {
+                    // 1. Let valuesArray be CreateArrayFromList(values).
+                    let values_array = crate::builtins::Array::create_array_from_list(
+                        values.borrow().iter().cloned(),
+                        context,
+                    );
+
+                    // 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
+                    result_capability.resolve.call(
+                        &JsValue::undefined(),
+                        &[values_array.into()],
+                        context,
+                    )?;
                 }
-                // d. If next is false, then
-                Ok(None) => {
-                    // i. Set iteratorRecord.[[Done]] to true.
-                    iterator_record.set_done(true);
 
-                    // ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
-                    remaining_elements_count.set(remaining_elements_count.get() - 1);
+                // iv. Return resultCapability.[[Promise]].
+                return Ok(result_capability.promise.clone());
+            }
 
-                    // iii. If remainingElementsCount.[[Value]] is 0, then
-                    if remaining_elements_count.get() == 0 {
-                        // 1. Let valuesArray be CreateArrayFromList(values).
-                        let values_array = crate::builtins::Array::create_array_from_list(
-                            values.borrow().iter().cloned(),
-                            context,
-                        );
-
-                        // 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
-                        result_capability.resolve.call(
-                            &JsValue::undefined(),
-                            &[values_array.into()],
-                            context,
-                        )?;
-                    }
-
-                    // iv. Return resultCapability.[[Promise]].
-                    return Ok(result_capability.promise.clone());
-                }
-                Ok(Some(next)) => {
-                    // e. Let nextValue be Completion(IteratorValue(next)).
-                    let next_value = next.value(context);
-
-                    match next_value {
-                        Err(e) => {
-                            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
-                            iterator_record.set_done(true);
-
-                            // g. ReturnIfAbrupt(nextValue).
-                            return Err(e);
-                        }
-                        Ok(next_value) => next_value,
-                    }
-                }
-            };
+            // e. Let nextValue be Completion(IteratorValue(next)).
+            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+            // g. ReturnIfAbrupt(nextValue).
+            let next_value = iterator_record.value(context)?;
 
             // h. Append undefined to values.
             values.borrow_mut().push(JsValue::Undefined);
@@ -785,59 +766,40 @@ impl Promise {
         // 4. Repeat,
         loop {
             // a. Let next be Completion(IteratorStep(iteratorRecord)).
-            let next = iterator_record.step(context);
+            // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+            // c. ReturnIfAbrupt(next).
+            let done = iterator_record.step(context)?;
 
-            let next_value = match next {
-                Err(e) => {
-                    // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
-                    iterator_record.set_done(true);
+            // d. If next is false, then
+            if done {
+                // i. Set iteratorRecord.[[Done]] to true.
+                // ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                remaining_elements_count.set(remaining_elements_count.get() - 1);
 
-                    // c. ReturnIfAbrupt(next).
-                    return Err(e);
+                // iii. If remainingElementsCount.[[Value]] is 0, then
+                if remaining_elements_count.get() == 0 {
+                    // 1. Let valuesArray be CreateArrayFromList(values).
+                    let values_array = crate::builtins::Array::create_array_from_list(
+                        values.borrow().as_slice().iter().cloned(),
+                        context,
+                    );
+
+                    // 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
+                    result_capability.resolve.call(
+                        &JsValue::undefined(),
+                        &[values_array.into()],
+                        context,
+                    )?;
                 }
-                // d. If next is false, then
-                Ok(None) => {
-                    // i. Set iteratorRecord.[[Done]] to true.
-                    iterator_record.set_done(true);
 
-                    // ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
-                    remaining_elements_count.set(remaining_elements_count.get() - 1);
+                // iv. Return resultCapability.[[Promise]].
+                return Ok(result_capability.promise.clone());
+            }
 
-                    // iii. If remainingElementsCount.[[Value]] is 0, then
-                    if remaining_elements_count.get() == 0 {
-                        // 1. Let valuesArray be CreateArrayFromList(values).
-                        let values_array = crate::builtins::Array::create_array_from_list(
-                            values.borrow().as_slice().iter().cloned(),
-                            context,
-                        );
-
-                        // 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
-                        result_capability.resolve.call(
-                            &JsValue::undefined(),
-                            &[values_array.into()],
-                            context,
-                        )?;
-                    }
-
-                    // iv. Return resultCapability.[[Promise]].
-                    return Ok(result_capability.promise.clone());
-                }
-                Ok(Some(next)) => {
-                    // e. Let nextValue be Completion(IteratorValue(next)).
-                    let next_value = next.value(context);
-
-                    match next_value {
-                        Err(e) => {
-                            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
-                            iterator_record.set_done(true);
-
-                            // g. ReturnIfAbrupt(nextValue).
-                            return Err(e);
-                        }
-                        Ok(next_value) => next_value,
-                    }
-                }
-            };
+            // e. Let nextValue be Completion(IteratorValue(next)).
+            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+            // g. ReturnIfAbrupt(nextValue).
+            let next_value = iterator_record.value(context)?;
 
             // h. Append undefined to values.
             values.borrow_mut().push(JsValue::undefined());
@@ -1131,61 +1093,43 @@ impl Promise {
         // 4. Repeat,
         loop {
             // a. Let next be Completion(IteratorStep(iteratorRecord)).
-            let next = iterator_record.step(context);
+            // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+            // c. ReturnIfAbrupt(next).
+            let done = iterator_record.step(context)?;
 
-            let next_value = match next {
-                Err(e) => {
-                    // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
-                    iterator_record.set_done(true);
+            // d. If next is false, then
+            if done {
+                // i. Set iteratorRecord.[[Done]] to true.
 
-                    // c. ReturnIfAbrupt(next).
-                    return Err(e);
+                // ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                remaining_elements_count.set(remaining_elements_count.get() - 1);
+
+                // iii. If remainingElementsCount.[[Value]] is 0, then
+                if remaining_elements_count.get() == 0 {
+                    // 1. Let error be a newly created AggregateError object.
+                    // 2. Perform ! DefinePropertyOrThrow(error, "errors", PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
+                    let error = JsNativeError::aggregate(
+                        errors
+                            .borrow()
+                            .iter()
+                            .cloned()
+                            .map(JsError::from_opaque)
+                            .collect(),
+                    )
+                    .with_message("no promise in Promise.any was fulfilled.");
+
+                    // 3. Return ThrowCompletion(error).
+                    return Err(error.into());
                 }
-                // d. If next is false, then
-                Ok(None) => {
-                    // i. Set iteratorRecord.[[Done]] to true.
-                    iterator_record.set_done(true);
 
-                    // ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
-                    remaining_elements_count.set(remaining_elements_count.get() - 1);
+                // iv. Return resultCapability.[[Promise]].
+                return Ok(result_capability.promise.clone());
+            }
 
-                    // iii. If remainingElementsCount.[[Value]] is 0, then
-                    if remaining_elements_count.get() == 0 {
-                        // 1. Let error be a newly created AggregateError object.
-                        // 2. Perform ! DefinePropertyOrThrow(error, "errors", PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
-                        let error = JsNativeError::aggregate(
-                            errors
-                                .borrow()
-                                .iter()
-                                .cloned()
-                                .map(JsError::from_opaque)
-                                .collect(),
-                        )
-                        .with_message("no promise in Promise.any was fulfilled.");
-
-                        // 3. Return ThrowCompletion(error).
-                        return Err(error.into());
-                    }
-
-                    // iv. Return resultCapability.[[Promise]].
-                    return Ok(result_capability.promise.clone());
-                }
-                Ok(Some(next)) => {
-                    // e. Let nextValue be Completion(IteratorValue(next)).
-                    let next_value = next.value(context);
-
-                    match next_value {
-                        Err(e) => {
-                            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
-                            iterator_record.set_done(true);
-
-                            // g. ReturnIfAbrupt(nextValue).
-                            return Err(e);
-                        }
-                        Ok(next_value) => next_value,
-                    }
-                }
-            };
+            // e. Let nextValue be Completion(IteratorValue(next)).
+            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+            // g. ReturnIfAbrupt(nextValue).
+            let next_value = iterator_record.value(context)?;
 
             // h. Append undefined to errors.
             errors.borrow_mut().push(JsValue::undefined());
@@ -1375,35 +1319,21 @@ impl Promise {
         // 1. Repeat,
         loop {
             // a. Let next be Completion(IteratorStep(iteratorRecord)).
-            let next = iterator_record.step(context);
-
             // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
-            if next.is_err() {
-                iterator_record.set_done(true);
-            }
-
             // c. ReturnIfAbrupt(next).
-            let next = next?;
+            let done = iterator_record.step(context)?;
 
-            let Some(next) = next else {
+            if done {
                 // d. If next is false, then
                 // i. Set iteratorRecord.[[Done]] to true.
-                iterator_record.set_done(true);
-
                 // ii. Return resultCapability.[[Promise]].
                 return Ok(result_capability.promise.clone());
-            };
-
-            // e. Let nextValue be Completion(IteratorValue(next)).
-            let next_value = next.value(context);
-
-            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
-            if next_value.is_err() {
-                iterator_record.set_done(true);
             }
 
+            // e. Let nextValue be Completion(IteratorValue(next)).
+            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
             // g. ReturnIfAbrupt(nextValue).
-            let next_value = next_value?;
+            let next_value = iterator_record.value(context)?;
 
             // h. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
             let next_promise = promise_resolve.call(&constructor, &[next_value], context)?;

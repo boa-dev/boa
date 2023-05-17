@@ -1,5 +1,5 @@
 use crate::{
-    builtins::object::for_in_iterator::ForInIterator,
+    builtins::{iterable::IteratorRecord, object::for_in_iterator::ForInIterator},
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
@@ -24,8 +24,12 @@ impl Operation for CreateForInIterator {
             .get("next", context)
             .expect("ForInIterator must have a `next` method");
 
-        context.vm.push(iterator);
-        context.vm.push(next_method);
+        context
+            .vm
+            .frame_mut()
+            .iterators
+            .push(IteratorRecord::new(iterator, next_method));
+
         Ok(CompletionType::Normal)
     }
 }

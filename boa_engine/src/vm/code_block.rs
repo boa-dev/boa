@@ -317,10 +317,8 @@ impl CodeBlock {
             | Opcode::Call
             | Opcode::New
             | Opcode::SuperCall
-            | Opcode::IteratorUnwrapNextOrJump
             | Opcode::ConcatToString
-            | Opcode::GeneratorAsyncResumeYield
-            | Opcode::GeneratorNextDelegate => {
+            | Opcode::GeneratorAsyncResumeYield => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
                 result
@@ -334,9 +332,11 @@ impl CodeBlock {
             | Opcode::Break
             | Opcode::Continue
             | Opcode::LoopStart
+            | Opcode::IteratorLoopStart
             | Opcode::TryStart
             | Opcode::AsyncGeneratorNext
-            | Opcode::GeneratorAsyncDelegateNext => {
+            | Opcode::GeneratorDelegateNext
+            | Opcode::GeneratorDelegateResume => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
@@ -349,15 +349,6 @@ impl CodeBlock {
                 let operand2 = self.read::<u64>(*pc);
                 *pc += size_of::<u64>();
                 format!("{operand1}, {operand2}")
-            }
-            Opcode::GeneratorAsyncDelegateResume => {
-                let operand1 = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-                let operand2 = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-                let operand3 = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-                format!("{operand1}, {operand2}, {operand3}")
             }
             Opcode::GetArrowFunction
             | Opcode::GetAsyncArrowFunction
@@ -522,12 +513,14 @@ impl CodeBlock {
             | Opcode::GetAsyncIterator
             | Opcode::GeneratorResumeReturn
             | Opcode::IteratorNext
-            | Opcode::IteratorNextSetDone
-            | Opcode::IteratorUnwrapNext
-            | Opcode::IteratorUnwrapValue
+            | Opcode::IteratorFinishAsyncNext
+            | Opcode::IteratorValue
+            | Opcode::IteratorResult
+            | Opcode::IteratorDone
             | Opcode::IteratorToArray
-            | Opcode::IteratorClosePush
-            | Opcode::IteratorClosePop
+            | Opcode::IteratorPop
+            | Opcode::IteratorReturn
+            | Opcode::IteratorStackEmpty
             | Opcode::RequireObjectCoercible
             | Opcode::ValueNotNullOrUndefined
             | Opcode::RestParameterInit
@@ -611,8 +604,7 @@ impl CodeBlock {
             | Opcode::Reserved52
             | Opcode::Reserved53
             | Opcode::Reserved54
-            | Opcode::Reserved55
-            | Opcode::Reserved56 => unreachable!("Reserved opcodes are unrechable"),
+            | Opcode::Reserved55 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

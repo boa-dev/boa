@@ -27,7 +27,7 @@ pub(crate) struct JumpControlInfo {
 bitflags! {
     /// A bitflag that contains the type flags and relevant booleans for `JumpControlInfo`.
     #[derive(Debug, Clone, Copy)]
-    pub(crate) struct JumpControlInfoFlags: u8 {
+    pub(crate) struct JumpControlInfoFlags: u16 {
         const LOOP = 0b0000_0001;
         const SWITCH = 0b0000_0010;
         const TRY_BLOCK = 0b0000_0100;
@@ -35,7 +35,8 @@ bitflags! {
         const IN_CATCH = 0b0001_0000;
         const IN_FINALLY = 0b0010_0000;
         const HAS_FINALLY = 0b0100_0000;
-        const FOR_OF_IN_LOOP = 0b1000_0000;
+        const ITERATOR_LOOP = 0b1000_0000;
+        const FOR_AWAIT_OF_LOOP = 0b1_0000_0000;
     }
 }
 
@@ -95,8 +96,14 @@ impl JumpControlInfo {
         self
     }
 
-    pub(crate) fn with_for_of_in_loop(mut self, value: bool) -> Self {
-        self.flags.set(JumpControlInfoFlags::FOR_OF_IN_LOOP, value);
+    pub(crate) fn with_iterator_loop(mut self, value: bool) -> Self {
+        self.flags.set(JumpControlInfoFlags::ITERATOR_LOOP, value);
+        self
+    }
+
+    pub(crate) fn with_for_await_of_loop(mut self, value: bool) -> Self {
+        self.flags
+            .set(JumpControlInfoFlags::FOR_AWAIT_OF_LOOP, value);
         self
     }
 }
@@ -139,8 +146,12 @@ impl JumpControlInfo {
         self.flags.contains(JumpControlInfoFlags::HAS_FINALLY)
     }
 
-    pub(crate) const fn for_of_in_loop(&self) -> bool {
-        self.flags.contains(JumpControlInfoFlags::FOR_OF_IN_LOOP)
+    pub(crate) const fn iterator_loop(&self) -> bool {
+        self.flags.contains(JumpControlInfoFlags::ITERATOR_LOOP)
+    }
+
+    pub(crate) const fn for_await_of_loop(&self) -> bool {
+        self.flags.contains(JumpControlInfoFlags::ITERATOR_LOOP)
     }
 }
 
@@ -274,7 +285,21 @@ impl ByteCompiler<'_, '_> {
             .with_loop_flag(true)
             .with_label(label)
             .with_start_address(start_address)
-            .with_for_of_in_loop(true);
+            .with_iterator_loop(true);
+        self.jump_info.push(new_info);
+    }
+
+    pub(crate) fn push_loop_control_info_for_await_of_loop(
+        &mut self,
+        label: Option<Sym>,
+        start_address: u32,
+    ) {
+        let new_info = JumpControlInfo::default()
+            .with_loop_flag(true)
+            .with_label(label)
+            .with_start_address(start_address)
+            .with_iterator_loop(true)
+            .with_for_await_of_loop(true);
         self.jump_info.push(new_info);
     }
 

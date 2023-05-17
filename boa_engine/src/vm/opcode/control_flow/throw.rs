@@ -1,9 +1,11 @@
 use crate::{
-    js_string,
-    vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
-    Context, JsError, JsNativeError, JsResult,
+    vm::{
+        call_frame::{AbruptCompletionRecord, EnvStackEntry},
+        opcode::Operation,
+        CompletionType,
+    },
+    Context, JsError, JsNativeError, JsResult, JsValue,
 };
-use thin_vec::ThinVec;
 
 /// `Throw` implements the Opcode Operation for `Opcode::Throw`
 ///
@@ -23,30 +25,34 @@ impl Operation for Throw {
             JsError::from_opaque(context.vm.pop())
         };
 
-        // Close all iterators that are still open.
-        let mut iterators = ThinVec::new();
-        std::mem::swap(&mut iterators, &mut context.vm.frame_mut().iterators);
-        for (iterator, done) in iterators {
-            if done {
-                continue;
-            }
-            if let Ok(Some(f)) = iterator.get_method(js_string!("return"), context) {
-                drop(f.call(&iterator.into(), &[], context));
-            }
-        }
-        context.vm.err.take();
-
         // 1. Find the viable catch and finally blocks
         let current_address = context.vm.frame().pc;
-        let viable_catch_candidates = context
-            .vm
-            .frame()
-            .env_stack
-            .iter()
-            .filter(|env| env.is_try_env() && env.start_address() < env.exit_address());
+        let mut envs = context.vm.frame().env_stack.iter();
 
-        if let Some(candidate) = viable_catch_candidates.last() {
-            let catch_target = candidate.start_address();
+        if let Some(idx) =
+            envs.rposition(|env| env.is_try_env() && env.start_address() < env.exit_address())
+        {
+            let active_iterator = context.vm.frame().env_stack[..idx]
+                .iter()
+                .filter_map(EnvStackEntry::iterator)
+                .last();
+
+            // Close all iterators that are outside the catch context.
+            if let Some(active_iterator) = active_iterator {
+                let inactive = context
+                    .vm
+                    .frame_mut()
+                    .iterators
+                    .split_off(active_iterator + 1);
+                for iterator in inactive {
+                    if !iterator.done() {
+                        drop(iterator.close(Ok(JsValue::undefined()), context));
+                    }
+                }
+                context.vm.err.take();
+            }
+
+            let catch_target = context.vm.frame().env_stack[idx].start_address();
 
             let mut env_to_pop = 0;
             let mut target_address = u32::MAX;
@@ -126,6 +132,29 @@ impl Operation for Throw {
                 context.vm.frame_mut().env_stack.pop();
             }
 
+            let active_iterator = context
+                .vm
+                .frame()
+                .env_stack
+                .iter()
+                .filter_map(EnvStackEntry::iterator)
+                .last();
+
+            // Close all iterators that are outside the finally context.
+            if let Some(active_iterator) = active_iterator {
+                let inactive = context
+                    .vm
+                    .frame_mut()
+                    .iterators
+                    .split_off(active_iterator + 1);
+                for iterator in inactive {
+                    if !iterator.done() {
+                        drop(iterator.close(Ok(JsValue::undefined()), context));
+                    }
+                }
+                context.vm.err.take();
+            }
+
             let env_truncation_len = context.vm.environments.len().saturating_sub(env_to_pop);
             context.vm.environments.truncate(env_truncation_len);
 
@@ -142,6 +171,14 @@ impl Operation for Throw {
             context.vm.push(err);
             return Ok(CompletionType::Normal);
         }
+
+        // Close all iterators that are still open.
+        for iterator in std::mem::take(&mut context.vm.frame_mut().iterators) {
+            if !iterator.done() {
+                drop(iterator.close(Ok(JsValue::undefined()), context));
+            }
+        }
+        context.vm.err.take();
 
         context.vm.err = Some(error);
         Ok(CompletionType::Throw)

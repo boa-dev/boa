@@ -18,8 +18,7 @@ impl Operation for GetIterator {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let object = context.vm.pop();
         let iterator = object.get_iterator(context, None, None)?;
-        context.vm.push(iterator.iterator().clone());
-        context.vm.push(iterator.next_method().clone());
+        context.vm.frame_mut().iterators.push(iterator);
         Ok(CompletionType::Normal)
     }
 }
@@ -38,8 +37,7 @@ impl Operation for GetAsyncIterator {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let object = context.vm.pop();
         let iterator = object.get_iterator(context, Some(IteratorHint::Async), None)?;
-        context.vm.push(iterator.iterator().clone());
-        context.vm.push(iterator.next_method().clone());
+        context.vm.frame_mut().iterators.push(iterator);
         Ok(CompletionType::Normal)
     }
 }
