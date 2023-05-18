@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES"],"enum":["PassAction"],"mod":["pass","walker"],"struct":["InternalBitFlags","Iter","IterRaw","Optimizer","OptimizerOptions","OptimizerStatistics"]};
+window.SIDEBAR_ITEMS = {"enum":["PassAction"],"mod":["pass","walker"],"struct":["InternalBitFlags","Optimizer","OptimizerOptions","OptimizerStatistics"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES","RECURSIVE_COUNT_FormalParameter"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["FormalParameter","FormalParameterList","FormalParameterListFlags","InternalBitFlags","Iter","IterRaw"]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_FormalParameter"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["FormalParameter","FormalParameterList","FormalParameterListFlags","InternalBitFlags"]};

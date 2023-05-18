@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES"],"fn":["parse_regex_flags"],"struct":["InternalBitFlags","Iter","IterRaw","RegExpFlags","RegexLiteral"]};
+window.SIDEBAR_ITEMS = {"fn":["parse_regex_flags"],"struct":["InternalBitFlags","RegExpFlags","RegexLiteral"]};

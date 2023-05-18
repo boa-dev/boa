@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES"],"struct":["Attribute","InternalBitFlags","Iter","IterRaw"]};
+window.SIDEBAR_ITEMS = {"struct":["Attribute","InternalBitFlags"]};
