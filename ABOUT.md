@@ -1,7 +1,7 @@
 # About Boa
 
 Boa is an open-source, experimental ECMAScript Engine written in Rust for
-lexing, parsing and executing ECMAScript/JavaScript Currently, Boa supports some
+lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa supports some
 of the [language][boa-conformance]. More information can be viewed at [Boa's
 website][boa-web].
 
