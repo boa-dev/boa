@@ -1,7 +1,9 @@
 use crate::{
+    environments::PrivateEnvironment,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
+use boa_gc::Gc;
 
 /// `PushDeclarativeEnvironment` implements the Opcode Operation for `Opcode::PushDeclarativeEnvironment`
 ///
@@ -71,6 +73,63 @@ impl Operation for PushObjectEnvironment {
 
         context.vm.environments.push_object(object);
         context.vm.frame_mut().inc_frame_env_stack();
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `PushPrivateEnvironment` implements the Opcode Operation for `Opcode::PushPrivateEnvironment`
+///
+/// Operation:
+///  - Push a private environment.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct PushPrivateEnvironment;
+
+impl Operation for PushPrivateEnvironment {
+    const NAME: &'static str = "PushPrivateEnvironment";
+    const INSTRUCTION: &'static str = "INST - PushPrivateEnvironment";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let class_value = context.vm.pop();
+        let class = class_value.to_object(context)?;
+
+        let count = context.vm.read::<u32>();
+        let mut names = Vec::with_capacity(count as usize);
+        for _ in 0..count {
+            let index = context.vm.read::<u32>();
+            let name = context.vm.frame().code_block.private_names[index as usize];
+            names.push(name.description());
+        }
+
+        let ptr: *const _ = class.as_ref();
+        let environment = Gc::new(PrivateEnvironment::new(ptr as usize, names));
+
+        class
+            .borrow_mut()
+            .as_function_mut()
+            .expect("class object must be function")
+            .push_private_environment(environment.clone());
+        context.vm.environments.push_private(environment);
+
+        context.vm.push(class_value);
+
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `PopPrivateEnvironment` implements the Opcode Operation for `Opcode::PopPrivateEnvironment`
+///
+/// Operation:
+///  - Pop a private environment.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct PopPrivateEnvironment;
+
+impl Operation for PopPrivateEnvironment {
+    const NAME: &'static str = "PopPrivateEnvironment";
+    const INSTRUCTION: &'static str = "INST - PopPrivateEnvironment";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        context.vm.environments.pop_private();
+
         Ok(CompletionType::Normal)
     }
 }

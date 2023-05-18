@@ -122,12 +122,18 @@ impl Operation for InPrivate {
                 ))
                 .into());
         };
+
+        let name = context
+            .vm
+            .environments
+            .resolve_private_identifier(name.description())
+            .expect("private name must be in environment");
+
         if rhs.private_element_find(&name, true, true).is_some() {
             context.vm.push(true);
         } else {
             context.vm.push(false);
         }
-
         Ok(CompletionType::Normal)
     }
 }

@@ -1,17 +1,24 @@
 use crate::{
-    environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context,
-    JsResult, JsString, JsSymbol, JsValue,
+    environments::CompileTimeEnvironment,
+    error::JsNativeError,
+    object::{JsObject, PrivateName},
+    Context, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_ast::expression::Identifier;
 use boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
+use boa_interner::Sym;
 use rustc_hash::FxHashSet;
 
 mod declarative;
+mod private;
 
 use self::declarative::ModuleEnvironment;
-pub(crate) use self::declarative::{
-    DeclarativeEnvironment, DeclarativeEnvironmentKind, FunctionEnvironment, FunctionSlots,
-    LexicalEnvironment, ThisBindingStatus,
+pub(crate) use self::{
+    declarative::{
+        DeclarativeEnvironment, DeclarativeEnvironmentKind, FunctionEnvironment, FunctionSlots,
+        LexicalEnvironment, ThisBindingStatus,
+    },
+    private::PrivateEnvironment,
 };
 
 /// The environment stack holds all environments at runtime.
@@ -21,6 +28,8 @@ pub(crate) use self::declarative::{
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) struct EnvironmentStack {
     stack: Vec<Environment>,
+
+    private_stack: Vec<Gc<PrivateEnvironment>>,
 }
 
 /// A runtime environment.
@@ -56,6 +65,7 @@ impl EnvironmentStack {
         ));
         Self {
             stack: vec![Environment::Declarative(global)],
+            private_stack: Vec::new(),
         }
     }
 
@@ -456,6 +466,51 @@ impl EnvironmentStack {
         if env.get(binding_index).is_none() {
             env.set(binding_index, value);
         }
+    }
+
+    /// Push a private environment to the private environment stack.
+    pub(crate) fn push_private(&mut self, environment: Gc<PrivateEnvironment>) {
+        self.private_stack.push(environment);
+    }
+
+    /// Pop a private environment from the private environment stack.
+    pub(crate) fn pop_private(&mut self) {
+        self.private_stack.pop();
+    }
+
+    /// `ResolvePrivateIdentifier ( privEnv, identifier )`
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-resolve-private-identifier
+    pub(crate) fn resolve_private_identifier(&self, identifier: Sym) -> Option<PrivateName> {
+        // 1. Let names be privEnv.[[Names]].
+        // 2. For each Private Name pn of names, do
+        //     a. If pn.[[Description]] is identifier, then
+        //         i. Return pn.
+        // 3. Let outerPrivEnv be privEnv.[[OuterPrivateEnvironment]].
+        // 4. Assert: outerPrivEnv is not null.
+        // 5. Return ResolvePrivateIdentifier(outerPrivEnv, identifier).
+        for environment in self.private_stack.iter().rev() {
+            if environment.descriptions().contains(&identifier) {
+                return Some(PrivateName::new(identifier, environment.id()));
+            }
+        }
+        None
+    }
+
+    /// Return all private name descriptions in all private environments.
+    pub(crate) fn private_name_descriptions(&self) -> Vec<Sym> {
+        let mut names = Vec::new();
+        for environment in self.private_stack.iter().rev() {
+            for name in environment.descriptions() {
+                if !names.contains(name) {
+                    names.push(*name);
+                }
+            }
+        }
+        names
     }
 }
 

@@ -74,12 +74,13 @@ impl Operation for PushClassFieldPrivate {
             .expect("class must be function object");
         field_function.set_home_object(class_object.clone());
         field_function.set_class_object(class_object.clone());
+
         class_object
             .borrow_mut()
             .as_function_mut()
             .expect("class must be function object")
             .push_field_private(
-                name,
+                class_object.private_name(name.description()),
                 JsFunction::from_object_unchecked(field_function_object.clone()),
             );
         Ok(CompletionType::Normal)

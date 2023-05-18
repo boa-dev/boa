@@ -100,6 +100,23 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::SetClassPrototype);
         self.emit_opcode(Opcode::Swap);
 
+        let count_label = self.emit_opcode_with_operand(Opcode::PushPrivateEnvironment);
+        let mut count = 0;
+        for element in class.elements() {
+            match element {
+                ClassElement::PrivateMethodDefinition(name, _)
+                | ClassElement::PrivateStaticMethodDefinition(name, _)
+                | ClassElement::PrivateFieldDefinition(name, _)
+                | ClassElement::PrivateStaticFieldDefinition(name, _) => {
+                    count += 1;
+                    let index = self.get_or_insert_private_name(*name);
+                    self.emit_u32(index);
+                }
+                _ => {}
+            }
+        }
+        self.patch_jump_with_target(count_label, count);
+
         // TODO: set function name for getter and setters
         for element in class.elements() {
             match element {
@@ -535,6 +552,8 @@ impl ByteCompiler<'_, '_> {
             self.patch_jump_with_target(class_env.1, env_info.index as u32);
             self.emit_opcode(Opcode::PopEnvironment);
         }
+
+        self.emit_opcode(Opcode::PopPrivateEnvironment);
 
         if !expression {
             self.emit_binding(

@@ -5,7 +5,7 @@
 use super::{
     internal_methods::{InternalObjectMethods, ARRAY_EXOTIC_INTERNAL_METHODS},
     shape::{shared_shape::SharedShape, Shape},
-    JsPrototype, NativeObject, Object, PropertyMap,
+    JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 use crate::{
     context::intrinsics::Intrinsics,
@@ -17,6 +17,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, GcRefCell, Trace};
+use boa_interner::Sym;
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -943,6 +944,12 @@ Cannot both specify accessors and a value or writable attribute",
 
     pub(crate) const fn inner(&self) -> &Gc<VTableObject> {
         &self.inner
+    }
+
+    /// Create a new private name with this object as the unique identifier.
+    pub(crate) fn private_name(&self, description: Sym) -> PrivateName {
+        let ptr: *const _ = self.as_ref();
+        PrivateName::new(description, ptr as usize)
     }
 }
 

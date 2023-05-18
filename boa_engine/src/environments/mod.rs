@@ -31,7 +31,7 @@ pub(crate) use {
     compile::CompileTimeEnvironment,
     runtime::{
         BindingLocator, DeclarativeEnvironment, Environment, EnvironmentStack, FunctionSlots,
-        ThisBindingStatus,
+        PrivateEnvironment, ThisBindingStatus,
     },
 };
 

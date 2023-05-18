@@ -22,9 +22,9 @@ use boa_ast::{
     expression::Identifier,
     function::FormalParameterList,
     operations::{
-        check_labels, contains, contains_invalid_object_literal, lexically_declared_names,
-        top_level_lexically_declared_names, top_level_var_declared_names, var_declared_names,
-        ContainsSymbol,
+        all_private_identifiers_valid, check_labels, contains, contains_invalid_object_literal,
+        lexically_declared_names, top_level_lexically_declared_names, top_level_var_declared_names,
+        var_declared_names, ContainsSymbol,
     },
     ModuleItemList, Position, StatementList,
 };
@@ -337,6 +337,16 @@ where
             if contains(&body, ContainsSymbol::NewTarget) {
                 return Err(Error::general(
                     "invalid new.target usage",
+                    Position::new(1, 1),
+                ));
+            }
+
+            // It is a Syntax Error if AllPrivateIdentifiersValid of StatementList with
+            // argument « » is false unless the source text containing ScriptBody is
+            // eval code that is being processed by a direct eval.
+            if !all_private_identifiers_valid(&body, Vec::new()) {
+                return Err(Error::general(
+                    "invalid private identifier usage",
                     Position::new(1, 1),
                 ));
             }

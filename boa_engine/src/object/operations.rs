@@ -2,16 +2,13 @@ use crate::{
     builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    object::{JsObject, PrivateElement, PROTOTYPE},
+    object::{JsFunction, JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::utf16,
     value::Type,
     Context, JsResult, JsSymbol, JsValue,
 };
-use boa_ast::function::PrivateName;
-
-use super::{JsFunction, CONSTRUCTOR};
 
 /// Object integrity level.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

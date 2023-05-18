@@ -478,6 +478,12 @@ impl CodeBlock {
                         );
                     }
                 }
+                Opcode::PushPrivateEnvironment => {
+                    let count = self.read::<u32>(pc);
+                    pc += size_of::<u32>() * (count as usize + 1);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
                 Opcode::Pop
                 | Opcode::PopIfThrown
                 | Opcode::Dup
@@ -588,7 +594,8 @@ impl CodeBlock {
                 | Opcode::IsObject
                 | Opcode::SetNameByLocator
                 | Opcode::Nop
-                | Opcode::PushObjectEnvironment => {
+                | Opcode::PushObjectEnvironment
+                | Opcode::PopPrivateEnvironment => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }

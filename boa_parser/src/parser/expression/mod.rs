@@ -567,7 +567,6 @@ where
 
         if self.allow_in.0 {
             let token = cursor.peek(0, interner).or_abrupt()?;
-            let span = token.span();
             if let TokenKind::PrivateIdentifier(identifier) = token.kind() {
                 let identifier = *identifier;
                 let token = cursor.peek(1, interner).or_abrupt()?;
@@ -581,13 +580,6 @@ where
                     TokenKind::Keyword((Keyword::In, false)) => {
                         cursor.advance(interner);
                         cursor.advance(interner);
-
-                        if !cursor.in_class() {
-                            return Err(Error::general(
-                                "Private identifier outside of class",
-                                span.start(),
-                            ));
-                        }
 
                         let rhs =
                             ShiftExpression::new(self.name, self.allow_yield, self.allow_await)

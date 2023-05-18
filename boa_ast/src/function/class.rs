@@ -538,9 +538,6 @@ impl VisitWith for ClassElement {
 pub struct PrivateName {
     /// The `[[Description]]` internal slot of the private name.
     description: Sym,
-
-    /// The indices of the private name are included to ensure that private names are unique.
-    pub(crate) indices: (usize, usize),
 }
 
 impl PrivateName {
@@ -548,10 +545,7 @@ impl PrivateName {
     #[inline]
     #[must_use]
     pub const fn new(description: Sym) -> Self {
-        Self {
-            description,
-            indices: (0, 0),
-        }
+        Self { description }
     }
 
     /// Get the description of the private name.

@@ -391,6 +391,11 @@ impl CodeBlock {
                     interner.resolve_expect(self.private_names[operand as usize].description()),
                 )
             }
+            Opcode::PushPrivateEnvironment => {
+                let count = self.read::<u32>(*pc);
+                *pc += size_of::<u32>() * (count as usize + 1);
+                String::new()
+            }
             Opcode::Pop
             | Opcode::PopIfThrown
             | Opcode::Dup
@@ -505,6 +510,7 @@ impl CodeBlock {
             | Opcode::PushObjectEnvironment
             | Opcode::IsObject
             | Opcode::SetNameByLocator
+            | Opcode::PopPrivateEnvironment
             | Opcode::Nop => String::new(),
         }
     }
