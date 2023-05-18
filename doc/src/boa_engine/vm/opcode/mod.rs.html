@@ -1642,6 +1642,20 @@
 <a href="#1641" id="1641">1641</a>
 <a href="#1642" id="1642">1642</a>
 <a href="#1643" id="1643">1643</a>
+<a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
+<a href="#1646" id="1646">1646</a>
+<a href="#1647" id="1647">1647</a>
+<a href="#1648" id="1648">1648</a>
+<a href="#1649" id="1649">1649</a>
+<a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
+<a href="#1652" id="1652">1652</a>
+<a href="#1653" id="1653">1653</a>
+<a href="#1654" id="1654">1654</a>
+<a href="#1655" id="1655">1655</a>
+<a href="#1656" id="1656">1656</a>
+<a href="#1657" id="1657">1657</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -3262,6 +3276,20 @@
         ///
         /// Stack: count * (cooked_value, raw_value) **=&gt;** template
         </span>TemplateCreate,
+
+        <span class="doccomment">/// Push a private environment.
+        ///
+        /// Operands: count: `u32`, count * private_name_index: `u32`
+        ///
+        /// Stack: class **=&gt;** class
+        </span>PushPrivateEnvironment,
+
+        <span class="doccomment">/// Pop a private environment.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>PopPrivateEnvironment,
 
         <span class="doccomment">/// No-operation instruction, does nothing.
         ///

@@ -127,6 +127,12 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     object::PrivateElement,
     property::PropertyDescriptor,
@@ -165,11 +171,15 @@
 
         <span class="kw">let </span>class = context.vm.pop();
         <span class="kw">let </span>class_object = class.as_object().expect(<span class="string">&quot;class must be function object&quot;</span>);
+
         class_object
             .borrow_mut()
             .as_function_mut()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
-            .push_private_method(name, PrivateElement::Method(method_object.clone()));
+            .push_private_method(
+                class_object.private_name(name.description()),
+                PrivateElement::Method(method_object.clone()),
+            );
 
         <span class="kw">let </span><span class="kw-2">mut </span>method_object_mut = method_object.borrow_mut();
         <span class="kw">let </span>function = method_object_mut
@@ -198,12 +208,13 @@
         <span class="kw">let </span>getter_object = getter.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
         <span class="kw">let </span>class = context.vm.pop();
         <span class="kw">let </span>class_object = class.as_object().expect(<span class="string">&quot;class must be function object&quot;</span>);
+
         class_object
             .borrow_mut()
             .as_function_mut()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_private_method(
-                name,
+                class_object.private_name(name.description()),
                 PrivateElement::Accessor {
                     getter: <span class="prelude-val">Some</span>(getter_object.clone()),
                     setter: <span class="prelude-val">None</span>,
@@ -236,12 +247,13 @@
         <span class="kw">let </span>setter_object = setter.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
         <span class="kw">let </span>class = context.vm.pop();
         <span class="kw">let </span>class_object = class.as_object().expect(<span class="string">&quot;class must be function object&quot;</span>);
+
         class_object
             .borrow_mut()
             .as_function_mut()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_private_method(
-                name,
+                class_object.private_name(name.description()),
                 PrivateElement::Accessor {
                     getter: <span class="prelude-val">None</span>,
                     setter: <span class="prelude-val">Some</span>(setter_object.clone()),

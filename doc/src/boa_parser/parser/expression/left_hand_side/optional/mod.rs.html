@@ -165,14 +165,6 @@
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -235,8 +227,7 @@
     <span class="kw">type </span>Output = Optional;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">fn </span>parse_const_access&lt;R: Read&gt;(
-            cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
+        <span class="kw">fn </span>parse_const_access(
             token: <span class="kw-2">&amp;</span>Token,
             interner: <span class="kw-2">&amp;mut </span>Interner,
         ) -&gt; ParseResult&lt;OptionalOperationKind&gt; {
@@ -259,13 +250,6 @@
                     field: PropertyAccessField::Const(Sym::NULL),
                 },
                 TokenKind::PrivateIdentifier(name) =&gt; {
-                    <span class="kw">if </span>!cursor.in_class() {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                            <span class="string">&quot;Private identifier outside of class&quot;</span>,
-                            token.span().start(),
-                        ));
-                    }
-
                     OptionalOperationKind::PrivatePropertyAccess {
                         field: PrivateName::new(<span class="kw-2">*</span>name),
                     }
@@ -296,7 +280,7 @@
                     cursor.advance(interner);
                     <span class="kw">let </span>field = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
-                    <span class="kw">let </span>item = parse_const_access(cursor, <span class="kw-2">&amp;</span>field, interner)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>item = parse_const_access(<span class="kw-2">&amp;</span>field, interner)<span class="question-mark">?</span>;
 
                     items.push(OptionalOperation::new(item, <span class="bool-val">false</span>));
                     <span class="kw">continue</span>;
@@ -337,7 +321,7 @@
                 }
                 <span class="kw">_ </span>=&gt; {
                     <span class="kw">let </span>token = cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;token disappeared&quot;</span>);
-                    parse_const_access(cursor, <span class="kw-2">&amp;</span>token, interner)<span class="question-mark">?
+                    parse_const_access(<span class="kw-2">&amp;</span>token, interner)<span class="question-mark">?
                 </span>}
             };
 

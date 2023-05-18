@@ -29,7 +29,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-getiterator">ECMA reference</a></li>
 </ul>
-</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-JsValue-1" class="impl"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1039-1250">source</a><a href="#impl-JsValue-1" class="anchor">§</a><h3 class="code-header">impl <a class="enum" href="enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.get_v" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1050-1059">source</a><h4 class="code-header">pub(crate) fn <a href="#method.get_v" class="fn">get_v</a>&lt;K&gt;(&amp;self, key: K, context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;) -&gt; <a class="type" href="type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;Self&gt;<span class="where fmt-newline">where
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-JsValue-1" class="impl"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1036-1247">source</a><a href="#impl-JsValue-1" class="anchor">§</a><h3 class="code-header">impl <a class="enum" href="enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.get_v" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1047-1056">source</a><h4 class="code-header">pub(crate) fn <a href="#method.get_v" class="fn">get_v</a>&lt;K&gt;(&amp;self, key: K, context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;) -&gt; <a class="type" href="type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;Self&gt;<span class="where fmt-newline">where
     K: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="enum" href="property/enum.PropertyKey.html" title="enum boa_engine::property::PropertyKey">PropertyKey</a>&gt;,</span></h4></section></summary><div class="docblock"><p>Abstract operation <code>GetV ( V, P )</code>.</p>
 <p>Retrieves the value of a specific property of an ECMAScript language value. If the value is
 not an object, the property lookup is performed using a wrapper object appropriate for the
@@ -38,7 +38,7 @@ type of the value.</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-getv">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.get_method" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1069-1080">source</a><h4 class="code-header">pub(crate) fn <a href="#method.get_method" class="fn">get_method</a>&lt;K&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_method" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1066-1077">source</a><h4 class="code-header">pub(crate) fn <a href="#method.get_method" class="fn">get_method</a>&lt;K&gt;(
     &amp;self,
     key: K,
     context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -49,7 +49,7 @@ type of the value.</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-getmethod">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.create_list_from_array_like" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1089-1138">source</a><h4 class="code-header">pub(crate) fn <a href="#method.create_list_from_array_like" class="fn">create_list_from_array_like</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.create_list_from_array_like" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1086-1135">source</a><h4 class="code-header">pub(crate) fn <a href="#method.create_list_from_array_like" class="fn">create_list_from_array_like</a>(
     &amp;self,
     element_types: &amp;[<a class="enum" href="value/type/enum.Type.html" title="enum boa_engine::value::type::Type">Type</a>],
     context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -59,7 +59,7 @@ self.</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-createlistfromarraylike">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.call" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1153-1167">source</a><h4 class="code-header">pub(crate) fn <a href="#method.call" class="fn">call</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.call" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1150-1164">source</a><h4 class="code-header">pub(crate) fn <a href="#method.call" class="fn">call</a>(
     &amp;self,
     this: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.reference.html">&amp;Self</a>,
     args: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.slice.html">[Self]</a>,
@@ -71,7 +71,7 @@ self.</p>
 then calling <a href="object/jsobject/struct.JsObject.html#method.call" title="method boa_engine::object::jsobject::JsObject::call"><code>JsObject::call</code></a>, since that allows reusing the unwrapped function for other
 operations. This method is only an utility method for when the spec directly uses <code>Call</code>
 without using the value as a proper object.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.invoke" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1177-1192">source</a><h4 class="code-header">pub(crate) fn <a href="#method.invoke" class="fn">invoke</a>&lt;K&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.invoke" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1174-1189">source</a><h4 class="code-header">pub(crate) fn <a href="#method.invoke" class="fn">invoke</a>&lt;K&gt;(
     &amp;self,
     key: K,
     args: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.slice.html">[Self]</a>,
@@ -83,7 +83,7 @@ without using the value as a proper object.</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-invoke">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.ordinary_has_instance" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1200-1249">source</a><h4 class="code-header">pub fn <a href="#method.ordinary_has_instance" class="fn">ordinary_has_instance</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.ordinary_has_instance" class="method"><a class="srclink rightside" href="../src/boa_engine/object/operations.rs.html#1197-1246">source</a><h4 class="code-header">pub fn <a href="#method.ordinary_has_instance" class="fn">ordinary_has_instance</a>(
     function: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.reference.html">&amp;Self</a>,
     object: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.reference.html">&amp;Self</a>,
     context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;

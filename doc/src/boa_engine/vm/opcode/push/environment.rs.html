@@ -75,10 +75,71 @@
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    environments::PrivateEnvironment,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
+<span class="kw">use </span>boa_gc::Gc;
 
 <span class="doccomment">/// `PushDeclarativeEnvironment` implements the Opcode Operation for `Opcode::PushDeclarativeEnvironment`
 ///
@@ -148,6 +209,63 @@
 
         context.vm.environments.push_object(object);
         context.vm.frame_mut().inc_frame_env_stack();
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `PushPrivateEnvironment` implements the Opcode Operation for `Opcode::PushPrivateEnvironment`
+///
+/// Operation:
+///  - Push a private environment.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PushPrivateEnvironment;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>PushPrivateEnvironment {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PushPrivateEnvironment&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushPrivateEnvironment&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>class_value = context.vm.pop();
+        <span class="kw">let </span>class = class_value.to_object(context)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>count = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span><span class="kw-2">mut </span>names = Vec::with_capacity(count <span class="kw">as </span>usize);
+        <span class="kw">for _ in </span><span class="number">0</span>..count {
+            <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+            <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
+            names.push(name.description());
+        }
+
+        <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= class.as_ref();
+        <span class="kw">let </span>environment = Gc::new(PrivateEnvironment::new(ptr <span class="kw">as </span>usize, names));
+
+        class
+            .borrow_mut()
+            .as_function_mut()
+            .expect(<span class="string">&quot;class object must be function&quot;</span>)
+            .push_private_environment(environment.clone());
+        context.vm.environments.push_private(environment);
+
+        context.vm.push(class_value);
+
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `PopPrivateEnvironment` implements the Opcode Operation for `Opcode::PopPrivateEnvironment`
+///
+/// Operation:
+///  - Pop a private environment.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PopPrivateEnvironment;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>PopPrivateEnvironment {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PopPrivateEnvironment&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PopPrivateEnvironment&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        context.vm.environments.pop_private();
+
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

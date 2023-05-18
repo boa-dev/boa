@@ -1874,6 +1874,7 @@
 <a href="#1873" id="1873">1873</a>
 <a href="#1874" id="1874">1874</a>
 <a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Definitions of various **Syntax-Directed Operations** used in the [spec].
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-syntax-directed-operations
@@ -1882,14 +1883,18 @@
 <span class="kw">use </span>std::convert::Infallible;
 
 <span class="kw">use </span>boa_interner::{Interner, Sym};
-<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="kw">use crate</span>::{
     declaration::{Binding, ExportDeclaration, ImportDeclaration, VarDeclaration, Variable},
-    expression::{access::SuperPropertyAccess, Await, Identifier, SuperCall, Yield},
+    expression::{
+        access::{PrivatePropertyAccess, SuperPropertyAccess},
+        operator::BinaryInPrivate,
+        Await, Identifier, SuperCall, Yield,
+    },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
-        Function, Generator, PrivateName,
+        Function, Generator,
     },
     property::{MethodDefinition, PropertyDefinition},
     statement::{
@@ -1897,7 +1902,7 @@
         LabelledItem,
     },
     try_break,
-    visitor::{NodeRef, VisitWith, Visitor, VisitorMut},
+    visitor::{NodeRef, VisitWith, Visitor},
     Declaration, Expression, ModuleItem, Statement, StatementList, StatementListItem,
 };
 
@@ -2711,108 +2716,105 @@
     names
 }
 
-<span class="doccomment">/// Resolves the private names of a class and all of the contained classes and private identifiers.
-</span><span class="kw">pub fn </span>class_private_name_resolver(node: <span class="kw-2">&amp;mut </span>Class, top_level_class_index: usize) -&gt; bool {
-    <span class="doccomment">/// Visitor used by the function to search for an identifier with the name `arguments`.
-    </span><span class="attr">#[derive(Debug, Clone)]
-    </span><span class="kw">struct </span>ClassPrivateNameResolver {
-        private_environments_stack: Vec&lt;FxHashMap&lt;Sym, PrivateName&gt;&gt;,
-        top_level_class_index: usize,
-    }
+<span class="doccomment">/// Returns `true` if all private identifiers in a node are valid.
+///
+/// This is equivalent to the [`AllPrivateIdentifiersValid`][spec] syntax operation in the spec.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-allprivateidentifiersvalid
+</span><span class="attr">#[must_use]
+#[inline]
+</span><span class="kw">pub fn </span>all_private_identifiers_valid&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N, private_names: Vec&lt;Sym&gt;) -&gt; bool
+<span class="kw">where
+    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+{
+    AllPrivateIdentifiersValidVisitor(private_names)
+        .visit(node.into())
+        .is_continue()
+}
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; VisitorMut&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>ClassPrivateNameResolver {
-        <span class="kw">type </span>BreakTy = ();
+<span class="kw">struct </span>AllPrivateIdentifiersValidVisitor(Vec&lt;Sym&gt;);
 
-        <span class="attr">#[inline]
-        </span><span class="kw">fn </span>visit_class_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw-2">mut </span>Class) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>names = FxHashMap::default();
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>AllPrivateIdentifiersValidVisitor {
+    <span class="kw">type </span>BreakTy = ();
 
-            <span class="kw">for </span>element <span class="kw">in </span>node.elements.iter_mut() {
-                <span class="kw">match </span>element {
-                    ClassElement::PrivateMethodDefinition(name, <span class="kw">_</span>)
-                    | ClassElement::PrivateStaticMethodDefinition(name, <span class="kw">_</span>)
-                    | ClassElement::PrivateFieldDefinition(name, <span class="kw">_</span>)
-                    | ClassElement::PrivateStaticFieldDefinition(name, <span class="kw">_</span>) =&gt; {
-                        name.indices = (
-                            <span class="self">self</span>.top_level_class_index,
-                            <span class="self">self</span>.private_environments_stack.len(),
-                        );
-                        names.insert(name.description(), <span class="kw-2">*</span>name);
-                    }
-                    <span class="kw">_ </span>=&gt; {}
-                }
-            }
-
-            <span class="self">self</span>.private_environments_stack.push(names);
-
-            <span class="kw">for </span>element <span class="kw">in </span>node.elements.iter_mut() {
-                <span class="kw">match </span>element {
-                    ClassElement::MethodDefinition(name, method)
-                    | ClassElement::StaticMethodDefinition(name, method) =&gt; {
-                        <span class="macro">try_break!</span>(<span class="self">self</span>.visit_property_name_mut(name));
-                        <span class="macro">try_break!</span>(<span class="self">self</span>.visit_method_definition_mut(method));
-                    }
-                    ClassElement::PrivateMethodDefinition(<span class="kw">_</span>, method)
-                    | ClassElement::PrivateStaticMethodDefinition(<span class="kw">_</span>, method) =&gt; {
-                        <span class="macro">try_break!</span>(<span class="self">self</span>.visit_method_definition_mut(method));
-                    }
-                    ClassElement::FieldDefinition(name, expression)
-                    | ClassElement::StaticFieldDefinition(name, expression) =&gt; {
-                        <span class="macro">try_break!</span>(<span class="self">self</span>.visit_property_name_mut(name));
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(expression) = expression {
-                            <span class="macro">try_break!</span>(<span class="self">self</span>.visit_expression_mut(expression));
-                        }
-                    }
-                    ClassElement::PrivateFieldDefinition(<span class="kw">_</span>, expression)
-                    | ClassElement::PrivateStaticFieldDefinition(<span class="kw">_</span>, expression) =&gt; {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(expression) = expression {
-                            <span class="macro">try_break!</span>(<span class="self">self</span>.visit_expression_mut(expression));
-                        }
-                    }
-                    ClassElement::StaticBlock(statement_list) =&gt; {
-                        <span class="macro">try_break!</span>(<span class="self">self</span>.visit_statement_list_mut(statement_list));
-                    }
-                }
-            }
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = <span class="kw-2">&amp;mut </span>node.constructor {
-                <span class="macro">try_break!</span>(<span class="self">self</span>.visit_function_mut(function));
-            }
-
-            <span class="self">self</span>.private_environments_stack.pop();
-
-            ControlFlow::Continue(())
+    <span class="kw">fn </span>visit_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Class) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = node.super_ref() {
+            <span class="macro">try_break!</span>(<span class="self">self</span>.visit(node));
         }
 
-        <span class="attr">#[inline]
-        </span><span class="kw">fn </span>visit_private_name_mut(
-            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw-2">mut </span>PrivateName,
-        ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>found = <span class="bool-val">false</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>names = <span class="self">self</span>.<span class="number">0</span>.clone();
+        <span class="kw">for </span>element <span class="kw">in </span>node.elements() {
+            <span class="kw">match </span>element {
+                ClassElement::PrivateMethodDefinition(name, <span class="kw">_</span>)
+                | ClassElement::PrivateStaticMethodDefinition(name, <span class="kw">_</span>)
+                | ClassElement::PrivateFieldDefinition(name, <span class="kw">_</span>)
+                | ClassElement::PrivateStaticFieldDefinition(name, <span class="kw">_</span>) =&gt; {
+                    names.push(name.description());
+                }
+                <span class="kw">_ </span>=&gt; {}
+            }
+        }
 
-            <span class="kw">for </span>environment <span class="kw">in </span><span class="self">self</span>.private_environments_stack.iter().rev() {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = environment.get(<span class="kw-2">&amp;</span>node.description()) {
-                    found = <span class="bool-val">true</span>;
-                    node.indices = n.indices;
-                    <span class="kw">break</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>visitor = <span class="self">Self</span>(names);
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = node.constructor() {
+            <span class="macro">try_break!</span>(visitor.visit(node));
+        }
+
+        <span class="kw">for </span>element <span class="kw">in </span>node.elements() {
+            <span class="kw">match </span>element {
+                ClassElement::MethodDefinition(name, method)
+                | ClassElement::StaticMethodDefinition(name, method) =&gt; {
+                    <span class="macro">try_break!</span>(visitor.visit(name));
+                    <span class="macro">try_break!</span>(visitor.visit(method));
+                }
+                ClassElement::FieldDefinition(name, expression)
+                | ClassElement::StaticFieldDefinition(name, expression) =&gt; {
+                    <span class="macro">try_break!</span>(visitor.visit(name));
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(expression) = expression {
+                        <span class="macro">try_break!</span>(visitor.visit(expression));
+                    }
+                }
+                ClassElement::PrivateMethodDefinition(<span class="kw">_</span>, method)
+                | ClassElement::PrivateStaticMethodDefinition(<span class="kw">_</span>, method) =&gt; {
+                    <span class="macro">try_break!</span>(visitor.visit(method));
+                }
+                ClassElement::PrivateFieldDefinition(<span class="kw">_</span>, expression)
+                | ClassElement::PrivateStaticFieldDefinition(<span class="kw">_</span>, expression) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(expression) = expression {
+                        <span class="macro">try_break!</span>(visitor.visit(expression));
+                    }
+                }
+                ClassElement::StaticBlock(statement_list) =&gt; {
+                    <span class="macro">try_break!</span>(visitor.visit(statement_list));
                 }
             }
+        }
 
-            <span class="kw">if </span>found {
-                ControlFlow::Continue(())
-            } <span class="kw">else </span>{
-                ControlFlow::Break(())
-            }
+        ControlFlow::Continue(())
+    }
+
+    <span class="kw">fn </span>visit_private_property_access(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>PrivatePropertyAccess,
+    ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.contains(<span class="kw-2">&amp;</span>node.field().description()) {
+            <span class="self">self</span>.visit(node.target())
+        } <span class="kw">else </span>{
+            ControlFlow::Break(())
         }
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>visitor = ClassPrivateNameResolver {
-        private_environments_stack: Vec::new(),
-        top_level_class_index,
-    };
-
-    visitor.visit_class_mut(node).is_continue()
+    <span class="kw">fn </span>visit_binary_in_private(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>BinaryInPrivate,
+    ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.contains(<span class="kw-2">&amp;</span>node.lhs().description()) {
+            <span class="self">self</span>.visit(node.rhs())
+        } <span class="kw">else </span>{
+            ControlFlow::Break(())
+        }
+    }
 }
 
 <span class="doccomment">/// Errors that can occur when checking labels.

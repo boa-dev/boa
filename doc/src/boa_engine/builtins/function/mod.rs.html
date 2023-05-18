@@ -1101,6 +1101,26 @@
 <a href="#1100" id="1100">1100</a>
 <a href="#1101" id="1101">1101</a>
 <a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1115,15 +1135,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 </span><span class="kw">use crate</span>::{
-    builtins::BuiltInObject,
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     bytecompiler::FunctionCompiler,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    environments::EnvironmentStack,
+    environments::{EnvironmentStack, PrivateEnvironment},
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
-    object::{JsFunction, PrivateElement},
+    object::{JsFunction, PrivateElement, PrivateName},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::utf16,
@@ -1133,21 +1153,22 @@
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::{
-    function::{FormalParameterList, PrivateName},
-    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
+    function::FormalParameterList,
+    operations::{
+        all_private_identifiers_valid, bound_names, contains, lexically_declared_names,
+        ContainsSymbol,
+    },
     StatementList,
 };
 <span class="kw">use </span>boa_gc::{<span class="self">self</span>, custom_trace, Finalize, Gc, Trace};
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::{fmt, io::Read};
 <span class="kw">use </span>thin_vec::ThinVec;
 
-<span class="kw">use </span>std::{fmt, io::Read};
-
-<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
-
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>arguments;
+
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -1411,6 +1432,13 @@
         <span class="self">Self </span>{ kind, realm }
     }
 
+    <span class="doccomment">/// Push a private environment to the function.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_private_environment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, environment: Gc&lt;PrivateEnvironment&gt;) {
+        <span class="kw">if let </span>FunctionKind::Ordinary { environments, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
+            environments.push_private(environment);
+        }
+    }
+
     <span class="doccomment">/// Returns true if the function object is a derived constructor.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_derived_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span>FunctionKind::Ordinary {
@@ -1471,9 +1499,9 @@
     }
 
     <span class="doccomment">/// Pushes a private value to the `[[Fields]]` internal slot if present.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_field_private(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: PrivateName, value: JsFunction) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_field_private(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: PrivateName, value: JsFunction) {
         <span class="kw">if let </span>FunctionKind::Ordinary { fields, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
-            fields.push(ClassFieldDefinition::Private(key, value));
+            fields.push(ClassFieldDefinition::Private(name, value));
         }
     }
 
@@ -1806,6 +1834,18 @@
                             .into());
                     }
                 }
+            }
+
+            <span class="kw">if </span>!all_private_identifiers_valid(<span class="kw-2">&amp;</span>parameters, Vec::new()) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(<span class="string">&quot;invalid private identifier usage&quot;</span>)
+                    .into());
+            }
+
+            <span class="kw">if </span>!all_private_identifiers_valid(<span class="kw-2">&amp;</span>body, Vec::new()) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(<span class="string">&quot;invalid private identifier usage&quot;</span>)
+                    .into());
             }
 
             <span class="kw">let </span>code = FunctionCompiler::new()

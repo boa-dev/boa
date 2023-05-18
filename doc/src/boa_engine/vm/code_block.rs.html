@@ -1371,6 +1371,12 @@
 <a href="#1370" id="1370">1370</a>
 <a href="#1371" id="1371">1371</a>
 <a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1764,6 +1770,11 @@
                     interner.resolve_expect(<span class="self">self</span>.private_names[operand <span class="kw">as </span>usize].description()),
                 )
             }
+            Opcode::PushPrivateEnvironment =&gt; {
+                <span class="kw">let </span>count = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
+                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;() * (count <span class="kw">as </span>usize + <span class="number">1</span>);
+                String::new()
+            }
             Opcode::Pop
             | Opcode::PopIfThrown
             | Opcode::Dup
@@ -1878,6 +1889,7 @@
             | Opcode::PushObjectEnvironment
             | Opcode::IsObject
             | Opcode::SetNameByLocator
+            | Opcode::PopPrivateEnvironment
             | Opcode::Nop =&gt; String::new(),
         }
     }

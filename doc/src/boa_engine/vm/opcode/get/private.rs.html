@@ -25,6 +25,13 @@
 <a href="#24" id="24">24</a>
 <a href="#25" id="25">25</a>
 <a href="#26" id="26">26</a>
+<a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -46,6 +53,13 @@
         <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>base_obj = value.to_object(context)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>name = context
+            .vm
+            .environments
+            .resolve_private_identifier(name.description())
+            .expect(<span class="string">&quot;private name must be in environment&quot;</span>);
+
         <span class="kw">let </span>result = base_obj.private_get(<span class="kw-2">&amp;</span>name, context)<span class="question-mark">?</span>;
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)

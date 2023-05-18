@@ -151,12 +151,6 @@
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Call expression parsing.
 //!
 //! More information:
@@ -271,12 +265,6 @@
                         }
                         TokenKind::NullLiteral =&gt; SimplePropertyAccess::new(lhs, Sym::NULL).into(),
                         TokenKind::PrivateIdentifier(name) =&gt; {
-                            <span class="kw">if </span>!cursor.in_class() {
-                                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                                    <span class="string">&quot;Private identifier outside of class&quot;</span>,
-                                    token.span().start(),
-                                ));
-                            }
                             PrivatePropertyAccess::new(lhs, PrivateName::new(<span class="kw-2">*</span>name)).into()
                         }
                         <span class="kw">_ </span>=&gt; {

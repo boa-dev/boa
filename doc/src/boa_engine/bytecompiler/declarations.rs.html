@@ -1148,6 +1148,15 @@
 <a href="#1147" id="1147">1147</a>
 <a href="#1148" id="1148">1148</a>
 <a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
     vm::{create_function_object_fast, create_generator_function_object, BindingOpcode, Opcode},
@@ -1157,8 +1166,9 @@
     declaration::{Binding, LexicalDeclaration, VariableList},
     function::FormalParameterList,
     operations::{
-        bound_names, lexically_scoped_declarations, top_level_lexically_declared_names,
-        top_level_var_declared_names, top_level_var_scoped_declarations, VarScopedDeclaration,
+        all_private_identifiers_valid, bound_names, lexically_scoped_declarations,
+        top_level_lexically_declared_names, top_level_var_declared_names,
+        top_level_var_scoped_declarations, VarScopedDeclaration,
     },
     visitor::NodeRef,
     Declaration, StatementList, StatementListItem,
@@ -1578,11 +1588,19 @@
         // 5. Let pointer be privateEnv.
         // 6. Repeat, while pointer is not null,
         //     a. For each Private Name binding of pointer.[[Names]], do
-        //         i. If privateIdentifiers does not contain binding.[[Description]], append binding.[[Description]] to privateIdentifiers.
+        //         i. If privateIdentifiers does not contain binding.[[Description]],
+        //            append binding.[[Description]] to privateIdentifiers.
         //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
-        // 7. If AllPrivateIdentifiersValid of body with argument privateIdentifiers is false, throw a SyntaxError exception.
+        </span><span class="kw">let </span>private_identifiers = <span class="self">self</span>.context.vm.environments.private_name_descriptions();
 
-        // 8. Let functionsToInitialize be a new empty List.
+        <span class="comment">// 7. If AllPrivateIdentifiersValid of body with argument privateIdentifiers is false, throw a SyntaxError exception.
+        </span><span class="kw">if </span>!all_private_identifiers_valid(body, private_identifiers) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                .with_message(<span class="string">&quot;invalid private identifier&quot;</span>)
+                .into());
+        }
+
+        <span class="comment">// 8. Let functionsToInitialize be a new empty List.
         </span><span class="kw">let </span><span class="kw-2">mut </span>functions_to_initialize = Vec::new();
 
         <span class="comment">// 9. Let declaredFunctionNames be a new empty List.

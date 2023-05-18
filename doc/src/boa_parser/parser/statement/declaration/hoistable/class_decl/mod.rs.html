@@ -1382,22 +1382,6 @@
 <a href="#1381" id="1381">1381</a>
 <a href="#1382" id="1382">1382</a>
 <a href="#1383" id="1383">1383</a>
-<a href="#1384" id="1384">1384</a>
-<a href="#1385" id="1385">1385</a>
-<a href="#1386" id="1386">1386</a>
-<a href="#1387" id="1387">1387</a>
-<a href="#1388" id="1388">1388</a>
-<a href="#1389" id="1389">1389</a>
-<a href="#1390" id="1390">1390</a>
-<a href="#1391" id="1391">1391</a>
-<a href="#1392" id="1392">1392</a>
-<a href="#1393" id="1393">1393</a>
-<a href="#1394" id="1394">1394</a>
-<a href="#1395" id="1395">1395</a>
-<a href="#1396" id="1396">1396</a>
-<a href="#1397" id="1397">1397</a>
-<a href="#1398" id="1398">1398</a>
-<a href="#1399" id="1399">1399</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -1417,8 +1401,7 @@
 <span class="kw">use </span>ast::{
     function::PrivateName,
     operations::{
-        check_labels, class_private_name_resolver, contains_invalid_object_literal,
-        lexically_declared_names, var_declared_names,
+        check_labels, contains_invalid_object_literal, lexically_declared_names, var_declared_names,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -1582,15 +1565,11 @@
                 <span class="self">self</span>.has_binding_identifier,
             ))
         } <span class="kw">else </span>{
-            cursor.push_private_environment();
-
             <span class="kw">let </span>body_start = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
             <span class="kw">let </span>(constructor, elements) =
                 ClassBody::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
             cursor.expect(Punctuator::CloseBlock, <span class="string">&quot;class tail&quot;</span>, interner)<span class="question-mark">?</span>;
-
-            cursor.pop_private_environment();
 
             <span class="kw">if </span>super_ref.is_none() {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(constructor) = <span class="kw-2">&amp;</span>constructor {
@@ -1603,24 +1582,13 @@
                 }
             }
 
-            <span class="kw">let </span><span class="kw-2">mut </span>class = Class::new(
+            <span class="prelude-val">Ok</span>(Class::new(
                 <span class="self">self</span>.name,
                 super_ref,
                 constructor,
                 elements.into(),
                 <span class="self">self</span>.has_binding_identifier,
-            );
-
-            <span class="kw">if </span>!cursor.in_class()
-                &amp;&amp; !class_private_name_resolver(<span class="kw-2">&amp;mut </span>class, cursor.private_environment_root_index())
-            {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                    <span class="string">&quot;invalid private name usage&quot;</span>.into(),
-                    body_start,
-                )));
-            }
-
-            <span class="prelude-val">Ok</span>(class)
+            ))
         }
     }
 }

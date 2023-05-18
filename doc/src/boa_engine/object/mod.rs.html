@@ -2385,11 +2385,28 @@
 <a href="#2384" id="2384">2384</a>
 <a href="#2385" id="2385">2385</a>
 <a href="#2386" id="2386">2386</a>
+<a href="#2387" id="2387">2387</a>
+<a href="#2388" id="2388">2388</a>
+<a href="#2389" id="2389">2389</a>
+<a href="#2390" id="2390">2390</a>
+<a href="#2391" id="2391">2391</a>
+<a href="#2392" id="2392">2392</a>
+<a href="#2393" id="2393">2393</a>
+<a href="#2394" id="2394">2394</a>
+<a href="#2395" id="2395">2395</a>
+<a href="#2396" id="2396">2396</a>
+<a href="#2397" id="2397">2397</a>
+<a href="#2398" id="2398">2398</a>
+<a href="#2399" id="2399">2399</a>
+<a href="#2400" id="2400">2400</a>
+<a href="#2401" id="2401">2401</a>
+<a href="#2402" id="2402">2402</a>
+<a href="#2403" id="2403">2403</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
-</span><span class="kw">use </span>boa_ast::function::PrivateName;
+</span><span class="kw">use </span>boa_interner::Sym;
 <span class="kw">pub use </span>jsobject::{RecursionLimiter, Ref, RefMut};
 <span class="kw">pub use </span>operations::IntegrityLevel;
 <span class="kw">pub use </span>property_map::<span class="kw-2">*</span>;
@@ -2549,6 +2566,23 @@
             mark(element);
         }
     });
+}
+
+<span class="doccomment">/// A Private Name.
+</span><span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>PrivateName {
+    <span class="doccomment">/// The `[[Description]]` internal slot of the private name.
+    </span>description: Sym,
+
+    <span class="doccomment">/// The unique identifier of the private name.
+    </span>id: usize,
+}
+
+<span class="kw">impl </span>PrivateName {
+    <span class="doccomment">/// Create a new private name.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(description: Sym, id: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ description, id }
+    }
 }
 
 <span class="doccomment">/// The representation of private object elements.
