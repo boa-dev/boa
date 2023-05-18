@@ -24,7 +24,7 @@
 //! let js_code = "console.log('Hello World from a JS code string!')";
 //!
 //! // Parse the source code
-//! match context.eval_script(Source::from_bytes(js_code)) {
+//! match context.eval(Source::from_bytes(js_code)) {
 //!     Ok(res) => {
 //!         println!(
 //!             "{}",

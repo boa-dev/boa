@@ -55,18 +55,18 @@ use crate::vm::RuntimeLimits;
 /// };
 ///
 /// let script = r#"
-/// function test(arg1) {
-///     if(arg1 != null) {
-///         return arg1.x;
+///     function test(arg1) {
+///         if(arg1 != null) {
+///             return arg1.x;
+///         }
+///         return 112233;
 ///     }
-///     return 112233;
-/// }
 /// "#;
 ///
 /// let mut context = Context::default();
 ///
 /// // Populate the script definition to the context.
-/// context.eval_script(Source::from_bytes(script)).unwrap();
+/// context.eval(Source::from_bytes(script)).unwrap();
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&mut context)
@@ -74,7 +74,7 @@ use crate::vm::RuntimeLimits;
 ///     .build();
 /// context.register_global_property("arg", arg, Attribute::all());
 ///
-/// let value = context.eval_script(Source::from_bytes("test(arg)")).unwrap();
+/// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```

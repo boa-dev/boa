@@ -1,4 +1,4 @@
-//! Boa's implementation of Ecmascript's Scripts.
+//! Boa's implementation of ECMAScript's Scripts.
 //!
 //! This module contains the [`Script`] type, which represents a [**Script Record**][script].
 //!
