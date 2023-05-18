@@ -85,6 +85,7 @@ where
                 "call expression",
             ));
         };
+
         CallExpressionTail::new(self.allow_yield, self.allow_await, lhs).parse(cursor, interner)
     }
 }
@@ -98,7 +99,7 @@ pub(super) struct CallExpressionTail {
 }
 
 impl CallExpressionTail {
-    /// Creates a new `CallExpression` parser.
+    /// Creates a new `CallExpressionTail` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, call: ast::Expression) -> Self
     where
         Y: Into<AllowYield>,
