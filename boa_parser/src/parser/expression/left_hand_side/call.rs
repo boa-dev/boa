@@ -72,7 +72,7 @@ where
 
         let token = cursor.peek(0, interner).or_abrupt()?;
 
-        let mut lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+        let lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
             let args =
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
             Call::new(self.first_member_expr, args).into()
@@ -85,6 +85,41 @@ where
                 "call expression",
             ));
         };
+        CallExpressionTail::new(self.allow_yield, self.allow_await, lhs).parse(cursor, interner)
+    }
+}
+
+/// Parses the tail parts of a call expression (property access, sucessive call, array access).
+#[derive(Debug)]
+pub(super) struct CallExpressionTail {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+    call: ast::Expression,
+}
+
+impl CallExpressionTail {
+    /// Creates a new `CallExpression` parser.
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, call: ast::Expression) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+            call,
+        }
+    }
+}
+
+impl<R> TokenParser<R> for CallExpressionTail
+where
+    R: Read,
+{
+    type Output = ast::Expression;
+
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        let mut lhs = self.call;
 
         while let Some(tok) = cursor.peek(0, interner)? {
             let token = tok.clone();
@@ -147,6 +182,7 @@ where
                 _ => break,
             }
         }
+
         Ok(lhs)
     }
 }

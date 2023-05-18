@@ -19,16 +19,21 @@ mod template;
 use crate::{
     lexer::{InputElement, TokenKind},
     parser::{
-        expression::{left_hand_side::{
-            arguments::Arguments, call::CallExpression, member::MemberExpression,
-            optional::OptionalExpression,
-        }, AssignmentExpression},
+        expression::{
+            left_hand_side::{
+                arguments::Arguments,
+                call::{CallExpression, CallExpressionTail},
+                member::MemberExpression,
+                optional::OptionalExpression,
+            },
+            AssignmentExpression,
+        },
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };
 use boa_ast::{
-    expression::{Identifier, SuperCall, ImportCall},
+    expression::{Identifier, ImportCall, SuperCall},
     Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
@@ -132,7 +137,12 @@ where
                     interner,
                 )?;
 
-                ImportCall::new(arg).into()
+                CallExpressionTail::new(
+                    self.allow_yield,
+                    self.allow_await,
+                    ImportCall::new(arg).into(),
+                )
+                .parse(cursor, interner)?
             } else {
                 let mut member =
                     MemberExpression::new(self.name, self.allow_yield, self.allow_await)
