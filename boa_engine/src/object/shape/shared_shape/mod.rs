@@ -192,6 +192,8 @@ impl SharedShape {
             if let Some(inner) = shape.upgrade() {
                 return Self { inner };
             }
+
+            self.forward_transitions().prune_prototype_transitions();
         }
         let new_inner_shape = Inner {
             forward_transitions: ForwardTransition::default(),
@@ -217,6 +219,8 @@ impl SharedShape {
             if let Some(inner) = shape.upgrade() {
                 return Self { inner };
             }
+
+            self.forward_transitions().prune_property_transitions();
         }
 
         let property_table = self.property_table().add_property_deep_clone_if_needed(
@@ -266,6 +270,8 @@ impl SharedShape {
                     action,
                 };
             }
+
+            self.forward_transitions().prune_property_transitions();
         }
 
         // The attribute change transitions, didn't change from accessor to data property or vice-versa.

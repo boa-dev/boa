@@ -31,6 +31,13 @@ impl<K: Trace + ?Sized, V: Trace + Clone> Ephemeron<K, V> {
         // `inner_ptr`.
         unsafe { self.inner_ptr.get().as_ref().value().cloned() }
     }
+
+    /// Checks if the [`Ephemeron`] has a value.
+    pub fn has_value(&self) -> bool {
+        // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
+        // `inner_ptr`.
+        unsafe { self.inner_ptr.get().as_ref().value().is_some() }
+    }
 }
 
 impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {

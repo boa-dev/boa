@@ -55,4 +55,24 @@ impl ForwardTransition {
         };
         transitions.get(key).cloned()
     }
+
+    /// Prunes the [`WeakGc`]s that have been garbage collected.
+    pub(super) fn prune_property_transitions(&self) {
+        let mut this = self.inner.borrow_mut();
+        let Some(transitions) = this.properties.as_deref_mut() else {
+            return;
+        };
+
+        transitions.retain(|_, v| v.is_upgradable());
+    }
+
+    /// Prunes the [`WeakGc`]s that have been garbage collected.
+    pub(super) fn prune_prototype_transitions(&self) {
+        let mut this = self.inner.borrow_mut();
+        let Some(transitions) = this.prototypes.as_deref_mut() else {
+            return;
+        };
+
+        transitions.retain(|_, v| v.is_upgradable());
+    }
 }
