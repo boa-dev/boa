@@ -10,14 +10,13 @@ use crate::{
     lexer::{token::ContainsEscapeSequence, InputElement, TokenKind},
     parser::{
         expression::{
-            left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
-            AssignmentExpression, Expression,
+            left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
         },
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };
-use ast::{expression::ImportCall, function::PrivateName};
+use ast::function::PrivateName;
 use boa_ast::{
     self as ast,
     expression::{
@@ -74,7 +73,7 @@ where
 
         let token = cursor.peek(0, interner).or_abrupt()?;
         let mut lhs = match token.kind() {
-            TokenKind::Keyword((Keyword::New | Keyword::Super | Keyword::Import, true)) => {
+            TokenKind::Keyword((Keyword::New | Keyword::Super, true)) => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
                     token.span().start(),
@@ -171,25 +170,6 @@ where
                         ))
                     }
                 }
-            }
-            TokenKind::Keyword((Keyword::Import, false)) => {
-                cursor.advance(interner);
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenParen),
-                    "import call",
-                    interner,
-                )?;
-
-                let arg = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseParen),
-                    "import call",
-                    interner,
-                )?;
-
-                ImportCall::new(arg).into()
             }
             _ => PrimaryExpression::new(self.name, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?,

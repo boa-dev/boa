@@ -19,15 +19,16 @@ mod template;
 use crate::{
     lexer::{InputElement, TokenKind},
     parser::{
-        expression::left_hand_side::{
+        expression::{left_hand_side::{
             arguments::Arguments, call::CallExpression, member::MemberExpression,
             optional::OptionalExpression,
-        },
-        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
+        }, AssignmentExpression},
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    Error,
 };
 use boa_ast::{
-    expression::{Identifier, SuperCall},
+    expression::{Identifier, SuperCall, ImportCall},
     Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
@@ -96,6 +97,7 @@ where
             }
             Ok(false)
         }
+
         let _timer = Profiler::global().start_event("LeftHandSideExpression", "Parsing");
 
         cursor.set_goal(InputElement::TemplateTail);
@@ -106,15 +108,43 @@ where
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
             SuperCall::new(args).into()
         } else {
-            let mut member = MemberExpression::new(self.name, self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?;
-            if let Some(tok) = cursor.peek(0, interner)? {
-                if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                    member = CallExpression::new(self.allow_yield, self.allow_await, member)
-                        .parse(cursor, interner)?;
+            let next = cursor.peek(0, interner).or_abrupt()?;
+            if let TokenKind::Keyword((Keyword::Import, escaped)) = next.kind() {
+                if *escaped {
+                    return Err(Error::general(
+                        "keyword `import` must not contain escaped characters",
+                        next.span().start(),
+                    ));
                 }
+                cursor.advance(interner);
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::OpenParen),
+                    "import call",
+                    interner,
+                )?;
+
+                let arg = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::CloseParen),
+                    "import call",
+                    interner,
+                )?;
+
+                ImportCall::new(arg).into()
+            } else {
+                let mut member =
+                    MemberExpression::new(self.name, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
+                if let Some(tok) = cursor.peek(0, interner)? {
+                    if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+                        member = CallExpression::new(self.allow_yield, self.allow_await, member)
+                            .parse(cursor, interner)?;
+                    }
+                }
+                member
             }
-            member
         };
 
         if let Some(tok) = cursor.peek(0, interner)? {
