@@ -282,7 +282,7 @@
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Shape {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        Shape::unique(UniqueShape::default())
+        <span class="self">Self</span>::unique(UniqueShape::default())
     }
 }
 
@@ -349,7 +349,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>change_attributes_transition(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: TransitionKey,
-    ) -&gt; ChangeTransition&lt;Shape&gt; {
+    ) -&gt; ChangeTransition&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             Inner::Shared(shape) =&gt; {
                 <span class="kw">let </span>change_transition = shape.change_attributes_transition(key);

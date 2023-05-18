@@ -875,10 +875,6 @@
 <a href="#874" id="874">874</a>
 <a href="#875" id="875">875</a>
 <a href="#876" id="876">876</a>
-<a href="#877" id="877">877</a>
-<a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s promise Builtin ECMAScript Object
 
 </span><span class="attr">#![allow(missing_docs)]
@@ -1031,7 +1027,7 @@
     /// ```
     ///
     /// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
-    </span><span class="kw">pub fn </span>new&lt;F&gt;(executor: F, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPromise&gt;
+    </span><span class="kw">pub fn </span>new&lt;F&gt;(executor: F, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>ResolvingFunctions, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
     {
@@ -1049,7 +1045,7 @@
                 .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[e], context)<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(JsPromise { inner: promise })
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: promise })
     }
 
     <span class="doccomment">/// Creates a new pending promise and returns it and its associated `ResolvingFunctions`.
@@ -1082,15 +1078,15 @@
     /// # }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new_pending(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; (JsPromise, ResolvingFunctions) {
+    </span><span class="kw">pub fn </span>new_pending(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; (<span class="self">Self</span>, ResolvingFunctions) {
         <span class="kw">let </span>promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
             ObjectData::promise(Promise::new()),
         );
         <span class="kw">let </span>resolvers = Promise::create_resolving_functions(<span class="kw-2">&amp;</span>promise, context);
-        <span class="kw">let </span>promise = JsPromise::from_object(promise)
-            .expect(<span class="string">&quot;this shouldn&#39;t fail with a newly created promise&quot;</span>);
+        <span class="kw">let </span>promise =
+            <span class="self">Self</span>::from_object(promise).expect(<span class="string">&quot;this shouldn&#39;t fail with a newly created promise&quot;</span>);
 
         (promise, resolvers)
     }
@@ -1162,13 +1158,13 @@
     ///
     /// [`Promise.resolve()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
     /// [thenables]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    </span><span class="kw">pub fn </span>resolve&lt;V: Into&lt;JsValue&gt;&gt;(value: V, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPromise&gt; {
+    </span><span class="kw">pub fn </span>resolve&lt;V: Into&lt;JsValue&gt;&gt;(value: V, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         Promise::promise_resolve(
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             value.into(),
             context,
         )
-        .and_then(JsPromise::from_object)
+        .and_then(<span class="self">Self</span>::from_object)
     }
 
     <span class="doccomment">/// Creates a `JsPromise` that is rejected with the reason `error`.
@@ -1200,13 +1196,13 @@
     ///
     /// [`Promise.reject`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
     /// [thenable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    </span><span class="kw">pub fn </span>reject&lt;E: Into&lt;JsError&gt;&gt;(error: E, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPromise&gt; {
+    </span><span class="kw">pub fn </span>reject&lt;E: Into&lt;JsError&gt;&gt;(error: E, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         Promise::promise_reject(
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             <span class="kw-2">&amp;</span>error.into(),
             context,
         )
-        .and_then(JsPromise::from_object)
+        .and_then(<span class="self">Self</span>::from_object)
     }
 
     <span class="doccomment">/// Gets the current state of the promise.
@@ -1319,9 +1315,9 @@
         on_fulfilled: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
         on_rejected: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsPromise&gt; {
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>result_promise = Promise::inner_then(<span class="self">self</span>, on_fulfilled, on_rejected, context)<span class="question-mark">?</span>;
-        JsPromise::from_object(result_promise)
+        <span class="self">Self</span>::from_object(result_promise)
     }
 
     <span class="doccomment">/// Schedules a callback to run when the promise is rejected.
@@ -1379,7 +1375,7 @@
     /// [`Promise.prototype.catch`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/catch
     /// [then]: JsPromise::then
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>catch(<span class="kw-2">&amp;</span><span class="self">self</span>, on_rejected: JsFunction, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPromise&gt; {
+    </span><span class="kw">pub fn </span>catch(<span class="kw-2">&amp;</span><span class="self">self</span>, on_rejected: JsFunction, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="self">self</span>.then(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(on_rejected), context)
     }
 
@@ -1447,11 +1443,7 @@
     /// [`Promise.prototype.finally()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
     /// [then]: JsPromise::then
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>finally(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        on_finally: JsFunction,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsPromise&gt; {
+    </span><span class="kw">pub fn </span>finally(<span class="kw-2">&amp;</span><span class="self">self</span>, on_finally: JsFunction, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>c = <span class="self">self</span>.species_constructor(StandardConstructors::promise, context)<span class="question-mark">?</span>;
         <span class="kw">let </span>(then, catch) = Promise::then_catch_finally_closures(c, on_finally, context);
         <span class="self">self</span>.then(<span class="prelude-val">Some</span>(then), <span class="prelude-val">Some</span>(catch), context)
@@ -1508,9 +1500,9 @@
     /// ```
     ///
     /// [`Promise.all`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
-    </span><span class="kw">pub fn </span>all&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPromise&gt;
+    </span><span class="kw">pub fn </span>all&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span>I: IntoIterator&lt;Item = JsPromise&gt;,
+        </span>I: IntoIterator&lt;Item = <span class="self">Self</span>&gt;,
     {
         <span class="kw">let </span>promises = JsArray::from_iter(promises.into_iter().map(JsValue::from), context);
 
@@ -1526,7 +1518,7 @@
             .as_object()
             .expect(<span class="string">&quot;Promise.all always returns an object on success&quot;</span>);
 
-        JsPromise::from_object(value.clone())
+        <span class="self">Self</span>::from_object(value.clone())
     }
 
     <span class="doccomment">/// Waits for a list of promises to settle, fulfilling with an array of the outcomes of every
@@ -1577,9 +1569,9 @@
     /// ```
     ///
     /// [`Promise.allSettled`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
-    </span><span class="kw">pub fn </span>all_settled&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPromise&gt;
+    </span><span class="kw">pub fn </span>all_settled&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span>I: IntoIterator&lt;Item = JsPromise&gt;,
+        </span>I: IntoIterator&lt;Item = <span class="self">Self</span>&gt;,
     {
         <span class="kw">let </span>promises = JsArray::from_iter(promises.into_iter().map(JsValue::from), context);
 
@@ -1595,7 +1587,7 @@
             .as_object()
             .expect(<span class="string">&quot;Promise.allSettled always returns an object on success&quot;</span>);
 
-        JsPromise::from_object(value.clone())
+        <span class="self">Self</span>::from_object(value.clone())
     }
 
     <span class="doccomment">/// Returns the first promise that fulfills from a list of promises.
@@ -1639,9 +1631,9 @@
     /// ```
     ///
     /// [`Promise.any`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/any
-    </span><span class="kw">pub fn </span>any&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPromise&gt;
+    </span><span class="kw">pub fn </span>any&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span>I: IntoIterator&lt;Item = JsPromise&gt;,
+        </span>I: IntoIterator&lt;Item = <span class="self">Self</span>&gt;,
     {
         <span class="kw">let </span>promises = JsArray::from_iter(promises.into_iter().map(JsValue::from), context);
 
@@ -1657,7 +1649,7 @@
             .as_object()
             .expect(<span class="string">&quot;Promise.any always returns an object on success&quot;</span>);
 
-        JsPromise::from_object(value.clone())
+        <span class="self">Self</span>::from_object(value.clone())
     }
 
     <span class="doccomment">/// Returns the first promise that settles from a list of promises.
@@ -1702,9 +1694,9 @@
     /// ```
     ///
     /// [`Promise.race`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-    </span><span class="kw">pub fn </span>race&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPromise&gt;
+    </span><span class="kw">pub fn </span>race&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span>I: IntoIterator&lt;Item = JsPromise&gt;,
+        </span>I: IntoIterator&lt;Item = <span class="self">Self</span>&gt;,
     {
         <span class="kw">let </span>promises = JsArray::from_iter(promises.into_iter().map(JsValue::from), context);
 
@@ -1720,7 +1712,7 @@
             .as_object()
             .expect(<span class="string">&quot;Promise.race always returns an object on success&quot;</span>);
 
-        JsPromise::from_object(value.clone())
+        <span class="self">Self</span>::from_object(value.clone())
     }
 }
 

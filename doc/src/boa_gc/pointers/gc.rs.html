@@ -256,7 +256,6 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     finalizer_safe,
     internals::GcBox,
@@ -305,8 +304,7 @@
     <span class="doccomment">/// Consumes the `Gc`, returning a wrapped raw pointer.
     ///
     /// To avoid a memory leak, the pointer must be converted back to a `Gc` using [`Gc::from_raw`].
-    </span><span class="attr">#[allow(clippy::use_self)]
-    </span><span class="kw">pub fn </span>into_raw(this: Gc&lt;T&gt;) -&gt; NonNull&lt;GcBox&lt;T&gt;&gt; {
+    </span><span class="kw">pub fn </span>into_raw(this: <span class="self">Self</span>) -&gt; NonNull&lt;GcBox&lt;T&gt;&gt; {
         <span class="kw">let </span>ptr = this.inner_ptr();
         std::mem::forget(this);
         ptr

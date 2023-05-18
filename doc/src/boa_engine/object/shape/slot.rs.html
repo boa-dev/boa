@@ -136,7 +136,7 @@
     ///
     /// This is needed because slots do not have the same width.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_previous(
-        previous_slot: <span class="prelude-ty">Option</span>&lt;Slot&gt;,
+        previous_slot: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;,
         new_attributes: SlotAttributes,
     ) -&gt; <span class="self">Self </span>{
         <span class="comment">// If there was no previous slot then return 0 as the index.

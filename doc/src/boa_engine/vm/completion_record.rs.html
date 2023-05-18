@@ -52,7 +52,7 @@
 <span class="comment">// ---- `CompletionRecord` methods ----
 </span><span class="kw">impl </span>CompletionRecord {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_throw_completion(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, CompletionRecord::Throw(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Throw(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// This function will consume the current `CompletionRecord` and return a `JsResult&lt;JsValue&gt;`

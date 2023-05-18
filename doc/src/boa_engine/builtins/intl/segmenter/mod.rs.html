@@ -380,9 +380,9 @@
     /// of the segments.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>segment&lt;<span class="lifetime">&#39;l</span>, <span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;l </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u16]) -&gt; NativeSegmentIterator&lt;<span class="lifetime">&#39;l</span>, <span class="lifetime">&#39;s</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            NativeSegmenter::Grapheme(g) =&gt; NativeSegmentIterator::Grapheme(g.segment_utf16(input)),
-            NativeSegmenter::Word(w) =&gt; NativeSegmentIterator::Word(w.segment_utf16(input)),
-            NativeSegmenter::Sentence(s) =&gt; NativeSegmentIterator::Sentence(s.segment_utf16(input)),
+            <span class="self">Self</span>::Grapheme(g) =&gt; NativeSegmentIterator::Grapheme(g.segment_utf16(input)),
+            <span class="self">Self</span>::Word(w) =&gt; NativeSegmentIterator::Word(w.segment_utf16(input)),
+            <span class="self">Self</span>::Sentence(s) =&gt; NativeSegmentIterator::Sentence(s.segment_utf16(input)),
         }
     }
 }
@@ -475,7 +475,7 @@
             .try_new_segmenter(granularity)
             .map_err(|err| JsNativeError::typ().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>segmenter = Segmenter {
+        <span class="kw">let </span>segmenter = <span class="self">Self </span>{
             locale,
             native: kind,
         };

@@ -197,7 +197,7 @@
         // 5. Return segments.
         </span>JsObject::from_proto_and_data(
             context.intrinsics().objects().segments_prototype(),
-            ObjectData::segments(Segments { segmenter, string }),
+            ObjectData::segments(<span class="self">Self </span>{ segmenter, string }),
         )
     }
 

@@ -1351,7 +1351,7 @@
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>FunctionKind {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            FunctionKind::Native {
+            <span class="self">Self</span>::Native {
                 function,
                 constructor,
             } =&gt; f
@@ -1359,16 +1359,16 @@
                 .field(<span class="string">&quot;function&quot;</span>, <span class="kw-2">&amp;</span>function)
                 .field(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;</span>constructor)
                 .finish(),
-            FunctionKind::Ordinary { .. } =&gt; f
+            <span class="self">Self</span>::Ordinary { .. } =&gt; f
                 .debug_struct(<span class="string">&quot;FunctionKind::Ordinary&quot;</span>)
                 .finish_non_exhaustive(),
-            FunctionKind::Async { .. } =&gt; f
+            <span class="self">Self</span>::Async { .. } =&gt; f
                 .debug_struct(<span class="string">&quot;FunctionKind::Async&quot;</span>)
                 .finish_non_exhaustive(),
-            FunctionKind::Generator { .. } =&gt; f
+            <span class="self">Self</span>::Generator { .. } =&gt; f
                 .debug_struct(<span class="string">&quot;FunctionKind::Generator&quot;</span>)
                 .finish_non_exhaustive(),
-            FunctionKind::AsyncGenerator { .. } =&gt; f
+            <span class="self">Self</span>::AsyncGenerator { .. } =&gt; f
                 .debug_struct(<span class="string">&quot;FunctionKind::AsyncGenerator&quot;</span>)
                 .finish_non_exhaustive(),
         }

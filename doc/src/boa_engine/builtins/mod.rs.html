@@ -1487,19 +1487,19 @@
         P: Into&lt;PropertyDescriptor&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            BuiltInObjectInitializer::Shared(obj) =&gt; obj.borrow_mut().insert(key, property),
-            BuiltInObjectInitializer::Unique { object, .. } =&gt; object.insert(key, property),
+            <span class="self">Self</span>::Shared(obj) =&gt; obj.borrow_mut().insert(key, property),
+            <span class="self">Self</span>::Unique { object, .. } =&gt; object.insert(key, property),
         };
     }
 
     <span class="doccomment">/// Sets the prototype of the builtin
     </span><span class="kw">fn </span>set_prototype(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prototype: JsObject) {
         <span class="kw">match </span><span class="self">self </span>{
-            BuiltInObjectInitializer::Shared(obj) =&gt; {
+            <span class="self">Self</span>::Shared(obj) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>obj = obj.borrow_mut();
                 obj.set_prototype(prototype);
             }
-            BuiltInObjectInitializer::Unique { object, .. } =&gt; {
+            <span class="self">Self</span>::Unique { object, .. } =&gt; {
                 object.set_prototype(prototype);
             }
         }
@@ -1513,14 +1513,14 @@
     /// builtin&#39;s vtable.
     </span><span class="kw">fn </span>set_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_data: ObjectData) {
         <span class="kw">match </span><span class="self">self </span>{
-            BuiltInObjectInitializer::Shared(obj) =&gt; {
+            <span class="self">Self</span>::Shared(obj) =&gt; {
                 <span class="macro">assert!</span>(
                     std::ptr::eq(obj.vtable(), new_data.internal_methods),
                     <span class="string">&quot;intrinsic object&#39;s vtable didn&#39;t match with new data&quot;
                 </span>);
                 <span class="kw-2">*</span>obj.borrow_mut().kind_mut() = new_data.kind;
             }
-            BuiltInObjectInitializer::Unique { <span class="kw-2">ref mut </span>data, .. } =&gt; <span class="kw-2">*</span>data = new_data,
+            <span class="self">Self</span>::Unique { <span class="kw-2">ref mut </span>data, .. } =&gt; <span class="kw-2">*</span>data = new_data,
         }
     }
 
@@ -1528,19 +1528,19 @@
     </span><span class="kw">fn </span>as_shared(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsObject {
         <span class="kw">match </span>std::mem::replace(
             <span class="self">self</span>,
-            BuiltInObjectInitializer::Unique {
+            <span class="self">Self</span>::Unique {
                 object: Object::default(),
                 data: ObjectData::ordinary(),
             },
         ) {
-            BuiltInObjectInitializer::Shared(obj) =&gt; {
-                <span class="kw-2">*</span><span class="self">self </span>= BuiltInObjectInitializer::Shared(obj.clone());
+            <span class="self">Self</span>::Shared(obj) =&gt; {
+                <span class="kw-2">*</span><span class="self">self </span>= <span class="self">Self</span>::Shared(obj.clone());
                 obj
             }
-            BuiltInObjectInitializer::Unique { <span class="kw-2">mut </span>object, data } =&gt; {
+            <span class="self">Self</span>::Unique { <span class="kw-2">mut </span>object, data } =&gt; {
                 <span class="kw-2">*</span>object.kind_mut() = data.kind;
                 <span class="kw">let </span>obj = JsObject::from_object_and_vtable(object, data.internal_methods);
-                <span class="kw-2">*</span><span class="self">self </span>= BuiltInObjectInitializer::Shared(obj.clone());
+                <span class="kw-2">*</span><span class="self">self </span>= <span class="self">Self</span>::Shared(obj.clone());
                 obj
             }
         }

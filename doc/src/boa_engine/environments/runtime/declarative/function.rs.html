@@ -372,8 +372,8 @@
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ThisBindingStatus {
     <span class="macro">custom_trace!</span>(this, {
         <span class="kw">match </span>this {
-            ThisBindingStatus::Initialized(obj) =&gt; mark(obj),
-            ThisBindingStatus::Lexical | ThisBindingStatus::Uninitialized =&gt; {}
+            <span class="self">Self</span>::Initialized(obj) =&gt; mark(obj),
+            <span class="self">Self</span>::Lexical | <span class="self">Self</span>::Uninitialized =&gt; {}
         }
     });
 }

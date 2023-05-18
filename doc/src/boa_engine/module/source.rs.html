@@ -1909,9 +1909,6 @@
 <a href="#1908" id="1908">1908</a>
 <a href="#1909" id="1909">1909</a>
 <a href="#1910" id="1910">1910</a>
-<a href="#1911" id="1911">1911</a>
-<a href="#1912" id="1912">1912</a>
-<a href="#1913" id="1913">1913</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{cell::Cell, collections::HashSet, hash::Hash, rc::Rc};
 
 <span class="kw">use </span>boa_ast::{
@@ -2009,18 +2006,18 @@
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Status {
     <span class="macro">custom_trace!</span>(this, {
         <span class="kw">match </span>this {
-            Status::Unlinked | Status::Linking { info: <span class="kw">_ </span>} =&gt; {}
-            Status::PreLinked { context, info: <span class="kw">_ </span>} | Status::Linked { context, info: <span class="kw">_ </span>} =&gt; {
+            <span class="self">Self</span>::Unlinked | <span class="self">Self</span>::Linking { info: <span class="kw">_ </span>} =&gt; {}
+            <span class="self">Self</span>::PreLinked { context, info: <span class="kw">_ </span>} | <span class="self">Self</span>::Linked { context, info: <span class="kw">_ </span>} =&gt; {
                 mark(context);
             }
-            Status::Evaluating {
+            <span class="self">Self</span>::Evaluating {
                 top_level_capability,
                 cycle_root,
                 context,
                 info: <span class="kw">_</span>,
                 async_eval_index: <span class="kw">_</span>,
             }
-            | Status::EvaluatingAsync {
+            | <span class="self">Self</span>::EvaluatingAsync {
                 top_level_capability,
                 cycle_root,
                 context,
@@ -2031,7 +2028,7 @@
                 mark(cycle_root);
                 mark(context);
             }
-            Status::Evaluated {
+            <span class="self">Self</span>::Evaluated {
                 top_level_capability,
                 cycle_root,
                 error,
@@ -2049,11 +2046,11 @@
     /// module is not in a state executing the dfs algorithm.
     </span><span class="kw">const fn </span>dfs_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DfsInfo&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            Status::Unlinked | Status::EvaluatingAsync { .. } | Status::Evaluated { .. } =&gt; <span class="prelude-val">None</span>,
-            Status::Linking { info }
-            | Status::PreLinked { info, .. }
-            | Status::Linked { info, .. }
-            | Status::Evaluating { info, .. } =&gt; <span class="prelude-val">Some</span>(info),
+            <span class="self">Self</span>::Unlinked | <span class="self">Self</span>::EvaluatingAsync { .. } | <span class="self">Self</span>::Evaluated { .. } =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Linking { info }
+            | <span class="self">Self</span>::PreLinked { info, .. }
+            | <span class="self">Self</span>::Linked { info, .. }
+            | <span class="self">Self</span>::Evaluating { info, .. } =&gt; <span class="prelude-val">Some</span>(info),
         }
     }
 
@@ -2061,11 +2058,11 @@
     /// or `None` if the module is not in a state executing the dfs algorithm.
     </span><span class="kw">fn </span>dfs_info_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>DfsInfo&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            Status::Unlinked | Status::EvaluatingAsync { .. } | Status::Evaluated { .. } =&gt; <span class="prelude-val">None</span>,
-            Status::Linking { info }
-            | Status::PreLinked { info, .. }
-            | Status::Linked { info, .. }
-            | Status::Evaluating { info, .. } =&gt; <span class="prelude-val">Some</span>(info),
+            <span class="self">Self</span>::Unlinked | <span class="self">Self</span>::EvaluatingAsync { .. } | <span class="self">Self</span>::Evaluated { .. } =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Linking { info }
+            | <span class="self">Self</span>::PreLinked { info, .. }
+            | <span class="self">Self</span>::Linked { info, .. }
+            | <span class="self">Self</span>::Evaluating { info, .. } =&gt; <span class="prelude-val">Some</span>(info),
         }
     }
 
@@ -2073,19 +2070,19 @@
     /// level capability.
     </span><span class="kw">const fn </span>top_level_capability(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PromiseCapability&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
-            Status::Unlinked
-            | Status::Linking { .. }
-            | Status::PreLinked { .. }
-            | Status::Linked { .. } =&gt; <span class="prelude-val">None</span>,
-            Status::Evaluating {
+            <span class="self">Self</span>::Unlinked
+            | <span class="self">Self</span>::Linking { .. }
+            | <span class="self">Self</span>::PreLinked { .. }
+            | <span class="self">Self</span>::Linked { .. } =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Evaluating {
                 top_level_capability,
                 ..
             }
-            | Status::EvaluatingAsync {
+            | <span class="self">Self</span>::EvaluatingAsync {
                 top_level_capability,
                 ..
             }
-            | Status::Evaluated {
+            | <span class="self">Self</span>::Evaluated {
                 top_level_capability,
                 ..
             } =&gt; top_level_capability.as_ref(),
@@ -2095,7 +2092,7 @@
     <span class="doccomment">/// If this module is in the evaluated state, gets its `error` field.
     </span><span class="kw">const fn </span>evaluation_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsError&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
-            Status::Evaluated { error, .. } =&gt; error.as_ref(),
+            <span class="self">Self</span>::Evaluated { error, .. } =&gt; error.as_ref(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2103,9 +2100,9 @@
     <span class="doccomment">/// If this module is in the evaluating state, gets its cycle root.
     </span><span class="kw">const fn </span>cycle_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SourceTextModule&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
-            Status::Evaluating { cycle_root, .. }
-            | Status::EvaluatingAsync { cycle_root, .. }
-            | Status::Evaluated { cycle_root, .. } =&gt; <span class="prelude-val">Some</span>(cycle_root),
+            <span class="self">Self</span>::Evaluating { cycle_root, .. }
+            | <span class="self">Self</span>::EvaluatingAsync { cycle_root, .. }
+            | <span class="self">Self</span>::Evaluated { cycle_root, .. } =&gt; <span class="prelude-val">Some</span>(cycle_root),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2114,7 +2111,7 @@
     /// between states.
     </span><span class="kw">fn </span>transition&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F)
     <span class="kw">where
-        </span>F: FnOnce(Status) -&gt; Status,
+        </span>F: FnOnce(<span class="self">Self</span>) -&gt; <span class="self">Self</span>,
     {
         <span class="kw-2">*</span><span class="self">self </span>= f(std::mem::take(<span class="self">self</span>));
     }
@@ -2423,10 +2420,7 @@
     <span class="doccomment">/// Concrete method [`GetExportedNames ( [ exportStarSet ] )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getexportednames
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_exported_names(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        export_star_set: <span class="kw-2">&amp;mut </span>Vec&lt;SourceTextModule&gt;,
-    ) -&gt; FxHashSet&lt;Sym&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_exported_names(<span class="kw-2">&amp;</span><span class="self">self</span>, export_star_set: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;) -&gt; FxHashSet&lt;Sym&gt; {
         <span class="comment">// 1. Assert: module.[[Status]] is not new.
         // 2. If exportStarSet is not present, set exportStarSet to a new empty List.
 

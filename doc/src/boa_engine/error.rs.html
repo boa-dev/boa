@@ -1352,7 +1352,7 @@
     ///
     /// This is a no-op if the error is not native or if the `realm` field of the error is already
     /// set.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inject_realm(<span class="kw-2">mut </span><span class="self">self</span>, realm: Realm) -&gt; JsError {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inject_realm(<span class="kw-2">mut </span><span class="self">self</span>, realm: Realm) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.inner {
             Repr::Native(err) <span class="kw">if </span>err.realm.is_none() =&gt; {
                 err.realm = <span class="prelude-val">Some</span>(realm);

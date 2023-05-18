@@ -367,7 +367,7 @@
 <span class="kw">impl </span>DeclarativeEnvironment {
     <span class="doccomment">/// Creates a new global `DeclarativeEnvironment`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global(global_this: JsObject) -&gt; <span class="self">Self </span>{
-        DeclarativeEnvironment {
+        <span class="self">Self </span>{
             kind: DeclarativeEnvironmentKind::Global(GlobalEnvironment::new(global_this)),
             compile: Gc::new(GcRefCell::new(CompileTimeEnvironment::new_global())),
         }
@@ -500,10 +500,10 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            DeclarativeEnvironmentKind::Lexical(inner) =&gt; inner.get(index),
-            DeclarativeEnvironmentKind::Global(inner) =&gt; inner.get(index),
-            DeclarativeEnvironmentKind::Function(inner) =&gt; inner.get(index),
-            DeclarativeEnvironmentKind::Module(inner) =&gt; inner.get(index),
+            <span class="self">Self</span>::Lexical(inner) =&gt; inner.get(index),
+            <span class="self">Self</span>::Global(inner) =&gt; inner.get(index),
+            <span class="self">Self</span>::Function(inner) =&gt; inner.get(index),
+            <span class="self">Self</span>::Module(inner) =&gt; inner.get(index),
         }
     }
 
@@ -515,10 +515,10 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize, value: JsValue) {
         <span class="kw">match </span><span class="self">self </span>{
-            DeclarativeEnvironmentKind::Lexical(inner) =&gt; inner.set(index, value),
-            DeclarativeEnvironmentKind::Global(inner) =&gt; inner.set(index, value),
-            DeclarativeEnvironmentKind::Function(inner) =&gt; inner.set(index, value),
-            DeclarativeEnvironmentKind::Module(inner) =&gt; inner.set(index, value),
+            <span class="self">Self</span>::Lexical(inner) =&gt; inner.set(index, value),
+            <span class="self">Self</span>::Global(inner) =&gt; inner.set(index, value),
+            <span class="self">Self</span>::Function(inner) =&gt; inner.set(index, value),
+            <span class="self">Self</span>::Module(inner) =&gt; inner.set(index, value),
         }
     }
 
@@ -532,10 +532,10 @@
     /// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-getthisbinding
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_this_binding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsValue&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            DeclarativeEnvironmentKind::Lexical(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            DeclarativeEnvironmentKind::Global(g) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(g.get_this_binding().into())),
-            DeclarativeEnvironmentKind::Function(f) =&gt; f.get_this_binding(),
-            DeclarativeEnvironmentKind::Module(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(JsValue::undefined())),
+            <span class="self">Self</span>::Lexical(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            <span class="self">Self</span>::Global(g) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(g.get_this_binding().into())),
+            <span class="self">Self</span>::Function(f) =&gt; f.get_this_binding(),
+            <span class="self">Self</span>::Module(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(JsValue::undefined())),
         }
     }
 
@@ -549,39 +549,39 @@
     /// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-hasthisbinding
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_this_binding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">match </span><span class="self">self </span>{
-            DeclarativeEnvironmentKind::Lexical(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            DeclarativeEnvironmentKind::Function(f) =&gt; f.has_this_binding(),
-            DeclarativeEnvironmentKind::Global(<span class="kw">_</span>) | DeclarativeEnvironmentKind::Module(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="self">Self</span>::Lexical(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <span class="self">Self</span>::Function(f) =&gt; f.has_this_binding(),
+            <span class="self">Self</span>::Global(<span class="kw">_</span>) | <span class="self">Self</span>::Module(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if this environment is poisoned.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poisoned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">match </span><span class="self">self </span>{
-            DeclarativeEnvironmentKind::Lexical(lex) =&gt; lex.poisonable_environment().poisoned(),
-            DeclarativeEnvironmentKind::Global(g) =&gt; g.poisonable_environment().poisoned(),
-            DeclarativeEnvironmentKind::Function(f) =&gt; f.poisonable_environment().poisoned(),
-            DeclarativeEnvironmentKind::Module(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <span class="self">Self</span>::Lexical(lex) =&gt; lex.poisonable_environment().poisoned(),
+            <span class="self">Self</span>::Global(g) =&gt; g.poisonable_environment().poisoned(),
+            <span class="self">Self</span>::Function(f) =&gt; f.poisonable_environment().poisoned(),
+            <span class="self">Self</span>::Module(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if this environment is inside a `with` environment.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">match </span><span class="self">self </span>{
-            DeclarativeEnvironmentKind::Lexical(lex) =&gt; lex.poisonable_environment().with(),
-            DeclarativeEnvironmentKind::Global(g) =&gt; g.poisonable_environment().with(),
-            DeclarativeEnvironmentKind::Function(f) =&gt; f.poisonable_environment().with(),
-            DeclarativeEnvironmentKind::Module(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <span class="self">Self</span>::Lexical(lex) =&gt; lex.poisonable_environment().with(),
+            <span class="self">Self</span>::Global(g) =&gt; g.poisonable_environment().with(),
+            <span class="self">Self</span>::Function(f) =&gt; f.poisonable_environment().with(),
+            <span class="self">Self</span>::Module(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Poisons this environment for future binding searches.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poison(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match </span><span class="self">self </span>{
-            DeclarativeEnvironmentKind::Lexical(lex) =&gt; lex.poisonable_environment().poison(),
-            DeclarativeEnvironmentKind::Global(g) =&gt; g.poisonable_environment().poison(),
-            DeclarativeEnvironmentKind::Function(f) =&gt; f.poisonable_environment().poison(),
-            DeclarativeEnvironmentKind::Module(<span class="kw">_</span>) =&gt; {
+            <span class="self">Self</span>::Lexical(lex) =&gt; lex.poisonable_environment().poison(),
+            <span class="self">Self</span>::Global(g) =&gt; g.poisonable_environment().poison(),
+            <span class="self">Self</span>::Function(f) =&gt; f.poisonable_environment().poison(),
+            <span class="self">Self</span>::Module(<span class="kw">_</span>) =&gt; {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;modules are always run in strict mode&quot;</span>)
             }
         }
@@ -600,7 +600,7 @@
 <span class="kw">impl </span>PoisonableEnvironment {
     <span class="doccomment">/// Creates a new `PoisonableEnvironment`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bindings_count: usize, poisoned: bool, with: bool) -&gt; <span class="self">Self </span>{
-        PoisonableEnvironment {
+        <span class="self">Self </span>{
             bindings: GcRefCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; bindings_count]),
             poisoned: Cell::new(poisoned),
             with: Cell::new(with),

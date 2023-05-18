@@ -1029,7 +1029,7 @@
         src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;,
         realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;Module&gt; {
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Module parsing&quot;</span>, <span class="string">&quot;Main&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
@@ -1037,7 +1037,7 @@
 
         <span class="kw">let </span>src = SourceTextModule::new(module);
 
-        <span class="kw">let </span>module = Module {
+        <span class="kw">let </span>module = <span class="self">Self </span>{
             inner: Gc::new(Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
                 environment: GcRefCell::default(),
@@ -1186,7 +1186,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolve_export(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         export_name: Sym,
-        resolve_set: <span class="kw-2">&amp;mut </span>FxHashSet&lt;(Module, Sym)&gt;,
+        resolve_set: <span class="kw-2">&amp;mut </span>FxHashSet&lt;(<span class="self">Self</span>, Sym)&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ResolvedBinding, ResolveExportError&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind() {
             ModuleKind::SourceText(src) =&gt; src.resolve_export(export_name, resolve_set),
@@ -1452,7 +1452,7 @@
         // 7. Set M.[[Exports]] to sortedExports.
         // 8. Create own properties of M corresponding to the definitions in 28.3.
         </span><span class="kw">let </span>namespace = context.intrinsics().templates().namespace().create(
-            ObjectData::module_namespace(ModuleNamespace { module, exports }),
+            ObjectData::module_namespace(<span class="self">Self </span>{ module, exports }),
             <span class="macro">vec!</span>[<span class="macro">js_string!</span>(<span class="string">&quot;Module&quot;</span>).into()],
         );
 

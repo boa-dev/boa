@@ -524,15 +524,15 @@
 
 <span class="kw">impl </span>ShapeFlags {
     <span class="comment">// NOTE: Remove type bits and set the new ones.
-    </span><span class="kw">fn </span>insert_property_transition_from(previous: ShapeFlags) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>insert_property_transition_from(previous: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
         previous.difference(<span class="self">Self</span>::TRANSITION_TYPE)
             | <span class="self">Self</span>::from_bits_retain(INSERT_PROPERTY_TRANSITION_TYPE)
     }
-    <span class="kw">fn </span>configure_property_transition_from(previous: ShapeFlags) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>configure_property_transition_from(previous: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
         previous.difference(<span class="self">Self</span>::TRANSITION_TYPE)
             | <span class="self">Self</span>::from_bits_retain(CONFIGURE_PROPERTY_TRANSITION_TYPE)
     }
-    <span class="kw">fn </span>prototype_transition_from(previous: ShapeFlags) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>prototype_transition_from(previous: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
         previous.difference(<span class="self">Self</span>::TRANSITION_TYPE)
             | <span class="self">Self</span>::from_bits_retain(PROTOTYPE_TRANSITION_TYPE)
     }
@@ -603,7 +603,7 @@
         <span class="self">self</span>.inner.transition_count
     }
     <span class="doccomment">/// Getter for the previous field.
-    </span><span class="kw">pub fn </span>previous(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SharedShape&gt; {
+    </span><span class="kw">pub fn </span>previous(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
         <span class="self">self</span>.inner.previous.as_ref()
     }
     <span class="doccomment">/// Get the prototype of the shape.
@@ -715,7 +715,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>change_attributes_transition(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: TransitionKey,
-    ) -&gt; ChangeTransition&lt;SharedShape&gt; {
+    ) -&gt; ChangeTransition&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>slot = <span class="self">self</span>.property_table().get_expect(<span class="kw-2">&amp;</span>key.property_key);
 
         <span class="comment">// Check if we have already created such a transition, if so use it!
@@ -825,7 +825,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: <span class="kw-2">&amp;</span>PropertyKey,
     ) -&gt; (
-        SharedShape,
+        <span class="self">Self</span>,
         <span class="prelude-ty">Option</span>&lt;JsPrototype&gt;,
         IndexMap&lt;PropertyKey, SlotAttributes&gt;,
     ) {

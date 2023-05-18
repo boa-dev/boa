@@ -1351,7 +1351,7 @@
 
         <span class="kw">impl</span>&lt;I: Iterator&gt; WideStringDecoderIterator&lt;I&gt; {
             <span class="kw">fn </span>new(iterator: I) -&gt; <span class="self">Self </span>{
-                WideStringDecoderIterator {
+                <span class="self">Self </span>{
                     codepoints: iterator.peekable(),
                 }
             }

@@ -2434,8 +2434,8 @@
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>PromiseState {
     <span class="macro">custom_trace!</span>(this, {
         <span class="kw">match </span>this {
-            PromiseState::Fulfilled(v) | PromiseState::Rejected(v) =&gt; mark(v),
-            PromiseState::Pending =&gt; {}
+            <span class="self">Self</span>::Fulfilled(v) | <span class="self">Self</span>::Rejected(v) =&gt; mark(v),
+            <span class="self">Self</span>::Pending =&gt; {}
         }
     });
 }
@@ -2445,7 +2445,7 @@
     /// the state is not `Fulfilled`.
     </span><span class="kw">pub const fn </span>as_fulfilled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            PromiseState::Fulfilled(v) =&gt; <span class="prelude-val">Some</span>(v),
+            <span class="self">Self</span>::Fulfilled(v) =&gt; <span class="prelude-val">Some</span>(v),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2454,7 +2454,7 @@
     /// the state is not `Rejected`.
     </span><span class="kw">pub const fn </span>as_rejected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            PromiseState::Rejected(v) =&gt; <span class="prelude-val">Some</span>(v),
+            <span class="self">Self</span>::Rejected(v) =&gt; <span class="prelude-val">Some</span>(v),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2824,7 +2824,7 @@
 <span class="kw">impl </span>Promise {
     <span class="doccomment">/// Creates a new, pending `Promise`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        Promise {
+        <span class="self">Self </span>{
             state: PromiseState::Pending,
             fulfill_reactions: Vec::default(),
             reject_reactions: Vec::default(),
@@ -3832,7 +3832,7 @@
             JsNativeError::typ().with_message(<span class="string">&quot;Promise.reject() called on a non-object&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        Promise::promise_reject(c, <span class="kw-2">&amp;</span>JsError::from_opaque(r), context).map(JsValue::from)
+        <span class="self">Self</span>::promise_reject(c, <span class="kw-2">&amp;</span>JsError::from_opaque(r), context).map(JsValue::from)
     }
 
     <span class="doccomment">/// Utility function to create a rejected promise.
@@ -4156,7 +4156,7 @@
             .and_then(JsFunction::from_object);
 
         <span class="comment">// continues in `Promise::inner_then`
-        </span>Promise::inner_then(promise, on_fulfilled, on_rejected, context).map(JsValue::from)
+        </span><span class="self">Self</span>::inner_then(promise, on_fulfilled, on_rejected, context).map(JsValue::from)
     }
 
     <span class="doccomment">/// Schedules callback functions for the eventual completion of `promise` — either fulfillment

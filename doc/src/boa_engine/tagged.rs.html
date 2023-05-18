@@ -156,7 +156,7 @@
     ///
     /// - `T` must have an alignment of at least 2.
     /// - `tag` must fit inside `usize::BITS - 1` bits
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>from_tag(tag: usize) -&gt; Tagged&lt;T&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>from_tag(tag: usize) -&gt; <span class="self">Self </span>{
         <span class="macro">debug_assert!</span>(std::mem::align_of::&lt;T&gt;() &gt;= <span class="number">2</span>);
         <span class="kw">let </span>addr = (tag &lt;&lt; <span class="number">1</span>) | <span class="number">1</span>;
         <span class="comment">// SAFETY: `addr` is never zero, since we always set its LSB to 1
@@ -172,7 +172,7 @@
     /// # Safety
     ///
     /// - `T` must be non null.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const unsafe fn </span>from_ptr(ptr: <span class="kw-2">*mut </span>T) -&gt; Tagged&lt;T&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const unsafe fn </span>from_ptr(ptr: <span class="kw-2">*mut </span>T) -&gt; <span class="self">Self </span>{
         <span class="macro">debug_assert!</span>(std::mem::align_of::&lt;T&gt;() &gt;= <span class="number">2</span>);
         <span class="comment">// SAFETY: the caller must ensure the invariants hold.
         </span><span class="kw">unsafe </span>{ <span class="self">Self</span>(NonNull::new_unchecked(ptr)) }
@@ -183,7 +183,7 @@
     /// # Requirements
     ///
     /// - `T` must have an alignment of at least 2.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>from_non_null(ptr: NonNull&lt;T&gt;) -&gt; Tagged&lt;T&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>from_non_null(ptr: NonNull&lt;T&gt;) -&gt; <span class="self">Self </span>{
         <span class="macro">debug_assert!</span>(std::mem::align_of::&lt;T&gt;() &gt;= <span class="number">2</span>);
         <span class="self">Self</span>(ptr)
     }

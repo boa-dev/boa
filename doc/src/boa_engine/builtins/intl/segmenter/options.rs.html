@@ -60,9 +60,9 @@
 <span class="kw">impl </span>Display <span class="kw">for </span>Granularity {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            Granularity::Grapheme =&gt; <span class="string">&quot;grapheme&quot;</span>,
-            Granularity::Word =&gt; <span class="string">&quot;word&quot;</span>,
-            Granularity::Sentence =&gt; <span class="string">&quot;sentence&quot;</span>,
+            <span class="self">Self</span>::Grapheme =&gt; <span class="string">&quot;grapheme&quot;</span>,
+            <span class="self">Self</span>::Word =&gt; <span class="string">&quot;word&quot;</span>,
+            <span class="self">Self</span>::Sentence =&gt; <span class="string">&quot;sentence&quot;</span>,
         }
         .fmt(f)
     }
