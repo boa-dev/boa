@@ -388,19 +388,19 @@ impl BuiltInObjectInitializer {
         P: Into<PropertyDescriptor>,
     {
         match self {
-            BuiltInObjectInitializer::Shared(obj) => obj.borrow_mut().insert(key, property),
-            BuiltInObjectInitializer::Unique { object, .. } => object.insert(key, property),
+            Self::Shared(obj) => obj.borrow_mut().insert(key, property),
+            Self::Unique { object, .. } => object.insert(key, property),
         };
     }
 
     /// Sets the prototype of the builtin
     fn set_prototype(&mut self, prototype: JsObject) {
         match self {
-            BuiltInObjectInitializer::Shared(obj) => {
+            Self::Shared(obj) => {
                 let mut obj = obj.borrow_mut();
                 obj.set_prototype(prototype);
             }
-            BuiltInObjectInitializer::Unique { object, .. } => {
+            Self::Unique { object, .. } => {
                 object.set_prototype(prototype);
             }
         }
@@ -414,14 +414,14 @@ impl BuiltInObjectInitializer {
     /// builtin's vtable.
     fn set_data(&mut self, new_data: ObjectData) {
         match self {
-            BuiltInObjectInitializer::Shared(obj) => {
+            Self::Shared(obj) => {
                 assert!(
                     std::ptr::eq(obj.vtable(), new_data.internal_methods),
                     "intrinsic object's vtable didn't match with new data"
                 );
                 *obj.borrow_mut().kind_mut() = new_data.kind;
             }
-            BuiltInObjectInitializer::Unique { ref mut data, .. } => *data = new_data,
+            Self::Unique { ref mut data, .. } => *data = new_data,
         }
     }
 
@@ -429,19 +429,19 @@ impl BuiltInObjectInitializer {
     fn as_shared(&mut self) -> JsObject {
         match std::mem::replace(
             self,
-            BuiltInObjectInitializer::Unique {
+            Self::Unique {
                 object: Object::default(),
                 data: ObjectData::ordinary(),
             },
         ) {
-            BuiltInObjectInitializer::Shared(obj) => {
-                *self = BuiltInObjectInitializer::Shared(obj.clone());
+            Self::Shared(obj) => {
+                *self = Self::Shared(obj.clone());
                 obj
             }
-            BuiltInObjectInitializer::Unique { mut object, data } => {
+            Self::Unique { mut object, data } => {
                 *object.kind_mut() = data.kind;
                 let obj = JsObject::from_object_and_vtable(object, data.internal_methods);
-                *self = BuiltInObjectInitializer::Shared(obj.clone());
+                *self = Self::Shared(obj.clone());
                 obj
             }
         }

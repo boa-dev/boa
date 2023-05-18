@@ -57,9 +57,9 @@ impl NativeSegmenter {
     /// of the segments.
     pub(crate) fn segment<'l, 's>(&'l self, input: &'s [u16]) -> NativeSegmentIterator<'l, 's> {
         match self {
-            NativeSegmenter::Grapheme(g) => NativeSegmentIterator::Grapheme(g.segment_utf16(input)),
-            NativeSegmenter::Word(w) => NativeSegmentIterator::Word(w.segment_utf16(input)),
-            NativeSegmenter::Sentence(s) => NativeSegmentIterator::Sentence(s.segment_utf16(input)),
+            Self::Grapheme(g) => NativeSegmentIterator::Grapheme(g.segment_utf16(input)),
+            Self::Word(w) => NativeSegmentIterator::Word(w.segment_utf16(input)),
+            Self::Sentence(s) => NativeSegmentIterator::Sentence(s.segment_utf16(input)),
         }
     }
 }
@@ -152,7 +152,7 @@ impl BuiltInConstructor for Segmenter {
             .try_new_segmenter(granularity)
             .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
 
-        let segmenter = Segmenter {
+        let segmenter = Self {
             locale,
             native: kind,
         };

@@ -54,7 +54,7 @@ impl Segments {
         // 5. Return segments.
         JsObject::from_proto_and_data(
             context.intrinsics().objects().segments_prototype(),
-            ObjectData::segments(Segments { segmenter, string }),
+            ObjectData::segments(Self { segmenter, string }),
         )
     }
 

@@ -16,7 +16,7 @@ pub(crate) enum CompletionRecord {
 // ---- `CompletionRecord` methods ----
 impl CompletionRecord {
     pub(crate) const fn is_throw_completion(&self) -> bool {
-        matches!(self, CompletionRecord::Throw(_))
+        matches!(self, Self::Throw(_))
     }
 
     /// This function will consume the current `CompletionRecord` and return a `JsResult<JsValue>`

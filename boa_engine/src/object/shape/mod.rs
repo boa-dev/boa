@@ -64,7 +64,7 @@ pub struct Shape {
 
 impl Default for Shape {
     fn default() -> Self {
-        Shape::unique(UniqueShape::default())
+        Self::unique(UniqueShape::default())
     }
 }
 
@@ -131,7 +131,7 @@ impl Shape {
     pub(crate) fn change_attributes_transition(
         &self,
         key: TransitionKey,
-    ) -> ChangeTransition<Shape> {
+    ) -> ChangeTransition<Self> {
         match &self.inner {
             Inner::Shared(shape) => {
                 let change_transition = shape.change_attributes_transition(key);

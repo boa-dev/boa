@@ -58,7 +58,7 @@ impl Slot {
     ///
     /// This is needed because slots do not have the same width.
     pub(crate) fn from_previous(
-        previous_slot: Option<Slot>,
+        previous_slot: Option<Self>,
         new_attributes: SlotAttributes,
     ) -> Self {
         // If there was no previous slot then return 0 as the index.

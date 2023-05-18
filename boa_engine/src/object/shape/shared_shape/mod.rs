@@ -54,15 +54,15 @@ impl Default for ShapeFlags {
 
 impl ShapeFlags {
     // NOTE: Remove type bits and set the new ones.
-    fn insert_property_transition_from(previous: ShapeFlags) -> Self {
+    fn insert_property_transition_from(previous: Self) -> Self {
         previous.difference(Self::TRANSITION_TYPE)
             | Self::from_bits_retain(INSERT_PROPERTY_TRANSITION_TYPE)
     }
-    fn configure_property_transition_from(previous: ShapeFlags) -> Self {
+    fn configure_property_transition_from(previous: Self) -> Self {
         previous.difference(Self::TRANSITION_TYPE)
             | Self::from_bits_retain(CONFIGURE_PROPERTY_TRANSITION_TYPE)
     }
-    fn prototype_transition_from(previous: ShapeFlags) -> Self {
+    fn prototype_transition_from(previous: Self) -> Self {
         previous.difference(Self::TRANSITION_TYPE)
             | Self::from_bits_retain(PROTOTYPE_TRANSITION_TYPE)
     }
@@ -133,7 +133,7 @@ impl SharedShape {
         self.inner.transition_count
     }
     /// Getter for the previous field.
-    pub fn previous(&self) -> Option<&SharedShape> {
+    pub fn previous(&self) -> Option<&Self> {
         self.inner.previous.as_ref()
     }
     /// Get the prototype of the shape.
@@ -245,7 +245,7 @@ impl SharedShape {
     pub(crate) fn change_attributes_transition(
         &self,
         key: TransitionKey,
-    ) -> ChangeTransition<SharedShape> {
+    ) -> ChangeTransition<Self> {
         let slot = self.property_table().get_expect(&key.property_key);
 
         // Check if we have already created such a transition, if so use it!
@@ -355,7 +355,7 @@ impl SharedShape {
         &self,
         key: &PropertyKey,
     ) -> (
-        SharedShape,
+        Self,
         Option<JsPrototype>,
         IndexMap<PropertyKey, SlotAttributes>,
     ) {

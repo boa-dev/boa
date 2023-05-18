@@ -13,9 +13,9 @@ pub(crate) enum Granularity {
 impl Display for Granularity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Granularity::Grapheme => "grapheme",
-            Granularity::Word => "word",
-            Granularity::Sentence => "sentence",
+            Self::Grapheme => "grapheme",
+            Self::Word => "word",
+            Self::Sentence => "sentence",
         }
         .fmt(f)
     }

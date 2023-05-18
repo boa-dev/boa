@@ -228,7 +228,7 @@ pub(crate) enum FunctionKind {
 impl fmt::Debug for FunctionKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            FunctionKind::Native {
+            Self::Native {
                 function,
                 constructor,
             } => f
@@ -236,16 +236,16 @@ impl fmt::Debug for FunctionKind {
                 .field("function", &function)
                 .field("constructor", &constructor)
                 .finish(),
-            FunctionKind::Ordinary { .. } => f
+            Self::Ordinary { .. } => f
                 .debug_struct("FunctionKind::Ordinary")
                 .finish_non_exhaustive(),
-            FunctionKind::Async { .. } => f
+            Self::Async { .. } => f
                 .debug_struct("FunctionKind::Async")
                 .finish_non_exhaustive(),
-            FunctionKind::Generator { .. } => f
+            Self::Generator { .. } => f
                 .debug_struct("FunctionKind::Generator")
                 .finish_non_exhaustive(),
-            FunctionKind::AsyncGenerator { .. } => f
+            Self::AsyncGenerator { .. } => f
                 .debug_struct("FunctionKind::AsyncGenerator")
                 .finish_non_exhaustive(),
         }

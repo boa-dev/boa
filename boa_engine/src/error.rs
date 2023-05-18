@@ -362,7 +362,7 @@ impl JsError {
     ///
     /// This is a no-op if the error is not native or if the `realm` field of the error is already
     /// set.
-    pub(crate) fn inject_realm(mut self, realm: Realm) -> JsError {
+    pub(crate) fn inject_realm(mut self, realm: Realm) -> Self {
         match &mut self.inner {
             Repr::Native(err) if err.realm.is_none() => {
                 err.realm = Some(realm);
