@@ -161,6 +161,7 @@ impl<T: Trace + ?Sized> GcRefCell<T> {
     /// # Panics
     ///
     /// Panics if the value is currently borrowed.
+    #[track_caller]
     pub fn borrow_mut(&self) -> GcRefMut<'_, T> {
         match self.try_borrow_mut() {
             Ok(value) => value,

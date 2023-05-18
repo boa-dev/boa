@@ -79,7 +79,18 @@ where
                     .parse(cursor, interner)
                     .map(Into::into)
             }
-            _ => unreachable!("unknown token found: {:?}", tok),
+            _ => Err(Error::expected(
+                [
+                    Keyword::Function.to_string(),
+                    Keyword::Async.to_string(),
+                    Keyword::Class.to_string(),
+                    Keyword::Const.to_string(),
+                    Keyword::Let.to_string(),
+                ],
+                tok.to_string(interner),
+                tok.span(),
+                "export declaration",
+            )),
         }
     }
 }

@@ -1,3 +1,4 @@
+use boa_gc::{empty_trace, Finalize, Trace};
 use boa_macros::static_syms;
 use core::num::NonZeroUsize;
 
@@ -12,9 +13,15 @@ use core::num::NonZeroUsize;
 )]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[allow(clippy::unsafe_derive_deserialize)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Finalize)]
 pub struct Sym {
     value: NonZeroUsize,
+}
+
+// SAFETY: `NonZeroUsize` is a constrained `usize`, and all primitive types don't need to be traced
+// by the garbage collector.
+unsafe impl Trace for Sym {
+    empty_trace!();
 }
 
 impl Sym {

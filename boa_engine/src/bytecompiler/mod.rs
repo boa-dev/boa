@@ -346,7 +346,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         }
     }
 
-    fn interner(&self) -> &Interner {
+    pub(crate) fn interner(&self) -> &Interner {
         self.context.interner()
     }
 

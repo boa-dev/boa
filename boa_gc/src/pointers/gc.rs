@@ -30,6 +30,7 @@ impl<T: Trace> Gc<T> {
         //
         // Note: Allocator can cause Collector to run
         let inner_ptr = Allocator::alloc_gc(GcBox::new(value));
+
         // SAFETY: inner_ptr was just allocated, so it must be a valid value that implements [`Trace`]
         unsafe { (*inner_ptr.as_ptr()).value().unroot() }
 
@@ -94,7 +95,7 @@ impl<T: Trace + ?Sized> Gc<T> {
     }
 
     pub(crate) fn inner_ptr(&self) -> NonNull<GcBox<T>> {
-        assert!(finalizer_safe());
+        assert!(finalizer_safe() || self.is_rooted());
         self.inner_ptr.get().as_ptr()
     }
 

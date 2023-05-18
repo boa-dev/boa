@@ -7,8 +7,13 @@ use crate::{
     TestFlags, TestOutcomeResult, TestResult, TestSuite, VersionedStats,
 };
 use boa_engine::{
-    native_function::NativeFunction, object::FunctionObjectBuilder, optimizer::OptimizerOptions,
-    property::Attribute, Context, JsArgs, JsNativeErrorKind, JsValue, Source,
+    builtins::promise::PromiseState,
+    module::{Module, ModuleLoader, SimpleModuleLoader},
+    native_function::NativeFunction,
+    object::FunctionObjectBuilder,
+    optimizer::OptimizerOptions,
+    property::Attribute,
+    Context, JsArgs, JsError, JsNativeErrorKind, JsValue, Source,
 };
 use colored::Colorize;
 use fxhash::FxHashSet;
@@ -141,12 +146,16 @@ impl Test {
         optimizer_options: OptimizerOptions,
     ) -> Vec<TestResult> {
         let mut results = Vec::new();
-        if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
-            results.push(self.run_once(harness, true, verbose, optimizer_options));
-        }
-
-        if self.flags.contains(TestFlags::NO_STRICT) || self.flags.contains(TestFlags::RAW) {
+        if self.flags.contains(TestFlags::MODULE) {
             results.push(self.run_once(harness, false, verbose, optimizer_options));
+        } else {
+            if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
+                results.push(self.run_once(harness, true, verbose, optimizer_options));
+            }
+
+            if self.flags.contains(TestFlags::NO_STRICT) || self.flags.contains(TestFlags::RAW) {
+                results.push(self.run_once(harness, false, verbose, optimizer_options));
+            }
         }
 
         results
@@ -209,22 +218,61 @@ impl Test {
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
                 let async_result = AsyncResult::default();
-                let context = &mut Context::default();
+                let loader = &SimpleModuleLoader::new(
+                    self.path.parent().expect("test should have a parent dir"),
+                )
+                .expect("test path should be canonicalizable");
+                let dyn_loader: &dyn ModuleLoader = loader;
+                let context = &mut Context::builder()
+                    .module_loader(dyn_loader)
+                    .build()
+                    .expect("cannot fail with default global object");
 
                 if let Err(e) = self.set_up_env(harness, context, async_result.clone()) {
                     return (false, e);
                 }
-                context.strict(strict);
+
                 context.set_optimizer_options(optimizer_options);
 
                 // TODO: timeout
-                let value = match if self.is_module() {
-                    context.eval_module(source)
+                let value = if self.is_module() {
+                    let module = match Module::parse(source, None, context) {
+                        Ok(module) => module,
+                        Err(err) => return (false, format!("Uncaught {err}")),
+                    };
+
+                    loader.insert(
+                        self.path
+                            .canonicalize()
+                            .expect("test path should be canonicalizable"),
+                        module.clone(),
+                    );
+
+                    let promise = match module.load_link_evaluate(context) {
+                        Ok(promise) => promise,
+                        Err(err) => return (false, format!("Uncaught {err}")),
+                    };
+
+                    context.run_jobs();
+
+                    match promise
+                        .state()
+                        .expect("tester can only use builtin promises")
+                    {
+                        PromiseState::Pending => {
+                            return (false, "module should have been executed".to_string())
+                        }
+                        PromiseState::Fulfilled(v) => v,
+                        PromiseState::Rejected(err) => {
+                            return (false, format!("Uncaught {}", err.display()))
+                        }
+                    }
                 } else {
-                    context.eval_script(source)
-                } {
-                    Ok(v) => v,
-                    Err(e) => return (false, format!("Uncaught {e}")),
+                    context.strict(strict);
+                    match context.eval_script(source) {
+                        Ok(v) => v,
+                        Err(err) => return (false, format!("Uncaught {err}")),
+                    }
                 };
 
                 context.run_jobs();
@@ -254,15 +302,16 @@ impl Test {
                 );
 
                 let context = &mut Context::default();
-                context.strict(strict);
+
                 context.set_optimizer_options(OptimizerOptions::OPTIMIZE_ALL);
 
                 if self.is_module() {
-                    match context.parse_module(source) {
+                    match Module::parse(source, None, context) {
                         Ok(_) => (false, "ModuleItemList parsing should fail".to_owned()),
                         Err(e) => (true, format!("Uncaught {e}")),
                     }
                 } else {
+                    context.strict(strict);
                     match context.parse_script(source) {
                         Ok(_) => (false, "StatementList parsing should fail".to_owned()),
                         Err(e) => (true, format!("Uncaught {e}")),
@@ -271,37 +320,134 @@ impl Test {
             }
             Outcome::Negative {
                 phase: Phase::Resolution,
-                error_type: _,
-            } => (false, "Modules are not implemented yet".to_string()),
+                error_type,
+            } => {
+                let loader = &SimpleModuleLoader::new(
+                    self.path.parent().expect("test should have a parent dir"),
+                )
+                .expect("test path should be canonicalizable");
+                let dyn_loader: &dyn ModuleLoader = loader;
+                let context = &mut Context::builder()
+                    .module_loader(dyn_loader)
+                    .build()
+                    .expect("cannot fail with default global object");
+
+                let module = match Module::parse(source, None, context) {
+                    Ok(module) => module,
+                    Err(err) => return (false, format!("Uncaught {err}")),
+                };
+
+                loader.insert(
+                    self.path
+                        .canonicalize()
+                        .expect("test path should be canonicalizable"),
+                    module.clone(),
+                );
+
+                let promise = module.load(context);
+
+                context.run_jobs();
+
+                match promise
+                    .state()
+                    .expect("tester can only use builtin promises")
+                {
+                    PromiseState::Pending => {
+                        return (false, "module didn't try to load".to_string())
+                    }
+                    PromiseState::Fulfilled(_) => {
+                        // Try to link to see if the resolution error shows there.
+                    }
+                    PromiseState::Rejected(err) => {
+                        let err = JsError::from_opaque(err);
+                        return (
+                            is_error_type(&err, error_type, context),
+                            format!("Uncaught {err}"),
+                        );
+                    }
+                }
+
+                if let Err(err) = module.link(context) {
+                    (
+                        is_error_type(&err, error_type, context),
+                        format!("Uncaught {err}"),
+                    )
+                } else {
+                    (false, "module resolution didn't fail".to_string())
+                }
+            }
             Outcome::Negative {
                 phase: Phase::Runtime,
                 error_type,
             } => {
-                let context = &mut Context::default();
+                let loader = &SimpleModuleLoader::new(
+                    self.path.parent().expect("test should have a parent dir"),
+                )
+                .expect("test path should be canonicalizable");
+                let dyn_loader: &dyn ModuleLoader = loader;
+                let context = &mut Context::builder()
+                    .module_loader(dyn_loader)
+                    .build()
+                    .expect("cannot fail with default global object");
                 context.strict(strict);
                 context.set_optimizer_options(optimizer_options);
 
                 if let Err(e) = self.set_up_env(harness, context, AsyncResult::default()) {
                     return (false, e);
                 }
-
-                let e = if self.is_module() {
-                    let module = match context.parse_module(source) {
-                        Ok(code) => code,
+                let error = if self.is_module() {
+                    let module = match Module::parse(source, None, context) {
+                        Ok(module) => module,
                         Err(e) => return (false, format!("Uncaught {e}")),
                     };
-                    match context
-                        .compile_module(&module)
-                        .and_then(|code| context.execute(code))
+
+                    loader.insert(
+                        self.path
+                            .canonicalize()
+                            .expect("test path should be canonicalizable"),
+                        module.clone(),
+                    );
+
+                    let promise = module.load(context);
+
+                    context.run_jobs();
+
+                    match promise
+                        .state()
+                        .expect("tester can only use builtin promises")
                     {
-                        Ok(_) => return (false, "Module execution should fail".to_owned()),
-                        Err(e) => e,
+                        PromiseState::Pending => {
+                            return (false, "module didn't try to load".to_string())
+                        }
+                        PromiseState::Fulfilled(_) => {}
+                        PromiseState::Rejected(err) => {
+                            return (false, format!("Uncaught {}", err.display()))
+                        }
+                    }
+
+                    if let Err(err) = module.link(context) {
+                        return (false, format!("Uncaught {err}"));
+                    }
+
+                    let promise = module.evaluate(context);
+
+                    match promise
+                        .state()
+                        .expect("tester can only use builtin promises")
+                    {
+                        PromiseState::Pending => {
+                            return (false, "module didn't try to evaluate".to_string())
+                        }
+                        PromiseState::Fulfilled(val) => return (false, val.display().to_string()),
+                        PromiseState::Rejected(err) => JsError::from_opaque(err),
                     }
                 } else {
+                    context.strict(strict);
                     let script = match context.parse_script(source) {
                         Ok(code) => code,
                         Err(e) => return (false, format!("Uncaught {e}")),
                     };
+
                     match context
                         .compile_script(&script)
                         .and_then(|code| context.execute(code))
@@ -311,31 +457,10 @@ impl Test {
                     }
                 };
 
-                if let Ok(e) = e.try_native(context) {
-                    match &e.kind {
-                        JsNativeErrorKind::Syntax if error_type == ErrorType::SyntaxError => {}
-                        JsNativeErrorKind::Reference if error_type == ErrorType::ReferenceError => {
-                        }
-                        JsNativeErrorKind::Range if error_type == ErrorType::RangeError => {}
-                        JsNativeErrorKind::Type if error_type == ErrorType::TypeError => {}
-                        _ => return (false, format!("Uncaught {e}")),
-                    }
-                    (true, format!("Uncaught {e}"))
-                } else {
-                    let passed = e
-                        .as_opaque()
-                        .expect("try_native cannot fail if e is not opaque")
-                        .as_object()
-                        .and_then(|o| o.get("constructor", context).ok())
-                        .as_ref()
-                        .and_then(JsValue::as_object)
-                        .and_then(|o| o.get("name", context).ok())
-                        .as_ref()
-                        .and_then(JsValue::as_string)
-                        .map(|s| s == error_type.as_str())
-                        .unwrap_or_default();
-                    (passed, format!("Uncaught {e}"))
-                }
+                (
+                    is_error_type(&error, error_type, context),
+                    format!("Uncaught {error}"),
+                )
             }
         });
 
@@ -448,6 +573,34 @@ impl Test {
         }
 
         Ok(())
+    }
+}
+
+/// Returns `true` if `error` is a `target_type` error.
+fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context<'_>) -> bool {
+    if let Ok(error) = error.try_native(context) {
+        match &error.kind {
+            JsNativeErrorKind::Syntax if target_type == ErrorType::SyntaxError => {}
+            JsNativeErrorKind::Reference if target_type == ErrorType::ReferenceError => {}
+            JsNativeErrorKind::Range if target_type == ErrorType::RangeError => {}
+            JsNativeErrorKind::Type if target_type == ErrorType::TypeError => {}
+            _ => return false,
+        }
+        true
+    } else {
+        let passed = error
+            .as_opaque()
+            .expect("try_native cannot fail if e is not opaque")
+            .as_object()
+            .and_then(|o| o.get("constructor", context).ok())
+            .as_ref()
+            .and_then(JsValue::as_object)
+            .and_then(|o| o.get("name", context).ok())
+            .as_ref()
+            .and_then(JsValue::as_string)
+            .map(|s| s == target_type.as_str())
+            .unwrap_or_default();
+        passed
     }
 }
 

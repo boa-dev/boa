@@ -492,6 +492,7 @@ name = "boa_interner"
 version = "0.16.0"
 dependencies = [
  "arbitrary",
+ "boa_gc",
  "boa_macros",
  "hashbrown 0.13.2",
  "indexmap",

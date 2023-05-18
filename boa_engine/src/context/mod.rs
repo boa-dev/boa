@@ -14,30 +14,26 @@ pub use maybe_shared::MaybeShared;
 
 #[cfg(not(feature = "intl"))]
 pub use std::marker::PhantomData;
-use std::{io::Read, rc::Rc};
+use std::{io::Read, path::Path, rc::Rc};
 
 use crate::{
     builtins,
-    bytecompiler::{ByteCompiler, NodeKind},
+    bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
+    module::{ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::{shape::SharedShape, FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    vm::{CallFrame, CodeBlock, Opcode, Vm},
+    vm::{CallFrame, CodeBlock, Vm},
     JsResult, JsValue, Source,
 };
-use boa_ast::{
-    declaration::LexicalDeclaration,
-    expression::Identifier,
-    operations::{bound_names, lexically_scoped_declarations, var_scoped_declarations},
-    Declaration, ModuleItemList, StatementList,
-};
+use boa_ast::{expression::Identifier, StatementList};
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
-use boa_parser::{Error as ParseError, Parser};
+use boa_parser::Parser;
 use boa_profiler::Profiler;
 
 use crate::vm::RuntimeLimits;
@@ -110,6 +106,8 @@ pub struct Context<'host> {
 
     job_queue: MaybeShared<'host, dyn JobQueue>,
 
+    module_loader: MaybeShared<'host, dyn ModuleLoader>,
+
     optimizer_options: OptimizerOptions,
     root_shape: SharedShape,
 
@@ -128,6 +126,7 @@ impl std::fmt::Debug for Context<'_> {
             .field("strict", &self.strict)
             .field("promise_job_queue", &"JobQueue")
             .field("hooks", &"HostHooks")
+            .field("module_loader", &"ModuleLoader")
             .field("optimizer_options", &self.optimizer_options);
 
         #[cfg(feature = "intl")]
@@ -150,7 +149,7 @@ impl<'host> Context<'host> {
     /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
     #[must_use]
-    pub fn builder() -> ContextBuilder<'static, 'static, 'static> {
+    pub fn builder() -> ContextBuilder<'static, 'static, 'static, 'static> {
         ContextBuilder::default()
     }
 
@@ -186,37 +185,6 @@ impl<'host> Context<'host> {
         result
     }
 
-    // TODO: remove `ignore` after we implement module execution
-    /// Evaluates the given module `src` by compiling down to bytecode, then interpreting the
-    /// bytecode into a value.
-    ///
-    /// # Examples
-    /// ```ignore
-    /// # use boa_engine::{Context, Source};
-    /// let mut context = Context::default();
-    ///
-    /// let source = Source::from_bytes("1 + 3");
-    ///
-    /// let value = context.eval_module(source).unwrap();
-    ///
-    /// assert!(value.is_number());
-    /// assert_eq!(value.as_number().unwrap(), 4.0);
-    /// ```
-    #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval_module<R: Read>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
-        let main_timer = Profiler::global().start_event("Module evaluation", "Main");
-
-        let module_item_list = self.parse_module(src)?;
-        let code_block = self.compile_module(&module_item_list)?;
-        let result = self.execute(code_block);
-
-        // The main_timer needs to be dropped before the Profiler is.
-        drop(main_timer);
-        Profiler::global().drop();
-
-        result
-    }
-
     /// Applies optimizations to the [`StatementList`] inplace.
     pub fn optimize_statement_list(
         &mut self,
@@ -227,10 +195,7 @@ impl<'host> Context<'host> {
     }
 
     /// Parse the given source script.
-    pub fn parse_script<R: Read>(
-        &mut self,
-        src: Source<'_, R>,
-    ) -> Result<StatementList, ParseError> {
+    pub fn parse_script<R: Read>(&mut self, src: Source<'_, R>) -> JsResult<StatementList> {
         let _timer = Profiler::global().start_event("Script parsing", "Main");
         let mut parser = Parser::new(src);
         parser.set_identifier(self.next_parser_identifier());
@@ -242,17 +207,6 @@ impl<'host> Context<'host> {
             self.optimize_statement_list(&mut result);
         }
         Ok(result)
-    }
-
-    /// Parse the given source script.
-    pub fn parse_module<R: Read>(
-        &mut self,
-        src: Source<'_, R>,
-    ) -> Result<ModuleItemList, ParseError> {
-        let _timer = Profiler::global().start_event("Module parsing", "Main");
-        let mut parser = Parser::new(src);
-        parser.set_identifier(self.next_parser_identifier());
-        parser.parse_module(&mut self.interner)
     }
 
     /// Compile the script AST into a `CodeBlock` ready to be executed by the VM.
@@ -271,88 +225,12 @@ impl<'host> Context<'host> {
         Ok(Gc::new(compiler.finish()))
     }
 
-    /// Compile the module AST into a `CodeBlock` ready to be executed by the VM.
-    pub fn compile_module(&mut self, statement_list: &ModuleItemList) -> JsResult<Gc<CodeBlock>> {
-        let _timer = Profiler::global().start_event("Module compilation", "Main");
-
-        let mut compiler = ByteCompiler::new(
-            Sym::MAIN,
-            true,
-            false,
-            self.realm.environment().compile_env(),
-            self,
-        );
-        let var_declarations = var_scoped_declarations(statement_list);
-        let mut declared_var_names = Vec::new();
-        for var in var_declarations {
-            for name in var.bound_names() {
-                if !declared_var_names.contains(&name) {
-                    compiler.create_mutable_binding(name, false);
-                    let binding = compiler.initialize_mutable_binding(name, false);
-                    let index = compiler.get_or_insert_binding(binding);
-                    compiler.emit_opcode(Opcode::PushUndefined);
-                    compiler.emit(Opcode::DefInitVar, &[index]);
-                    declared_var_names.push(name);
-                }
-            }
-        }
-
-        let lex_declarations = lexically_scoped_declarations(statement_list);
-        for declaration in lex_declarations {
-            match &declaration {
-                Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
-                    for name in bound_names(declaration) {
-                        compiler.create_immutable_binding(name, true);
-                    }
-                }
-                Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
-                    for name in bound_names(declaration) {
-                        compiler.create_mutable_binding(name, false);
-                    }
-                }
-                Declaration::Function(function) => {
-                    for name in bound_names(function) {
-                        compiler.create_mutable_binding(name, false);
-                    }
-                    compiler.function(function.into(), NodeKind::Declaration, false);
-                }
-                Declaration::Generator(function) => {
-                    for name in bound_names(function) {
-                        compiler.create_mutable_binding(name, false);
-                    }
-                    compiler.function(function.into(), NodeKind::Declaration, false);
-                }
-                Declaration::AsyncFunction(function) => {
-                    for name in bound_names(function) {
-                        compiler.create_mutable_binding(name, false);
-                    }
-                    compiler.function(function.into(), NodeKind::Declaration, false);
-                }
-                Declaration::AsyncGenerator(function) => {
-                    for name in bound_names(function) {
-                        compiler.create_mutable_binding(name, false);
-                    }
-                    compiler.function(function.into(), NodeKind::Declaration, false);
-                }
-                Declaration::Class(class) => {
-                    for name in bound_names(class) {
-                        compiler.create_mutable_binding(name, false);
-                    }
-                }
-            }
-        }
-
-        compiler.compile_module_item_list(statement_list);
-        Ok(Gc::new(compiler.finish()))
-    }
-
     /// Call the VM with a `CodeBlock` and return the result.
     ///
     /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's
     /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
     /// times, there is no need to re-compile it, and you can just call `clone()` on the
-    /// `Gc<CodeBlock>` returned by the [`Context::compile_script`] or [`Context::compile_module`]
-    /// functions.
+    /// `Gc<CodeBlock>` returned by the [`Context::compile_script`] function.
     ///
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
@@ -634,6 +512,11 @@ impl<'host> Context<'host> {
         self.job_queue.clone()
     }
 
+    /// Gets the module loader.
+    pub fn module_loader(&self) -> MaybeShared<'host, dyn ModuleLoader> {
+        self.module_loader.clone()
+    }
+
     /// Get the [`RuntimeLimits`].
     #[inline]
     pub const fn runtime_limits(&self) -> RuntimeLimits {
@@ -882,10 +765,11 @@ impl<'host> Context<'host> {
     doc = "The required data in a valid provider is specified in [`BoaProvider`]"
 )]
 #[derive(Default)]
-pub struct ContextBuilder<'icu, 'hooks, 'queue> {
+pub struct ContextBuilder<'icu, 'hooks, 'queue, 'module> {
     interner: Option<Interner>,
     host_hooks: Option<MaybeShared<'hooks, dyn HostHooks>>,
     job_queue: Option<MaybeShared<'queue, dyn JobQueue>>,
+    module_loader: Option<MaybeShared<'module, dyn ModuleLoader>>,
     #[cfg(feature = "intl")]
     icu: Option<icu::Icu<'icu>>,
     #[cfg(not(feature = "intl"))]
@@ -894,17 +778,24 @@ pub struct ContextBuilder<'icu, 'hooks, 'queue> {
     instructions_remaining: usize,
 }
 
-impl std::fmt::Debug for ContextBuilder<'_, '_, '_> {
+impl std::fmt::Debug for ContextBuilder<'_, '_, '_, '_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[derive(Clone, Copy, Debug)]
         struct JobQueue;
         #[derive(Clone, Copy, Debug)]
         struct HostHooks;
+        #[derive(Clone, Copy, Debug)]
+        struct ModuleLoader;
+
         let mut out = f.debug_struct("ContextBuilder");
 
         out.field("interner", &self.interner)
             .field("host_hooks", &self.host_hooks.as_ref().map(|_| HostHooks))
-            .field("job_queue", &self.job_queue.as_ref().map(|_| JobQueue));
+            .field("job_queue", &self.job_queue.as_ref().map(|_| JobQueue))
+            .field(
+                "module_loader",
+                &self.module_loader.as_ref().map(|_| ModuleLoader),
+            );
 
         #[cfg(feature = "intl")]
         out.field("icu", &self.icu);
@@ -916,7 +807,7 @@ impl std::fmt::Debug for ContextBuilder<'_, '_, '_> {
     }
 }
 
-impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
+impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module> {
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
     /// and a default `BoaProvider` if the `intl` feature is enabled.
     #[must_use]
@@ -952,7 +843,7 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
     pub fn icu_provider(
         self,
         provider: BoaProvider<'_>,
-    ) -> Result<ContextBuilder<'_, 'hooks, 'queue>, IcuError> {
+    ) -> Result<ContextBuilder<'_, 'hooks, 'queue, 'module>, IcuError> {
         Ok(ContextBuilder {
             icu: Some(icu::Icu::new(provider)?),
             ..self
@@ -966,7 +857,7 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
     pub fn host_hooks<'new_hooks, H>(
         self,
         host_hooks: H,
-    ) -> ContextBuilder<'icu, 'new_hooks, 'queue>
+    ) -> ContextBuilder<'icu, 'new_hooks, 'queue, 'module>
     where
         H: Into<MaybeShared<'new_hooks, dyn HostHooks>>,
     {
@@ -978,12 +869,30 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
 
     /// Initializes the [`JobQueue`] for the context.
     #[must_use]
-    pub fn job_queue<'new_queue, Q>(self, job_queue: Q) -> ContextBuilder<'icu, 'hooks, 'new_queue>
+    pub fn job_queue<'new_queue, Q>(
+        self,
+        job_queue: Q,
+    ) -> ContextBuilder<'icu, 'hooks, 'new_queue, 'module>
     where
         Q: Into<MaybeShared<'new_queue, dyn JobQueue>>,
     {
         ContextBuilder {
             job_queue: Some(job_queue.into()),
+            ..self
+        }
+    }
+
+    /// Initializes the [`ModuleLoader`] for the context.
+    #[must_use]
+    pub fn module_loader<'new_module, M>(
+        self,
+        module_loader: M,
+    ) -> ContextBuilder<'icu, 'hooks, 'queue, 'new_module>
+    where
+        M: Into<MaybeShared<'new_module, dyn ModuleLoader>>,
+    {
+        ContextBuilder {
+            module_loader: Some(module_loader.into()),
             ..self
         }
     }
@@ -1005,6 +914,7 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
         'icu: 'host,
         'hooks: 'host,
         'queue: 'host,
+        'module: 'host,
     {
         let root_shape = SharedShape::root();
 
@@ -1033,6 +943,13 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
             job_queue: self.job_queue.unwrap_or_else(|| {
                 let queue: Rc<dyn JobQueue> = Rc::new(SimpleJobQueue::new());
                 queue.into()
+            }),
+            module_loader: self.module_loader.unwrap_or_else(|| {
+                let loader: Rc<dyn ModuleLoader> = Rc::new(
+                    SimpleModuleLoader::new(Path::new("."))
+                        .expect("failed to initialize default module loader"),
+                );
+                loader.into()
             }),
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,

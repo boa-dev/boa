@@ -13,6 +13,7 @@ use std::ops::ControlFlow;
 
 use super::{ModuleSpecifier, VarDeclaration};
 use crate::{
+    expression::Identifier,
     function::{AsyncFunction, AsyncGenerator, Class, Function, Generator},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
@@ -211,5 +212,118 @@ impl VisitWith for ExportSpecifier {
     {
         try_break!(visitor.visit_sym_mut(&mut self.alias));
         visitor.visit_sym_mut(&mut self.private_name)
+    }
+}
+
+/// The name under which a reexported binding is exported by a module.
+///
+/// This differs slightly from the spec, since `[[ImportName]]` can be either a name, `all-but-default`
+/// or `all`, but the last two exports can be identified with the `export_name` field from
+/// [`ExportEntry`], which joins both variants into a single `Star` variant.
+#[derive(Debug, Clone, Copy)]
+pub enum ReExportImportName {
+    /// A binding of the imported module.
+    Name(Sym),
+    /// All exports of the module.
+    Star,
+}
+
+/// [`ExportEntry`][spec] record.
+///
+/// [spec]: https://tc39.es/ecma262/#table-exportentry-records
+#[derive(Debug, Clone, Copy)]
+pub enum ExportEntry {
+    /// An ordinary export entry
+    Ordinary(LocalExportEntry),
+    /// A star reexport entry.
+    StarReExport {
+        /// The module from where this reexport will import.
+        module_request: Sym,
+    },
+    /// A reexport entry with an export name.
+    ReExport(IndirectExportEntry),
+}
+
+impl From<IndirectExportEntry> for ExportEntry {
+    fn from(v: IndirectExportEntry) -> Self {
+        Self::ReExport(v)
+    }
+}
+
+impl From<LocalExportEntry> for ExportEntry {
+    fn from(v: LocalExportEntry) -> Self {
+        Self::Ordinary(v)
+    }
+}
+
+/// A local export entry
+#[derive(Debug, Clone, Copy)]
+pub struct LocalExportEntry {
+    local_name: Identifier,
+    export_name: Sym,
+}
+
+impl LocalExportEntry {
+    /// Creates a new `LocalExportEntry`.
+    #[must_use]
+    pub const fn new(local_name: Identifier, export_name: Sym) -> Self {
+        Self {
+            local_name,
+            export_name,
+        }
+    }
+
+    /// Gets the local name of this export entry.
+    #[must_use]
+    pub const fn local_name(&self) -> Identifier {
+        self.local_name
+    }
+
+    /// Gets the export name of this export entry.
+    #[must_use]
+    pub const fn export_name(&self) -> Sym {
+        self.export_name
+    }
+}
+
+/// A reexported export entry.
+#[derive(Debug, Clone, Copy)]
+pub struct IndirectExportEntry {
+    module_request: Sym,
+    import_name: ReExportImportName,
+    export_name: Sym,
+}
+
+impl IndirectExportEntry {
+    /// Creates a new `IndirectExportEntry`.
+    #[must_use]
+    pub const fn new(
+        module_request: Sym,
+        import_name: ReExportImportName,
+        export_name: Sym,
+    ) -> Self {
+        Self {
+            module_request,
+            import_name,
+            export_name,
+        }
+    }
+
+    /// Gets the module from where this entry reexports.
+    #[must_use]
+    pub const fn module_request(&self) -> Sym {
+        self.module_request
+    }
+
+    /// Gets the import name of the reexport.
+    #[must_use]
+    pub const fn import_name(&self) -> ReExportImportName {
+        self.import_name
+    }
+
+    /// Gets the public alias of the reexport.
+    #[must_use]
+    pub const fn export_name(&self) -> Sym {
+        self.export_name
     }
 }

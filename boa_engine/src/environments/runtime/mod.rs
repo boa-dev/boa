@@ -8,6 +8,7 @@ use rustc_hash::FxHashSet;
 
 mod declarative;
 
+use self::declarative::ModuleEnvironment;
 pub(crate) use self::declarative::{
     DeclarativeEnvironment, DeclarativeEnvironmentKind, FunctionEnvironment, FunctionSlots,
     LexicalEnvironment, ThisBindingStatus,
@@ -344,6 +345,25 @@ impl EnvironmentStack {
         )));
     }
 
+    /// Push a module environment on the environments stack.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no environment exists on the stack.
+    #[track_caller]
+    pub(crate) fn push_module(
+        &mut self,
+        compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
+    ) {
+        let num_bindings = compile_environment.borrow().num_bindings();
+        self.stack.push(Environment::Declarative(Gc::new(
+            DeclarativeEnvironment::new(
+                DeclarativeEnvironmentKind::Module(ModuleEnvironment::new(num_bindings)),
+                compile_environment,
+            ),
+        )));
+    }
+
     /// Pop environment from the environments stack.
     #[track_caller]
     pub(crate) fn pop(&mut self) -> Environment {
@@ -359,7 +379,7 @@ impl EnvironmentStack {
     ///
     /// Panics if no environment exists on the stack.
     #[track_caller]
-    pub(crate) fn current(&mut self) -> Environment {
+    pub(crate) fn current(&self) -> Environment {
         self.stack
             .last()
             .expect("global environment must always exist")

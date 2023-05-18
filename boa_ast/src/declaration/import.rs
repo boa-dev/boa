@@ -204,3 +204,52 @@ impl VisitWith for ImportSpecifier {
         visitor.visit_sym_mut(&mut self.export_name)
     }
 }
+
+/// The name under which the imported binding is exported by a module.
+#[derive(Debug, Clone, Copy)]
+pub enum ImportName {
+    /// The namespace object of the imported module.
+    Namespace,
+    /// A binding of the imported module.
+    Name(Sym),
+}
+
+/// [`ImportEntry`][spec] record.
+///
+/// [spec]: https://tc39.es/ecma262/#table-importentry-record-fields
+#[derive(Debug, Clone, Copy)]
+pub struct ImportEntry {
+    module_request: Sym,
+    import_name: ImportName,
+    local_name: Identifier,
+}
+
+impl ImportEntry {
+    /// Creates a new `ImportEntry`.
+    #[must_use]
+    pub const fn new(module_request: Sym, import_name: ImportName, local_name: Identifier) -> Self {
+        Self {
+            module_request,
+            import_name,
+            local_name,
+        }
+    }
+
+    /// Gets the module from where the binding must be imported.
+    #[must_use]
+    pub const fn module_request(&self) -> Sym {
+        self.module_request
+    }
+
+    /// Gets the import name of the imported binding.
+    #[must_use]
+    pub const fn import_name(&self) -> ImportName {
+        self.import_name
+    }
+
+    /// Gets the local name of the imported binding.
+    #[must_use]
+    pub const fn local_name(&self) -> Identifier {
+        self.local_name
+    }
+}

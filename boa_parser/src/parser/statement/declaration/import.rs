@@ -171,9 +171,10 @@ where
         let mut list = Vec::new();
 
         loop {
-            let tok = cursor.next(interner).or_abrupt()?;
+            let tok = cursor.peek(0, interner).or_abrupt()?;
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                    cursor.advance(interner);
                     break;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) => {
@@ -189,6 +190,7 @@ where
                             "import declaration",
                         ));
                     }
+                    cursor.advance(interner);
                 }
                 TokenKind::StringLiteral(_) | TokenKind::IdentifierName(_) => {
                     list.push(ImportSpecifier.parse(cursor, interner)?);

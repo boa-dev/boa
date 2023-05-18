@@ -1,6 +1,7 @@
 mod function;
 mod global;
 mod lexical;
+mod module;
 
 use std::cell::Cell;
 
@@ -8,6 +9,7 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 pub(crate) use function::{FunctionEnvironment, FunctionSlots, ThisBindingStatus};
 pub(crate) use global::GlobalEnvironment;
 pub(crate) use lexical::LexicalEnvironment;
+pub(crate) use module::ModuleEnvironment;
 
 use crate::{environments::CompileTimeEnvironment, JsObject, JsResult, JsValue};
 
@@ -133,6 +135,8 @@ pub(crate) enum DeclarativeEnvironmentKind {
     Global(GlobalEnvironment),
     /// Stores lexical bindings, var bindings and the `FunctionSlots` of the function environment.
     Function(FunctionEnvironment),
+    /// Stores module bindings, which include references to bindings on other environments.
+    Module(ModuleEnvironment),
 }
 
 impl DeclarativeEnvironmentKind {
@@ -154,6 +158,15 @@ impl DeclarativeEnvironmentKind {
         }
     }
 
+    /// Unwraps the inner module environment if possible. Returns `None` otherwise.
+    pub(crate) const fn as_module(&self) -> Option<&ModuleEnvironment> {
+        if let Self::Module(module) = &self {
+            Some(module)
+        } else {
+            None
+        }
+    }
+
     /// Get the binding value from the environment by it's index.
     ///
     /// # Panics
@@ -165,6 +178,7 @@ impl DeclarativeEnvironmentKind {
             DeclarativeEnvironmentKind::Lexical(inner) => inner.get(index),
             DeclarativeEnvironmentKind::Global(inner) => inner.get(index),
             DeclarativeEnvironmentKind::Function(inner) => inner.get(index),
+            DeclarativeEnvironmentKind::Module(inner) => inner.get(index),
         }
     }
 
@@ -179,6 +193,7 @@ impl DeclarativeEnvironmentKind {
             DeclarativeEnvironmentKind::Lexical(inner) => inner.set(index, value),
             DeclarativeEnvironmentKind::Global(inner) => inner.set(index, value),
             DeclarativeEnvironmentKind::Function(inner) => inner.set(index, value),
+            DeclarativeEnvironmentKind::Module(inner) => inner.set(index, value),
         }
     }
 
@@ -195,6 +210,7 @@ impl DeclarativeEnvironmentKind {
             DeclarativeEnvironmentKind::Lexical(_) => Ok(None),
             DeclarativeEnvironmentKind::Global(g) => Ok(Some(g.get_this_binding().into())),
             DeclarativeEnvironmentKind::Function(f) => f.get_this_binding(),
+            DeclarativeEnvironmentKind::Module(_) => Ok(Some(JsValue::undefined())),
         }
     }
 
@@ -209,8 +225,8 @@ impl DeclarativeEnvironmentKind {
     pub(crate) fn has_this_binding(&self) -> bool {
         match self {
             DeclarativeEnvironmentKind::Lexical(_) => false,
-            DeclarativeEnvironmentKind::Global(_) => true,
             DeclarativeEnvironmentKind::Function(f) => f.has_this_binding(),
+            DeclarativeEnvironmentKind::Global(_) | DeclarativeEnvironmentKind::Module(_) => true,
         }
     }
 
@@ -220,6 +236,7 @@ impl DeclarativeEnvironmentKind {
             DeclarativeEnvironmentKind::Lexical(lex) => lex.poisonable_environment().poisoned(),
             DeclarativeEnvironmentKind::Global(g) => g.poisonable_environment().poisoned(),
             DeclarativeEnvironmentKind::Function(f) => f.poisonable_environment().poisoned(),
+            DeclarativeEnvironmentKind::Module(_) => false,
         }
     }
 
@@ -229,6 +246,7 @@ impl DeclarativeEnvironmentKind {
             DeclarativeEnvironmentKind::Lexical(lex) => lex.poisonable_environment().with(),
             DeclarativeEnvironmentKind::Global(g) => g.poisonable_environment().with(),
             DeclarativeEnvironmentKind::Function(f) => f.poisonable_environment().with(),
+            DeclarativeEnvironmentKind::Module(_) => false,
         }
     }
 
@@ -238,6 +256,9 @@ impl DeclarativeEnvironmentKind {
             DeclarativeEnvironmentKind::Lexical(lex) => lex.poisonable_environment().poison(),
             DeclarativeEnvironmentKind::Global(g) => g.poisonable_environment().poison(),
             DeclarativeEnvironmentKind::Function(f) => f.poisonable_environment().poison(),
+            DeclarativeEnvironmentKind::Module(_) => {
+                unreachable!("modules are always run in strict mode")
+            }
         }
     }
 }
