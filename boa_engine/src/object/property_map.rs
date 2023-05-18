@@ -244,7 +244,7 @@ impl PropertyMap {
     pub fn from_prototype_unique_shape(prototype: JsPrototype) -> Self {
         Self {
             indexed_properties: IndexedProperties::default(),
-            shape: Shape::unique(UniqueShape::new(prototype, PropertyTableInner::default())),
+            shape: UniqueShape::new(prototype, PropertyTableInner::default()).into(),
             storage: Vec::default(),
         }
     }
@@ -259,7 +259,7 @@ impl PropertyMap {
         let shape = root_shape.shape().change_prototype_transition(prototype);
         Self {
             indexed_properties: IndexedProperties::default(),
-            shape: Shape::shared(shape),
+            shape: shape.into(),
             storage: Vec::default(),
         }
     }

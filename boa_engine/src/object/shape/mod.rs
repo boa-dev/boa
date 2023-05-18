@@ -65,8 +65,9 @@ pub struct Shape {
 }
 
 impl Default for Shape {
+    #[inline]
     fn default() -> Self {
-        Self::unique(UniqueShape::default())
+        UniqueShape::default().into()
     }
 }
 
@@ -76,20 +77,6 @@ impl Shape {
     ///
     /// NOTE: This only applies to [`SharedShape`].
     const TRANSITION_COUNT_MAX: u16 = 1024;
-
-    /// Create a [`Shape`] from a [`SharedShape`].
-    pub(crate) fn shared(inner: SharedShape) -> Self {
-        Self {
-            inner: Inner::Shared(inner),
-        }
-    }
-
-    /// Create a [`Shape`] from a [`UniqueShape`].
-    pub(crate) const fn unique(shape: UniqueShape) -> Self {
-        Self {
-            inner: Inner::Unique(shape),
-        }
-    }
 
     /// Returns `true` if it's a shared shape, `false` otherwise.
     #[inline]
@@ -118,11 +105,11 @@ impl Shape {
             Inner::Shared(shape) => {
                 let shape = shape.insert_property_transition(key);
                 if shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
-                    return Self::unique(shape.to_unique());
+                    return shape.to_unique().into();
                 }
-                Self::shared(shape)
+                shape.into()
             }
-            Inner::Unique(shape) => Self::unique(shape.insert_property_transition(key)),
+            Inner::Unique(shape) => shape.insert_property_transition(key).into(),
         }
     }
 
@@ -139,9 +126,9 @@ impl Shape {
                 let change_transition = shape.change_attributes_transition(key);
                 let shape =
                     if change_transition.shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
-                        Self::unique(change_transition.shape.to_unique())
+                        change_transition.shape.to_unique().into()
                     } else {
-                        Self::shared(change_transition.shape)
+                        change_transition.shape.into()
                     };
                 ChangeTransition {
                     shape,
@@ -160,11 +147,11 @@ impl Shape {
             Inner::Shared(shape) => {
                 let shape = shape.remove_property_transition(key);
                 if shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
-                    return Self::unique(shape.to_unique());
+                    return shape.to_unique().into();
                 }
-                Self::shared(shape)
+                shape.into()
             }
-            Inner::Unique(shape) => Self::unique(shape.remove_property_transition(key)),
+            Inner::Unique(shape) => shape.remove_property_transition(key).into(),
         }
     }
 
@@ -174,11 +161,11 @@ impl Shape {
             Inner::Shared(shape) => {
                 let shape = shape.change_prototype_transition(prototype);
                 if shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
-                    return Self::unique(shape.to_unique());
+                    return shape.to_unique().into();
                 }
-                Self::shared(shape)
+                shape.into()
             }
-            Inner::Unique(shape) => Self::unique(shape.change_prototype_transition(prototype)),
+            Inner::Unique(shape) => shape.change_prototype_transition(prototype).into(),
         }
     }
 
@@ -214,6 +201,22 @@ impl Shape {
         match &self.inner {
             Inner::Shared(shape) => shape.to_addr_usize(),
             Inner::Unique(shape) => shape.to_addr_usize(),
+        }
+    }
+}
+
+impl From<UniqueShape> for Shape {
+    fn from(shape: UniqueShape) -> Self {
+        Self {
+            inner: Inner::Unique(shape),
+        }
+    }
+}
+
+impl From<SharedShape> for Shape {
+    fn from(shape: SharedShape) -> Self {
+        Self {
+            inner: Inner::Shared(shape),
         }
     }
 }

@@ -2,10 +2,7 @@ use boa_gc::{Finalize, Trace};
 use thin_vec::ThinVec;
 
 use crate::{
-    object::{
-        shape::{slot::SlotAttributes, Shape},
-        JsObject, Object, ObjectData, PropertyMap,
-    },
+    object::{shape::slot::SlotAttributes, JsObject, Object, ObjectData, PropertyMap},
     property::{Attribute, PropertyKey},
     JsValue,
 };
@@ -21,15 +18,15 @@ pub(crate) struct ObjectTemplate {
 
 impl ObjectTemplate {
     /// Create a new [`ObjectTemplate`]
-    pub(crate) fn new(root_shape: &SharedShape) -> Self {
+    pub(crate) fn new(shape: &SharedShape) -> Self {
         Self {
-            shape: root_shape.clone(),
+            shape: shape.clone(),
         }
     }
 
     /// Create and [`ObjectTemplate`] with a prototype.
-    pub(crate) fn with_prototype(root_shape: &SharedShape, prototype: JsObject) -> Self {
-        let shape = root_shape.change_prototype_transition(Some(prototype));
+    pub(crate) fn with_prototype(shape: &SharedShape, prototype: JsObject) -> Self {
+        let shape = shape.change_prototype_transition(Some(prototype));
         Self { shape }
     }
 
@@ -111,7 +108,7 @@ impl ObjectTemplate {
         let mut object = Object {
             kind: data.kind,
             extensible: true,
-            properties: PropertyMap::new(Shape::shared(self.shape.clone()), ThinVec::default()),
+            properties: PropertyMap::new(self.shape.clone().into(), ThinVec::default()),
             private_elements: ThinVec::new(),
         };
 
@@ -133,7 +130,7 @@ impl ObjectTemplate {
         let mut object = Object {
             kind: data.kind,
             extensible: true,
-            properties: PropertyMap::new(Shape::shared(self.shape.clone()), elements),
+            properties: PropertyMap::new(self.shape.clone().into(), elements),
             private_elements: ThinVec::new(),
         };
 
