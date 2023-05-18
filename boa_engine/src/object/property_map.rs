@@ -3,7 +3,7 @@ use super::{
         property_table::PropertyTableInner,
         shared_shape::TransitionKey,
         slot::{Slot, SlotAttributes},
-        ChangeTransitionAction, Shape, UniqueShape,
+        ChangeTransitionAction, RootShape, Shape, UniqueShape,
     },
     JsPrototype, ObjectStorage, PropertyDescriptor, PropertyKey,
 };
@@ -252,11 +252,14 @@ impl PropertyMap {
     /// Construct a [`PropertyMap`] from with the given prototype with a shared shape [`Shape`].
     #[must_use]
     #[inline]
-    pub fn from_prototype_with_shared_shape(mut root_shape: Shape, prototype: JsPrototype) -> Self {
-        root_shape = root_shape.change_prototype_transition(prototype);
+    pub fn from_prototype_with_shared_shape(
+        root_shape: &RootShape,
+        prototype: JsPrototype,
+    ) -> Self {
+        let shape = root_shape.shape().change_prototype_transition(prototype);
         Self {
             indexed_properties: IndexedProperties::default(),
-            shape: root_shape,
+            shape: Shape::shared(shape),
             storage: Vec::default(),
         }
     }

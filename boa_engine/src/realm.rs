@@ -10,7 +10,7 @@ use crate::{
     context::{intrinsics::Intrinsics, HostHooks},
     environments::DeclarativeEnvironment,
     module::Module,
-    object::{shape::shared_shape::SharedShape, JsObject},
+    object::{shape::RootShape, JsObject},
     JsString,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
@@ -57,7 +57,7 @@ struct Inner {
 impl Realm {
     /// Create a new Realm.
     #[inline]
-    pub fn create(hooks: &dyn HostHooks, root_shape: &SharedShape) -> Self {
+    pub fn create(hooks: &dyn HostHooks, root_shape: &RootShape) -> Self {
         let _timer = Profiler::global().start_event("Realm::create", "realm");
 
         let intrinsics = Intrinsics::new(root_shape);

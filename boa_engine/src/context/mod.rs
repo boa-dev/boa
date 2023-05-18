@@ -23,7 +23,7 @@ use crate::{
     job::{JobQueue, NativeJob, SimpleJobQueue},
     module::{ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
-    object::{shape::SharedShape, FunctionObjectBuilder, JsObject},
+    object::{shape::RootShape, FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -109,7 +109,7 @@ pub struct Context<'host> {
     module_loader: MaybeShared<'host, dyn ModuleLoader>,
 
     optimizer_options: OptimizerOptions,
-    root_shape: SharedShape,
+    root_shape: RootShape,
 
     /// Unique identifier for each parser instance used during the context lifetime.
     parser_identifier: u32,
@@ -496,8 +496,10 @@ impl<'host> Context<'host> {
         std::mem::replace(&mut self.realm, realm)
     }
 
-    pub(crate) fn root_shape(&self) -> SharedShape {
-        self.root_shape.clone()
+    /// Get the [`RootShape`].
+    #[inline]
+    pub const fn root_shape(&self) -> &RootShape {
+        &self.root_shape
     }
 
     /// Gets the host hooks.
@@ -916,7 +918,7 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
         'queue: 'host,
         'module: 'host,
     {
-        let root_shape = SharedShape::root();
+        let root_shape = RootShape::default();
 
         let host_hooks = self.host_hooks.unwrap_or_else(|| {
             let hooks: &dyn HostHooks = &DefaultHooks;

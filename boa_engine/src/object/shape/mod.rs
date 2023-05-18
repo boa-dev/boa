@@ -1,10 +1,12 @@
 //! Implements object shapes.
 
 pub(crate) mod property_table;
+mod root_shape;
 pub(crate) mod shared_shape;
 pub(crate) mod slot;
 pub(crate) mod unique_shape;
 
+pub use root_shape::RootShape;
 pub use shared_shape::SharedShape;
 pub(crate) use unique_shape::UniqueShape;
 

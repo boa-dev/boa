@@ -5,7 +5,7 @@ use boa_gc::{Finalize, Trace};
 use crate::{
     builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
     object::{
-        shape::shared_shape::{template::ObjectTemplate, SharedShape},
+        shape::{shared_shape::template::ObjectTemplate, RootShape},
         JsFunction, JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyKey},
@@ -27,7 +27,7 @@ pub struct Intrinsics {
 }
 
 impl Intrinsics {
-    pub(crate) fn new(root_shape: &SharedShape) -> Self {
+    pub(crate) fn new(root_shape: &RootShape) -> Self {
         let constructors = StandardConstructors::default();
         let templates = ObjectTemplates::new(root_shape, &constructors);
 
@@ -1004,7 +1004,9 @@ pub(crate) struct ObjectTemplates {
 }
 
 impl ObjectTemplates {
-    pub(crate) fn new(root_shape: &SharedShape, constructors: &StandardConstructors) -> Self {
+    pub(crate) fn new(root_shape: &RootShape, constructors: &StandardConstructors) -> Self {
+        let root_shape = root_shape.shape();
+
         // pre-initialize used shapes.
         let ordinary_object =
             ObjectTemplate::with_prototype(root_shape, constructors.object().prototype());
