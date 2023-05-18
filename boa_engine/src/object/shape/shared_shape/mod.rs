@@ -1,6 +1,9 @@
 mod forward_transition;
 pub(crate) mod template;
 
+#[cfg(test)]
+mod tests;
+
 use std::{collections::hash_map::RandomState, hash::Hash};
 
 use bitflags::bitflags;
