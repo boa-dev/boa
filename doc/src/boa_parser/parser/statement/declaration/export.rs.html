@@ -315,6 +315,8 @@
 <a href="#314" id="314">314</a>
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Export declaration parsing
 //!
 //! This parses `export` declarations.
@@ -443,7 +445,7 @@
             TokenKind::Keyword((Keyword::Var, <span class="bool-val">false</span>)) =&gt; VariableStatement::new(<span class="bool-val">false</span>, <span class="bool-val">true</span>)
                 .parse(cursor, interner)
                 .map(AstExportDeclaration::VarStatement)<span class="question-mark">?</span>,
-            TokenKind::Keyword((Keyword::Default, <span class="kw">_</span>)) =&gt; {
+            TokenKind::Keyword((Keyword::Default, <span class="bool-val">false</span>)) =&gt; {
                 cursor.advance(interner);
 
                 <span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
@@ -518,9 +520,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>list = Vec::new();
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>tok = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
+            <span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
             <span class="kw">match </span>tok.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) =&gt; {
+                    cursor.advance(interner);
                     <span class="kw">break</span>;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) =&gt; {
@@ -536,6 +539,7 @@
                             <span class="string">&quot;export declaration&quot;</span>,
                         ));
                     }
+                    cursor.advance(interner);
                 }
                 TokenKind::StringLiteral(<span class="kw">_</span>) | TokenKind::IdentifierName(<span class="kw">_</span>) =&gt; {
                     list.push(ExportSpecifier.parse(cursor, interner)<span class="question-mark">?</span>);

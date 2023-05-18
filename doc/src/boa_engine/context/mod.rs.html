@@ -1016,89 +1016,6 @@
 <a href="#1015" id="1015">1015</a>
 <a href="#1016" id="1016">1016</a>
 <a href="#1017" id="1017">1017</a>
-<a href="#1018" id="1018">1018</a>
-<a href="#1019" id="1019">1019</a>
-<a href="#1020" id="1020">1020</a>
-<a href="#1021" id="1021">1021</a>
-<a href="#1022" id="1022">1022</a>
-<a href="#1023" id="1023">1023</a>
-<a href="#1024" id="1024">1024</a>
-<a href="#1025" id="1025">1025</a>
-<a href="#1026" id="1026">1026</a>
-<a href="#1027" id="1027">1027</a>
-<a href="#1028" id="1028">1028</a>
-<a href="#1029" id="1029">1029</a>
-<a href="#1030" id="1030">1030</a>
-<a href="#1031" id="1031">1031</a>
-<a href="#1032" id="1032">1032</a>
-<a href="#1033" id="1033">1033</a>
-<a href="#1034" id="1034">1034</a>
-<a href="#1035" id="1035">1035</a>
-<a href="#1036" id="1036">1036</a>
-<a href="#1037" id="1037">1037</a>
-<a href="#1038" id="1038">1038</a>
-<a href="#1039" id="1039">1039</a>
-<a href="#1040" id="1040">1040</a>
-<a href="#1041" id="1041">1041</a>
-<a href="#1042" id="1042">1042</a>
-<a href="#1043" id="1043">1043</a>
-<a href="#1044" id="1044">1044</a>
-<a href="#1045" id="1045">1045</a>
-<a href="#1046" id="1046">1046</a>
-<a href="#1047" id="1047">1047</a>
-<a href="#1048" id="1048">1048</a>
-<a href="#1049" id="1049">1049</a>
-<a href="#1050" id="1050">1050</a>
-<a href="#1051" id="1051">1051</a>
-<a href="#1052" id="1052">1052</a>
-<a href="#1053" id="1053">1053</a>
-<a href="#1054" id="1054">1054</a>
-<a href="#1055" id="1055">1055</a>
-<a href="#1056" id="1056">1056</a>
-<a href="#1057" id="1057">1057</a>
-<a href="#1058" id="1058">1058</a>
-<a href="#1059" id="1059">1059</a>
-<a href="#1060" id="1060">1060</a>
-<a href="#1061" id="1061">1061</a>
-<a href="#1062" id="1062">1062</a>
-<a href="#1063" id="1063">1063</a>
-<a href="#1064" id="1064">1064</a>
-<a href="#1065" id="1065">1065</a>
-<a href="#1066" id="1066">1066</a>
-<a href="#1067" id="1067">1067</a>
-<a href="#1068" id="1068">1068</a>
-<a href="#1069" id="1069">1069</a>
-<a href="#1070" id="1070">1070</a>
-<a href="#1071" id="1071">1071</a>
-<a href="#1072" id="1072">1072</a>
-<a href="#1073" id="1073">1073</a>
-<a href="#1074" id="1074">1074</a>
-<a href="#1075" id="1075">1075</a>
-<a href="#1076" id="1076">1076</a>
-<a href="#1077" id="1077">1077</a>
-<a href="#1078" id="1078">1078</a>
-<a href="#1079" id="1079">1079</a>
-<a href="#1080" id="1080">1080</a>
-<a href="#1081" id="1081">1081</a>
-<a href="#1082" id="1082">1082</a>
-<a href="#1083" id="1083">1083</a>
-<a href="#1084" id="1084">1084</a>
-<a href="#1085" id="1085">1085</a>
-<a href="#1086" id="1086">1086</a>
-<a href="#1087" id="1087">1087</a>
-<a href="#1088" id="1088">1088</a>
-<a href="#1089" id="1089">1089</a>
-<a href="#1090" id="1090">1090</a>
-<a href="#1091" id="1091">1091</a>
-<a href="#1092" id="1092">1092</a>
-<a href="#1093" id="1093">1093</a>
-<a href="#1094" id="1094">1094</a>
-<a href="#1095" id="1095">1095</a>
-<a href="#1096" id="1096">1096</a>
-<a href="#1097" id="1097">1097</a>
-<a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a>
-<a href="#1100" id="1100">1100</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1115,30 +1032,26 @@
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
 </span><span class="kw">pub use </span>std::marker::PhantomData;
-<span class="kw">use </span>std::{io::Read, rc::Rc};
+<span class="kw">use </span>std::{io::Read, path::Path, rc::Rc};
 
 <span class="kw">use crate</span>::{
     builtins,
-    bytecompiler::{ByteCompiler, NodeKind},
+    bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
+    module::{ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::{shape::SharedShape, FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    vm::{CallFrame, CodeBlock, Opcode, Vm},
+    vm::{CallFrame, CodeBlock, Vm},
     JsResult, JsValue, Source,
 };
-<span class="kw">use </span>boa_ast::{
-    declaration::LexicalDeclaration,
-    expression::Identifier,
-    operations::{bound_names, lexically_scoped_declarations, var_scoped_declarations},
-    Declaration, ModuleItemList, StatementList,
-};
+<span class="kw">use </span>boa_ast::{expression::Identifier, StatementList};
 <span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_interner::{Interner, Sym};
-<span class="kw">use </span>boa_parser::{Error <span class="kw">as </span>ParseError, Parser};
+<span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use </span><span class="kw">crate</span>::vm::RuntimeLimits;
@@ -1211,6 +1124,8 @@
 
     job_queue: MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>JobQueue&gt;,
 
+    module_loader: MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>ModuleLoader&gt;,
+
     optimizer_options: OptimizerOptions,
     root_shape: SharedShape,
 
@@ -1229,6 +1144,7 @@
             .field(<span class="string">&quot;strict&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.strict)
             .field(<span class="string">&quot;promise_job_queue&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;JobQueue&quot;</span>)
             .field(<span class="string">&quot;hooks&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;HostHooks&quot;</span>)
+            .field(<span class="string">&quot;module_loader&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;ModuleLoader&quot;</span>)
             .field(<span class="string">&quot;optimizer_options&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.optimizer_options);
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -1251,7 +1167,7 @@
     <span class="doccomment">/// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>builder() -&gt; ContextBuilder&lt;<span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span>&gt; {
+    </span><span class="kw">pub fn </span>builder() -&gt; ContextBuilder&lt;<span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span>&gt; {
         ContextBuilder::default()
     }
 
@@ -1287,37 +1203,6 @@
         result
     }
 
-    <span class="comment">// TODO: remove `ignore` after we implement module execution
-    </span><span class="doccomment">/// Evaluates the given module `src` by compiling down to bytecode, then interpreting the
-    /// bytecode into a value.
-    ///
-    /// # Examples
-    /// ```ignore
-    /// # use boa_engine::{Context, Source};
-    /// let mut context = Context::default();
-    ///
-    /// let source = Source::from_bytes(&quot;1 + 3&quot;);
-    ///
-    /// let value = context.eval_module(source).unwrap();
-    ///
-    /// assert!(value.is_number());
-    /// assert_eq!(value.as_number().unwrap(), 4.0);
-    /// ```
-    </span><span class="attr">#[allow(clippy::unit_arg, clippy::drop_copy)]
-    </span><span class="kw">pub fn </span>eval_module&lt;R: Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>main_timer = Profiler::global().start_event(<span class="string">&quot;Module evaluation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-
-        <span class="kw">let </span>module_item_list = <span class="self">self</span>.parse_module(src)<span class="question-mark">?</span>;
-        <span class="kw">let </span>code_block = <span class="self">self</span>.compile_module(<span class="kw-2">&amp;</span>module_item_list)<span class="question-mark">?</span>;
-        <span class="kw">let </span>result = <span class="self">self</span>.execute(code_block);
-
-        <span class="comment">// The main_timer needs to be dropped before the Profiler is.
-        </span>drop(main_timer);
-        Profiler::global().drop();
-
-        result
-    }
-
     <span class="doccomment">/// Applies optimizations to the [`StatementList`] inplace.
     </span><span class="kw">pub fn </span>optimize_statement_list(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1328,10 +1213,7 @@
     }
 
     <span class="doccomment">/// Parse the given source script.
-    </span><span class="kw">pub fn </span>parse_script&lt;R: Read&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt; {
+    </span><span class="kw">pub fn </span>parse_script&lt;R: Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;) -&gt; JsResult&lt;StatementList&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Script parsing&quot;</span>, <span class="string">&quot;Main&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src);
         parser.set_identifier(<span class="self">self</span>.next_parser_identifier());
@@ -1343,17 +1225,6 @@
             <span class="self">self</span>.optimize_statement_list(<span class="kw-2">&amp;mut </span>result);
         }
         <span class="prelude-val">Ok</span>(result)
-    }
-
-    <span class="doccomment">/// Parse the given source script.
-    </span><span class="kw">pub fn </span>parse_module&lt;R: Read&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ModuleItemList, ParseError&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Module parsing&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src);
-        parser.set_identifier(<span class="self">self</span>.next_parser_identifier());
-        parser.parse_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interner)
     }
 
     <span class="doccomment">/// Compile the script AST into a `CodeBlock` ready to be executed by the VM.
@@ -1372,88 +1243,12 @@
         <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
     }
 
-    <span class="doccomment">/// Compile the module AST into a `CodeBlock` ready to be executed by the VM.
-    </span><span class="kw">pub fn </span>compile_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement_list: <span class="kw-2">&amp;</span>ModuleItemList) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Module compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-
-        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
-            Sym::MAIN,
-            <span class="bool-val">true</span>,
-            <span class="bool-val">false</span>,
-            <span class="self">self</span>.realm.environment().compile_env(),
-            <span class="self">self</span>,
-        );
-        <span class="kw">let </span>var_declarations = var_scoped_declarations(statement_list);
-        <span class="kw">let </span><span class="kw-2">mut </span>declared_var_names = Vec::new();
-        <span class="kw">for </span>var <span class="kw">in </span>var_declarations {
-            <span class="kw">for </span>name <span class="kw">in </span>var.bound_names() {
-                <span class="kw">if </span>!declared_var_names.contains(<span class="kw-2">&amp;</span>name) {
-                    compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                    <span class="kw">let </span>binding = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
-                    <span class="kw">let </span>index = compiler.get_or_insert_binding(binding);
-                    compiler.emit_opcode(Opcode::PushUndefined);
-                    compiler.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[index]);
-                    declared_var_names.push(name);
-                }
-            }
-        }
-
-        <span class="kw">let </span>lex_declarations = lexically_scoped_declarations(statement_list);
-        <span class="kw">for </span>declaration <span class="kw">in </span>lex_declarations {
-            <span class="kw">match </span><span class="kw-2">&amp;</span>declaration {
-                Declaration::Lexical(LexicalDeclaration::Const(declaration)) =&gt; {
-                    <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
-                        compiler.create_immutable_binding(name, <span class="bool-val">true</span>);
-                    }
-                }
-                Declaration::Lexical(LexicalDeclaration::Let(declaration)) =&gt; {
-                    <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
-                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                    }
-                }
-                Declaration::Function(function) =&gt; {
-                    <span class="kw">for </span>name <span class="kw">in </span>bound_names(function) {
-                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                    }
-                    compiler.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
-                }
-                Declaration::Generator(function) =&gt; {
-                    <span class="kw">for </span>name <span class="kw">in </span>bound_names(function) {
-                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                    }
-                    compiler.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
-                }
-                Declaration::AsyncFunction(function) =&gt; {
-                    <span class="kw">for </span>name <span class="kw">in </span>bound_names(function) {
-                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                    }
-                    compiler.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
-                }
-                Declaration::AsyncGenerator(function) =&gt; {
-                    <span class="kw">for </span>name <span class="kw">in </span>bound_names(function) {
-                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                    }
-                    compiler.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
-                }
-                Declaration::Class(class) =&gt; {
-                    <span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
-                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                    }
-                }
-            }
-        }
-
-        compiler.compile_module_item_list(statement_list);
-        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
-    }
-
     <span class="doccomment">/// Call the VM with a `CodeBlock` and return the result.
     ///
     /// Since this function receives a `Gc&lt;CodeBlock&gt;`, cloning the code is very cheap, since it&#39;s
     /// just a pointer copy. Therefore, if you&#39;d like to execute the same `CodeBlock` multiple
     /// times, there is no need to re-compile it, and you can just call `clone()` on the
-    /// `Gc&lt;CodeBlock&gt;` returned by the [`Context::compile_script`] or [`Context::compile_module`]
-    /// functions.
+    /// `Gc&lt;CodeBlock&gt;` returned by the [`Context::compile_script`] function.
     ///
     /// Note that this won&#39;t run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
@@ -1735,6 +1530,11 @@
         <span class="self">self</span>.job_queue.clone()
     }
 
+    <span class="doccomment">/// Gets the module loader.
+    </span><span class="kw">pub fn </span>module_loader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>ModuleLoader&gt; {
+        <span class="self">self</span>.module_loader.clone()
+    }
+
     <span class="doccomment">/// Get the [`RuntimeLimits`].
     </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>runtime_limits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RuntimeLimits {
@@ -1983,10 +1783,11 @@
     doc = <span class="string">&quot;The required data in a valid provider is specified in [`BoaProvider`]&quot;
 </span>)]
 #[derive(Default)]
-</span><span class="kw">pub struct </span>ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>&gt; {
+</span><span class="kw">pub struct </span>ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt; {
     interner: <span class="prelude-ty">Option</span>&lt;Interner&gt;,
     host_hooks: <span class="prelude-ty">Option</span>&lt;MaybeShared&lt;<span class="lifetime">&#39;hooks</span>, <span class="kw">dyn </span>HostHooks&gt;&gt;,
     job_queue: <span class="prelude-ty">Option</span>&lt;MaybeShared&lt;<span class="lifetime">&#39;queue</span>, <span class="kw">dyn </span>JobQueue&gt;&gt;,
+    module_loader: <span class="prelude-ty">Option</span>&lt;MaybeShared&lt;<span class="lifetime">&#39;module</span>, <span class="kw">dyn </span>ModuleLoader&gt;&gt;,
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&lt;<span class="lifetime">&#39;icu</span>&gt;&gt;,
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
@@ -1995,17 +1796,24 @@
     </span>instructions_remaining: usize,
 }
 
-<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>ContextBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>ContextBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="attr">#[derive(Clone, Copy, Debug)]
         </span><span class="kw">struct </span>JobQueue;
         <span class="attr">#[derive(Clone, Copy, Debug)]
         </span><span class="kw">struct </span>HostHooks;
+        <span class="attr">#[derive(Clone, Copy, Debug)]
+        </span><span class="kw">struct </span>ModuleLoader;
+
         <span class="kw">let </span><span class="kw-2">mut </span>out = f.debug_struct(<span class="string">&quot;ContextBuilder&quot;</span>);
 
         out.field(<span class="string">&quot;interner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.interner)
             .field(<span class="string">&quot;host_hooks&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.host_hooks.as_ref().map(|<span class="kw">_</span>| HostHooks))
-            .field(<span class="string">&quot;job_queue&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.job_queue.as_ref().map(|<span class="kw">_</span>| JobQueue));
+            .field(<span class="string">&quot;job_queue&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.job_queue.as_ref().map(|<span class="kw">_</span>| JobQueue))
+            .field(
+                <span class="string">&quot;module_loader&quot;</span>,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.module_loader.as_ref().map(|<span class="kw">_</span>| ModuleLoader),
+            );
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
         </span>out.field(<span class="string">&quot;icu&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.icu);
@@ -2017,7 +1825,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt; {
     <span class="doccomment">/// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
     /// and a default `BoaProvider` if the `intl` feature is enabled.
     </span><span class="attr">#[must_use]
@@ -2053,7 +1861,7 @@
     </span><span class="kw">pub fn </span>icu_provider(
         <span class="self">self</span>,
         provider: BoaProvider&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ContextBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>&gt;, IcuError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ContextBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt;, IcuError&gt; {
         <span class="prelude-val">Ok</span>(ContextBuilder {
             icu: <span class="prelude-val">Some</span>(icu::Icu::new(provider)<span class="question-mark">?</span>),
             ..<span class="self">self
@@ -2067,7 +1875,7 @@
     </span><span class="kw">pub fn </span>host_hooks&lt;<span class="lifetime">&#39;new_hooks</span>, H&gt;(
         <span class="self">self</span>,
         host_hooks: H,
-    ) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;new_hooks</span>, <span class="lifetime">&#39;queue</span>&gt;
+    ) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;new_hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt;
     <span class="kw">where
         </span>H: Into&lt;MaybeShared&lt;<span class="lifetime">&#39;new_hooks</span>, <span class="kw">dyn </span>HostHooks&gt;&gt;,
     {
@@ -2079,12 +1887,30 @@
 
     <span class="doccomment">/// Initializes the [`JobQueue`] for the context.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>job_queue&lt;<span class="lifetime">&#39;new_queue</span>, Q&gt;(<span class="self">self</span>, job_queue: Q) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;new_queue</span>&gt;
+    </span><span class="kw">pub fn </span>job_queue&lt;<span class="lifetime">&#39;new_queue</span>, Q&gt;(
+        <span class="self">self</span>,
+        job_queue: Q,
+    ) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;new_queue</span>, <span class="lifetime">&#39;module</span>&gt;
     <span class="kw">where
         </span>Q: Into&lt;MaybeShared&lt;<span class="lifetime">&#39;new_queue</span>, <span class="kw">dyn </span>JobQueue&gt;&gt;,
     {
         ContextBuilder {
             job_queue: <span class="prelude-val">Some</span>(job_queue.into()),
+            ..<span class="self">self
+        </span>}
+    }
+
+    <span class="doccomment">/// Initializes the [`ModuleLoader`] for the context.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>module_loader&lt;<span class="lifetime">&#39;new_module</span>, M&gt;(
+        <span class="self">self</span>,
+        module_loader: M,
+    ) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;new_module</span>&gt;
+    <span class="kw">where
+        </span>M: Into&lt;MaybeShared&lt;<span class="lifetime">&#39;new_module</span>, <span class="kw">dyn </span>ModuleLoader&gt;&gt;,
+    {
+        ContextBuilder {
+            module_loader: <span class="prelude-val">Some</span>(module_loader.into()),
             ..<span class="self">self
         </span>}
     }
@@ -2106,6 +1932,7 @@
         </span><span class="lifetime">&#39;icu</span>: <span class="lifetime">&#39;host</span>,
         <span class="lifetime">&#39;hooks</span>: <span class="lifetime">&#39;host</span>,
         <span class="lifetime">&#39;queue</span>: <span class="lifetime">&#39;host</span>,
+        <span class="lifetime">&#39;module</span>: <span class="lifetime">&#39;host</span>,
     {
         <span class="kw">let </span>root_shape = SharedShape::root();
 
@@ -2134,6 +1961,13 @@
             job_queue: <span class="self">self</span>.job_queue.unwrap_or_else(|| {
                 <span class="kw">let </span>queue: Rc&lt;<span class="kw">dyn </span>JobQueue&gt; = Rc::new(SimpleJobQueue::new());
                 queue.into()
+            }),
+            module_loader: <span class="self">self</span>.module_loader.unwrap_or_else(|| {
+                <span class="kw">let </span>loader: Rc&lt;<span class="kw">dyn </span>ModuleLoader&gt; = Rc::new(
+                    SimpleModuleLoader::new(Path::new(<span class="string">&quot;.&quot;</span>))
+                        .expect(<span class="string">&quot;failed to initialize default module loader&quot;</span>),
+                );
+                loader.into()
             }),
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,

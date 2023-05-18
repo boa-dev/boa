@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["DeclarativeEnvironmentKind"],"fn":["mark"],"mod":["function","global","lexical"],"struct":["DeclarativeEnvironment","PoisonableEnvironment"]};
+window.SIDEBAR_ITEMS = {"enum":["DeclarativeEnvironmentKind"],"fn":["mark"],"mod":["function","global","lexical","module"],"struct":["DeclarativeEnvironment","PoisonableEnvironment"]};

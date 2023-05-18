@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ASYNC_EVAL_QUEUE_INDEX"],"enum":["ImportBinding","Status"],"fn":["__getit","__init","async_module_execution_fulfilled","async_module_execution_rejected","get_async_eval_index","mark"],"static":["__KEY"],"struct":["DfsInfo","Inner","ModuleCode","SourceTextContext","SourceTextModule"]};

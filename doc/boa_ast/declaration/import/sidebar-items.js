@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ImportKind"],"struct":["ImportDeclaration","ImportSpecifier"]};
+window.SIDEBAR_ITEMS = {"enum":["ImportKind","ImportName"],"struct":["ImportDeclaration","ImportEntry","ImportSpecifier"]};

@@ -461,6 +461,9 @@
 <a href="#460" id="460">460</a>
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -596,6 +599,7 @@
 <span class="kw">pub mod </span>environments;
 <span class="kw">pub mod </span>error;
 <span class="kw">pub mod </span>job;
+<span class="kw">pub mod </span>module;
 <span class="kw">pub mod </span>native_function;
 <span class="kw">pub mod </span>object;
 <span class="kw">pub mod </span>optimizer;
@@ -614,6 +618,7 @@
 </span><span class="kw">pub mod </span>prelude {
     <span class="kw">pub use crate</span>::{
         error::{JsError, JsNativeError, JsNativeErrorKind},
+        module::Module,
         native_function::NativeFunction,
         object::JsObject,
         Context, JsBigInt, JsResult, JsString, JsValue,
@@ -629,6 +634,7 @@
     bigint::JsBigInt,
     context::Context,
     error::{JsError, JsNativeError, JsNativeErrorKind},
+    module::Module,
     native_function::NativeFunction,
     object::JsObject,
     string::JsString,

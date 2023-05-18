@@ -122,6 +122,19 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Realm Records`
 //!
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
@@ -133,12 +146,13 @@
 </span><span class="kw">use crate</span>::{
     context::{intrinsics::Intrinsics, HostHooks},
     environments::DeclarativeEnvironment,
+    module::Module,
     object::{shape::shared_shape::SharedShape, JsObject},
+    JsString,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>rustc_hash::FxHashMap;
-<span class="kw">use </span>std::fmt;
 
 <span class="doccomment">/// Representation of a Realm.
 ///
@@ -156,8 +170,8 @@
     }
 }
 
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Realm {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Realm {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         f.debug_struct(<span class="string">&quot;Realm&quot;</span>)
             .field(<span class="string">&quot;intrinsics&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.intrinsics)
             .field(<span class="string">&quot;environment&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.environment)
@@ -174,6 +188,7 @@
     global_object: JsObject,
     global_this: JsObject,
     template_map: GcRefCell&lt;FxHashMap&lt;u64, JsObject&gt;&gt;,
+    loaded_modules: GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt;,
 }
 
 <span class="kw">impl </span>Realm {
@@ -195,7 +210,8 @@
                 environment,
                 global_object,
                 global_this,
-                template_map: GcRefCell::new(FxHashMap::default()),
+                template_map: GcRefCell::default(),
+                loaded_modules: GcRefCell::default(),
             }),
         };
 
@@ -221,6 +237,11 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.global_this
     }
 
+    <span class="attr">#[allow(unused)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loaded_modules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.loaded_modules
+    }
+
     <span class="doccomment">/// Resizes the number of bindings on the global environment.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resize_global_env(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let </span>binding_number = <span class="self">self</span>.environment().compile_env().borrow().num_bindings();
@@ -243,6 +264,11 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lookup_template(<span class="kw-2">&amp;</span><span class="self">self</span>, site: u64) -&gt; <span class="prelude-ty">Option</span>&lt;JsObject&gt; {
         <span class="self">self</span>.inner.template_map.borrow().get(<span class="kw-2">&amp;</span>site).cloned()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>() {
+        <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="kw-2">&amp;*</span><span class="self">self</span>.inner;
+        ptr.cast()
     }
 }
 </code></pre></div>

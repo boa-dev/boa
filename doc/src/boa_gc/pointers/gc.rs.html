@@ -256,6 +256,7 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     finalizer_safe,
     internals::GcBox,
@@ -288,6 +289,7 @@
         //
         // Note: Allocator can cause Collector to run
         </span><span class="kw">let </span>inner_ptr = Allocator::alloc_gc(GcBox::new(value));
+
         <span class="comment">// SAFETY: inner_ptr was just allocated, so it must be a valid value that implements [`Trace`]
         </span><span class="kw">unsafe </span>{ (<span class="kw-2">*</span>inner_ptr.as_ptr()).value().unroot() }
 
@@ -352,7 +354,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NonNull&lt;GcBox&lt;T&gt;&gt; {
-        <span class="macro">assert!</span>(finalizer_safe());
+        <span class="macro">assert!</span>(finalizer_safe() || <span class="self">self</span>.is_rooted());
         <span class="self">self</span>.inner_ptr.get().as_ptr()
     }
 

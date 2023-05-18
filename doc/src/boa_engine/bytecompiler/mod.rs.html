@@ -1729,7 +1729,7 @@
         }
     }
 
-    <span class="kw">fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
         <span class="self">self</span>.context.interner()
     }
 

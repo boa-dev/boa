@@ -326,6 +326,8 @@
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
 <a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Import declaration parsing
 //!
 //! This parses `import` declarations.
@@ -499,9 +501,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>list = Vec::new();
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>tok = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
+            <span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
             <span class="kw">match </span>tok.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) =&gt; {
+                    cursor.advance(interner);
                     <span class="kw">break</span>;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) =&gt; {
@@ -517,6 +520,7 @@
                             <span class="string">&quot;import declaration&quot;</span>,
                         ));
                     }
+                    cursor.advance(interner);
                 }
                 TokenKind::StringLiteral(<span class="kw">_</span>) | TokenKind::IdentifierName(<span class="kw">_</span>) =&gt; {
                     list.push(ImportSpecifier.parse(cursor, interner)<span class="question-mark">?</span>);

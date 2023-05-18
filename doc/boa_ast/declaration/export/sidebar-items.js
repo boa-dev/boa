@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ExportDeclaration","ReExportKind"],"struct":["ExportSpecifier"]};
+window.SIDEBAR_ITEMS = {"enum":["ExportDeclaration","ExportEntry","ReExportImportName","ReExportKind"],"struct":["ExportSpecifier","IndirectExportEntry","LocalExportEntry"]};

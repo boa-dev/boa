@@ -1287,6 +1287,24 @@
 <a href="#1286" id="1286">1286</a>
 <a href="#1287" id="1287">1287</a>
 <a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -1445,8 +1463,11 @@
 <span class="kw">impl </span>Default <span class="kw">for </span>StandardConstructors {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
+            object: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
+                <span class="prelude-val">None</span>,
+                ObjectData::object_prototype(),
+            )),
             async_generator_function: StandardConstructor::default(),
-            object: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
             date: StandardConstructor::default(),
             function: StandardConstructor {
@@ -2285,6 +2306,8 @@
 
     function_without_proto: ObjectTemplate,
     function_with_prototype_without_proto: ObjectTemplate,
+
+    namespace: ObjectTemplate,
 }
 
 <span class="kw">impl </span>ObjectTemplates {
@@ -2390,6 +2413,9 @@
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::ENUMERABLE,
         );
 
+        <span class="kw">let </span><span class="kw-2">mut </span>namespace = ObjectTemplate::new(root_shape);
+        namespace.property(JsSymbol::to_string_tag().into(), Attribute::empty());
+
         <span class="self">Self </span>{
             iterator_result,
             ordinary_object,
@@ -2407,6 +2433,7 @@
             async_function,
             function_without_proto,
             function_with_prototype_without_proto,
+            namespace,
         }
     }
 
@@ -2573,6 +2600,15 @@
     /// 3. `&quot;prototype&quot;`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>function_with_prototype_without_proto(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.function_with_prototype_without_proto
+    }
+
+    <span class="doccomment">/// Cached namespace object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `@@toStringTag`: (`READONLY`, `NON_ENUMERABLE`, `PERMANENT`)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>namespace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.namespace
     }
 }
 </code></pre></div>

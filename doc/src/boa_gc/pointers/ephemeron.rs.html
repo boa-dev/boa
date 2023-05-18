@@ -232,7 +232,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NonNull&lt;EphemeronBox&lt;K, V&gt;&gt; {
-        <span class="macro">assert!</span>(finalizer_safe());
+        <span class="macro">assert!</span>(finalizer_safe() || <span class="self">self</span>.is_rooted());
         <span class="self">self</span>.inner_ptr.get().as_ptr()
     }
 

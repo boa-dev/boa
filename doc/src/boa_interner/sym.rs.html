@@ -144,7 +144,15 @@
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_macros::static_syms;
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+</pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
+<span class="kw">use </span>boa_macros::static_syms;
 <span class="kw">use </span>core::num::NonZeroUsize;
 
 <span class="doccomment">/// The string symbol type for Boa.
@@ -158,9 +166,15 @@
 )]
 #[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[allow(clippy::unsafe_derive_deserialize)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Finalize)]
 </span><span class="kw">pub struct </span>Sym {
     value: NonZeroUsize,
+}
+
+<span class="comment">// SAFETY: `NonZeroUsize` is a constrained `usize`, and all primitive types don&#39;t need to be traced
+// by the garbage collector.
+</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Sym {
+    <span class="macro">empty_trace!</span>();
 }
 
 <span class="kw">impl </span>Sym {

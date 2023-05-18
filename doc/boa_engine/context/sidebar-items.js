@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["BoaProvider","IcuError","MaybeShared"],"mod":["hooks","icu","intrinsics","maybe_shared"],"struct":["Context","ContextBuilder","ContextCleanupGuard","DefaultHooks","HostHooks","JobQueue"],"trait":["HostHooks"]};
+window.SIDEBAR_ITEMS = {"enum":["BoaProvider","IcuError","MaybeShared"],"mod":["hooks","icu","intrinsics","maybe_shared"],"struct":["Context","ContextBuilder","ContextCleanupGuard","DefaultHooks","HostHooks","JobQueue","ModuleLoader"],"trait":["HostHooks"]};

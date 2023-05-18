@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["UninitResult"],"fn":["register_print_fn"],"mod":["js262"],"struct":["AsyncResult"]};
+window.SIDEBAR_ITEMS = {"enum":["UninitResult"],"fn":["is_error_type","register_print_fn"],"mod":["js262"],"struct":["AsyncResult"]};

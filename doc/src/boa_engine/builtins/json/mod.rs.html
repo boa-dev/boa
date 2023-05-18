@@ -814,8 +814,6 @@
 <a href="#813" id="813">813</a>
 <a href="#814" id="814">814</a>
 <a href="#815" id="815">815</a>
-<a href="#816" id="816">816</a>
-<a href="#817" id="817">817</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
@@ -841,7 +839,7 @@
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, RecursionLimiter},
+    object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::{utf16, CodePoint},
@@ -1389,15 +1387,14 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsString&gt; {
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
-        </span><span class="kw">let </span>limiter = RecursionLimiter::new(value);
-        <span class="kw">if </span>limiter.live {
+        </span><span class="kw">if </span>state.stack.contains(value) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cyclic object value&quot;</span>)
                 .into());
         }
 
         <span class="comment">// 2. Append value to state.[[Stack]].
-        </span>state.stack.push(value.clone().into());
+        </span>state.stack.push(value.clone());
 
         <span class="comment">// 3. Let stepback be state.[[Indent]].
         </span><span class="kw">let </span>stepback = state.indent.clone();
@@ -1523,15 +1520,14 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsString&gt; {
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
-        </span><span class="kw">let </span>limiter = RecursionLimiter::new(value);
-        <span class="kw">if </span>limiter.live {
+        </span><span class="kw">if </span>state.stack.contains(value) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cyclic object value&quot;</span>)
                 .into());
         }
 
         <span class="comment">// 2. Append value to state.[[Stack]].
-        </span>state.stack.push(value.clone().into());
+        </span>state.stack.push(value.clone());
 
         <span class="comment">// 3. Let stepback be state.[[Indent]].
         </span><span class="kw">let </span>stepback = state.indent.clone();
@@ -1628,7 +1624,7 @@
 
 <span class="kw">struct </span>StateRecord {
     replacer_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-    stack: Vec&lt;JsValue&gt;,
+    stack: Vec&lt;JsObject&gt;,
     indent: JsString,
     gap: JsString,
     property_list: <span class="prelude-ty">Option</span>&lt;Vec&lt;JsString&gt;&gt;,

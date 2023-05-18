@@ -205,6 +205,55 @@
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Import declaration AST nodes.
 //!
 //! This module contains `import` declaration AST nodes.
@@ -409,6 +458,55 @@
     {
         <span class="macro">try_break!</span>(visitor.visit_identifier_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.binding));
         visitor.visit_sym_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.export_name)
+    }
+}
+
+<span class="doccomment">/// The name under which the imported binding is exported by a module.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub enum </span>ImportName {
+    <span class="doccomment">/// The namespace object of the imported module.
+    </span>Namespace,
+    <span class="doccomment">/// A binding of the imported module.
+    </span>Name(Sym),
+}
+
+<span class="doccomment">/// [`ImportEntry`][spec] record.
+///
+/// [spec]: https://tc39.es/ecma262/#table-importentry-record-fields
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>ImportEntry {
+    module_request: Sym,
+    import_name: ImportName,
+    local_name: Identifier,
+}
+
+<span class="kw">impl </span>ImportEntry {
+    <span class="doccomment">/// Creates a new `ImportEntry`.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>new(module_request: Sym, import_name: ImportName, local_name: Identifier) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            module_request,
+            import_name,
+            local_name,
+        }
+    }
+
+    <span class="doccomment">/// Gets the module from where the binding must be imported.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>module_request(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
+        <span class="self">self</span>.module_request
+    }
+
+    <span class="doccomment">/// Gets the import name of the imported binding.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>import_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ImportName {
+        <span class="self">self</span>.import_name
+    }
+
+    <span class="doccomment">/// Gets the local name of the imported binding.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>local_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Identifier {
+        <span class="self">self</span>.local_name
     }
 }
 </code></pre></div>

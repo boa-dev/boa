@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["immutable_prototype_exotic_set_prototype_of"],"static":["IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS"]};

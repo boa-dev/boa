@@ -2341,6 +2341,50 @@
 <a href="#2340" id="2340">2340</a>
 <a href="#2341" id="2341">2341</a>
 <a href="#2342" id="2342">2342</a>
+<a href="#2343" id="2343">2343</a>
+<a href="#2344" id="2344">2344</a>
+<a href="#2345" id="2345">2345</a>
+<a href="#2346" id="2346">2346</a>
+<a href="#2347" id="2347">2347</a>
+<a href="#2348" id="2348">2348</a>
+<a href="#2349" id="2349">2349</a>
+<a href="#2350" id="2350">2350</a>
+<a href="#2351" id="2351">2351</a>
+<a href="#2352" id="2352">2352</a>
+<a href="#2353" id="2353">2353</a>
+<a href="#2354" id="2354">2354</a>
+<a href="#2355" id="2355">2355</a>
+<a href="#2356" id="2356">2356</a>
+<a href="#2357" id="2357">2357</a>
+<a href="#2358" id="2358">2358</a>
+<a href="#2359" id="2359">2359</a>
+<a href="#2360" id="2360">2360</a>
+<a href="#2361" id="2361">2361</a>
+<a href="#2362" id="2362">2362</a>
+<a href="#2363" id="2363">2363</a>
+<a href="#2364" id="2364">2364</a>
+<a href="#2365" id="2365">2365</a>
+<a href="#2366" id="2366">2366</a>
+<a href="#2367" id="2367">2367</a>
+<a href="#2368" id="2368">2368</a>
+<a href="#2369" id="2369">2369</a>
+<a href="#2370" id="2370">2370</a>
+<a href="#2371" id="2371">2371</a>
+<a href="#2372" id="2372">2372</a>
+<a href="#2373" id="2373">2373</a>
+<a href="#2374" id="2374">2374</a>
+<a href="#2375" id="2375">2375</a>
+<a href="#2376" id="2376">2376</a>
+<a href="#2377" id="2377">2377</a>
+<a href="#2378" id="2378">2378</a>
+<a href="#2379" id="2379">2379</a>
+<a href="#2380" id="2380">2380</a>
+<a href="#2381" id="2381">2381</a>
+<a href="#2382" id="2382">2382</a>
+<a href="#2383" id="2383">2383</a>
+<a href="#2384" id="2384">2384</a>
+<a href="#2385" id="2385">2385</a>
+<a href="#2386" id="2386">2386</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2359,7 +2403,9 @@
             BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
         },
         function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
+        immutable_prototype::IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
         integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+        module_namespace::MODULE_NAMESPACE_EXOTIC_INTERNAL_METHODS,
         proxy::{
             PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
             PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL,
@@ -2398,6 +2444,7 @@
         DataView, Date, Promise, RegExp,
     },
     js_string,
+    module::ModuleNamespace,
     native_function::NativeFunction,
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
@@ -2650,6 +2697,9 @@
     <span class="doccomment">/// The `WeakSet` object kind.
     </span>WeakSet(boa_gc::WeakMap&lt;VTableObject, ()&gt;),
 
+    <span class="doccomment">/// The `ModuleNamespace` object kind.
+    </span>ModuleNamespace(ModuleNamespace),
+
     <span class="doccomment">/// The `Intl.Collator` object kind.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>Collator(Box&lt;Collator&gt;),
@@ -2705,6 +2755,7 @@
             <span class="self">Self</span>::WeakRef(wr) =&gt; mark(wr),
             <span class="self">Self</span>::WeakMap(wm) =&gt; mark(wm),
             <span class="self">Self</span>::WeakSet(ws) =&gt; mark(ws),
+            <span class="self">Self</span>::ModuleNamespace(m) =&gt; mark(m),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span><span class="self">Self</span>::DateTimeFormat(f) =&gt; mark(f),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -2731,6 +2782,14 @@
 }
 
 <span class="kw">impl </span>ObjectData {
+    <span class="doccomment">/// Create the immutable `%Object.prototype%` object data
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>object_prototype() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ObjectKind::Ordinary,
+            internal_methods: <span class="kw-2">&amp;</span>IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
+        }
+    }
+
     <span class="doccomment">/// Create the `AsyncFromSyncIterator` object data
     </span><span class="kw">pub fn </span>async_from_sync_iterator(async_from_sync_iterator: AsyncFromSyncIterator) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -3037,10 +3096,20 @@
     }
 
     <span class="doccomment">/// Creates the `IntegerIndexed` object data
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>integer_indexed(integer_indexed: IntegerIndexed) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::IntegerIndexed(integer_indexed),
             internal_methods: <span class="kw-2">&amp;</span>INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+        }
+    }
+
+    <span class="doccomment">/// Creates the `ModuleNamespace` object data
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>module_namespace(namespace: ModuleNamespace) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ObjectKind::ModuleNamespace(namespace),
+            internal_methods: <span class="kw-2">&amp;</span>MODULE_NAMESPACE_EXOTIC_INTERNAL_METHODS,
         }
     }
 
@@ -3154,6 +3223,7 @@
             <span class="self">Self</span>::WeakRef(<span class="kw">_</span>) =&gt; <span class="string">&quot;WeakRef&quot;</span>,
             <span class="self">Self</span>::WeakMap(<span class="kw">_</span>) =&gt; <span class="string">&quot;WeakMap&quot;</span>,
             <span class="self">Self</span>::WeakSet(<span class="kw">_</span>) =&gt; <span class="string">&quot;WeakSet&quot;</span>,
+            <span class="self">Self</span>::ModuleNamespace(<span class="kw">_</span>) =&gt; <span class="string">&quot;ModuleNamespace&quot;</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span><span class="self">Self</span>::Collator(<span class="kw">_</span>) =&gt; <span class="string">&quot;Collator&quot;</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -3889,6 +3959,24 @@
     </span><span class="kw">pub const fn </span>as_weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WeakGc&lt;VTableObject&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind {
             ObjectKind::WeakRef(<span class="kw-2">ref </span>weak_ref) =&gt; <span class="prelude-val">Some</span>(weak_ref),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets a reference to the module namespace if the object is a `ModuleNamespace`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>as_module_namespace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ModuleNamespace&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            ObjectKind::ModuleNamespace(ns) =&gt; <span class="prelude-val">Some</span>(ns),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets a mutable reference module namespace if the object is a `ModuleNamespace`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>as_module_namespace_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ModuleNamespace&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
+            ObjectKind::ModuleNamespace(ns) =&gt; <span class="prelude-val">Some</span>(ns),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }

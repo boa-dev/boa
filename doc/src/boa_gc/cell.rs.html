@@ -562,6 +562,7 @@
 <a href="#561" id="561">561</a>
 <a href="#562" id="562">562</a>
 <a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A garbage collected cell implementation
 
 </span><span class="kw">use </span><span class="kw">crate</span>::trace::{Finalize, Trace};
@@ -725,6 +726,7 @@
     /// # Panics
     ///
     /// Panics if the value is currently borrowed.
+    </span><span class="attr">#[track_caller]
     </span><span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcRefMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
         <span class="kw">match </span><span class="self">self</span>.try_borrow_mut() {
             <span class="prelude-val">Ok</span>(value) =&gt; value,

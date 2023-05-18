@@ -1344,7 +1344,7 @@
         // a recursive structure
         // We can follow v8 &amp; SpiderMonkey&#39;s lead and return a default value for the hint in this situation
         // (see https://repl.it/repls/IvoryCircularCertification#index.js)
-        </span><span class="kw">let </span>recursion_limiter = RecursionLimiter::new(<span class="self">self</span>);
+        </span><span class="kw">let </span>recursion_limiter = RecursionLimiter::new(<span class="self">self</span>.as_ref());
         <span class="kw">if </span>recursion_limiter.live {
             <span class="comment">// we&#39;re in a recursive object, bail
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>hint {
@@ -2160,15 +2160,15 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 }
 
 <span class="kw">impl </span>RecursionLimiter {
-    <span class="doccomment">/// Determines if the specified `JsObject` has been visited, and returns a struct that will free it when dropped.
+    <span class="doccomment">/// Determines if the specified `T` has been visited, and returns a struct that will free it when dropped.
     ///
-    /// This is done by maintaining a thread-local hashset containing the pointers of `JsObject` values that have been
-    /// visited. The first `JsObject` visited will clear the hashset, while any others will check if they are contained
+    /// This is done by maintaining a thread-local hashset containing the pointers of `T` values that have been
+    /// visited. The first `T` visited will clear the hashset, while any others will check if they are contained
     /// by the hashset.
-    </span><span class="kw">pub fn </span>new(o: <span class="kw-2">&amp;</span>JsObject) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new&lt;T&gt;(o: <span class="kw-2">&amp;</span>T) -&gt; <span class="self">Self </span>{
         <span class="comment">// We shouldn&#39;t have to worry too much about this being moved during Debug::fmt.
         </span><span class="attr">#[allow(trivial_casts)]
-        </span><span class="kw">let </span>ptr = (o.as_ref() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>) <span class="kw">as </span>usize;
+        </span><span class="kw">let </span>ptr = (o <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>) <span class="kw">as </span>usize;
         <span class="kw">let </span>(top_level, visited, live) = SEEN.with(|hm| {
             <span class="kw">let </span><span class="kw-2">mut </span>hm = hm.borrow_mut();
             <span class="kw">let </span>top_level = hm.is_empty();
@@ -2193,7 +2193,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 <span class="kw">impl </span>Debug <span class="kw">for </span>JsObject {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="self">self</span>.vtable();
-        <span class="kw">let </span>limiter = RecursionLimiter::new(<span class="self">self</span>);
+        <span class="kw">let </span>limiter = RecursionLimiter::new(<span class="self">self</span>.as_ref());
 
         <span class="comment">// Typically, using `!limiter.live` would be good enough here.
         // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes

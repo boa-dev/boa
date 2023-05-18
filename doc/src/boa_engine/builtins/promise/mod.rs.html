@@ -2381,6 +2381,15 @@
 <a href="#2380" id="2380">2380</a>
 <a href="#2381" id="2381">2381</a>
 <a href="#2382" id="2382">2382</a>
+<a href="#2383" id="2383">2383</a>
+<a href="#2384" id="2384">2384</a>
+<a href="#2385" id="2385">2385</a>
+<a href="#2386" id="2386">2386</a>
+<a href="#2387" id="2387">2387</a>
+<a href="#2388" id="2388">2388</a>
+<a href="#2389" id="2389">2389</a>
+<a href="#2390" id="2390">2390</a>
+<a href="#2391" id="2391">2391</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -2404,7 +2413,7 @@
     value::JsValue,
     Context, JsArgs, JsError, JsResult,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
+<span class="kw">use </span>boa_gc::{custom_trace, Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{cell::Cell, rc::Rc};
 <span class="kw">use </span>tap::{Conv, Pipe};
@@ -2412,7 +2421,7 @@
 <span class="comment">// ==================== Public API ====================
 
 </span><span class="doccomment">/// The current state of a [`Promise`].
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
+</span><span class="attr">#[derive(Debug, Clone, Finalize, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>PromiseState {
     <span class="doccomment">/// The promise hasn&#39;t been resolved.
     </span>Pending,
@@ -2420,6 +2429,15 @@
     </span>Fulfilled(JsValue),
     <span class="doccomment">/// The promise was rejected with a failure reason.
     </span>Rejected(JsValue),
+}
+
+<span class="kw">unsafe impl </span>Trace <span class="kw">for </span>PromiseState {
+    <span class="macro">custom_trace!</span>(this, {
+        <span class="kw">match </span>this {
+            PromiseState::Fulfilled(v) | PromiseState::Rejected(v) =&gt; mark(v),
+            PromiseState::Pending =&gt; {}
+        }
+    });
 }
 
 <span class="kw">impl </span>PromiseState {

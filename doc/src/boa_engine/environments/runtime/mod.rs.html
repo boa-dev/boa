@@ -748,6 +748,26 @@
 <a href="#747" id="747">747</a>
 <a href="#748" id="748">748</a>
 <a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context,
     JsResult, JsString, JsSymbol, JsValue,
@@ -758,6 +778,7 @@
 
 <span class="kw">mod </span>declarative;
 
+<span class="kw">use </span><span class="self">self</span>::declarative::ModuleEnvironment;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::declarative::{
     DeclarativeEnvironment, DeclarativeEnvironmentKind, FunctionEnvironment, FunctionSlots,
     LexicalEnvironment, ThisBindingStatus,
@@ -1094,6 +1115,25 @@
         )));
     }
 
+    <span class="doccomment">/// Push a module environment on the environments stack.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no environment exists on the stack.
+    </span><span class="attr">#[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_module(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
+    ) {
+        <span class="kw">let </span>num_bindings = compile_environment.borrow().num_bindings();
+        <span class="self">self</span>.stack.push(Environment::Declarative(Gc::new(
+            DeclarativeEnvironment::new(
+                DeclarativeEnvironmentKind::Module(ModuleEnvironment::new(num_bindings)),
+                compile_environment,
+            ),
+        )));
+    }
+
     <span class="doccomment">/// Pop environment from the environments stack.
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Environment {
@@ -1109,7 +1149,7 @@
     ///
     /// Panics if no environment exists on the stack.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Environment {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Environment {
         <span class="self">self</span>.stack
             .last()
             .expect(<span class="string">&quot;global environment must always exist&quot;</span>)
