@@ -150,7 +150,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
-    pub fn new<F>(executor: F, context: &mut Context<'_>) -> JsResult<JsPromise>
+    pub fn new<F>(executor: F, context: &mut Context<'_>) -> JsResult<Self>
     where
         F: FnOnce(&ResolvingFunctions, &mut Context<'_>) -> JsResult<JsValue>,
     {
@@ -168,7 +168,7 @@ impl JsPromise {
                 .call(&JsValue::undefined(), &[e], context)?;
         }
 
-        Ok(JsPromise { inner: promise })
+        Ok(Self { inner: promise })
     }
 
     /// Creates a new pending promise and returns it and its associated `ResolvingFunctions`.
@@ -201,15 +201,15 @@ impl JsPromise {
     /// # }
     /// ```
     #[inline]
-    pub fn new_pending(context: &mut Context<'_>) -> (JsPromise, ResolvingFunctions) {
+    pub fn new_pending(context: &mut Context<'_>) -> (Self, ResolvingFunctions) {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
             ObjectData::promise(Promise::new()),
         );
         let resolvers = Promise::create_resolving_functions(&promise, context);
-        let promise = JsPromise::from_object(promise)
-            .expect("this shouldn't fail with a newly created promise");
+        let promise =
+            Self::from_object(promise).expect("this shouldn't fail with a newly created promise");
 
         (promise, resolvers)
     }
@@ -281,13 +281,13 @@ impl JsPromise {
     ///
     /// [`Promise.resolve()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
     /// [thenables]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    pub fn resolve<V: Into<JsValue>>(value: V, context: &mut Context<'_>) -> JsResult<JsPromise> {
+    pub fn resolve<V: Into<JsValue>>(value: V, context: &mut Context<'_>) -> JsResult<Self> {
         Promise::promise_resolve(
             &context.intrinsics().constructors().promise().constructor(),
             value.into(),
             context,
         )
-        .and_then(JsPromise::from_object)
+        .and_then(Self::from_object)
     }
 
     /// Creates a `JsPromise` that is rejected with the reason `error`.
@@ -319,13 +319,13 @@ impl JsPromise {
     ///
     /// [`Promise.reject`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
     /// [thenable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    pub fn reject<E: Into<JsError>>(error: E, context: &mut Context<'_>) -> JsResult<JsPromise> {
+    pub fn reject<E: Into<JsError>>(error: E, context: &mut Context<'_>) -> JsResult<Self> {
         Promise::promise_reject(
             &context.intrinsics().constructors().promise().constructor(),
             &error.into(),
             context,
         )
-        .and_then(JsPromise::from_object)
+        .and_then(Self::from_object)
     }
 
     /// Gets the current state of the promise.
@@ -438,9 +438,9 @@ impl JsPromise {
         on_fulfilled: Option<JsFunction>,
         on_rejected: Option<JsFunction>,
         context: &mut Context<'_>,
-    ) -> JsResult<JsPromise> {
+    ) -> JsResult<Self> {
         let result_promise = Promise::inner_then(self, on_fulfilled, on_rejected, context)?;
-        JsPromise::from_object(result_promise)
+        Self::from_object(result_promise)
     }
 
     /// Schedules a callback to run when the promise is rejected.
@@ -498,7 +498,7 @@ impl JsPromise {
     /// [`Promise.prototype.catch`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/catch
     /// [then]: JsPromise::then
     #[inline]
-    pub fn catch(&self, on_rejected: JsFunction, context: &mut Context<'_>) -> JsResult<JsPromise> {
+    pub fn catch(&self, on_rejected: JsFunction, context: &mut Context<'_>) -> JsResult<Self> {
         self.then(None, Some(on_rejected), context)
     }
 
@@ -566,11 +566,7 @@ impl JsPromise {
     /// [`Promise.prototype.finally()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
     /// [then]: JsPromise::then
     #[inline]
-    pub fn finally(
-        &self,
-        on_finally: JsFunction,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsPromise> {
+    pub fn finally(&self, on_finally: JsFunction, context: &mut Context<'_>) -> JsResult<Self> {
         let c = self.species_constructor(StandardConstructors::promise, context)?;
         let (then, catch) = Promise::then_catch_finally_closures(c, on_finally, context);
         self.then(Some(then), Some(catch), context)
@@ -627,9 +623,9 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.all`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
-    pub fn all<I>(promises: I, context: &mut Context<'_>) -> JsResult<JsPromise>
+    pub fn all<I>(promises: I, context: &mut Context<'_>) -> JsResult<Self>
     where
-        I: IntoIterator<Item = JsPromise>,
+        I: IntoIterator<Item = Self>,
     {
         let promises = JsArray::from_iter(promises.into_iter().map(JsValue::from), context);
 
@@ -645,7 +641,7 @@ impl JsPromise {
             .as_object()
             .expect("Promise.all always returns an object on success");
 
-        JsPromise::from_object(value.clone())
+        Self::from_object(value.clone())
     }
 
     /// Waits for a list of promises to settle, fulfilling with an array of the outcomes of every
@@ -696,9 +692,9 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.allSettled`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
-    pub fn all_settled<I>(promises: I, context: &mut Context<'_>) -> JsResult<JsPromise>
+    pub fn all_settled<I>(promises: I, context: &mut Context<'_>) -> JsResult<Self>
     where
-        I: IntoIterator<Item = JsPromise>,
+        I: IntoIterator<Item = Self>,
     {
         let promises = JsArray::from_iter(promises.into_iter().map(JsValue::from), context);
 
@@ -714,7 +710,7 @@ impl JsPromise {
             .as_object()
             .expect("Promise.allSettled always returns an object on success");
 
-        JsPromise::from_object(value.clone())
+        Self::from_object(value.clone())
     }
 
     /// Returns the first promise that fulfills from a list of promises.
@@ -758,9 +754,9 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.any`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/any
-    pub fn any<I>(promises: I, context: &mut Context<'_>) -> JsResult<JsPromise>
+    pub fn any<I>(promises: I, context: &mut Context<'_>) -> JsResult<Self>
     where
-        I: IntoIterator<Item = JsPromise>,
+        I: IntoIterator<Item = Self>,
     {
         let promises = JsArray::from_iter(promises.into_iter().map(JsValue::from), context);
 
@@ -776,7 +772,7 @@ impl JsPromise {
             .as_object()
             .expect("Promise.any always returns an object on success");
 
-        JsPromise::from_object(value.clone())
+        Self::from_object(value.clone())
     }
 
     /// Returns the first promise that settles from a list of promises.
@@ -821,9 +817,9 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.race`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-    pub fn race<I>(promises: I, context: &mut Context<'_>) -> JsResult<JsPromise>
+    pub fn race<I>(promises: I, context: &mut Context<'_>) -> JsResult<Self>
     where
-        I: IntoIterator<Item = JsPromise>,
+        I: IntoIterator<Item = Self>,
     {
         let promises = JsArray::from_iter(promises.into_iter().map(JsValue::from), context);
 
@@ -839,7 +835,7 @@ impl JsPromise {
             .as_object()
             .expect("Promise.race always returns an object on success");
 
-        JsPromise::from_object(value.clone())
+        Self::from_object(value.clone())
     }
 }
 

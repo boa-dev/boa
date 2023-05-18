@@ -46,7 +46,7 @@ impl<T> Tagged<T> {
     ///
     /// - `T` must have an alignment of at least 2.
     /// - `tag` must fit inside `usize::BITS - 1` bits
-    pub(crate) const fn from_tag(tag: usize) -> Tagged<T> {
+    pub(crate) const fn from_tag(tag: usize) -> Self {
         debug_assert!(std::mem::align_of::<T>() >= 2);
         let addr = (tag << 1) | 1;
         // SAFETY: `addr` is never zero, since we always set its LSB to 1
@@ -62,7 +62,7 @@ impl<T> Tagged<T> {
     /// # Safety
     ///
     /// - `T` must be non null.
-    pub(crate) const unsafe fn from_ptr(ptr: *mut T) -> Tagged<T> {
+    pub(crate) const unsafe fn from_ptr(ptr: *mut T) -> Self {
         debug_assert!(std::mem::align_of::<T>() >= 2);
         // SAFETY: the caller must ensure the invariants hold.
         unsafe { Self(NonNull::new_unchecked(ptr)) }
@@ -73,7 +73,7 @@ impl<T> Tagged<T> {
     /// # Requirements
     ///
     /// - `T` must have an alignment of at least 2.
-    pub(crate) const fn from_non_null(ptr: NonNull<T>) -> Tagged<T> {
+    pub(crate) const fn from_non_null(ptr: NonNull<T>) -> Self {
         debug_assert!(std::mem::align_of::<T>() >= 2);
         Self(ptr)
     }

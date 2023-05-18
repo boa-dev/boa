@@ -42,8 +42,8 @@ pub enum PromiseState {
 unsafe impl Trace for PromiseState {
     custom_trace!(this, {
         match this {
-            PromiseState::Fulfilled(v) | PromiseState::Rejected(v) => mark(v),
-            PromiseState::Pending => {}
+            Self::Fulfilled(v) | Self::Rejected(v) => mark(v),
+            Self::Pending => {}
         }
     });
 }
@@ -53,7 +53,7 @@ impl PromiseState {
     /// the state is not `Fulfilled`.
     pub const fn as_fulfilled(&self) -> Option<&JsValue> {
         match self {
-            PromiseState::Fulfilled(v) => Some(v),
+            Self::Fulfilled(v) => Some(v),
             _ => None,
         }
     }
@@ -62,7 +62,7 @@ impl PromiseState {
     /// the state is not `Rejected`.
     pub const fn as_rejected(&self) -> Option<&JsValue> {
         match self {
-            PromiseState::Rejected(v) => Some(v),
+            Self::Rejected(v) => Some(v),
             _ => None,
         }
     }
@@ -432,7 +432,7 @@ impl BuiltInConstructor for Promise {
 impl Promise {
     /// Creates a new, pending `Promise`.
     pub(crate) fn new() -> Self {
-        Promise {
+        Self {
             state: PromiseState::Pending,
             fulfill_reactions: Vec::default(),
             reject_reactions: Vec::default(),
@@ -1440,7 +1440,7 @@ impl Promise {
             JsNativeError::typ().with_message("Promise.reject() called on a non-object")
         })?;
 
-        Promise::promise_reject(c, &JsError::from_opaque(r), context).map(JsValue::from)
+        Self::promise_reject(c, &JsError::from_opaque(r), context).map(JsValue::from)
     }
 
     /// Utility function to create a rejected promise.
@@ -1764,7 +1764,7 @@ impl Promise {
             .and_then(JsFunction::from_object);
 
         // continues in `Promise::inner_then`
-        Promise::inner_then(promise, on_fulfilled, on_rejected, context).map(JsValue::from)
+        Self::inner_then(promise, on_fulfilled, on_rejected, context).map(JsValue::from)
     }
 
     /// Schedules callback functions for the eventual completion of `promise` — either fulfillment

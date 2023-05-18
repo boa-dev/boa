@@ -295,7 +295,7 @@ impl JsString {
 
         impl<I: Iterator> WideStringDecoderIterator<I> {
             fn new(iterator: I) -> Self {
-                WideStringDecoderIterator {
+                Self {
                     codepoints: iterator.peekable(),
                 }
             }

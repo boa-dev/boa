@@ -46,8 +46,7 @@ impl<T: Trace> Gc<T> {
     /// Consumes the `Gc`, returning a wrapped raw pointer.
     ///
     /// To avoid a memory leak, the pointer must be converted back to a `Gc` using [`Gc::from_raw`].
-    #[allow(clippy::use_self)]
-    pub fn into_raw(this: Gc<T>) -> NonNull<GcBox<T>> {
+    pub fn into_raw(this: Self) -> NonNull<GcBox<T>> {
         let ptr = this.inner_ptr();
         std::mem::forget(this);
         ptr

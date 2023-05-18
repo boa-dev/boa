@@ -42,7 +42,7 @@ pub(crate) struct DeclarativeEnvironment {
 impl DeclarativeEnvironment {
     /// Creates a new global `DeclarativeEnvironment`.
     pub(crate) fn global(global_this: JsObject) -> Self {
-        DeclarativeEnvironment {
+        Self {
             kind: DeclarativeEnvironmentKind::Global(GlobalEnvironment::new(global_this)),
             compile: Gc::new(GcRefCell::new(CompileTimeEnvironment::new_global())),
         }
@@ -175,10 +175,10 @@ impl DeclarativeEnvironmentKind {
     #[track_caller]
     pub(crate) fn get(&self, index: usize) -> Option<JsValue> {
         match self {
-            DeclarativeEnvironmentKind::Lexical(inner) => inner.get(index),
-            DeclarativeEnvironmentKind::Global(inner) => inner.get(index),
-            DeclarativeEnvironmentKind::Function(inner) => inner.get(index),
-            DeclarativeEnvironmentKind::Module(inner) => inner.get(index),
+            Self::Lexical(inner) => inner.get(index),
+            Self::Global(inner) => inner.get(index),
+            Self::Function(inner) => inner.get(index),
+            Self::Module(inner) => inner.get(index),
         }
     }
 
@@ -190,10 +190,10 @@ impl DeclarativeEnvironmentKind {
     #[track_caller]
     pub(crate) fn set(&self, index: usize, value: JsValue) {
         match self {
-            DeclarativeEnvironmentKind::Lexical(inner) => inner.set(index, value),
-            DeclarativeEnvironmentKind::Global(inner) => inner.set(index, value),
-            DeclarativeEnvironmentKind::Function(inner) => inner.set(index, value),
-            DeclarativeEnvironmentKind::Module(inner) => inner.set(index, value),
+            Self::Lexical(inner) => inner.set(index, value),
+            Self::Global(inner) => inner.set(index, value),
+            Self::Function(inner) => inner.set(index, value),
+            Self::Module(inner) => inner.set(index, value),
         }
     }
 
@@ -207,10 +207,10 @@ impl DeclarativeEnvironmentKind {
     /// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-getthisbinding
     pub(crate) fn get_this_binding(&self) -> JsResult<Option<JsValue>> {
         match self {
-            DeclarativeEnvironmentKind::Lexical(_) => Ok(None),
-            DeclarativeEnvironmentKind::Global(g) => Ok(Some(g.get_this_binding().into())),
-            DeclarativeEnvironmentKind::Function(f) => f.get_this_binding(),
-            DeclarativeEnvironmentKind::Module(_) => Ok(Some(JsValue::undefined())),
+            Self::Lexical(_) => Ok(None),
+            Self::Global(g) => Ok(Some(g.get_this_binding().into())),
+            Self::Function(f) => f.get_this_binding(),
+            Self::Module(_) => Ok(Some(JsValue::undefined())),
         }
     }
 
@@ -224,39 +224,39 @@ impl DeclarativeEnvironmentKind {
     /// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-hasthisbinding
     pub(crate) fn has_this_binding(&self) -> bool {
         match self {
-            DeclarativeEnvironmentKind::Lexical(_) => false,
-            DeclarativeEnvironmentKind::Function(f) => f.has_this_binding(),
-            DeclarativeEnvironmentKind::Global(_) | DeclarativeEnvironmentKind::Module(_) => true,
+            Self::Lexical(_) => false,
+            Self::Function(f) => f.has_this_binding(),
+            Self::Global(_) | Self::Module(_) => true,
         }
     }
 
     /// Returns `true` if this environment is poisoned.
     pub(crate) fn poisoned(&self) -> bool {
         match self {
-            DeclarativeEnvironmentKind::Lexical(lex) => lex.poisonable_environment().poisoned(),
-            DeclarativeEnvironmentKind::Global(g) => g.poisonable_environment().poisoned(),
-            DeclarativeEnvironmentKind::Function(f) => f.poisonable_environment().poisoned(),
-            DeclarativeEnvironmentKind::Module(_) => false,
+            Self::Lexical(lex) => lex.poisonable_environment().poisoned(),
+            Self::Global(g) => g.poisonable_environment().poisoned(),
+            Self::Function(f) => f.poisonable_environment().poisoned(),
+            Self::Module(_) => false,
         }
     }
 
     /// Returns `true` if this environment is inside a `with` environment.
     pub(crate) fn with(&self) -> bool {
         match self {
-            DeclarativeEnvironmentKind::Lexical(lex) => lex.poisonable_environment().with(),
-            DeclarativeEnvironmentKind::Global(g) => g.poisonable_environment().with(),
-            DeclarativeEnvironmentKind::Function(f) => f.poisonable_environment().with(),
-            DeclarativeEnvironmentKind::Module(_) => false,
+            Self::Lexical(lex) => lex.poisonable_environment().with(),
+            Self::Global(g) => g.poisonable_environment().with(),
+            Self::Function(f) => f.poisonable_environment().with(),
+            Self::Module(_) => false,
         }
     }
 
     /// Poisons this environment for future binding searches.
     pub(crate) fn poison(&self) {
         match self {
-            DeclarativeEnvironmentKind::Lexical(lex) => lex.poisonable_environment().poison(),
-            DeclarativeEnvironmentKind::Global(g) => g.poisonable_environment().poison(),
-            DeclarativeEnvironmentKind::Function(f) => f.poisonable_environment().poison(),
-            DeclarativeEnvironmentKind::Module(_) => {
+            Self::Lexical(lex) => lex.poisonable_environment().poison(),
+            Self::Global(g) => g.poisonable_environment().poison(),
+            Self::Function(f) => f.poisonable_environment().poison(),
+            Self::Module(_) => {
                 unreachable!("modules are always run in strict mode")
             }
         }
@@ -275,7 +275,7 @@ pub(crate) struct PoisonableEnvironment {
 impl PoisonableEnvironment {
     /// Creates a new `PoisonableEnvironment`.
     pub(crate) fn new(bindings_count: usize, poisoned: bool, with: bool) -> Self {
-        PoisonableEnvironment {
+        Self {
             bindings: GcRefCell::new(vec![None; bindings_count]),
             poisoned: Cell::new(poisoned),
             with: Cell::new(with),

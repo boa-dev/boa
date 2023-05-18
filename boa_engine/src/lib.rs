@@ -113,8 +113,6 @@
     clippy::missing_errors_doc,
     clippy::let_unit_value,
     clippy::option_if_let_else,
-    // Currently lints in places where `Self` would have a type parameter.
-    clippy::use_self,
 
     // It may be worth to look if we can fix the issues highlighted by these lints.
     clippy::cast_possible_truncation,

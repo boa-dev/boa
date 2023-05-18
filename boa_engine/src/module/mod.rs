@@ -291,7 +291,7 @@ impl Module {
         src: Source<'_, R>,
         realm: Option<Realm>,
         context: &mut Context<'_>,
-    ) -> JsResult<Module> {
+    ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Module parsing", "Main");
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
@@ -299,7 +299,7 @@ impl Module {
 
         let src = SourceTextModule::new(module);
 
-        let module = Module {
+        let module = Self {
             inner: Gc::new(Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
                 environment: GcRefCell::default(),
@@ -448,7 +448,7 @@ impl Module {
     pub(crate) fn resolve_export(
         &self,
         export_name: Sym,
-        resolve_set: &mut FxHashSet<(Module, Sym)>,
+        resolve_set: &mut FxHashSet<(Self, Sym)>,
     ) -> Result<ResolvedBinding, ResolveExportError> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.resolve_export(export_name, resolve_set),
@@ -714,7 +714,7 @@ impl ModuleNamespace {
         // 7. Set M.[[Exports]] to sortedExports.
         // 8. Create own properties of M corresponding to the definitions in 28.3.
         let namespace = context.intrinsics().templates().namespace().create(
-            ObjectData::module_namespace(ModuleNamespace { module, exports }),
+            ObjectData::module_namespace(Self { module, exports }),
             vec![js_string!("Module").into()],
         );
 

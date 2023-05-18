@@ -95,18 +95,18 @@ enum Status {
 unsafe impl Trace for Status {
     custom_trace!(this, {
         match this {
-            Status::Unlinked | Status::Linking { info: _ } => {}
-            Status::PreLinked { context, info: _ } | Status::Linked { context, info: _ } => {
+            Self::Unlinked | Self::Linking { info: _ } => {}
+            Self::PreLinked { context, info: _ } | Self::Linked { context, info: _ } => {
                 mark(context);
             }
-            Status::Evaluating {
+            Self::Evaluating {
                 top_level_capability,
                 cycle_root,
                 context,
                 info: _,
                 async_eval_index: _,
             }
-            | Status::EvaluatingAsync {
+            | Self::EvaluatingAsync {
                 top_level_capability,
                 cycle_root,
                 context,
@@ -117,7 +117,7 @@ unsafe impl Trace for Status {
                 mark(cycle_root);
                 mark(context);
             }
-            Status::Evaluated {
+            Self::Evaluated {
                 top_level_capability,
                 cycle_root,
                 error,
@@ -135,11 +135,11 @@ impl Status {
     /// module is not in a state executing the dfs algorithm.
     const fn dfs_info(&self) -> Option<&DfsInfo> {
         match self {
-            Status::Unlinked | Status::EvaluatingAsync { .. } | Status::Evaluated { .. } => None,
-            Status::Linking { info }
-            | Status::PreLinked { info, .. }
-            | Status::Linked { info, .. }
-            | Status::Evaluating { info, .. } => Some(info),
+            Self::Unlinked | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
+            Self::Linking { info }
+            | Self::PreLinked { info, .. }
+            | Self::Linked { info, .. }
+            | Self::Evaluating { info, .. } => Some(info),
         }
     }
 
@@ -147,11 +147,11 @@ impl Status {
     /// or `None` if the module is not in a state executing the dfs algorithm.
     fn dfs_info_mut(&mut self) -> Option<&mut DfsInfo> {
         match self {
-            Status::Unlinked | Status::EvaluatingAsync { .. } | Status::Evaluated { .. } => None,
-            Status::Linking { info }
-            | Status::PreLinked { info, .. }
-            | Status::Linked { info, .. }
-            | Status::Evaluating { info, .. } => Some(info),
+            Self::Unlinked | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
+            Self::Linking { info }
+            | Self::PreLinked { info, .. }
+            | Self::Linked { info, .. }
+            | Self::Evaluating { info, .. } => Some(info),
         }
     }
 
@@ -159,19 +159,19 @@ impl Status {
     /// level capability.
     const fn top_level_capability(&self) -> Option<&PromiseCapability> {
         match &self {
-            Status::Unlinked
-            | Status::Linking { .. }
-            | Status::PreLinked { .. }
-            | Status::Linked { .. } => None,
-            Status::Evaluating {
+            Self::Unlinked
+            | Self::Linking { .. }
+            | Self::PreLinked { .. }
+            | Self::Linked { .. } => None,
+            Self::Evaluating {
                 top_level_capability,
                 ..
             }
-            | Status::EvaluatingAsync {
+            | Self::EvaluatingAsync {
                 top_level_capability,
                 ..
             }
-            | Status::Evaluated {
+            | Self::Evaluated {
                 top_level_capability,
                 ..
             } => top_level_capability.as_ref(),
@@ -181,7 +181,7 @@ impl Status {
     /// If this module is in the evaluated state, gets its `error` field.
     const fn evaluation_error(&self) -> Option<&JsError> {
         match &self {
-            Status::Evaluated { error, .. } => error.as_ref(),
+            Self::Evaluated { error, .. } => error.as_ref(),
             _ => None,
         }
     }
@@ -189,9 +189,9 @@ impl Status {
     /// If this module is in the evaluating state, gets its cycle root.
     const fn cycle_root(&self) -> Option<&SourceTextModule> {
         match &self {
-            Status::Evaluating { cycle_root, .. }
-            | Status::EvaluatingAsync { cycle_root, .. }
-            | Status::Evaluated { cycle_root, .. } => Some(cycle_root),
+            Self::Evaluating { cycle_root, .. }
+            | Self::EvaluatingAsync { cycle_root, .. }
+            | Self::Evaluated { cycle_root, .. } => Some(cycle_root),
             _ => None,
         }
     }
@@ -200,7 +200,7 @@ impl Status {
     /// between states.
     fn transition<F>(&mut self, f: F)
     where
-        F: FnOnce(Status) -> Status,
+        F: FnOnce(Self) -> Self,
     {
         *self = f(std::mem::take(self));
     }
@@ -509,10 +509,7 @@ impl SourceTextModule {
     /// Concrete method [`GetExportedNames ( [ exportStarSet ] )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getexportednames
-    pub(super) fn get_exported_names(
-        &self,
-        export_star_set: &mut Vec<SourceTextModule>,
-    ) -> FxHashSet<Sym> {
+    pub(super) fn get_exported_names(&self, export_star_set: &mut Vec<Self>) -> FxHashSet<Sym> {
         // 1. Assert: module.[[Status]] is not new.
         // 2. If exportStarSet is not present, set exportStarSet to a new empty List.
 
