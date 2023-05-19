@@ -1118,7 +1118,7 @@
 
 </span><span class="kw">use super</span>::{
     internal_methods::{InternalObjectMethods, ARRAY_EXOTIC_INTERNAL_METHODS},
-    shape::{shared_shape::SharedShape, Shape},
+    shape::RootShape,
     JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 <span class="kw">use crate</span>::{
@@ -1242,7 +1242,7 @@
     ///
     /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_proto_and_data_with_shared_shape&lt;O: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;&gt;(
-        root_shape: SharedShape,
+        root_shape: <span class="kw-2">&amp;</span>RootShape,
         prototype: O,
         data: ObjectData,
     ) -&gt; <span class="self">Self </span>{
@@ -1251,7 +1251,7 @@
                 object: GcRefCell::new(Object {
                     kind: data.kind,
                     properties: PropertyMap::from_prototype_with_shared_shape(
-                        Shape::shared(root_shape),
+                        root_shape,
                         prototype.into(),
                     ),
                     extensible: <span class="bool-val">true</span>,

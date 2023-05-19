@@ -636,12 +636,15 @@
 <a href="#635" id="635">635</a>
 <a href="#636" id="636">636</a>
 <a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{
     shape::{
         property_table::PropertyTableInner,
         shared_shape::TransitionKey,
         slot::{Slot, SlotAttributes},
-        ChangeTransitionAction, Shape, UniqueShape,
+        ChangeTransitionAction, RootShape, Shape, UniqueShape,
     },
     JsPrototype, ObjectStorage, PropertyDescriptor, PropertyKey,
 };
@@ -882,7 +885,7 @@
     </span><span class="kw">pub fn </span>from_prototype_unique_shape(prototype: JsPrototype) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             indexed_properties: IndexedProperties::default(),
-            shape: Shape::unique(UniqueShape::new(prototype, PropertyTableInner::default())),
+            shape: UniqueShape::new(prototype, PropertyTableInner::default()).into(),
             storage: Vec::default(),
         }
     }
@@ -890,11 +893,14 @@
     <span class="doccomment">/// Construct a [`PropertyMap`] from with the given prototype with a shared shape [`Shape`].
     </span><span class="attr">#[must_use]
     #[inline]
-    </span><span class="kw">pub fn </span>from_prototype_with_shared_shape(<span class="kw-2">mut </span>root_shape: Shape, prototype: JsPrototype) -&gt; <span class="self">Self </span>{
-        root_shape = root_shape.change_prototype_transition(prototype);
+    </span><span class="kw">pub fn </span>from_prototype_with_shared_shape(
+        root_shape: <span class="kw-2">&amp;</span>RootShape,
+        prototype: JsPrototype,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>shape = root_shape.shape().change_prototype_transition(prototype);
         <span class="self">Self </span>{
             indexed_properties: IndexedProperties::default(),
-            shape: root_shape,
+            shape: shape.into(),
             storage: Vec::default(),
         }
     }

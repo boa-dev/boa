@@ -1016,6 +1016,8 @@
 <a href="#1015" id="1015">1015</a>
 <a href="#1016" id="1016">1016</a>
 <a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1041,7 +1043,7 @@
     job::{JobQueue, NativeJob, SimpleJobQueue},
     module::{ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
-    object::{shape::SharedShape, FunctionObjectBuilder, JsObject},
+    object::{shape::RootShape, FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -1127,7 +1129,7 @@
     module_loader: MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>ModuleLoader&gt;,
 
     optimizer_options: OptimizerOptions,
-    root_shape: SharedShape,
+    root_shape: RootShape,
 
     <span class="doccomment">/// Unique identifier for each parser instance used during the context lifetime.
     </span>parser_identifier: u32,
@@ -1514,8 +1516,10 @@
         std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm, realm)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>root_shape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SharedShape {
-        <span class="self">self</span>.root_shape.clone()
+    <span class="doccomment">/// Get the [`RootShape`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>root_shape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RootShape {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.root_shape
     }
 
     <span class="doccomment">/// Gets the host hooks.
@@ -1934,7 +1938,7 @@
         <span class="lifetime">&#39;queue</span>: <span class="lifetime">&#39;host</span>,
         <span class="lifetime">&#39;module</span>: <span class="lifetime">&#39;host</span>,
     {
-        <span class="kw">let </span>root_shape = SharedShape::root();
+        <span class="kw">let </span>root_shape = RootShape::default();
 
         <span class="kw">let </span>host_hooks = <span class="self">self</span>.host_hooks.unwrap_or_else(|| {
             <span class="kw">let </span>hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks = <span class="kw-2">&amp;</span>DefaultHooks;

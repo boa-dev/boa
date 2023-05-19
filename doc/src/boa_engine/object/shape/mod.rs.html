@@ -216,13 +216,20 @@
 <a href="#215" id="215">215</a>
 <a href="#216" id="216">216</a>
 <a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Implements object shapes.
 
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>property_table;
+<span class="kw">mod </span>root_shape;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>shared_shape;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>slot;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>unique_shape;
 
+<span class="kw">pub use </span>root_shape::RootShape;
 <span class="kw">pub use </span>shared_shape::SharedShape;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>unique_shape::UniqueShape;
 
@@ -281,8 +288,9 @@
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Shape {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::unique(UniqueShape::default())
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        UniqueShape::default().into()
     }
 }
 
@@ -292,20 +300,6 @@
     ///
     /// NOTE: This only applies to [`SharedShape`].
     </span><span class="kw">const </span>TRANSITION_COUNT_MAX: u16 = <span class="number">1024</span>;
-
-    <span class="doccomment">/// Create a [`Shape`] from a [`SharedShape`].
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shared(inner: SharedShape) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            inner: Inner::Shared(inner),
-        }
-    }
-
-    <span class="doccomment">/// Create a [`Shape`] from a [`UniqueShape`].
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>unique(shape: UniqueShape) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            inner: Inner::Unique(shape),
-        }
-    }
 
     <span class="doccomment">/// Returns `true` if it&#39;s a shared shape, `false` otherwise.
     </span><span class="attr">#[inline]
@@ -334,11 +328,11 @@
             Inner::Shared(shape) =&gt; {
                 <span class="kw">let </span>shape = shape.insert_property_transition(key);
                 <span class="kw">if </span>shape.transition_count() &gt;= <span class="self">Self</span>::TRANSITION_COUNT_MAX {
-                    <span class="kw">return </span><span class="self">Self</span>::unique(shape.to_unique());
+                    <span class="kw">return </span>shape.to_unique().into();
                 }
-                <span class="self">Self</span>::shared(shape)
+                shape.into()
             }
-            Inner::Unique(shape) =&gt; <span class="self">Self</span>::unique(shape.insert_property_transition(key)),
+            Inner::Unique(shape) =&gt; shape.insert_property_transition(key).into(),
         }
     }
 
@@ -355,9 +349,9 @@
                 <span class="kw">let </span>change_transition = shape.change_attributes_transition(key);
                 <span class="kw">let </span>shape =
                     <span class="kw">if </span>change_transition.shape.transition_count() &gt;= <span class="self">Self</span>::TRANSITION_COUNT_MAX {
-                        <span class="self">Self</span>::unique(change_transition.shape.to_unique())
+                        change_transition.shape.to_unique().into()
                     } <span class="kw">else </span>{
-                        <span class="self">Self</span>::shared(change_transition.shape)
+                        change_transition.shape.into()
                     };
                 ChangeTransition {
                     shape,
@@ -376,11 +370,11 @@
             Inner::Shared(shape) =&gt; {
                 <span class="kw">let </span>shape = shape.remove_property_transition(key);
                 <span class="kw">if </span>shape.transition_count() &gt;= <span class="self">Self</span>::TRANSITION_COUNT_MAX {
-                    <span class="kw">return </span><span class="self">Self</span>::unique(shape.to_unique());
+                    <span class="kw">return </span>shape.to_unique().into();
                 }
-                <span class="self">Self</span>::shared(shape)
+                shape.into()
             }
-            Inner::Unique(shape) =&gt; <span class="self">Self</span>::unique(shape.remove_property_transition(key)),
+            Inner::Unique(shape) =&gt; shape.remove_property_transition(key).into(),
         }
     }
 
@@ -390,11 +384,11 @@
             Inner::Shared(shape) =&gt; {
                 <span class="kw">let </span>shape = shape.change_prototype_transition(prototype);
                 <span class="kw">if </span>shape.transition_count() &gt;= <span class="self">Self</span>::TRANSITION_COUNT_MAX {
-                    <span class="kw">return </span><span class="self">Self</span>::unique(shape.to_unique());
+                    <span class="kw">return </span>shape.to_unique().into();
                 }
-                <span class="self">Self</span>::shared(shape)
+                shape.into()
             }
-            Inner::Unique(shape) =&gt; <span class="self">Self</span>::unique(shape.change_prototype_transition(prototype)),
+            Inner::Unique(shape) =&gt; shape.change_prototype_transition(prototype).into(),
         }
     }
 
@@ -430,6 +424,22 @@
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             Inner::Shared(shape) =&gt; shape.to_addr_usize(),
             Inner::Unique(shape) =&gt; shape.to_addr_usize(),
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;UniqueShape&gt; <span class="kw">for </span>Shape {
+    <span class="kw">fn </span>from(shape: UniqueShape) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Inner::Unique(shape),
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;SharedShape&gt; <span class="kw">for </span>Shape {
+    <span class="kw">fn </span>from(shape: SharedShape) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Inner::Shared(shape),
         }
     }
 }

@@ -1305,6 +1305,8 @@
 <a href="#1304" id="1304">1304</a>
 <a href="#1305" id="1305">1305</a>
 <a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -1312,7 +1314,7 @@
 <span class="kw">use crate</span>::{
     builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
     object::{
-        shape::shared_shape::{template::ObjectTemplate, SharedShape},
+        shape::{shared_shape::template::ObjectTemplate, RootShape},
         JsFunction, JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyKey},
@@ -1334,7 +1336,7 @@
 }
 
 <span class="kw">impl </span>Intrinsics {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(root_shape: <span class="kw-2">&amp;</span>SharedShape) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(root_shape: <span class="kw-2">&amp;</span>RootShape) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>constructors = StandardConstructors::default();
         <span class="kw">let </span>templates = ObjectTemplates::new(root_shape, <span class="kw-2">&amp;</span>constructors);
 
@@ -2311,7 +2313,9 @@
 }
 
 <span class="kw">impl </span>ObjectTemplates {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(root_shape: <span class="kw-2">&amp;</span>SharedShape, constructors: <span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(root_shape: <span class="kw-2">&amp;</span>RootShape, constructors: <span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>root_shape = root_shape.shape();
+
         <span class="comment">// pre-initialize used shapes.
         </span><span class="kw">let </span>ordinary_object =
             ObjectTemplate::with_prototype(root_shape, constructors.object().prototype());

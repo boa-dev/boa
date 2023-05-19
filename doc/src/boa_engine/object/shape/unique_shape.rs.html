@@ -391,7 +391,7 @@
             property_table.keys[index].<span class="number">1</span>.attributes = key.attributes;
             <span class="comment">// TODO: invalidate the pointer.
             </span><span class="kw">return </span>ChangeTransition {
-                shape: Shape::unique(<span class="self">self</span>.clone()),
+                shape: <span class="self">self</span>.clone().into(),
                 action: ChangeTransitionAction::Nothing,
             };
         }
@@ -453,7 +453,7 @@
         <span class="kw">let </span>shape = <span class="self">Self</span>::new(prototype, property_table);
 
         ChangeTransition {
-            shape: Shape::unique(shape),
+            shape: shape.into(),
             action,
         }
     }

@@ -273,6 +273,8 @@
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
 <a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `WeakMap` builtin object.
 //!
 //! More information:
@@ -357,9 +359,11 @@
 
         <span class="comment">// 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%WeakMap.prototype%&quot;, « [[WeakMapData]] »).
         // 3. Set map.[[WeakMapData]] to a new empty List.
-        </span><span class="kw">let </span>map = JsObject::from_proto_and_data_with_shared_shape(
+        </span><span class="kw">let </span>prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::weak_map, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>map = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
-            get_prototype_from_constructor(new_target, StandardConstructors::weak_map, context)<span class="question-mark">?</span>,
+            prototype,
             ObjectData::weak_map(boa_gc::WeakMap::new()),
         );
 

@@ -140,17 +140,11 @@
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="kw">use crate</span>::{
-    object::{
-        shape::{slot::SlotAttributes, Shape},
-        JsObject, Object, ObjectData, PropertyMap,
-    },
+    object::{shape::slot::SlotAttributes, JsObject, Object, ObjectData, PropertyMap},
     property::{Attribute, PropertyKey},
     JsValue,
 };
@@ -166,15 +160,15 @@
 
 <span class="kw">impl </span>ObjectTemplate {
     <span class="doccomment">/// Create a new [`ObjectTemplate`]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(root_shape: <span class="kw-2">&amp;</span>SharedShape) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(shape: <span class="kw-2">&amp;</span>SharedShape) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            shape: root_shape.clone(),
+            shape: shape.clone(),
         }
     }
 
     <span class="doccomment">/// Create and [`ObjectTemplate`] with a prototype.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_prototype(root_shape: <span class="kw-2">&amp;</span>SharedShape, prototype: JsObject) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>shape = root_shape.change_prototype_transition(<span class="prelude-val">Some</span>(prototype));
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_prototype(shape: <span class="kw-2">&amp;</span>SharedShape, prototype: JsObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>shape = shape.change_prototype_transition(<span class="prelude-val">Some</span>(prototype));
         <span class="self">Self </span>{ shape }
     }
 
@@ -256,7 +250,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>object = Object {
             kind: data.kind,
             extensible: <span class="bool-val">true</span>,
-            properties: PropertyMap::new(Shape::shared(<span class="self">self</span>.shape.clone()), ThinVec::default()),
+            properties: PropertyMap::new(<span class="self">self</span>.shape.clone().into(), ThinVec::default()),
             private_elements: ThinVec::new(),
         };
 
@@ -278,7 +272,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>object = Object {
             kind: data.kind,
             extensible: <span class="bool-val">true</span>,
-            properties: PropertyMap::new(Shape::shared(<span class="self">self</span>.shape.clone()), elements),
+            properties: PropertyMap::new(<span class="self">self</span>.shape.clone().into(), elements),
             private_elements: ThinVec::new(),
         };
 

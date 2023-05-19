@@ -170,6 +170,8 @@
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace, WeakGc};
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -252,9 +254,11 @@
 
         <span class="comment">// 3. Let weakRef be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%WeakRef.prototype%&quot;, « [[WeakRefTarget]] »).
         // 5. Set weakRef.[[WeakRefTarget]] to target.
-        </span><span class="kw">let </span>weak_ref = JsObject::from_proto_and_data_with_shared_shape(
+        </span><span class="kw">let </span>prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::weak_ref, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>weak_ref = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
-            get_prototype_from_constructor(new_target, StandardConstructors::weak_ref, context)<span class="question-mark">?</span>,
+            prototype,
             ObjectData::weak_ref(WeakGc::new(target.inner())),
         );
 

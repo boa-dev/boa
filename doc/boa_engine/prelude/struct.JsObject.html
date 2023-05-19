@@ -152,7 +152,7 @@
 with the difference that the <code>additionalInternalSlotsList</code> parameter is automatically set by
 the <a href="../object/struct.ObjectData.html" title="struct boa_engine::object::ObjectData"><code>ObjectData</code></a> provided.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.from_proto_and_data_with_shared_shape" class="method"><a class="srclink rightside" href="../../src/boa_engine/object/jsobject.rs.html#130-149">source</a><h4 class="code-header">pub(crate) fn <a href="#method.from_proto_and_data_with_shared_shape" class="fn">from_proto_and_data_with_shared_shape</a>&lt;O: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Self&gt;&gt;&gt;(
-    root_shape: <a class="struct" href="../object/shape/shared_shape/struct.SharedShape.html" title="struct boa_engine::object::shape::shared_shape::SharedShape">SharedShape</a>,
+    root_shape: &amp;<a class="struct" href="../object/shape/root_shape/struct.RootShape.html" title="struct boa_engine::object::shape::root_shape::RootShape">RootShape</a>,
     prototype: O,
     data: <a class="struct" href="../object/struct.ObjectData.html" title="struct boa_engine::object::ObjectData">ObjectData</a>
 ) -&gt; Self</h4></section></summary><div class="docblock"><p>Creates a new object with the provided prototype and object data.</p>

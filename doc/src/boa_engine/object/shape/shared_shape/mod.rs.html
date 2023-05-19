@@ -644,7 +644,7 @@
 
     <span class="doccomment">/// Create a root [`SharedShape`].
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>root() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>root() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(Inner {
             forward_transitions: ForwardTransition::default(),
             prototype: <span class="prelude-val">None</span>,
