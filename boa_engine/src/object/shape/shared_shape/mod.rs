@@ -174,7 +174,7 @@ impl SharedShape {
 
     /// Create a root [`SharedShape`].
     #[must_use]
-    pub fn root() -> Self {
+    pub(crate) fn root() -> Self {
         Self::new(Inner {
             forward_transitions: ForwardTransition::default(),
             prototype: None,

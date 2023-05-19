@@ -149,7 +149,7 @@ impl UniqueShape {
             property_table.keys[index].1.attributes = key.attributes;
             // TODO: invalidate the pointer.
             return ChangeTransition {
-                shape: Shape::unique(self.clone()),
+                shape: self.clone().into(),
                 action: ChangeTransitionAction::Nothing,
             };
         }
@@ -211,7 +211,7 @@ impl UniqueShape {
         let shape = Self::new(prototype, property_table);
 
         ChangeTransition {
-            shape: Shape::unique(shape),
+            shape: shape.into(),
             action,
         }
     }

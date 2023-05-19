@@ -78,9 +78,11 @@ impl BuiltInConstructor for WeakSet {
 
         // 2. Let set be ? OrdinaryCreateFromConstructor(NewTarget, "%WeakSet.prototype%", « [[WeakSetData]] »).
         // 3. Set set.[[WeakSetData]] to a new empty List.
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::weak_set, context)?;
         let weak_set = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
-            get_prototype_from_constructor(new_target, StandardConstructors::weak_set, context)?,
+            prototype,
             ObjectData::weak_set(WeakMap::new()),
         );
 

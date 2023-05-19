@@ -4,7 +4,7 @@
 
 use super::{
     internal_methods::{InternalObjectMethods, ARRAY_EXOTIC_INTERNAL_METHODS},
-    shape::{shared_shape::SharedShape, Shape},
+    shape::RootShape,
     JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 use crate::{
@@ -128,7 +128,7 @@ impl JsObject {
     ///
     /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     pub(crate) fn from_proto_and_data_with_shared_shape<O: Into<Option<Self>>>(
-        root_shape: SharedShape,
+        root_shape: &RootShape,
         prototype: O,
         data: ObjectData,
     ) -> Self {
@@ -137,7 +137,7 @@ impl JsObject {
                 object: GcRefCell::new(Object {
                     kind: data.kind,
                     properties: PropertyMap::from_prototype_with_shared_shape(
-                        Shape::shared(root_shape),
+                        root_shape,
                         prototype.into(),
                     ),
                     extensible: true,

@@ -80,9 +80,11 @@ impl BuiltInConstructor for WeakRef {
 
         // 3. Let weakRef be ? OrdinaryCreateFromConstructor(NewTarget, "%WeakRef.prototype%", « [[WeakRefTarget]] »).
         // 5. Set weakRef.[[WeakRefTarget]] to target.
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::weak_ref, context)?;
         let weak_ref = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
-            get_prototype_from_constructor(new_target, StandardConstructors::weak_ref, context)?,
+            prototype,
             ObjectData::weak_ref(WeakGc::new(target.inner())),
         );
 

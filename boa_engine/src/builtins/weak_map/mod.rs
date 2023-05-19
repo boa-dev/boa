@@ -82,9 +82,11 @@ impl BuiltInConstructor for WeakMap {
 
         // 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, "%WeakMap.prototype%", « [[WeakMapData]] »).
         // 3. Set map.[[WeakMapData]] to a new empty List.
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::weak_map, context)?;
         let map = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
-            get_prototype_from_constructor(new_target, StandardConstructors::weak_map, context)?,
+            prototype,
             ObjectData::weak_map(boa_gc::WeakMap::new()),
         );
 

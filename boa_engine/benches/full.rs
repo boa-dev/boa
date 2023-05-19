@@ -1,7 +1,7 @@
 //! Benchmarks of the whole execution engine in Boa.
 
 use boa_engine::{
-    context::DefaultHooks, object::shape::SharedShape, optimizer::OptimizerOptions, realm::Realm,
+    context::DefaultHooks, object::shape::RootShape, optimizer::OptimizerOptions, realm::Realm,
     Context, Source,
 };
 use criterion::{criterion_group, criterion_main, Criterion};
@@ -16,7 +16,7 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn create_realm(c: &mut Criterion) {
     c.bench_function("Create Realm", move |b| {
-        let root_shape = SharedShape::root();
+        let root_shape = RootShape::default();
         b.iter(|| Realm::create(&DefaultHooks, &root_shape))
     });
 }
