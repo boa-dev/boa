@@ -52,8 +52,8 @@ impl ByteCompiler<'_, '_> {
             let env_info = compiler.pop_compile_environment();
 
             if let Some(env_labels) = env_labels {
-                compiler.patch_jump_with_target(env_labels.0, env_info.num_bindings as u32);
-                compiler.patch_jump_with_target(env_labels.1, env_info.index as u32);
+                compiler.patch_jump_with_target(env_labels.0, env_info.num_bindings);
+                compiler.patch_jump_with_target(env_labels.1, env_info.index);
                 compiler.pop_compile_environment();
             } else {
                 compiler.num_bindings = env_info.num_bindings;
@@ -548,8 +548,8 @@ impl ByteCompiler<'_, '_> {
 
         if let Some(class_env) = class_env {
             let env_info = self.pop_compile_environment();
-            self.patch_jump_with_target(class_env.0, env_info.num_bindings as u32);
-            self.patch_jump_with_target(class_env.1, env_info.index as u32);
+            self.patch_jump_with_target(class_env.0, env_info.num_bindings);
+            self.patch_jump_with_target(class_env.1, env_info.index);
             self.emit_opcode(Opcode::PopEnvironment);
         }
 

@@ -116,8 +116,8 @@ impl Realm {
             .poisonable_environment();
         let mut bindings = env.bindings().borrow_mut();
 
-        if bindings.len() < binding_number {
-            bindings.resize(binding_number, None);
+        if bindings.len() < binding_number as usize {
+            bindings.resize(binding_number as usize, None);
         }
     }
 

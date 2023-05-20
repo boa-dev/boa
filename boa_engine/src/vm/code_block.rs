@@ -97,7 +97,7 @@ pub struct CodeBlock {
     pub(crate) bindings: Box<[BindingLocator]>,
 
     /// Number of binding for the function environment.
-    pub(crate) num_bindings: usize,
+    pub(crate) num_bindings: u32,
 
     /// Functions inside this function
     pub(crate) functions: Box<[Gc<Self>]>,
@@ -123,7 +123,7 @@ pub struct CodeBlock {
     pub(crate) function_environment_push_location: u32,
 
     /// The number of bindings in the parameters environment.
-    pub(crate) parameters_env_bindings: Option<usize>,
+    pub(crate) parameters_env_bindings: Option<u32>,
 
     #[cfg(feature = "trace")]
     /// Trace instruction execution to `stdout`.

@@ -61,8 +61,8 @@ impl ByteCompiler<'_, '_> {
         }
 
         let env_info = self.pop_compile_environment();
-        self.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
-        self.patch_jump_with_target(push_env.1, env_info.index as u32);
+        self.patch_jump_with_target(push_env.0, env_info.num_bindings);
+        self.patch_jump_with_target(push_env.1, env_info.index);
         self.emit_opcode(Opcode::PopEnvironment);
     }
 }

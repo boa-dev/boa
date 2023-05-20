@@ -12,14 +12,14 @@ use rustc_hash::FxHashMap;
 /// This struct stores all the data to access mapped function parameters in their environment.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct ParameterMap {
-    binding_indices: Vec<Option<usize>>,
+    binding_indices: Vec<Option<u32>>,
     environment: Gc<DeclarativeEnvironment>,
 }
 
 impl ParameterMap {
     /// Deletes the binding with the given index from the parameter map.
-    pub(crate) fn delete(&mut self, index: usize) {
-        if let Some(binding) = self.binding_indices.get_mut(index) {
+    pub(crate) fn delete(&mut self, index: u32) {
+        if let Some(binding) = self.binding_indices.get_mut(index as usize) {
             *binding = None;
         }
     }
@@ -32,8 +32,12 @@ impl ParameterMap {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-makearggetter
-    pub(crate) fn get(&self, index: usize) -> Option<JsValue> {
-        let binding_index = self.binding_indices.get(index).copied().flatten()?;
+    pub(crate) fn get(&self, index: u32) -> Option<JsValue> {
+        let binding_index = self
+            .binding_indices
+            .get(index as usize)
+            .copied()
+            .flatten()?;
         self.environment.get(binding_index)
     }
 
@@ -45,8 +49,8 @@ impl ParameterMap {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-makeargsetter
-    pub(crate) fn set(&self, index: usize, value: &JsValue) {
-        if let Some(binding_index) = self.binding_indices.get(index).copied().flatten() {
+    pub(crate) fn set(&self, index: u32, value: &JsValue) {
+        if let Some(binding_index) = self.binding_indices.get(index as usize).copied().flatten() {
             self.environment.set(binding_index, value.clone());
         }
     }
@@ -174,7 +178,7 @@ impl Arguments {
             if property_index >= len {
                 break;
             }
-            let binding_index = bindings.len();
+            let binding_index = bindings.len() as u32;
             let entry = bindings
                 .entry(name)
                 .or_insert((binding_index, property_index));
