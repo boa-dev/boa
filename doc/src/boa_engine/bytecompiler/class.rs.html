@@ -618,8 +618,8 @@
             <span class="kw">let </span>env_info = compiler.pop_compile_environment();
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(env_labels) = env_labels {
-                compiler.patch_jump_with_target(env_labels.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
-                compiler.patch_jump_with_target(env_labels.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+                compiler.patch_jump_with_target(env_labels.<span class="number">0</span>, env_info.num_bindings);
+                compiler.patch_jump_with_target(env_labels.<span class="number">1</span>, env_info.index);
                 compiler.pop_compile_environment();
             } <span class="kw">else </span>{
                 compiler.num_bindings = env_info.num_bindings;
@@ -1114,8 +1114,8 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(class_env) = class_env {
             <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
-            <span class="self">self</span>.patch_jump_with_target(class_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
-            <span class="self">self</span>.patch_jump_with_target(class_env.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+            <span class="self">self</span>.patch_jump_with_target(class_env.<span class="number">0</span>, env_info.num_bindings);
+            <span class="self">self</span>.patch_jump_with_target(class_env.<span class="number">1</span>, env_info.index);
             <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
         }
 

@@ -130,7 +130,7 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">enum </span>BindingAccessor {
     Identifier(Identifier),
-    Index(usize),
+    Index(u32),
 }
 
 <span class="doccomment">/// An indirect reference to a binding inside an environment.
@@ -162,9 +162,9 @@
 
 <span class="kw">impl </span>ModuleEnvironment {
     <span class="doccomment">/// Creates a new `LexicalEnvironment`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bindings: usize) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bindings: u32) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            bindings: GcRefCell::new(<span class="macro">vec!</span>[BindingType::Direct(<span class="prelude-val">None</span>); bindings]),
+            bindings: GcRefCell::new(<span class="macro">vec!</span>[BindingType::Direct(<span class="prelude-val">None</span>); bindings <span class="kw">as </span>usize]),
         }
     }
 
@@ -174,10 +174,10 @@
     ///
     /// Panics if the binding value is out of range or not initialized.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>bindings = <span class="self">self</span>.bindings.borrow();
 
-        <span class="kw">match </span><span class="kw-2">&amp;</span>bindings[index] {
+        <span class="kw">match </span><span class="kw-2">&amp;</span>bindings[index <span class="kw">as </span>usize] {
             BindingType::Direct(v) =&gt; v.clone(),
             BindingType::Indirect(IndirectBinding { module, accessor }) =&gt; {
                 <span class="kw">let </span>env = module.environment()<span class="question-mark">?</span>;
@@ -208,10 +208,10 @@
     ///
     /// Panics if the binding value is out of range.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize, value: JsValue) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32, value: JsValue) {
         <span class="kw">let </span><span class="kw-2">mut </span>bindings = <span class="self">self</span>.bindings.borrow_mut();
 
-        <span class="kw">match </span><span class="kw-2">&amp;mut </span>bindings[index] {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span>bindings[index <span class="kw">as </span>usize] {
             BindingType::Direct(v) =&gt; <span class="kw-2">*</span>v = <span class="prelude-val">Some</span>(value),
             BindingType::Indirect(<span class="kw">_</span>) =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;cannot modify indirect references to other environments&quot;</span>)
@@ -227,13 +227,13 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_indirect(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        index: usize,
+        index: u32,
         target_module: Module,
         target_binding: Identifier,
     ) {
         <span class="kw">let </span><span class="kw-2">mut </span>bindings = <span class="self">self</span>.bindings.borrow_mut();
 
-        bindings[index] = BindingType::Indirect(IndirectBinding {
+        bindings[index <span class="kw">as </span>usize] = BindingType::Indirect(IndirectBinding {
             module: target_module,
             accessor: Cell::new(BindingAccessor::Identifier(target_binding)),
         });

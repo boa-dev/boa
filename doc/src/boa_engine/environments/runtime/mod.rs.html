@@ -914,12 +914,11 @@
             .rev()
         {
             <span class="kw">if let </span>DeclarativeEnvironmentKind::Function(fun) = <span class="kw-2">&amp;</span>env.kind() {
-                <span class="kw">let </span>compile_bindings_number = env.compile_env().borrow().num_bindings();
-                <span class="kw">let </span><span class="kw-2">mut </span>bindings_mut = fun.poisonable_environment().bindings().borrow_mut();
+                <span class="kw">let </span>compile_bindings_number = env.compile_env().borrow().num_bindings() <span class="kw">as </span>usize;
+                <span class="kw">let </span><span class="kw-2">mut </span>bindings = fun.poisonable_environment().bindings().borrow_mut();
 
-                <span class="kw">if </span>compile_bindings_number &gt; bindings_mut.len() {
-                    <span class="kw">let </span>diff = compile_bindings_number - bindings_mut.len();
-                    bindings_mut.extend(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; diff]);
+                <span class="kw">if </span>compile_bindings_number &gt; bindings.len() {
+                    bindings.resize(compile_bindings_number, <span class="prelude-val">None</span>);
                 }
                 <span class="kw">break</span>;
             }
@@ -1048,9 +1047,9 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_lexical(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        num_bindings: usize,
+        num_bindings: u32,
         compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
-    ) -&gt; usize {
+    ) -&gt; u32 {
         <span class="kw">let </span>(poisoned, with) = {
             <span class="kw">let </span>with = <span class="self">self
                 </span>.stack
@@ -1068,7 +1067,7 @@
             (environment.poisoned(), with || environment.with())
         };
 
-        <span class="kw">let </span>index = <span class="self">self</span>.stack.len();
+        <span class="kw">let </span>index = <span class="self">self</span>.stack.len() <span class="kw">as </span>u32;
 
         <span class="self">self</span>.stack.push(Environment::Declarative(Gc::new(
             DeclarativeEnvironment::new(
@@ -1092,7 +1091,7 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        num_bindings: usize,
+        num_bindings: u32,
         compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
         function_slots: FunctionSlots,
     ) {
@@ -1135,11 +1134,11 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_function_inherit(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        num_bindings: usize,
+        num_bindings: u32,
         compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
     ) {
         <span class="macro">debug_assert!</span>(
-            <span class="self">self</span>.stack.len() == compile_environment.borrow().environment_index(),
+            <span class="self">self</span>.stack.len() <span class="kw">as </span>u32 == compile_environment.borrow().environment_index(),
             <span class="string">&quot;tried to push an invalid compile environment&quot;
         </span>);
 
@@ -1259,13 +1258,13 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>put_lexical_value(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        environment_index: usize,
-        binding_index: usize,
+        environment_index: u32,
+        binding_index: u32,
         value: JsValue,
     ) {
         <span class="kw">let </span>env = <span class="self">self
             </span>.stack
-            .get(environment_index)
+            .get(environment_index <span class="kw">as </span>usize)
             .expect(<span class="string">&quot;environment index must be in range&quot;</span>)
             .declarative_expect();
         env.set(binding_index, value);
@@ -1279,13 +1278,13 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>put_value_if_uninitialized(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        environment_index: usize,
-        binding_index: usize,
+        environment_index: u32,
+        binding_index: u32,
         value: JsValue,
     ) {
         <span class="kw">let </span>env = <span class="self">self
             </span>.stack
-            .get(environment_index)
+            .get(environment_index <span class="kw">as </span>usize)
             .expect(<span class="string">&quot;environment index must be in range&quot;</span>)
             .declarative_expect();
         <span class="kw">if </span>env.get(binding_index).is_none() {
@@ -1345,8 +1344,8 @@
 </span><span class="attr">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BindingLocator {
     name: Identifier,
-    environment_index: usize,
-    binding_index: usize,
+    environment_index: u32,
+    binding_index: u32,
     global: bool,
     mutate_immutable: bool,
     silent: bool,
@@ -1360,8 +1359,8 @@
     <span class="doccomment">/// Creates a new declarative binding locator that has knows indices.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>declarative(
         name: Identifier,
-        environment_index: usize,
-        binding_index: usize,
+        environment_index: u32,
+        binding_index: u32,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name,
@@ -1421,12 +1420,12 @@
     }
 
     <span class="doccomment">/// Returns the environment index of the binding.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>environment_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>environment_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
         <span class="self">self</span>.environment_index
     }
 
     <span class="doccomment">/// Returns the binding index of the binding.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>binding_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>binding_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
         <span class="self">self</span>.binding_index
     }
 
@@ -1469,7 +1468,8 @@
             }
         }
 
-        <span class="kw">for </span>env_index <span class="kw">in </span>(locator.environment_index..<span class="self">self</span>.vm.environments.stack.len()).rev() {
+        <span class="kw">for </span>env_index <span class="kw">in </span>(locator.environment_index..<span class="self">self</span>.vm.environments.stack.len() <span class="kw">as </span>u32).rev()
+        {
             <span class="kw">match </span><span class="self">self</span>.environment_expect(env_index) {
                 Environment::Declarative(env) =&gt; {
                     <span class="kw">if </span>env.poisoned() {
@@ -1639,11 +1639,11 @@
     }
 
     <span class="doccomment">/// Return the environment at the given index. Panics if the index is out of range.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>environment_expect(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;</span>Environment {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>environment_expect(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32) -&gt; <span class="kw-2">&amp;</span>Environment {
         <span class="self">self</span>.vm
             .environments
             .stack
-            .get(index)
+            .get(index <span class="kw">as </span>usize)
             .expect(<span class="string">&quot;environment index must be in range&quot;</span>)
     }
 }

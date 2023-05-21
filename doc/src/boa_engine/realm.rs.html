@@ -253,8 +253,8 @@
             .poisonable_environment();
         <span class="kw">let </span><span class="kw-2">mut </span>bindings = env.bindings().borrow_mut();
 
-        <span class="kw">if </span>bindings.len() &lt; binding_number {
-            bindings.resize(binding_number, <span class="prelude-val">None</span>);
+        <span class="kw">if </span>bindings.len() &lt; binding_number <span class="kw">as </span>usize {
+            bindings.resize(binding_number <span class="kw">as </span>usize, <span class="prelude-val">None</span>);
         }
     }
 

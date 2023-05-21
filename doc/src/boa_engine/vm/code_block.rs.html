@@ -1476,7 +1476,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) bindings: Box&lt;[BindingLocator]&gt;,
 
     <span class="doccomment">/// Number of binding for the function environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) num_bindings: usize,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) num_bindings: u32,
 
     <span class="doccomment">/// Functions inside this function
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Box&lt;[Gc&lt;<span class="self">Self</span>&gt;]&gt;,
@@ -1502,7 +1502,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) function_environment_push_location: u32,
 
     <span class="doccomment">/// The number of bindings in the parameters environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) parameters_env_bindings: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) parameters_env_bindings: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
     </span><span class="doccomment">/// Trace instruction execution to `stdout`.

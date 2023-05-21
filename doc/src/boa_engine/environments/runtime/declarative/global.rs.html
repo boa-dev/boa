@@ -89,7 +89,7 @@
     ///
     /// Panics if the binding value is out of range or not initialized.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="self">self</span>.inner.get(index)
     }
 
@@ -99,7 +99,7 @@
     ///
     /// Panics if the binding value is out of range.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize, value: JsValue) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32, value: JsValue) {
         <span class="self">self</span>.inner.set(index, value);
     }
 

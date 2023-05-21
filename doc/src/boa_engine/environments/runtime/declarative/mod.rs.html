@@ -397,7 +397,7 @@
     ///
     /// Panics if the binding value is out of range or not initialized.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="self">self</span>.kind.get(index)
     }
 
@@ -407,7 +407,7 @@
     ///
     /// Panics if the binding value is out of range.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize, value: JsValue) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32, value: JsValue) {
         <span class="self">self</span>.kind.set(index, value);
     }
 
@@ -498,7 +498,7 @@
     ///
     /// Panics if the binding value is out of range or not initialized.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Lexical(inner) =&gt; inner.get(index),
             <span class="self">Self</span>::Global(inner) =&gt; inner.get(index),
@@ -513,7 +513,7 @@
     ///
     /// Panics if the binding value is out of range.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize, value: JsValue) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32, value: JsValue) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Lexical(inner) =&gt; inner.set(index, value),
             <span class="self">Self</span>::Global(inner) =&gt; inner.set(index, value),
@@ -599,9 +599,9 @@
 
 <span class="kw">impl </span>PoisonableEnvironment {
     <span class="doccomment">/// Creates a new `PoisonableEnvironment`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bindings_count: usize, poisoned: bool, with: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bindings_count: u32, poisoned: bool, with: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            bindings: GcRefCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; bindings_count]),
+            bindings: GcRefCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; bindings_count <span class="kw">as </span>usize]),
             poisoned: Cell::new(poisoned),
             with: Cell::new(with),
         }
@@ -618,8 +618,8 @@
     ///
     /// Panics if the binding value is out of range.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
-        <span class="self">self</span>.bindings.borrow()[index].clone()
+    </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="self">self</span>.bindings.borrow()[index <span class="kw">as </span>usize].clone()
     }
 
     <span class="doccomment">/// Sets the binding value from the environment by index.
@@ -628,8 +628,8 @@
     ///
     /// Panics if the binding value is out of range.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize, value: JsValue) {
-        <span class="self">self</span>.bindings.borrow_mut()[index] = <span class="prelude-val">Some</span>(value);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32, value: JsValue) {
+        <span class="self">self</span>.bindings.borrow_mut()[index <span class="kw">as </span>usize] = <span class="prelude-val">Some</span>(value);
     }
 
     <span class="doccomment">/// Returns `true` if this environment is poisoned.

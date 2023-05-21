@@ -31,8 +31,8 @@
         <span class="self">self</span>.compile_statement_list(block.statement_list(), use_expr, <span class="bool-val">true</span>);
 
         <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings);
+        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, env_info.index);
 
         <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
     }

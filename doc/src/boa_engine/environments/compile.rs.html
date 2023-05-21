@@ -304,7 +304,7 @@
 /// It contains the binding index and a flag to indicate if this is a mutable binding or not.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>CompileTimeBinding {
-    index: usize,
+    index: u32,
     mutable: bool,
     lex: bool,
     strict: bool,
@@ -316,7 +316,7 @@
 </span><span class="attr">#[derive(Debug, Finalize, Trace)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CompileTimeEnvironment {
     outer: <span class="prelude-ty">Option</span>&lt;Gc&lt;GcRefCell&lt;<span class="self">Self</span>&gt;&gt;&gt;,
-    environment_index: usize,
+    environment_index: u32,
     <span class="attr">#[unsafe_ignore_trace]
     </span>bindings: FxHashMap&lt;Identifier, CompileTimeBinding&gt;,
     function_scope: bool,
@@ -369,8 +369,8 @@
     }
 
     <span class="doccomment">/// Returns the number of bindings in this environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>num_bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.bindings.len()
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>num_bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.bindings.len() <span class="kw">as </span>u32
     }
 
     <span class="doccomment">/// Check if the environment is a function environment.
@@ -452,7 +452,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(outer) = <span class="kw-2">&amp;</span><span class="self">self</span>.outer {
             <span class="kw">if </span>!function_scope || <span class="self">self</span>.function_scope {
                 <span class="kw">if </span>!<span class="self">self</span>.bindings.contains_key(<span class="kw-2">&amp;</span>name) {
-                    <span class="kw">let </span>binding_index = <span class="self">self</span>.bindings.len();
+                    <span class="kw">let </span>binding_index = <span class="self">self</span>.bindings.len() <span class="kw">as </span>u32;
                     <span class="self">self</span>.bindings.insert(
                         name,
                         CompileTimeBinding {
@@ -473,7 +473,7 @@
             <span class="bool-val">false
         </span>} <span class="kw">else </span>{
             <span class="kw">if </span>!<span class="self">self</span>.bindings.contains_key(<span class="kw-2">&amp;</span>name) {
-                <span class="kw">let </span>binding_index = <span class="self">self</span>.bindings.len();
+                <span class="kw">let </span>binding_index = <span class="self">self</span>.bindings.len() <span class="kw">as </span>u32;
                 <span class="self">self</span>.bindings.insert(
                     name,
                     CompileTimeBinding {
@@ -490,7 +490,7 @@
 
     <span class="doccomment">/// Crate an immutable binding.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_immutable_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier, strict: bool) {
-        <span class="kw">let </span>binding_index = <span class="self">self</span>.bindings.len();
+        <span class="kw">let </span>binding_index = <span class="self">self</span>.bindings.len() <span class="kw">as </span>u32;
         <span class="self">self</span>.bindings.insert(
             name,
             CompileTimeBinding {
@@ -583,7 +583,7 @@
     }
 
     <span class="doccomment">/// Gets the environment index of this environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>environment_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>environment_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
         <span class="self">self</span>.environment_index
     }
 }

@@ -291,7 +291,7 @@
             .borrow()
             .as_mapped_arguments()
             .expect(<span class="string">&quot;arguments exotic method must only be callable from arguments objects&quot;</span>)
-            .get(<span class="kw-2">*</span>index <span class="kw">as </span>usize)
+            .get(<span class="kw-2">*</span>index)
         {
             <span class="comment">// a. Set desc.[[Value]] to Get(map, P).
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
@@ -328,8 +328,8 @@
         </span>obj.borrow()
             .as_mapped_arguments()
             .expect(<span class="string">&quot;arguments exotic method must only be callable from arguments objects&quot;</span>)
-            .get(index <span class="kw">as </span>usize)
-            .map(|value| (index <span class="kw">as </span>usize, value))
+            .get(index)
+            .map(|value| (index, value))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>};
@@ -420,7 +420,7 @@
             .borrow()
             .as_mapped_arguments()
             .expect(<span class="string">&quot;arguments exotic method must only be callable from arguments objects&quot;</span>)
-            .get(<span class="kw-2">*</span>index <span class="kw">as </span>usize)
+            .get(<span class="kw-2">*</span>index)
         {
             <span class="comment">// a. Assert: map contains a formal parameter mapping for P.
             // b. Return Get(map, P).
@@ -459,7 +459,7 @@
             </span>obj.borrow_mut()
                 .as_mapped_arguments_mut()
                 .expect(<span class="string">&quot;arguments exotic method must only be callable from arguments objects&quot;</span>)
-                .set(index <span class="kw">as </span>usize, <span class="kw-2">&amp;</span>value);
+                .set(index, <span class="kw-2">&amp;</span>value);
         }
     }
 
@@ -490,7 +490,7 @@
             </span>obj.borrow_mut()
                 .as_mapped_arguments_mut()
                 .expect(<span class="string">&quot;arguments exotic method must only be callable from arguments objects&quot;</span>)
-                .delete(<span class="kw-2">*</span>index <span class="kw">as </span>usize);
+                .delete(<span class="kw-2">*</span>index);
         }
     }
 

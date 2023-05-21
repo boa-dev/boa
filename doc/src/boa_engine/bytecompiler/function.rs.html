@@ -295,8 +295,8 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(env_labels) = env_labels {
             <span class="kw">let </span>env_info = compiler.pop_compile_environment();
-            compiler.patch_jump_with_target(env_labels.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
-            compiler.patch_jump_with_target(env_labels.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+            compiler.patch_jump_with_target(env_labels.<span class="number">0</span>, env_info.num_bindings);
+            compiler.patch_jump_with_target(env_labels.<span class="number">1</span>, env_info.index);
         }
 
         <span class="kw">if </span>additional_env {
