@@ -329,7 +329,12 @@ impl ByteCompiler<'_, '_> {
             }
             Expression::NewTarget => {
                 if use_expr {
-                    self.emit_opcode(Opcode::PushNewTarget);
+                    self.emit_opcode(Opcode::NewTarget);
+                }
+            }
+            Expression::ImportMeta => {
+                if use_expr {
+                    self.emit_opcode(Opcode::ImportMeta);
                 }
             }
             Expression::Optional(opt) => {

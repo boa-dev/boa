@@ -72,12 +72,52 @@ where
         cursor.set_goal(InputElement::RegExp);
 
         let token = cursor.peek(0, interner).or_abrupt()?;
+        let position = token.span().start();
         let mut lhs = match token.kind() {
-            TokenKind::Keyword((Keyword::New | Keyword::Super, true)) => {
+            TokenKind::Keyword((Keyword::New | Keyword::Super | Keyword::Import, true)) => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
                     token.span().start(),
                 ));
+            }
+            TokenKind::Keyword((Keyword::Import, false)) => {
+                cursor.advance(interner);
+
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::Dot),
+                    "import.meta",
+                    interner,
+                )?;
+
+                let token = cursor.next(interner).or_abrupt()?;
+
+                match token.kind() {
+                    TokenKind::IdentifierName((Sym::META, ContainsEscapeSequence(ces))) => {
+                        if *ces {
+                            return Err(Error::general(
+                                "`import.meta` cannot contain escaped characters",
+                                token.span().start(),
+                            ));
+                        }
+                    }
+                    _ => {
+                        return Err(Error::expected(
+                            ["property `meta`".into()],
+                            token.to_string(interner),
+                            token.span(),
+                            "import.meta",
+                        ));
+                    }
+                }
+
+                if !cursor.module() {
+                    return Err(Error::general(
+                        "invalid `import.meta` expression outside a module",
+                        position,
+                    ));
+                }
+
+                ast::Expression::ImportMeta
             }
             TokenKind::Keyword((Keyword::New, false)) => {
                 cursor.advance(interner);

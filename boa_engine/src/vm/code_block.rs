@@ -500,7 +500,8 @@ impl CodeBlock {
             | Opcode::PushClassField
             | Opcode::SuperCallDerived
             | Opcode::Await
-            | Opcode::PushNewTarget
+            | Opcode::NewTarget
+            | Opcode::ImportMeta
             | Opcode::SuperCallPrepare
             | Opcode::CallEvalSpread
             | Opcode::CallSpread

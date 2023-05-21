@@ -584,7 +584,8 @@ impl CodeBlock {
                 | Opcode::PushClassField
                 | Opcode::SuperCallDerived
                 | Opcode::Await
-                | Opcode::PushNewTarget
+                | Opcode::NewTarget
+                | Opcode::ImportMeta
                 | Opcode::CallEvalSpread
                 | Opcode::CallSpread
                 | Opcode::NewSpread

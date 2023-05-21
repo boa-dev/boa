@@ -28,7 +28,7 @@ use crate::{
             },
             AssignmentExpression,
         },
-        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
     Error,
 };
@@ -78,24 +78,36 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        /// Checks if we need to parse a super call expression `super()`.
+        /// Checks if we need to parse a keyword call expression `keyword()`.
         ///
-        /// It first checks if the next token is `super`, and if it is, it checks if the second next
+        /// It first checks if the next token is `keyword`, and if it is, it checks if the second next
         /// token is the open parenthesis (`(`) punctuator.
         ///
         /// This is needed because the `if let` chain is very complex, and putting it inline in the
         /// initialization of `lhs` would make it very hard to return an expression over all
         /// possible branches of the `if let`s. Instead, we extract the check into its own function,
         /// then use it inside the condition of a simple `if ... else` expression.
-        fn is_super_call<R: Read>(
+        fn is_keyword_call<R: Read>(
+            keyword: Keyword,
             cursor: &mut Cursor<R>,
             interner: &mut Interner,
         ) -> ParseResult<bool> {
             if let Some(next) = cursor.peek(0, interner)? {
-                if let TokenKind::Keyword((Keyword::Super, _)) = next.kind() {
-                    if let Some(next) = cursor.peek(1, interner)? {
-                        if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                            return Ok(true);
+                if let TokenKind::Keyword((kw, escaped)) = next.kind() {
+                    if kw == &keyword {
+                        if *escaped {
+                            return Err(Error::general(
+                                format!(
+                                    "keyword `{}` cannot contain escaped characters",
+                                    kw.as_str().0
+                                ),
+                                next.span().start(),
+                            ));
+                        }
+                        if let Some(next) = cursor.peek(1, interner)? {
+                            if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+                                return Ok(true);
+                            }
                         }
                     }
                 }
@@ -107,54 +119,42 @@ where
 
         cursor.set_goal(InputElement::TemplateTail);
 
-        let mut lhs = if is_super_call(cursor, interner)? {
+        let mut lhs = if is_keyword_call(Keyword::Super, cursor, interner)? {
             cursor.advance(interner);
             let args =
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
             SuperCall::new(args).into()
+        } else if is_keyword_call(Keyword::Import, cursor, interner)? {
+            // `import`
+            cursor.advance(interner);
+            // `(`
+            cursor.advance(interner);
+
+            let arg = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
+
+            cursor.expect(
+                TokenKind::Punctuator(Punctuator::CloseParen),
+                "import call",
+                interner,
+            )?;
+
+            CallExpressionTail::new(
+                self.allow_yield,
+                self.allow_await,
+                ImportCall::new(arg).into(),
+            )
+            .parse(cursor, interner)?
         } else {
-            let next = cursor.peek(0, interner).or_abrupt()?;
-            if let TokenKind::Keyword((Keyword::Import, escaped)) = next.kind() {
-                if *escaped {
-                    return Err(Error::general(
-                        "keyword `import` must not contain escaped characters",
-                        next.span().start(),
-                    ));
-                }
-                cursor.advance(interner);
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenParen),
-                    "import call",
-                    interner,
-                )?;
-
-                let arg = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseParen),
-                    "import call",
-                    interner,
-                )?;
-
-                CallExpressionTail::new(
-                    self.allow_yield,
-                    self.allow_await,
-                    ImportCall::new(arg).into(),
-                )
-                .parse(cursor, interner)?
-            } else {
-                let mut member =
-                    MemberExpression::new(self.name, self.allow_yield, self.allow_await)
+            let mut member = MemberExpression::new(self.name, self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
+            if let Some(tok) = cursor.peek(0, interner)? {
+                if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+                    member = CallExpression::new(self.allow_yield, self.allow_await, member)
                         .parse(cursor, interner)?;
-                if let Some(tok) = cursor.peek(0, interner)? {
-                    if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                        member = CallExpression::new(self.allow_yield, self.allow_await, member)
-                            .parse(cursor, interner)?;
-                    }
                 }
-                member
             }
+            member
         };
 
         if let Some(tok) = cursor.peek(0, interner)? {
