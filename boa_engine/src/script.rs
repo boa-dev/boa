@@ -73,7 +73,7 @@ impl Script {
         src: Source<'_, R>,
         realm: Option<Realm>,
         context: &mut Context<'_>,
-    ) -> JsResult<Script> {
+    ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Script parsing", "Main");
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());

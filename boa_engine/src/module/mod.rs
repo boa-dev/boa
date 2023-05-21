@@ -66,8 +66,8 @@ pub enum Referrer {
 impl From<ActiveRunnable> for Referrer {
     fn from(value: ActiveRunnable) -> Self {
         match value {
-            ActiveRunnable::Script(script) => Referrer::Script(script),
-            ActiveRunnable::Module(module) => Referrer::Module(module),
+            ActiveRunnable::Script(script) => Self::Script(script),
+            ActiveRunnable::Module(module) => Self::Module(module),
         }
     }
 }

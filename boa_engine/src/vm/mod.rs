@@ -72,8 +72,8 @@ pub(crate) enum ActiveRunnable {
 unsafe impl Trace for ActiveRunnable {
     custom_trace!(this, {
         match this {
-            ActiveRunnable::Script(script) => mark(script),
-            ActiveRunnable::Module(module) => mark(module),
+            Self::Script(script) => mark(script),
+            Self::Module(module) => mark(module),
         }
     });
 }
