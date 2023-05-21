@@ -7,9 +7,9 @@ use boa_gc::{Gc, GcRefCell};
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PopEnvironmentInfo {
     /// Number of bindings declared.
-    pub(crate) num_bindings: usize,
+    pub(crate) num_bindings: u32,
     /// Index in the compile time envs array.
-    pub(crate) index: usize,
+    pub(crate) index: u32,
 }
 
 impl ByteCompiler<'_, '_> {
@@ -24,7 +24,7 @@ impl ByteCompiler<'_, '_> {
     /// Pops the top compile time environment and returns its index and number of bindings.
     #[track_caller]
     pub(crate) fn pop_compile_environment(&mut self) -> PopEnvironmentInfo {
-        let index = self.compile_environments.len();
+        let index = self.compile_environments.len() as u32;
         self.compile_environments
             .push(self.current_environment.clone());
 

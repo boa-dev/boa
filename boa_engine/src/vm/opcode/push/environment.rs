@@ -25,7 +25,7 @@ impl Operation for PushDeclarativeEnvironment {
         context
             .vm
             .environments
-            .push_lexical(num_bindings as usize, compile_environment);
+            .push_lexical(num_bindings, compile_environment);
         context.vm.frame_mut().inc_frame_env_stack();
         Ok(CompletionType::Normal)
     }
@@ -51,7 +51,7 @@ impl Operation for PushFunctionEnvironment {
         context
             .vm
             .environments
-            .push_function_inherit(num_bindings as usize, compile_environment);
+            .push_function_inherit(num_bindings, compile_environment);
         Ok(CompletionType::Normal)
     }
 }

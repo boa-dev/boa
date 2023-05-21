@@ -9,7 +9,7 @@ use crate::{module::Module, JsValue};
 #[derive(Debug, Clone, Copy)]
 enum BindingAccessor {
     Identifier(Identifier),
-    Index(usize),
+    Index(u32),
 }
 
 /// An indirect reference to a binding inside an environment.
@@ -41,9 +41,9 @@ pub(crate) struct ModuleEnvironment {
 
 impl ModuleEnvironment {
     /// Creates a new `LexicalEnvironment`.
-    pub(crate) fn new(bindings: usize) -> Self {
+    pub(crate) fn new(bindings: u32) -> Self {
         Self {
-            bindings: GcRefCell::new(vec![BindingType::Direct(None); bindings]),
+            bindings: GcRefCell::new(vec![BindingType::Direct(None); bindings as usize]),
         }
     }
 
@@ -53,10 +53,10 @@ impl ModuleEnvironment {
     ///
     /// Panics if the binding value is out of range or not initialized.
     #[track_caller]
-    pub(crate) fn get(&self, index: usize) -> Option<JsValue> {
+    pub(crate) fn get(&self, index: u32) -> Option<JsValue> {
         let bindings = self.bindings.borrow();
 
-        match &bindings[index] {
+        match &bindings[index as usize] {
             BindingType::Direct(v) => v.clone(),
             BindingType::Indirect(IndirectBinding { module, accessor }) => {
                 let env = module.environment()?;
@@ -87,10 +87,10 @@ impl ModuleEnvironment {
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    pub(crate) fn set(&self, index: usize, value: JsValue) {
+    pub(crate) fn set(&self, index: u32, value: JsValue) {
         let mut bindings = self.bindings.borrow_mut();
 
-        match &mut bindings[index] {
+        match &mut bindings[index as usize] {
             BindingType::Direct(v) => *v = Some(value),
             BindingType::Indirect(_) => {
                 panic!("cannot modify indirect references to other environments")
@@ -106,13 +106,13 @@ impl ModuleEnvironment {
     #[track_caller]
     pub(crate) fn set_indirect(
         &self,
-        index: usize,
+        index: u32,
         target_module: Module,
         target_binding: Identifier,
     ) {
         let mut bindings = self.bindings.borrow_mut();
 
-        bindings[index] = BindingType::Indirect(IndirectBinding {
+        bindings[index as usize] = BindingType::Indirect(IndirectBinding {
             module: target_module,
             accessor: Cell::new(BindingAccessor::Identifier(target_binding)),
         });

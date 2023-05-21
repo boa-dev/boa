@@ -9,7 +9,7 @@ use rustc_hash::FxHashMap;
 /// It contains the binding index and a flag to indicate if this is a mutable binding or not.
 #[derive(Debug)]
 struct CompileTimeBinding {
-    index: usize,
+    index: u32,
     mutable: bool,
     lex: bool,
     strict: bool,
@@ -21,7 +21,7 @@ struct CompileTimeBinding {
 #[derive(Debug, Finalize, Trace)]
 pub(crate) struct CompileTimeEnvironment {
     outer: Option<Gc<GcRefCell<Self>>>,
-    environment_index: usize,
+    environment_index: u32,
     #[unsafe_ignore_trace]
     bindings: FxHashMap<Identifier, CompileTimeBinding>,
     function_scope: bool,
@@ -74,8 +74,8 @@ impl CompileTimeEnvironment {
     }
 
     /// Returns the number of bindings in this environment.
-    pub(crate) fn num_bindings(&self) -> usize {
-        self.bindings.len()
+    pub(crate) fn num_bindings(&self) -> u32 {
+        self.bindings.len() as u32
     }
 
     /// Check if the environment is a function environment.
@@ -157,7 +157,7 @@ impl CompileTimeEnvironment {
         if let Some(outer) = &self.outer {
             if !function_scope || self.function_scope {
                 if !self.bindings.contains_key(&name) {
-                    let binding_index = self.bindings.len();
+                    let binding_index = self.bindings.len() as u32;
                     self.bindings.insert(
                         name,
                         CompileTimeBinding {
@@ -178,7 +178,7 @@ impl CompileTimeEnvironment {
             false
         } else {
             if !self.bindings.contains_key(&name) {
-                let binding_index = self.bindings.len();
+                let binding_index = self.bindings.len() as u32;
                 self.bindings.insert(
                     name,
                     CompileTimeBinding {
@@ -195,7 +195,7 @@ impl CompileTimeEnvironment {
 
     /// Crate an immutable binding.
     pub(crate) fn create_immutable_binding(&mut self, name: Identifier, strict: bool) {
-        let binding_index = self.bindings.len();
+        let binding_index = self.bindings.len() as u32;
         self.bindings.insert(
             name,
             CompileTimeBinding {
@@ -288,7 +288,7 @@ impl CompileTimeEnvironment {
     }
 
     /// Gets the environment index of this environment.
-    pub(crate) const fn environment_index(&self) -> usize {
+    pub(crate) const fn environment_index(&self) -> u32 {
         self.environment_index
     }
 }

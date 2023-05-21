@@ -251,7 +251,7 @@ pub struct ByteCompiler<'ctx, 'host> {
     pub(crate) bindings: Vec<BindingLocator>,
 
     /// Number of binding for the function environment.
-    pub(crate) num_bindings: usize,
+    pub(crate) num_bindings: u32,
 
     /// Functions inside this function
     pub(crate) functions: Vec<Gc<CodeBlock>>,
@@ -278,7 +278,7 @@ pub struct ByteCompiler<'ctx, 'host> {
     pub(crate) current_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
 
     /// The number of bindings in the parameters environment.
-    pub(crate) parameters_env_bindings: Option<usize>,
+    pub(crate) parameters_env_bindings: Option<u32>,
 
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,

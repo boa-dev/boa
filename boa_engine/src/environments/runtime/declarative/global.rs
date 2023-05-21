@@ -30,7 +30,7 @@ impl GlobalEnvironment {
     ///
     /// Panics if the binding value is out of range or not initialized.
     #[track_caller]
-    pub(crate) fn get(&self, index: usize) -> Option<JsValue> {
+    pub(crate) fn get(&self, index: u32) -> Option<JsValue> {
         self.inner.get(index)
     }
 
@@ -40,7 +40,7 @@ impl GlobalEnvironment {
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    pub(crate) fn set(&self, index: usize, value: JsValue) {
+    pub(crate) fn set(&self, index: u32, value: JsValue) {
         self.inner.set(index, value);
     }
 

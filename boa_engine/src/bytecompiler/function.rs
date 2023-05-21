@@ -129,8 +129,8 @@ impl FunctionCompiler {
 
         if let Some(env_labels) = env_labels {
             let env_info = compiler.pop_compile_environment();
-            compiler.patch_jump_with_target(env_labels.0, env_info.num_bindings as u32);
-            compiler.patch_jump_with_target(env_labels.1, env_info.index as u32);
+            compiler.patch_jump_with_target(env_labels.0, env_info.num_bindings);
+            compiler.patch_jump_with_target(env_labels.1, env_info.index);
         }
 
         if additional_env {

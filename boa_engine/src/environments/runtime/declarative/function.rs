@@ -12,7 +12,7 @@ pub(crate) struct FunctionEnvironment {
 
 impl FunctionEnvironment {
     /// Creates a new `FunctionEnvironment`.
-    pub(crate) fn new(bindings: usize, poisoned: bool, with: bool, slots: FunctionSlots) -> Self {
+    pub(crate) fn new(bindings: u32, poisoned: bool, with: bool, slots: FunctionSlots) -> Self {
         Self {
             inner: PoisonableEnvironment::new(bindings, poisoned, with),
             slots,
@@ -35,7 +35,7 @@ impl FunctionEnvironment {
     ///
     /// Panics if the binding value is out of range or not initialized.
     #[track_caller]
-    pub(crate) fn get(&self, index: usize) -> Option<JsValue> {
+    pub(crate) fn get(&self, index: u32) -> Option<JsValue> {
         self.inner.get(index)
     }
 
@@ -45,7 +45,7 @@ impl FunctionEnvironment {
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    pub(crate) fn set(&self, index: usize, value: JsValue) {
+    pub(crate) fn set(&self, index: u32, value: JsValue) {
         self.inner.set(index, value);
     }
 

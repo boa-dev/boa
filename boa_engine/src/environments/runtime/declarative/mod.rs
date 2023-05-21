@@ -72,7 +72,7 @@ impl DeclarativeEnvironment {
     ///
     /// Panics if the binding value is out of range or not initialized.
     #[track_caller]
-    pub(crate) fn get(&self, index: usize) -> Option<JsValue> {
+    pub(crate) fn get(&self, index: u32) -> Option<JsValue> {
         self.kind.get(index)
     }
 
@@ -82,7 +82,7 @@ impl DeclarativeEnvironment {
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    pub(crate) fn set(&self, index: usize, value: JsValue) {
+    pub(crate) fn set(&self, index: u32, value: JsValue) {
         self.kind.set(index, value);
     }
 
@@ -173,7 +173,7 @@ impl DeclarativeEnvironmentKind {
     ///
     /// Panics if the binding value is out of range or not initialized.
     #[track_caller]
-    pub(crate) fn get(&self, index: usize) -> Option<JsValue> {
+    pub(crate) fn get(&self, index: u32) -> Option<JsValue> {
         match self {
             Self::Lexical(inner) => inner.get(index),
             Self::Global(inner) => inner.get(index),
@@ -188,7 +188,7 @@ impl DeclarativeEnvironmentKind {
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    pub(crate) fn set(&self, index: usize, value: JsValue) {
+    pub(crate) fn set(&self, index: u32, value: JsValue) {
         match self {
             Self::Lexical(inner) => inner.set(index, value),
             Self::Global(inner) => inner.set(index, value),
@@ -274,9 +274,9 @@ pub(crate) struct PoisonableEnvironment {
 
 impl PoisonableEnvironment {
     /// Creates a new `PoisonableEnvironment`.
-    pub(crate) fn new(bindings_count: usize, poisoned: bool, with: bool) -> Self {
+    pub(crate) fn new(bindings_count: u32, poisoned: bool, with: bool) -> Self {
         Self {
-            bindings: GcRefCell::new(vec![None; bindings_count]),
+            bindings: GcRefCell::new(vec![None; bindings_count as usize]),
             poisoned: Cell::new(poisoned),
             with: Cell::new(with),
         }
@@ -293,8 +293,8 @@ impl PoisonableEnvironment {
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    fn get(&self, index: usize) -> Option<JsValue> {
-        self.bindings.borrow()[index].clone()
+    fn get(&self, index: u32) -> Option<JsValue> {
+        self.bindings.borrow()[index as usize].clone()
     }
 
     /// Sets the binding value from the environment by index.
@@ -303,8 +303,8 @@ impl PoisonableEnvironment {
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    pub(crate) fn set(&self, index: usize, value: JsValue) {
-        self.bindings.borrow_mut()[index] = Some(value);
+    pub(crate) fn set(&self, index: u32, value: JsValue) {
+        self.bindings.borrow_mut()[index as usize] = Some(value);
     }
 
     /// Returns `true` if this environment is poisoned.

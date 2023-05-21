@@ -89,12 +89,11 @@ impl EnvironmentStack {
             .rev()
         {
             if let DeclarativeEnvironmentKind::Function(fun) = &env.kind() {
-                let compile_bindings_number = env.compile_env().borrow().num_bindings();
-                let mut bindings_mut = fun.poisonable_environment().bindings().borrow_mut();
+                let compile_bindings_number = env.compile_env().borrow().num_bindings() as usize;
+                let mut bindings = fun.poisonable_environment().bindings().borrow_mut();
 
-                if compile_bindings_number > bindings_mut.len() {
-                    let diff = compile_bindings_number - bindings_mut.len();
-                    bindings_mut.extend(vec![None; diff]);
+                if compile_bindings_number > bindings.len() {
+                    bindings.resize(compile_bindings_number, None);
                 }
                 break;
             }
@@ -223,9 +222,9 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn push_lexical(
         &mut self,
-        num_bindings: usize,
+        num_bindings: u32,
         compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
-    ) -> usize {
+    ) -> u32 {
         let (poisoned, with) = {
             let with = self
                 .stack
@@ -243,7 +242,7 @@ impl EnvironmentStack {
             (environment.poisoned(), with || environment.with())
         };
 
-        let index = self.stack.len();
+        let index = self.stack.len() as u32;
 
         self.stack.push(Environment::Declarative(Gc::new(
             DeclarativeEnvironment::new(
@@ -267,7 +266,7 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn push_function(
         &mut self,
-        num_bindings: usize,
+        num_bindings: u32,
         compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
         function_slots: FunctionSlots,
     ) {
@@ -310,11 +309,11 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn push_function_inherit(
         &mut self,
-        num_bindings: usize,
+        num_bindings: u32,
         compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
     ) {
         debug_assert!(
-            self.stack.len() == compile_environment.borrow().environment_index(),
+            self.stack.len() as u32 == compile_environment.borrow().environment_index(),
             "tried to push an invalid compile environment"
         );
 
@@ -434,13 +433,13 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn put_lexical_value(
         &mut self,
-        environment_index: usize,
-        binding_index: usize,
+        environment_index: u32,
+        binding_index: u32,
         value: JsValue,
     ) {
         let env = self
             .stack
-            .get(environment_index)
+            .get(environment_index as usize)
             .expect("environment index must be in range")
             .declarative_expect();
         env.set(binding_index, value);
@@ -454,13 +453,13 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn put_value_if_uninitialized(
         &mut self,
-        environment_index: usize,
-        binding_index: usize,
+        environment_index: u32,
+        binding_index: u32,
         value: JsValue,
     ) {
         let env = self
             .stack
-            .get(environment_index)
+            .get(environment_index as usize)
             .expect("environment index must be in range")
             .declarative_expect();
         if env.get(binding_index).is_none() {
@@ -520,8 +519,8 @@ impl EnvironmentStack {
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Finalize)]
 pub(crate) struct BindingLocator {
     name: Identifier,
-    environment_index: usize,
-    binding_index: usize,
+    environment_index: u32,
+    binding_index: u32,
     global: bool,
     mutate_immutable: bool,
     silent: bool,
@@ -535,8 +534,8 @@ impl BindingLocator {
     /// Creates a new declarative binding locator that has knows indices.
     pub(crate) const fn declarative(
         name: Identifier,
-        environment_index: usize,
-        binding_index: usize,
+        environment_index: u32,
+        binding_index: u32,
     ) -> Self {
         Self {
             name,
@@ -596,12 +595,12 @@ impl BindingLocator {
     }
 
     /// Returns the environment index of the binding.
-    pub(crate) const fn environment_index(&self) -> usize {
+    pub(crate) const fn environment_index(&self) -> u32 {
         self.environment_index
     }
 
     /// Returns the binding index of the binding.
-    pub(crate) const fn binding_index(&self) -> usize {
+    pub(crate) const fn binding_index(&self) -> u32 {
         self.binding_index
     }
 
@@ -644,7 +643,8 @@ impl Context<'_> {
             }
         }
 
-        for env_index in (locator.environment_index..self.vm.environments.stack.len()).rev() {
+        for env_index in (locator.environment_index..self.vm.environments.stack.len() as u32).rev()
+        {
             match self.environment_expect(env_index) {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
@@ -814,11 +814,11 @@ impl Context<'_> {
     }
 
     /// Return the environment at the given index. Panics if the index is out of range.
-    pub(crate) fn environment_expect(&self, index: usize) -> &Environment {
+    pub(crate) fn environment_expect(&self, index: u32) -> &Environment {
         self.vm
             .environments
             .stack
-            .get(index)
+            .get(index as usize)
             .expect("environment index must be in range")
     }
 }

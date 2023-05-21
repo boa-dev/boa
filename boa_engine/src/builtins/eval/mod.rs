@@ -232,8 +232,8 @@ impl Eval {
         compiler.compile_statement_list(&body, true, false);
 
         let env_info = compiler.pop_compile_environment();
-        compiler.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
-        compiler.patch_jump_with_target(push_env.1, env_info.index as u32);
+        compiler.patch_jump_with_target(push_env.0, env_info.num_bindings);
+        compiler.patch_jump_with_target(push_env.1, env_info.index);
         compiler.emit_opcode(Opcode::PopEnvironment);
 
         let code_block = Gc::new(compiler.finish());
