@@ -10,11 +10,11 @@ features = [
     "ShadowRealm",
     "FinalizationRegistry",
     "Atomics",
-    "dynamic_import",
     "decorators",
     "array-grouping",
     "IsHTMLDDA",
     "legacy-regexp",
+    "symbols-as-weakmap-keys",
 
     # Non-implemented Intl features
     "intl-normative-optional",
@@ -24,8 +24,6 @@ features = [
 
     # Stage 3 proposals
 
-    # https://github.com/tc39/proposal-symbols-as-weakmap-keys
-    "symbols-as-weakmap-keys",
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
     # https://github.com/tc39/proposal-intl-enumeration
