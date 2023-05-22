@@ -116,7 +116,7 @@ is not a valid promise.</p>
 <h5 id="examples-3"><a href="#examples-3">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::default();
 
-<span class="kw">let </span>promise = context.eval_script(Source::from_bytes(<span class="string">&quot;new Promise((resolve, reject) =&gt; resolve())&quot;</span>))<span class="question-mark">?</span>;
+<span class="kw">let </span>promise = context.eval(Source::from_bytes(<span class="string">&quot;new Promise((resolve, reject) =&gt; resolve())&quot;</span>))<span class="question-mark">?</span>;
 <span class="kw">let </span>promise = promise.as_object().cloned().unwrap();
 
 <span class="kw">let </span>promise = JsPromise::from_object(promise)<span class="question-mark">?</span>;
@@ -1033,12 +1033,12 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-invoke">ECMAScript reference</a></li>
 </ul>
-</div></details></div><div class="impl-items"><section id="method.call_internal" class="method"><a class="srclink rightside" href="../../../../src/boa_engine/vm/code_block.rs.html#855-1144">source</a><h4 class="code-header">pub(crate) fn <a href="#method.call_internal" class="fn">call_internal</a>(
+</div></details></div><div class="impl-items"><section id="method.call_internal" class="method"><a class="srclink rightside" href="../../../../src/boa_engine/vm/code_block.rs.html#868-1171">source</a><h4 class="code-header">pub(crate) fn <a href="#method.call_internal" class="fn">call_internal</a>(
     &amp;self,
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
-) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section><section id="method.construct_internal" class="method"><a class="srclink rightside" href="../../../../src/boa_engine/vm/code_block.rs.html#1146-1377">source</a><h4 class="code-header">pub(crate) fn <a href="#method.construct_internal" class="fn">construct_internal</a>(
+) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section><section id="method.construct_internal" class="method"><a class="srclink rightside" href="../../../../src/boa_engine/vm/code_block.rs.html#1173-1409">source</a><h4 class="code-header">pub(crate) fn <a href="#method.construct_internal" class="fn">construct_internal</a>(
     &amp;self,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     this_target: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,

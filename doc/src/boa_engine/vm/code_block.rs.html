@@ -1377,6 +1377,38 @@
 <a href="#1376" id="1376">1376</a>
 <a href="#1377" id="1377">1377</a>
 <a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1890,6 +1922,7 @@
             | Opcode::IsObject
             | Opcode::SetNameByLocator
             | Opcode::PopPrivateEnvironment
+            | Opcode::ImportCall
             | Opcode::Nop =&gt; String::new(),
         }
     }
@@ -1991,6 +2024,8 @@
 
     <span class="kw">let </span>length: JsValue = code.length.into();
 
+    <span class="kw">let </span>script_or_module = context.vm.active_runnable.clone();
+
     <span class="kw">let </span>function = <span class="kw">if </span>r#async {
         Function::new(
             FunctionKind::Async {
@@ -1998,6 +2033,7 @@
                 environments: context.vm.environments.clone(),
                 home_object: <span class="prelude-val">None</span>,
                 class_object: <span class="prelude-val">None</span>,
+                script_or_module,
             },
             context.realm().clone(),
         )
@@ -2011,6 +2047,7 @@
                 fields: ThinVec::new(),
                 private_methods: ThinVec::new(),
                 class_object: <span class="prelude-val">None</span>,
+                script_or_module,
             },
             context.realm().clone(),
         )
@@ -2072,12 +2109,15 @@
 
     <span class="kw">let </span>length: JsValue = code.length.into();
 
+    <span class="kw">let </span>script_or_module = context.vm.active_runnable.clone();
+
     <span class="kw">let </span>function = <span class="kw">if </span>r#async {
         FunctionKind::Async {
             code,
             environments: context.vm.environments.clone(),
             home_object: <span class="prelude-val">None</span>,
             class_object: <span class="prelude-val">None</span>,
+            script_or_module,
         }
     } <span class="kw">else </span>{
         FunctionKind::Ordinary {
@@ -2088,6 +2128,7 @@
             fields: ThinVec::new(),
             private_methods: ThinVec::new(),
             class_object: <span class="prelude-val">None</span>,
+            script_or_module,
         }
     };
 
@@ -2178,6 +2219,8 @@
         ObjectData::ordinary(),
     );
 
+    <span class="kw">let </span>script_or_module = context.vm.active_runnable.clone();
+
     <span class="kw">let </span>constructor = <span class="kw">if </span>r#async {
         <span class="kw">let </span>function = Function::new(
             FunctionKind::AsyncGenerator {
@@ -2185,6 +2228,7 @@
                 environments: context.vm.environments.clone(),
                 home_object: <span class="prelude-val">None</span>,
                 class_object: <span class="prelude-val">None</span>,
+                script_or_module,
             },
             context.realm().clone(),
         );
@@ -2200,6 +2244,7 @@
                 environments: context.vm.environments.clone(),
                 home_object: <span class="prelude-val">None</span>,
                 class_object: <span class="prelude-val">None</span>,
+                script_or_module,
             },
             context.realm().clone(),
         );
@@ -2254,80 +2299,91 @@
         context.enter_realm(realm);
         context.vm.active_function = <span class="prelude-val">Some</span>(active_function);
 
-        <span class="kw">let </span>(code, <span class="kw-2">mut </span>environments, class_object, async_, gen) = <span class="kw">match </span>function_object.kind() {
-            FunctionKind::Native {
-                function,
-                constructor,
-            } =&gt; {
-                <span class="kw">let </span>function = function.clone();
-                <span class="kw">let </span>constructor = <span class="kw-2">*</span>constructor;
-                drop(object);
+        <span class="kw">let </span>(code, <span class="kw-2">mut </span>environments, class_object, <span class="kw-2">mut </span>script_or_module, async_, gen) =
+            <span class="kw">match </span>function_object.kind() {
+                FunctionKind::Native {
+                    function,
+                    constructor,
+                } =&gt; {
+                    <span class="kw">let </span>function = function.clone();
+                    <span class="kw">let </span>constructor = <span class="kw-2">*</span>constructor;
+                    drop(object);
 
-                <span class="kw">return if </span>constructor.is_some() {
-                    function.call(<span class="kw-2">&amp;</span>JsValue::undefined(), args, context)
-                } <span class="kw">else </span>{
-                    function.call(this, args, context)
+                    <span class="kw">return if </span>constructor.is_some() {
+                        function.call(<span class="kw-2">&amp;</span>JsValue::undefined(), args, context)
+                    } <span class="kw">else </span>{
+                        function.call(this, args, context)
+                    }
+                    .map_err(|err| err.inject_realm(context.realm().clone()));
                 }
-                .map_err(|err| err.inject_realm(context.realm().clone()));
-            }
-            FunctionKind::Ordinary {
-                code,
-                environments,
-                class_object,
-                ..
-            } =&gt; {
-                <span class="kw">let </span>code = code.clone();
-                <span class="kw">if </span>code.is_class_constructor {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;class constructor cannot be invoked without &#39;new&#39;&quot;</span>)
-                        .with_realm(context.realm().clone())
-                        .into());
-                }
-                (
+                FunctionKind::Ordinary {
                     code,
+                    environments,
+                    class_object,
+                    script_or_module,
+                    ..
+                } =&gt; {
+                    <span class="kw">let </span>code = code.clone();
+                    <span class="kw">if </span>code.is_class_constructor {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                            .with_message(<span class="string">&quot;class constructor cannot be invoked without &#39;new&#39;&quot;</span>)
+                            .with_realm(context.realm().clone())
+                            .into());
+                    }
+                    (
+                        code,
+                        environments.clone(),
+                        class_object.clone(),
+                        script_or_module.clone(),
+                        <span class="bool-val">false</span>,
+                        <span class="bool-val">false</span>,
+                    )
+                }
+                FunctionKind::Async {
+                    code,
+                    environments,
+                    class_object,
+
+                    script_or_module,
+                    ..
+                } =&gt; (
+                    code.clone(),
                     environments.clone(),
                     class_object.clone(),
+                    script_or_module.clone(),
+                    <span class="bool-val">true</span>,
                     <span class="bool-val">false</span>,
+                ),
+                FunctionKind::Generator {
+                    code,
+                    environments,
+                    class_object,
+                    script_or_module,
+                    ..
+                } =&gt; (
+                    code.clone(),
+                    environments.clone(),
+                    class_object.clone(),
+                    script_or_module.clone(),
                     <span class="bool-val">false</span>,
-                )
-            }
-            FunctionKind::Async {
-                code,
-                environments,
-                class_object,
-                ..
-            } =&gt; (
-                code.clone(),
-                environments.clone(),
-                class_object.clone(),
-                <span class="bool-val">true</span>,
-                <span class="bool-val">false</span>,
-            ),
-            FunctionKind::Generator {
-                code,
-                environments,
-                class_object,
-                ..
-            } =&gt; (
-                code.clone(),
-                environments.clone(),
-                class_object.clone(),
-                <span class="bool-val">false</span>,
-                <span class="bool-val">true</span>,
-            ),
-            FunctionKind::AsyncGenerator {
-                code,
-                environments,
-                class_object,
-                ..
-            } =&gt; (
-                code.clone(),
-                environments.clone(),
-                class_object.clone(),
-                <span class="bool-val">true</span>,
-                <span class="bool-val">true</span>,
-            ),
-        };
+                    <span class="bool-val">true</span>,
+                ),
+                FunctionKind::AsyncGenerator {
+                    code,
+                    environments,
+                    class_object,
+
+                    script_or_module,
+                    ..
+                } =&gt; (
+                    code.clone(),
+                    environments.clone(),
+                    class_object.clone(),
+                    script_or_module.clone(),
+                    <span class="bool-val">true</span>,
+                    <span class="bool-val">true</span>,
+                ),
+            };
 
         drop(object);
 
@@ -2442,6 +2498,8 @@
             .with_arg_count(arg_count);
         frame.promise_capability = promise_capability.clone();
 
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span>script_or_module);
+
         context.vm.push_frame(frame);
 
         <span class="kw">let </span>result = context
@@ -2452,6 +2510,7 @@
         <span class="kw">let </span>call_frame = context.vm.pop_frame().expect(<span class="string">&quot;frame must exist&quot;</span>);
         std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.vm.environments);
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span>script_or_module);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(promise_capability) = promise_capability {
             <span class="prelude-val">Ok</span>(promise_capability.promise().clone().into())
@@ -2587,10 +2646,12 @@
                 code,
                 environments,
                 constructor_kind,
+                script_or_module,
                 ..
             } =&gt; {
                 <span class="kw">let </span>code = code.clone();
                 <span class="kw">let </span><span class="kw-2">mut </span>environments = environments.clone();
+                <span class="kw">let </span><span class="kw-2">mut </span>script_or_module = script_or_module.clone();
                 <span class="kw">let </span>constructor_kind = <span class="kw-2">*</span>constructor_kind;
                 drop(object);
 
@@ -2696,6 +2757,8 @@
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
                 <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier;
 
+                std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span>script_or_module);
+
                 context.vm.push_frame(
                     CallFrame::new(code)
                         .with_param_count(param_count)
@@ -2707,6 +2770,7 @@
                 context.vm.pop_frame();
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.vm.environments);
+                std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span>script_or_module);
 
                 <span class="kw">let </span>environment = <span class="kw">if </span>has_binding_identifier {
                     environments.truncate(environments_len + <span class="number">2</span>);

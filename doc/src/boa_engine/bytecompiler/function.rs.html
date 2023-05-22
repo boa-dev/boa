@@ -171,7 +171,7 @@
     vm::{CodeBlock, Opcode},
     Context,
 };
-<span class="kw">use </span>boa_ast::{function::FormalParameterList, StatementList};
+<span class="kw">use </span>boa_ast::function::{FormalParameterList, FunctionBody};
 <span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 <span class="kw">use </span>boa_interner::Sym;
 
@@ -253,7 +253,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile(
         <span class="kw-2">mut </span><span class="self">self</span>,
         parameters: <span class="kw-2">&amp;</span>FormalParameterList,
-        body: <span class="kw-2">&amp;</span>StatementList,
+        body: <span class="kw-2">&amp;</span>FunctionBody,
         outer_env: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Gc&lt;CodeBlock&gt; {
@@ -291,7 +291,7 @@
             <span class="self">self</span>.generator,
         );
 
-        compiler.compile_statement_list(body, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+        compiler.compile_statement_list(body.statements(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(env_labels) = env_labels {
             <span class="kw">let </span>env_info = compiler.pop_compile_environment();

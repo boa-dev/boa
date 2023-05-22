@@ -245,6 +245,9 @@
 <a href="#244" id="244">244</a>
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Arrow function parsing.
 //!
 //! More information:
@@ -265,7 +268,7 @@
         TokenParser,
     },
 };
-<span class="kw">use </span>ast::operations::{bound_names, top_level_lexically_declared_names};
+<span class="kw">use </span>ast::operations::{bound_names, lexically_declared_names};
 <span class="kw">use </span>boa_ast::{
     <span class="self">self </span><span class="kw">as </span>ast,
     declaration::Variable,
@@ -406,7 +409,7 @@
         // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
         </span>name_in_lexically_declared_names(
             <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
-            <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
+            <span class="kw-2">&amp;</span>lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
             interner,
         )<span class="question-mark">?</span>;
@@ -437,25 +440,28 @@
 <span class="kw">where
     </span>R: Read,
 {
-    <span class="kw">type </span>Output = StatementList;
+    <span class="kw">type </span>Output = ast::function::FunctionBody;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
-            TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
-                cursor.advance(interner);
-                <span class="kw">let </span>body = FunctionBody::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
-                cursor.expect(Punctuator::CloseBlock, <span class="string">&quot;arrow function&quot;</span>, interner)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(body)
-            }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(StatementList::from(<span class="macro">vec!</span>[ast::Statement::Return(
-                Return::new(
-                    ExpressionBody::new(<span class="self">self</span>.allow_in, <span class="bool-val">false</span>)
-                        .parse(cursor, interner)<span class="question-mark">?
-                        </span>.into(),
-                ),
-            )
-            .into()])),
-        }
+        <span class="kw">let </span>stmts =
+            <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
+                TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
+                    cursor.advance(interner);
+                    <span class="kw">let </span>body = FunctionBody::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
+                    cursor.expect(Punctuator::CloseBlock, <span class="string">&quot;arrow function&quot;</span>, interner)<span class="question-mark">?</span>;
+                    body
+                }
+                <span class="kw">_ </span>=&gt; ast::function::FunctionBody::new(StatementList::from(<span class="macro">vec!</span>[
+                    ast::Statement::Return(Return::new(
+                        ExpressionBody::new(<span class="self">self</span>.allow_in, <span class="bool-val">false</span>)
+                            .parse(cursor, interner)<span class="question-mark">?
+                            </span>.into(),
+                    ))
+                    .into(),
+                ])),
+            };
+
+        <span class="prelude-val">Ok</span>(stmts)
     }
 }
 

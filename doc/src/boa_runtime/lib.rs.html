@@ -339,7 +339,7 @@
 //! let js_code = &quot;console.log(&#39;Hello World from a JS code string!&#39;)&quot;;
 //!
 //! // Parse the source code
-//! match context.eval_script(Source::from_bytes(js_code)) {
+//! match context.eval(Source::from_bytes(js_code)) {
 //!     Ok(res) =&gt; {
 //!         println!(
 //!             &quot;{}&quot;,
@@ -501,7 +501,7 @@
     ) {
         <span class="attr">#[track_caller]
         </span><span class="kw">fn </span>forward_val(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, source: <span class="kw-2">&amp;</span>str) -&gt; JsResult&lt;JsValue&gt; {
-            context.eval_script(Source::from_bytes(source))
+            context.eval(Source::from_bytes(source))
         }
 
         <span class="attr">#[track_caller]

@@ -143,12 +143,12 @@
 <span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
 <span class="kw">use crate</span>::{
     expression::{Expression, Identifier},
-    join_nodes, Declaration, StatementList,
+    join_nodes, Declaration,
 };
 <span class="kw">use </span>boa_interner::{Interner, ToIndentedString};
 <span class="kw">use </span>core::ops::ControlFlow;
 
-<span class="kw">use </span><span class="kw">super</span>::FormalParameterList;
+<span class="kw">use super</span>::{FormalParameterList, FunctionBody};
 
 <span class="doccomment">/// An async function definition, as defined by the [spec].
 ///
@@ -164,7 +164,7 @@
 </span><span class="kw">pub struct </span>AsyncFunction {
     name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
     parameters: FormalParameterList,
-    body: StatementList,
+    body: FunctionBody,
     has_binding_identifier: bool,
 }
 
@@ -175,7 +175,7 @@
     </span><span class="kw">pub const fn </span>new(
         name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
         parameters: FormalParameterList,
-        body: StatementList,
+        body: FunctionBody,
         has_binding_identifier: bool,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -203,7 +203,7 @@
     <span class="doccomment">/// Gets the body of the function declaration.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StatementList {
+    </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FunctionBody {
         <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 
@@ -261,7 +261,7 @@
             <span class="macro">try_break!</span>(visitor.visit_identifier(ident));
         }
         <span class="macro">try_break!</span>(visitor.visit_formal_parameter_list(<span class="kw-2">&amp;</span><span class="self">self</span>.parameters));
-        visitor.visit_statement_list(<span class="kw-2">&amp;</span><span class="self">self</span>.body)
+        visitor.visit_script(<span class="kw-2">&amp;</span><span class="self">self</span>.body)
     }
 
     <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
@@ -272,7 +272,7 @@
             <span class="macro">try_break!</span>(visitor.visit_identifier_mut(ident));
         }
         <span class="macro">try_break!</span>(visitor.visit_formal_parameter_list_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parameters));
-        visitor.visit_statement_list_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.body)
+        visitor.visit_script_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.body)
     }
 }
 </code></pre></div>

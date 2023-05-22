@@ -317,6 +317,23 @@
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Export declaration parsing
 //!
 //! This parses `export` declarations.
@@ -378,7 +395,7 @@
 
                 <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
-                <span class="kw">match </span>next.kind() {
+                <span class="kw">let </span>export = <span class="kw">match </span>next.kind() {
                     TokenKind::IdentifierName((Sym::AS, <span class="kw">_</span>)) =&gt; {
                         cursor.advance(interner);
                         <span class="kw">let </span>tok = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
@@ -386,9 +403,10 @@
                         <span class="kw">let </span>alias = <span class="kw">match </span>tok.kind() {
                             TokenKind::StringLiteral((export_name, <span class="kw">_</span>))
                             | TokenKind::IdentifierName((export_name, <span class="kw">_</span>)) =&gt; <span class="kw-2">*</span>export_name,
+                            TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; kw.to_sym(),
                             <span class="kw">_ </span>=&gt; {
                                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::expected(
-                                    [<span class="string">&quot;identifier&quot;</span>.to_owned(), <span class="string">&quot;string literal&quot;</span>.to_owned()],
+                                    [<span class="string">&quot;identifier name&quot;</span>.to_owned(), <span class="string">&quot;string literal&quot;</span>.to_owned()],
                                     tok.to_string(interner),
                                     tok.span(),
                                     <span class="string">&quot;export declaration&quot;</span>,
@@ -421,7 +439,11 @@
                             <span class="string">&quot;export declaration&quot;</span>,
                         ))
                     }
-                }
+                };
+
+                cursor.expect_semicolon(<span class="string">&quot;star re-export&quot;</span>, interner)<span class="question-mark">?</span>;
+
+                export
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
                 <span class="kw">let </span>names = NamedExports.parse(cursor, interner)<span class="question-mark">?</span>;
@@ -434,11 +456,16 @@
                 ) {
                     <span class="kw">let </span>specifier =
                         FromClause::new(<span class="string">&quot;export declaration&quot;</span>).parse(cursor, interner)<span class="question-mark">?</span>;
+
+                    cursor.expect_semicolon(<span class="string">&quot;named re-exports&quot;</span>, interner)<span class="question-mark">?</span>;
+
                     AstExportDeclaration::ReExport {
                         kind: ReExportKind::Named { names },
                         specifier,
                     }
                 } <span class="kw">else </span>{
+                    cursor.expect_semicolon(<span class="string">&quot;named exports&quot;</span>, interner)<span class="question-mark">?</span>;
+
                     AstExportDeclaration::List(names)
                 }
             }
@@ -484,10 +511,14 @@
                             ClassDeclaration::new(<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>).parse(cursor, interner)<span class="question-mark">?</span>,
                         )
                     }
-                    <span class="kw">_ </span>=&gt; AstExportDeclaration::DefaultAssignmentExpression(
-                        AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>)
-                            .parse(cursor, interner)<span class="question-mark">?</span>,
-                    ),
+                    <span class="kw">_ </span>=&gt; {
+                        <span class="kw">let </span>expr = AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>)
+                            .parse(cursor, interner)<span class="question-mark">?</span>;
+
+                        cursor.expect_semicolon(<span class="string">&quot;default expression export&quot;</span>, interner)<span class="question-mark">?</span>;
+
+                        AstExportDeclaration::DefaultAssignmentExpression(expr)
+                    }
                 }
             }
             <span class="kw">_ </span>=&gt; AstExportDeclaration::Declaration(
@@ -541,7 +572,9 @@
                     }
                     cursor.advance(interner);
                 }
-                TokenKind::StringLiteral(<span class="kw">_</span>) | TokenKind::IdentifierName(<span class="kw">_</span>) =&gt; {
+                TokenKind::StringLiteral(<span class="kw">_</span>)
+                | TokenKind::IdentifierName(<span class="kw">_</span>)
+                | TokenKind::Keyword(<span class="kw">_</span>) =&gt; {
                     list.push(ExportSpecifier.parse(cursor, interner)<span class="question-mark">?</span>);
                 }
                 <span class="kw">_ </span>=&gt; {
@@ -591,6 +624,7 @@
                 <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>ident)
             }
             TokenKind::IdentifierName((ident, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>ident),
+            TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(kw.to_sym()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::expected(
                 [<span class="string">&quot;identifier&quot;</span>.to_owned(), <span class="string">&quot;string literal&quot;</span>.to_owned()],
                 tok.to_string(interner),

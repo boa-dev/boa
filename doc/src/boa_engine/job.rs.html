@@ -271,6 +271,37 @@
 <a href="#270" id="270">270</a>
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s API to create and customize `ECMAScript` jobs and job queues.
 //!
 //! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
@@ -295,6 +326,7 @@
 <span class="kw">use crate</span>::{
     object::{JsFunction, NativeObject},
     realm::Realm,
+    vm::ActiveRunnable,
     Context, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -341,6 +373,7 @@
     <span class="attr">#[allow(clippy::type_complexity)]
     </span>f: Box&lt;<span class="kw">dyn </span>FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;&gt;,
     realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
+    active_runnable: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>NativeJob {
@@ -358,17 +391,19 @@
         <span class="self">Self </span>{
             f: Box::new(f),
             realm: <span class="prelude-val">None</span>,
+            active_runnable: <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Creates a new `NativeJob` from a closure and an execution realm.
-    </span><span class="kw">pub fn </span>with_realm&lt;F&gt;(f: F, realm: Realm) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>with_realm&lt;F&gt;(f: F, realm: Realm, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
     {
         <span class="self">Self </span>{
             f: Box::new(f),
             realm: <span class="prelude-val">Some</span>(realm),
+            active_runnable: context.vm.active_runnable.clone(),
         }
     }
 
@@ -383,11 +418,24 @@
     ///
     /// If the native job has an execution realm defined, this sets the running execution
     /// context to the realm&#39;s before calling the inner closure, and resets it after execution.
-    </span><span class="kw">pub fn </span>call(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(realm) = <span class="self">self</span>.realm {
+    </span><span class="kw">pub fn </span>call(<span class="kw-2">mut </span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// If realm is not null, each time job is invoked the implementation must perform
+        // implementation-defined steps such that execution is prepared to evaluate ECMAScript
+        // code at the time of job&#39;s invocation.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(realm) = <span class="self">self</span>.realm {
             <span class="kw">let </span>old_realm = context.enter_realm(realm);
+
+            <span class="comment">// Let scriptOrModule be GetActiveScriptOrModule() at the time HostEnqueuePromiseJob is
+            // invoked. If realm is not null, each time job is invoked the implementation must
+            // perform implementation-defined steps such that scriptOrModule is the active script or
+            // module at the time of job&#39;s invocation.
+            </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span><span class="self">self</span>.active_runnable);
+
             <span class="kw">let </span>result = (<span class="self">self</span>.f)(context);
+
             context.enter_realm(old_realm);
+            std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span><span class="self">self</span>.active_runnable);
+
             result
         } <span class="kw">else </span>{
             (<span class="self">self</span>.f)(context)
@@ -446,8 +494,22 @@
 </span><span class="kw">pub trait </span>JobQueue {
     <span class="doccomment">/// [`HostEnqueuePromiseJob ( job, realm )`][spec].
     ///
-    /// Enqueues a [`NativeJob`] on the job queue. Note that host-defined [Jobs] need to satisfy
-    /// a set of requirements for them to be spec-compliant.
+    /// Enqueues a [`NativeJob`] on the job queue.
+    ///
+    /// # Requirements
+    ///
+    /// Per the [spec]:
+    /// &gt; An implementation of `HostEnqueuePromiseJob` must conform to the requirements in [9.5][Jobs] as well as the
+    ///   following:
+    /// &gt; - If `realm` is not null, each time `job` is invoked the implementation must perform implementation-defined steps
+    ///     such that execution is prepared to evaluate ECMAScript code at the time of job&#39;s invocation.
+    /// &gt; - Let `scriptOrModule` be `GetActiveScriptOrModule()` at the time `HostEnqueuePromiseJob` is invoked. If realm
+    ///     is not null, each time job is invoked the implementation must perform implementation-defined steps such that
+    ///     `scriptOrModule` is the active script or module at the time of job&#39;s invocation.
+    /// &gt; - Jobs must run in the same order as the `HostEnqueuePromiseJob` invocations that scheduled them.
+    ///
+    /// Of all the requirements, Boa guarantees the first two by its internal implementation of `NativeJob`, meaning
+    /// the implementer must only guarantee that jobs are run in the same order as they&#39;re enqueued.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
     /// [Jobs]: https://tc39.es/ecma262/#sec-jobs

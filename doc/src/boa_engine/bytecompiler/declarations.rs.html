@@ -1155,8 +1155,6 @@
 <a href="#1154" id="1154">1154</a>
 <a href="#1155" id="1155">1155</a>
 <a href="#1156" id="1156">1156</a>
-<a href="#1157" id="1157">1157</a>
-<a href="#1158" id="1158">1158</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
     vm::{create_function_object_fast, create_generator_function_object, BindingOpcode, Opcode},
@@ -1164,14 +1162,14 @@
 };
 <span class="kw">use </span>boa_ast::{
     declaration::{Binding, LexicalDeclaration, VariableList},
-    function::FormalParameterList,
+    function::{FormalParameterList, FunctionBody},
     operations::{
-        all_private_identifiers_valid, bound_names, lexically_scoped_declarations,
-        top_level_lexically_declared_names, top_level_var_declared_names,
-        top_level_var_scoped_declarations, VarScopedDeclaration,
+        all_private_identifiers_valid, bound_names, lexically_declared_names,
+        lexically_scoped_declarations, var_declared_names, var_scoped_declarations,
+        LexicallyScopedDeclaration, VarScopedDeclaration,
     },
     visitor::NodeRef,
-    Declaration, StatementList, StatementListItem,
+    Declaration, Script, StatementListItem,
 };
 <span class="kw">use </span>boa_interner::Sym;
 
@@ -1185,15 +1183,12 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_declaration_instantiation(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        script: <span class="kw-2">&amp;</span>StatementList,
-    ) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_declaration_instantiation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, script: <span class="kw-2">&amp;</span>Script) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. Let lexNames be the LexicallyDeclaredNames of script.
-        </span><span class="kw">let </span>lex_names = top_level_lexically_declared_names(script);
+        </span><span class="kw">let </span>lex_names = lexically_declared_names(script);
 
         <span class="comment">// 2. Let varNames be the VarDeclaredNames of script.
-        </span><span class="kw">let </span>var_names = top_level_var_declared_names(script);
+        </span><span class="kw">let </span>var_names = var_declared_names(script);
 
         <span class="comment">// 3. For each element name of lexNames, do
         </span><span class="kw">for </span>name <span class="kw">in </span>lex_names {
@@ -1230,7 +1225,7 @@
 
         <span class="comment">// 5. Let varDeclarations be the VarScopedDeclarations of script.
         // Note: VarScopedDeclarations for a Script node is TopLevelVarScopedDeclarations.
-        </span><span class="kw">let </span>var_declarations = top_level_var_scoped_declarations(script);
+        </span><span class="kw">let </span>var_declarations = var_scoped_declarations(script);
 
         <span class="comment">// 6. Let functionsToInitialize be a new empty List.
         </span><span class="kw">let </span><span class="kw-2">mut </span>functions_to_initialize = Vec::new();
@@ -1321,7 +1316,7 @@
         // b. If strict is false, then
         </span><span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
         </span><span class="kw">if </span>!script.strict() {
-            <span class="kw">let </span>lex_names = top_level_lexically_declared_names(script);
+            <span class="kw">let </span>lex_names = lexically_declared_names(script);
 
             <span class="comment">// i. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
             // ii. For each FunctionDeclaration f that is directly contained in the StatementList of a Block, CaseClause,
@@ -1367,7 +1362,7 @@
         <span class="comment">// 13. Let lexDeclarations be the LexicallyScopedDeclarations of script.
         // 14. Let privateEnv be null.
         // 15. For each element d of lexDeclarations, do
-        </span><span class="kw">for </span>statement <span class="kw">in </span>script.statements() {
+        </span><span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;**</span>script.statements() {
             <span class="comment">// a. NOTE: Lexically declared names are only instantiated here but not initialized.
             // b. For each element dn of the BoundNames of d, do
             //     i. If IsConstantDeclaration of d is true, then
@@ -1474,7 +1469,8 @@
         // 3. For each element d of declarations, do
         </span><span class="kw">for </span>d <span class="kw">in </span><span class="kw-2">&amp;</span>declarations {
             <span class="comment">// i. If IsConstantDeclaration of d is true, then
-            </span><span class="kw">if let </span>Declaration::Lexical(LexicalDeclaration::Const(d)) = d {
+            </span><span class="kw">if let </span>LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(d)) = d
+            {
                 <span class="comment">// a. For each element dn of the BoundNames of d, do
                 </span><span class="kw">for </span>dn <span class="kw">in </span>bound_names::&lt;<span class="lifetime">&#39;_</span>, VariableList&gt;(d) {
                     <span class="comment">// 1. Perform ! env.CreateImmutableBinding(dn, true).
@@ -1484,7 +1480,7 @@
             <span class="comment">// ii. Else,
             </span><span class="kw">else </span>{
                 <span class="comment">// a. For each element dn of the BoundNames of d, do
-                </span><span class="kw">for </span>dn <span class="kw">in </span>bound_names::&lt;<span class="lifetime">&#39;_</span>, Declaration&gt;(d) {
+                </span><span class="kw">for </span>dn <span class="kw">in </span>d.bound_names() {
                     <span class="attr">#[cfg(not(feature = <span class="string">&quot;annex-b&quot;</span>))]
                     </span><span class="comment">// 1. Perform ! env.CreateMutableBinding(dn, false). NOTE: This step is replaced in section B.3.2.6.
                     </span>env.create_mutable_binding(dn, <span class="bool-val">false</span>);
@@ -1511,16 +1507,16 @@
         // TODO: Support B.3.2.6.
         </span><span class="kw">for </span>d <span class="kw">in </span><span class="kw-2">&amp;</span>declarations {
             <span class="kw">match </span>d {
-                Declaration::Function(function) =&gt; {
+                LexicallyScopedDeclaration::Function(function) =&gt; {
                     <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
                 }
-                Declaration::Generator(function) =&gt; {
+                LexicallyScopedDeclaration::Generator(function) =&gt; {
                     <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
                 }
-                Declaration::AsyncFunction(function) =&gt; {
+                LexicallyScopedDeclaration::AsyncFunction(function) =&gt; {
                     <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
                 }
-                Declaration::AsyncGenerator(function) =&gt; {
+                LexicallyScopedDeclaration::AsyncGenerator(function) =&gt; {
                     <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
                 }
                 <span class="kw">_ </span>=&gt; {}
@@ -1538,7 +1534,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-evaldeclarationinstantiation
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>eval_declaration_instantiation(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        body: <span class="kw-2">&amp;</span>StatementList,
+        body: <span class="kw-2">&amp;</span>Script,
         strict: bool,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>var_environment_is_global = <span class="self">self
@@ -1549,12 +1545,12 @@
             &amp;&amp; !strict;
 
         <span class="comment">// 2. Let varDeclarations be the VarScopedDeclarations of body.
-        </span><span class="kw">let </span>var_declarations = top_level_var_scoped_declarations(body);
+        </span><span class="kw">let </span>var_declarations = var_scoped_declarations(body);
 
         <span class="comment">// 3. If strict is false, then
         </span><span class="kw">if </span>!strict {
             <span class="comment">// 1. Let varNames be the VarDeclaredNames of body.
-            </span><span class="kw">let </span>var_names = top_level_var_declared_names(body);
+            </span><span class="kw">let </span>var_names = var_declared_names(body);
 
             <span class="comment">// a. If varEnv is a Global Environment Record, then
             //      i. For each element name of varNames, do
@@ -1653,7 +1649,7 @@
         // 11. If strict is false, then
         </span><span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
         </span><span class="kw">if </span>!strict {
-            <span class="kw">let </span>lexically_declared_names = top_level_lexically_declared_names(body);
+            <span class="kw">let </span>lexically_declared_names = lexically_declared_names(body);
 
             <span class="comment">// a. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
             // b. For each FunctionDeclaration f that is directly contained in the StatementList
@@ -1779,7 +1775,7 @@
 
         // 15. Let lexDeclarations be the LexicallyScopedDeclarations of body.
         // 16. For each element d of lexDeclarations, do
-        </span><span class="kw">for </span>statement <span class="kw">in </span>body.statements() {
+        </span><span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;**</span>body.statements() {
             <span class="comment">// a. NOTE: Lexically declared names are only instantiated here but not initialized.
             // b. For each element dn of the BoundNames of d, do
             //     i. If IsConstantDeclaration of d is true, then
@@ -1933,7 +1929,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function_declaration_instantiation(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        code: <span class="kw-2">&amp;</span>StatementList,
+        body: <span class="kw-2">&amp;</span>FunctionBody,
         formals: <span class="kw-2">&amp;</span>FormalParameterList,
         arrow: bool,
         strict: bool,
@@ -1960,13 +1956,13 @@
         </span><span class="kw">let </span>has_parameter_expressions = formals.has_expressions();
 
         <span class="comment">// 9. Let varNames be the VarDeclaredNames of code.
-        </span><span class="kw">let </span>var_names = top_level_var_declared_names(code);
+        </span><span class="kw">let </span>var_names = var_declared_names(body);
 
         <span class="comment">// 10. Let varDeclarations be the VarScopedDeclarations of code.
-        </span><span class="kw">let </span>var_declarations = top_level_var_scoped_declarations(code);
+        </span><span class="kw">let </span>var_declarations = var_scoped_declarations(body);
 
         <span class="comment">// 11. Let lexicalNames be the LexicallyDeclaredNames of code.
-        </span><span class="kw">let </span>lexical_names = top_level_lexically_declared_names(code);
+        </span><span class="kw">let </span>lexical_names = lexically_declared_names(body);
 
         <span class="comment">// 12. Let functionNames be a new empty List.
         </span><span class="kw">let </span><span class="kw-2">mut </span>function_names = Vec::new();
@@ -2223,7 +2219,7 @@
         </span><span class="kw">if </span>!strict {
             <span class="comment">// a. For each FunctionDeclaration f that is directly contained in the StatementList
             //    of a Block, CaseClause, or DefaultClause, do
-            </span><span class="kw">for </span>f <span class="kw">in </span>annex_b_function_declarations_names(code) {
+            </span><span class="kw">for </span>f <span class="kw">in </span>annex_b_function_declarations_names(body) {
                 <span class="comment">// i. Let F be StringValue of the BindingIdentifier of f.
                 // ii. If replacing the FunctionDeclaration f with a VariableStatement that has F
                 //     as a BindingIdentifier would not produce any Early Errors
@@ -2279,7 +2275,7 @@
         //             1. Perform ! lexEnv.CreateImmutableBinding(dn, true).
         //         ii. Else,
         //             1. Perform ! lexEnv.CreateMutableBinding(dn, false).
-        </span><span class="kw">for </span>statement <span class="kw">in </span>code.statements() {
+        </span><span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;**</span>body.statements() {
             <span class="kw">if let </span>StatementListItem::Declaration(declaration) = statement {
                 <span class="kw">match </span>declaration {
                     Declaration::Class(class) =&gt; {

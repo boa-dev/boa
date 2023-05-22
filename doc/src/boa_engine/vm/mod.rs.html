@@ -425,6 +425,25 @@
 <a href="#424" id="424">424</a>
 <a href="#425" id="425">425</a>
 <a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -436,11 +455,12 @@
 <span class="kw">use crate</span>::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     environments::{DeclarativeEnvironment, EnvironmentStack},
+    script::Script,
     vm::code_block::Readable,
-    Context, JsError, JsObject, JsResult, JsValue,
+    Context, JsError, JsObject, JsResult, JsValue, Module,
 };
 
-<span class="kw">use </span>boa_gc::Gc;
+<span class="kw">use </span>boa_gc::{custom_trace, Finalize, Gc, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{convert::TryInto, mem::size_of};
 
@@ -485,6 +505,23 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) trace: bool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) runtime_limits: RuntimeLimits,
     <span class="kw">pub</span>(<span class="kw">crate</span>) active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) active_runnable: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
+}
+
+<span class="doccomment">/// Active runnable in the current vm context.
+</span><span class="attr">#[derive(Debug, Clone, Finalize)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>ActiveRunnable {
+    Script(Script),
+    Module(Module),
+}
+
+<span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ActiveRunnable {
+    <span class="macro">custom_trace!</span>(this, {
+        <span class="kw">match </span>this {
+            <span class="self">Self</span>::Script(script) =&gt; mark(script),
+            <span class="self">Self</span>::Module(module) =&gt; mark(module),
+        }
+    });
 }
 
 <span class="kw">impl </span>Vm {
@@ -499,6 +536,7 @@
             </span>trace: <span class="bool-val">false</span>,
             runtime_limits: RuntimeLimits::default(),
             active_function: <span class="prelude-val">None</span>,
+            active_runnable: <span class="prelude-val">None</span>,
         }
     }
 

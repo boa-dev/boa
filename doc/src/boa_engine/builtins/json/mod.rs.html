@@ -814,6 +814,13 @@
 <a href="#813" id="813">813</a>
 <a href="#814" id="814">814</a>
 <a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
@@ -845,6 +852,7 @@
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
+    vm::CallFrame,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::Gc;
@@ -930,19 +938,25 @@
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
         </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>script_string));
         parser.set_json_parse();
-        <span class="kw">let </span>statement_list = parser.parse_script(context.interner_mut())<span class="question-mark">?</span>;
+        <span class="kw">let </span>script = parser.parse_script(context.interner_mut())<span class="question-mark">?</span>;
         <span class="kw">let </span>code_block = {
             <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
                 Sym::MAIN,
-                statement_list.strict(),
+                script.strict(),
                 <span class="bool-val">true</span>,
                 context.realm().environment().compile_env(),
                 context,
             );
-            compiler.compile_statement_list(<span class="kw-2">&amp;</span>statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
+            compiler.compile_statement_list(script.statements(), <span class="bool-val">true</span>, <span class="bool-val">false</span>);
             Gc::new(compiler.finish())
         };
-        <span class="kw">let </span>unfiltered = context.execute(code_block)<span class="question-mark">?</span>;
+
+        context.vm.push_frame(CallFrame::new(code_block));
+        context.realm().resize_global_env();
+        <span class="kw">let </span>record = context.run();
+        context.vm.pop_frame();
+
+        <span class="kw">let </span>unfiltered = record.consume()<span class="question-mark">?</span>;
 
         <span class="comment">// 11. If IsCallable(reviver) is true, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = args.get_or_undefined(<span class="number">1</span>).as_callable() {

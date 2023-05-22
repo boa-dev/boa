@@ -148,6 +148,8 @@
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Declaration`] Parse Node, as defined by the [spec].
 //!
 //! ECMAScript declarations include:
@@ -255,7 +257,9 @@
 /// This is equivalent to the [`ModuleSpecifier`] production.
 ///
 /// [`FromClause`]: https://tc39.es/ecma262/#prod-ModuleSpecifier
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, Copy, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>ModuleSpecifier {
     module: Sym,
 }

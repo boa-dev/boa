@@ -254,6 +254,11 @@
 <a href="#253" id="253">253</a>
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Import declaration AST nodes.
 //!
 //! This module contains `import` declaration AST nodes.
@@ -277,7 +282,9 @@
 <span class="kw">use </span><span class="kw">super</span>::ModuleSpecifier;
 
 <span class="doccomment">/// The kind of import in an [`ImportDeclaration`].
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>ImportKind {
     <span class="doccomment">/// Default (`import defaultName from &quot;module-name&quot;`) or unnamed (`import &quot;module-name&quot;).
     </span>DefaultOrUnnamed,
@@ -333,7 +340,8 @@
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ImportDeclaration
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>ImportDeclaration {
     <span class="doccomment">/// Binding for the default export of `specifier`.
     </span>default: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
@@ -411,7 +419,9 @@
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ImportSpecifier
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>ImportSpecifier {
     binding: Identifier,
     export_name: Sym,

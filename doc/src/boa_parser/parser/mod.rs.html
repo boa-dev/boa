@@ -511,6 +511,16 @@
 <a href="#510" id="510">510</a>
 <a href="#511" id="511">511</a>
 <a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.
 
 </span><span class="kw">mod </span>cursor;
@@ -533,17 +543,18 @@
 };
 <span class="kw">use </span>boa_ast::{
     expression::Identifier,
-    function::FormalParameterList,
+    function::{FormalParameterList, FunctionBody},
     operations::{
         all_private_identifiers_valid, check_labels, contains, contains_invalid_object_literal,
-        lexically_declared_names, top_level_lexically_declared_names, top_level_var_declared_names,
-        var_declared_names, ContainsSymbol,
+        lexically_declared_names, var_declared_names, ContainsSymbol,
     },
-    ModuleItemList, Position, StatementList,
+    Position, StatementList,
 };
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>rustc_hash::FxHashSet;
 <span class="kw">use </span>std::{io::Read, path::Path};
+
+<span class="kw">use </span><span class="self">self</span>::statement::ModuleItemList;
 
 <span class="doccomment">/// Trait implemented by parsers.
 ///
@@ -639,15 +650,15 @@
     }
 
     <span class="doccomment">/// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.
-    /// The resulting `StatementList` can be compiled into boa bytecode and executed in the boa vm.
+    /// The resulting `Script` can be compiled into boa bytecode and executed in the boa vm.
     ///
     /// # Errors
     ///
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
-    </span><span class="kw">pub fn </span>parse_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;StatementList&gt; {
-        Script::new(<span class="bool-val">false</span>).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
+    </span><span class="kw">pub fn </span>parse_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;boa_ast::Script&gt; {
+        ScriptParser::new(<span class="bool-val">false</span>).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
     }
 
     <span class="doccomment">/// Parse the full input as an [ECMAScript Module][spec] into the boa AST representation.
@@ -658,11 +669,11 @@
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Module
-    </span><span class="kw">pub fn </span>parse_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;ModuleItemList&gt;
+    </span><span class="kw">pub fn </span>parse_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;boa_ast::Module&gt;
     <span class="kw">where
         </span>R: Read,
     {
-        Module.parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
+        ModuleParser.parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
     }
 
     <span class="doccomment">/// [`19.2.1.1 PerformEval ( x, strictCaller, direct )`][spec]
@@ -678,8 +689,8 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         direct: bool,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; ParseResult&lt;StatementList&gt; {
-        Script::new(direct).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
+    ) -&gt; ParseResult&lt;boa_ast::Script&gt; {
+        ScriptParser::new(direct).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
     }
 
     <span class="doccomment">/// Parses the full input as an [ECMAScript `FunctionBody`][spec] into the boa AST representation.
@@ -694,7 +705,7 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
         allow_yield: bool,
         allow_await: bool,
-    ) -&gt; ParseResult&lt;StatementList&gt; {
+    ) -&gt; ParseResult&lt;FunctionBody&gt; {
         FunctionStatementList::new(allow_yield, allow_await).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
     }
 
@@ -748,11 +759,11 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Script
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Script {
+</span><span class="kw">pub struct </span>ScriptParser {
     direct_eval: bool,
 }
 
-<span class="kw">impl </span>Script {
+<span class="kw">impl </span>ScriptParser {
     <span class="doccomment">/// Create a new `Script` parser.
     </span><span class="attr">#[inline]
     </span><span class="kw">const fn </span>new(direct_eval: bool) -&gt; <span class="self">Self </span>{
@@ -760,19 +771,20 @@
     }
 }
 
-<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>Script
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ScriptParser
 <span class="kw">where
     </span>R: Read,
 {
-    <span class="kw">type </span>Output = StatementList;
+    <span class="kw">type </span>Output = boa_ast::Script;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>statement_list =
-            ScriptBody::new(<span class="bool-val">true</span>, cursor.strict(), <span class="self">self</span>.direct_eval).parse(cursor, interner)<span class="question-mark">?</span>;
+        <span class="kw">let </span>script = boa_ast::Script::new(
+            ScriptBody::new(<span class="bool-val">true</span>, cursor.strict(), <span class="self">self</span>.direct_eval).parse(cursor, interner)<span class="question-mark">?</span>,
+        );
 
         <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
         </span><span class="kw">let </span><span class="kw-2">mut </span>lexical_names = FxHashSet::default();
-        <span class="kw">for </span>name <span class="kw">in </span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>statement_list) {
+        <span class="kw">for </span>name <span class="kw">in </span>lexically_declared_names(<span class="kw-2">&amp;</span>script) {
             <span class="kw">if </span>!lexical_names.insert(name) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                     <span class="string">&quot;lexical name declared multiple times&quot;</span>,
@@ -782,7 +794,7 @@
         }
 
         <span class="comment">// It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
-        </span><span class="kw">for </span>name <span class="kw">in </span>top_level_var_declared_names(<span class="kw-2">&amp;</span>statement_list) {
+        </span><span class="kw">for </span>name <span class="kw">in </span>var_declared_names(<span class="kw-2">&amp;</span>script) {
             <span class="kw">if </span>lexical_names.contains(<span class="kw-2">&amp;</span>name) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                     <span class="string">&quot;lexical name declared multiple times&quot;</span>,
@@ -791,7 +803,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(statement_list)
+        <span class="prelude-val">Ok</span>(script)
     }
 }
 
@@ -883,6 +895,122 @@
     }
 }
 
+<span class="doccomment">/// Parses a full module.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-Module
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>ModuleParser;
+
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ModuleParser
+<span class="kw">where
+    </span>R: Read,
+{
+    <span class="kw">type </span>Output = boa_ast::Module;
+
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        cursor.set_module();
+
+        <span class="kw">let </span>module = boa_ast::Module::new(ModuleItemList.parse(cursor, interner)<span class="question-mark">?</span>);
+
+        <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of ModuleItemList contains any duplicate entries.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>bindings = FxHashSet::default();
+        <span class="kw">for </span>name <span class="kw">in </span>lexically_declared_names(<span class="kw-2">&amp;</span>module) {
+            <span class="kw">if </span>!bindings.insert(name) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                    <span class="macro">format!</span>(
+                        <span class="string">&quot;lexical name `{}` declared multiple times&quot;</span>,
+                        interner.resolve_expect(name.sym())
+                    ),
+                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
+                ));
+            }
+        }
+
+        <span class="comment">// It is a Syntax Error if any element of the LexicallyDeclaredNames of ModuleItemList also occurs in the
+        // VarDeclaredNames of ModuleItemList.
+        </span><span class="kw">for </span>name <span class="kw">in </span>var_declared_names(<span class="kw-2">&amp;</span>module) {
+            <span class="kw">if </span>!bindings.insert(name) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                    <span class="macro">format!</span>(
+                        <span class="string">&quot;lexical name `{}` declared multiple times&quot;</span>,
+                        interner.resolve_expect(name.sym())
+                    ),
+                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
+                ));
+            }
+        }
+
+        <span class="comment">// It is a Syntax Error if the ExportedNames of ModuleItemList contains any duplicate entries.
+        </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>exported_names = FxHashSet::default();
+            <span class="kw">for </span>name <span class="kw">in </span>module.items().exported_names() {
+                <span class="kw">if </span>!exported_names.insert(name) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                        <span class="macro">format!</span>(
+                            <span class="string">&quot;exported name `{}` declared multiple times&quot;</span>,
+                            interner.resolve_expect(name)
+                        ),
+                        Position::new(<span class="number">1</span>, <span class="number">1</span>),
+                    ));
+                }
+            }
+        }
+
+        <span class="comment">// It is a Syntax Error if any element of the ExportedBindings of ModuleItemList does not also occur in either
+        // the VarDeclaredNames of ModuleItemList, or the LexicallyDeclaredNames of ModuleItemList.
+        </span><span class="kw">for </span>name <span class="kw">in </span>module.items().exported_bindings() {
+            <span class="kw">if </span>!bindings.contains(<span class="kw-2">&amp;</span>name) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                    <span class="macro">format!</span>(
+                        <span class="string">&quot;could not find the exported binding `{}` in the declared names of the module&quot;</span>,
+                        interner.resolve_expect(name.sym())
+                    ),
+                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
+                ));
+            }
+        }
+
+        <span class="comment">// It is a Syntax Error if ModuleItemList Contains super.
+        </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>module, ContainsSymbol::Super) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                <span class="string">&quot;module cannot contain `super` on the top-level&quot;</span>,
+                Position::new(<span class="number">1</span>, <span class="number">1</span>),
+            ));
+        }
+
+        <span class="comment">// It is a Syntax Error if ModuleItemList Contains NewTarget.
+        </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>module, ContainsSymbol::NewTarget) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                <span class="string">&quot;module cannot contain `new.target` on the top-level&quot;</span>,
+                Position::new(<span class="number">1</span>, <span class="number">1</span>),
+            ));
+        }
+
+        <span class="comment">// It is a Syntax Error if ContainsDuplicateLabels of ModuleItemList with argument « » is true.
+        // It is a Syntax Error if ContainsUndefinedBreakTarget of ModuleItemList with argument « » is true.
+        // It is a Syntax Error if ContainsUndefinedContinueTarget of ModuleItemList with arguments « » and « » is true.
+        </span>check_labels(<span class="kw-2">&amp;</span>module).map_err(|error| {
+            Error::lex(LexError::Syntax(
+                error.message(interner).into(),
+                Position::new(<span class="number">1</span>, <span class="number">1</span>),
+            ))
+        })<span class="question-mark">?</span>;
+
+        <span class="comment">// It is a Syntax Error if AllPrivateIdentifiersValid of ModuleItemList with argument « » is false.
+        </span><span class="kw">if </span>!all_private_identifiers_valid(<span class="kw-2">&amp;</span>module, Vec::new()) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                <span class="string">&quot;invalid private identifier usage&quot;</span>,
+                Position::new(<span class="number">1</span>, <span class="number">1</span>),
+            ));
+        }
+
+        <span class="prelude-val">Ok</span>(module)
+    }
+}
+
 <span class="doccomment">/// Helper to check if any parameter names are declared in the given list.
 </span><span class="kw">fn </span>name_in_lexically_declared_names(
     bound_names: <span class="kw-2">&amp;</span>[Identifier],
@@ -913,114 +1041,6 @@
 <span class="kw">impl</span>&lt;T&gt; OrAbrupt&lt;T&gt; <span class="kw">for </span>ParseResult&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
     <span class="kw">fn </span>or_abrupt(<span class="self">self</span>) -&gt; ParseResult&lt;T&gt; {
         <span class="self">self</span><span class="question-mark">?</span>.ok_or(Error::AbruptEnd)
-    }
-}
-
-<span class="doccomment">/// Parses a full module.
-///
-/// More information:
-///  - [ECMAScript specification][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-Module
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">struct </span>Module;
-
-<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>Module
-<span class="kw">where
-    </span>R: Read,
-{
-    <span class="kw">type </span>Output = ModuleItemList;
-
-    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        cursor.set_module();
-
-        <span class="kw">let </span>items = <span class="kw">if </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.is_some() {
-            <span class="self">self</span>::statement::ModuleItemList.parse(cursor, interner)<span class="question-mark">?
-        </span>} <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new().into());
-        };
-
-        <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of ModuleItemList contains any duplicate entries.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>bindings = FxHashSet::default();
-        <span class="kw">for </span>name <span class="kw">in </span>lexically_declared_names(<span class="kw-2">&amp;</span>items) {
-            <span class="kw">if </span>!bindings.insert(name) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;lexical name `{}` declared multiple times&quot;</span>,
-                        interner.resolve_expect(name.sym())
-                    ),
-                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                ));
-            }
-        }
-
-        <span class="comment">// It is a Syntax Error if any element of the LexicallyDeclaredNames of ModuleItemList also occurs in the
-        // VarDeclaredNames of ModuleItemList.
-        </span><span class="kw">for </span>name <span class="kw">in </span>var_declared_names(<span class="kw-2">&amp;</span>items) {
-            <span class="kw">if </span>!bindings.insert(name) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;lexical name `{}` declared multiple times&quot;</span>,
-                        interner.resolve_expect(name.sym())
-                    ),
-                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                ));
-            }
-        }
-
-        <span class="comment">// It is a Syntax Error if the ExportedNames of ModuleItemList contains any duplicate entries.
-        </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>exported_names = FxHashSet::default();
-            <span class="kw">for </span>name <span class="kw">in </span>items.exported_names() {
-                <span class="kw">if </span>!exported_names.insert(name) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="macro">format!</span>(
-                            <span class="string">&quot;exported name `{}` declared multiple times&quot;</span>,
-                            interner.resolve_expect(name)
-                        ),
-                        Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                    ));
-                }
-            }
-        }
-
-        <span class="comment">// It is a Syntax Error if any element of the ExportedBindings of ModuleItemList does not also occur in either
-        // the VarDeclaredNames of ModuleItemList, or the LexicallyDeclaredNames of ModuleItemList.
-        </span><span class="kw">for </span>name <span class="kw">in </span>items.exported_bindings() {
-            <span class="kw">if </span>!bindings.contains(<span class="kw-2">&amp;</span>name) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;could not find the exported binding `{}` in the declared names of the module&quot;</span>,
-                        interner.resolve_expect(name.sym())
-                    ),
-                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                ));
-            }
-        }
-
-        <span class="comment">// It is a Syntax Error if ModuleItemList Contains super.
-        </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>items, ContainsSymbol::Super) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                <span class="string">&quot;module cannot contain `super` on the top-level&quot;</span>,
-                Position::new(<span class="number">1</span>, <span class="number">1</span>),
-            ));
-        }
-
-        <span class="comment">// It is a Syntax Error if ModuleItemList Contains NewTarget.
-        </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>items, ContainsSymbol::NewTarget) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                <span class="string">&quot;module cannot contain `new.target` on the top-level&quot;</span>,
-                Position::new(<span class="number">1</span>, <span class="number">1</span>),
-            ));
-        }
-
-        <span class="comment">// TODO:
-        // It is a Syntax Error if ContainsDuplicateLabels of ModuleItemList with argument « » is true.
-        // It is a Syntax Error if ContainsUndefinedBreakTarget of ModuleItemList with argument « » is true.
-        // It is a Syntax Error if ContainsUndefinedContinueTarget of ModuleItemList with arguments « » and « » is true.
-        // It is a Syntax Error if AllPrivateIdentifiersValid of ModuleItemList with argument « » is false.
-
-        </span><span class="prelude-val">Ok</span>(items)
     }
 }
 </code></pre></div>

@@ -462,6 +462,9 @@
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -486,7 +489,7 @@
 //! let mut context = Context::default();
 //!
 //! // Parse the source code
-//! match context.eval_script(Source::from_bytes(js_code)) {
+//! match context.eval(Source::from_bytes(js_code)) {
 //!     Ok(res) =&gt; {
 //!         println!(
 //!             &quot;{}&quot;,
@@ -601,6 +604,7 @@
 <span class="kw">pub mod </span>optimizer;
 <span class="kw">pub mod </span>property;
 <span class="kw">pub mod </span>realm;
+<span class="kw">pub mod </span>script;
 <span class="kw">pub mod </span>string;
 <span class="kw">pub mod </span>symbol;
 <span class="comment">// pub(crate) mod tagged;
@@ -617,6 +621,7 @@
         module::Module,
         native_function::NativeFunction,
         object::JsObject,
+        script::Script,
         Context, JsBigInt, JsResult, JsString, JsValue,
     };
     <span class="kw">pub use </span>boa_parser::Source;
@@ -633,6 +638,7 @@
     module::Module,
     native_function::NativeFunction,
     object::JsObject,
+    script::Script,
     string::JsString,
     symbol::JsSymbol,
     value::JsValue,
@@ -800,7 +806,7 @@
 </span><span class="kw">fn </span>run_test_actions_with(actions: <span class="kw">impl </span>IntoIterator&lt;Item = TestAction&gt;, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
     <span class="attr">#[track_caller]
     </span><span class="kw">fn </span>forward_val(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, source: <span class="kw-2">&amp;</span>str) -&gt; JsResult&lt;JsValue&gt; {
-        context.eval_script(Source::from_bytes(source))
+        context.eval(Source::from_bytes(source))
     }
 
     <span class="attr">#[track_caller]

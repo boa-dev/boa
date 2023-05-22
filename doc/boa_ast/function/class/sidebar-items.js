@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Class","RECURSIVE_COUNT_ClassElement","RECURSIVE_COUNT_PrivateName"],"enum":["ClassElement"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Class","PrivateName"]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Class","RECURSIVE_COUNT_ClassElement","RECURSIVE_COUNT_PrivateName"],"enum":["ClassElement"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Class","PrivateName"],"type":["StaticBlockBody"]};

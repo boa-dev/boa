@@ -1121,6 +1121,28 @@
 <a href="#1120" id="1120">1120</a>
 <a href="#1121" id="1121">1121</a>
 <a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1149,16 +1171,15 @@
     string::utf16,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::CodeBlock,
+    vm::{ActiveRunnable, CodeBlock},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::{
-    function::FormalParameterList,
+    function::{FormalParameterList, FunctionBody},
     operations::{
         all_private_identifiers_valid, bound_names, contains, lexically_declared_names,
         ContainsSymbol,
     },
-    StatementList,
 };
 <span class="kw">use </span>boa_gc::{<span class="self">self</span>, custom_trace, Finalize, Gc, Trace};
 <span class="kw">use </span>boa_interner::Sym;
@@ -1300,6 +1321,9 @@
 
         <span class="doccomment">/// The class object that this function is associated with.
         </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+
+        <span class="doccomment">/// The `[[ScriptOrModule]]` internal slot.
+        </span>script_or_module: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
     },
 
     <span class="doccomment">/// A bytecode async function.
@@ -1315,6 +1339,9 @@
 
         <span class="doccomment">/// The class object that this function is associated with.
         </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+
+        <span class="doccomment">/// The `[[ScriptOrModule]]` internal slot.
+        </span>script_or_module: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
     },
 
     <span class="doccomment">/// A bytecode generator function.
@@ -1330,6 +1357,9 @@
 
         <span class="doccomment">/// The class object that this function is associated with.
         </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+
+        <span class="doccomment">/// The `[[ScriptOrModule]]` internal slot.
+        </span>script_or_module: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
     },
 
     <span class="doccomment">/// A bytecode async generator function.
@@ -1345,6 +1375,9 @@
 
         <span class="doccomment">/// The class object that this function is associated with.
         </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+
+        <span class="doccomment">/// The `[[ScriptOrModule]]` internal slot.
+        </span>script_or_module: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
     },
 }
 
@@ -1379,7 +1412,16 @@
     <span class="macro">custom_trace! </span>{this, {
         <span class="kw">match </span>this {
             <span class="self">Self</span>::Native { function, .. } =&gt; {mark(function)}
-            <span class="self">Self</span>::Ordinary { code, environments, home_object, fields, private_methods, class_object, .. } =&gt; {
+            <span class="self">Self</span>::Ordinary {
+                code,
+                environments,
+                home_object,
+                fields,
+                private_methods,
+                class_object,
+                script_or_module,
+                ..
+            } =&gt; {
                 mark(code);
                 mark(environments);
                 mark(home_object);
@@ -1390,14 +1432,16 @@
                     mark(elem);
                 }
                 mark(class_object);
+                mark(script_or_module);
             }
-            <span class="self">Self</span>::Async { code, environments, home_object, class_object }
-            | <span class="self">Self</span>::Generator { code, environments, home_object, class_object}
-            | <span class="self">Self</span>::AsyncGenerator { code, environments, home_object, class_object} =&gt; {
+            <span class="self">Self</span>::Async { code, environments, home_object, class_object, script_or_module }
+            | <span class="self">Self</span>::Generator { code, environments, home_object, class_object, script_or_module}
+            | <span class="self">Self</span>::AsyncGenerator { code, environments, home_object, class_object, script_or_module} =&gt; {
                 mark(code);
                 mark(environments);
                 mark(home_object);
                 mark(class_object);
+                mark(script_or_module);
             }
         }
     }}
@@ -1876,7 +1920,7 @@
                 .generator(<span class="bool-val">true</span>)
                 .compile(
                     <span class="kw-2">&amp;</span>FormalParameterList::default(),
-                    <span class="kw-2">&amp;</span>StatementList::default(),
+                    <span class="kw-2">&amp;</span>FunctionBody::default(),
                     context.realm().environment().compile_env(),
                     context,
                 );
@@ -1894,7 +1938,7 @@
         } <span class="kw">else </span>{
             <span class="kw">let </span>code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
                 <span class="kw-2">&amp;</span>FormalParameterList::default(),
-                <span class="kw-2">&amp;</span>StatementList::default(),
+                <span class="kw-2">&amp;</span>FunctionBody::default(),
                 context.realm().environment().compile_env(),
                 context,
             );

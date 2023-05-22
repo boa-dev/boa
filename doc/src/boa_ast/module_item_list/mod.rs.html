@@ -496,6 +496,8 @@
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Module item list AST nodes.
 //!
 //! More information:
@@ -529,7 +531,8 @@
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ModuleItemList
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, Default, PartialEq)]
 </span><span class="kw">pub struct </span>ModuleItemList {
     items: Box&lt;[ModuleItem]&gt;,
 }
@@ -960,7 +963,8 @@
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ModuleItem
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>ModuleItem {
     <span class="doccomment">/// See [`ImportDeclaration`].
     </span>ImportDeclaration(ImportDeclaration),

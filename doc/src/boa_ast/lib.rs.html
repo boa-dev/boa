@@ -155,6 +155,8 @@
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_ast`** crate implements an ECMAScript abstract syntax tree.
 //!
 //! # Crate Overview
@@ -232,15 +234,16 @@
     clippy::option_if_let_else
 )]
 
-</span><span class="kw">mod </span>position;
+</span><span class="kw">mod </span>module_item_list;
+<span class="kw">mod </span>position;
 <span class="kw">mod </span>punctuator;
+<span class="kw">mod </span>source;
 <span class="kw">mod </span>statement_list;
 
 <span class="kw">pub mod </span>declaration;
 <span class="kw">pub mod </span>expression;
 <span class="kw">pub mod </span>function;
 <span class="kw">pub mod </span>keyword;
-<span class="kw">pub mod </span>module_item_list;
 <span class="kw">pub mod </span>operations;
 <span class="kw">pub mod </span>pattern;
 <span class="kw">pub mod </span>property;
@@ -256,6 +259,7 @@
     module_item_list::{ModuleItem, ModuleItemList},
     position::{Position, Span},
     punctuator::Punctuator,
+    source::{Module, Script},
     statement::Statement,
     statement_list::{StatementList, StatementListItem},
 };

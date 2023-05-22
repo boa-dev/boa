@@ -637,6 +637,7 @@
 <a href="#636" id="636">636</a>
 <a href="#637" id="637">637</a>
 <a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
@@ -1232,9 +1233,10 @@
                 | Opcode::SetPrototype
                 | Opcode::IsObject
                 | Opcode::SetNameByLocator
-                | Opcode::Nop
                 | Opcode::PushObjectEnvironment
-                | Opcode::PopPrivateEnvironment =&gt; {
+                | Opcode::PopPrivateEnvironment
+                | Opcode::ImportCall
+                | Opcode::Nop =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }

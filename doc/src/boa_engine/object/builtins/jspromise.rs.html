@@ -1106,7 +1106,7 @@
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     /// let context = &amp;mut Context::default();
     ///
-    /// let promise = context.eval_script(Source::from_bytes(&quot;new Promise((resolve, reject) =&gt; resolve())&quot;))?;
+    /// let promise = context.eval(Source::from_bytes(&quot;new Promise((resolve, reject) =&gt; resolve())&quot;))?;
     /// let promise = promise.as_object().cloned().unwrap();
     ///
     /// let promise = JsPromise::from_object(promise)?;

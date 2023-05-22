@@ -635,6 +635,21 @@
 <a href="#634" id="634">634</a>
 <a href="#635" id="635">635</a>
 <a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
 </pre><pre class="rust"><code><span class="doccomment">//! ECMAScript Abstract Syntax Tree visitors.
 //!
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
@@ -658,7 +673,7 @@
             assign::{Assign, AssignTarget},
             Binary, BinaryInPrivate, Conditional, Unary, Update,
         },
-        Await, Call, Expression, Identifier, New, Optional, OptionalOperation,
+        Await, Call, Expression, Identifier, ImportCall, New, Optional, OptionalOperation,
         OptionalOperationKind, Parenthesized, Spread, SuperCall, TaggedTemplate, Yield,
     },
     function::{
@@ -675,7 +690,7 @@
         Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw,
         Try, With,
     },
-    ModuleItem, ModuleItemList, StatementList, StatementListItem,
+    Module, ModuleItem, ModuleItemList, Script, StatementList, StatementListItem,
 };
 <span class="kw">use </span>boa_interner::Sym;
 
@@ -755,6 +770,8 @@
 }
 
 <span class="macro">node_ref! </span>{
+    Script,
+    Module,
     StatementList,
     StatementListItem,
     Statement,
@@ -801,6 +818,7 @@
     New,
     Call,
     SuperCall,
+    ImportCall,
     Optional,
     TaggedTemplate,
     Assign,
@@ -854,6 +872,8 @@
     <span class="doccomment">/// Type which will be propagated from the visitor if completing early.
     </span><span class="kw">type </span>BreakTy;
 
+    <span class="macro">define_visit!</span>(visit_script, Script);
+    <span class="macro">define_visit!</span>(visit_module, Module);
     <span class="macro">define_visit!</span>(visit_statement_list, StatementList);
     <span class="macro">define_visit!</span>(visit_statement_list_item, StatementListItem);
     <span class="macro">define_visit!</span>(visit_statement, Statement);
@@ -900,6 +920,7 @@
     <span class="macro">define_visit!</span>(visit_new, New);
     <span class="macro">define_visit!</span>(visit_call, Call);
     <span class="macro">define_visit!</span>(visit_super_call, SuperCall);
+    <span class="macro">define_visit!</span>(visit_import_call, ImportCall);
     <span class="macro">define_visit!</span>(visit_optional, Optional);
     <span class="macro">define_visit!</span>(visit_tagged_template, TaggedTemplate);
     <span class="macro">define_visit!</span>(visit_assign, Assign);
@@ -950,6 +971,8 @@
     </span><span class="kw">fn </span>visit&lt;N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;ast</span>&gt;&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: N) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">let </span>node = node.into();
         <span class="kw">match </span>node {
+            NodeRef::Script(n) =&gt; <span class="self">self</span>.visit_script(n),
+            NodeRef::Module(n) =&gt; <span class="self">self</span>.visit_module(n),
             NodeRef::StatementList(n) =&gt; <span class="self">self</span>.visit_statement_list(n),
             NodeRef::StatementListItem(n) =&gt; <span class="self">self</span>.visit_statement_list_item(n),
             NodeRef::Statement(n) =&gt; <span class="self">self</span>.visit_statement(n),
@@ -996,6 +1019,7 @@
             NodeRef::New(n) =&gt; <span class="self">self</span>.visit_new(n),
             NodeRef::Call(n) =&gt; <span class="self">self</span>.visit_call(n),
             NodeRef::SuperCall(n) =&gt; <span class="self">self</span>.visit_super_call(n),
+            NodeRef::ImportCall(n) =&gt; <span class="self">self</span>.visit_import_call(n),
             NodeRef::Optional(n) =&gt; <span class="self">self</span>.visit_optional(n),
             NodeRef::TaggedTemplate(n) =&gt; <span class="self">self</span>.visit_tagged_template(n),
             NodeRef::Assign(n) =&gt; <span class="self">self</span>.visit_assign(n),
@@ -1051,6 +1075,8 @@
     <span class="doccomment">/// Type which will be propagated from the visitor if completing early.
     </span><span class="kw">type </span>BreakTy;
 
+    <span class="macro">define_visit_mut!</span>(visit_script_mut, Script);
+    <span class="macro">define_visit_mut!</span>(visit_module_mut, Module);
     <span class="macro">define_visit_mut!</span>(visit_statement_list_mut, StatementList);
     <span class="macro">define_visit_mut!</span>(visit_statement_list_item_mut, StatementListItem);
     <span class="macro">define_visit_mut!</span>(visit_statement_mut, Statement);
@@ -1097,6 +1123,7 @@
     <span class="macro">define_visit_mut!</span>(visit_new_mut, New);
     <span class="macro">define_visit_mut!</span>(visit_call_mut, Call);
     <span class="macro">define_visit_mut!</span>(visit_super_call_mut, SuperCall);
+    <span class="macro">define_visit_mut!</span>(visit_import_call_mut, ImportCall);
     <span class="macro">define_visit_mut!</span>(visit_optional_mut, Optional);
     <span class="macro">define_visit_mut!</span>(visit_tagged_template_mut, TaggedTemplate);
     <span class="macro">define_visit_mut!</span>(visit_assign_mut, Assign);
@@ -1147,6 +1174,8 @@
     </span><span class="kw">fn </span>visit&lt;N: Into&lt;NodeRefMut&lt;<span class="lifetime">&#39;ast</span>&gt;&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: N) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">let </span>node = node.into();
         <span class="kw">match </span>node {
+            NodeRefMut::Script(n) =&gt; <span class="self">self</span>.visit_script_mut(n),
+            NodeRefMut::Module(n) =&gt; <span class="self">self</span>.visit_module_mut(n),
             NodeRefMut::StatementList(n) =&gt; <span class="self">self</span>.visit_statement_list_mut(n),
             NodeRefMut::StatementListItem(n) =&gt; <span class="self">self</span>.visit_statement_list_item_mut(n),
             NodeRefMut::Statement(n) =&gt; <span class="self">self</span>.visit_statement_mut(n),
@@ -1193,6 +1222,7 @@
             NodeRefMut::New(n) =&gt; <span class="self">self</span>.visit_new_mut(n),
             NodeRefMut::Call(n) =&gt; <span class="self">self</span>.visit_call_mut(n),
             NodeRefMut::SuperCall(n) =&gt; <span class="self">self</span>.visit_super_call_mut(n),
+            NodeRefMut::ImportCall(n) =&gt; <span class="self">self</span>.visit_import_call_mut(n),
             NodeRefMut::Optional(n) =&gt; <span class="self">self</span>.visit_optional_mut(n),
             NodeRefMut::TaggedTemplate(n) =&gt; <span class="self">self</span>.visit_tagged_template_mut(n),
             NodeRefMut::Assign(n) =&gt; <span class="self">self</span>.visit_assign_mut(n),

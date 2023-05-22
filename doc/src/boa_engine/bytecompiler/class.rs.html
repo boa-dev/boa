@@ -613,7 +613,7 @@
                 <span class="bool-val">false</span>,
             );
 
-            compiler.compile_statement_list(expr.body(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+            compiler.compile_statement_list(expr.body().statements(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
             <span class="kw">let </span>env_info = compiler.pop_compile_environment();
 
@@ -936,7 +936,7 @@
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
                     <span class="self">self</span>.emit(Opcode::DefinePrivateField, <span class="kw-2">&amp;</span>[index]);
                 }
-                ClassElement::StaticBlock(statement_list) =&gt; {
+                ClassElement::StaticBlock(body) =&gt; {
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
                     <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
                         Sym::EMPTY_STRING,
@@ -950,14 +950,14 @@
                     compiler.push_compile_environment(<span class="bool-val">true</span>);
 
                     compiler.function_declaration_instantiation(
-                        statement_list,
+                        body,
                         <span class="kw-2">&amp;</span>FormalParameterList::default(),
                         <span class="bool-val">false</span>,
                         <span class="bool-val">true</span>,
                         <span class="bool-val">false</span>,
                     );
 
-                    compiler.compile_statement_list(statement_list, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+                    compiler.compile_statement_list(body.statements(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     <span class="kw">let </span>env_info = compiler.pop_compile_environment();
                     compiler.pop_compile_environment();
                     compiler.num_bindings = env_info.num_bindings;

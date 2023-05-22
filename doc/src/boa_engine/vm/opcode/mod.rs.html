@@ -1656,6 +1656,13 @@
 <a href="#1655" id="1655">1655</a>
 <a href="#1656" id="1656">1656</a>
 <a href="#1657" id="1657">1657</a>
+<a href="#1658" id="1658">1658</a>
+<a href="#1659" id="1659">1659</a>
+<a href="#1660" id="1660">1660</a>
+<a href="#1661" id="1661">1661</a>
+<a href="#1662" id="1662">1662</a>
+<a href="#1663" id="1663">1663</a>
+<a href="#1664" id="1664">1664</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -2887,6 +2894,13 @@
         ///
         /// Stack: argument_1, ... argument_n **=&gt;**
         </span>SuperCallDerived,
+
+        <span class="doccomment">/// Dynamically import a module.
+        ///
+        /// Operands:
+        ///
+        /// Stack: specifier **=&gt;** promise
+        </span>ImportCall,
 
         <span class="doccomment">/// Pop the two values of the stack, strict equal compares the two values,
         /// if true jumps to address, otherwise push the second pop&#39;ed value.

@@ -183,6 +183,17 @@
 <a href="#182" id="182">182</a>
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Functions and classes nodes, as defined by the [spec].
 //!
 //! [Functions][func] are mainly subprograms that can be called by external code to execute a sequence of
@@ -223,9 +234,9 @@
 <span class="kw">pub use </span>generator::Generator;
 <span class="kw">pub use </span>parameters::{FormalParameter, FormalParameterList, FormalParameterListFlags};
 
-<span class="kw">use </span><span class="kw">crate</span>::try_break;
 <span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
-<span class="kw">use crate</span>::{block_to_string, join_nodes, StatementList};
+<span class="kw">use crate</span>::{block_to_string, join_nodes};
+<span class="kw">use crate</span>::{try_break, Script};
 <span class="kw">use </span>boa_interner::{Interner, ToIndentedString};
 
 <span class="kw">use </span><span class="kw">super</span>::expression::{Expression, Identifier};
@@ -247,7 +258,7 @@
 </span><span class="kw">pub struct </span>Function {
     name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
     parameters: FormalParameterList,
-    body: StatementList,
+    body: FunctionBody,
     has_binding_identifier: bool,
 }
 
@@ -258,7 +269,7 @@
     </span><span class="kw">pub const fn </span>new(
         name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
         parameters: FormalParameterList,
-        body: StatementList,
+        body: FunctionBody,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name,
@@ -274,7 +285,7 @@
     </span><span class="kw">pub const fn </span>new_with_binding_identifier(
         name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
         parameters: FormalParameterList,
-        body: StatementList,
+        body: FunctionBody,
         has_binding_identifier: bool,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -302,7 +313,7 @@
     <span class="doccomment">/// Gets the body of the function declaration.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StatementList {
+    </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FunctionBody {
         <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 
@@ -323,7 +334,7 @@
         buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
             <span class="string">&quot;({}) {}&quot;</span>,
             join_nodes(interner, <span class="self">self</span>.parameters.as_ref()),
-            block_to_string(<span class="kw-2">&amp;</span><span class="self">self</span>.body, interner, indentation)
+            block_to_string(<span class="self">self</span>.body.statements(), interner, indentation)
         ));
 
         buf
@@ -353,7 +364,7 @@
             <span class="macro">try_break!</span>(visitor.visit_identifier(ident));
         }
         <span class="macro">try_break!</span>(visitor.visit_formal_parameter_list(<span class="kw-2">&amp;</span><span class="self">self</span>.parameters));
-        visitor.visit_statement_list(<span class="kw-2">&amp;</span><span class="self">self</span>.body)
+        visitor.visit_script(<span class="kw-2">&amp;</span><span class="self">self</span>.body)
     }
 
     <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
@@ -364,8 +375,19 @@
             <span class="macro">try_break!</span>(visitor.visit_identifier_mut(ident));
         }
         <span class="macro">try_break!</span>(visitor.visit_formal_parameter_list_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parameters));
-        visitor.visit_statement_list_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.body)
+        visitor.visit_script_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.body)
     }
 }
+
+<span class="doccomment">/// A Function body.
+///
+/// Since [`Script`] and `FunctionBody` has the same semantics, this is currently
+/// only an alias of the former.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
+</span><span class="kw">pub type </span>FunctionBody = Script;
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_ast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

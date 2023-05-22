@@ -572,6 +572,13 @@
 <a href="#571" id="571">571</a>
 <a href="#572" id="572">572</a>
 <a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::Function;
 <span class="kw">use crate</span>::{
     block_to_string,
@@ -580,7 +587,7 @@
     property::{MethodDefinition, PropertyName},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, StatementList, ToStringEscaped,
+    Declaration, ToStringEscaped,
 };
 <span class="kw">use </span>boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 <span class="kw">use </span>core::ops::ControlFlow;
@@ -695,7 +702,7 @@
             buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                 <span class="string">&quot;{indentation}constructor({}) {}\n&quot;</span>,
                 join_nodes(interner, expr.parameters().as_ref()),
-                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
             ));
         }
         <span class="kw">for </span>element <span class="kw">in </span><span class="self">self</span>.elements.iter() {
@@ -729,16 +736,16 @@
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::Generator(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::AsyncGenerator(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::Async(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                         },
                     )
@@ -772,16 +779,16 @@
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::Generator(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::AsyncGenerator(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::Async(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                         },
                     )
@@ -842,16 +849,16 @@
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::Generator(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::AsyncGenerator(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::Async(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                         },
                     )
@@ -885,16 +892,16 @@
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::Generator(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::AsyncGenerator(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                             MethodDefinition::Async(expr) =&gt; {
-                                block_to_string(expr.body(), interner, indent_n + <span class="number">1</span>)
+                                block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
                             }
                         },
                     )
@@ -929,10 +936,10 @@
                         )
                     }
                 },
-                ClassElement::StaticBlock(statement_list) =&gt; {
+                ClassElement::StaticBlock(body) =&gt; {
                     <span class="macro">format!</span>(
                         <span class="string">&quot;{indentation}static {}\n&quot;</span>,
-                        block_to_string(statement_list, interner, indent_n + <span class="number">1</span>)
+                        block_to_string(body.statements(), interner, indent_n + <span class="number">1</span>)
                     )
                 }
             });
@@ -994,6 +1001,13 @@
     }
 }
 
+<span class="doccomment">/// The body of a class&#39; static block, as defined by the [spec].
+///
+/// Just an alias for [`Script`](crate::Script), since it has the same exact semantics.
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ClassStaticBlockBody
+</span><span class="kw">type </span>StaticBlockBody = <span class="kw">crate</span>::Script;
+
 <span class="doccomment">/// An element that can be within a [`Class`], as defined by the [spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
@@ -1028,7 +1042,7 @@
     </span>PrivateStaticFieldDefinition(PrivateName, <span class="prelude-ty">Option</span>&lt;Expression&gt;),
 
     <span class="doccomment">/// A static block, where a class can have initialization logic for its static fields.
-    </span>StaticBlock(StatementList),
+    </span>StaticBlock(StaticBlockBody),
 }
 
 <span class="kw">impl </span>VisitWith <span class="kw">for </span>ClassElement {
@@ -1063,7 +1077,7 @@
                     ControlFlow::Continue(())
                 }
             }
-            <span class="self">Self</span>::StaticBlock(sl) =&gt; visitor.visit_statement_list(sl),
+            <span class="self">Self</span>::StaticBlock(sl) =&gt; visitor.visit_script(sl),
         }
     }
 
@@ -1098,7 +1112,7 @@
                     ControlFlow::Continue(())
                 }
             }
-            <span class="self">Self</span>::StaticBlock(sl) =&gt; visitor.visit_statement_list_mut(sl),
+            <span class="self">Self</span>::StaticBlock(sl) =&gt; visitor.visit_script_mut(sl),
         }
     }
 }

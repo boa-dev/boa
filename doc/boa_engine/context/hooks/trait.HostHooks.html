@@ -70,7 +70,7 @@ need to be redefined:</p>
 }
 <span class="kw">let </span>hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks = <span class="kw-2">&amp;</span>Hooks; <span class="comment">// Can have additional state.
 </span><span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>ContextBuilder::new().host_hooks(hooks).build().unwrap();
-<span class="kw">let </span>result = context.eval_script(Source::from_bytes(<span class="string">r#&quot;eval(&quot;let a = 5&quot;)&quot;#</span>));
+<span class="kw">let </span>result = context.eval(Source::from_bytes(<span class="string">r#&quot;eval(&quot;let a = 5&quot;)&quot;#</span>));
 <span class="macro">assert_eq!</span>(result.unwrap_err().to_string(), <span class="string">&quot;TypeError: eval calls not available&quot;</span>);</code></pre></div>
 </div></details><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.make_job_callback" class="method"><a class="srclink rightside" href="../../../src/boa_engine/context/hooks.rs.html#57-62">source</a><h4 class="code-header">fn <a href="#method.make_job_callback" class="fn">make_job_callback</a>(
     &amp;self,

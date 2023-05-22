@@ -1116,7 +1116,7 @@
         AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator, PrivateName,
     },
     operations::{
-        bound_names, contains, has_direct_super, top_level_lexically_declared_names, ContainsSymbol,
+        bound_names, contains, has_direct_super, lexically_declared_names, ContainsSymbol,
     },
     property::{<span class="self">self</span>, MethodDefinition},
     Expression, Keyword, Punctuator,
@@ -1526,7 +1526,7 @@
                 // https://tc39.es/ecma262/#sec-method-definitions-static-semantics-early-errors
                 </span>name_in_lexically_declared_names(
                     <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>parameters),
-                    <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
+                    <span class="kw-2">&amp;</span>lexically_declared_names(<span class="kw-2">&amp;</span>body),
                     params_start_position,
                     interner,
                 )<span class="question-mark">?</span>;
@@ -1602,7 +1602,7 @@
                 // LexicallyDeclaredNames of FunctionBody.
                 </span>name_in_lexically_declared_names(
                     <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
-                    <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
+                    <span class="kw-2">&amp;</span>lexically_declared_names(<span class="kw-2">&amp;</span>body),
                     params_start_position,
                     interner,
                 )<span class="question-mark">?</span>;
@@ -1885,7 +1885,7 @@
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
         </span>name_in_lexically_declared_names(
             <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
-            <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
+            <span class="kw-2">&amp;</span>lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
             interner,
         )<span class="question-mark">?</span>;
@@ -2001,7 +2001,7 @@
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
         </span>name_in_lexically_declared_names(
             <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
-            <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
+            <span class="kw-2">&amp;</span>lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
             interner,
         )<span class="question-mark">?</span>;
@@ -2094,7 +2094,7 @@
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
         </span>name_in_lexically_declared_names(
             <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
-            <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
+            <span class="kw-2">&amp;</span>lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
             interner,
         )<span class="question-mark">?</span>;

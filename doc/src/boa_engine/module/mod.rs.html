@@ -736,6 +736,19 @@
 <a href="#735" id="735">735</a>
 <a href="#736" id="736">736</a>
 <a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript&#39;s module system.
 //!
 //! This module contains the [`Module`] type, which represents an [**Abstract Module Record**][module],
@@ -779,6 +792,8 @@
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use </span><span class="kw">crate</span>::object::FunctionObjectBuilder;
+<span class="kw">use </span><span class="kw">crate</span>::script::Script;
+<span class="kw">use </span><span class="kw">crate</span>::vm::ActiveRunnable;
 <span class="kw">use crate</span>::{
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
@@ -789,13 +804,24 @@
 <span class="kw">use crate</span>::{js_string, JsNativeError, NativeFunction};
 
 <span class="doccomment">/// The referrer from which a load request of a module originates.
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>Referrer {
     <span class="doccomment">/// A [**Source Text Module Record**](https://tc39.es/ecma262/#sec-source-text-module-records).
     </span>Module(Module),
     <span class="doccomment">/// A [**Realm**](https://tc39.es/ecma262/#sec-code-realms).
-    </span>Realm(Realm), <span class="comment">// TODO: script
-</span>}
+    </span>Realm(Realm),
+    <span class="doccomment">/// A [**Script Record**](https://tc39.es/ecma262/#sec-script-records)
+    </span>Script(Script),
+}
+
+<span class="kw">impl </span>From&lt;ActiveRunnable&gt; <span class="kw">for </span>Referrer {
+    <span class="kw">fn </span>from(value: ActiveRunnable) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>value {
+            ActiveRunnable::Script(script) =&gt; <span class="self">Self</span>::Script(script),
+            ActiveRunnable::Module(module) =&gt; <span class="self">Self</span>::Module(module),
+        }
+    }
+}
 
 <span class="doccomment">/// Module loading related host hooks.
 ///
@@ -920,7 +946,7 @@
                     .with_cause(JsError::from_opaque(<span class="macro">js_string!</span>(err.to_string()).into()))
             })<span class="question-mark">?</span>;
             <span class="kw">let </span>module = Module::parse(source, <span class="prelude-val">None</span>, context).map_err(|err| {
-                JsNativeError::error()
+                JsNativeError::syntax()
                     .with_message(<span class="macro">format!</span>(<span class="string">&quot;could not parse module `{}`&quot;</span>, short_path.display()))
                     .with_cause(err)
             })<span class="question-mark">?</span>;

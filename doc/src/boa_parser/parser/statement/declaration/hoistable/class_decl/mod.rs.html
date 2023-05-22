@@ -1382,6 +1382,8 @@
 <a href="#1381" id="1381">1381</a>
 <a href="#1382" id="1382">1382</a>
 <a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -2080,7 +2082,9 @@
                     cursor.set_strict(strict);
                     statement_list
                 };
-                function::ClassElement::StaticBlock(statement_list)
+                function::ClassElement::StaticBlock(ast::function::FunctionBody::new(
+                    statement_list,
+                ))
             }
             TokenKind::Punctuator(Punctuator::Mul) =&gt; {
                 <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
@@ -2730,7 +2734,7 @@
             }
             <span class="comment">// ClassStaticBlockBody : ClassStaticBlockStatementList
             </span>function::ClassElement::StaticBlock(block) =&gt; {
-                <span class="kw">for </span>node <span class="kw">in </span>block.statements() {
+                <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;**</span>block.statements() {
                     <span class="comment">// It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
                     </span><span class="kw">if </span>contains_arguments(node) {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(

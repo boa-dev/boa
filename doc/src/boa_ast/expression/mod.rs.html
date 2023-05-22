@@ -361,6 +361,11 @@
 <a href="#360" id="360">360</a>
 <a href="#361" id="361">361</a>
 <a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].
 //!
 //! ECMAScript expressions include:
@@ -396,7 +401,7 @@
 <span class="kw">mod </span>r#yield;
 
 <span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
-<span class="kw">pub use </span>call::{Call, SuperCall};
+<span class="kw">pub use </span>call::{Call, ImportCall, SuperCall};
 <span class="kw">pub use </span>identifier::{Identifier, RESERVED_IDENTIFIERS_STRICT};
 <span class="kw">pub use </span>new::New;
 <span class="kw">pub use </span>optional::{Optional, OptionalOperation, OptionalOperationKind};
@@ -484,11 +489,13 @@
     <span class="doccomment">/// See [`SuperCall`].
     </span>SuperCall(SuperCall),
 
+    <span class="doccomment">/// See [`ImportCall`].
+    </span>ImportCall(ImportCall),
+
     <span class="doccomment">/// See [`Optional`].
     </span>Optional(Optional),
 
-    <span class="comment">// TODO: Import calls
-    </span><span class="doccomment">/// See [`TaggedTemplate`].
+    <span class="doccomment">/// See [`TaggedTemplate`].
     </span>TaggedTemplate(TaggedTemplate),
 
     <span class="doccomment">/// The `new.target` pseudo-property expression.
@@ -555,6 +562,7 @@
             <span class="self">Self</span>::New(new) =&gt; new.to_interned_string(interner),
             <span class="self">Self</span>::Call(call) =&gt; call.to_interned_string(interner),
             <span class="self">Self</span>::SuperCall(supc) =&gt; supc.to_interned_string(interner),
+            <span class="self">Self</span>::ImportCall(impc) =&gt; impc.to_interned_string(interner),
             <span class="self">Self</span>::Optional(opt) =&gt; opt.to_interned_string(interner),
             <span class="self">Self</span>::NewTarget =&gt; <span class="string">&quot;new.target&quot;</span>.to_owned(),
             <span class="self">Self</span>::TaggedTemplate(tag) =&gt; tag.to_interned_string(interner),
@@ -663,6 +671,7 @@
             <span class="self">Self</span>::New(n) =&gt; visitor.visit_new(n),
             <span class="self">Self</span>::Call(c) =&gt; visitor.visit_call(c),
             <span class="self">Self</span>::SuperCall(sc) =&gt; visitor.visit_super_call(sc),
+            <span class="self">Self</span>::ImportCall(ic) =&gt; visitor.visit_import_call(ic),
             <span class="self">Self</span>::Optional(opt) =&gt; visitor.visit_optional(opt),
             <span class="self">Self</span>::TaggedTemplate(tt) =&gt; visitor.visit_tagged_template(tt),
             <span class="self">Self</span>::Assign(a) =&gt; visitor.visit_assign(a),
@@ -704,6 +713,7 @@
             <span class="self">Self</span>::New(n) =&gt; visitor.visit_new_mut(n),
             <span class="self">Self</span>::Call(c) =&gt; visitor.visit_call_mut(c),
             <span class="self">Self</span>::SuperCall(sc) =&gt; visitor.visit_super_call_mut(sc),
+            <span class="self">Self</span>::ImportCall(ic) =&gt; visitor.visit_import_call_mut(ic),
             <span class="self">Self</span>::Optional(opt) =&gt; visitor.visit_optional_mut(opt),
             <span class="self">Self</span>::TaggedTemplate(tt) =&gt; visitor.visit_tagged_template_mut(tt),
             <span class="self">Self</span>::Assign(a) =&gt; visitor.visit_assign_mut(a),

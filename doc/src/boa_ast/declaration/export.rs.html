@@ -328,6 +328,11 @@
 <a href="#327" id="327">327</a>
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Export declaration AST nodes.
 //!
 //! This module contains `export` declaration AST nodes.
@@ -352,7 +357,9 @@
 <span class="kw">use </span>boa_interner::Sym;
 
 <span class="doccomment">/// The kind of re-export in an [`ExportDeclaration`].
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>ReExportKind {
     <span class="doccomment">/// Namespaced Re-export (`export * as name from &quot;module-name&quot;`).
     </span>Namespaced {
@@ -406,7 +413,8 @@
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ExportDeclaration
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>ExportDeclaration {
     <span class="doccomment">/// Re-export.
     </span>ReExport {
@@ -495,7 +503,9 @@
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ExportSpecifier
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, Copy, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>ExportSpecifier {
     alias: Sym,
     private_name: Sym,

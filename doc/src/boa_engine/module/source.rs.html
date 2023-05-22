@@ -1900,15 +1900,6 @@
 <a href="#1899" id="1899">1899</a>
 <a href="#1900" id="1900">1900</a>
 <a href="#1901" id="1901">1901</a>
-<a href="#1902" id="1902">1902</a>
-<a href="#1903" id="1903">1903</a>
-<a href="#1904" id="1904">1904</a>
-<a href="#1905" id="1905">1905</a>
-<a href="#1906" id="1906">1906</a>
-<a href="#1907" id="1907">1907</a>
-<a href="#1908" id="1908">1908</a>
-<a href="#1909" id="1909">1909</a>
-<a href="#1910" id="1910">1910</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{cell::Cell, collections::HashSet, hash::Hash, rc::Rc};
 
 <span class="kw">use </span>boa_ast::{
@@ -1918,9 +1909,8 @@
     },
     operations::{
         bound_names, contains, lexically_scoped_declarations, var_scoped_declarations,
-        ContainsSymbol,
+        ContainsSymbol, LexicallyScopedDeclaration,
     },
-    Declaration, ModuleItemList,
 };
 <span class="kw">use </span>boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_interner::Sym;
@@ -1933,7 +1923,7 @@
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
     realm::Realm,
-    vm::{CallFrame, CodeBlock, CompletionRecord, Opcode},
+    vm::{ActiveRunnable, CallFrame, CodeBlock, CompletionRecord, Opcode},
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
 
@@ -2186,7 +2176,7 @@
 </span><span class="kw">struct </span>ModuleCode {
     has_tla: bool,
     requested_modules: FxHashSet&lt;Sym&gt;,
-    node: ModuleItemList,
+    source: boa_ast::Module,
     import_entries: Vec&lt;ImportEntry&gt;,
     local_export_entries: Vec&lt;LocalExportEntry&gt;,
     indirect_export_entries: Vec&lt;IndirectExportEntry&gt;,
@@ -2208,16 +2198,16 @@
             .expect(<span class="string">&quot;parent module must be initialized&quot;</span>)
     }
 
-    <span class="doccomment">/// Creates a new `SourceTextModule` from a parsed `ModuleItemList`.
+    <span class="doccomment">/// Creates a new `SourceTextModule` from a parsed `ModuleSource`.
     ///
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(code: ModuleItemList) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(code: boa_ast::Module) -&gt; <span class="self">Self </span>{
         <span class="comment">// 3. Let requestedModules be the ModuleRequests of body.
-        </span><span class="kw">let </span>requested_modules = code.requests();
+        </span><span class="kw">let </span>requested_modules = code.items().requests();
         <span class="comment">// 4. Let importEntries be ImportEntries of body.
-        </span><span class="kw">let </span>import_entries = code.import_entries();
+        </span><span class="kw">let </span>import_entries = code.items().import_entries();
 
         <span class="comment">// 5. Let importedBoundNames be ImportedLocalNames(importEntries).
         // Can be ignored because this is just a simple `Iter::map`
@@ -2230,7 +2220,7 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>star_export_entries = Vec::new();
 
         <span class="comment">// 10. For each ExportEntry Record ee of exportEntries, do
-        </span><span class="kw">for </span>ee <span class="kw">in </span>code.export_entries() {
+        </span><span class="kw">for </span>ee <span class="kw">in </span>code.items().export_entries() {
             <span class="kw">match </span>ee {
                 <span class="comment">// a. If ee.[[ModuleRequest]] is null, then
                 </span>ExportEntry::Ordinary(entry) =&gt; {
@@ -2300,7 +2290,7 @@
                 async_parent_modules: GcRefCell::default(),
                 import_meta: GcRefCell::default(),
                 code: ModuleCode {
-                    node: code,
+                    source: code,
                     requested_modules,
                     has_tla,
                     import_entries,
@@ -2526,8 +2516,8 @@
                     <span class="comment">// iii. Else,
                     //    1. Assert: module imports a specific binding for this export.
                     //    2. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
-                    </span>ReExportImportName::Name(<span class="kw">_</span>) =&gt; {
-                        imported_module.resolve_export(export_name, resolve_set)
+                    </span>ReExportImportName::Name(name) =&gt; {
+                        imported_module.resolve_export(name, resolve_set)
                     }
                 };
             }
@@ -3381,7 +3371,7 @@
 
             <span class="comment">// 18. Let code be module.[[ECMAScriptCode]].
             // 19. Let varDeclarations be the VarScopedDeclarations of code.
-            </span><span class="kw">let </span>var_declarations = var_scoped_declarations(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.node);
+            </span><span class="kw">let </span>var_declarations = var_scoped_declarations(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.source);
             <span class="comment">// 20. Let declaredVarNames be a new empty List.
             </span><span class="kw">let </span><span class="kw-2">mut </span>declared_var_names = Vec::new();
             <span class="comment">// 21. For each element d of varDeclarations, do
@@ -3405,79 +3395,59 @@
 
             <span class="comment">// 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
             // 23. Let privateEnv be null.
-            </span><span class="kw">let </span>lex_declarations = lexically_scoped_declarations(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.node);
+            </span><span class="kw">let </span>lex_declarations = lexically_scoped_declarations(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.source);
             <span class="comment">// 24. For each element d of lexDeclarations, do
-            </span><span class="kw">for </span>declaration <span class="kw">in </span>lex_declarations {
-                <span class="kw">match </span><span class="kw-2">&amp;</span>declaration {
-                    <span class="comment">// i. If IsConstantDeclaration of d is true, then
-                    </span>Declaration::Lexical(LexicalDeclaration::Const(declaration)) =&gt; {
-                        <span class="comment">// a. For each element dn of the BoundNames of d, do
-                        </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
-                            <span class="comment">// 1. Perform ! env.CreateImmutableBinding(dn, true).
-                            </span>compiler.create_immutable_binding(name, <span class="bool-val">true</span>);
-                        }
+            </span><span class="kw">for </span>declaration <span class="kw">in </span><span class="kw-2">&amp;</span>lex_declarations {
+                <span class="comment">// i. If IsConstantDeclaration of d is true, then
+                </span><span class="kw">if let </span>LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(
+                    decl,
+                )) = declaration
+                {
+                    <span class="comment">// a. For each element dn of the BoundNames of d, do
+                    </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(decl) {
+                        <span class="comment">// 1. Perform ! env.CreateImmutableBinding(dn, true).
+                        </span>compiler.create_immutable_binding(name, <span class="bool-val">true</span>);
                     }
+                } <span class="kw">else </span>{
                     <span class="comment">// ii. Else,
-                    </span>Declaration::Lexical(LexicalDeclaration::Let(declaration)) =&gt; {
-                        <span class="comment">// a. For each element dn of the BoundNames of d, do
-                        </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
-                            <span class="comment">// 1. Perform ! env.CreateMutableBinding(dn, false).
-                            </span>compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        }
-                    }
-                    <span class="comment">// iii. If d is either a FunctionDeclaration, a GeneratorDeclaration, an
-                    //      AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
-                    </span>Declaration::Function(function) =&gt; {
-                        <span class="comment">// 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        // 2. Perform ! env.InitializeBinding(dn, fo).
-                        </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(function) {
-                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        }
-                        compiler.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
-                    }
-                    Declaration::Generator(function) =&gt; {
-                        <span class="comment">// 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        // 2. Perform ! env.InitializeBinding(dn, fo).
-                        </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(function) {
-                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        }
-                        compiler.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
-                    }
-                    Declaration::AsyncFunction(function) =&gt; {
-                        <span class="comment">// 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        // 2. Perform ! env.InitializeBinding(dn, fo).
-                        </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(function) {
-                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        }
-                        compiler.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
-                    }
-                    Declaration::AsyncGenerator(function) =&gt; {
-                        <span class="comment">// 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        // 2. Perform ! env.InitializeBinding(dn, fo).
-                        </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(function) {
-                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        }
-                        compiler.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
-                    }
-                    Declaration::Class(class) =&gt; {
-                        <span class="comment">// 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        // 2. Perform ! env.InitializeBinding(dn, fo).
-                        </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
-                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        }
+                    // a. For each element dn of the BoundNames of d, do
+                    </span><span class="kw">for </span>name <span class="kw">in </span>declaration.bound_names() {
+                        <span class="comment">// 1. Perform ! env.CreateMutableBinding(dn, false).
+                        </span>compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
                     }
                 }
+
+                <span class="comment">// iii. If d is either a FunctionDeclaration, a GeneratorDeclaration, an
+                //      AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
+                // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
+                // 2. Perform ! env.InitializeBinding(dn, fo).
+                </span><span class="kw">let </span>spec = <span class="kw">match </span>declaration {
+                    LexicallyScopedDeclaration::Function(f) =&gt; f.into(),
+                    LexicallyScopedDeclaration::Generator(g) =&gt; g.into(),
+                    LexicallyScopedDeclaration::AsyncFunction(af) =&gt; af.into(),
+                    LexicallyScopedDeclaration::AsyncGenerator(ag) =&gt; ag.into(),
+                    LexicallyScopedDeclaration::Class(<span class="kw">_</span>)
+                    | LexicallyScopedDeclaration::LexicalDeclaration(<span class="kw">_</span>)
+                    | LexicallyScopedDeclaration::AssignmentExpression(<span class="kw">_</span>) =&gt; <span class="kw">continue</span>,
+                };
+
+                compiler.function(spec, NodeKind::Declaration, <span class="bool-val">false</span>);
             }
 
-            compiler.compile_module_item_list(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.node);
+            compiler.compile_module_item_list(<span class="self">self</span>.inner.code.source.items());
 
             Gc::new(compiler.finish())
         };
 
         <span class="comment">// 8. Let moduleContext be a new ECMAScript code execution context.
-        // 12. Set the ScriptOrModule of moduleContext to module.
         </span><span class="kw">let </span><span class="kw-2">mut </span>envs = EnvironmentStack::new(global_env);
         envs.push_module(module_compile_env);
+
+        <span class="comment">// 12. Set the ScriptOrModule of moduleContext to module.
+        </span><span class="kw">let </span>active_runnable = context
+            .vm
+            .active_runnable
+            .replace(ActiveRunnable::Module(parent.clone()));
 
         <span class="comment">// 13. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 14. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
@@ -3534,6 +3504,7 @@
         </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>envs);
         context.vm.stack = stack;
         context.vm.active_function = active_function;
+        context.vm.active_runnable = active_runnable;
         context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
 
         <span class="macro">debug_assert!</span>(envs.current().as_declarative().is_some());
@@ -3585,7 +3556,12 @@
         callframe.promise_capability = capability;
 
         <span class="comment">// 4. Set the ScriptOrModule of moduleContext to module.
-        // 5. Assert: module has been linked and declarations in its module environment have been instantiated.
+        </span><span class="kw">let </span>active_runnable = context
+            .vm
+            .active_runnable
+            .replace(ActiveRunnable::Module(<span class="self">self</span>.parent()));
+
+        <span class="comment">// 5. Assert: module has been linked and declarations in its module environment have been instantiated.
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 7. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
         </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>environments);
@@ -3611,6 +3587,7 @@
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>environments);
         context.vm.stack = stack;
         context.vm.active_function = function;
+        context.vm.active_runnable = active_runnable;
         context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
         context.vm.pop_frame();
 
@@ -3622,6 +3599,11 @@
             <span class="comment">// 11. Return unused.
             </span><span class="prelude-val">Ok</span>(())
         }
+    }
+
+    <span class="doccomment">/// Gets the loaded modules of this module.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loaded_modules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;FxHashMap&lt;Sym, Module&gt;&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.loaded_modules
     }
 }
 

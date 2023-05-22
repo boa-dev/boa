@@ -24,7 +24,7 @@ functionality for the <code>boa_engine</code> crate for runtime implementors.</p
 </span><span class="kw">let </span>js_code = <span class="string">&quot;console.log(&#39;Hello World from a JS code string!&#39;)&quot;</span>;
 
 <span class="comment">// Parse the source code
-</span><span class="kw">match </span>context.eval_script(Source::from_bytes(js_code)) {
+</span><span class="kw">match </span>context.eval(Source::from_bytes(js_code)) {
     <span class="prelude-val">Ok</span>(res) =&gt; {
         <span class="macro">println!</span>(
             <span class="string">&quot;{}&quot;</span>,

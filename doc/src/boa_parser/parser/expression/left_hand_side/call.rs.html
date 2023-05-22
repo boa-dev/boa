@@ -151,6 +151,43 @@
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Call expression parsing.
 //!
 //! More information:
@@ -225,7 +262,7 @@
 
         <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>lhs = <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenParen) {
+        <span class="kw">let </span>lhs = <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenParen) {
             <span class="kw">let </span>args =
                 Arguments::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
             Call::new(<span class="self">self</span>.first_member_expr, args).into()
@@ -238,6 +275,42 @@
                 <span class="string">&quot;call expression&quot;</span>,
             ));
         };
+
+        CallExpressionTail::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, lhs).parse(cursor, interner)
+    }
+}
+
+<span class="doccomment">/// Parses the tail parts of a call expression (property access, sucessive call, array access).
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CallExpressionTail {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+    call: ast::Expression,
+}
+
+<span class="kw">impl </span>CallExpressionTail {
+    <span class="doccomment">/// Creates a new `CallExpressionTail` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;Y, A&gt;(allow_yield: Y, allow_await: A, call: ast::Expression) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
+    {
+        <span class="self">Self </span>{
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+            call,
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>CallExpressionTail
+<span class="kw">where
+    </span>R: Read,
+{
+    <span class="kw">type </span>Output = ast::Expression;
+
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>lhs = <span class="self">self</span>.call;
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
             <span class="kw">let </span>token = tok.clone();
@@ -300,6 +373,7 @@
                 <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             }
         }
+
         <span class="prelude-val">Ok</span>(lhs)
     }
 }
