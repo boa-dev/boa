@@ -38,6 +38,39 @@ use std::io::Read;
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct ImportDeclaration;
 
+impl ImportDeclaration {
+    /// Tests if the next node is an `ImportDeclaration`.
+    pub(in crate::parser) fn test<R: Read>(
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<bool> {
+        if let Some(token) = cursor.peek(0, interner)? {
+            if let TokenKind::Keyword((Keyword::Import, escaped)) = token.kind() {
+                if *escaped {
+                    return Err(Error::general(
+                        "keyword `import` must not contain escaped characters",
+                        token.span().start(),
+                    ));
+                }
+
+                if let Some(token) = cursor.peek(1, interner)? {
+                    match token.kind() {
+                        TokenKind::StringLiteral(_)
+                        | TokenKind::Punctuator(Punctuator::OpenBlock | Punctuator::Mul)
+                        | TokenKind::IdentifierName(_)
+                        | TokenKind::Keyword((Keyword::Await | Keyword::Yield, _)) => {
+                            return Ok(true)
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+
+        Ok(false)
+    }
+}
+
 impl<R> TokenParser<R> for ImportDeclaration
 where
     R: Read,

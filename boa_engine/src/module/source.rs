@@ -614,8 +614,8 @@ impl SourceTextModule {
                     // iii. Else,
                     //    1. Assert: module imports a specific binding for this export.
                     //    2. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
-                    ReExportImportName::Name(_) => {
-                        imported_module.resolve_export(export_name, resolve_set)
+                    ReExportImportName::Name(name) => {
+                        imported_module.resolve_export(name, resolve_set)
                     }
                 };
             }

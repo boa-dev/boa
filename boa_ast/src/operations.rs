@@ -1650,6 +1650,12 @@ struct VarScopedDeclarationsVisitor<'a>(&'a mut Vec<VarScopedDeclaration>);
 impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
     type BreakTy = Infallible;
 
+    // ScriptBody : StatementList
+    fn visit_script(&mut self, node: &'ast Script) -> ControlFlow<Self::BreakTy> {
+        // 1. Return TopLevelVarScopedDeclarations of StatementList.
+        TopLevelVarScopedDeclarationsVisitor(self.0).visit_statement_list(node.statements())
+    }
+
     fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
         match node {
             Statement::Block(s) => self.visit(s),
@@ -1784,10 +1790,23 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
 
     fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
         match node {
-            ModuleItem::ExportDeclaration(ExportDeclaration::VarStatement(var)) => self.visit(var),
-            ModuleItem::StatementListItem(item) => self.visit(item),
-            _ => ControlFlow::Continue(()),
+            // ModuleItem : ExportDeclaration
+            ModuleItem::ExportDeclaration(decl) => {
+                if let ExportDeclaration::VarStatement(var) = decl {
+                    //     1. If ExportDeclaration is export VariableStatement, return VarScopedDeclarations of VariableStatement.
+                    self.visit_var_declaration(var);
+                }
+                // 2. Return a new empty List.
+            }
+            ModuleItem::StatementListItem(item) => {
+                self.visit_statement_list_item(item);
+            }
+            // ModuleItem : ImportDeclaration
+            ModuleItem::ImportDeclaration(_) => {
+                // 1. Return a new empty List.
+            }
         }
+        ControlFlow::Continue(())
     }
 }
 

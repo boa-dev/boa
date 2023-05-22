@@ -961,12 +961,20 @@ where
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
-            TokenKind::Keyword((Keyword::Import, false)) => ImportDeclaration
-                .parse(cursor, interner)
-                .map(Self::Output::ImportDeclaration),
             TokenKind::Keyword((Keyword::Export, false)) => ExportDeclaration
                 .parse(cursor, interner)
                 .map(Self::Output::ExportDeclaration),
+            TokenKind::Keyword((Keyword::Import, false)) => {
+                if ImportDeclaration::test(cursor, interner)? {
+                    ImportDeclaration
+                        .parse(cursor, interner)
+                        .map(Self::Output::ImportDeclaration)
+                } else {
+                    StatementListItem::new(false, true, false)
+                        .parse(cursor, interner)
+                        .map(Self::Output::StatementListItem)
+                }
+            }
             _ => StatementListItem::new(false, true, false)
                 .parse(cursor, interner)
                 .map(Self::Output::StatementListItem),

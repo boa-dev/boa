@@ -59,7 +59,7 @@ where
 
                 let next = cursor.peek(0, interner).or_abrupt()?;
 
-                match next.kind() {
+                let export = match next.kind() {
                     TokenKind::IdentifierName((Sym::AS, _)) => {
                         cursor.advance(interner);
                         let tok = cursor.next(interner).or_abrupt()?;
@@ -67,9 +67,10 @@ where
                         let alias = match tok.kind() {
                             TokenKind::StringLiteral((export_name, _))
                             | TokenKind::IdentifierName((export_name, _)) => *export_name,
+                            TokenKind::Keyword((kw, _)) => kw.to_sym(),
                             _ => {
                                 return Err(Error::expected(
-                                    ["identifier".to_owned(), "string literal".to_owned()],
+                                    ["identifier name".to_owned(), "string literal".to_owned()],
                                     tok.to_string(interner),
                                     tok.span(),
                                     "export declaration",
@@ -102,7 +103,11 @@ where
                             "export declaration",
                         ))
                     }
-                }
+                };
+
+                cursor.expect_semicolon("star re-export", interner)?;
+
+                export
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 let names = NamedExports.parse(cursor, interner)?;
@@ -115,11 +120,16 @@ where
                 ) {
                     let specifier =
                         FromClause::new("export declaration").parse(cursor, interner)?;
+
+                    cursor.expect_semicolon("named re-exports", interner)?;
+
                     AstExportDeclaration::ReExport {
                         kind: ReExportKind::Named { names },
                         specifier,
                     }
                 } else {
+                    cursor.expect_semicolon("named exports", interner)?;
+
                     AstExportDeclaration::List(names)
                 }
             }
@@ -165,10 +175,14 @@ where
                             ClassDeclaration::new(false, true, true).parse(cursor, interner)?,
                         )
                     }
-                    _ => AstExportDeclaration::DefaultAssignmentExpression(
-                        AssignmentExpression::new(None, true, false, true)
-                            .parse(cursor, interner)?,
-                    ),
+                    _ => {
+                        let expr = AssignmentExpression::new(None, true, false, true)
+                            .parse(cursor, interner)?;
+
+                        cursor.expect_semicolon("default expression export", interner)?;
+
+                        AstExportDeclaration::DefaultAssignmentExpression(expr)
+                    }
                 }
             }
             _ => AstExportDeclaration::Declaration(
@@ -222,7 +236,9 @@ where
                     }
                     cursor.advance(interner);
                 }
-                TokenKind::StringLiteral(_) | TokenKind::IdentifierName(_) => {
+                TokenKind::StringLiteral(_)
+                | TokenKind::IdentifierName(_)
+                | TokenKind::Keyword(_) => {
                     list.push(ExportSpecifier.parse(cursor, interner)?);
                 }
                 _ => {
@@ -272,6 +288,7 @@ where
                 Ok(*ident)
             }
             TokenKind::IdentifierName((ident, _)) => Ok(*ident),
+            TokenKind::Keyword((kw, _)) => Ok(kw.to_sym()),
             _ => Err(Error::expected(
                 ["identifier".to_owned(), "string literal".to_owned()],
                 tok.to_string(interner),

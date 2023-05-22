@@ -19,7 +19,7 @@ use boa_engine::{
 use colored::Colorize;
 use fxhash::FxHashSet;
 use rayon::prelude::*;
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, eprintln, rc::Rc};
 
 impl TestSuite {
     /// Runs the test suite.
@@ -265,7 +265,21 @@ impl Test {
                         }
                         PromiseState::Fulfilled(v) => v,
                         PromiseState::Rejected(err) => {
-                            return (false, format!("Uncaught {}", err.display()))
+                            let output = JsError::from_opaque(err.clone())
+                                .try_native(context)
+                                .map_or_else(
+                                    |_| format!("Uncaught {}", err.display()),
+                                    |err| {
+                                        format!(
+                                            "Uncaught {err}{}",
+                                            err.cause().map_or_else(String::new, |cause| format!(
+                                                "\n  caused by {cause}"
+                                            ))
+                                        )
+                                    },
+                                );
+
+                            return (false, output);
                         }
                     }
                 } else {
@@ -431,6 +445,8 @@ impl Test {
                     }
 
                     let promise = module.evaluate(context);
+
+                    context.run_jobs();
 
                     match promise
                         .state()

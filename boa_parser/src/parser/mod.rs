@@ -31,6 +31,8 @@ use boa_interner::Interner;
 use rustc_hash::FxHashSet;
 use std::{io::Read, path::Path};
 
+use self::statement::ModuleItemList;
+
 /// Trait implemented by parsers.
 ///
 /// This makes it possible to abstract over the underlying implementation of a parser.
@@ -388,7 +390,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.set_module();
 
-        let module = boa_ast::Module::new(self::statement::ModuleItemList.parse(cursor, interner)?);
+        let module = boa_ast::Module::new(ModuleItemList.parse(cursor, interner)?);
 
         // It is a Syntax Error if the LexicallyDeclaredNames of ModuleItemList contains any duplicate entries.
         let mut bindings = FxHashSet::default();

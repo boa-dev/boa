@@ -73,7 +73,7 @@ use boa_engine::{
     property::Attribute,
     script::Script,
     vm::flowgraph::{Direction, Graph},
-    Context, JsNativeError, JsResult, Source,
+    Context, JsError, JsNativeError, JsResult, Source,
 };
 use boa_runtime::Console;
 use clap::{Parser, ValueEnum, ValueHint};
@@ -81,7 +81,8 @@ use colored::{Color, Colorize};
 use debug::init_boa_debug_object;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{
-    cell::RefCell, collections::VecDeque, fs::read, fs::OpenOptions, io, path::PathBuf, println,
+    cell::RefCell, collections::VecDeque, eprintln, fs::read, fs::OpenOptions, io, path::PathBuf,
+    println,
 };
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -335,8 +336,22 @@ fn evaluate_files(
                 Ok(PromiseState::Fulfilled(_)) => {}
                 Ok(PromiseState::Rejected(err)) => {
                     eprintln!("Uncaught {}", err.display());
+
+                    if let Ok(err) = JsError::from_opaque(err).try_native(context) {
+                        if let Some(cause) = err.cause() {
+                            eprintln!("\tCaused by: {cause}");
+                        }
+                    }
                 }
-                Err(err) => eprintln!("Uncaught {err}"),
+                Err(err) => {
+                    eprintln!("Uncaught {err}");
+
+                    if let Ok(err) = err.try_native(context) {
+                        if let Some(cause) = err.cause() {
+                            eprintln!("\tCaused by: {cause}");
+                        }
+                    }
+                }
             }
         } else {
             match context.eval(Source::from_bytes(&buffer)) {

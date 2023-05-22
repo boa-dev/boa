@@ -195,7 +195,7 @@ impl ModuleLoader for SimpleModuleLoader {
                     .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
             })?;
             let module = Module::parse(source, None, context).map_err(|err| {
-                JsNativeError::error()
+                JsNativeError::syntax()
                     .with_message(format!("could not parse module `{}`", short_path.display()))
                     .with_cause(err)
             })?;
