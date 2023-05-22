@@ -38,9 +38,9 @@ use core::ops::ControlFlow;
 pub use generator::Generator;
 pub use parameters::{FormalParameter, FormalParameterList, FormalParameterListFlags};
 
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{block_to_string, join_nodes, StatementList};
+use crate::{block_to_string, join_nodes};
+use crate::{try_break, Script};
 use boa_interner::{Interner, ToIndentedString};
 
 use super::expression::{Expression, Identifier};
@@ -62,7 +62,7 @@ use super::Declaration;
 pub struct Function {
     name: Option<Identifier>,
     parameters: FormalParameterList,
-    body: StatementList,
+    body: FunctionBody,
     has_binding_identifier: bool,
 }
 
@@ -73,7 +73,7 @@ impl Function {
     pub const fn new(
         name: Option<Identifier>,
         parameters: FormalParameterList,
-        body: StatementList,
+        body: FunctionBody,
     ) -> Self {
         Self {
             name,
@@ -89,7 +89,7 @@ impl Function {
     pub const fn new_with_binding_identifier(
         name: Option<Identifier>,
         parameters: FormalParameterList,
-        body: StatementList,
+        body: FunctionBody,
         has_binding_identifier: bool,
     ) -> Self {
         Self {
@@ -117,7 +117,7 @@ impl Function {
     /// Gets the body of the function declaration.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &StatementList {
+    pub const fn body(&self) -> &FunctionBody {
         &self.body
     }
 
@@ -138,7 +138,7 @@ impl ToIndentedString for Function {
         buf.push_str(&format!(
             "({}) {}",
             join_nodes(interner, self.parameters.as_ref()),
-            block_to_string(&self.body, interner, indentation)
+            block_to_string(self.body.statements(), interner, indentation)
         ));
 
         buf
@@ -168,7 +168,7 @@ impl VisitWith for Function {
             try_break!(visitor.visit_identifier(ident));
         }
         try_break!(visitor.visit_formal_parameter_list(&self.parameters));
-        visitor.visit_statement_list(&self.body)
+        visitor.visit_script(&self.body)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -179,6 +179,17 @@ impl VisitWith for Function {
             try_break!(visitor.visit_identifier_mut(ident));
         }
         try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
-        visitor.visit_statement_list_mut(&mut self.body)
+        visitor.visit_script_mut(&mut self.body)
     }
 }
+
+/// A Function body.
+///
+/// Since [`Script`] and `FunctionBody` has the same semantics, this is currently
+/// only an alias of the former.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-modules
+pub type FunctionBody = Script;

@@ -256,16 +256,32 @@ impl ToIndentedString for ObjectLiteral {
                             MethodDefinition::Get(expression)
                             | MethodDefinition::Set(expression)
                             | MethodDefinition::Ordinary(expression) => {
-                                block_to_string(expression.body(), interner, indent_n + 1)
+                                block_to_string(
+                                    expression.body().statements(),
+                                    interner,
+                                    indent_n + 1,
+                                )
                             }
                             MethodDefinition::Generator(expression) => {
-                                block_to_string(expression.body(), interner, indent_n + 1)
+                                block_to_string(
+                                    expression.body().statements(),
+                                    interner,
+                                    indent_n + 1,
+                                )
                             }
                             MethodDefinition::AsyncGenerator(expression) => {
-                                block_to_string(expression.body(), interner, indent_n + 1)
+                                block_to_string(
+                                    expression.body().statements(),
+                                    interner,
+                                    indent_n + 1,
+                                )
                             }
                             MethodDefinition::Async(expression) => {
-                                block_to_string(expression.body(), interner, indent_n + 1)
+                                block_to_string(
+                                    expression.body().statements(),
+                                    interner,
+                                    indent_n + 1,
+                                )
                             }
                         },
                     )

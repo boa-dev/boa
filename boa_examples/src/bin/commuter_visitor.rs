@@ -69,14 +69,14 @@ fn main() {
         Parser::new(Source::from_filepath(Path::new("boa_examples/scripts/calc.js")).unwrap());
     let mut ctx = Context::default();
 
-    let mut statements = parser.parse_script(ctx.interner_mut()).unwrap();
+    let mut script = parser.parse_script(ctx.interner_mut()).unwrap();
 
     let mut visitor = CommutorVisitor::default();
 
     assert!(matches!(
-        visitor.visit_statement_list_mut(&mut statements),
+        visitor.visit_statement_list_mut(script.statements_mut()),
         ControlFlow::Continue(_)
     ));
 
-    println!("{}", statements.to_interned_string(ctx.interner()));
+    println!("{}", script.to_interned_string(ctx.interner()));
 }

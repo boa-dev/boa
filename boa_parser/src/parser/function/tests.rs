@@ -7,9 +7,10 @@ use boa_ast::{
     },
     function::{
         ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags, Function,
+        FunctionBody,
     },
     statement::Return,
-    Declaration, Expression, Statement, StatementList, StatementListItem,
+    Declaration, Expression, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -30,12 +31,14 @@ fn check_basic() {
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             params,
-            vec![StatementListItem::Statement(Statement::Return(
-                Return::new(Some(
-                    Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                )),
-            ))]
-            .into(),
+            FunctionBody::new(
+                vec![StatementListItem::Statement(Statement::Return(
+                    Return::new(Some(
+                        Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                    )),
+                ))]
+                .into(),
+            ),
         ))
         .into()],
         interner,
@@ -66,12 +69,14 @@ fn check_duplicates_strict_off() {
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             params,
-            vec![StatementListItem::Statement(Statement::Return(
-                Return::new(Some(
-                    Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                )),
-            ))]
-            .into(),
+            FunctionBody::new(
+                vec![StatementListItem::Statement(Statement::Return(
+                    Return::new(Some(
+                        Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                    )),
+                ))]
+                .into(),
+            ),
         ))
         .into()],
         interner,
@@ -100,12 +105,14 @@ fn check_basic_semicolon_insertion() {
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             params,
-            vec![StatementListItem::Statement(Statement::Return(
-                Return::new(Some(
-                    Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                )),
-            ))]
-            .into(),
+            FunctionBody::new(
+                vec![StatementListItem::Statement(Statement::Return(
+                    Return::new(Some(
+                        Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                    )),
+                ))]
+                .into(),
+            ),
         ))
         .into()],
         interner,
@@ -127,10 +134,12 @@ fn check_empty_return() {
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             params,
-            vec![StatementListItem::Statement(Statement::Return(
-                Return::new(None),
-            ))]
-            .into(),
+            FunctionBody::new(
+                vec![StatementListItem::Statement(Statement::Return(
+                    Return::new(None),
+                ))]
+                .into(),
+            ),
         ))
         .into()],
         interner,
@@ -152,10 +161,12 @@ fn check_empty_return_semicolon_insertion() {
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             params,
-            vec![StatementListItem::Statement(Statement::Return(
-                Return::new(None),
-            ))]
-            .into(),
+            FunctionBody::new(
+                vec![StatementListItem::Statement(Statement::Return(
+                    Return::new(None),
+                ))]
+                .into(),
+            ),
         ))
         .into()],
         interner,
@@ -186,7 +197,7 @@ fn check_rest_operator() {
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             params,
-            StatementList::default(),
+            FunctionBody::default(),
         ))
         .into()],
         interner,
@@ -211,7 +222,7 @@ fn check_arrow_only_rest() {
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             params,
-            StatementList::default(),
+            FunctionBody::default(),
         )))
         .into()],
         interner,
@@ -246,7 +257,7 @@ fn check_arrow_rest() {
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             params,
-            StatementList::default(),
+            FunctionBody::default(),
         )))
         .into()],
         interner,
@@ -274,17 +285,19 @@ fn check_arrow() {
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             params,
-            vec![StatementListItem::Statement(Statement::Return(
-                Return::new(Some(
-                    Binary::new(
-                        ArithmeticOp::Add.into(),
-                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                        Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-                    )
-                    .into(),
-                )),
-            ))]
-            .into(),
+            FunctionBody::new(
+                vec![StatementListItem::Statement(Statement::Return(
+                    Return::new(Some(
+                        Binary::new(
+                            ArithmeticOp::Add.into(),
+                            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                        )
+                        .into(),
+                    )),
+                ))]
+                .into(),
+            ),
         )))
         .into()],
         interner,
@@ -310,17 +323,19 @@ fn check_arrow_semicolon_insertion() {
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             params,
-            vec![StatementListItem::Statement(Statement::Return(
-                Return::new(Some(
-                    Binary::new(
-                        ArithmeticOp::Add.into(),
-                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                        Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-                    )
-                    .into(),
-                )),
-            ))]
-            .into(),
+            FunctionBody::new(
+                vec![StatementListItem::Statement(Statement::Return(
+                    Return::new(Some(
+                        Binary::new(
+                            ArithmeticOp::Add.into(),
+                            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                        )
+                        .into(),
+                    )),
+                ))]
+                .into(),
+            ),
         )))
         .into()],
         interner,
@@ -346,10 +361,12 @@ fn check_arrow_epty_return() {
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             params,
-            vec![StatementListItem::Statement(Statement::Return(
-                Return::new(None),
-            ))]
-            .into(),
+            FunctionBody::new(
+                vec![StatementListItem::Statement(Statement::Return(
+                    Return::new(None),
+                ))]
+                .into(),
+            ),
         )))
         .into()],
         interner,
@@ -375,10 +392,12 @@ fn check_arrow_empty_return_semicolon_insertion() {
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             params,
-            vec![StatementListItem::Statement(Statement::Return(
-                Return::new(None),
-            ))]
-            .into(),
+            FunctionBody::new(
+                vec![StatementListItem::Statement(Statement::Return(
+                    Return::new(None),
+                ))]
+                .into(),
+            ),
         )))
         .into()],
         interner,
@@ -403,13 +422,17 @@ fn check_arrow_assignment() {
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         params,
-                        vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Return(
+                                Return::new(Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
-                            )),
-                        ))]
-                        .into(),
+                                )),
+                            ))]
+                            .into(),
+                        ),
                     )
                     .into(),
                 ),
@@ -440,13 +463,17 @@ fn check_arrow_assignment_nobrackets() {
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         params,
-                        vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Return(
+                                Return::new(Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
-                            )),
-                        ))]
-                        .into(),
+                                )),
+                            ))]
+                            .into(),
+                        ),
                     )
                     .into(),
                 ),
@@ -477,13 +504,17 @@ fn check_arrow_assignment_noparenthesis() {
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         params,
-                        vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Return(
+                                Return::new(Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
-                            )),
-                        ))]
-                        .into(),
+                                )),
+                            ))]
+                            .into(),
+                        ),
                     )
                     .into(),
                 ),
@@ -514,13 +545,17 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         params,
-                        vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Return(
+                                Return::new(Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
-                            )),
-                        ))]
-                        .into(),
+                                )),
+                            ))]
+                            .into(),
+                        ),
                     )
                     .into(),
                 ),
@@ -557,13 +592,17 @@ fn check_arrow_assignment_2arg() {
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         params,
-                        vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Return(
+                                Return::new(Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
-                            )),
-                        ))]
-                        .into(),
+                                )),
+                            ))]
+                            .into(),
+                        ),
                     )
                     .into(),
                 ),
@@ -600,13 +639,17 @@ fn check_arrow_assignment_2arg_nobrackets() {
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         params,
-                        vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Return(
+                                Return::new(Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
-                            )),
-                        ))]
-                        .into(),
+                                )),
+                            ))]
+                            .into(),
+                        ),
                     )
                     .into(),
                 ),
@@ -647,13 +690,17 @@ fn check_arrow_assignment_3arg() {
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         params,
-                        vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Return(
+                                Return::new(Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
-                            )),
-                        ))]
-                        .into(),
+                                )),
+                            ))]
+                            .into(),
+                        ),
                     )
                     .into(),
                 ),
@@ -694,13 +741,17 @@ fn check_arrow_assignment_3arg_nobrackets() {
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         params,
-                        vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Return(
+                                Return::new(Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
-                            )),
-                        ))]
-                        .into(),
+                                )),
+                            ))]
+                            .into(),
+                        ),
                     )
                     .into(),
                 ),

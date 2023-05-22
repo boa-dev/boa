@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
-    function::{AsyncGenerator, FormalParameterList},
-    Declaration, StatementList,
+    function::{AsyncGenerator, FormalParameterList, FunctionBody},
+    Declaration,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -14,7 +14,7 @@ fn async_generator_function_declaration() {
         vec![Declaration::AsyncGenerator(AsyncGenerator::new(
             Some(interner.get_or_intern_static("gen", utf16!("gen")).into()),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
             false,
         ))
         .into()],

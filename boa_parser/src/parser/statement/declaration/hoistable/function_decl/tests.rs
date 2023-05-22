@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
-    function::{FormalParameterList, Function},
-    Declaration, StatementList,
+    function::{FormalParameterList, Function, FunctionBody},
+    Declaration,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -19,7 +19,7 @@ fn function_declaration() {
                     .into(),
             ),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
         ))
         .into()],
         interner,
@@ -38,7 +38,7 @@ fn function_declaration_keywords() {
                         .into(),
                 ),
                 FormalParameterList::default(),
-                StatementList::default(),
+                FunctionBody::default(),
             ))
             .into()]
         };

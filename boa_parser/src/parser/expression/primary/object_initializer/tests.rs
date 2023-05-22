@@ -7,10 +7,10 @@ use boa_ast::{
     },
     function::{
         AsyncFunction, AsyncGenerator, FormalParameter, FormalParameterList,
-        FormalParameterListFlags, Function,
+        FormalParameterListFlags, Function, FunctionBody,
     },
     property::{MethodDefinition, PropertyDefinition, PropertyName},
-    Declaration, StatementList,
+    Declaration,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -65,7 +65,7 @@ fn check_object_short_function() {
             MethodDefinition::Ordinary(Function::new(
                 Some(interner.get_or_intern_static("b", utf16!("b")).into()),
                 FormalParameterList::default(),
-                StatementList::default(),
+                FunctionBody::default(),
             )),
         ),
     ];
@@ -115,7 +115,7 @@ fn check_object_short_function_arguments() {
             MethodDefinition::Ordinary(Function::new(
                 Some(interner.get_or_intern_static("b", utf16!("b")).into()),
                 parameters,
-                StatementList::default(),
+                FunctionBody::default(),
             )),
         ),
     ];
@@ -157,7 +157,7 @@ fn check_object_getter() {
                         .into(),
                 ),
                 FormalParameterList::default(),
-                StatementList::default(),
+                FunctionBody::default(),
             )),
         ),
     ];
@@ -210,7 +210,7 @@ fn check_object_setter() {
                         .into(),
                 ),
                 params,
-                StatementList::default(),
+                FunctionBody::default(),
             )),
         ),
     ];
@@ -243,7 +243,7 @@ fn check_object_short_function_get() {
         MethodDefinition::Ordinary(Function::new(
             Some(interner.get_or_intern_static("get", utf16!("get")).into()),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
         )),
     )];
 
@@ -274,7 +274,7 @@ fn check_object_short_function_set() {
         MethodDefinition::Ordinary(Function::new(
             Some(interner.get_or_intern_static("set", utf16!("set")).into()),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
         )),
     )];
 
@@ -422,7 +422,7 @@ fn check_async_method() {
         MethodDefinition::Async(AsyncFunction::new(
             Some(interner.get_or_intern_static("dive", utf16!("dive")).into()),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
             false,
         )),
     )];
@@ -460,7 +460,7 @@ fn check_async_generator_method() {
                     .into(),
             ),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
             false,
         )),
     )];
@@ -518,7 +518,7 @@ fn check_async_ordinary_method() {
                     .into(),
             ),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
         )),
     )];
 

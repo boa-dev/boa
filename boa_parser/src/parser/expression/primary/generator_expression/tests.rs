@@ -2,7 +2,7 @@ use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{literal::Literal, Yield},
-    function::{FormalParameterList, Generator},
+    function::{FormalParameterList, FunctionBody, Generator},
     Declaration, Expression, Statement, StatementListItem,
 };
 use boa_interner::Interner;
@@ -24,10 +24,12 @@ fn check_generator_function_expression() {
                     Generator::new(
                         Some(gen.into()),
                         FormalParameterList::default(),
-                        vec![StatementListItem::Statement(Statement::Expression(
-                            Expression::from(Yield::new(Some(Literal::from(1).into()), false)),
-                        ))]
-                        .into(),
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Expression(
+                                Expression::from(Yield::new(Some(Literal::from(1).into()), false)),
+                            ))]
+                            .into(),
+                        ),
                         false,
                     )
                     .into(),
@@ -57,10 +59,12 @@ fn check_generator_function_delegate_yield_expression() {
                     Generator::new(
                         Some(gen.into()),
                         FormalParameterList::default(),
-                        vec![StatementListItem::Statement(Statement::Expression(
-                            Expression::from(Yield::new(Some(Literal::from(1).into()), true)),
-                        ))]
-                        .into(),
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Expression(
+                                Expression::from(Yield::new(Some(Literal::from(1).into()), true)),
+                            ))]
+                            .into(),
+                        ),
                         false,
                     )
                     .into(),

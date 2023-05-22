@@ -6,7 +6,7 @@ use boa_ast::{
         literal::Literal,
         Call, Identifier,
     },
-    function::{Class, ClassElement, FormalParameterList, Function},
+    function::{Class, ClassElement, FormalParameterList, Function, FunctionBody},
     property::{MethodDefinition, PropertyName},
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
@@ -22,7 +22,7 @@ fn check_async_ordinary_method() {
         MethodDefinition::Ordinary(Function::new(
             None,
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
         )),
     )];
 
@@ -120,7 +120,10 @@ fn check_new_target_with_property_access() {
     let constructor = Function::new(
         Some(interner.get_or_intern_static("A", utf16!("A")).into()),
         FormalParameterList::default(),
-        StatementList::new([Statement::Expression(console).into()], false),
+        FunctionBody::new(StatementList::new(
+            [Statement::Expression(console).into()],
+            false,
+        )),
     );
 
     let class = Class::new(

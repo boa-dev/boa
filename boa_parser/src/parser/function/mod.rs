@@ -449,7 +449,7 @@ impl<R> TokenParser<R> for FunctionStatementList
 where
     R: Read,
 {
-    type Output = ast::StatementList;
+    type Output = ast::function::FunctionBody;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FunctionStatementList", "Parsing");
@@ -478,6 +478,6 @@ where
             )));
         }
 
-        Ok(statement_list)
+        Ok(ast::function::FunctionBody::new(statement_list))
     }
 }

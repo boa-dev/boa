@@ -31,7 +31,8 @@ use crate::{
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ModuleItemList
-#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ModuleItemList {
     items: Box<[ModuleItem]>,
 }
@@ -462,7 +463,8 @@ impl VisitWith for ModuleItemList {
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ModuleItem
-#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ModuleItem {
     /// See [`ImportDeclaration`].
     ImportDeclaration(ImportDeclaration),

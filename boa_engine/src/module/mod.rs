@@ -59,7 +59,7 @@ pub enum Referrer {
     Module(Module),
     /// A [**Realm**](https://tc39.es/ecma262/#sec-code-realms).
     Realm(Realm),
-    /// A [**Script Record**]
+    /// A [**Script Record**](https://tc39.es/ecma262/#sec-script-records)
     Script(Script),
 }
 

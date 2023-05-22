@@ -2,12 +2,12 @@ use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     expression::{Expression, Identifier},
-    join_nodes, StatementList,
+    join_nodes,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
-use super::FormalParameterList;
+use super::{FormalParameterList, FunctionBody};
 
 /// An arrow function expression, as defined by the [spec].
 ///
@@ -24,7 +24,7 @@ use super::FormalParameterList;
 pub struct ArrowFunction {
     name: Option<Identifier>,
     parameters: FormalParameterList,
-    body: StatementList,
+    body: FunctionBody,
 }
 
 impl ArrowFunction {
@@ -34,7 +34,7 @@ impl ArrowFunction {
     pub const fn new(
         name: Option<Identifier>,
         params: FormalParameterList,
-        body: StatementList,
+        body: FunctionBody,
     ) -> Self {
         Self {
             name,
@@ -66,7 +66,7 @@ impl ArrowFunction {
     /// Gets the body of the arrow function.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &StatementList {
+    pub const fn body(&self) -> &FunctionBody {
         &self.body
     }
 }
@@ -102,7 +102,7 @@ impl VisitWith for ArrowFunction {
             try_break!(visitor.visit_identifier(ident));
         }
         try_break!(visitor.visit_formal_parameter_list(&self.parameters));
-        visitor.visit_statement_list(&self.body)
+        visitor.visit_script(&self.body)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -113,6 +113,6 @@ impl VisitWith for ArrowFunction {
             try_break!(visitor.visit_identifier_mut(ident));
         }
         try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
-        visitor.visit_statement_list_mut(&mut self.body)
+        visitor.visit_script_mut(&mut self.body)
     }
 }

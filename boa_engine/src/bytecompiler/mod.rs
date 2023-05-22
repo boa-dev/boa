@@ -27,7 +27,7 @@ use boa_ast::{
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class,
-        FormalParameterList, Function, Generator, PrivateName,
+        FormalParameterList, Function, FunctionBody, Generator, PrivateName,
     },
     pattern::Pattern,
     Declaration, Expression, Statement, StatementList, StatementListItem,
@@ -64,7 +64,7 @@ pub(crate) struct FunctionSpec<'a> {
     kind: FunctionKind,
     pub(crate) name: Option<Identifier>,
     parameters: &'a FormalParameterList,
-    body: &'a StatementList,
+    body: &'a FunctionBody,
     has_binding_identifier: bool,
 }
 

@@ -105,7 +105,9 @@ impl VisitWith for Declaration {
 /// This is equivalent to the [`ModuleSpecifier`] production.
 ///
 /// [`FromClause`]: https://tc39.es/ecma262/#prod-ModuleSpecifier
-#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub struct ModuleSpecifier {
     module: Sym,
 }

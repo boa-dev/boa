@@ -696,7 +696,9 @@ where
                     cursor.set_strict(strict);
                     statement_list
                 };
-                function::ClassElement::StaticBlock(statement_list)
+                function::ClassElement::StaticBlock(ast::function::FunctionBody::new(
+                    statement_list,
+                ))
             }
             TokenKind::Punctuator(Punctuator::Mul) => {
                 let token = cursor.peek(1, interner).or_abrupt()?;
@@ -1346,7 +1348,7 @@ where
             }
             // ClassStaticBlockBody : ClassStaticBlockStatementList
             function::ClassElement::StaticBlock(block) => {
-                for node in block.statements() {
+                for node in &**block.statements() {
                     // It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
                     if contains_arguments(node) {
                         return Err(Error::general(

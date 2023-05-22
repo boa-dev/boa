@@ -8,6 +8,7 @@ use crate::{
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
+use std::ops::Deref;
 
 /// An item inside a [`StatementList`] Parse Node, as defined by the [spec].
 ///
@@ -146,6 +147,14 @@ impl From<Vec<StatementListItem>> for StatementList {
             statements: stm.into(),
             strict: false,
         }
+    }
+}
+
+impl Deref for StatementList {
+    type Target = [StatementListItem];
+
+    fn deref(&self) -> &Self::Target {
+        &self.statements
     }
 }
 

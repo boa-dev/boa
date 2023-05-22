@@ -59,10 +59,11 @@
 )]
 #![allow(clippy::option_if_let_else, clippy::redundant_pub_crate)]
 
+use boa_ast as _;
+
 mod debug;
 mod helper;
 
-use boa_ast::StatementList;
 use boa_engine::{
     builtins::promise::PromiseState,
     context::ContextBuilder,
@@ -79,7 +80,9 @@ use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
 use debug::init_boa_debug_object;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
-use std::{cell::RefCell, collections::VecDeque, fs::read, fs::OpenOptions, io, path::PathBuf};
+use std::{
+    cell::RefCell, collections::VecDeque, fs::read, fs::OpenOptions, io, path::PathBuf, println,
+};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
@@ -175,7 +178,7 @@ impl Opt {
     }
 }
 
-#[derive(Debug, Clone, ValueEnum)]
+#[derive(Debug, Copy, Clone, Default, ValueEnum)]
 enum DumpFormat {
     /// The different types of format available for dumping.
     // NOTE: This can easily support other formats just by
@@ -186,6 +189,7 @@ enum DumpFormat {
     // arg_enum! macro does not support it.
 
     // This is the default format that you get from std::fmt::Debug.
+    #[default]
     Debug,
 
     // This is a minified json format.
@@ -213,19 +217,6 @@ enum FlowgraphDirection {
     RightToLeft,
 }
 
-/// Parses the the token stream into an AST and returns it.
-///
-/// Returns a error of type String with a message,
-/// if the token stream has a parsing error.
-fn parse_tokens<S>(src: &S, context: &mut Context<'_>) -> Result<StatementList, String>
-where
-    S: AsRef<[u8]> + ?Sized,
-{
-    boa_parser::Parser::new(Source::from_bytes(&src))
-        .parse_script(context.interner_mut())
-        .map_err(|e| format!("Uncaught SyntaxError: {e}"))
-}
-
 /// Dumps the AST to stdout with format controlled by the given arguments.
 ///
 /// Returns a error of type String with a error message,
@@ -234,25 +225,41 @@ fn dump<S>(src: &S, args: &Opt, context: &mut Context<'_>) -> Result<(), String>
 where
     S: AsRef<[u8]> + ?Sized,
 {
-    if let Some(ref arg) = args.dump_ast {
-        let mut ast = parse_tokens(src, context)?;
+    if let Some(arg) = args.dump_ast {
+        let arg = arg.unwrap_or_default();
+        let mut parser = boa_parser::Parser::new(Source::from_bytes(src));
+        let dump =
+            if args.module {
+                let module = parser
+                    .parse_module(context.interner_mut())
+                    .map_err(|e| format!("Uncaught SyntaxError: {e}"))?;
 
-        if args.optimize {
-            context.optimize_statement_list(&mut ast);
-        }
+                match arg {
+                    DumpFormat::Json => serde_json::to_string(&module)
+                        .expect("could not convert AST to a JSON string"),
+                    DumpFormat::JsonPretty => serde_json::to_string_pretty(&module)
+                        .expect("could not convert AST to a pretty JSON string"),
+                    DumpFormat::Debug => format!("{module:#?}"),
+                }
+            } else {
+                let mut script = parser
+                    .parse_script(context.interner_mut())
+                    .map_err(|e| format!("Uncaught SyntaxError: {e}"))?;
 
-        match arg {
-            Some(DumpFormat::Json) => println!(
-                "{}",
-                serde_json::to_string(&ast).expect("could not convert AST to a JSON string")
-            ),
-            Some(DumpFormat::JsonPretty) => println!(
-                "{}",
-                serde_json::to_string_pretty(&ast)
-                    .expect("could not convert AST to a pretty JSON string")
-            ),
-            Some(DumpFormat::Debug) | None => println!("{ast:#?}"),
-        }
+                if args.optimize {
+                    context.optimize_statement_list(script.statements_mut());
+                }
+
+                match arg {
+                    DumpFormat::Json => serde_json::to_string(&script)
+                        .expect("could not convert AST to a JSON string"),
+                    DumpFormat::JsonPretty => serde_json::to_string_pretty(&script)
+                        .expect("could not convert AST to a pretty JSON string"),
+                    DumpFormat::Debug => format!("{script:#?}"),
+                }
+            };
+
+        println!("{dump}");
     }
 
     Ok(())

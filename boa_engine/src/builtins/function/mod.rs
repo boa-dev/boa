@@ -30,12 +30,11 @@ use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::{
-    function::FormalParameterList,
+    function::{FormalParameterList, FunctionBody},
     operations::{
         all_private_identifiers_valid, bound_names, contains, lexically_declared_names,
         ContainsSymbol,
     },
-    StatementList,
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
@@ -776,7 +775,7 @@ impl BuiltInFunctionObject {
                 .generator(true)
                 .compile(
                     &FormalParameterList::default(),
-                    &StatementList::default(),
+                    &FunctionBody::default(),
                     context.realm().environment().compile_env(),
                     context,
                 );
@@ -794,7 +793,7 @@ impl BuiltInFunctionObject {
         } else {
             let code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
                 &FormalParameterList::default(),
-                &StatementList::default(),
+                &FunctionBody::default(),
                 context.realm().environment().compile_env(),
                 context,
             );

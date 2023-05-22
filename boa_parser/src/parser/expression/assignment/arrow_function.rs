@@ -18,7 +18,7 @@ use crate::{
         TokenParser,
     },
 };
-use ast::operations::{bound_names, top_level_lexically_declared_names};
+use ast::operations::{bound_names, lexically_declared_names};
 use boa_ast::{
     self as ast,
     declaration::Variable,
@@ -159,7 +159,7 @@ where
         // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
         name_in_lexically_declared_names(
             &bound_names(&params),
-            &top_level_lexically_declared_names(&body),
+            &lexically_declared_names(&body),
             params_start_position,
             interner,
         )?;
@@ -190,25 +190,28 @@ impl<R> TokenParser<R> for ConciseBody
 where
     R: Read,
 {
-    type Output = StatementList;
+    type Output = ast::function::FunctionBody;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        match cursor.peek(0, interner).or_abrupt()?.kind() {
-            TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                cursor.advance(interner);
-                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                cursor.expect(Punctuator::CloseBlock, "arrow function", interner)?;
-                Ok(body)
-            }
-            _ => Ok(StatementList::from(vec![ast::Statement::Return(
-                Return::new(
-                    ExpressionBody::new(self.allow_in, false)
-                        .parse(cursor, interner)?
-                        .into(),
-                ),
-            )
-            .into()])),
-        }
+        let stmts =
+            match cursor.peek(0, interner).or_abrupt()?.kind() {
+                TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                    cursor.advance(interner);
+                    let body = FunctionBody::new(false, false).parse(cursor, interner)?;
+                    cursor.expect(Punctuator::CloseBlock, "arrow function", interner)?;
+                    body
+                }
+                _ => ast::function::FunctionBody::new(StatementList::from(vec![
+                    ast::Statement::Return(Return::new(
+                        ExpressionBody::new(self.allow_in, false)
+                            .parse(cursor, interner)?
+                            .into(),
+                    ))
+                    .into(),
+                ])),
+            };
+
+        Ok(stmts)
     }
 }
 

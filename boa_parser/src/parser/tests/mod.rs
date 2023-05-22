@@ -20,10 +20,11 @@ use boa_ast::{
     },
     function::{
         ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags, Function,
+        FunctionBody,
     },
     property::PropertyDefinition,
     statement::{If, Return},
-    Expression, Statement, StatementList, StatementListItem,
+    Expression, Script, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -39,7 +40,7 @@ where
         Parser::new(Source::from_bytes(js))
             .parse_script(interner)
             .expect("failed to parse"),
-        StatementList::from(expr.into())
+        Script::new(StatementList::from(expr.into()))
     );
 }
 
@@ -126,7 +127,10 @@ fn hoisting() {
             Declaration::Function(Function::new(
                 Some(hello.into()),
                 FormalParameterList::default(),
-                vec![Statement::Return(Return::new(Some(Literal::from(10).into()))).into()].into(),
+                FunctionBody::new(
+                    vec![Statement::Return(Return::new(Some(Literal::from(10).into()))).into()]
+                        .into(),
+                ),
             ))
             .into(),
         ],
@@ -505,7 +509,9 @@ fn spread_in_arrow_function() {
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             params,
-            vec![Statement::Expression(Expression::from(Identifier::from(b))).into()].into(),
+            FunctionBody::new(
+                vec![Statement::Expression(Expression::from(Identifier::from(b))).into()].into(),
+            ),
         )))
         .into()],
         interner,

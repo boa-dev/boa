@@ -265,6 +265,10 @@ impl Operation for ImportCall {
     const INSTRUCTION: &'static str = "INST - ImportCall";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        // Import Calls
+        // Runtime Semantics: Evaluation
+        // https://tc39.es/ecma262/#sec-import-call-runtime-semantics-evaluation
+
         // 1. Let referrer be GetActiveScriptOrModule().
         // 2. If referrer is null, set referrer to the current Realm Record.
         let referrer = context

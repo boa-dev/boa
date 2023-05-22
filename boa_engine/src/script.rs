@@ -10,7 +10,6 @@
 
 use std::io::Read;
 
-use boa_ast::StatementList;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Sym;
 use boa_parser::{Parser, Source};
@@ -36,7 +35,7 @@ impl std::fmt::Debug for Script {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Script")
             .field("realm", &self.inner.realm.addr())
-            .field("code", &self.inner.code)
+            .field("code", &self.inner.source)
             .field("loaded_modules", &self.inner.loaded_modules)
             .field("host_defined", &self.inner.host_defined)
             .finish()
@@ -47,7 +46,7 @@ impl std::fmt::Debug for Script {
 struct Inner {
     realm: Realm,
     #[unsafe_ignore_trace]
-    code: StatementList,
+    source: boa_ast::Script,
     codeblock: GcRefCell<Option<Gc<CodeBlock>>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_defined: (),
@@ -82,13 +81,13 @@ impl Script {
         }
         let mut code = parser.parse_script(context.interner_mut())?;
         if !context.optimizer_options().is_empty() {
-            context.optimize_statement_list(&mut code);
+            context.optimize_statement_list(code.statements_mut());
         }
 
         Ok(Self {
             inner: Gc::new(Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
-                code,
+                source: code,
                 codeblock: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 host_defined: (),
@@ -110,14 +109,14 @@ impl Script {
 
         let mut compiler = ByteCompiler::new(
             Sym::MAIN,
-            self.inner.code.strict(),
+            self.inner.source.strict(),
             false,
             self.inner.realm.environment().compile_env(),
             context,
         );
         // TODO: move to `Script::evaluate` to make this operation infallible.
-        compiler.global_declaration_instantiation(&self.inner.code)?;
-        compiler.compile_statement_list(&self.inner.code, true, false);
+        compiler.global_declaration_instantiation(&self.inner.source)?;
+        compiler.compile_statement_list(self.inner.source.statements(), true, false);
 
         let cb = Gc::new(compiler.finish());
 

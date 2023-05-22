@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
-    function::{FormalParameterList, Generator},
-    Declaration, StatementList,
+    function::{FormalParameterList, FunctionBody, Generator},
+    Declaration,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -14,7 +14,7 @@ fn generator_function_declaration() {
         vec![Declaration::Generator(Generator::new(
             Some(interner.get_or_intern_static("gen", utf16!("gen")).into()),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
             false,
         ))
         .into()],

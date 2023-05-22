@@ -27,10 +27,11 @@ use crate::{
     Error,
 };
 use boa_ast::{
+    self as ast,
     expression::Identifier,
     function::FormalParameterList,
-    operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
-    Declaration, Keyword, Punctuator, StatementList,
+    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
+    Declaration, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -148,7 +149,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
-) -> ParseResult<(Identifier, FormalParameterList, StatementList)> {
+) -> ParseResult<(Identifier, FormalParameterList, ast::function::FunctionBody)> {
     let token = cursor.peek(0, interner).or_abrupt()?;
     let name_span = token.span();
     let name = match token.kind() {
@@ -222,7 +223,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     // also occurs in the LexicallyDeclaredNames of FunctionBody.
     name_in_lexically_declared_names(
         &bound_names(&params),
-        &top_level_lexically_declared_names(&body),
+        &lexically_declared_names(&body),
         params_start_position,
         interner,
     )?;

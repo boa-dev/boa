@@ -38,7 +38,7 @@ use crate::{
         Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw,
         Try, With,
     },
-    ModuleItem, ModuleItemList, StatementList, StatementListItem,
+    Module, ModuleItem, ModuleItemList, Script, StatementList, StatementListItem,
 };
 use boa_interner::Sym;
 
@@ -118,6 +118,8 @@ macro_rules! node_ref {
 }
 
 node_ref! {
+    Script,
+    Module,
     StatementList,
     StatementListItem,
     Statement,
@@ -218,6 +220,8 @@ pub trait Visitor<'ast>: Sized {
     /// Type which will be propagated from the visitor if completing early.
     type BreakTy;
 
+    define_visit!(visit_script, Script);
+    define_visit!(visit_module, Module);
     define_visit!(visit_statement_list, StatementList);
     define_visit!(visit_statement_list_item, StatementListItem);
     define_visit!(visit_statement, Statement);
@@ -315,6 +319,8 @@ pub trait Visitor<'ast>: Sized {
     fn visit<N: Into<NodeRef<'ast>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
         let node = node.into();
         match node {
+            NodeRef::Script(n) => self.visit_script(n),
+            NodeRef::Module(n) => self.visit_module(n),
             NodeRef::StatementList(n) => self.visit_statement_list(n),
             NodeRef::StatementListItem(n) => self.visit_statement_list_item(n),
             NodeRef::Statement(n) => self.visit_statement(n),
@@ -417,6 +423,8 @@ pub trait VisitorMut<'ast>: Sized {
     /// Type which will be propagated from the visitor if completing early.
     type BreakTy;
 
+    define_visit_mut!(visit_script_mut, Script);
+    define_visit_mut!(visit_module_mut, Module);
     define_visit_mut!(visit_statement_list_mut, StatementList);
     define_visit_mut!(visit_statement_list_item_mut, StatementListItem);
     define_visit_mut!(visit_statement_mut, Statement);
@@ -514,6 +522,8 @@ pub trait VisitorMut<'ast>: Sized {
     fn visit<N: Into<NodeRefMut<'ast>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
         let node = node.into();
         match node {
+            NodeRefMut::Script(n) => self.visit_script_mut(n),
+            NodeRefMut::Module(n) => self.visit_module_mut(n),
             NodeRefMut::StatementList(n) => self.visit_statement_list_mut(n),
             NodeRefMut::StatementListItem(n) => self.visit_statement_list_item_mut(n),
             NodeRefMut::Statement(n) => self.visit_statement_mut(n),

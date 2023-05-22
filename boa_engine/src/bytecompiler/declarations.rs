@@ -5,14 +5,14 @@ use crate::{
 };
 use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VariableList},
-    function::FormalParameterList,
+    function::{FormalParameterList, FunctionBody},
     operations::{
-        all_private_identifiers_valid, bound_names, lexically_scoped_declarations,
-        top_level_lexically_declared_names, top_level_var_declared_names,
-        top_level_var_scoped_declarations, VarScopedDeclaration,
+        all_private_identifiers_valid, bound_names, lexically_declared_names,
+        lexically_scoped_declarations, var_declared_names, var_scoped_declarations,
+        LexicallyScopedDeclaration, VarScopedDeclaration,
     },
     visitor::NodeRef,
-    Declaration, StatementList, StatementListItem,
+    Declaration, Script, StatementListItem,
 };
 use boa_interner::Sym;
 
@@ -26,15 +26,12 @@ impl ByteCompiler<'_, '_> {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
-    pub(crate) fn global_declaration_instantiation(
-        &mut self,
-        script: &StatementList,
-    ) -> JsResult<()> {
+    pub(crate) fn global_declaration_instantiation(&mut self, script: &Script) -> JsResult<()> {
         // 1. Let lexNames be the LexicallyDeclaredNames of script.
-        let lex_names = top_level_lexically_declared_names(script);
+        let lex_names = lexically_declared_names(script);
 
         // 2. Let varNames be the VarDeclaredNames of script.
-        let var_names = top_level_var_declared_names(script);
+        let var_names = var_declared_names(script);
 
         // 3. For each element name of lexNames, do
         for name in lex_names {
@@ -71,7 +68,7 @@ impl ByteCompiler<'_, '_> {
 
         // 5. Let varDeclarations be the VarScopedDeclarations of script.
         // Note: VarScopedDeclarations for a Script node is TopLevelVarScopedDeclarations.
-        let var_declarations = top_level_var_scoped_declarations(script);
+        let var_declarations = var_scoped_declarations(script);
 
         // 6. Let functionsToInitialize be a new empty List.
         let mut functions_to_initialize = Vec::new();
@@ -162,7 +159,7 @@ impl ByteCompiler<'_, '_> {
         // b. If strict is false, then
         #[cfg(feature = "annex-b")]
         if !script.strict() {
-            let lex_names = top_level_lexically_declared_names(script);
+            let lex_names = lexically_declared_names(script);
 
             // i. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
             // ii. For each FunctionDeclaration f that is directly contained in the StatementList of a Block, CaseClause,
@@ -208,7 +205,7 @@ impl ByteCompiler<'_, '_> {
         // 13. Let lexDeclarations be the LexicallyScopedDeclarations of script.
         // 14. Let privateEnv be null.
         // 15. For each element d of lexDeclarations, do
-        for statement in script.statements() {
+        for statement in &**script.statements() {
             // a. NOTE: Lexically declared names are only instantiated here but not initialized.
             // b. For each element dn of the BoundNames of d, do
             //     i. If IsConstantDeclaration of d is true, then
@@ -315,7 +312,8 @@ impl ByteCompiler<'_, '_> {
         // 3. For each element d of declarations, do
         for d in &declarations {
             // i. If IsConstantDeclaration of d is true, then
-            if let Declaration::Lexical(LexicalDeclaration::Const(d)) = d {
+            if let LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(d)) = d
+            {
                 // a. For each element dn of the BoundNames of d, do
                 for dn in bound_names::<'_, VariableList>(d) {
                     // 1. Perform ! env.CreateImmutableBinding(dn, true).
@@ -325,7 +323,7 @@ impl ByteCompiler<'_, '_> {
             // ii. Else,
             else {
                 // a. For each element dn of the BoundNames of d, do
-                for dn in bound_names::<'_, Declaration>(d) {
+                for dn in d.bound_names() {
                     #[cfg(not(feature = "annex-b"))]
                     // 1. Perform ! env.CreateMutableBinding(dn, false). NOTE: This step is replaced in section B.3.2.6.
                     env.create_mutable_binding(dn, false);
@@ -352,16 +350,16 @@ impl ByteCompiler<'_, '_> {
         // TODO: Support B.3.2.6.
         for d in &declarations {
             match d {
-                Declaration::Function(function) => {
+                LexicallyScopedDeclaration::Function(function) => {
                     self.function(function.into(), NodeKind::Declaration, false);
                 }
-                Declaration::Generator(function) => {
+                LexicallyScopedDeclaration::Generator(function) => {
                     self.function(function.into(), NodeKind::Declaration, false);
                 }
-                Declaration::AsyncFunction(function) => {
+                LexicallyScopedDeclaration::AsyncFunction(function) => {
                     self.function(function.into(), NodeKind::Declaration, false);
                 }
-                Declaration::AsyncGenerator(function) => {
+                LexicallyScopedDeclaration::AsyncGenerator(function) => {
                     self.function(function.into(), NodeKind::Declaration, false);
                 }
                 _ => {}
@@ -379,7 +377,7 @@ impl ByteCompiler<'_, '_> {
     /// [spec]: https://tc39.es/ecma262/#sec-evaldeclarationinstantiation
     pub(crate) fn eval_declaration_instantiation(
         &mut self,
-        body: &StatementList,
+        body: &Script,
         strict: bool,
     ) -> JsResult<()> {
         let var_environment_is_global = self
@@ -390,12 +388,12 @@ impl ByteCompiler<'_, '_> {
             && !strict;
 
         // 2. Let varDeclarations be the VarScopedDeclarations of body.
-        let var_declarations = top_level_var_scoped_declarations(body);
+        let var_declarations = var_scoped_declarations(body);
 
         // 3. If strict is false, then
         if !strict {
             // 1. Let varNames be the VarDeclaredNames of body.
-            let var_names = top_level_var_declared_names(body);
+            let var_names = var_declared_names(body);
 
             // a. If varEnv is a Global Environment Record, then
             //      i. For each element name of varNames, do
@@ -494,7 +492,7 @@ impl ByteCompiler<'_, '_> {
         // 11. If strict is false, then
         #[cfg(feature = "annex-b")]
         if !strict {
-            let lexically_declared_names = top_level_lexically_declared_names(body);
+            let lexically_declared_names = lexically_declared_names(body);
 
             // a. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
             // b. For each FunctionDeclaration f that is directly contained in the StatementList
@@ -620,7 +618,7 @@ impl ByteCompiler<'_, '_> {
 
         // 15. Let lexDeclarations be the LexicallyScopedDeclarations of body.
         // 16. For each element d of lexDeclarations, do
-        for statement in body.statements() {
+        for statement in &**body.statements() {
             // a. NOTE: Lexically declared names are only instantiated here but not initialized.
             // b. For each element dn of the BoundNames of d, do
             //     i. If IsConstantDeclaration of d is true, then
@@ -774,7 +772,7 @@ impl ByteCompiler<'_, '_> {
     /// [spec]: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
     pub(crate) fn function_declaration_instantiation(
         &mut self,
-        code: &StatementList,
+        body: &FunctionBody,
         formals: &FormalParameterList,
         arrow: bool,
         strict: bool,
@@ -801,13 +799,13 @@ impl ByteCompiler<'_, '_> {
         let has_parameter_expressions = formals.has_expressions();
 
         // 9. Let varNames be the VarDeclaredNames of code.
-        let var_names = top_level_var_declared_names(code);
+        let var_names = var_declared_names(body);
 
         // 10. Let varDeclarations be the VarScopedDeclarations of code.
-        let var_declarations = top_level_var_scoped_declarations(code);
+        let var_declarations = var_scoped_declarations(body);
 
         // 11. Let lexicalNames be the LexicallyDeclaredNames of code.
-        let lexical_names = top_level_lexically_declared_names(code);
+        let lexical_names = lexically_declared_names(body);
 
         // 12. Let functionNames be a new empty List.
         let mut function_names = Vec::new();
@@ -1064,7 +1062,7 @@ impl ByteCompiler<'_, '_> {
         if !strict {
             // a. For each FunctionDeclaration f that is directly contained in the StatementList
             //    of a Block, CaseClause, or DefaultClause, do
-            for f in annex_b_function_declarations_names(code) {
+            for f in annex_b_function_declarations_names(body) {
                 // i. Let F be StringValue of the BindingIdentifier of f.
                 // ii. If replacing the FunctionDeclaration f with a VariableStatement that has F
                 //     as a BindingIdentifier would not produce any Early Errors
@@ -1120,7 +1118,7 @@ impl ByteCompiler<'_, '_> {
         //             1. Perform ! lexEnv.CreateImmutableBinding(dn, true).
         //         ii. Else,
         //             1. Perform ! lexEnv.CreateMutableBinding(dn, false).
-        for statement in code.statements() {
+        for statement in &**body.statements() {
             if let StatementListItem::Declaration(declaration) = statement {
                 match declaration {
                     Declaration::Class(class) => {

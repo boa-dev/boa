@@ -18,7 +18,7 @@ use crate::{
     },
 };
 use ast::{
-    operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
+    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Keyword,
 };
 use boa_ast::{
@@ -145,7 +145,7 @@ where
         // also occurs in the LexicallyDeclaredNames of AsyncConciseBody.
         name_in_lexically_declared_names(
             &bound_names(&params),
-            &top_level_lexically_declared_names(&body),
+            &lexically_declared_names(&body),
             params_start_position,
             interner,
         )?;
@@ -178,24 +178,27 @@ impl<R> TokenParser<R> for AsyncConciseBody
 where
     R: Read,
 {
-    type Output = StatementList;
+    type Output = ast::function::FunctionBody;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        match cursor.peek(0, interner).or_abrupt()?.kind() {
-            TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                cursor.advance(interner);
-                let body = FunctionBody::new(false, true).parse(cursor, interner)?;
-                cursor.expect(Punctuator::CloseBlock, "async arrow function", interner)?;
-                Ok(body)
-            }
-            _ => Ok(StatementList::from(vec![ast::Statement::Return(
-                Return::new(
-                    ExpressionBody::new(self.allow_in, true)
-                        .parse(cursor, interner)?
-                        .into(),
-                ),
-            )
-            .into()])),
-        }
+        let body =
+            match cursor.peek(0, interner).or_abrupt()?.kind() {
+                TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                    cursor.advance(interner);
+                    let body = FunctionBody::new(false, true).parse(cursor, interner)?;
+                    cursor.expect(Punctuator::CloseBlock, "async arrow function", interner)?;
+                    body
+                }
+                _ => ast::function::FunctionBody::new(StatementList::from(vec![
+                    ast::Statement::Return(Return::new(
+                        ExpressionBody::new(self.allow_in, true)
+                            .parse(cursor, interner)?
+                            .into(),
+                    ))
+                    .into(),
+                ])),
+            };
+
+        Ok(body)
     }
 }

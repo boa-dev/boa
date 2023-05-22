@@ -235,7 +235,7 @@ impl Eval {
         let push_env = compiler.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
         compiler.eval_declaration_instantiation(&body, strict)?;
-        compiler.compile_statement_list(&body, true, false);
+        compiler.compile_statement_list(body.statements(), true, false);
 
         let env_info = compiler.pop_compile_environment();
         compiler.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
