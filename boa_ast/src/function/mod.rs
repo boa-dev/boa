@@ -191,5 +191,5 @@ impl VisitWith for Function {
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-modules
+/// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
 pub type FunctionBody = Script;
