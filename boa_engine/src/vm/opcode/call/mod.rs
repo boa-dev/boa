@@ -1,8 +1,10 @@
 use crate::{
-    builtins::function::FunctionKind,
+    builtins::{function::FunctionKind, promise::PromiseCapability, Promise},
     error::JsNativeError,
+    module::{ModuleKind, Referrer},
+    object::FunctionObjectBuilder,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue,
+    Context, JsResult, JsValue, NativeFunction,
 };
 
 /// `CallEval` implements the Opcode Operation for `Opcode::CallEval`
@@ -247,6 +249,223 @@ impl Operation for CallSpread {
         let result = object.__call__(&this, &arguments, context)?;
 
         context.vm.push(result);
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `ImportCall` implements the Opcode Operation for `Opcode::ImportCall`
+///
+/// Operation:
+///  - Dynamically imports a module
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ImportCall;
+
+impl Operation for ImportCall {
+    const NAME: &'static str = "ImportCall";
+    const INSTRUCTION: &'static str = "INST - ImportCall";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        // Import Calls
+        // Runtime Semantics: Evaluation
+        // https://tc39.es/ecma262/#sec-import-call-runtime-semantics-evaluation
+
+        // 1. Let referrer be GetActiveScriptOrModule().
+        // 2. If referrer is null, set referrer to the current Realm Record.
+        let referrer = context
+            .vm
+            .active_runnable
+            .clone()
+            .map_or_else(|| Referrer::Realm(context.realm().clone()), Into::into);
+
+        // 3. Let argRef be ? Evaluation of AssignmentExpression.
+        // 4. Let specifier be ? GetValue(argRef).
+        let arg = context.vm.pop();
+
+        // 5. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+        let cap = PromiseCapability::new(
+            &context.intrinsics().constructors().promise().constructor(),
+            context,
+        )
+        .expect("operation cannot fail for the %Promise% intrinsic");
+        let promise = cap.promise().clone();
+
+        // 6. Let specifierString be Completion(ToString(specifier)).
+        match arg.to_string(context) {
+            // 7. IfAbruptRejectPromise(specifierString, promiseCapability).
+            Err(err) => {
+                let err = err.to_opaque(context);
+                cap.reject().call(&JsValue::undefined(), &[err], context)?;
+            }
+            // 8. Perform HostLoadImportedModule(referrer, specifierString, empty, promiseCapability).
+            Ok(specifier) => context.module_loader().load_imported_module(
+                referrer.clone(),
+                specifier.clone(),
+                Box::new(move |completion, context| {
+                    // `ContinueDynamicImport ( promiseCapability, moduleCompletion )`
+                    // https://tc39.es/ecma262/#sec-ContinueDynamicImport
+
+                    // `FinishLoadingImportedModule ( referrer, specifier, payload, result )`
+                    // https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
+                    let module = match completion {
+                        // 1. If result is a normal completion, then
+                        Ok(m) => {
+                            match referrer {
+                                Referrer::Module(module) => {
+                                    let ModuleKind::SourceText(src) = module.kind() else {
+                                        panic!("referrer cannot be a synthetic module");
+                                    };
+
+                                    let sym = context.interner_mut().get_or_intern(&*specifier);
+
+                                    let mut loaded_modules = src.loaded_modules().borrow_mut();
+
+                                    //     a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
+                                    //     b. Else,
+                                    //         i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
+                                    let entry =
+                                        loaded_modules.entry(sym).or_insert_with(|| m.clone());
+
+                                    //         i. Assert: That Record's [[Module]] is result.[[Value]].
+                                    debug_assert_eq!(&m, entry);
+
+                                    // Same steps apply to referrers below
+                                }
+                                Referrer::Realm(realm) => {
+                                    let mut loaded_modules = realm.loaded_modules().borrow_mut();
+                                    let entry = loaded_modules
+                                        .entry(specifier)
+                                        .or_insert_with(|| m.clone());
+                                    debug_assert_eq!(&m, entry);
+                                }
+                                Referrer::Script(script) => {
+                                    let mut loaded_modules = script.loaded_modules().borrow_mut();
+                                    let entry = loaded_modules
+                                        .entry(specifier)
+                                        .or_insert_with(|| m.clone());
+                                    debug_assert_eq!(&m, entry);
+                                }
+                            }
+
+                            m
+                        }
+                        // 1. If moduleCompletion is an abrupt completion, then
+                        Err(err) => {
+                            // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « moduleCompletion.[[Value]] »).
+                            let err = err.to_opaque(context);
+                            cap.reject()
+                                .call(&JsValue::undefined(), &[err], context)
+                                .expect("default `reject` function cannot throw");
+
+                            // b. Return unused.
+                            return;
+                        }
+                    };
+
+                    // 2. Let module be moduleCompletion.[[Value]].
+                    // 3. Let loadPromise be module.LoadRequestedModules().
+                    let load = module.load(context);
+
+                    // 4. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures promiseCapability and performs the following steps when called:
+                    // 5. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
+                    let on_rejected = FunctionObjectBuilder::new(
+                        context,
+                        NativeFunction::from_copy_closure_with_captures(
+                            |_, args, cap, context| {
+                                //     a. Perform ! Call(promiseCapability.[[Reject]], undefined, « reason »).
+                                cap.reject()
+                                    .call(&JsValue::undefined(), args, context)
+                                    .expect("default `reject` function cannot throw");
+
+                                //     b. Return unused.
+                                Ok(JsValue::undefined())
+                            },
+                            cap.clone(),
+                        ),
+                    )
+                    .build();
+
+                    // 6. Let linkAndEvaluateClosure be a new Abstract Closure with no parameters that captures module, promiseCapability, and onRejected and performs the following steps when called:
+                    // 7. Let linkAndEvaluate be CreateBuiltinFunction(linkAndEvaluateClosure, 0, "", « »).
+                    let link_evaluate = FunctionObjectBuilder::new(
+                        context,
+                        NativeFunction::from_copy_closure_with_captures(
+                            |_, _, (module, cap, on_rejected), context| {
+                                // a. Let link be Completion(module.Link()).
+                                // b. If link is an abrupt completion, then
+                                if let Err(e) = module.link(context) {
+                                    // i. Perform ! Call(promiseCapability.[[Reject]], undefined, « link.[[Value]] »).
+                                    let e = e.to_opaque(context);
+                                    cap.reject()
+                                        .call(&JsValue::undefined(), &[e], context)
+                                        .expect("default `reject` function cannot throw");
+                                    // ii. Return unused.
+                                    return Ok(JsValue::undefined());
+                                }
+
+                                // c. Let evaluatePromise be module.Evaluate().
+                                let evaluate = module.evaluate(context);
+
+                                // d. Let fulfilledClosure be a new Abstract Closure with no parameters that captures module and promiseCapability and performs the following steps when called:
+                                // e. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, "", « »).
+                                let fulfill = FunctionObjectBuilder::new(
+                                    context,
+                                    NativeFunction::from_copy_closure_with_captures(
+                                        |_, _, (module, cap), context| {
+                                            // i. Let namespace be GetModuleNamespace(module).
+                                            let namespace = module.namespace(context);
+
+                                            // ii. Perform ! Call(promiseCapability.[[Resolve]], undefined, « namespace »).
+                                            cap.resolve()
+                                                .call(
+                                                    &JsValue::undefined(),
+                                                    &[namespace.into()],
+                                                    context,
+                                                )
+                                                .expect("default `resolve` function cannot throw");
+
+                                            // iii. Return unused.
+                                            Ok(JsValue::undefined())
+                                        },
+                                        (module.clone(), cap.clone()),
+                                    ),
+                                )
+                                .build();
+
+                                // f. Perform PerformPromiseThen(evaluatePromise, onFulfilled, onRejected).
+                                Promise::perform_promise_then(
+                                    &evaluate,
+                                    Some(fulfill),
+                                    Some(on_rejected.clone()),
+                                    None,
+                                    context,
+                                );
+
+                                // g. Return unused.
+                                Ok(JsValue::undefined())
+                            },
+                            (module.clone(), cap.clone(), on_rejected.clone()),
+                        ),
+                    )
+                    .build();
+
+                    // 8. Perform PerformPromiseThen(loadPromise, linkAndEvaluate, onRejected).
+                    Promise::perform_promise_then(
+                        &load,
+                        Some(link_evaluate),
+                        Some(on_rejected),
+                        None,
+                        context,
+                    );
+
+                    // 9. Return unused.
+                }),
+                context,
+            ),
+        };
+
+        // 9. Return promiseCapability.[[Promise]].
+        context.vm.push(promise);
+
         Ok(CompletionType::Normal)
     }
 }

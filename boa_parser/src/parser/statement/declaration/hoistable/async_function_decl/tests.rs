@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
-    function::{AsyncFunction, FormalParameterList},
-    Declaration, StatementList,
+    function::{AsyncFunction, FormalParameterList, FunctionBody},
+    Declaration,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -19,7 +19,7 @@ fn async_function_declaration() {
                     .into(),
             ),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
             false,
         ))
         .into()],
@@ -36,7 +36,7 @@ fn async_function_declaration_keywords() {
         vec![Declaration::AsyncFunction(AsyncFunction::new(
             Some(Sym::YIELD.into()),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
             false,
         ))
         .into()],
@@ -49,7 +49,7 @@ fn async_function_declaration_keywords() {
         vec![Declaration::AsyncFunction(AsyncFunction::new(
             Some(Sym::AWAIT.into()),
             FormalParameterList::default(),
-            StatementList::default(),
+            FunctionBody::default(),
             false,
         ))
         .into()],

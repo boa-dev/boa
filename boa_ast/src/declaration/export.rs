@@ -22,7 +22,9 @@ use crate::{
 use boa_interner::Sym;
 
 /// The kind of re-export in an [`ExportDeclaration`].
-#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ReExportKind {
     /// Namespaced Re-export (`export * as name from "module-name"`).
     Namespaced {
@@ -76,7 +78,8 @@ impl VisitWith for ReExportKind {
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ExportDeclaration
-#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ExportDeclaration {
     /// Re-export.
     ReExport {
@@ -165,7 +168,9 @@ impl VisitWith for ExportDeclaration {
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ExportSpecifier
-#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub struct ExportSpecifier {
     alias: Sym,
     private_name: Sym,

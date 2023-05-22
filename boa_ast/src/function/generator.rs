@@ -1,7 +1,7 @@
 use crate::{
     block_to_string,
     expression::{Expression, Identifier},
-    join_nodes, Declaration, StatementList,
+    join_nodes, Declaration,
 };
 use core::ops::ControlFlow;
 
@@ -9,7 +9,7 @@ use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, ToIndentedString};
 
-use super::FormalParameterList;
+use super::{FormalParameterList, FunctionBody};
 
 /// A generator definition, as defined by the [spec].
 ///
@@ -26,7 +26,7 @@ use super::FormalParameterList;
 pub struct Generator {
     name: Option<Identifier>,
     parameters: FormalParameterList,
-    body: StatementList,
+    body: FunctionBody,
     has_binding_identifier: bool,
 }
 
@@ -37,7 +37,7 @@ impl Generator {
     pub const fn new(
         name: Option<Identifier>,
         parameters: FormalParameterList,
-        body: StatementList,
+        body: FunctionBody,
         has_binding_identifier: bool,
     ) -> Self {
         Self {
@@ -65,7 +65,7 @@ impl Generator {
     /// Gets the body of the generator declaration.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &StatementList {
+    pub const fn body(&self) -> &FunctionBody {
         &self.body
     }
 
@@ -86,7 +86,7 @@ impl ToIndentedString for Generator {
         buf.push_str(&format!(
             "({}) {}",
             join_nodes(interner, self.parameters.as_ref()),
-            block_to_string(&self.body, interner, indentation)
+            block_to_string(self.body.statements(), interner, indentation)
         ));
 
         buf
@@ -116,7 +116,7 @@ impl VisitWith for Generator {
             try_break!(visitor.visit_identifier(ident));
         }
         try_break!(visitor.visit_formal_parameter_list(&self.parameters));
-        visitor.visit_statement_list(&self.body)
+        visitor.visit_script(&self.body)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -127,6 +127,6 @@ impl VisitWith for Generator {
             try_break!(visitor.visit_identifier_mut(ident));
         }
         try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
-        visitor.visit_statement_list_mut(&mut self.body)
+        visitor.visit_script_mut(&mut self.body)
     }
 }

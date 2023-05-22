@@ -10,8 +10,14 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    builtins::BuiltInObject, bytecompiler::ByteCompiler, context::intrinsics::Intrinsics,
-    environments::Environment, error::JsNativeError, object::JsObject, realm::Realm, vm::Opcode,
+    builtins::BuiltInObject,
+    bytecompiler::ByteCompiler,
+    context::intrinsics::Intrinsics,
+    environments::Environment,
+    error::JsNativeError,
+    object::JsObject,
+    realm::Realm,
+    vm::{CallFrame, Opcode},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::operations::{contains, contains_arguments, ContainsSymbol};
@@ -229,7 +235,7 @@ impl Eval {
         let push_env = compiler.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
         compiler.eval_declaration_instantiation(&body, strict)?;
-        compiler.compile_statement_list(&body, true, false);
+        compiler.compile_statement_list(body.statements(), true, false);
 
         let env_info = compiler.pop_compile_environment();
         compiler.patch_jump_with_target(push_env.0, env_info.num_bindings);
@@ -246,6 +252,11 @@ impl Eval {
             context.vm.environments.extend_outer_function_environment();
         }
 
-        context.execute(code_block)
+        context.vm.push_frame(CallFrame::new(code_block));
+        context.realm().resize_global_env();
+        let record = context.run();
+        context.vm.pop_frame();
+
+        record.consume()
     }
 }

@@ -91,10 +91,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-duplicate-named-capturing-groups
     "regexp-duplicate-named-groups" => SpecEdition::ESNext,
 
-    // Symbols as WeakMap keys
-    // https://github.com/tc39/proposal-symbols-as-weakmap-keys
-    "symbols-as-weakmap-keys" => SpecEdition::ESNext,
-
     // Array.prototype.toReversed, Array.prototype.toSorted, Array.prototype.toSpliced,
     // Array.prototype.with and the equivalent TypedArray methods.
     // https://github.com/tc39/proposal-change-array-by-copy/
@@ -116,6 +112,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "Intl.DateTimeFormat-extend-timezonename" => SpecEdition::ESNext,
     "Intl.DisplayNames-v2" => SpecEdition::ESNext,
     "Intl.Segmenter" => SpecEdition::ESNext,
+    "symbols-as-weakmap-keys" => SpecEdition::ESNext,
 
     // Standard language features
 

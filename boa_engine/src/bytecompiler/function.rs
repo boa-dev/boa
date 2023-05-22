@@ -5,7 +5,7 @@ use crate::{
     vm::{CodeBlock, Opcode},
     Context,
 };
-use boa_ast::{function::FormalParameterList, StatementList};
+use boa_ast::function::{FormalParameterList, FunctionBody};
 use boa_gc::{Gc, GcRefCell};
 use boa_interner::Sym;
 
@@ -87,7 +87,7 @@ impl FunctionCompiler {
     pub(crate) fn compile(
         mut self,
         parameters: &FormalParameterList,
-        body: &StatementList,
+        body: &FunctionBody,
         outer_env: Gc<GcRefCell<CompileTimeEnvironment>>,
         context: &mut Context<'_>,
     ) -> Gc<CodeBlock> {
@@ -125,7 +125,7 @@ impl FunctionCompiler {
             self.generator,
         );
 
-        compiler.compile_statement_list(body, false, false);
+        compiler.compile_statement_list(body.statements(), false, false);
 
         if let Some(env_labels) = env_labels {
             let env_info = compiler.pop_compile_environment();

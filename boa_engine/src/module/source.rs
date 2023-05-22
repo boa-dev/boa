@@ -7,9 +7,8 @@ use boa_ast::{
     },
     operations::{
         bound_names, contains, lexically_scoped_declarations, var_scoped_declarations,
-        ContainsSymbol,
+        ContainsSymbol, LexicallyScopedDeclaration,
     },
-    Declaration, ModuleItemList,
 };
 use boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Sym;
@@ -22,7 +21,7 @@ use crate::{
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
     realm::Realm,
-    vm::{CallFrame, CodeBlock, CompletionRecord, Opcode},
+    vm::{ActiveRunnable, CallFrame, CodeBlock, CompletionRecord, Opcode},
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
 
@@ -275,7 +274,7 @@ struct Inner {
 struct ModuleCode {
     has_tla: bool,
     requested_modules: FxHashSet<Sym>,
-    node: ModuleItemList,
+    source: boa_ast::Module,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
     indirect_export_entries: Vec<IndirectExportEntry>,
@@ -297,16 +296,16 @@ impl SourceTextModule {
             .expect("parent module must be initialized")
     }
 
-    /// Creates a new `SourceTextModule` from a parsed `ModuleItemList`.
+    /// Creates a new `SourceTextModule` from a parsed `ModuleSource`.
     ///
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    pub(super) fn new(code: ModuleItemList) -> Self {
+    pub(super) fn new(code: boa_ast::Module) -> Self {
         // 3. Let requestedModules be the ModuleRequests of body.
-        let requested_modules = code.requests();
+        let requested_modules = code.items().requests();
         // 4. Let importEntries be ImportEntries of body.
-        let import_entries = code.import_entries();
+        let import_entries = code.items().import_entries();
 
         // 5. Let importedBoundNames be ImportedLocalNames(importEntries).
         // Can be ignored because this is just a simple `Iter::map`
@@ -319,7 +318,7 @@ impl SourceTextModule {
         let mut star_export_entries = Vec::new();
 
         // 10. For each ExportEntry Record ee of exportEntries, do
-        for ee in code.export_entries() {
+        for ee in code.items().export_entries() {
             match ee {
                 // a. If ee.[[ModuleRequest]] is null, then
                 ExportEntry::Ordinary(entry) => {
@@ -389,7 +388,7 @@ impl SourceTextModule {
                 async_parent_modules: GcRefCell::default(),
                 import_meta: GcRefCell::default(),
                 code: ModuleCode {
-                    node: code,
+                    source: code,
                     requested_modules,
                     has_tla,
                     import_entries,
@@ -615,8 +614,8 @@ impl SourceTextModule {
                     // iii. Else,
                     //    1. Assert: module imports a specific binding for this export.
                     //    2. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
-                    ReExportImportName::Name(_) => {
-                        imported_module.resolve_export(export_name, resolve_set)
+                    ReExportImportName::Name(name) => {
+                        imported_module.resolve_export(name, resolve_set)
                     }
                 };
             }
@@ -1470,7 +1469,7 @@ impl SourceTextModule {
 
             // 18. Let code be module.[[ECMAScriptCode]].
             // 19. Let varDeclarations be the VarScopedDeclarations of code.
-            let var_declarations = var_scoped_declarations(&self.inner.code.node);
+            let var_declarations = var_scoped_declarations(&self.inner.code.source);
             // 20. Let declaredVarNames be a new empty List.
             let mut declared_var_names = Vec::new();
             // 21. For each element d of varDeclarations, do
@@ -1494,79 +1493,59 @@ impl SourceTextModule {
 
             // 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
             // 23. Let privateEnv be null.
-            let lex_declarations = lexically_scoped_declarations(&self.inner.code.node);
+            let lex_declarations = lexically_scoped_declarations(&self.inner.code.source);
             // 24. For each element d of lexDeclarations, do
-            for declaration in lex_declarations {
-                match &declaration {
-                    // i. If IsConstantDeclaration of d is true, then
-                    Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
-                        // a. For each element dn of the BoundNames of d, do
-                        for name in bound_names(declaration) {
-                            // 1. Perform ! env.CreateImmutableBinding(dn, true).
-                            compiler.create_immutable_binding(name, true);
-                        }
+            for declaration in &lex_declarations {
+                // i. If IsConstantDeclaration of d is true, then
+                if let LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(
+                    decl,
+                )) = declaration
+                {
+                    // a. For each element dn of the BoundNames of d, do
+                    for name in bound_names(decl) {
+                        // 1. Perform ! env.CreateImmutableBinding(dn, true).
+                        compiler.create_immutable_binding(name, true);
                     }
+                } else {
                     // ii. Else,
-                    Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
-                        // a. For each element dn of the BoundNames of d, do
-                        for name in bound_names(declaration) {
-                            // 1. Perform ! env.CreateMutableBinding(dn, false).
-                            compiler.create_mutable_binding(name, false);
-                        }
-                    }
-                    // iii. If d is either a FunctionDeclaration, a GeneratorDeclaration, an
-                    //      AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
-                    Declaration::Function(function) => {
-                        // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        // 2. Perform ! env.InitializeBinding(dn, fo).
-                        for name in bound_names(function) {
-                            compiler.create_mutable_binding(name, false);
-                        }
-                        compiler.function(function.into(), NodeKind::Declaration, false);
-                    }
-                    Declaration::Generator(function) => {
-                        // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        // 2. Perform ! env.InitializeBinding(dn, fo).
-                        for name in bound_names(function) {
-                            compiler.create_mutable_binding(name, false);
-                        }
-                        compiler.function(function.into(), NodeKind::Declaration, false);
-                    }
-                    Declaration::AsyncFunction(function) => {
-                        // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        // 2. Perform ! env.InitializeBinding(dn, fo).
-                        for name in bound_names(function) {
-                            compiler.create_mutable_binding(name, false);
-                        }
-                        compiler.function(function.into(), NodeKind::Declaration, false);
-                    }
-                    Declaration::AsyncGenerator(function) => {
-                        // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        // 2. Perform ! env.InitializeBinding(dn, fo).
-                        for name in bound_names(function) {
-                            compiler.create_mutable_binding(name, false);
-                        }
-                        compiler.function(function.into(), NodeKind::Declaration, false);
-                    }
-                    Declaration::Class(class) => {
-                        // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                        // 2. Perform ! env.InitializeBinding(dn, fo).
-                        for name in bound_names(class) {
-                            compiler.create_mutable_binding(name, false);
-                        }
+                    // a. For each element dn of the BoundNames of d, do
+                    for name in declaration.bound_names() {
+                        // 1. Perform ! env.CreateMutableBinding(dn, false).
+                        compiler.create_mutable_binding(name, false);
                     }
                 }
+
+                // iii. If d is either a FunctionDeclaration, a GeneratorDeclaration, an
+                //      AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
+                // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
+                // 2. Perform ! env.InitializeBinding(dn, fo).
+                let spec = match declaration {
+                    LexicallyScopedDeclaration::Function(f) => f.into(),
+                    LexicallyScopedDeclaration::Generator(g) => g.into(),
+                    LexicallyScopedDeclaration::AsyncFunction(af) => af.into(),
+                    LexicallyScopedDeclaration::AsyncGenerator(ag) => ag.into(),
+                    LexicallyScopedDeclaration::Class(_)
+                    | LexicallyScopedDeclaration::LexicalDeclaration(_)
+                    | LexicallyScopedDeclaration::AssignmentExpression(_) => continue,
+                };
+
+                compiler.function(spec, NodeKind::Declaration, false);
             }
 
-            compiler.compile_module_item_list(&self.inner.code.node);
+            compiler.compile_module_item_list(self.inner.code.source.items());
 
             Gc::new(compiler.finish())
         };
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
-        // 12. Set the ScriptOrModule of moduleContext to module.
         let mut envs = EnvironmentStack::new(global_env);
         envs.push_module(module_compile_env);
+
+        // 12. Set the ScriptOrModule of moduleContext to module.
+        let active_runnable = context
+            .vm
+            .active_runnable
+            .replace(ActiveRunnable::Module(parent.clone()));
 
         // 13. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 14. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
@@ -1623,6 +1602,7 @@ impl SourceTextModule {
         std::mem::swap(&mut context.vm.environments, &mut envs);
         context.vm.stack = stack;
         context.vm.active_function = active_function;
+        context.vm.active_runnable = active_runnable;
         context.swap_realm(&mut realm);
 
         debug_assert!(envs.current().as_declarative().is_some());
@@ -1674,6 +1654,11 @@ impl SourceTextModule {
         callframe.promise_capability = capability;
 
         // 4. Set the ScriptOrModule of moduleContext to module.
+        let active_runnable = context
+            .vm
+            .active_runnable
+            .replace(ActiveRunnable::Module(self.parent()));
+
         // 5. Assert: module has been linked and declarations in its module environment have been instantiated.
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 7. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
@@ -1700,6 +1685,7 @@ impl SourceTextModule {
         std::mem::swap(&mut context.vm.environments, &mut environments);
         context.vm.stack = stack;
         context.vm.active_function = function;
+        context.vm.active_runnable = active_runnable;
         context.swap_realm(&mut realm);
         context.vm.pop_frame();
 
@@ -1711,6 +1697,11 @@ impl SourceTextModule {
             // 11. Return unused.
             Ok(())
         }
+    }
+
+    /// Gets the loaded modules of this module.
+    pub(crate) fn loaded_modules(&self) -> &GcRefCell<FxHashMap<Sym, Module>> {
+        &self.inner.loaded_modules
     }
 }
 

@@ -9,11 +9,12 @@ use crate::JsNativeError;
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     environments::{DeclarativeEnvironment, EnvironmentStack},
+    script::Script,
     vm::code_block::Readable,
-    Context, JsError, JsObject, JsResult, JsValue,
+    Context, JsError, JsObject, JsResult, JsValue, Module,
 };
 
-use boa_gc::Gc;
+use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of};
 
@@ -58,6 +59,23 @@ pub struct Vm {
     pub(crate) trace: bool,
     pub(crate) runtime_limits: RuntimeLimits,
     pub(crate) active_function: Option<JsObject>,
+    pub(crate) active_runnable: Option<ActiveRunnable>,
+}
+
+/// Active runnable in the current vm context.
+#[derive(Debug, Clone, Finalize)]
+pub(crate) enum ActiveRunnable {
+    Script(Script),
+    Module(Module),
+}
+
+unsafe impl Trace for ActiveRunnable {
+    custom_trace!(this, {
+        match this {
+            Self::Script(script) => mark(script),
+            Self::Module(module) => mark(module),
+        }
+    });
 }
 
 impl Vm {
@@ -72,6 +90,7 @@ impl Vm {
             trace: false,
             runtime_limits: RuntimeLimits::default(),
             active_function: None,
+            active_runnable: None,
         }
     }
 

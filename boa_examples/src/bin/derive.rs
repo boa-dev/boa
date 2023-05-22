@@ -26,7 +26,7 @@ fn main() {
     let js = Source::from_bytes(js_str);
 
     let mut context = Context::default();
-    let res = context.eval_script(js).unwrap();
+    let res = context.eval(js).unwrap();
 
     let str = TestStruct::try_from_js(&res, &mut context)
         .map_err(|e| e.to_string())

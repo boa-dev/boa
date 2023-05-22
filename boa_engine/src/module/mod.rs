@@ -41,6 +41,8 @@ use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
 use crate::object::FunctionObjectBuilder;
+use crate::script::Script;
+use crate::vm::ActiveRunnable;
 use crate::{
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
@@ -51,12 +53,23 @@ use crate::{
 use crate::{js_string, JsNativeError, NativeFunction};
 
 /// The referrer from which a load request of a module originates.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Referrer {
     /// A [**Source Text Module Record**](https://tc39.es/ecma262/#sec-source-text-module-records).
     Module(Module),
     /// A [**Realm**](https://tc39.es/ecma262/#sec-code-realms).
-    Realm(Realm), // TODO: script
+    Realm(Realm),
+    /// A [**Script Record**](https://tc39.es/ecma262/#sec-script-records)
+    Script(Script),
+}
+
+impl From<ActiveRunnable> for Referrer {
+    fn from(value: ActiveRunnable) -> Self {
+        match value {
+            ActiveRunnable::Script(script) => Self::Script(script),
+            ActiveRunnable::Module(module) => Self::Module(module),
+        }
+    }
 }
 
 /// Module loading related host hooks.
@@ -182,7 +195,7 @@ impl ModuleLoader for SimpleModuleLoader {
                     .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
             })?;
             let module = Module::parse(source, None, context).map_err(|err| {
-                JsNativeError::error()
+                JsNativeError::syntax()
                     .with_message(format!("could not parse module `{}`", short_path.display()))
                     .with_cause(err)
             })?;

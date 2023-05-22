@@ -47,7 +47,7 @@ impl ByteCompiler<'_, '_> {
                 false,
             );
 
-            compiler.compile_statement_list(expr.body(), false, false);
+            compiler.compile_statement_list(expr.body().statements(), false, false);
 
             let env_info = compiler.pop_compile_environment();
 
@@ -370,7 +370,7 @@ impl ByteCompiler<'_, '_> {
                     let index = self.get_or_insert_private_name(*name);
                     self.emit(Opcode::DefinePrivateField, &[index]);
                 }
-                ClassElement::StaticBlock(statement_list) => {
+                ClassElement::StaticBlock(body) => {
                     self.emit_opcode(Opcode::Dup);
                     let mut compiler = ByteCompiler::new(
                         Sym::EMPTY_STRING,
@@ -384,14 +384,14 @@ impl ByteCompiler<'_, '_> {
                     compiler.push_compile_environment(true);
 
                     compiler.function_declaration_instantiation(
-                        statement_list,
+                        body,
                         &FormalParameterList::default(),
                         false,
                         true,
                         false,
                     );
 
-                    compiler.compile_statement_list(statement_list, false, false);
+                    compiler.compile_statement_list(body.statements(), false, false);
                     let env_info = compiler.pop_compile_environment();
                     compiler.pop_compile_environment();
                     compiler.num_bindings = env_info.num_bindings;

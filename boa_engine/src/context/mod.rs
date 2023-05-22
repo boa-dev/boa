@@ -18,7 +18,6 @@ use std::{io::Read, path::Path, rc::Rc};
 
 use crate::{
     builtins,
-    bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
     module::{ModuleLoader, SimpleModuleLoader},
@@ -27,13 +26,12 @@ use crate::{
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    vm::{CallFrame, CodeBlock, Vm},
+    script::Script,
+    vm::{CallFrame, Vm},
     JsResult, JsValue, Source,
 };
 use boa_ast::{expression::Identifier, StatementList};
-use boa_gc::Gc;
-use boa_interner::{Interner, Sym};
-use boa_parser::Parser;
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 
 use crate::vm::RuntimeLimits;
@@ -57,18 +55,18 @@ use crate::vm::RuntimeLimits;
 /// };
 ///
 /// let script = r#"
-/// function test(arg1) {
-///     if(arg1 != null) {
-///         return arg1.x;
+///     function test(arg1) {
+///         if(arg1 != null) {
+///             return arg1.x;
+///         }
+///         return 112233;
 ///     }
-///     return 112233;
-/// }
 /// "#;
 ///
 /// let mut context = Context::default();
 ///
 /// // Populate the script definition to the context.
-/// context.eval_script(Source::from_bytes(script)).unwrap();
+/// context.eval(Source::from_bytes(script)).unwrap();
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&mut context)
@@ -76,7 +74,7 @@ use crate::vm::RuntimeLimits;
 ///     .build();
 /// context.register_global_property("arg", arg, Attribute::all());
 ///
-/// let value = context.eval_script(Source::from_bytes("test(arg)")).unwrap();
+/// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
@@ -153,7 +151,7 @@ impl<'host> Context<'host> {
         ContextBuilder::default()
     }
 
-    /// Evaluates the given script `src` by compiling down to bytecode, then interpreting the
+    /// Evaluates the given source by compiling down to bytecode, then interpreting the
     /// bytecode into a value.
     ///
     /// # Examples
@@ -162,7 +160,7 @@ impl<'host> Context<'host> {
     /// let mut context = Context::default();
     ///
     /// let source = Source::from_bytes("1 + 3");
-    /// let value = context.eval_script(source).unwrap();
+    /// let value = context.eval(source).unwrap();
     ///
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
@@ -171,12 +169,10 @@ impl<'host> Context<'host> {
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval_script<R: Read>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
+    pub fn eval<R: Read>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
         let main_timer = Profiler::global().start_event("Script evaluation", "Main");
 
-        let script = self.parse_script(src)?;
-        let code_block = self.compile_script(&script)?;
-        let result = self.execute(code_block);
+        let result = Script::parse(src, None, self)?.evaluate(self);
 
         // The main_timer needs to be dropped before the Profiler is.
         drop(main_timer);
@@ -192,61 +188,6 @@ impl<'host> Context<'host> {
     ) -> OptimizerStatistics {
         let mut optimizer = Optimizer::new(self);
         optimizer.apply(statement_list)
-    }
-
-    /// Parse the given source script.
-    pub fn parse_script<R: Read>(&mut self, src: Source<'_, R>) -> JsResult<StatementList> {
-        let _timer = Profiler::global().start_event("Script parsing", "Main");
-        let mut parser = Parser::new(src);
-        parser.set_identifier(self.next_parser_identifier());
-        if self.strict {
-            parser.set_strict();
-        }
-        let mut result = parser.parse_script(&mut self.interner)?;
-        if !self.optimizer_options().is_empty() {
-            self.optimize_statement_list(&mut result);
-        }
-        Ok(result)
-    }
-
-    /// Compile the script AST into a `CodeBlock` ready to be executed by the VM.
-    pub fn compile_script(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
-        let _timer = Profiler::global().start_event("Script compilation", "Main");
-
-        let mut compiler = ByteCompiler::new(
-            Sym::MAIN,
-            statement_list.strict(),
-            false,
-            self.realm.environment().compile_env(),
-            self,
-        );
-        compiler.global_declaration_instantiation(statement_list)?;
-        compiler.compile_statement_list(statement_list, true, false);
-        Ok(Gc::new(compiler.finish()))
-    }
-
-    /// Call the VM with a `CodeBlock` and return the result.
-    ///
-    /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's
-    /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
-    /// times, there is no need to re-compile it, and you can just call `clone()` on the
-    /// `Gc<CodeBlock>` returned by the [`Context::compile_script`] function.
-    ///
-    /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
-    /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
-    pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
-        let _timer = Profiler::global().start_event("Execution", "Main");
-
-        self.vm.push_frame(CallFrame::new(code_block));
-
-        // TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
-
-        self.realm().resize_global_env();
-        let record = self.run();
-        self.vm.pop_frame();
-        self.clear_kept_objects();
-
-        record.consume()
     }
 
     /// Register a global property.
@@ -736,6 +677,11 @@ impl Context<'_> {
 
         // 6. Return true.
         Ok(true)
+    }
+
+    /// Returns `true` if this context is in strict mode.
+    pub(crate) const fn is_strict(&self) -> bool {
+        self.strict
     }
 }
 

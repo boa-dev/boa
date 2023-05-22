@@ -1230,6 +1230,13 @@ generate_impl! {
         /// Stack: argument_1, ... argument_n **=>**
         SuperCallDerived,
 
+        /// Dynamically import a module.
+        ///
+        /// Operands:
+        ///
+        /// Stack: specifier **=>** promise
+        ImportCall,
+
         /// Pop the two values of the stack, strict equal compares the two values,
         /// if true jumps to address, otherwise push the second pop'ed value.
         ///

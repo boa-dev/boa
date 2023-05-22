@@ -320,6 +320,13 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::Pop);
                 }
             }
+            Expression::ImportCall(import) => {
+                self.compile_expr(import.argument(), true);
+                self.emit_opcode(Opcode::ImportCall);
+                if !use_expr {
+                    self.emit_opcode(Opcode::Pop);
+                }
+            }
             Expression::NewTarget => {
                 if use_expr {
                     self.emit_opcode(Opcode::PushNewTarget);

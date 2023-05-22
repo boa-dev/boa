@@ -22,7 +22,7 @@
 //! let mut context = Context::default();
 //!
 //! // Parse the source code
-//! match context.eval_script(Source::from_bytes(js_code)) {
+//! match context.eval(Source::from_bytes(js_code)) {
 //!     Ok(res) => {
 //!         println!(
 //!             "{}",
@@ -137,6 +137,7 @@ pub mod object;
 pub mod optimizer;
 pub mod property;
 pub mod realm;
+pub mod script;
 pub mod string;
 pub mod symbol;
 // pub(crate) mod tagged;
@@ -153,6 +154,7 @@ pub mod prelude {
         module::Module,
         native_function::NativeFunction,
         object::JsObject,
+        script::Script,
         Context, JsBigInt, JsResult, JsString, JsValue,
     };
     pub use boa_parser::Source;
@@ -169,6 +171,7 @@ pub use crate::{
     module::Module,
     native_function::NativeFunction,
     object::JsObject,
+    script::Script,
     string::JsString,
     symbol::JsSymbol,
     value::JsValue,
@@ -336,7 +339,7 @@ fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
 fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context: &mut Context<'_>) {
     #[track_caller]
     fn forward_val(context: &mut Context<'_>, source: &str) -> JsResult<JsValue> {
-        context.eval_script(Source::from_bytes(source))
+        context.eval(Source::from_bytes(source))
     }
 
     #[track_caller]

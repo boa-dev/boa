@@ -26,16 +26,15 @@ use crate::{
     string::utf16,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::CodeBlock,
+    vm::{ActiveRunnable, CodeBlock},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::{
-    function::FormalParameterList,
+    function::{FormalParameterList, FunctionBody},
     operations::{
         all_private_identifiers_valid, bound_names, contains, lexically_declared_names,
         ContainsSymbol,
     },
-    StatementList,
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
@@ -177,6 +176,9 @@ pub(crate) enum FunctionKind {
 
         /// The class object that this function is associated with.
         class_object: Option<JsObject>,
+
+        /// The `[[ScriptOrModule]]` internal slot.
+        script_or_module: Option<ActiveRunnable>,
     },
 
     /// A bytecode async function.
@@ -192,6 +194,9 @@ pub(crate) enum FunctionKind {
 
         /// The class object that this function is associated with.
         class_object: Option<JsObject>,
+
+        /// The `[[ScriptOrModule]]` internal slot.
+        script_or_module: Option<ActiveRunnable>,
     },
 
     /// A bytecode generator function.
@@ -207,6 +212,9 @@ pub(crate) enum FunctionKind {
 
         /// The class object that this function is associated with.
         class_object: Option<JsObject>,
+
+        /// The `[[ScriptOrModule]]` internal slot.
+        script_or_module: Option<ActiveRunnable>,
     },
 
     /// A bytecode async generator function.
@@ -222,6 +230,9 @@ pub(crate) enum FunctionKind {
 
         /// The class object that this function is associated with.
         class_object: Option<JsObject>,
+
+        /// The `[[ScriptOrModule]]` internal slot.
+        script_or_module: Option<ActiveRunnable>,
     },
 }
 
@@ -256,7 +267,16 @@ unsafe impl Trace for FunctionKind {
     custom_trace! {this, {
         match this {
             Self::Native { function, .. } => {mark(function)}
-            Self::Ordinary { code, environments, home_object, fields, private_methods, class_object, .. } => {
+            Self::Ordinary {
+                code,
+                environments,
+                home_object,
+                fields,
+                private_methods,
+                class_object,
+                script_or_module,
+                ..
+            } => {
                 mark(code);
                 mark(environments);
                 mark(home_object);
@@ -267,14 +287,16 @@ unsafe impl Trace for FunctionKind {
                     mark(elem);
                 }
                 mark(class_object);
+                mark(script_or_module);
             }
-            Self::Async { code, environments, home_object, class_object }
-            | Self::Generator { code, environments, home_object, class_object}
-            | Self::AsyncGenerator { code, environments, home_object, class_object} => {
+            Self::Async { code, environments, home_object, class_object, script_or_module }
+            | Self::Generator { code, environments, home_object, class_object, script_or_module}
+            | Self::AsyncGenerator { code, environments, home_object, class_object, script_or_module} => {
                 mark(code);
                 mark(environments);
                 mark(home_object);
                 mark(class_object);
+                mark(script_or_module);
             }
         }
     }}
@@ -753,7 +775,7 @@ impl BuiltInFunctionObject {
                 .generator(true)
                 .compile(
                     &FormalParameterList::default(),
-                    &StatementList::default(),
+                    &FunctionBody::default(),
                     context.realm().environment().compile_env(),
                     context,
                 );
@@ -771,7 +793,7 @@ impl BuiltInFunctionObject {
         } else {
             let code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
                 &FormalParameterList::default(),
-                &StatementList::default(),
+                &FunctionBody::default(),
                 context.realm().environment().compile_env(),
                 context,
             );

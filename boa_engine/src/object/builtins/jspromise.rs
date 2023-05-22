@@ -229,7 +229,7 @@ impl JsPromise {
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// let context = &mut Context::default();
     ///
-    /// let promise = context.eval_script(Source::from_bytes("new Promise((resolve, reject) => resolve())"))?;
+    /// let promise = context.eval(Source::from_bytes("new Promise((resolve, reject) => resolve())"))?;
     /// let promise = promise.as_object().cloned().unwrap();
     ///
     /// let promise = JsPromise::from_object(promise)?;

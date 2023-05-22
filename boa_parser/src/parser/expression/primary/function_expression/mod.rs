@@ -22,7 +22,7 @@ use crate::{
 use boa_ast::{
     expression::Identifier,
     function::Function,
-    operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
+    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
@@ -135,7 +135,7 @@ where
         // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
         name_in_lexically_declared_names(
             &bound_names(&params),
-            &top_level_lexically_declared_names(&body),
+            &lexically_declared_names(&body),
             params_start_position,
             interner,
         )?;

@@ -9,7 +9,9 @@ use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashSet;
 
 use crate::{
-    declaration::{Binding, ExportDeclaration, ImportDeclaration, VarDeclaration, Variable},
+    declaration::{
+        Binding, ExportDeclaration, ImportDeclaration, LexicalDeclaration, VarDeclaration, Variable,
+    },
     expression::{
         access::{PrivatePropertyAccess, SuperPropertyAccess},
         operator::BinaryInPrivate,
@@ -26,7 +28,7 @@ use crate::{
     },
     try_break,
     visitor::{NodeRef, VisitWith, Visitor},
-    Declaration, Expression, ModuleItem, Statement, StatementList, StatementListItem,
+    Declaration, Expression, ModuleItem, Script, Statement, StatementList, StatementListItem,
 };
 
 /// Represents all the possible symbols searched for by the [`Contains`][contains] operation.
@@ -451,63 +453,101 @@ struct LexicallyDeclaredNamesVisitor<'a, T: IdentList>(&'a mut T);
 impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> {
     type BreakTy = Infallible;
 
+    fn visit_script(&mut self, node: &'ast Script) -> ControlFlow<Self::BreakTy> {
+        top_level_lexicals(node.statements(), self.0);
+        ControlFlow::Continue(())
+    }
+
+    fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+        match node {
+            // ModuleItem : ImportDeclaration
+            ModuleItem::ImportDeclaration(import) => {
+                // 1. Return the BoundNames of ImportDeclaration.
+                BoundNamesVisitor(self.0).visit_import_declaration(import)
+            }
+
+            // ModuleItem : ExportDeclaration
+            ModuleItem::ExportDeclaration(export) => {
+                // 1. If ExportDeclaration is export VariableStatement, return a new empty List.
+                if matches!(export, ExportDeclaration::VarStatement(_)) {
+                    ControlFlow::Continue(())
+                } else {
+                    // 2. Return the BoundNames of ExportDeclaration.
+                    BoundNamesVisitor(self.0).visit_export_declaration(export)
+                }
+            }
+
+            // ModuleItem : StatementListItem
+            ModuleItem::StatementListItem(item) => {
+                // 1. Return LexicallyDeclaredNames of StatementListItem.
+                self.visit_statement_list_item(item)
+            }
+        }
+    }
+
     fn visit_expression(&mut self, _: &'ast Expression) -> ControlFlow<Self::BreakTy> {
         ControlFlow::Continue(())
     }
+
     fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
         if let Statement::Labelled(labelled) = node {
             return self.visit_labelled(labelled);
         }
         ControlFlow::Continue(())
     }
+
     fn visit_declaration(&mut self, node: &'ast Declaration) -> ControlFlow<Self::BreakTy> {
         BoundNamesVisitor(self.0).visit_declaration(node)
     }
+
     fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
         match node {
             LabelledItem::Function(f) => BoundNamesVisitor(self.0).visit_function(f),
             LabelledItem::Statement(_) => ControlFlow::Continue(()),
         }
     }
+
     fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
-        top_level_lexicals(node.body(), self.0);
-        ControlFlow::Continue(())
+        self.visit_script(node.body())
     }
+
     fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
-        top_level_lexicals(node.body(), self.0);
-        ControlFlow::Continue(())
+        self.visit_script(node.body())
     }
+
     fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
-        top_level_lexicals(node.body(), self.0);
-        ControlFlow::Continue(())
+        self.visit_script(node.body())
     }
+
     fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
-        top_level_lexicals(node.body(), self.0);
-        ControlFlow::Continue(())
+        self.visit_script(node.body())
     }
+
     fn visit_arrow_function(&mut self, node: &'ast ArrowFunction) -> ControlFlow<Self::BreakTy> {
-        top_level_lexicals(node.body(), self.0);
-        ControlFlow::Continue(())
+        self.visit_script(node.body())
     }
+
     fn visit_async_arrow_function(
         &mut self,
         node: &'ast AsyncArrowFunction,
     ) -> ControlFlow<Self::BreakTy> {
-        top_level_lexicals(node.body(), self.0);
-        ControlFlow::Continue(())
+        self.visit_script(node.body())
     }
+
     fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
-        if let ClassElement::StaticBlock(stmts) = node {
-            top_level_lexicals(stmts, self.0);
+        if let ClassElement::StaticBlock(body) = node {
+            self.visit_script(body);
         }
         ControlFlow::Continue(())
     }
+
     fn visit_import_declaration(
         &mut self,
         node: &'ast ImportDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
         BoundNamesVisitor(self.0).visit_import_declaration(node)
     }
+
     fn visit_export_declaration(
         &mut self,
         node: &'ast ExportDeclaration,
@@ -517,10 +557,6 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
         }
         BoundNamesVisitor(self.0).visit_export_declaration(node)
     }
-
-    // TODO:  ScriptBody : StatementList
-    // 1. Return TopLevelLexicallyDeclaredNames of StatementList.
-    // But we don't have that node yet. In the meantime, use `top_level_lexically_declared_names` directly.
 }
 
 /// Returns a list with the lexical bindings of a node, which may contain duplicates.
@@ -561,6 +597,34 @@ struct VarDeclaredNamesVisitor<'a>(&'a mut FxHashSet<Identifier>);
 
 impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
     type BreakTy = Infallible;
+
+    fn visit_script(&mut self, node: &'ast Script) -> ControlFlow<Self::BreakTy> {
+        top_level_vars(node.statements(), self.0);
+        ControlFlow::Continue(())
+    }
+
+    fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+        match node {
+            // ModuleItem : ImportDeclaration
+            ModuleItem::ImportDeclaration(_) => {
+                // 1. Return a new empty List.
+                ControlFlow::Continue(())
+            }
+
+            // ModuleItem : ExportDeclaration
+            ModuleItem::ExportDeclaration(export) => {
+                // 1. If ExportDeclaration is export VariableStatement, return BoundNames of ExportDeclaration.
+                if let ExportDeclaration::VarStatement(var) = export {
+                    BoundNamesVisitor(self.0).visit_var_declaration(var)
+                } else {
+                    // 2. Return a new empty List.
+                    ControlFlow::Continue(())
+                }
+            }
+
+            ModuleItem::StatementListItem(item) => self.visit_statement_list_item(item),
+        }
+    }
 
     fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
         match node {
@@ -682,28 +746,24 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
     }
 
     fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
-        top_level_vars(node.body(), self.0);
-        ControlFlow::Continue(())
+        self.visit_script(node.body())
     }
 
     fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
-        top_level_vars(node.body(), self.0);
-        ControlFlow::Continue(())
+        self.visit_script(node.body())
     }
 
     fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
-        top_level_vars(node.body(), self.0);
-        ControlFlow::Continue(())
+        self.visit_script(node.body())
     }
 
     fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
-        top_level_vars(node.body(), self.0);
-        ControlFlow::Continue(())
+        self.visit_script(node.body())
     }
 
     fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
-        if let ClassElement::StaticBlock(stmts) = node {
-            top_level_vars(stmts, self.0);
+        if let ClassElement::StaticBlock(body) = node {
+            self.visit_script(body);
         }
         node.visit_with(self)
     }
@@ -726,10 +786,6 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
             _ => ControlFlow::Continue(()),
         }
     }
-
-    // TODO:  ScriptBody : StatementList
-    // 1. Return TopLevelVarDeclaredNames of StatementList.
-    // But we don't have that node yet. In the meantime, use `top_level_var_declared_names` directly.
 }
 
 /// Returns a set with the var bindings of a node, with no duplicates.
@@ -748,6 +804,10 @@ where
 }
 
 /// Utility function that collects the top level lexicals of a statement list into `names`.
+///
+/// This is equivalent to the [`TopLevelLexicallyDeclaredNames`][spec] syntax operation in the spec.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
 fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
     for stmt in stmts.statements() {
         if let StatementListItem::Declaration(decl) = stmt {
@@ -770,20 +830,11 @@ fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
     }
 }
 
-/// Returns a list with the lexical bindings of a top-level statement list, which may contain duplicates.
-///
-/// This is equivalent to the [`TopLevelLexicallyDeclaredNames`][spec] syntax operation in the spec.
-///
-/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
-#[must_use]
-#[inline]
-pub fn top_level_lexically_declared_names(stmts: &StatementList) -> Vec<Identifier> {
-    let mut names = Vec::new();
-    top_level_lexicals(stmts, &mut names);
-    names
-}
-
 /// Utility function that collects the top level vars of a statement list into `names`.
+///
+/// This is equivalent to the [`TopLevelVarDeclaredNames`][spec] syntax operation in the spec.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevelvardeclarednames
 fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Identifier>) {
     for stmt in stmts.statements() {
         match stmt {
@@ -824,19 +875,6 @@ fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Identifier>) {
             }
         }
     }
-}
-
-/// Returns a list with the var bindings of a top-level statement list, with no duplicates.
-///
-/// This is equivalent to the [`TopLevelVarDeclaredNames`][spec] syntax operation in the spec.
-///
-/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevelvardeclarednames
-#[must_use]
-#[inline]
-pub fn top_level_var_declared_names(stmts: &StatementList) -> FxHashSet<Identifier> {
-    let mut names = FxHashSet::default();
-    top_level_vars(stmts, &mut names);
-    names
 }
 
 /// Returns `true` if all private identifiers in a node are valid.
@@ -1319,13 +1357,69 @@ where
     node.visit_with(&mut visitor).is_break()
 }
 
+/// The type of a lexically scoped declaration.
+#[derive(Clone, Debug)]
+pub enum LexicallyScopedDeclaration {
+    /// See [`LexicalDeclaration`]
+    LexicalDeclaration(LexicalDeclaration),
+
+    /// See [`Function`]
+    Function(Function),
+
+    /// See [`Generator`]
+    Generator(Generator),
+
+    /// See [`AsyncFunction`]
+    AsyncFunction(AsyncFunction),
+
+    /// See [`AsyncGenerator`]
+    AsyncGenerator(AsyncGenerator),
+
+    /// See [`Class`]
+    Class(Class),
+
+    /// A default assignment expression as an export declaration.
+    ///
+    /// Only valid inside module exports.
+    AssignmentExpression(Expression),
+}
+
+impl LexicallyScopedDeclaration {
+    /// Return the bound names of the declaration.
+    #[must_use]
+    pub fn bound_names(&self) -> Vec<Identifier> {
+        match self {
+            Self::LexicalDeclaration(v) => bound_names(v),
+            Self::Function(f) => bound_names(f),
+            Self::Generator(g) => bound_names(g),
+            Self::AsyncFunction(f) => bound_names(f),
+            Self::AsyncGenerator(g) => bound_names(g),
+            Self::Class(cl) => bound_names(cl),
+            Self::AssignmentExpression(expr) => bound_names(expr),
+        }
+    }
+}
+
+impl From<Declaration> for LexicallyScopedDeclaration {
+    fn from(value: Declaration) -> Self {
+        match value {
+            Declaration::Function(f) => Self::Function(f),
+            Declaration::Generator(g) => Self::Generator(g),
+            Declaration::AsyncFunction(af) => Self::AsyncFunction(af),
+            Declaration::AsyncGenerator(ag) => Self::AsyncGenerator(ag),
+            Declaration::Class(c) => Self::Class(c),
+            Declaration::Lexical(lex) => Self::LexicalDeclaration(lex),
+        }
+    }
+}
+
 /// Returns a list of lexically scoped declarations of the given node.
 ///
 /// This is equivalent to the [`LexicallyScopedDeclarations`][spec] syntax operation in the spec.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallyscopeddeclarations
 #[must_use]
-pub fn lexically_scoped_declarations<'a, N>(node: &'a N) -> Vec<Declaration>
+pub fn lexically_scoped_declarations<'a, N>(node: &'a N) -> Vec<LexicallyScopedDeclaration>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -1336,22 +1430,91 @@ where
 
 /// The [`Visitor`] used to obtain the lexically scoped declarations of a node.
 #[derive(Debug)]
-struct LexicallyScopedDeclarationsVisitor<'a>(&'a mut Vec<Declaration>);
+struct LexicallyScopedDeclarationsVisitor<'a>(&'a mut Vec<LexicallyScopedDeclaration>);
 
 impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_> {
     type BreakTy = Infallible;
+
+    // ScriptBody : StatementList
+    fn visit_script(&mut self, node: &'ast Script) -> ControlFlow<Self::BreakTy> {
+        // 1. Return TopLevelLexicallyScopedDeclarations of StatementList.
+        TopLevelLexicallyScopedDeclarationsVisitor(self.0).visit_statement_list(node.statements())
+    }
+
+    fn visit_export_declaration(
+        &mut self,
+        node: &'ast ExportDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        let decl = match node {
+            // ExportDeclaration :
+            // export ExportFromClause FromClause ;
+            // export NamedExports ;
+            // export VariableStatement
+            ExportDeclaration::ReExport { .. }
+            | ExportDeclaration::List(_)
+            | ExportDeclaration::VarStatement(_) => {
+                //     1. Return a new empty List.
+                return ControlFlow::Continue(());
+            }
+
+            // ExportDeclaration : export Declaration
+            ExportDeclaration::Declaration(decl) => {
+                // 1. Return a List whose sole element is DeclarationPart of Declaration.
+                decl.clone().into()
+            }
+
+            // ExportDeclaration : export default HoistableDeclaration
+            // 1. Return a List whose sole element is DeclarationPart of HoistableDeclaration.
+            ExportDeclaration::DefaultFunction(f) => {
+                LexicallyScopedDeclaration::Function(f.clone())
+            }
+            ExportDeclaration::DefaultGenerator(g) => {
+                LexicallyScopedDeclaration::Generator(g.clone())
+            }
+            ExportDeclaration::DefaultAsyncFunction(af) => {
+                LexicallyScopedDeclaration::AsyncFunction(af.clone())
+            }
+            ExportDeclaration::DefaultAsyncGenerator(ag) => {
+                LexicallyScopedDeclaration::AsyncGenerator(ag.clone())
+            }
+
+            // ExportDeclaration : export default ClassDeclaration
+            ExportDeclaration::DefaultClassDeclaration(c) => {
+                // 1. Return a List whose sole element is ClassDeclaration.
+                LexicallyScopedDeclaration::Class(c.clone())
+            }
+
+            // ExportDeclaration : export default AssignmentExpression ;
+            ExportDeclaration::DefaultAssignmentExpression(expr) => {
+                // 1. Return a List whose sole element is this ExportDeclaration.
+                LexicallyScopedDeclaration::AssignmentExpression(expr.clone())
+            }
+        };
+
+        self.0.push(decl);
+
+        ControlFlow::Continue(())
+    }
 
     fn visit_statement_list_item(
         &mut self,
         node: &'ast StatementListItem,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
+            // StatementListItem : Statement
             StatementListItem::Statement(Statement::Labelled(labelled)) => {
+                // 1. If Statement is Statement : LabelledStatement , return LexicallyScopedDeclarations of LabelledStatement.
                 self.visit_labelled(labelled)
             }
-            StatementListItem::Statement(_) => ControlFlow::Continue(()),
+            StatementListItem::Statement(_) => {
+                // 2. Return a new empty List.
+                ControlFlow::Continue(())
+            }
+
+            // StatementListItem : Declaration
             StatementListItem::Declaration(declaration) => {
-                self.0.push(declaration.clone());
+                // 1. Return a List whose sole element is DeclarationPart of Declaration.
+                self.0.push(declaration.clone().into());
                 ControlFlow::Continue(())
             }
         }
@@ -1359,45 +1522,76 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_> {
 
     fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
         match node {
+            // LabelledItem : FunctionDeclaration
             LabelledItem::Function(f) => {
-                self.0.push(f.clone().into());
-                ControlFlow::Continue(())
+                // 1. Return « FunctionDeclaration ».
+                self.0.push(LexicallyScopedDeclaration::Function(f.clone()));
             }
-            LabelledItem::Statement(_) => ControlFlow::Continue(()),
+
+            // LabelledItem : Statement
+            LabelledItem::Statement(_) => {
+                // 1. Return a new empty List.
+            }
         }
+        ControlFlow::Continue(())
     }
 
     fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
         match node {
             ModuleItem::StatementListItem(item) => self.visit_statement_list_item(item),
-            ModuleItem::ExportDeclaration(ExportDeclaration::Declaration(declaration)) => {
-                self.0.push(declaration.clone());
-                ControlFlow::Continue(())
-            }
-            ModuleItem::ExportDeclaration(ExportDeclaration::DefaultFunction(f)) => {
-                self.0.push(f.clone().into());
-                ControlFlow::Continue(())
-            }
-            ModuleItem::ExportDeclaration(ExportDeclaration::DefaultGenerator(f)) => {
-                self.0.push(f.clone().into());
-                ControlFlow::Continue(())
-            }
-            ModuleItem::ExportDeclaration(ExportDeclaration::DefaultAsyncFunction(f)) => {
-                self.0.push(f.clone().into());
-                ControlFlow::Continue(())
-            }
-            ModuleItem::ExportDeclaration(ExportDeclaration::DefaultAsyncGenerator(f)) => {
-                self.0.push(f.clone().into());
-                ControlFlow::Continue(())
-            }
-            ModuleItem::ExportDeclaration(ExportDeclaration::DefaultClassDeclaration(f)) => {
-                self.0.push(f.clone().into());
-                ControlFlow::Continue(())
-            }
-            ModuleItem::ImportDeclaration(_) | ModuleItem::ExportDeclaration(_) => {
+            ModuleItem::ExportDeclaration(export) => self.visit_export_declaration(export),
+
+            // ModuleItem : ImportDeclaration
+            ModuleItem::ImportDeclaration(_) => {
+                // 1. Return a new empty List.
                 ControlFlow::Continue(())
             }
         }
+    }
+}
+/// The [`Visitor`] used to obtain the top level lexically scoped declarations of a node.
+///
+/// This is equivalent to the [`TopLevelLexicallyScopedDeclarations`][spec] syntax operation in the spec.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallyscopeddeclarations
+#[derive(Debug)]
+struct TopLevelLexicallyScopedDeclarationsVisitor<'a>(&'a mut Vec<LexicallyScopedDeclaration>);
+
+impl<'ast> Visitor<'ast> for TopLevelLexicallyScopedDeclarationsVisitor<'_> {
+    type BreakTy = Infallible;
+
+    fn visit_statement_list_item(
+        &mut self,
+        node: &'ast StatementListItem,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node {
+            // StatementListItem : Declaration
+            StatementListItem::Declaration(d) => match d {
+                // 1. If Declaration is Declaration : HoistableDeclaration , then
+                Declaration::Function(_)
+                | Declaration::Generator(_)
+                | Declaration::AsyncFunction(_)
+                | Declaration::AsyncGenerator(_) => {
+                    // a. Return a new empty List.
+                }
+
+                // 2. Return « Declaration ».
+                Declaration::Class(cl) => {
+                    self.0.push(LexicallyScopedDeclaration::Class(cl.clone()));
+                }
+                Declaration::Lexical(lex) => {
+                    self.0
+                        .push(LexicallyScopedDeclaration::LexicalDeclaration(lex.clone()));
+                }
+            },
+
+            // StatementListItem : Statement
+            StatementListItem::Statement(_) => {
+                // 1. Return a new empty List.
+            }
+        }
+
+        ControlFlow::Continue(())
     }
 }
 
@@ -1455,6 +1649,12 @@ struct VarScopedDeclarationsVisitor<'a>(&'a mut Vec<VarScopedDeclaration>);
 
 impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
     type BreakTy = Infallible;
+
+    // ScriptBody : StatementList
+    fn visit_script(&mut self, node: &'ast Script) -> ControlFlow<Self::BreakTy> {
+        // 1. Return TopLevelVarScopedDeclarations of StatementList.
+        TopLevelVarScopedDeclarationsVisitor(self.0).visit_statement_list(node.statements())
+    }
 
     fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
         match node {
@@ -1590,29 +1790,31 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
 
     fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
         match node {
-            ModuleItem::ExportDeclaration(ExportDeclaration::VarStatement(var)) => self.visit(var),
-            ModuleItem::StatementListItem(item) => self.visit(item),
-            _ => ControlFlow::Continue(()),
+            // ModuleItem : ExportDeclaration
+            ModuleItem::ExportDeclaration(decl) => {
+                if let ExportDeclaration::VarStatement(var) = decl {
+                    //     1. If ExportDeclaration is export VariableStatement, return VarScopedDeclarations of VariableStatement.
+                    self.visit_var_declaration(var);
+                }
+                // 2. Return a new empty List.
+            }
+            ModuleItem::StatementListItem(item) => {
+                self.visit_statement_list_item(item);
+            }
+            // ModuleItem : ImportDeclaration
+            ModuleItem::ImportDeclaration(_) => {
+                // 1. Return a new empty List.
+            }
         }
+        ControlFlow::Continue(())
     }
 }
 
-/// Returns a list of top level var scoped declarations of the given node.
+/// The [`Visitor`] used to obtain the top level var scoped declarations of a node.
 ///
 /// This is equivalent to the [`TopLevelVarScopedDeclarations`][spec] syntax operation in the spec.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevelvarscopeddeclarations
-#[must_use]
-pub fn top_level_var_scoped_declarations<'a, N>(node: &'a N) -> Vec<VarScopedDeclaration>
-where
-    &'a N: Into<NodeRef<'a>>,
-{
-    let mut declarations = Vec::new();
-    TopLevelVarScopedDeclarationsVisitor(&mut declarations).visit(node.into());
-    declarations
-}
-
-/// The [`Visitor`] used to obtain the top level var scoped declarations of a node.
 #[derive(Debug)]
 struct TopLevelVarScopedDeclarationsVisitor<'a>(&'a mut Vec<VarScopedDeclaration>);
 

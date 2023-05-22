@@ -21,7 +21,7 @@ use crate::{
             assign::{Assign, AssignTarget},
             Binary, BinaryInPrivate, Conditional, Unary, Update,
         },
-        Await, Call, Expression, Identifier, New, Optional, OptionalOperation,
+        Await, Call, Expression, Identifier, ImportCall, New, Optional, OptionalOperation,
         OptionalOperationKind, Parenthesized, Spread, SuperCall, TaggedTemplate, Yield,
     },
     function::{
@@ -38,7 +38,7 @@ use crate::{
         Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw,
         Try, With,
     },
-    ModuleItem, ModuleItemList, StatementList, StatementListItem,
+    Module, ModuleItem, ModuleItemList, Script, StatementList, StatementListItem,
 };
 use boa_interner::Sym;
 
@@ -118,6 +118,8 @@ macro_rules! node_ref {
 }
 
 node_ref! {
+    Script,
+    Module,
     StatementList,
     StatementListItem,
     Statement,
@@ -164,6 +166,7 @@ node_ref! {
     New,
     Call,
     SuperCall,
+    ImportCall,
     Optional,
     TaggedTemplate,
     Assign,
@@ -217,6 +220,8 @@ pub trait Visitor<'ast>: Sized {
     /// Type which will be propagated from the visitor if completing early.
     type BreakTy;
 
+    define_visit!(visit_script, Script);
+    define_visit!(visit_module, Module);
     define_visit!(visit_statement_list, StatementList);
     define_visit!(visit_statement_list_item, StatementListItem);
     define_visit!(visit_statement, Statement);
@@ -263,6 +268,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_new, New);
     define_visit!(visit_call, Call);
     define_visit!(visit_super_call, SuperCall);
+    define_visit!(visit_import_call, ImportCall);
     define_visit!(visit_optional, Optional);
     define_visit!(visit_tagged_template, TaggedTemplate);
     define_visit!(visit_assign, Assign);
@@ -313,6 +319,8 @@ pub trait Visitor<'ast>: Sized {
     fn visit<N: Into<NodeRef<'ast>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
         let node = node.into();
         match node {
+            NodeRef::Script(n) => self.visit_script(n),
+            NodeRef::Module(n) => self.visit_module(n),
             NodeRef::StatementList(n) => self.visit_statement_list(n),
             NodeRef::StatementListItem(n) => self.visit_statement_list_item(n),
             NodeRef::Statement(n) => self.visit_statement(n),
@@ -359,6 +367,7 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::New(n) => self.visit_new(n),
             NodeRef::Call(n) => self.visit_call(n),
             NodeRef::SuperCall(n) => self.visit_super_call(n),
+            NodeRef::ImportCall(n) => self.visit_import_call(n),
             NodeRef::Optional(n) => self.visit_optional(n),
             NodeRef::TaggedTemplate(n) => self.visit_tagged_template(n),
             NodeRef::Assign(n) => self.visit_assign(n),
@@ -414,6 +423,8 @@ pub trait VisitorMut<'ast>: Sized {
     /// Type which will be propagated from the visitor if completing early.
     type BreakTy;
 
+    define_visit_mut!(visit_script_mut, Script);
+    define_visit_mut!(visit_module_mut, Module);
     define_visit_mut!(visit_statement_list_mut, StatementList);
     define_visit_mut!(visit_statement_list_item_mut, StatementListItem);
     define_visit_mut!(visit_statement_mut, Statement);
@@ -460,6 +471,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_new_mut, New);
     define_visit_mut!(visit_call_mut, Call);
     define_visit_mut!(visit_super_call_mut, SuperCall);
+    define_visit_mut!(visit_import_call_mut, ImportCall);
     define_visit_mut!(visit_optional_mut, Optional);
     define_visit_mut!(visit_tagged_template_mut, TaggedTemplate);
     define_visit_mut!(visit_assign_mut, Assign);
@@ -510,6 +522,8 @@ pub trait VisitorMut<'ast>: Sized {
     fn visit<N: Into<NodeRefMut<'ast>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
         let node = node.into();
         match node {
+            NodeRefMut::Script(n) => self.visit_script_mut(n),
+            NodeRefMut::Module(n) => self.visit_module_mut(n),
             NodeRefMut::StatementList(n) => self.visit_statement_list_mut(n),
             NodeRefMut::StatementListItem(n) => self.visit_statement_list_item_mut(n),
             NodeRefMut::Statement(n) => self.visit_statement_mut(n),
@@ -556,6 +570,7 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::New(n) => self.visit_new_mut(n),
             NodeRefMut::Call(n) => self.visit_call_mut(n),
             NodeRefMut::SuperCall(n) => self.visit_super_call_mut(n),
+            NodeRefMut::ImportCall(n) => self.visit_import_call_mut(n),
             NodeRefMut::Optional(n) => self.visit_optional_mut(n),
             NodeRefMut::TaggedTemplate(n) => self.visit_tagged_template_mut(n),
             NodeRefMut::Assign(n) => self.visit_assign_mut(n),

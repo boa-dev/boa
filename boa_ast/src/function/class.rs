@@ -6,7 +6,7 @@ use crate::{
     property::{MethodDefinition, PropertyName},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, StatementList, ToStringEscaped,
+    Declaration, ToStringEscaped,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -121,7 +121,7 @@ impl ToIndentedString for Class {
             buf.push_str(&format!(
                 "{indentation}constructor({}) {}\n",
                 join_nodes(interner, expr.parameters().as_ref()),
-                block_to_string(expr.body(), interner, indent_n + 1)
+                block_to_string(expr.body().statements(), interner, indent_n + 1)
             ));
         }
         for element in self.elements.iter() {
@@ -155,16 +155,16 @@ impl ToIndentedString for Class {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::Generator(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::AsyncGenerator(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::Async(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                         },
                     )
@@ -198,16 +198,16 @@ impl ToIndentedString for Class {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::Generator(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::AsyncGenerator(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::Async(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                         },
                     )
@@ -268,16 +268,16 @@ impl ToIndentedString for Class {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::Generator(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::AsyncGenerator(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::Async(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                         },
                     )
@@ -311,16 +311,16 @@ impl ToIndentedString for Class {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::Generator(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::AsyncGenerator(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                             MethodDefinition::Async(expr) => {
-                                block_to_string(expr.body(), interner, indent_n + 1)
+                                block_to_string(expr.body().statements(), interner, indent_n + 1)
                             }
                         },
                     )
@@ -355,10 +355,10 @@ impl ToIndentedString for Class {
                         )
                     }
                 },
-                ClassElement::StaticBlock(statement_list) => {
+                ClassElement::StaticBlock(body) => {
                     format!(
                         "{indentation}static {}\n",
-                        block_to_string(statement_list, interner, indent_n + 1)
+                        block_to_string(body.statements(), interner, indent_n + 1)
                     )
                 }
             });
@@ -420,6 +420,13 @@ impl VisitWith for Class {
     }
 }
 
+/// The body of a class' static block, as defined by the [spec].
+///
+/// Just an alias for [`Script`](crate::Script), since it has the same exact semantics.
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ClassStaticBlockBody
+type StaticBlockBody = crate::Script;
+
 /// An element that can be within a [`Class`], as defined by the [spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
@@ -454,7 +461,7 @@ pub enum ClassElement {
     PrivateStaticFieldDefinition(PrivateName, Option<Expression>),
 
     /// A static block, where a class can have initialization logic for its static fields.
-    StaticBlock(StatementList),
+    StaticBlock(StaticBlockBody),
 }
 
 impl VisitWith for ClassElement {
@@ -489,7 +496,7 @@ impl VisitWith for ClassElement {
                     ControlFlow::Continue(())
                 }
             }
-            Self::StaticBlock(sl) => visitor.visit_statement_list(sl),
+            Self::StaticBlock(sl) => visitor.visit_script(sl),
         }
     }
 
@@ -524,7 +531,7 @@ impl VisitWith for ClassElement {
                     ControlFlow::Continue(())
                 }
             }
-            Self::StaticBlock(sl) => visitor.visit_statement_list_mut(sl),
+            Self::StaticBlock(sl) => visitor.visit_script_mut(sl),
         }
     }
 }

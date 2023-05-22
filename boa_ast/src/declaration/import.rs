@@ -21,7 +21,9 @@ use boa_interner::Sym;
 use super::ModuleSpecifier;
 
 /// The kind of import in an [`ImportDeclaration`].
-#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ImportKind {
     /// Default (`import defaultName from "module-name"`) or unnamed (`import "module-name").
     DefaultOrUnnamed,
@@ -77,7 +79,8 @@ impl VisitWith for ImportKind {
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ImportDeclaration
-#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ImportDeclaration {
     /// Binding for the default export of `specifier`.
     default: Option<Identifier>,
@@ -155,7 +158,9 @@ impl VisitWith for ImportDeclaration {
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ImportSpecifier
-#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ImportSpecifier {
     binding: Identifier,
     export_name: Sym,

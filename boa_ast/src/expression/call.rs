@@ -162,3 +162,68 @@ impl VisitWith for SuperCall {
         ControlFlow::Continue(())
     }
 }
+
+/// The import() syntax, commonly called dynamic import, is a function-like expression that allows
+/// loading an ECMAScript module asynchronously and dynamically into a potentially non-module
+/// environment.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ImportCall
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct ImportCall {
+    arg: Box<Expression>,
+}
+
+impl ImportCall {
+    /// Creates a new `ImportCall` AST node.
+    pub fn new<A>(arg: A) -> Self
+    where
+        A: Into<Expression>,
+    {
+        Self {
+            arg: Box::new(arg.into()),
+        }
+    }
+
+    /// Retrieves the single argument of the import call.
+    #[must_use]
+    pub const fn argument(&self) -> &Expression {
+        &self.arg
+    }
+}
+
+impl ToInternedString for ImportCall {
+    #[inline]
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("import({})", self.arg.to_interned_string(interner))
+    }
+}
+
+impl From<ImportCall> for Expression {
+    #[inline]
+    fn from(call: ImportCall) -> Self {
+        Self::ImportCall(call)
+    }
+}
+
+impl VisitWith for ImportCall {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_expression(&self.arg)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_expression_mut(&mut self.arg)
+    }
+}

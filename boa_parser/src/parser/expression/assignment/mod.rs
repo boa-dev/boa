@@ -32,7 +32,7 @@ use boa_ast::{
         operator::assign::{Assign, AssignOp, AssignTarget},
         Identifier,
     },
-    operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
+    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
@@ -225,7 +225,7 @@ where
             // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
             name_in_lexically_declared_names(
                 &bound_names(&parameters),
-                &top_level_lexically_declared_names(&body),
+                &lexically_declared_names(&body),
                 position,
                 interner,
             )?;

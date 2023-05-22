@@ -4,12 +4,12 @@ use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     expression::{Expression, Identifier},
-    join_nodes, Declaration, StatementList,
+    join_nodes, Declaration,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
-use super::FormalParameterList;
+use super::{FormalParameterList, FunctionBody};
 
 /// An async function definition, as defined by the [spec].
 ///
@@ -25,7 +25,7 @@ use super::FormalParameterList;
 pub struct AsyncFunction {
     name: Option<Identifier>,
     parameters: FormalParameterList,
-    body: StatementList,
+    body: FunctionBody,
     has_binding_identifier: bool,
 }
 
@@ -36,7 +36,7 @@ impl AsyncFunction {
     pub const fn new(
         name: Option<Identifier>,
         parameters: FormalParameterList,
-        body: StatementList,
+        body: FunctionBody,
         has_binding_identifier: bool,
     ) -> Self {
         Self {
@@ -64,7 +64,7 @@ impl AsyncFunction {
     /// Gets the body of the function declaration.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &StatementList {
+    pub const fn body(&self) -> &FunctionBody {
         &self.body
     }
 
@@ -122,7 +122,7 @@ impl VisitWith for AsyncFunction {
             try_break!(visitor.visit_identifier(ident));
         }
         try_break!(visitor.visit_formal_parameter_list(&self.parameters));
-        visitor.visit_statement_list(&self.body)
+        visitor.visit_script(&self.body)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -133,6 +133,6 @@ impl VisitWith for AsyncFunction {
             try_break!(visitor.visit_identifier_mut(ident));
         }
         try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
-        visitor.visit_statement_list_mut(&mut self.body)
+        visitor.visit_script_mut(&mut self.body)
     }
 }

@@ -32,7 +32,7 @@ use boa_ast::{
         AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator, PrivateName,
     },
     operations::{
-        bound_names, contains, has_direct_super, top_level_lexically_declared_names, ContainsSymbol,
+        bound_names, contains, has_direct_super, lexically_declared_names, ContainsSymbol,
     },
     property::{self, MethodDefinition},
     Expression, Keyword, Punctuator,
@@ -442,7 +442,7 @@ where
                 // https://tc39.es/ecma262/#sec-method-definitions-static-semantics-early-errors
                 name_in_lexically_declared_names(
                     &bound_names(&parameters),
-                    &top_level_lexically_declared_names(&body),
+                    &lexically_declared_names(&body),
                     params_start_position,
                     interner,
                 )?;
@@ -518,7 +518,7 @@ where
                 // LexicallyDeclaredNames of FunctionBody.
                 name_in_lexically_declared_names(
                     &bound_names(&params),
-                    &top_level_lexically_declared_names(&body),
+                    &lexically_declared_names(&body),
                     params_start_position,
                     interner,
                 )?;
@@ -801,7 +801,7 @@ where
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
         name_in_lexically_declared_names(
             &bound_names(&params),
-            &top_level_lexically_declared_names(&body),
+            &lexically_declared_names(&body),
             params_start_position,
             interner,
         )?;
@@ -917,7 +917,7 @@ where
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
         name_in_lexically_declared_names(
             &bound_names(&params),
-            &top_level_lexically_declared_names(&body),
+            &lexically_declared_names(&body),
             params_start_position,
             interner,
         )?;
@@ -1010,7 +1010,7 @@ where
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
         name_in_lexically_declared_names(
             &bound_names(&params),
-            &top_level_lexically_declared_names(&body),
+            &lexically_declared_names(&body),
             params_start_position,
             interner,
         )?;

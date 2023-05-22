@@ -29,6 +29,7 @@ use crate::{
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
+    vm::CallFrame,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::Gc;
@@ -114,19 +115,25 @@ impl Json {
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
         let mut parser = Parser::new(Source::from_bytes(&script_string));
         parser.set_json_parse();
-        let statement_list = parser.parse_script(context.interner_mut())?;
+        let script = parser.parse_script(context.interner_mut())?;
         let code_block = {
             let mut compiler = ByteCompiler::new(
                 Sym::MAIN,
-                statement_list.strict(),
+                script.strict(),
                 true,
                 context.realm().environment().compile_env(),
                 context,
             );
-            compiler.compile_statement_list(&statement_list, true, false);
+            compiler.compile_statement_list(script.statements(), true, false);
             Gc::new(compiler.finish())
         };
-        let unfiltered = context.execute(code_block)?;
+
+        context.vm.push_frame(CallFrame::new(code_block));
+        context.realm().resize_global_env();
+        let record = context.run();
+        context.vm.pop_frame();
+
+        let unfiltered = record.consume()?;
 
         // 11. If IsCallable(reviver) is true, then
         if let Some(obj) = args.get_or_undefined(1).as_callable() {

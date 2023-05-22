@@ -2,7 +2,7 @@ use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::literal::Literal,
-    function::{AsyncGenerator, FormalParameterList},
+    function::{AsyncGenerator, FormalParameterList, FunctionBody},
     statement::Return,
     Declaration, Statement, StatementListItem,
 };
@@ -27,10 +27,12 @@ fn check_async_generator_expr() {
                     AsyncGenerator::new(
                         Some(add.into()),
                         FormalParameterList::default(),
-                        vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(Literal::from(1).into())),
-                        ))]
-                        .into(),
+                        FunctionBody::new(
+                            vec![StatementListItem::Statement(Statement::Return(
+                                Return::new(Some(Literal::from(1).into())),
+                            ))]
+                            .into(),
+                        ),
                         false,
                     )
                     .into(),
@@ -63,27 +65,33 @@ fn check_nested_async_generator_expr() {
                     AsyncGenerator::new(
                         Some(a.into()),
                         FormalParameterList::default(),
-                        vec![Declaration::Lexical(LexicalDeclaration::Const(
-                            vec![Variable::from_identifier(
-                                b.into(),
-                                Some(
-                                    AsyncGenerator::new(
-                                        Some(b.into()),
-                                        FormalParameterList::default(),
-                                        vec![StatementListItem::Statement(Statement::Return(
-                                            Return::new(Some(Literal::from(1).into())),
-                                        ))]
+                        FunctionBody::new(
+                            vec![Declaration::Lexical(LexicalDeclaration::Const(
+                                vec![Variable::from_identifier(
+                                    b.into(),
+                                    Some(
+                                        AsyncGenerator::new(
+                                            Some(b.into()),
+                                            FormalParameterList::default(),
+                                            FunctionBody::new(
+                                                vec![StatementListItem::Statement(
+                                                    Statement::Return(Return::new(Some(
+                                                        Literal::from(1).into(),
+                                                    ))),
+                                                )]
+                                                .into(),
+                                            ),
+                                            false,
+                                        )
                                         .into(),
-                                        false,
-                                    )
-                                    .into(),
-                                ),
-                            )]
-                            .try_into()
-                            .unwrap(),
-                        ))
-                        .into()]
-                        .into(),
+                                    ),
+                                )]
+                                .try_into()
+                                .unwrap(),
+                            ))
+                            .into()]
+                            .into(),
+                        ),
                         false,
                     )
                     .into(),
