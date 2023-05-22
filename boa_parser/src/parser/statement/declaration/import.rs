@@ -58,9 +58,7 @@ impl ImportDeclaration {
                         TokenKind::StringLiteral(_)
                         | TokenKind::Punctuator(Punctuator::OpenBlock | Punctuator::Mul)
                         | TokenKind::IdentifierName(_)
-                        | TokenKind::Keyword((Keyword::Await | Keyword::Yield, _)) => {
-                            return Ok(true)
-                        }
+                        | TokenKind::Keyword(_) => return Ok(true),
                         _ => {}
                     }
                 }
@@ -225,7 +223,9 @@ where
                     }
                     cursor.advance(interner);
                 }
-                TokenKind::StringLiteral(_) | TokenKind::IdentifierName(_) => {
+                TokenKind::StringLiteral(_)
+                | TokenKind::IdentifierName(_)
+                | TokenKind::Keyword(_) => {
                     list.push(ImportSpecifier.parse(cursor, interner)?);
                 }
                 _ => {
@@ -293,16 +293,20 @@ where
     type Output = AstImportSpecifier;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let tok = cursor.next(interner).or_abrupt()?;
+        let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
             TokenKind::StringLiteral((name, _)) => {
-                if interner.resolve_expect(*name).utf8().is_none() {
+                let name = *name;
+                if interner.resolve_expect(name).utf8().is_none() {
                     return Err(Error::general(
                         "import specifiers don't allow unpaired surrogates",
                         tok.span().end(),
                     ));
                 }
+
+                cursor.advance(interner);
+
                 cursor.expect(
                     TokenKind::identifier(Sym::AS),
                     "import declaration",
@@ -311,18 +315,42 @@ where
 
                 let binding = ImportedBinding.parse(cursor, interner)?;
 
-                Ok(AstImportSpecifier::new(binding, *name))
+                Ok(AstImportSpecifier::new(binding, name))
+            }
+            TokenKind::Keyword((kw, _)) => {
+                let export_name = kw.to_sym();
+
+                cursor.advance(interner);
+
+                cursor.expect(
+                    TokenKind::identifier(Sym::AS),
+                    "import declaration",
+                    interner,
+                )?;
+
+                let binding = ImportedBinding.parse(cursor, interner)?;
+
+                Ok(AstImportSpecifier::new(binding, export_name))
             }
             TokenKind::IdentifierName((name, _)) => {
-                if cursor
-                    .next_if(TokenKind::identifier(Sym::AS), interner)?
-                    .is_some()
-                {
-                    let binding = ImportedBinding.parse(cursor, interner)?;
-                    Ok(AstImportSpecifier::new(binding, *name))
-                } else {
-                    Ok(AstImportSpecifier::new(Identifier::new(*name), *name))
+                let name = *name;
+
+                if let Some(token) = cursor.peek(1, interner)? {
+                    if token.kind() == &TokenKind::identifier(Sym::AS) {
+                        // export name
+                        cursor.advance(interner);
+
+                        // `as`
+                        cursor.advance(interner);
+
+                        let binding = ImportedBinding.parse(cursor, interner)?;
+                        return Ok(AstImportSpecifier::new(binding, name));
+                    }
                 }
+
+                let name = ImportedBinding.parse(cursor, interner)?;
+
+                Ok(AstImportSpecifier::new(name, name.sym()))
             }
             _ => Err(Error::expected(
                 ["string literal".to_owned(), "identifier".to_owned()],

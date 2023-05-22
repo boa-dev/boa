@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use crate::{
+    js_string,
     module::BindingName,
     object::{JsObject, JsPrototype},
     property::{PropertyDescriptor, PropertyKey},
@@ -88,8 +89,8 @@ fn module_namespace_exotic_get_own_property(
     // 1. If P is a Symbol, return OrdinaryGetOwnProperty(O, P).
     let key = match key {
         PropertyKey::Symbol(_) => return ordinary_get_own_property(obj, key, context),
-        PropertyKey::Index(_) => return Ok(None),
-        PropertyKey::String(s) => s,
+        PropertyKey::Index(idx) => js_string!(format!("{idx}")),
+        PropertyKey::String(s) => s.clone(),
     };
 
     {
@@ -101,13 +102,13 @@ fn module_namespace_exotic_get_own_property(
         let exports = obj.exports();
 
         // 3. If exports does not contain P, return undefined.
-        if !exports.contains_key(key) {
+        if !exports.contains_key(&key) {
             return Ok(None);
         }
     }
 
     // 4. Let value be ? O.[[Get]](P, O).
-    let value = obj.get(key.clone(), context)?;
+    let value = obj.get(key, context)?;
 
     // 5. Return PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: false }.
     Ok(Some(
@@ -168,8 +169,8 @@ fn module_namespace_exotic_has_property(
     // 1. If P is a Symbol, return ! OrdinaryHasProperty(O, P).
     let key = match key {
         PropertyKey::Symbol(_) => return ordinary_has_property(obj, key, context),
-        PropertyKey::Index(_) => return Ok(false),
-        PropertyKey::String(s) => s,
+        PropertyKey::Index(idx) => js_string!(format!("{idx}")),
+        PropertyKey::String(s) => s.clone(),
     };
 
     let obj = obj.borrow();
@@ -182,7 +183,7 @@ fn module_namespace_exotic_has_property(
 
     // 3. If exports contains P, return true.
     // 4. Return false.
-    Ok(exports.contains_key(key))
+    Ok(exports.contains_key(&key))
 }
 
 /// [`[[Get]] ( P, Receiver )`][spec]
@@ -198,8 +199,8 @@ fn module_namespace_exotic_get(
     //     a. Return ! OrdinaryGet(O, P, Receiver).
     let key = match key {
         PropertyKey::Symbol(_) => return ordinary_get(obj, key, receiver, context),
-        PropertyKey::Index(_) => return Ok(JsValue::undefined()),
-        PropertyKey::String(s) => s,
+        PropertyKey::Index(idx) => js_string!(format!("{idx}")),
+        PropertyKey::String(s) => s.clone(),
     };
 
     let obj = obj.borrow();
@@ -210,7 +211,7 @@ fn module_namespace_exotic_get(
     // 2. Let exports be O.[[Exports]].
     let exports = obj.exports();
     // 3. If exports does not contain P, return undefined.
-    let Some(export_name) = exports.get(key).copied() else {
+    let Some(export_name) = exports.get(&key).copied() else {
         return Ok(JsValue::undefined());
     };
 
@@ -285,8 +286,8 @@ fn module_namespace_exotic_delete(
     //     a. Return ! OrdinaryDelete(O, P).
     let key = match key {
         PropertyKey::Symbol(_) => return ordinary_delete(obj, key, context),
-        PropertyKey::Index(_) => return Ok(true),
-        PropertyKey::String(s) => s,
+        PropertyKey::Index(idx) => js_string!(format!("{idx}")),
+        PropertyKey::String(s) => s.clone(),
     };
 
     let obj = obj.borrow();
@@ -299,7 +300,7 @@ fn module_namespace_exotic_delete(
 
     // 3. If exports contains P, return false.
     // 4. Return true.
-    Ok(!exports.contains_key(key))
+    Ok(!exports.contains_key(&key))
 }
 
 /// [`[[OwnPropertyKeys]] ( )`][spec].

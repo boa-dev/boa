@@ -30,6 +30,8 @@ features = [
     "Intl-enumeration",
     # https://github.com/tc39/proposal-array-from-async
     "Array.fromAsync",
+    # https://github.com/tc39/proposal-import-attributes
+    "import-assertions",
 
     # Non-standard
     "caller",

@@ -174,16 +174,18 @@ impl VisitWith for ExportDeclaration {
 pub struct ExportSpecifier {
     alias: Sym,
     private_name: Sym,
+    string_literal: bool,
 }
 
 impl ExportSpecifier {
     /// Creates a new [`ExportSpecifier`].
     #[inline]
     #[must_use]
-    pub const fn new(alias: Sym, private_name: Sym) -> Self {
+    pub const fn new(alias: Sym, private_name: Sym, string_literal: bool) -> Self {
         Self {
             alias,
             private_name,
+            string_literal,
         }
     }
 
@@ -199,6 +201,13 @@ impl ExportSpecifier {
     #[must_use]
     pub const fn private_name(self) -> Sym {
         self.private_name
+    }
+
+    /// Returns `true` if the private name of the specifier was a `StringLiteral`.
+    #[inline]
+    #[must_use]
+    pub const fn string_literal(&self) -> bool {
+        self.string_literal
     }
 }
 

@@ -7,12 +7,24 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Launch",
+      "name": "Launch (Script)",
       "windows": {
         "program": "${workspaceFolder}/target/debug/boa.exe"
       },
       "program": "${workspaceFolder}/target/debug/boa",
       "args": ["${workspaceFolder}/tests/js/test.js", "--debug-object"],
+      "sourceLanguages": ["rust"],
+      "preLaunchTask": "Cargo Build"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Launch (Module)",
+      "windows": {
+        "program": "${workspaceFolder}/target/debug/boa.exe"
+      },
+      "program": "${workspaceFolder}/target/debug/boa",
+      "args": ["${workspaceFolder}/tests/js/test.js", "--debug-object", "-m", "-r", "tests/js"],
       "sourceLanguages": ["rust"],
       "preLaunchTask": "Cargo Build"
     }

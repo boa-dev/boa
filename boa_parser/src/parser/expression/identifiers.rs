@@ -114,21 +114,18 @@ where
                     .resolve_expect(ident.sym())
                     .utf8()
                     .expect("keyword must be utf-8");
-                Err(Error::unexpected(
-                    name,
-                    span,
+                Err(Error::general(
                     format!("binding identifier `{name}` not allowed in strict mode"),
+                    span.start(),
                 ))
             }
-            Sym::YIELD if self.allow_yield.0 => Err(Error::unexpected(
-                "yield",
-                span,
+            Sym::YIELD if self.allow_yield.0 => Err(Error::general(
                 "keyword `yield` not allowed in this context",
+                span.start(),
             )),
-            Sym::AWAIT if self.allow_await.0 => Err(Error::unexpected(
-                "await",
-                span,
+            Sym::AWAIT if self.allow_await.0 => Err(Error::general(
                 "keyword `await` not allowed in this context",
+                span.start(),
             )),
             _ => Ok(ident),
         }

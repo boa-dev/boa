@@ -351,16 +351,16 @@ impl ByteCompiler<'_, '_> {
         for d in &declarations {
             match d {
                 LexicallyScopedDeclaration::Function(function) => {
-                    self.function(function.into(), NodeKind::Declaration, false);
+                    self.function_with_binding(function.into(), NodeKind::Declaration, false);
                 }
                 LexicallyScopedDeclaration::Generator(function) => {
-                    self.function(function.into(), NodeKind::Declaration, false);
+                    self.function_with_binding(function.into(), NodeKind::Declaration, false);
                 }
                 LexicallyScopedDeclaration::AsyncFunction(function) => {
-                    self.function(function.into(), NodeKind::Declaration, false);
+                    self.function_with_binding(function.into(), NodeKind::Declaration, false);
                 }
                 LexicallyScopedDeclaration::AsyncGenerator(function) => {
-                    self.function(function.into(), NodeKind::Declaration, false);
+                    self.function_with_binding(function.into(), NodeKind::Declaration, false);
                 }
                 _ => {}
             }
@@ -1147,7 +1147,7 @@ impl ByteCompiler<'_, '_> {
             // a. Let fn be the sole element of the BoundNames of f.
             // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
             // c. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-            self.function(function, NodeKind::Declaration, false);
+            self.function_with_binding(function, NodeKind::Declaration, false);
         }
 
         // 37. Return unused.
