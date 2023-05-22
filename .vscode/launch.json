@@ -24,7 +24,13 @@
         "program": "${workspaceFolder}/target/debug/boa.exe"
       },
       "program": "${workspaceFolder}/target/debug/boa",
-      "args": ["${workspaceFolder}/tests/js/test.js", "--debug-object", "-m", "-r", "tests/js"],
+      "args": [
+        "${workspaceFolder}/tests/js/test.js",
+        "--debug-object",
+        "-m",
+        "-r",
+        "tests/js"
+      ],
       "sourceLanguages": ["rust"],
       "preLaunchTask": "Cargo Build"
     }
