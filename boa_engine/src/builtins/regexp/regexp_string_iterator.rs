@@ -15,10 +15,8 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::{JsObject, ObjectData},
-    property::Attribute,
     realm::Realm,
     string::utf16,
-    symbol::JsSymbol,
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -44,21 +42,20 @@ impl IntrinsicObject for RegExpStringIterator {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("RegExpStringIterator", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(
-                realm
-                    .intrinsics()
-                    .objects()
-                    .iterator_prototypes()
-                    .iterator(),
-            )
-            .static_method(Self::next, "next", 0)
-            .static_property(
-                JsSymbol::to_string_tag(),
-                "RegExp String Iterator",
-                Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::with_intrinsic::<Self>(
+            realm,
+            &boa_builtins::COMMON_ITERATOR_PROTOTYPE_STATIC_SHAPE,
+        )
+        .prototype(
+            realm
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .iterator(),
+        )
+        .static_method(Self::next, 0)
+        .static_property("RegExp String Iterator")
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

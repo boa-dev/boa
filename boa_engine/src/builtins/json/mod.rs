@@ -49,14 +49,11 @@ impl IntrinsicObject for Json {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::with_intrinsic_static_shape::<Self>(
-            realm,
-            &boa_builtins::JSON_OBJECT_STATIC_SHAPE,
-        )
-        .static_method(Self::parse, 2)
-        .static_method(Self::stringify, 3)
-        .static_property(Self::NAME)
-        .build();
+        BuiltInBuilder::with_intrinsic::<Self>(realm, &boa_builtins::JSON_OBJECT_STATIC_SHAPE)
+            .static_method(Self::parse, 2)
+            .static_method(Self::stringify, 3)
+            .static_property(Self::NAME)
+            .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

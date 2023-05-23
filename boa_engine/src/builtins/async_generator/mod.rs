@@ -13,10 +13,8 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     native_function::NativeFunction,
-    object::{FunctionObjectBuilder, JsObject, CONSTRUCTOR},
-    property::Attribute,
+    object::{FunctionObjectBuilder, JsObject},
     realm::Realm,
-    symbol::JsSymbol,
     value::JsValue,
     vm::GeneratorResumeKind,
     Context, JsArgs, JsError, JsResult,
@@ -70,7 +68,7 @@ impl IntrinsicObject for AsyncGenerator {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+        BuiltInBuilder::with_intrinsic::<Self>(realm, &boa_builtins::GENERATOR_OBJECT_STATIC_SHAPE)
             .prototype(
                 realm
                     .intrinsics()
@@ -78,22 +76,16 @@ impl IntrinsicObject for AsyncGenerator {
                     .iterator_prototypes()
                     .async_iterator(),
             )
-            .static_method(Self::next, "next", 1)
-            .static_method(Self::r#return, "return", 1)
-            .static_method(Self::throw, "throw", 1)
+            .static_method(Self::next, 1)
+            .static_method(Self::r#return, 1)
+            .static_method(Self::throw, 1)
+            .static_property(Self::NAME)
             .static_property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::CONFIGURABLE,
-            )
-            .static_property(
-                CONSTRUCTOR,
                 realm
                     .intrinsics()
                     .constructors()
                     .async_generator_function()
                     .prototype(),
-                Attribute::CONFIGURABLE,
             )
             .build();
     }

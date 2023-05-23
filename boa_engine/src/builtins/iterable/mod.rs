@@ -79,15 +79,15 @@ impl Default for IteratorPrototypes {
         Self {
             array: JsObject::default_with_static_shape(),
             iterator: JsObject::default_with_static_shape(),
-            async_iterator: JsObject::default(),
-            async_from_sync_iterator: JsObject::default(),
-            set: JsObject::default(),
-            string: JsObject::default(),
-            regexp_string: JsObject::default(),
-            map: JsObject::default(),
-            for_in: JsObject::default(),
+            async_iterator: JsObject::default_with_static_shape(),
+            async_from_sync_iterator: JsObject::default_with_static_shape(),
+            set: JsObject::default_with_static_shape(),
+            string: JsObject::default_with_static_shape(),
+            regexp_string: JsObject::default_with_static_shape(),
+            map: JsObject::default_with_static_shape(),
+            for_in: JsObject::default_with_static_shape(),
             #[cfg(feature = "intl")]
-            segment: JsObject::default(),
+            segment: JsObject::default_with_static_shape(),
         }
     }
 }
@@ -168,7 +168,7 @@ impl IntrinsicObject for Iterator {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("Iterator Prototype", "init");
 
-        BuiltInBuilder::with_intrinsic_static_shape::<Self>(
+        BuiltInBuilder::with_intrinsic::<Self>(
             realm,
             &boa_builtins::ITERATOR_PROTOTYPE_STATIC_SHAPE,
         )
@@ -193,16 +193,16 @@ impl IntrinsicObject for AsyncIterator {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("AsyncIteratorPrototype", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(
-                |v, _, _| Ok(v.clone()),
-                (
-                    JsSymbol::async_iterator(),
-                    js_string!("[Symbol.asyncIterator]"),
-                ),
-                0,
-            )
-            .build();
+        BuiltInBuilder::with_intrinsic::<Self>(
+            realm,
+            &boa_builtins::ASYNC_ITERATOR_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_method_with_name(
+            |v, _, _| Ok(v.clone()),
+            js_string!("[Symbol.asyncIterator]"),
+            0,
+        )
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

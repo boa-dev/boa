@@ -30,18 +30,21 @@ impl IntrinsicObject for AsyncFromSyncIterator {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("AsyncFromSyncIteratorPrototype", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(
-                realm
-                    .intrinsics()
-                    .objects()
-                    .iterator_prototypes()
-                    .async_iterator(),
-            )
-            .static_method(Self::next, "next", 1)
-            .static_method(Self::r#return, "return", 1)
-            .static_method(Self::throw, "throw", 1)
-            .build();
+        BuiltInBuilder::with_intrinsic::<Self>(
+            realm,
+            &boa_builtins::ASYNC_FROM_SYNC_ITERATOR_PROTOTYPE_STATIC_SHAPE,
+        )
+        .prototype(
+            realm
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .async_iterator(),
+        )
+        .static_method(Self::next, 1)
+        .static_method(Self::r#return, 1)
+        .static_method(Self::throw, 1)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

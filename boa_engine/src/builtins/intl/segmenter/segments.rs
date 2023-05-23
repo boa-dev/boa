@@ -8,7 +8,7 @@ use crate::{
     js_string,
     object::ObjectData,
     realm::Realm,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsValue,
 };
 
 use super::{create_segment_data_object, SegmentIterator};
@@ -23,14 +23,13 @@ impl IntrinsicObject for Segments {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("%SegmentsPrototype%", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(Self::containing, "containing", 1)
-            .static_method(
-                Self::iterator,
-                (JsSymbol::iterator(), js_string!("[Symbol.iterator]")),
-                0,
-            )
-            .build();
+        BuiltInBuilder::with_intrinsic::<Self>(
+            realm,
+            &boa_builtins::SEGMENTS_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_method(Self::containing, 1)
+        .static_method_with_name(Self::iterator, js_string!("[Symbol.iterator]"), 0)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

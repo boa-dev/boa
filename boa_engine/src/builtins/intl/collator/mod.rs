@@ -21,10 +21,8 @@ use crate::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
         JsObject, ObjectData,
     },
-    property::Attribute,
     realm::Realm,
     string::utf16,
-    symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 
@@ -167,21 +165,16 @@ impl IntrinsicObject for Collator {
             .name("get compare")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
-            .property(
-                JsSymbol::to_string_tag(),
-                "Intl.Collator",
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("compare"),
-                Some(compare),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .method(Self::resolved_options, "resolvedOptions", 0)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::COLLATOR_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::COLLATOR_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_method(Self::supported_locales_of, 1)
+        .property("Intl.Collator")
+        .accessor(Some(compare), None)
+        .method(Self::resolved_options, 0)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

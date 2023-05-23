@@ -38,9 +38,9 @@ impl IntrinsicObject for ArrayIterator {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("ArrayIterator", "init");
 
-        BuiltInBuilder::with_intrinsic_static_shape::<Self>(
+        BuiltInBuilder::with_intrinsic::<Self>(
             realm,
-            &boa_builtins::ARRAY_ITERATOR_PROTOTYPE_STATIC_SHAPE,
+            &boa_builtins::COMMON_ITERATOR_PROTOTYPE_STATIC_SHAPE,
         )
         .prototype(
             realm

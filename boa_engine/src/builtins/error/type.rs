@@ -23,7 +23,6 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
-    property::Attribute,
     realm::Realm,
     string::utf16,
     Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
@@ -131,12 +130,16 @@ impl IntrinsicObject for ThrowTypeError {
                 .into())
         }
 
-        let obj = BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(realm.intrinsics().constructors().function().prototype())
-            .static_property(utf16!("length"), 0, Attribute::empty())
-            .static_property(utf16!("name"), "", Attribute::empty())
-            .build();
+        BuiltInBuilder::with_intrinsic::<Self>(
+            realm,
+            &boa_builtins::THROW_TYPE_ERROR_OBJECT_STATIC_SHAPE,
+        )
+        .prototype(realm.intrinsics().constructors().function().prototype())
+        .static_property(0)
+        .static_property("")
+        .build();
 
+        let obj = Self::get(realm.intrinsics());
         let mut obj = obj.borrow_mut();
 
         obj.extensible = false;

@@ -466,7 +466,6 @@ impl JsValue {
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
     pub fn to_object(&self, context: &mut Context<'_>) -> JsResult<JsObject> {
-        // TODO: add fast paths with object template
         match self {
             Self::Undefined | Self::Null => Err(JsNativeError::typ()
                 .with_message("cannot convert 'null' or 'undefined' to object")

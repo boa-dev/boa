@@ -41,16 +41,19 @@ impl IntrinsicObject for ForInIterator {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("ForInIterator", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(
-                realm
-                    .intrinsics()
-                    .objects()
-                    .iterator_prototypes()
-                    .iterator(),
-            )
-            .static_method(Self::next, "next", 0)
-            .build();
+        BuiltInBuilder::with_intrinsic::<Self>(
+            realm,
+            &boa_builtins::FOR_IN_ITERATOR_PROTOTYPE_STATIC_SHAPE,
+        )
+        .prototype(
+            realm
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .iterator(),
+        )
+        .static_method(Self::next, 0)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

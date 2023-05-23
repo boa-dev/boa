@@ -12,6 +12,7 @@ build = "build.rs"
 
 [features]
 annex-b = []
+intl = []
 
 [dependencies]
 bitflags = "2.1.0"

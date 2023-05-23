@@ -32,25 +32,22 @@ impl IntrinsicObject for Reflect {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::with_intrinsic_static_shape::<Self>(
-            realm,
-            &boa_builtins::REFLECT_OBJECT_STATIC_SHAPE,
-        )
-        .static_method(Self::apply, 3)
-        .static_method(Self::construct, 2)
-        .static_method(Self::define_property, 3)
-        .static_method(Self::delete_property, 2)
-        .static_method(Self::get, 2)
-        .static_method(Self::get_own_property_descriptor, 2)
-        .static_method(Self::get_prototype_of, 1)
-        .static_method(Self::has, 2)
-        .static_method(Self::is_extensible, 1)
-        .static_method(Self::own_keys, 1)
-        .static_method(Self::prevent_extensions, 1)
-        .static_method(Self::set, 3)
-        .static_method(Self::set_prototype_of, 2)
-        .static_property(Self::NAME)
-        .build();
+        BuiltInBuilder::with_intrinsic::<Self>(realm, &boa_builtins::REFLECT_OBJECT_STATIC_SHAPE)
+            .static_method(Self::apply, 3)
+            .static_method(Self::construct, 2)
+            .static_method(Self::define_property, 3)
+            .static_method(Self::delete_property, 2)
+            .static_method(Self::get, 2)
+            .static_method(Self::get_own_property_descriptor, 2)
+            .static_method(Self::get_prototype_of, 1)
+            .static_method(Self::has, 2)
+            .static_method(Self::is_extensible, 1)
+            .static_method(Self::own_keys, 1)
+            .static_method(Self::prevent_extensions, 1)
+            .static_method(Self::set, 3)
+            .static_method(Self::set_prototype_of, 2)
+            .static_property(Self::NAME)
+            .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

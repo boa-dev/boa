@@ -145,11 +145,12 @@ pub struct StandardConstructors {
     typed_float64_array: StandardConstructor,
     array_buffer: StandardConstructor,
     data_view: StandardConstructor,
-    date_time_format: StandardConstructor,
     promise: StandardConstructor,
     weak_ref: StandardConstructor,
     weak_map: StandardConstructor,
     weak_set: StandardConstructor,
+    #[cfg(feature = "intl")]
+    date_time_format: StandardConstructor,
     #[cfg(feature = "intl")]
     collator: StandardConstructor,
     #[cfg(feature = "intl")]
@@ -214,13 +215,15 @@ impl Default for StandardConstructors {
             typed_float64_array: StandardConstructor::default_static_shape(),
             array_buffer: StandardConstructor::default_static_shape(),
             data_view: StandardConstructor::default_static_shape(),
-            date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default_static_shape(),
             weak_ref: StandardConstructor::default_static_shape(),
             weak_map: StandardConstructor::default_static_shape(),
             weak_set: StandardConstructor::default_static_shape(),
+
             #[cfg(feature = "intl")]
-            collator: StandardConstructor::default(),
+            date_time_format: StandardConstructor::default_static_shape(),
+            #[cfg(feature = "intl")]
+            collator: StandardConstructor::default_static_shape(),
             #[cfg(feature = "intl")]
             list_format: StandardConstructor::default(),
             #[cfg(feature = "intl")]
@@ -650,17 +653,6 @@ impl StandardConstructors {
         &self.data_view
     }
 
-    /// Returns the `Intl.DateTimeFormat` constructor.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma402/#sec-intl-datetimeformat-constructor
-    #[inline]
-    pub const fn date_time_format(&self) -> &StandardConstructor {
-        &self.date_time_format
-    }
-
     /// Returns the `Promise` constructor.
     ///
     /// More information:
@@ -703,6 +695,18 @@ impl StandardConstructors {
     #[inline]
     pub const fn weak_set(&self) -> &StandardConstructor {
         &self.weak_set
+    }
+
+    /// Returns the `Intl.DateTimeFormat` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl-datetimeformat-constructor
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn date_time_format(&self) -> &StandardConstructor {
+        &self.date_time_format
     }
 
     /// Returns the `Intl.Collator` constructor.
@@ -825,8 +829,8 @@ impl Default for IntrinsicObjects {
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function_static_shape(false),
             iterator_prototypes: IteratorPrototypes::default(),
-            generator: JsObject::default(),
-            async_generator: JsObject::default(),
+            generator: JsObject::default_with_static_shape(),
+            async_generator: JsObject::default_with_static_shape(),
             eval: JsFunction::empty_intrinsic_function_static_shape(false),
             uri_functions: UriFunctions::default(),
             is_finite: JsFunction::empty_intrinsic_function_static_shape(false),
@@ -838,9 +842,9 @@ impl Default for IntrinsicObjects {
             #[cfg(feature = "annex-b")]
             unescape: JsFunction::empty_intrinsic_function_static_shape(false),
             #[cfg(feature = "intl")]
-            intl: JsObject::default(),
+            intl: JsObject::default_with_static_shape(),
             #[cfg(feature = "intl")]
-            segments_prototype: JsObject::default(),
+            segments_prototype: JsObject::default_with_static_shape(),
         }
     }
 }

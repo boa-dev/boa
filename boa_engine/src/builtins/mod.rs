@@ -397,19 +397,6 @@ impl BuiltInObjectInitializer {
         };
     }
 
-    /// Sets the prototype of the builtin
-    fn set_prototype(&mut self, prototype: JsObject) {
-        match self {
-            Self::Shared(obj) => {
-                let mut obj = obj.borrow_mut();
-                obj.set_prototype(prototype);
-            }
-            Self::Unique { object, .. } => {
-                object.set_prototype(prototype);
-            }
-        }
-    }
-
     /// Sets the `ObjectData` of the builtin.
     ///
     /// # Panics
@@ -449,11 +436,6 @@ impl BuiltInObjectInitializer {
                 obj
             }
         }
-    }
-
-    /// Converts the builtin into a shared object.
-    fn into_shared(mut self) -> JsObject {
-        self.as_shared()
     }
 }
 
@@ -583,13 +565,7 @@ impl ApplyToObject for OrdinaryObject {
 /// The marker `ObjectType` restricts the methods that can be called depending on the
 /// type of object that is being constructed.
 #[derive(Debug)]
-#[must_use = "You need to call the `build` method in order for this to correctly assign the inner data"]
-struct BuiltInBuilder<'ctx, Kind> {
-    realm: &'ctx Realm,
-    object: BuiltInObjectInitializer,
-    kind: Kind,
-    prototype: JsObject,
-}
+struct BuiltInBuilder {}
 
 struct BuiltInBuilderCallableIntrinsic<'ctx> {
     realm: &'ctx Realm,
@@ -615,7 +591,7 @@ impl BuiltInBuilderCallableIntrinsic<'_> {
         let function = function::Function::new(
             function::FunctionKind::Native {
                 function: NativeFunction::from_fn_ptr(self.function),
-                constructor: (true).then_some(function::ConstructorKind::Base),
+                constructor: None,
             },
             self.realm.clone(),
         );
@@ -652,7 +628,7 @@ struct BuiltInBuilderConstructorStaticShape<'ctx> {
     inherits: Option<JsObject>,
 }
 
-impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
+impl<'ctx> BuiltInBuilder {
     fn from_standard_constructor_static_shape<SC: BuiltInConstructor>(
         realm: &'ctx Realm,
         constructor_shape: &'static RawStaticShape,
@@ -918,19 +894,8 @@ impl BuiltInBuilderStaticShape<'_> {
     }
 }
 
-impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
+impl<'ctx> BuiltInBuilder {
     fn with_intrinsic<I: IntrinsicObject>(
-        realm: &'ctx Realm,
-    ) -> BuiltInBuilder<'ctx, OrdinaryObject> {
-        BuiltInBuilder {
-            realm,
-            object: BuiltInObjectInitializer::Shared(I::get(realm.intrinsics())),
-            kind: OrdinaryObject,
-            prototype: realm.intrinsics().constructors().object().prototype(),
-        }
-    }
-
-    fn with_intrinsic_static_shape<I: IntrinsicObject>(
         realm: &'ctx Realm,
         shape: &'static boa_builtins::StaticShape,
     ) -> BuiltInBuilderStaticShape<'ctx> {
@@ -1267,7 +1232,7 @@ impl BuiltInCallable<'_> {
     }
 }
 
-impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
+impl<'ctx> BuiltInBuilder {
     fn callable(realm: &'ctx Realm, function: NativeFunctionPointer) -> BuiltInCallable<'ctx> {
         BuiltInCallable {
             realm,
@@ -1289,28 +1254,9 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
             length: 0,
         }
     }
-
-    fn callable_with_object(
-        realm: &'ctx Realm,
-        object: JsObject,
-        function: NativeFunctionPointer,
-    ) -> BuiltInBuilder<'ctx, Callable<OrdinaryFunction>> {
-        BuiltInBuilder {
-            realm,
-            object: BuiltInObjectInitializer::Shared(object),
-            kind: Callable {
-                function,
-                name: js_string!(""),
-                length: 0,
-                kind: OrdinaryFunction,
-                realm: realm.clone(),
-            },
-            prototype: realm.intrinsics().constructors().function().prototype(),
-        }
-    }
 }
 
-impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
+impl<'ctx> BuiltInBuilder {
     fn from_standard_constructor<SC: BuiltInConstructor>(
         realm: &'ctx Realm,
     ) -> BuiltInConstructorWithPrototype<'ctx> {
@@ -1330,89 +1276,5 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
             inherits: Some(realm.intrinsics().constructors().object().prototype()),
             attributes: Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         }
-    }
-}
-
-impl<T> BuiltInBuilder<'_, T> {
-    /// Adds a new static method to the builtin object.
-    fn static_method<B>(
-        mut self,
-        function: NativeFunctionPointer,
-        binding: B,
-        length: usize,
-    ) -> Self
-    where
-        B: Into<FunctionBinding>,
-    {
-        let binding = binding.into();
-        let function = BuiltInBuilder::callable(self.realm, function)
-            .name(binding.name)
-            .length(length)
-            .build();
-
-        self.object.insert(
-            binding.binding,
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
-        );
-        self
-    }
-
-    /// Adds a new static data property to the builtin object.
-    fn static_property<K, V>(mut self, key: K, value: V, attribute: Attribute) -> Self
-    where
-        K: Into<PropertyKey>,
-        V: Into<JsValue>,
-    {
-        let property = PropertyDescriptor::builder()
-            .value(value)
-            .writable(attribute.writable())
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.object.insert(key, property);
-        self
-    }
-
-    /// Specify the `[[Prototype]]` internal field of the builtin object.
-    ///
-    /// Default is `Function.prototype` for constructors and `Object.prototype` for statics.
-    fn prototype(mut self, prototype: JsObject) -> Self {
-        self.prototype = prototype;
-        self
-    }
-}
-
-impl<FnTyp> BuiltInBuilder<'_, Callable<FnTyp>> {
-    /// Specify the name of the constructor function.
-    ///
-    /// Default is `""`
-    fn name<N: Into<JsString>>(mut self, name: N) -> Self {
-        self.kind.name = name.into();
-        self
-    }
-}
-
-impl BuiltInBuilder<'_, OrdinaryObject> {
-    /// Build the builtin object.
-    fn build(mut self) -> JsObject {
-        self.kind.apply_to(&mut self.object);
-
-        self.object.set_prototype(self.prototype);
-
-        self.object.into_shared()
-    }
-}
-
-impl<FnTyp: ApplyToObject + IsConstructor> BuiltInBuilder<'_, Callable<FnTyp>> {
-    /// Build the builtin callable.
-    fn build(mut self) -> JsFunction {
-        self.kind.apply_to(&mut self.object);
-
-        self.object.set_prototype(self.prototype);
-
-        JsFunction::from_object_unchecked(self.object.into_shared())
     }
 }

@@ -1042,10 +1042,82 @@ fn main() -> io::Result<()> {
         .method(WellKnown::Iterator)
         .build(file)?;
 
-    BuiltInBuilder::new(&context, "ARRAY_ITERATOR_PROTOTYPE")
+    BuiltInBuilder::new(&context, "COMMON_ITERATOR_PROTOTYPE")
         .method(utf16!("next"))
         .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
         .build(file)?;
+
+    BuiltInBuilder::new(&context, "FOR_IN_ITERATOR_PROTOTYPE")
+        .method(utf16!("next"))
+        .build(file)?;
+
+    BuiltInBuilder::new(&context, "ASYNC_ITERATOR_PROTOTYPE")
+        .method(WellKnown::AsyncIterator)
+        .build(file)?;
+
+    BuiltInBuilder::new(&context, "ASYNC_FROM_SYNC_ITERATOR_PROTOTYPE")
+        .method(utf16!("next"))
+        .method(utf16!("return"))
+        .method(utf16!("throw"))
+        .build(file)?;
+
+    BuiltInBuilder::new(&context, "THROW_TYPE_ERROR_OBJECT")
+        .property(utf16!("length"), Attribute::empty())
+        .property(utf16!("name"), Attribute::empty())
+        .build(file)?;
+
+    BuiltInBuilder::new(&context, "GENERATOR_OBJECT")
+        .method(utf16!("next"))
+        .method(utf16!("return"))
+        .method(utf16!("throw"))
+        .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
+        .property(utf16!("CONSTRUCTOR"), Attribute::CONFIGURABLE)
+        .build(file)?;
+
+    #[cfg(feature = "intl")]
+    {
+        BuiltInBuilder::new(&context, "INTL_OBJECT")
+            .property(
+                WellKnown::ToStringTag,
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                utf16!("Collator"),
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                utf16!("ListFormat"),
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                utf16!("Locale"),
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                utf16!("Segmenter"),
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                utf16!("DateTimeFormat"),
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
+            .method(utf16!("getCanonicalLocales"))
+            .build(file)?;
+
+        BuiltInBuilderConstructor::new(&context, "DATE_TIME_FORMAT").build(file)?;
+
+        BuiltInBuilderConstructor::new(&context, "COLLATOR")
+            .static_method(utf16!("supportedLocalesOf"))
+            .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
+            .accessor(utf16!("compare"), Attribute::CONFIGURABLE)
+            .method(utf16!("resolvedOptions"))
+            .build(file)?;
+
+        BuiltInBuilder::new(&context, "SEGMENTS_PROTOTYPE")
+            .method(utf16!("containing"))
+            .method(WellKnown::Iterator)
+            .build(file)?;
+    }
 
     context.build(file)?;
 

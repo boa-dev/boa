@@ -16,6 +16,7 @@ profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
 intl = [
     "boa_icu_provider/full",
+    "boa_builtins/intl",
     "icu_normalizer/serde",
     "icu_normalizer/std",
     "dep:icu_locid_transform",

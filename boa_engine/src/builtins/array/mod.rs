@@ -36,6 +36,25 @@ pub(crate) use array_iterator::ArrayIterator;
 #[cfg(test)]
 mod tests;
 
+pub(crate) struct ArrayPrototypeValues;
+
+impl IntrinsicObject for ArrayPrototypeValues {
+    fn init(realm: &Realm) {
+        BuiltInBuilder::callable_intrinsic::<Self>(realm, Array::values)
+            .length(0)
+            .name(Self::NAME)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().array_prototype_values().into()
+    }
+}
+
+impl BuiltInObject for ArrayPrototypeValues {
+    const NAME: &'static str = "values";
+}
+
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Array;
@@ -44,17 +63,13 @@ impl IntrinsicObject for Array {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
+        ArrayPrototypeValues::init(realm);
+
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        let values_function = BuiltInBuilder::callable_with_object(
-            realm,
-            realm.intrinsics().objects().array_prototype_values().into(),
-            Self::values,
-        )
-        .name("values")
-        .build();
+        let values_function = realm.intrinsics().objects().array_prototype_values();
 
         let unscopables_object = Self::unscopables_object();
 
