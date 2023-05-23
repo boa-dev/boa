@@ -878,6 +878,23 @@ impl BuiltInBuilderStaticShape<'_> {
         self
     }
 
+    /// Adds a new static method to the builtin object with name.
+    fn static_method_with_name(
+        mut self,
+        function: NativeFunctionPointer,
+        name: JsString,
+        length: usize,
+    ) -> Self {
+        let function = BuiltInBuilder::callable(self.realm, function)
+            .name(name)
+            .length(length)
+            .build();
+
+        self.storage.push(function.into());
+        self.property_index += 1;
+        self
+    }
+
     /// Adds a new static data property to the builtin object.
     fn static_property<V>(mut self, value: V) -> Self
     where

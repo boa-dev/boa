@@ -1038,6 +1038,10 @@ fn main() -> io::Result<()> {
     .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
     .build(file)?;
 
+    BuiltInBuilder::new(&context, "ITERATOR_PROTOTYPE")
+        .method(WellKnown::Iterator)
+        .build(file)?;
+
     BuiltInBuilder::new(&context, "ARRAY_ITERATOR_PROTOTYPE")
         .method(utf16!("next"))
         .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)

@@ -78,7 +78,7 @@ impl Default for IteratorPrototypes {
     fn default() -> Self {
         Self {
             array: JsObject::default_with_static_shape(),
-            iterator: JsObject::default(),
+            iterator: JsObject::default_with_static_shape(),
             async_iterator: JsObject::default(),
             async_from_sync_iterator: JsObject::default(),
             set: JsObject::default(),
@@ -168,13 +168,12 @@ impl IntrinsicObject for Iterator {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("Iterator Prototype", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(
-                |v, _, _| Ok(v.clone()),
-                (JsSymbol::iterator(), js_string!("[Symbol.iterator]")),
-                0,
-            )
-            .build();
+        BuiltInBuilder::with_intrinsic_static_shape::<Self>(
+            realm,
+            &boa_builtins::ITERATOR_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_method_with_name(|v, _, _| Ok(v.clone()), js_string!("[Symbol.iterator]"), 0)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
