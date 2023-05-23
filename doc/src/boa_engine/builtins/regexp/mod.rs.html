@@ -1800,8 +1800,6 @@
 <a href="#1799" id="1799">1799</a>
 <a href="#1800" id="1800">1800</a>
 <a href="#1801" id="1801">1801</a>
-<a href="#1802" id="1802">1802</a>
-<a href="#1803" id="1803">1803</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -2694,7 +2692,8 @@
 
         <span class="comment">// 11. Let matchSucceeded be false.
         // 12. Repeat, while matchSucceeded is false,
-        </span><span class="kw">let </span>match_value = <span class="kw">loop </span>{
+        </span><span class="kw">let </span>lossy_input = input.to_std_string_escaped();
+        <span class="kw">let </span>(match_value, last_byte_index) = <span class="kw">loop </span>{
             <span class="comment">// a. If lastIndex &gt; length, then
             </span><span class="kw">if </span>last_index &gt; length {
                 <span class="comment">// i. If global is true or sticky is true, then
@@ -2718,9 +2717,7 @@
                         .into())
                 }
             };
-            <span class="kw">let </span>r = matcher
-                .find_from(input.to_std_string_escaped().as_str(), last_byte_index)
-                .next();
+            <span class="kw">let </span>r = matcher.find_from(<span class="kw-2">&amp;</span>lossy_input, last_byte_index).next();
 
             <span class="kw">match </span>r {
                 <span class="comment">// c. If r is failure, then
@@ -2741,7 +2738,7 @@
                 <span class="prelude-val">Some</span>(m) =&gt; {
                     <span class="comment">// c. If r is failure, then
                     </span><span class="attr">#[allow(clippy::if_not_else)]
-                    </span><span class="kw">if </span>m.start() <span class="kw">as </span>u64 != last_index {
+                    </span><span class="kw">if </span>m.start() != last_byte_index {
                         <span class="comment">// i. If sticky is true, then
                         </span><span class="kw">if </span>sticky {
                             <span class="comment">// 1. Perform ? Set(R, &quot;lastIndex&quot;, +0𝔽, true).
@@ -2757,7 +2754,7 @@
                     </span>} <span class="kw">else </span>{
                         <span class="comment">//i. Assert: r is a State.
                         //ii. Set matchSucceeded to true.
-                        </span><span class="kw">break </span>m;
+                        </span><span class="kw">break </span>(m, last_byte_index);
                     }
                 }
             }
@@ -2765,7 +2762,6 @@
 
         <span class="comment">// 13. Let e be r&#39;s endIndex value.
         </span><span class="kw">let </span><span class="kw-2">mut </span>e = match_value.end();
-        <span class="kw">let </span>lossy_input = input.to_std_string_escaped();
 
         <span class="comment">// 14. If fullUnicode is true, then
         // TODO: disabled for now until we have UTF-16 support
@@ -2798,7 +2794,7 @@
         </span><span class="kw">let </span>a = Array::array_create(n + <span class="number">1</span>, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 20. Perform ! CreateDataPropertyOrThrow(A, &quot;index&quot;, 𝔽(lastIndex)).
-        </span>a.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;index&quot;</span>), match_value.start(), context)
+        </span>a.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;index&quot;</span>), last_index, context)
             .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 21. Perform ! CreateDataPropertyOrThrow(A, &quot;input&quot;, S).
@@ -2806,7 +2802,7 @@
             .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 22. Let matchedSubstr be the substring of S from lastIndex to e.
-        </span><span class="kw">let </span>matched_substr = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>lossy_input[last_index <span class="kw">as </span>usize..e]);
+        </span><span class="kw">let </span>matched_substr = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>lossy_input[last_byte_index..e]);
 
         <span class="comment">// 23. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, matchedSubstr).
         </span>a.create_data_property_or_throw(<span class="number">0</span>, matched_substr, context)
