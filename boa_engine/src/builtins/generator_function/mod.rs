@@ -13,10 +13,7 @@
 use crate::{
     builtins::{function::BuiltInFunctionObject, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    object::PROTOTYPE,
-    property::Attribute,
     realm::Realm,
-    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult,
 };
@@ -32,22 +29,17 @@ impl IntrinsicObject for GeneratorFunction {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .inherits(Some(
-                realm.intrinsics().constructors().function().prototype(),
-            ))
-            .constructor_attributes(Attribute::CONFIGURABLE)
-            .property(
-                PROTOTYPE,
-                realm.intrinsics().objects().generator(),
-                Attribute::CONFIGURABLE,
-            )
-            .property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::GENERATOR_FUNCTION_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::GENERATOR_FUNCTION_PROTOTYPE_STATIC_SHAPE,
+        )
+        .inherits(Some(
+            realm.intrinsics().constructors().function().prototype(),
+        ))
+        .property(realm.intrinsics().objects().generator())
+        .property(Self::NAME)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> crate::object::JsObject {

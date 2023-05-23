@@ -338,6 +338,18 @@ struct BuiltInBuilderConstructor<'a> {
 
 impl<'a> BuiltInBuilderConstructor<'a> {
     fn new(context: &'a Context, name: &'static str) -> Self {
+        Self::with_constructor_attributes(
+            context,
+            name,
+            Attribute::WRITABLE | Attribute::CONFIGURABLE,
+        )
+    }
+
+    fn with_constructor_attributes(
+        context: &'a Context,
+        name: &'static str,
+        constructor_attributes: Attribute,
+    ) -> Self {
         let object_name = Box::leak(format!("{name}_CONSTRUCTOR").into_boxed_str());
         let prototype_name = Box::leak(format!("{name}_PROTOTYPE").into_boxed_str());
         let mut this = Self {
@@ -352,10 +364,8 @@ impl<'a> BuiltInBuilderConstructor<'a> {
         this.object
             .property(utf16!("prototype"), Attribute::empty());
 
-        this.prototype.property(
-            utf16!("constructor"),
-            Attribute::WRITABLE | Attribute::CONFIGURABLE,
-        );
+        this.prototype
+            .property(utf16!("constructor"), constructor_attributes);
 
         this
     }
@@ -1015,6 +1025,18 @@ fn main() -> io::Result<()> {
         .method(utf16!("delete"))
         .method(utf16!("has"))
         .build(file)?;
+
+    BuiltInBuilderConstructor::with_constructor_attributes(
+        &context,
+        "GENERATOR_FUNCTION",
+        Attribute::CONFIGURABLE,
+    )
+    // .inherits(Some(
+    //     realm.intrinsics().constructors().function().prototype(),
+    // ))
+    .property(utf16!("prototype"), Attribute::CONFIGURABLE)
+    .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
+    .build(file)?;
 
     context.build(file)?;
 

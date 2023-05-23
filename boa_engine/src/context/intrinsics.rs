@@ -174,7 +174,7 @@ impl Default for StandardConstructors {
                 prototype: JsFunction::empty_intrinsic_function_static_shape(false).into(),
             },
             async_function: StandardConstructor::default(),
-            generator_function: StandardConstructor::default(),
+            generator_function: StandardConstructor::default_static_shape(),
             array: StandardConstructor::with_prototype(JsObject::from_data_and_empty_static_shape(
                 ObjectData::array(),
             )),
