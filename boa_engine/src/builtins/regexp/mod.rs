@@ -890,7 +890,8 @@ impl RegExp {
 
         // 11. Let matchSucceeded be false.
         // 12. Repeat, while matchSucceeded is false,
-        let match_value = loop {
+        let lossy_input = input.to_std_string_escaped();
+        let (match_value, last_byte_index) = loop {
             // a. If lastIndex > length, then
             if last_index > length {
                 // i. If global is true or sticky is true, then
@@ -914,9 +915,7 @@ impl RegExp {
                         .into())
                 }
             };
-            let r = matcher
-                .find_from(input.to_std_string_escaped().as_str(), last_byte_index)
-                .next();
+            let r = matcher.find_from(&lossy_input, last_byte_index).next();
 
             match r {
                 // c. If r is failure, then
@@ -937,7 +936,7 @@ impl RegExp {
                 Some(m) => {
                     // c. If r is failure, then
                     #[allow(clippy::if_not_else)]
-                    if m.start() as u64 != last_index {
+                    if m.start() != last_byte_index {
                         // i. If sticky is true, then
                         if sticky {
                             // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
@@ -953,7 +952,7 @@ impl RegExp {
                     } else {
                         //i. Assert: r is a State.
                         //ii. Set matchSucceeded to true.
-                        break m;
+                        break (m, last_byte_index);
                     }
                 }
             }
@@ -961,7 +960,6 @@ impl RegExp {
 
         // 13. Let e be r's endIndex value.
         let mut e = match_value.end();
-        let lossy_input = input.to_std_string_escaped();
 
         // 14. If fullUnicode is true, then
         // TODO: disabled for now until we have UTF-16 support
@@ -994,7 +992,7 @@ impl RegExp {
         let a = Array::array_create(n + 1, None, context)?;
 
         // 20. Perform ! CreateDataPropertyOrThrow(A, "index", 𝔽(lastIndex)).
-        a.create_data_property_or_throw(utf16!("index"), match_value.start(), context)
+        a.create_data_property_or_throw(utf16!("index"), last_index, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, "input", S).
@@ -1002,7 +1000,7 @@ impl RegExp {
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 22. Let matchedSubstr be the substring of S from lastIndex to e.
-        let matched_substr = js_string!(&lossy_input[last_index as usize..e]);
+        let matched_substr = js_string!(&lossy_input[last_byte_index..e]);
 
         // 23. Perform ! CreateDataPropertyOrThrow(A, "0", matchedSubstr).
         a.create_data_property_or_throw(0, matched_substr, context)
