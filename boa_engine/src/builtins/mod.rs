@@ -855,9 +855,15 @@ struct BuiltInBuilderStaticShape<'ctx> {
     object: JsObject,
     property_index: usize,
     storage: Vec<JsValue>,
+    prototype: JsObject,
 }
 
 impl BuiltInBuilderStaticShape<'_> {
+    fn prototype(mut self, prototype: JsObject) -> Self {
+        self.prototype = prototype;
+        self
+    }
+
     /// Adds a new static method to the builtin object.
     fn static_method(mut self, function: NativeFunctionPointer, length: usize) -> Self {
         let name = self.shape.get_string_key_expect(self.property_index);
@@ -890,14 +896,7 @@ impl BuiltInBuilderStaticShape<'_> {
 
         let mut object = self.object.borrow_mut();
         object.properties_mut().shape = StaticShape::new(self.shape).into();
-        self.storage.push(
-            self.realm
-                .intrinsics()
-                .constructors()
-                .object()
-                .prototype()
-                .into(),
-        );
+        self.storage.push(self.prototype.into());
         object.properties_mut().storage = self.storage;
     }
 }
@@ -924,6 +923,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
             object: I::get(realm.intrinsics()),
             storage: Vec::with_capacity(shape.storage_len),
             property_index: 0,
+            prototype: realm.intrinsics().constructors().object().prototype(),
         }
     }
 }

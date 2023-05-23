@@ -40,7 +40,7 @@ macro_rules! if_abrupt_close_iterator {
 pub(crate) use if_abrupt_close_iterator;
 
 /// The built-in iterator prototypes.
-#[derive(Debug, Default, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize)]
 pub struct IteratorPrototypes {
     /// The `IteratorPrototype` object.
     iterator: JsObject,
@@ -72,6 +72,24 @@ pub struct IteratorPrototypes {
     /// The `%SegmentIteratorPrototype%` prototype object.
     #[cfg(feature = "intl")]
     segment: JsObject,
+}
+
+impl Default for IteratorPrototypes {
+    fn default() -> Self {
+        Self {
+            array: JsObject::default_with_static_shape(),
+            iterator: JsObject::default(),
+            async_iterator: JsObject::default(),
+            async_from_sync_iterator: JsObject::default(),
+            set: JsObject::default(),
+            string: JsObject::default(),
+            regexp_string: JsObject::default(),
+            map: JsObject::default(),
+            for_in: JsObject::default(),
+            #[cfg(feature = "intl")]
+            segment: JsObject::default(),
+        }
+    }
 }
 
 impl IteratorPrototypes {
