@@ -52,6 +52,7 @@ where
         cursor.expect((Keyword::Export, false), "export declaration", interner)?;
 
         let tok = cursor.peek(0, interner).or_abrupt()?;
+        let span = tok.span();
 
         let export_clause: Self::Output = match tok.kind() {
             TokenKind::Punctuator(Punctuator::Mul) => {
@@ -129,6 +130,33 @@ where
                     }
                 } else {
                     cursor.expect_semicolon("named exports", interner)?;
+
+                    for specifier in &*names {
+                        let name = specifier.private_name();
+
+                        if specifier.string_literal() {
+                            let name = interner.resolve_expect(name);
+                            return Err(Error::general(
+                                format!(
+                                    "local referenced binding `{name}` cannot be a string literal",
+                                ),
+                                span.start(),
+                            ));
+                        }
+
+                        if name == Sym::AWAIT
+                            || name.is_reserved_identifier()
+                            || name.is_strict_reserved_identifier()
+                        {
+                            let name = interner.resolve_expect(name);
+                            return Err(Error::general(
+                                format!(
+                                    "local referenced binding `{name}` cannot be a reserved word",
+                                ),
+                                span.start(),
+                            ));
+                        }
+                    }
 
                     AstExportDeclaration::List(names)
                 }
@@ -272,7 +300,7 @@ impl<R> TokenParser<R> for ModuleExportName
 where
     R: Read,
 {
-    type Output = Sym;
+    type Output = (Sym, bool);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.next(interner).or_abrupt()?;
@@ -285,10 +313,10 @@ where
                         tok.span().end(),
                     ));
                 }
-                Ok(*ident)
+                Ok((*ident, true))
             }
-            TokenKind::IdentifierName((ident, _)) => Ok(*ident),
-            TokenKind::Keyword((kw, _)) => Ok(kw.to_sym()),
+            TokenKind::IdentifierName((ident, _)) => Ok((*ident, false)),
+            TokenKind::Keyword((kw, _)) => Ok((kw.to_sym(), false)),
             _ => Err(Error::expected(
                 ["identifier".to_owned(), "string literal".to_owned()],
                 tok.to_string(interner),
@@ -315,20 +343,23 @@ where
     type Output = boa_ast::declaration::ExportSpecifier;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let inner_name = ModuleExportName.parse(cursor, interner)?;
+        let (inner_name, string_literal) = ModuleExportName.parse(cursor, interner)?;
 
         if cursor
             .next_if(TokenKind::identifier(Sym::AS), interner)?
             .is_some()
         {
-            let export_name = ModuleExportName.parse(cursor, interner)?;
+            let (export_name, _) = ModuleExportName.parse(cursor, interner)?;
             Ok(boa_ast::declaration::ExportSpecifier::new(
                 export_name,
                 inner_name,
+                string_literal,
             ))
         } else {
             Ok(boa_ast::declaration::ExportSpecifier::new(
-                inner_name, inner_name,
+                inner_name,
+                inner_name,
+                string_literal,
             ))
         }
     }

@@ -1,4 +1,9 @@
-use std::{cell::Cell, collections::HashSet, hash::Hash, rc::Rc};
+use std::{
+    cell::Cell,
+    collections::HashSet,
+    hash::{BuildHasherDefault, Hash},
+    rc::Rc,
+};
 
 use boa_ast::{
     declaration::{
@@ -12,16 +17,20 @@ use boa_ast::{
 };
 use boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Sym;
-use rustc_hash::{FxHashMap, FxHashSet};
+use indexmap::IndexSet;
+use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use crate::{
     builtins::{promise::PromiseCapability, Promise},
-    bytecompiler::{ByteCompiler, NodeKind},
+    bytecompiler::{ByteCompiler, FunctionSpec},
     environments::{BindingLocator, CompileTimeEnvironment, EnvironmentStack},
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
     realm::Realm,
-    vm::{ActiveRunnable, CallFrame, CodeBlock, CompletionRecord, Opcode},
+    vm::{
+        create_function_object_fast, create_generator_function_object, ActiveRunnable, CallFrame,
+        CodeBlock, CompletionRecord, Opcode,
+    },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
 
@@ -273,7 +282,7 @@ struct Inner {
 #[derive(Debug)]
 struct ModuleCode {
     has_tla: bool,
-    requested_modules: FxHashSet<Sym>,
+    requested_modules: IndexSet<Sym, BuildHasherDefault<FxHasher>>,
     source: boa_ast::Module,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
@@ -1403,7 +1412,7 @@ impl SourceTextModule {
             ByteCompiler::new(Sym::MAIN, true, false, module_compile_env.clone(), context);
         let mut imports = Vec::new();
 
-        let codeblock = {
+        let (codeblock, functions) = {
             // 7. For each ImportEntry Record in of module.[[ImportEntries]], do
             for entry in &self.inner.code.import_entries {
                 // a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
@@ -1448,7 +1457,7 @@ impl SourceTextModule {
                         // deferred to initialization below
                         imports.push(ImportBinding::Namespace {
                             locator,
-                            module: imported_module,
+                            module: resolution.module,
                         });
                     }
                 } else {
@@ -1494,47 +1503,87 @@ impl SourceTextModule {
             // 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
             // 23. Let privateEnv be null.
             let lex_declarations = lexically_scoped_declarations(&self.inner.code.source);
+            let mut functions = Vec::new();
             // 24. For each element d of lexDeclarations, do
             for declaration in &lex_declarations {
-                // i. If IsConstantDeclaration of d is true, then
-                if let LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(
-                    decl,
-                )) = declaration
-                {
-                    // a. For each element dn of the BoundNames of d, do
-                    for name in bound_names(decl) {
-                        // 1. Perform ! env.CreateImmutableBinding(dn, true).
-                        compiler.create_immutable_binding(name, true);
-                    }
-                } else {
-                    // ii. Else,
-                    // a. For each element dn of the BoundNames of d, do
-                    for name in declaration.bound_names() {
-                        // 1. Perform ! env.CreateMutableBinding(dn, false).
-                        compiler.create_mutable_binding(name, false);
-                    }
-                }
-
+                // ii. Else,
+                // a. For each element dn of the BoundNames of d, do
+                // 1. Perform ! env.CreateMutableBinding(dn, false).
+                //
                 // iii. If d is either a FunctionDeclaration, a GeneratorDeclaration, an
                 //      AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
                 // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
                 // 2. Perform ! env.InitializeBinding(dn, fo).
-                let spec = match declaration {
-                    LexicallyScopedDeclaration::Function(f) => f.into(),
-                    LexicallyScopedDeclaration::Generator(g) => g.into(),
-                    LexicallyScopedDeclaration::AsyncFunction(af) => af.into(),
-                    LexicallyScopedDeclaration::AsyncGenerator(ag) => ag.into(),
-                    LexicallyScopedDeclaration::Class(_)
-                    | LexicallyScopedDeclaration::LexicalDeclaration(_)
-                    | LexicallyScopedDeclaration::AssignmentExpression(_) => continue,
+                //
+                // deferred to below.
+                let (spec, locator): (FunctionSpec<'_>, _) = match declaration {
+                    LexicallyScopedDeclaration::Function(f) => {
+                        let name = bound_names(f)[0];
+                        compiler.create_mutable_binding(name, false);
+                        let locator = compiler.initialize_mutable_binding(name, false);
+
+                        (f.into(), locator)
+                    }
+                    LexicallyScopedDeclaration::Generator(g) => {
+                        let name = bound_names(g)[0];
+                        compiler.create_mutable_binding(name, false);
+                        let locator = compiler.initialize_mutable_binding(name, false);
+
+                        (g.into(), locator)
+                    }
+                    LexicallyScopedDeclaration::AsyncFunction(af) => {
+                        let name = bound_names(af)[0];
+                        compiler.create_mutable_binding(name, false);
+                        let locator = compiler.initialize_mutable_binding(name, false);
+
+                        (af.into(), locator)
+                    }
+                    LexicallyScopedDeclaration::AsyncGenerator(ag) => {
+                        let name = bound_names(ag)[0];
+                        compiler.create_mutable_binding(name, false);
+                        let locator = compiler.initialize_mutable_binding(name, false);
+
+                        (ag.into(), locator)
+                    }
+                    LexicallyScopedDeclaration::Class(class) => {
+                        for name in bound_names(class) {
+                            compiler.create_mutable_binding(name, false);
+                        }
+                        continue;
+                    }
+                    // i. If IsConstantDeclaration of d is true, then
+                    LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(
+                        c,
+                    )) => {
+                        // a. For each element dn of the BoundNames of d, do
+                        for name in bound_names(c) {
+                            // 1. Perform ! env.CreateImmutableBinding(dn, true).
+                            compiler.create_immutable_binding(name, true);
+                        }
+                        continue;
+                    }
+                    LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Let(l)) => {
+                        for name in bound_names(l) {
+                            compiler.create_mutable_binding(name, false);
+                        }
+                        continue;
+                    }
+                    LexicallyScopedDeclaration::AssignmentExpression(expr) => {
+                        for name in bound_names(expr) {
+                            compiler.create_mutable_binding(name, false);
+                        }
+                        continue;
+                    }
                 };
 
-                compiler.function(spec, NodeKind::Declaration, false);
+                let kind = spec.kind;
+
+                functions.push((compiler.function(spec), locator, kind));
             }
 
             compiler.compile_module_item_list(self.inner.code.source.items());
 
-            Gc::new(compiler.finish())
+            (Gc::new(compiler.finish()), functions)
         };
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
@@ -1596,6 +1645,23 @@ impl SourceTextModule {
                     }
                 },
             }
+        }
+
+        // deferred initialization of function exports
+        for (index, locator, kind) in functions {
+            let code = codeblock.functions[index as usize].clone();
+
+            let function = if kind.is_generator() {
+                create_generator_function_object(code, kind.is_async(), None, context)
+            } else {
+                create_function_object_fast(code, kind.is_async(), false, false, context)
+            };
+
+            context.vm.environments.put_lexical_value(
+                locator.environment_index(),
+                locator.binding_index(),
+                function.into(),
+            );
         }
 
         // 25. Remove moduleContext from the execution context stack.

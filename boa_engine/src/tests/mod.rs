@@ -422,8 +422,8 @@ fn strict_mode_reserved_name() {
         ("var protected = 10;", "unexpected token 'protected', strict reserved word cannot be an identifier at line 1, col 19"),
         ("var public = 10;", "unexpected token 'public', strict reserved word cannot be an identifier at line 1, col 19"),
         ("var static = 10;", "unexpected token 'static', strict reserved word cannot be an identifier at line 1, col 19"),
-        ("var eval = 10;", "unexpected token 'eval', binding identifier `eval` not allowed in strict mode at line 1, col 19"),
-        ("var arguments = 10;", "unexpected token 'arguments', binding identifier `arguments` not allowed in strict mode at line 1, col 19"),
+        ("var eval = 10;", "binding identifier `eval` not allowed in strict mode at line 1, col 19"),
+        ("var arguments = 10;", "binding identifier `arguments` not allowed in strict mode at line 1, col 19"),
         ("var let = 10;", "unexpected token 'let', strict reserved word cannot be an identifier at line 1, col 19"),
         ("var yield = 10;", "unexpected token 'yield', strict reserved word cannot be an identifier at line 1, col 19"),
     ];

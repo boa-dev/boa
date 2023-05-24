@@ -5,10 +5,11 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-modules
 
-use std::{convert::Infallible, ops::ControlFlow};
+use std::{convert::Infallible, hash::BuildHasherDefault, ops::ControlFlow};
 
 use boa_interner::Sym;
-use rustc_hash::FxHashSet;
+use indexmap::IndexSet;
+use rustc_hash::{FxHashSet, FxHasher};
 
 use crate::{
     declaration::{
@@ -205,9 +206,9 @@ impl ModuleItemList {
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-modulerequests
     #[inline]
     #[must_use]
-    pub fn requests(&self) -> FxHashSet<Sym> {
+    pub fn requests(&self) -> IndexSet<Sym, BuildHasherDefault<FxHasher>> {
         #[derive(Debug)]
-        struct RequestsVisitor<'vec>(&'vec mut FxHashSet<Sym>);
+        struct RequestsVisitor<'vec>(&'vec mut IndexSet<Sym, BuildHasherDefault<FxHasher>>);
 
         impl<'ast> Visitor<'ast> for RequestsVisitor<'_> {
             type BreakTy = Infallible;
@@ -227,7 +228,7 @@ impl ModuleItemList {
             }
         }
 
-        let mut requests = FxHashSet::default();
+        let mut requests = IndexSet::default();
 
         RequestsVisitor(&mut requests).visit_module_item_list(self);
 

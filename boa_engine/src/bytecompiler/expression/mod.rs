@@ -124,22 +124,22 @@ impl ByteCompiler<'_, '_> {
             }
             Expression::Spread(spread) => self.compile_expr(spread.target(), true),
             Expression::Function(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr);
+                self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::ArrowFunction(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr);
+                self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncArrowFunction(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr);
+                self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::Generator(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr);
+                self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncFunction(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr);
+                self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncGenerator(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr);
+                self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::Call(call) => self.call(Callable::Call(call), use_expr),
             Expression::New(new) => self.call(Callable::New(new), use_expr),

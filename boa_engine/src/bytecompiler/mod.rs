@@ -48,7 +48,7 @@ pub(crate) enum NodeKind {
 
 /// Describes the type of a function.
 #[derive(Debug, Clone, Copy, PartialEq)]
-enum FunctionKind {
+pub(crate) enum FunctionKind {
     Ordinary,
     Arrow,
     AsyncArrow,
@@ -57,35 +57,29 @@ enum FunctionKind {
     AsyncGenerator,
 }
 
+impl FunctionKind {
+    pub(crate) const fn is_arrow(self) -> bool {
+        matches!(self, Self::Arrow | Self::AsyncArrow)
+    }
+
+    pub(crate) const fn is_async(self) -> bool {
+        matches!(self, Self::Async | Self::AsyncGenerator | Self::AsyncArrow)
+    }
+
+    pub(crate) const fn is_generator(self) -> bool {
+        matches!(self, Self::Generator | Self::AsyncGenerator)
+    }
+}
+
 /// Describes the complete specification of a function node.
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[allow(single_use_lifetimes)]
 pub(crate) struct FunctionSpec<'a> {
-    kind: FunctionKind,
+    pub(crate) kind: FunctionKind,
     pub(crate) name: Option<Identifier>,
     parameters: &'a FormalParameterList,
     body: &'a FunctionBody,
     has_binding_identifier: bool,
-}
-
-impl FunctionSpec<'_> {
-    const fn is_arrow(&self) -> bool {
-        matches!(self.kind, FunctionKind::Arrow | FunctionKind::AsyncArrow)
-    }
-
-    const fn is_async(&self) -> bool {
-        matches!(
-            self.kind,
-            FunctionKind::Async | FunctionKind::AsyncGenerator | FunctionKind::AsyncArrow
-        )
-    }
-
-    const fn is_generator(&self) -> bool {
-        matches!(
-            self.kind,
-            FunctionKind::Generator | FunctionKind::AsyncGenerator
-        )
-    }
 }
 
 impl<'a> From<&'a Function> for FunctionSpec<'a> {
@@ -1070,17 +1064,13 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         }
     }
 
-    /// Compile a function AST Node into bytecode.
-    pub(crate) fn function(
-        &mut self,
-        function: FunctionSpec<'_>,
-        node_kind: NodeKind,
-        use_expr: bool,
-    ) {
+    /// Compiles a function AST Node into bytecode, and returns its index into
+    /// the `functions` array.
+    pub(crate) fn function(&mut self, function: FunctionSpec<'_>) -> u32 {
         let (generator, r#async, arrow) = (
-            function.is_generator(),
-            function.is_async(),
-            function.is_arrow(),
+            function.kind.is_generator(),
+            function.kind.is_async(),
+            function.kind.is_arrow(),
         );
         let FunctionSpec {
             name,
@@ -1117,6 +1107,26 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         let index = self.functions.len() as u32;
         self.functions.push(code);
 
+        index
+    }
+
+    /// Compiles a function AST Node into bytecode, setting its corresponding binding or
+    /// pushing it to the stack if necessary.
+    pub(crate) fn function_with_binding(
+        &mut self,
+        function: FunctionSpec<'_>,
+        node_kind: NodeKind,
+        use_expr: bool,
+    ) {
+        let name = function.name;
+        let (generator, r#async, arrow) = (
+            function.kind.is_generator(),
+            function.kind.is_async(),
+            function.kind.is_arrow(),
+        );
+
+        let index = self.function(function);
+
         if r#async && generator {
             self.emit(Opcode::GetGeneratorAsync, &[index]);
         } else if generator {
@@ -1152,9 +1162,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     /// Compile an object method AST Node into bytecode.
     pub(crate) fn object_method(&mut self, function: FunctionSpec<'_>) {
         let (generator, r#async, arrow) = (
-            function.is_generator(),
-            function.is_async(),
-            function.is_arrow(),
+            function.kind.is_generator(),
+            function.kind.is_async(),
+            function.kind.is_arrow(),
         );
         let FunctionSpec {
             name,
@@ -1212,9 +1222,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     /// Compile a class method AST Node into bytecode.
     fn method(&mut self, function: FunctionSpec<'_>, class_name: Sym) {
         let (generator, r#async, arrow) = (
-            function.is_generator(),
-            function.is_async(),
-            function.is_arrow(),
+            function.kind.is_generator(),
+            function.kind.is_async(),
+            function.kind.is_arrow(),
         );
         let FunctionSpec {
             name,

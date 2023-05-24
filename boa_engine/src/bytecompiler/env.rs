@@ -88,7 +88,7 @@ impl ByteCompiler<'_, '_> {
             .create_mutable_binding(name, function_scope));
     }
 
-    /// Initialize a mutable binding at bytecode compile time and return it's binding locator.
+    /// Initialize a mutable binding at bytecode compile time and return its binding locator.
     pub(crate) fn initialize_mutable_binding(
         &self,
         name: Identifier,
