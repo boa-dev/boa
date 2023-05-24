@@ -38,11 +38,6 @@ impl Operation for NewTarget {
 ///
 /// Operation:
 ///  - Push the current `import.meta` to the stack
-///
-/// Operands:
-///
-/// Stack:
-///  - **=>** `import.meta`
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ImportMeta;
 
@@ -51,6 +46,12 @@ impl Operation for ImportMeta {
     const INSTRUCTION: &'static str = "INST - ImportMeta";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        // Meta Properties
+        //
+        // ImportMeta : import . meta
+        //
+        // https://tc39.es/ecma262/#sec-meta-properties
+
         // 1. Let module be GetActiveScriptOrModule().
 
         let Some(ActiveRunnable::Module(module)) = context.vm.active_runnable.clone() else {
@@ -69,18 +70,18 @@ impl Operation for ImportMeta {
             .import_meta()
             .borrow_mut()
             .get_or_insert_with(|| {
-                //     a. Set importMeta to OrdinaryObjectCreate(null).
+                // a. Set importMeta to OrdinaryObjectCreate(null).
                 let import_meta = JsObject::with_null_proto();
 
-                //     b. Let importMetaValues be HostGetImportMetaProperties(module).
-                //     c. For each Record { [[Key]], [[Value]] } p of importMetaValues, do
-                //         i. Perform ! CreateDataPropertyOrThrow(importMeta, p.[[Key]], p.[[Value]]).
-                //     d. Perform HostFinalizeImportMeta(importMeta, module).
+                // b. Let importMetaValues be HostGetImportMetaProperties(module).
+                // c. For each Record { [[Key]], [[Value]] } p of importMetaValues, do
+                //     i. Perform ! CreateDataPropertyOrThrow(importMeta, p.[[Key]], p.[[Value]]).
+                // d. Perform HostFinalizeImportMeta(importMeta, module).
                 context
                     .module_loader()
                     .init_import_meta(&import_meta, &module, context);
 
-                //     e. Set module.[[ImportMeta]] to importMeta.
+                // e. Set module.[[ImportMeta]] to importMeta.
                 import_meta
             })
             .clone();
