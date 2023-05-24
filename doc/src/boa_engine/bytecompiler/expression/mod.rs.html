@@ -477,22 +477,22 @@
             }
             Expression::Spread(spread) =&gt; <span class="self">self</span>.compile_expr(spread.target(), <span class="bool-val">true</span>),
             Expression::Function(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
+                <span class="self">self</span>.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::ArrowFunction(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
+                <span class="self">self</span>.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncArrowFunction(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
+                <span class="self">self</span>.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::Generator(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
+                <span class="self">self</span>.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncFunction(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
+                <span class="self">self</span>.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncGenerator(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
+                <span class="self">self</span>.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::Call(call) =&gt; <span class="self">self</span>.call(Callable::Call(call), use_expr),
             Expression::New(new) =&gt; <span class="self">self</span>.call(Callable::New(new), use_expr),

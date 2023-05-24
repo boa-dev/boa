@@ -81,7 +81,7 @@
                 stmt =&gt; <span class="self">self</span>.compile_stmt(stmt, use_expr),
             },
             LabelledItem::Function(f) =&gt; {
-                <span class="self">self</span>.function(f.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
+                <span class="self">self</span>.function_with_binding(f.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
             }
         }
 

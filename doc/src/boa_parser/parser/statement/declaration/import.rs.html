@@ -361,6 +361,34 @@
 <a href="#360" id="360">360</a>
 <a href="#361" id="361">361</a>
 <a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Import declaration parsing
 //!
 //! This parses `import` declarations.
@@ -421,9 +449,7 @@
                         TokenKind::StringLiteral(<span class="kw">_</span>)
                         | TokenKind::Punctuator(Punctuator::OpenBlock | Punctuator::Mul)
                         | TokenKind::IdentifierName(<span class="kw">_</span>)
-                        | TokenKind::Keyword((Keyword::Await | Keyword::Yield, <span class="kw">_</span>)) =&gt; {
-                            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
-                        }
+                        | TokenKind::Keyword(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
                         <span class="kw">_ </span>=&gt; {}
                     }
                 }
@@ -588,7 +614,9 @@
                     }
                     cursor.advance(interner);
                 }
-                TokenKind::StringLiteral(<span class="kw">_</span>) | TokenKind::IdentifierName(<span class="kw">_</span>) =&gt; {
+                TokenKind::StringLiteral(<span class="kw">_</span>)
+                | TokenKind::IdentifierName(<span class="kw">_</span>)
+                | TokenKind::Keyword(<span class="kw">_</span>) =&gt; {
                     list.push(ImportSpecifier.parse(cursor, interner)<span class="question-mark">?</span>);
                 }
                 <span class="kw">_ </span>=&gt; {
@@ -656,16 +684,20 @@
     <span class="kw">type </span>Output = AstImportSpecifier;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>tok = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
+        <span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">match </span>tok.kind() {
             TokenKind::StringLiteral((name, <span class="kw">_</span>)) =&gt; {
-                <span class="kw">if </span>interner.resolve_expect(<span class="kw-2">*</span>name).utf8().is_none() {
+                <span class="kw">let </span>name = <span class="kw-2">*</span>name;
+                <span class="kw">if </span>interner.resolve_expect(name).utf8().is_none() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                         <span class="string">&quot;import specifiers don&#39;t allow unpaired surrogates&quot;</span>,
                         tok.span().end(),
                     ));
                 }
+
+                cursor.advance(interner);
+
                 cursor.expect(
                     TokenKind::identifier(Sym::AS),
                     <span class="string">&quot;import declaration&quot;</span>,
@@ -674,18 +706,42 @@
 
                 <span class="kw">let </span>binding = ImportedBinding.parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="prelude-val">Ok</span>(AstImportSpecifier::new(binding, <span class="kw-2">*</span>name))
+                <span class="prelude-val">Ok</span>(AstImportSpecifier::new(binding, name))
+            }
+            TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; {
+                <span class="kw">let </span>export_name = kw.to_sym();
+
+                cursor.advance(interner);
+
+                cursor.expect(
+                    TokenKind::identifier(Sym::AS),
+                    <span class="string">&quot;import declaration&quot;</span>,
+                    interner,
+                )<span class="question-mark">?</span>;
+
+                <span class="kw">let </span>binding = ImportedBinding.parse(cursor, interner)<span class="question-mark">?</span>;
+
+                <span class="prelude-val">Ok</span>(AstImportSpecifier::new(binding, export_name))
             }
             TokenKind::IdentifierName((name, <span class="kw">_</span>)) =&gt; {
-                <span class="kw">if </span>cursor
-                    .next_if(TokenKind::identifier(Sym::AS), interner)<span class="question-mark">?
-                    </span>.is_some()
-                {
-                    <span class="kw">let </span>binding = ImportedBinding.parse(cursor, interner)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(AstImportSpecifier::new(binding, <span class="kw-2">*</span>name))
-                } <span class="kw">else </span>{
-                    <span class="prelude-val">Ok</span>(AstImportSpecifier::new(Identifier::new(<span class="kw-2">*</span>name), <span class="kw-2">*</span>name))
+                <span class="kw">let </span>name = <span class="kw-2">*</span>name;
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(token) = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">? </span>{
+                    <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::identifier(Sym::AS) {
+                        <span class="comment">// export name
+                        </span>cursor.advance(interner);
+
+                        <span class="comment">// `as`
+                        </span>cursor.advance(interner);
+
+                        <span class="kw">let </span>binding = ImportedBinding.parse(cursor, interner)<span class="question-mark">?</span>;
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(AstImportSpecifier::new(binding, name));
+                    }
                 }
+
+                <span class="kw">let </span>name = ImportedBinding.parse(cursor, interner)<span class="question-mark">?</span>;
+
+                <span class="prelude-val">Ok</span>(AstImportSpecifier::new(name, name.sym()))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::expected(
                 [<span class="string">&quot;string literal&quot;</span>.to_owned(), <span class="string">&quot;identifier&quot;</span>.to_owned()],

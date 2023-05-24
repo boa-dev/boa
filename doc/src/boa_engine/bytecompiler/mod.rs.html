@@ -1381,6 +1381,16 @@
 <a href="#1380" id="1380">1380</a>
 <a href="#1381" id="1381">1381</a>
 <a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1431,7 +1441,7 @@
 
 <span class="doccomment">/// Describes the type of a function.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
-</span><span class="kw">enum </span>FunctionKind {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>FunctionKind {
     Ordinary,
     Arrow,
     AsyncArrow,
@@ -1440,35 +1450,29 @@
     AsyncGenerator,
 }
 
+<span class="kw">impl </span>FunctionKind {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_arrow(<span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Arrow | <span class="self">Self</span>::AsyncArrow)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_async(<span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Async | <span class="self">Self</span>::AsyncGenerator | <span class="self">Self</span>::AsyncArrow)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_generator(<span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Generator | <span class="self">Self</span>::AsyncGenerator)
+    }
+}
+
 <span class="doccomment">/// Describes the complete specification of a function node.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
 #[allow(single_use_lifetimes)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
-    kind: FunctionKind,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) kind: FunctionKind,
     <span class="kw">pub</span>(<span class="kw">crate</span>) name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
     parameters: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FormalParameterList,
     body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FunctionBody,
     has_binding_identifier: bool,
-}
-
-<span class="kw">impl </span>FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">const fn </span>is_arrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>.kind, FunctionKind::Arrow | FunctionKind::AsyncArrow)
-    }
-
-    <span class="kw">const fn </span>is_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>.kind,
-            FunctionKind::Async | FunctionKind::AsyncGenerator | FunctionKind::AsyncArrow
-        )
-    }
-
-    <span class="kw">const fn </span>is_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>.kind,
-            FunctionKind::Generator | FunctionKind::AsyncGenerator
-        )
-    }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Function&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -2453,17 +2457,13 @@
         }
     }
 
-    <span class="doccomment">/// Compile a function AST Node into bytecode.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;,
-        node_kind: NodeKind,
-        use_expr: bool,
-    ) {
+    <span class="doccomment">/// Compiles a function AST Node into bytecode, and returns its index into
+    /// the `functions` array.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; u32 {
         <span class="kw">let </span>(generator, r#async, arrow) = (
-            function.is_generator(),
-            function.is_async(),
-            function.is_arrow(),
+            function.kind.is_generator(),
+            function.kind.is_async(),
+            function.kind.is_arrow(),
         );
         <span class="kw">let </span>FunctionSpec {
             name,
@@ -2500,6 +2500,26 @@
         <span class="kw">let </span>index = <span class="self">self</span>.functions.len() <span class="kw">as </span>u32;
         <span class="self">self</span>.functions.push(code);
 
+        index
+    }
+
+    <span class="doccomment">/// Compiles a function AST Node into bytecode, setting its corresponding binding or
+    /// pushing it to the stack if necessary.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function_with_binding(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;,
+        node_kind: NodeKind,
+        use_expr: bool,
+    ) {
+        <span class="kw">let </span>name = function.name;
+        <span class="kw">let </span>(generator, r#async, arrow) = (
+            function.kind.is_generator(),
+            function.kind.is_async(),
+            function.kind.is_arrow(),
+        );
+
+        <span class="kw">let </span>index = <span class="self">self</span>.function(function);
+
         <span class="kw">if </span>r#async &amp;&amp; generator {
             <span class="self">self</span>.emit(Opcode::GetGeneratorAsync, <span class="kw-2">&amp;</span>[index]);
         } <span class="kw">else if </span>generator {
@@ -2535,9 +2555,9 @@
     <span class="doccomment">/// Compile an object method AST Node into bytecode.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>object_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;) {
         <span class="kw">let </span>(generator, r#async, arrow) = (
-            function.is_generator(),
-            function.is_async(),
-            function.is_arrow(),
+            function.kind.is_generator(),
+            function.kind.is_async(),
+            function.kind.is_arrow(),
         );
         <span class="kw">let </span>FunctionSpec {
             name,
@@ -2595,9 +2615,9 @@
     <span class="doccomment">/// Compile a class method AST Node into bytecode.
     </span><span class="kw">fn </span>method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;, class_name: Sym) {
         <span class="kw">let </span>(generator, r#async, arrow) = (
-            function.is_generator(),
-            function.is_async(),
-            function.is_arrow(),
+            function.kind.is_generator(),
+            function.kind.is_async(),
+            function.kind.is_arrow(),
         );
         <span class="kw">let </span>FunctionSpec {
             name,

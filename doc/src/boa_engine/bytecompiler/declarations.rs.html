@@ -1508,16 +1508,16 @@
         </span><span class="kw">for </span>d <span class="kw">in </span><span class="kw-2">&amp;</span>declarations {
             <span class="kw">match </span>d {
                 LexicallyScopedDeclaration::Function(function) =&gt; {
-                    <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
+                    <span class="self">self</span>.function_with_binding(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
                 }
                 LexicallyScopedDeclaration::Generator(function) =&gt; {
-                    <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
+                    <span class="self">self</span>.function_with_binding(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
                 }
                 LexicallyScopedDeclaration::AsyncFunction(function) =&gt; {
-                    <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
+                    <span class="self">self</span>.function_with_binding(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
                 }
                 LexicallyScopedDeclaration::AsyncGenerator(function) =&gt; {
-                    <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
+                    <span class="self">self</span>.function_with_binding(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
                 }
                 <span class="kw">_ </span>=&gt; {}
             }
@@ -2304,7 +2304,7 @@
             <span class="comment">// a. Let fn be the sole element of the BoundNames of f.
             // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
             // c. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-            </span><span class="self">self</span>.function(function, NodeKind::Declaration, <span class="bool-val">false</span>);
+            </span><span class="self">self</span>.function_with_binding(function, NodeKind::Declaration, <span class="bool-val">false</span>);
         }
 
         <span class="comment">// 37. Return unused.

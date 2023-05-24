@@ -498,6 +498,7 @@
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
 <a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Module item list AST nodes.
 //!
 //! More information:
@@ -505,10 +506,11 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-modules
 
-</span><span class="kw">use </span>std::{convert::Infallible, ops::ControlFlow};
+</span><span class="kw">use </span>std::{convert::Infallible, hash::BuildHasherDefault, ops::ControlFlow};
 
 <span class="kw">use </span>boa_interner::Sym;
-<span class="kw">use </span>rustc_hash::FxHashSet;
+<span class="kw">use </span>indexmap::IndexSet;
+<span class="kw">use </span>rustc_hash::{FxHashSet, FxHasher};
 
 <span class="kw">use crate</span>::{
     declaration::{
@@ -705,9 +707,9 @@
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-modulerequests
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>requests(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;Sym&gt; {
+    </span><span class="kw">pub fn </span>requests(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IndexSet&lt;Sym, BuildHasherDefault&lt;FxHasher&gt;&gt; {
         <span class="attr">#[derive(Debug)]
-        </span><span class="kw">struct </span>RequestsVisitor&lt;<span class="lifetime">&#39;vec</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;vec </span><span class="kw-2">mut </span>FxHashSet&lt;Sym&gt;);
+        </span><span class="kw">struct </span>RequestsVisitor&lt;<span class="lifetime">&#39;vec</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;vec </span><span class="kw-2">mut </span>IndexSet&lt;Sym, BuildHasherDefault&lt;FxHasher&gt;&gt;);
 
         <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>RequestsVisitor&lt;<span class="lifetime">&#39;_</span>&gt; {
             <span class="kw">type </span>BreakTy = Infallible;
@@ -727,7 +729,7 @@
             }
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>requests = FxHashSet::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>requests = IndexSet::default();
 
         RequestsVisitor(<span class="kw-2">&amp;mut </span>requests).visit_module_item_list(<span class="self">self</span>);
 

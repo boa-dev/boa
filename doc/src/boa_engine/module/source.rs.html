@@ -1900,7 +1900,78 @@
 <a href="#1899" id="1899">1899</a>
 <a href="#1900" id="1900">1900</a>
 <a href="#1901" id="1901">1901</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::{cell::Cell, collections::HashSet, hash::Hash, rc::Rc};
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a>
+<a href="#1952" id="1952">1952</a>
+<a href="#1953" id="1953">1953</a>
+<a href="#1954" id="1954">1954</a>
+<a href="#1955" id="1955">1955</a>
+<a href="#1956" id="1956">1956</a>
+<a href="#1957" id="1957">1957</a>
+<a href="#1958" id="1958">1958</a>
+<a href="#1959" id="1959">1959</a>
+<a href="#1960" id="1960">1960</a>
+<a href="#1961" id="1961">1961</a>
+<a href="#1962" id="1962">1962</a>
+<a href="#1963" id="1963">1963</a>
+<a href="#1964" id="1964">1964</a>
+<a href="#1965" id="1965">1965</a>
+<a href="#1966" id="1966">1966</a>
+<a href="#1967" id="1967">1967</a>
+</pre><pre class="rust"><code><span class="kw">use </span>std::{
+    cell::Cell,
+    collections::HashSet,
+    hash::{BuildHasherDefault, Hash},
+    rc::Rc,
+};
 
 <span class="kw">use </span>boa_ast::{
     declaration::{
@@ -1914,16 +1985,20 @@
 };
 <span class="kw">use </span>boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_interner::Sym;
-<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>indexmap::IndexSet;
+<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 <span class="kw">use crate</span>::{
     builtins::{promise::PromiseCapability, Promise},
-    bytecompiler::{ByteCompiler, NodeKind},
+    bytecompiler::{ByteCompiler, FunctionSpec},
     environments::{BindingLocator, CompileTimeEnvironment, EnvironmentStack},
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
     realm::Realm,
-    vm::{ActiveRunnable, CallFrame, CodeBlock, CompletionRecord, Opcode},
+    vm::{
+        create_function_object_fast, create_generator_function_object, ActiveRunnable, CallFrame,
+        CodeBlock, CompletionRecord, Opcode,
+    },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
 
@@ -2175,7 +2250,7 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>ModuleCode {
     has_tla: bool,
-    requested_modules: FxHashSet&lt;Sym&gt;,
+    requested_modules: IndexSet&lt;Sym, BuildHasherDefault&lt;FxHasher&gt;&gt;,
     source: boa_ast::Module,
     import_entries: Vec&lt;ImportEntry&gt;,
     local_export_entries: Vec&lt;LocalExportEntry&gt;,
@@ -3305,7 +3380,7 @@
             ByteCompiler::new(Sym::MAIN, <span class="bool-val">true</span>, <span class="bool-val">false</span>, module_compile_env.clone(), context);
         <span class="kw">let </span><span class="kw-2">mut </span>imports = Vec::new();
 
-        <span class="kw">let </span>codeblock = {
+        <span class="kw">let </span>(codeblock, functions) = {
             <span class="comment">// 7. For each ImportEntry Record in of module.[[ImportEntries]], do
             </span><span class="kw">for </span>entry <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.import_entries {
                 <span class="comment">// a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
@@ -3350,7 +3425,7 @@
                         // deferred to initialization below
                         </span>imports.push(ImportBinding::Namespace {
                             locator,
-                            module: imported_module,
+                            module: resolution.module,
                         });
                     }
                 } <span class="kw">else </span>{
@@ -3396,47 +3471,87 @@
             <span class="comment">// 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
             // 23. Let privateEnv be null.
             </span><span class="kw">let </span>lex_declarations = lexically_scoped_declarations(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.source);
+            <span class="kw">let </span><span class="kw-2">mut </span>functions = Vec::new();
             <span class="comment">// 24. For each element d of lexDeclarations, do
             </span><span class="kw">for </span>declaration <span class="kw">in </span><span class="kw-2">&amp;</span>lex_declarations {
-                <span class="comment">// i. If IsConstantDeclaration of d is true, then
-                </span><span class="kw">if let </span>LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(
-                    decl,
-                )) = declaration
-                {
-                    <span class="comment">// a. For each element dn of the BoundNames of d, do
-                    </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(decl) {
-                        <span class="comment">// 1. Perform ! env.CreateImmutableBinding(dn, true).
-                        </span>compiler.create_immutable_binding(name, <span class="bool-val">true</span>);
-                    }
-                } <span class="kw">else </span>{
-                    <span class="comment">// ii. Else,
-                    // a. For each element dn of the BoundNames of d, do
-                    </span><span class="kw">for </span>name <span class="kw">in </span>declaration.bound_names() {
-                        <span class="comment">// 1. Perform ! env.CreateMutableBinding(dn, false).
-                        </span>compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                    }
-                }
-
-                <span class="comment">// iii. If d is either a FunctionDeclaration, a GeneratorDeclaration, an
+                <span class="comment">// ii. Else,
+                // a. For each element dn of the BoundNames of d, do
+                // 1. Perform ! env.CreateMutableBinding(dn, false).
+                //
+                // iii. If d is either a FunctionDeclaration, a GeneratorDeclaration, an
                 //      AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
                 // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
                 // 2. Perform ! env.InitializeBinding(dn, fo).
-                </span><span class="kw">let </span>spec = <span class="kw">match </span>declaration {
-                    LexicallyScopedDeclaration::Function(f) =&gt; f.into(),
-                    LexicallyScopedDeclaration::Generator(g) =&gt; g.into(),
-                    LexicallyScopedDeclaration::AsyncFunction(af) =&gt; af.into(),
-                    LexicallyScopedDeclaration::AsyncGenerator(ag) =&gt; ag.into(),
-                    LexicallyScopedDeclaration::Class(<span class="kw">_</span>)
-                    | LexicallyScopedDeclaration::LexicalDeclaration(<span class="kw">_</span>)
-                    | LexicallyScopedDeclaration::AssignmentExpression(<span class="kw">_</span>) =&gt; <span class="kw">continue</span>,
+                //
+                // deferred to below.
+                </span><span class="kw">let </span>(spec, locator): (FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw">_</span>) = <span class="kw">match </span>declaration {
+                    LexicallyScopedDeclaration::Function(f) =&gt; {
+                        <span class="kw">let </span>name = bound_names(f)[<span class="number">0</span>];
+                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
+                        <span class="kw">let </span>locator = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
+
+                        (f.into(), locator)
+                    }
+                    LexicallyScopedDeclaration::Generator(g) =&gt; {
+                        <span class="kw">let </span>name = bound_names(g)[<span class="number">0</span>];
+                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
+                        <span class="kw">let </span>locator = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
+
+                        (g.into(), locator)
+                    }
+                    LexicallyScopedDeclaration::AsyncFunction(af) =&gt; {
+                        <span class="kw">let </span>name = bound_names(af)[<span class="number">0</span>];
+                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
+                        <span class="kw">let </span>locator = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
+
+                        (af.into(), locator)
+                    }
+                    LexicallyScopedDeclaration::AsyncGenerator(ag) =&gt; {
+                        <span class="kw">let </span>name = bound_names(ag)[<span class="number">0</span>];
+                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
+                        <span class="kw">let </span>locator = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
+
+                        (ag.into(), locator)
+                    }
+                    LexicallyScopedDeclaration::Class(class) =&gt; {
+                        <span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
+                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
+                        }
+                        <span class="kw">continue</span>;
+                    }
+                    <span class="comment">// i. If IsConstantDeclaration of d is true, then
+                    </span>LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(
+                        c,
+                    )) =&gt; {
+                        <span class="comment">// a. For each element dn of the BoundNames of d, do
+                        </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(c) {
+                            <span class="comment">// 1. Perform ! env.CreateImmutableBinding(dn, true).
+                            </span>compiler.create_immutable_binding(name, <span class="bool-val">true</span>);
+                        }
+                        <span class="kw">continue</span>;
+                    }
+                    LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Let(l)) =&gt; {
+                        <span class="kw">for </span>name <span class="kw">in </span>bound_names(l) {
+                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
+                        }
+                        <span class="kw">continue</span>;
+                    }
+                    LexicallyScopedDeclaration::AssignmentExpression(expr) =&gt; {
+                        <span class="kw">for </span>name <span class="kw">in </span>bound_names(expr) {
+                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
+                        }
+                        <span class="kw">continue</span>;
+                    }
                 };
 
-                compiler.function(spec, NodeKind::Declaration, <span class="bool-val">false</span>);
+                <span class="kw">let </span>kind = spec.kind;
+
+                functions.push((compiler.function(spec), locator, kind));
             }
 
             compiler.compile_module_item_list(<span class="self">self</span>.inner.code.source.items());
 
-            Gc::new(compiler.finish())
+            (Gc::new(compiler.finish()), functions)
         };
 
         <span class="comment">// 8. Let moduleContext be a new ECMAScript code execution context.
@@ -3498,6 +3613,23 @@
                     }
                 },
             }
+        }
+
+        <span class="comment">// deferred initialization of function exports
+        </span><span class="kw">for </span>(index, locator, kind) <span class="kw">in </span>functions {
+            <span class="kw">let </span>code = codeblock.functions[index <span class="kw">as </span>usize].clone();
+
+            <span class="kw">let </span>function = <span class="kw">if </span>kind.is_generator() {
+                create_generator_function_object(code, kind.is_async(), <span class="prelude-val">None</span>, context)
+            } <span class="kw">else </span>{
+                create_function_object_fast(code, kind.is_async(), <span class="bool-val">false</span>, <span class="bool-val">false</span>, context)
+            };
+
+            context.vm.environments.put_lexical_value(
+                locator.environment_index(),
+                locator.binding_index(),
+                function.into(),
+            );
         }
 
         <span class="comment">// 25. Remove moduleContext from the execution context stack.

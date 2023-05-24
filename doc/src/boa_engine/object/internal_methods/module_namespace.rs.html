@@ -328,9 +328,11 @@
 <a href="#327" id="327">327</a>
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::collections::HashSet;
 
 <span class="kw">use crate</span>::{
+    js_string,
     module::BindingName,
     object::{JsObject, JsPrototype},
     property::{PropertyDescriptor, PropertyKey},
@@ -418,8 +420,8 @@
     <span class="comment">// 1. If P is a Symbol, return OrdinaryGetOwnProperty(O, P).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="kw">return </span>ordinary_get_own_property(obj, key, context),
-        PropertyKey::Index(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-        PropertyKey::String(s) =&gt; s,
+        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{idx}&quot;</span>)),
+        PropertyKey::String(s) =&gt; s.clone(),
     };
 
     {
@@ -431,13 +433,13 @@
         </span><span class="kw">let </span>exports = obj.exports();
 
         <span class="comment">// 3. If exports does not contain P, return undefined.
-        </span><span class="kw">if </span>!exports.contains_key(key) {
+        </span><span class="kw">if </span>!exports.contains_key(<span class="kw-2">&amp;</span>key) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
     }
 
     <span class="comment">// 4. Let value be ? O.[[Get]](P, O).
-    </span><span class="kw">let </span>value = obj.get(key.clone(), context)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>value = obj.get(key, context)<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Return PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: false }.
     </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
@@ -498,8 +500,8 @@
     <span class="comment">// 1. If P is a Symbol, return ! OrdinaryHasProperty(O, P).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="kw">return </span>ordinary_has_property(obj, key, context),
-        PropertyKey::Index(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
-        PropertyKey::String(s) =&gt; s,
+        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{idx}&quot;</span>)),
+        PropertyKey::String(s) =&gt; s.clone(),
     };
 
     <span class="kw">let </span>obj = obj.borrow();
@@ -512,7 +514,7 @@
 
     <span class="comment">// 3. If exports contains P, return true.
     // 4. Return false.
-    </span><span class="prelude-val">Ok</span>(exports.contains_key(key))
+    </span><span class="prelude-val">Ok</span>(exports.contains_key(<span class="kw-2">&amp;</span>key))
 }
 
 <span class="doccomment">/// [`[[Get]] ( P, Receiver )`][spec]
@@ -528,8 +530,8 @@
     //     a. Return ! OrdinaryGet(O, P, Receiver).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="kw">return </span>ordinary_get(obj, key, receiver, context),
-        PropertyKey::Index(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined()),
-        PropertyKey::String(s) =&gt; s,
+        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{idx}&quot;</span>)),
+        PropertyKey::String(s) =&gt; s.clone(),
     };
 
     <span class="kw">let </span>obj = obj.borrow();
@@ -540,7 +542,7 @@
     <span class="comment">// 2. Let exports be O.[[Exports]].
     </span><span class="kw">let </span>exports = obj.exports();
     <span class="comment">// 3. If exports does not contain P, return undefined.
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(export_name) = exports.get(key).copied() <span class="kw">else </span>{
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(export_name) = exports.get(<span class="kw-2">&amp;</span>key).copied() <span class="kw">else </span>{
         <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
     };
 
@@ -615,8 +617,8 @@
     //     a. Return ! OrdinaryDelete(O, P).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="kw">return </span>ordinary_delete(obj, key, context),
-        PropertyKey::Index(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
-        PropertyKey::String(s) =&gt; s,
+        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{idx}&quot;</span>)),
+        PropertyKey::String(s) =&gt; s.clone(),
     };
 
     <span class="kw">let </span>obj = obj.borrow();
@@ -629,7 +631,7 @@
 
     <span class="comment">// 3. If exports contains P, return false.
     // 4. Return true.
-    </span><span class="prelude-val">Ok</span>(!exports.contains_key(key))
+    </span><span class="prelude-val">Ok</span>(!exports.contains_key(<span class="kw-2">&amp;</span>key))
 }
 
 <span class="doccomment">/// [`[[OwnPropertyKeys]] ( )`][spec].
