@@ -122,8 +122,8 @@ pub trait ModuleLoader {
     /// [final]: https://tc39.es/ecma262/#sec-hostfinalizeimportmeta
     fn init_import_meta(
         &self,
-        _import_meta: JsObject,
-        _module: Module,
+        _import_meta: &JsObject,
+        _module: &Module,
         _context: &mut Context<'_>,
     ) {
     }

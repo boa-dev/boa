@@ -18,6 +18,7 @@ mod generator;
 mod get;
 mod iteration;
 mod jump;
+mod meta;
 mod new;
 mod nop;
 mod pop;
@@ -61,6 +62,8 @@ pub(crate) use get::*;
 pub(crate) use iteration::*;
 #[doc(inline)]
 pub(crate) use jump::*;
+#[doc(inline)]
+pub(crate) use meta::*;
 #[doc(inline)]
 pub(crate) use new::*;
 #[doc(inline)]
@@ -1602,8 +1605,15 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: **=>** new_target
-        PushNewTarget,
+        /// Stack: **=>** `new.target`
+        NewTarget,
+
+        /// Push the current `import.meta` to the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>** `import.meta`
+        ImportMeta,
 
         /// Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
         ///

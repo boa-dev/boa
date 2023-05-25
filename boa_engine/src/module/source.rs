@@ -1769,6 +1769,11 @@ impl SourceTextModule {
     pub(crate) fn loaded_modules(&self) -> &GcRefCell<FxHashMap<Sym, Module>> {
         &self.inner.loaded_modules
     }
+
+    /// Gets the import meta object of this module.
+    pub(crate) fn import_meta(&self) -> &GcRefCell<Option<JsObject>> {
+        &self.inner.import_meta
+    }
 }
 
 /// Abstract operation [`AsyncModuleExecutionFulfilled ( module )`][spec].

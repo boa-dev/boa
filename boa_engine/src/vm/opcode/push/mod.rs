@@ -7,7 +7,6 @@ pub(crate) mod array;
 pub(crate) mod class;
 pub(crate) mod environment;
 pub(crate) mod literal;
-pub(crate) mod new_target;
 pub(crate) mod numbers;
 pub(crate) mod object;
 
@@ -15,7 +14,6 @@ pub(crate) use array::*;
 pub(crate) use class::*;
 pub(crate) use environment::*;
 pub(crate) use literal::*;
-pub(crate) use new_target::*;
 pub(crate) use numbers::*;
 pub(crate) use object::*;
 
