@@ -12,7 +12,7 @@
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.create_mapped_arguments_object" class="method"><a class="srclink rightside" href="../../../../src/boa_engine/builtins/function/arguments.rs.html#123-231">source</a><h4 class="code-header">pub(crate) fn <a href="#method.create_mapped_arguments_object" class="fn">create_mapped_arguments_object</a>(
     func: &amp;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-    formals: &amp;<a class="struct" href="../../../../boa_ast/function/parameters/struct.FormalParameterList.html" title="struct boa_ast::function::parameters::FormalParameterList">FormalParameterList</a>,
+    formals: &amp;FormalParameterList,
     arguments_list: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     env: &amp;Gc&lt;<a class="struct" href="../../../environments/runtime/declarative/struct.DeclarativeEnvironment.html" title="struct boa_engine::environments::runtime::declarative::DeclarativeEnvironment">DeclarativeEnvironment</a>&gt;,
     context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
