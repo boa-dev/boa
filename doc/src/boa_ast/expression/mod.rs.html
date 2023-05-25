@@ -366,6 +366,9 @@
 <a href="#365" id="365">365</a>
 <a href="#366" id="366">366</a>
 <a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].
 //!
 //! ECMAScript expressions include:
@@ -501,8 +504,10 @@
     <span class="doccomment">/// The `new.target` pseudo-property expression.
     </span>NewTarget,
 
-    <span class="comment">// TODO: import.meta
-    </span><span class="doccomment">/// See [`Assign`].
+    <span class="doccomment">/// The `import.meta` pseudo-property expression.
+    </span>ImportMeta,
+
+    <span class="doccomment">/// See [`Assign`].
     </span>Assign(Assign),
 
     <span class="doccomment">/// See [`Unary`].
@@ -565,6 +570,7 @@
             <span class="self">Self</span>::ImportCall(impc) =&gt; impc.to_interned_string(interner),
             <span class="self">Self</span>::Optional(opt) =&gt; opt.to_interned_string(interner),
             <span class="self">Self</span>::NewTarget =&gt; <span class="string">&quot;new.target&quot;</span>.to_owned(),
+            <span class="self">Self</span>::ImportMeta =&gt; <span class="string">&quot;import.meta&quot;</span>.to_owned(),
             <span class="self">Self</span>::TaggedTemplate(tag) =&gt; tag.to_interned_string(interner),
             <span class="self">Self</span>::Assign(assign) =&gt; assign.to_interned_string(interner),
             <span class="self">Self</span>::Unary(unary) =&gt; unary.to_interned_string(interner),
@@ -684,7 +690,7 @@
             <span class="self">Self</span>::Yield(y) =&gt; visitor.visit_yield(y),
             <span class="self">Self</span>::Parenthesized(e) =&gt; visitor.visit_parenthesized(e),
             <span class="self">Self</span>::FormalParameterList(fpl) =&gt; visitor.visit_formal_parameter_list(fpl),
-            <span class="self">Self</span>::This | <span class="self">Self</span>::NewTarget =&gt; {
+            <span class="self">Self</span>::This | <span class="self">Self</span>::NewTarget | <span class="self">Self</span>::ImportMeta =&gt; {
                 <span class="comment">// do nothing; can be handled as special case by visitor
                 </span>ControlFlow::Continue(())
             }
@@ -726,7 +732,7 @@
             <span class="self">Self</span>::Yield(y) =&gt; visitor.visit_yield_mut(y),
             <span class="self">Self</span>::Parenthesized(e) =&gt; visitor.visit_parenthesized_mut(e),
             <span class="self">Self</span>::FormalParameterList(fpl) =&gt; visitor.visit_formal_parameter_list_mut(fpl),
-            <span class="self">Self</span>::This | <span class="self">Self</span>::NewTarget =&gt; {
+            <span class="self">Self</span>::This | <span class="self">Self</span>::NewTarget | <span class="self">Self</span>::ImportMeta =&gt; {
                 <span class="comment">// do nothing; can be handled as special case by visitor
                 </span>ControlFlow::Continue(())
             }

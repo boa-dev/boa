@@ -638,6 +638,7 @@
 <a href="#637" id="637">637</a>
 <a href="#638" id="638">638</a>
 <a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
@@ -1224,7 +1225,8 @@
                 | Opcode::PushClassField
                 | Opcode::SuperCallDerived
                 | Opcode::Await
-                | Opcode::PushNewTarget
+                | Opcode::NewTarget
+                | Opcode::ImportMeta
                 | Opcode::CallEvalSpread
                 | Opcode::CallSpread
                 | Opcode::NewSpread

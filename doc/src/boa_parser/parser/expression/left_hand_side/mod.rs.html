@@ -199,7 +199,7 @@
             },
             AssignmentExpression,
         },
-        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
     Error,
 };
@@ -249,24 +249,36 @@
     <span class="kw">type </span>Output = Expression;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="doccomment">/// Checks if we need to parse a super call expression `super()`.
+        <span class="doccomment">/// Checks if we need to parse a keyword call expression `keyword()`.
         ///
-        /// It first checks if the next token is `super`, and if it is, it checks if the second next
+        /// It first checks if the next token is `keyword`, and if it is, it checks if the second next
         /// token is the open parenthesis (`(`) punctuator.
         ///
         /// This is needed because the `if let` chain is very complex, and putting it inline in the
         /// initialization of `lhs` would make it very hard to return an expression over all
         /// possible branches of the `if let`s. Instead, we extract the check into its own function,
         /// then use it inside the condition of a simple `if ... else` expression.
-        </span><span class="kw">fn </span>is_super_call&lt;R: Read&gt;(
+        </span><span class="kw">fn </span>is_keyword_call&lt;R: Read&gt;(
+            keyword: Keyword,
             cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
             interner: <span class="kw-2">&amp;mut </span>Interner,
         ) -&gt; ParseResult&lt;bool&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
-                <span class="kw">if let </span>TokenKind::Keyword((Keyword::Super, <span class="kw">_</span>)) = next.kind() {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">? </span>{
-                        <span class="kw">if </span>next.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenParen) {
-                            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+                <span class="kw">if let </span>TokenKind::Keyword((kw, escaped)) = next.kind() {
+                    <span class="kw">if </span>kw == <span class="kw-2">&amp;</span>keyword {
+                        <span class="kw">if </span><span class="kw-2">*</span>escaped {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                                <span class="macro">format!</span>(
+                                    <span class="string">&quot;keyword `{}` cannot contain escaped characters&quot;</span>,
+                                    kw.as_str().<span class="number">0
+                                </span>),
+                                next.span().start(),
+                            ));
+                        }
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">? </span>{
+                            <span class="kw">if </span>next.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenParen) {
+                                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+                            }
                         }
                     }
                 }
@@ -278,54 +290,42 @@
 
         cursor.set_goal(InputElement::TemplateTail);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>lhs = <span class="kw">if </span>is_super_call(cursor, interner)<span class="question-mark">? </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>lhs = <span class="kw">if </span>is_keyword_call(Keyword::Super, cursor, interner)<span class="question-mark">? </span>{
             cursor.advance(interner);
             <span class="kw">let </span>args =
                 Arguments::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
             SuperCall::new(args).into()
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
-            <span class="kw">if let </span>TokenKind::Keyword((Keyword::Import, escaped)) = next.kind() {
-                <span class="kw">if </span><span class="kw-2">*</span>escaped {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;keyword `import` must not contain escaped characters&quot;</span>,
-                        next.span().start(),
-                    ));
-                }
-                cursor.advance(interner);
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenParen),
-                    <span class="string">&quot;import call&quot;</span>,
-                    interner,
-                )<span class="question-mark">?</span>;
+        } <span class="kw">else if </span>is_keyword_call(Keyword::Import, cursor, interner)<span class="question-mark">? </span>{
+            <span class="comment">// `import`
+            </span>cursor.advance(interner);
+            <span class="comment">// `(`
+            </span>cursor.advance(interner);
 
-                <span class="kw">let </span>arg = AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
-                    .parse(cursor, interner)<span class="question-mark">?</span>;
+            <span class="kw">let </span>arg = AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                .parse(cursor, interner)<span class="question-mark">?</span>;
 
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseParen),
-                    <span class="string">&quot;import call&quot;</span>,
-                    interner,
-                )<span class="question-mark">?</span>;
+            cursor.expect(
+                TokenKind::Punctuator(Punctuator::CloseParen),
+                <span class="string">&quot;import call&quot;</span>,
+                interner,
+            )<span class="question-mark">?</span>;
 
-                CallExpressionTail::new(
-                    <span class="self">self</span>.allow_yield,
-                    <span class="self">self</span>.allow_await,
-                    ImportCall::new(arg).into(),
-                )
-                .parse(cursor, interner)<span class="question-mark">?
-            </span>} <span class="kw">else </span>{
-                <span class="kw">let </span><span class="kw-2">mut </span>member =
-                    MemberExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+            CallExpressionTail::new(
+                <span class="self">self</span>.allow_yield,
+                <span class="self">self</span>.allow_await,
+                ImportCall::new(arg).into(),
+            )
+            .parse(cursor, interner)<span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>member = MemberExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                .parse(cursor, interner)<span class="question-mark">?</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+                <span class="kw">if </span>tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenParen) {
+                    member = CallExpression::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, member)
                         .parse(cursor, interner)<span class="question-mark">?</span>;
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
-                    <span class="kw">if </span>tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenParen) {
-                        member = CallExpression::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, member)
-                            .parse(cursor, interner)<span class="question-mark">?</span>;
-                    }
                 }
-                member
             }
+            member
         };
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["implement_push_generics"],"mod":["array","class","environment","literal","new_target","numbers","object"],"struct":["PushFalse","PushNaN","PushNegativeInfinity","PushNull","PushOne","PushPositiveInfinity","PushTrue","PushUndefined","PushZero"]};
+window.SIDEBAR_ITEMS = {"macro":["implement_push_generics"],"mod":["array","class","environment","literal","numbers","object"],"struct":["PushFalse","PushNaN","PushNegativeInfinity","PushNull","PushOne","PushPositiveInfinity","PushTrue","PushUndefined","PushZero"]};

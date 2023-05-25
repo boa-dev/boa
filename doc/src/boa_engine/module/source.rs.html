@@ -1966,6 +1966,11 @@
 <a href="#1965" id="1965">1965</a>
 <a href="#1966" id="1966">1966</a>
 <a href="#1967" id="1967">1967</a>
+<a href="#1968" id="1968">1968</a>
+<a href="#1969" id="1969">1969</a>
+<a href="#1970" id="1970">1970</a>
+<a href="#1971" id="1971">1971</a>
+<a href="#1972" id="1972">1972</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -3736,6 +3741,11 @@
     <span class="doccomment">/// Gets the loaded modules of this module.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loaded_modules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;FxHashMap&lt;Sym, Module&gt;&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.loaded_modules
+    }
+
+    <span class="doccomment">/// Gets the import meta object of this module.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>import_meta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.import_meta
     }
 }
 

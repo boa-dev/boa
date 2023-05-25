@@ -1409,6 +1409,7 @@
 <a href="#1408" id="1408">1408</a>
 <a href="#1409" id="1409">1409</a>
 <a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1911,7 +1912,8 @@
             | Opcode::PushClassField
             | Opcode::SuperCallDerived
             | Opcode::Await
-            | Opcode::PushNewTarget
+            | Opcode::NewTarget
+            | Opcode::ImportMeta
             | Opcode::SuperCallPrepare
             | Opcode::CallEvalSpread
             | Opcode::CallSpread

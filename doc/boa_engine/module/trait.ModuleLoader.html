@@ -12,8 +12,8 @@
     // Provided method
     fn <a href="#method.init_import_meta" class="fn">init_import_meta</a>(
         &amp;self,
-        _import_meta: <a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-        _module: <a class="struct" href="../struct.Module.html" title="struct boa_engine::Module">Module</a>,
+        _import_meta: &amp;<a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
+        _module: &amp;<a class="struct" href="../struct.Module.html" title="struct boa_engine::Module">Module</a>,
         _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
     ) { ... }
 }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Module loading related host hooks.</p>
@@ -45,8 +45,8 @@ time.</li>
 </ul>
 </div></details></div><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.init_import_meta" class="method"><a class="srclink rightside" href="../../src/boa_engine/module/mod.rs.html#123-129">source</a><h4 class="code-header">fn <a href="#method.init_import_meta" class="fn">init_import_meta</a>(
     &amp;self,
-    _import_meta: <a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-    _module: <a class="struct" href="../struct.Module.html" title="struct boa_engine::Module">Module</a>,
+    _import_meta: &amp;<a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
+    _module: &amp;<a class="struct" href="../struct.Module.html" title="struct boa_engine::Module">Module</a>,
     _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
 )</h4></section></summary><div class="docblock"><p>Host hooks <a href="https://tc39.es/ecma262/#sec-hostgetimportmetaproperties"><code>HostGetImportMetaProperties ( moduleRecord )</code></a> and
 <a href="https://tc39.es/ecma262/#sec-hostfinalizeimportmeta"><code>HostFinalizeImportMeta ( importMeta, moduleRecord )</code></a>.</p>

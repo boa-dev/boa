@@ -1663,6 +1663,16 @@
 <a href="#1662" id="1662">1662</a>
 <a href="#1663" id="1663">1663</a>
 <a href="#1664" id="1664">1664</a>
+<a href="#1665" id="1665">1665</a>
+<a href="#1666" id="1666">1666</a>
+<a href="#1667" id="1667">1667</a>
+<a href="#1668" id="1668">1668</a>
+<a href="#1669" id="1669">1669</a>
+<a href="#1670" id="1670">1670</a>
+<a href="#1671" id="1671">1671</a>
+<a href="#1672" id="1672">1672</a>
+<a href="#1673" id="1673">1673</a>
+<a href="#1674" id="1674">1674</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -1683,6 +1693,7 @@
 <span class="kw">mod </span>get;
 <span class="kw">mod </span>iteration;
 <span class="kw">mod </span>jump;
+<span class="kw">mod </span>meta;
 <span class="kw">mod </span>new;
 <span class="kw">mod </span>nop;
 <span class="kw">mod </span>pop;
@@ -1726,6 +1737,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>iteration::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>jump::<span class="kw-2">*</span>;
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>meta::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>new::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
@@ -3267,8 +3280,15 @@
         ///
         /// Operands:
         ///
-        /// Stack: **=&gt;** new_target
-        </span>PushNewTarget,
+        /// Stack: **=&gt;** `new.target`
+        </span>NewTarget,
+
+        <span class="doccomment">/// Push the current `import.meta` to the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `import.meta`
+        </span>ImportMeta,
 
         <span class="doccomment">/// Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
         ///
