@@ -15,7 +15,7 @@ impl Operation for CatchStart {
     const INSTRUCTION: &'static str = "INST - CatchStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let start = context.vm.frame().pc as u32 - 1;
+        let start = context.vm.frame().pc - 1;
         let finally = context.vm.read::<u32>();
 
         context

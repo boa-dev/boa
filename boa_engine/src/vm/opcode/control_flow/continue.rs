@@ -71,7 +71,7 @@ impl Operation for Continue {
         context.vm.frame_mut().abrupt_completion = Some(new_record);
 
         // 3. Set program counter and finally return fields.
-        context.vm.frame_mut().pc = jump_address as usize;
+        context.vm.frame_mut().pc = jump_address;
         Ok(CompletionType::Normal)
     }
 }

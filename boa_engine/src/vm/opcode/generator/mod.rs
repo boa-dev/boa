@@ -40,8 +40,8 @@ impl Operation for GeneratorNext {
                     .iter()
                     .filter(|entry| entry.is_finally_env());
                 if let Some(next_finally) = finally_entries.rev().next() {
-                    if context.vm.frame().pc < next_finally.start_address() as usize {
-                        context.vm.frame_mut().pc = next_finally.start_address() as usize;
+                    if context.vm.frame().pc < next_finally.start_address() {
+                        context.vm.frame_mut().pc = next_finally.start_address();
                         let return_record = AbruptCompletionRecord::new_return();
                         context.vm.frame_mut().abrupt_completion = Some(return_record);
                         return Ok(CompletionType::Normal);
@@ -107,10 +107,10 @@ impl Operation for AsyncGeneratorNext {
                     Err(e) => e.clone().to_opaque(context),
                 };
                 context.vm.push(value);
-                context.vm.frame_mut().pc = skip_yield as usize;
+                context.vm.frame_mut().pc = skip_yield;
             } else {
                 context.vm.push(completion.clone()?);
-                context.vm.frame_mut().pc = skip_yield_await as usize;
+                context.vm.frame_mut().pc = skip_yield_await;
             }
         } else {
             gen.state = AsyncGeneratorState::SuspendedYield;
@@ -135,7 +135,7 @@ impl Operation for GeneratorAsyncResumeYield {
 
         match context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal => {
-                context.vm.frame_mut().pc = normal_completion as usize;
+                context.vm.frame_mut().pc = normal_completion;
                 Ok(CompletionType::Normal)
             }
             GeneratorResumeKind::Throw => Err(JsError::from_opaque(context.vm.pop())),
@@ -190,7 +190,7 @@ impl Operation for GeneratorNextDelegate {
                 })?;
                 let done = result.get(utf16!("done"), context)?.to_boolean();
                 if done {
-                    context.vm.frame_mut().pc = done_address as usize;
+                    context.vm.frame_mut().pc = done_address;
                     let value = result.get(utf16!("value"), context)?;
                     context.vm.push(value);
                     return Ok(CompletionType::Normal);
@@ -211,7 +211,7 @@ impl Operation for GeneratorNextDelegate {
                     })?;
                     let done = result_object.get(utf16!("done"), context)?.to_boolean();
                     if done {
-                        context.vm.frame_mut().pc = done_address as usize;
+                        context.vm.frame_mut().pc = done_address;
                         let value = result_object.get(utf16!("value"), context)?;
                         context.vm.push(value);
                         return Ok(CompletionType::Normal);
@@ -222,7 +222,7 @@ impl Operation for GeneratorNextDelegate {
                     context.vm.frame_mut().r#yield = true;
                     return Ok(CompletionType::Return);
                 }
-                context.vm.frame_mut().pc = done_address as usize;
+                context.vm.frame_mut().pc = done_address;
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_method, false);
                 iterator_record.close(Ok(JsValue::Undefined), context)?;
 
@@ -302,7 +302,7 @@ impl Operation for GeneratorAsyncDelegateNext {
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(false);
-                    context.vm.frame_mut().pc = throw_method_undefined as usize;
+                    context.vm.frame_mut().pc = throw_method_undefined;
                 }
 
                 Ok(CompletionType::Normal)
@@ -320,7 +320,7 @@ impl Operation for GeneratorAsyncDelegateNext {
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
                 context.vm.push(received);
-                context.vm.frame_mut().pc = return_method_undefined as usize;
+                context.vm.frame_mut().pc = return_method_undefined;
                 Ok(CompletionType::Normal)
             }
         }
@@ -362,7 +362,7 @@ impl Operation for GeneratorAsyncDelegateResume {
                 return Return::execute(context);
             }
 
-            context.vm.frame_mut().pc = exit as usize;
+            context.vm.frame_mut().pc = exit;
             return Ok(CompletionType::Normal);
         }
 
@@ -396,10 +396,10 @@ impl Operation for GeneratorAsyncDelegateResume {
                     Err(e) => e.clone().to_opaque(context),
                 };
                 context.vm.push(value);
-                context.vm.frame_mut().pc = skip_yield as usize;
+                context.vm.frame_mut().pc = skip_yield;
             } else {
                 context.vm.push(completion.clone()?);
-                context.vm.frame_mut().pc = normal_completion as usize;
+                context.vm.frame_mut().pc = normal_completion;
             }
         } else {
             gen.state = AsyncGeneratorState::SuspendedYield;

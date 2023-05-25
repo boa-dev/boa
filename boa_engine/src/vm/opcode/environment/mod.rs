@@ -220,8 +220,8 @@ impl Operation for SuperCallDerived {
     const INSTRUCTION: &'static str = "INST - SuperCallDerived";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let argument_count = context.vm.frame().arg_count;
-        let mut arguments = Vec::with_capacity(argument_count);
+        let argument_count = context.vm.frame().argument_count;
+        let mut arguments = Vec::with_capacity(argument_count as usize);
         for _ in 0..argument_count {
             arguments.push(context.vm.pop());
         }

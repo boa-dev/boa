@@ -16,7 +16,7 @@ impl Operation for Jump {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
-        context.vm.frame_mut().pc = address as usize;
+        context.vm.frame_mut().pc = address;
         Ok(CompletionType::Normal)
     }
 }
@@ -35,7 +35,7 @@ impl Operation for JumpIfTrue {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
         if context.vm.pop().to_boolean() {
-            context.vm.frame_mut().pc = address as usize;
+            context.vm.frame_mut().pc = address;
         }
         Ok(CompletionType::Normal)
     }
@@ -55,7 +55,7 @@ impl Operation for JumpIfFalse {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
         if !context.vm.pop().to_boolean() {
-            context.vm.frame_mut().pc = address as usize;
+            context.vm.frame_mut().pc = address;
         }
         Ok(CompletionType::Normal)
     }
@@ -76,7 +76,7 @@ impl Operation for JumpIfNotUndefined {
         let address = context.vm.read::<u32>();
         let value = context.vm.pop();
         if !value.is_undefined() {
-            context.vm.frame_mut().pc = address as usize;
+            context.vm.frame_mut().pc = address;
             context.vm.push(value);
         }
         Ok(CompletionType::Normal)
@@ -98,7 +98,7 @@ impl Operation for JumpIfNullOrUndefined {
         let address = context.vm.read::<u32>();
         let value = context.vm.pop();
         if value.is_null_or_undefined() {
-            context.vm.frame_mut().pc = address as usize;
+            context.vm.frame_mut().pc = address;
         } else {
             context.vm.push(value);
         }

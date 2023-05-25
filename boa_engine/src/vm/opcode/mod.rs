@@ -679,7 +679,7 @@ generate_impl! {
         /// Stack: **=>**
         GetLocator,
 
-        ///  Find a binding on the environment chain and push its value to the stack and its
+        /// Find a binding on the environment chain and push its value to the stack and its
         /// `BindingLocator` to the `bindings_stack`.
         ///
         /// Operands: name_index: `u32`

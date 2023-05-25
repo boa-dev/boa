@@ -114,8 +114,8 @@ impl Vm {
 
     #[track_caller]
     pub(crate) fn read<T: Readable>(&mut self) -> T {
-        let value = self.frame().code_block.read::<T>(self.frame().pc);
-        self.frame_mut().pc += size_of::<T>();
+        let value = self.frame().code_block.read::<T>(self.frame().pc as usize);
+        self.frame_mut().pc += size_of::<T>() as u32;
         value
     }
 
@@ -159,7 +159,7 @@ impl Context<'_> {
     fn execute_instruction(&mut self) -> JsResult<CompletionType> {
         let opcode: Opcode = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
-            let opcode = self.vm.frame().code_block.bytecode[self.vm.frame().pc]
+            let opcode = self.vm.frame().code_block.bytecode[self.vm.frame().pc as usize]
                 .try_into()
                 .expect("could not convert code at PC to opcode");
             self.vm.frame_mut().pc += 1;
@@ -213,7 +213,9 @@ impl Context<'_> {
         }
 
         let current_stack_length = self.vm.stack.len();
-        self.vm.frame_mut().set_frame_pointer(current_stack_length);
+        self.vm
+            .frame_mut()
+            .set_frame_pointer(current_stack_length as u32);
 
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
@@ -221,7 +223,7 @@ impl Context<'_> {
 
         let execution_completion = loop {
             // 1. Exit the execution loop if program counter ever is equal to or exceeds the amount of instructions
-            if self.vm.frame().code_block.bytecode.len() <= self.vm.frame().pc {
+            if self.vm.frame().code_block.bytecode.len() <= self.vm.frame().pc as usize {
                 break CompletionType::Normal;
             }
 
@@ -238,7 +240,7 @@ impl Context<'_> {
             // 1. Run the next instruction.
             #[cfg(feature = "trace")]
             let result = if self.vm.trace || self.vm.frame().code_block.trace.get() {
-                let mut pc = self.vm.frame().pc;
+                let mut pc = self.vm.frame().pc as usize;
                 let opcode: Opcode = self
                     .vm
                     .frame()
@@ -357,18 +359,18 @@ impl Context<'_> {
         // Determine the execution result
         let execution_result = if execution_completion == CompletionType::Throw {
             self.vm.frame_mut().abrupt_completion = None;
-            self.vm.stack.truncate(self.vm.frame().fp);
+            self.vm.stack.truncate(self.vm.frame().fp as usize);
             JsValue::undefined()
         } else if execution_completion == CompletionType::Return {
             self.vm.frame_mut().abrupt_completion = None;
             let result = self.vm.pop();
-            self.vm.stack.truncate(self.vm.frame().fp);
+            self.vm.stack.truncate(self.vm.frame().fp as usize);
             result
-        } else if self.vm.stack.len() <= self.vm.frame().fp {
+        } else if self.vm.stack.len() <= self.vm.frame().fp as usize {
             JsValue::undefined()
         } else {
             let result = self.vm.pop();
-            self.vm.stack.truncate(self.vm.frame().fp);
+            self.vm.stack.truncate(self.vm.frame().fp as usize);
             result
         };
 

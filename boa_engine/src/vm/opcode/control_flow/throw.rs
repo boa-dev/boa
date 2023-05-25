@@ -64,7 +64,7 @@ impl Operation for Throw {
                     context.vm.frame_mut().env_stack.pop();
                     break;
                 } else if env_entry.is_finally_env() {
-                    if current_address > (env_entry.start_address() as usize) {
+                    if current_address > env_entry.start_address() {
                         target_address = env_entry.exit_address();
                     } else {
                         target_address = env_entry.start_address();
@@ -79,9 +79,9 @@ impl Operation for Throw {
             context.vm.environments.truncate(env_truncation_len);
 
             if target_address == catch_target {
-                context.vm.frame_mut().pc = catch_target as usize;
+                context.vm.frame_mut().pc = catch_target;
             } else {
-                context.vm.frame_mut().pc = target_address as usize;
+                context.vm.frame_mut().pc = target_address;
             };
 
             for _ in 0..context.vm.frame().pop_on_return {
@@ -101,10 +101,10 @@ impl Operation for Throw {
         let mut env_stack_to_pop = 0;
         for env_entry in context.vm.frame_mut().env_stack.iter_mut().rev() {
             if env_entry.is_finally_env() {
-                if (env_entry.start_address() as usize) < current_address {
-                    target_address = Some(env_entry.exit_address() as usize);
+                if env_entry.start_address() < current_address {
+                    target_address = Some(env_entry.exit_address());
                 } else {
-                    target_address = Some(env_entry.start_address() as usize);
+                    target_address = Some(env_entry.start_address());
                 }
                 break;
             };
@@ -133,7 +133,7 @@ impl Operation for Throw {
                 .vm
                 .stack
                 .len()
-                .saturating_sub(context.vm.frame().pop_on_return);
+                .saturating_sub(context.vm.frame().pop_on_return as usize);
             context.vm.stack.truncate(previous_stack_size);
             context.vm.frame_mut().pop_on_return = 0;
 

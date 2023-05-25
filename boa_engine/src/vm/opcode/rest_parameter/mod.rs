@@ -12,12 +12,12 @@ use crate::{
 pub(crate) struct RestParameterInit;
 
 impl Operation for RestParameterInit {
-    const NAME: &'static str = "FunctionRestParameter";
-    const INSTRUCTION: &'static str = "INST - FunctionRestParameter";
+    const NAME: &'static str = "RestParameterInit";
+    const INSTRUCTION: &'static str = "INST - RestParameterInit";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let arg_count = context.vm.frame().arg_count;
-        let param_count = context.vm.frame().param_count;
+        let arg_count = context.vm.frame().argument_count as usize;
+        let param_count = context.vm.frame().code_block().params.as_ref().len();
         if arg_count >= param_count {
             let rest_count = arg_count - param_count + 1;
             let mut args = Vec::with_capacity(rest_count);
@@ -50,8 +50,8 @@ impl Operation for RestParameterPop {
     const INSTRUCTION: &'static str = "INST - RestParameterPop";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let arg_count = context.vm.frame().arg_count;
-        let param_count = context.vm.frame().param_count;
+        let arg_count = context.vm.frame().argument_count;
+        let param_count = context.vm.frame().code_block().params.as_ref().len() as u32;
         if arg_count > param_count {
             for _ in 0..(arg_count - param_count) {
                 context.vm.pop();

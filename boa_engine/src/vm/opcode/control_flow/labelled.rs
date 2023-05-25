@@ -15,7 +15,7 @@ impl Operation for LabelledStart {
     const INSTRUCTION: &'static str = "INST - LabelledStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let start = context.vm.frame().pc as u32 - 1;
+        let start = context.vm.frame().pc - 1;
         let end = context.vm.read::<u32>();
         context
             .vm
