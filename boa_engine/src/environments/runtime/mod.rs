@@ -266,10 +266,11 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn push_function(
         &mut self,
-        num_bindings: u32,
         compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
         function_slots: FunctionSlots,
     ) {
+        let num_bindings = compile_environment.borrow().num_bindings();
+
         let (poisoned, with) = {
             let with = self
                 .stack

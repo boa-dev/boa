@@ -244,9 +244,6 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// Locators for all bindings in the codeblock.
     pub(crate) bindings: Vec<BindingLocator>,
 
-    /// Number of binding for the function environment.
-    pub(crate) num_bindings: u32,
-
     /// Functions inside this function
     pub(crate) functions: Vec<Gc<CodeBlock>>,
 
@@ -261,12 +258,6 @@ pub struct ByteCompiler<'ctx, 'host> {
 
     /// The `[[ClassFieldInitializerName]]` internal slot.
     pub(crate) class_field_initializer_name: Option<Sym>,
-
-    /// Marks the location in the code where the function environment in pushed.
-    /// This is only relevant for functions with expressions in the parameters.
-    /// We execute the parameter expressions in the function code and push the function environment afterward.
-    /// When the execution of the parameter expressions throws an error, we do not need to pop the function environment.
-    pub(crate) function_environment_push_location: u32,
 
     /// The environment that is currently active.
     pub(crate) current_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
@@ -313,7 +304,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             names: Vec::default(),
             private_names: Vec::default(),
             bindings: Vec::default(),
-            num_bindings: 0,
             functions: Vec::default(),
             has_binding_identifier: false,
             this_mode: ThisMode::Global,
@@ -322,7 +312,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             compile_environments: Vec::default(),
             is_class_constructor: false,
             class_field_initializer_name: None,
-            function_environment_push_location: 0,
             parameters_env_bindings: None,
 
             literals_map: FxHashMap::default(),
@@ -1369,13 +1358,11 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             names: self.names.into_boxed_slice(),
             private_names: self.private_names.into_boxed_slice(),
             bindings: self.bindings.into_boxed_slice(),
-            num_bindings: self.num_bindings,
             functions: self.functions.into_boxed_slice(),
             arguments_binding: self.arguments_binding,
             compile_environments: self.compile_environments.into_boxed_slice(),
             is_class_constructor: self.is_class_constructor,
             class_field_initializer_name: self.class_field_initializer_name,
-            function_environment_push_location: self.function_environment_push_location,
             parameters_env_bindings: self.parameters_env_bindings,
             #[cfg(feature = "trace")]
             trace: std::cell::Cell::new(false),

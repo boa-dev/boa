@@ -52,6 +52,16 @@ unsafe impl Readable for i64 {}
 unsafe impl Readable for f32 {}
 unsafe impl Readable for f64 {}
 
+// bitflags! {
+//     #[derive(Clone, Copy, Debug, Finalize)]
+//     struct Flags: u32 {
+//         const A = 0b00000001;
+//         const B = 0b00000010;
+//         const C = 0b00000100;
+//         const ABC = Self::A.bits() | Self::B.bits() | Self::C.bits();
+//     }
+// }
+
 /// The internal representation of a JavaScript function.
 ///
 /// A `CodeBlock` is generated for each function compiled by the
@@ -96,9 +106,6 @@ pub struct CodeBlock {
     #[unsafe_ignore_trace]
     pub(crate) bindings: Box<[BindingLocator]>,
 
-    /// Number of binding for the function environment.
-    pub(crate) num_bindings: u32,
-
     /// Functions inside this function
     pub(crate) functions: Box<[Gc<Self>]>,
 
@@ -115,12 +122,6 @@ pub struct CodeBlock {
     /// The `[[ClassFieldInitializerName]]` internal slot.
     #[unsafe_ignore_trace]
     pub(crate) class_field_initializer_name: Option<Sym>,
-
-    /// Marks the location in the code where the function environment in pushed.
-    /// This is only relevant for functions with expressions in the parameters.
-    /// We execute the parameter expressions in the function code and push the function environment afterward.
-    /// When the execution of the parameter expressions throws an error, we do not need to pop the function environment.
-    pub(crate) function_environment_push_location: u32,
 
     /// The number of bindings in the parameters environment.
     pub(crate) parameters_env_bindings: Option<u32>,
@@ -142,7 +143,6 @@ impl CodeBlock {
             names: Box::default(),
             private_names: Box::default(),
             bindings: Box::default(),
-            num_bindings: 0,
             functions: Box::default(),
             name,
             has_binding_identifier: false,
@@ -154,7 +154,6 @@ impl CodeBlock {
             compile_environments: Box::default(),
             is_class_constructor: false,
             class_field_initializer_name: None,
-            function_environment_push_location: 0,
             parameters_env_bindings: None,
             #[cfg(feature = "trace")]
             trace: std::cell::Cell::new(false),
@@ -1030,7 +1029,6 @@ impl JsObject {
         }
 
         context.vm.environments.push_function(
-            code.num_bindings,
             code.compile_environments[last_env].clone(),
             FunctionSlots::new(this, self.clone(), None),
         );
@@ -1284,7 +1282,6 @@ impl JsObject {
                 }
 
                 context.vm.environments.push_function(
-                    code.num_bindings,
                     code.compile_environments[last_env].clone(),
                     FunctionSlots::new(
                         this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {

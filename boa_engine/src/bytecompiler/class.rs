@@ -56,15 +56,13 @@ impl ByteCompiler<'_, '_> {
                 compiler.patch_jump_with_target(env_labels.1, env_info.index);
                 compiler.pop_compile_environment();
             } else {
-                compiler.num_bindings = env_info.num_bindings;
                 compiler.is_class_constructor = true;
             }
         } else {
             if class.super_ref().is_some() {
                 compiler.emit_opcode(Opcode::SuperCallDerived);
             }
-            let env_info = compiler.pop_compile_environment();
-            compiler.num_bindings = env_info.num_bindings;
+            compiler.pop_compile_environment();
             compiler.is_class_constructor = true;
         }
 
@@ -266,9 +264,8 @@ impl ByteCompiler<'_, '_> {
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    let env_info = field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
-                    field_compiler.num_bindings = env_info.num_bindings;
+                    field_compiler.pop_compile_environment();
                     field_compiler.emit_opcode(Opcode::Return);
 
                     let mut code = field_compiler.finish();
@@ -298,9 +295,8 @@ impl ByteCompiler<'_, '_> {
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    let env_info = field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
-                    field_compiler.num_bindings = env_info.num_bindings;
+                    field_compiler.pop_compile_environment();
                     field_compiler.emit_opcode(Opcode::Return);
 
                     let mut code = field_compiler.finish();
@@ -340,9 +336,8 @@ impl ByteCompiler<'_, '_> {
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    let env_info = field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
-                    field_compiler.num_bindings = env_info.num_bindings;
+                    field_compiler.pop_compile_environment();
                     field_compiler.emit_opcode(Opcode::Return);
 
                     let mut code = field_compiler.finish();
@@ -392,9 +387,8 @@ impl ByteCompiler<'_, '_> {
                     );
 
                     compiler.compile_statement_list(body.statements(), false, false);
-                    let env_info = compiler.pop_compile_environment();
                     compiler.pop_compile_environment();
-                    compiler.num_bindings = env_info.num_bindings;
+                    compiler.pop_compile_environment();
 
                     let code = Gc::new(compiler.finish());
                     let index = self.functions.len() as u32;

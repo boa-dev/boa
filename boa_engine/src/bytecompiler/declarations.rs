@@ -987,7 +987,6 @@ impl ByteCompiler<'_, '_> {
             // b. Let varEnv be NewDeclarativeEnvironment(env).
             // c. Set the VariableEnvironment of calleeContext to varEnv.
             self.push_compile_environment(true);
-            self.function_environment_push_location = self.next_opcode_location();
             env_labels = Some(self.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment));
 
             // d. Let instantiatedVarNames be a new empty List.

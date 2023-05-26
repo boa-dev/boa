@@ -138,7 +138,7 @@ impl FunctionCompiler {
                 Some(compiler.pop_compile_environment().num_bindings);
         }
 
-        compiler.num_bindings = compiler.pop_compile_environment().num_bindings;
+        compiler.pop_compile_environment();
 
         if self.binding_identifier.is_some() {
             compiler.pop_compile_environment();
