@@ -1008,7 +1008,7 @@ impl JsObject {
             let index = context
                 .vm
                 .environments
-                .push_lexical(1, code.compile_environments[last_env].clone());
+                .push_lexical(code.compile_environments[last_env].clone());
             context
                 .vm
                 .environments
@@ -1020,7 +1020,7 @@ impl JsObject {
             let index = context
                 .vm
                 .environments
-                .push_lexical(1, code.compile_environments[last_env].clone());
+                .push_lexical(code.compile_environments[last_env].clone());
             context
                 .vm
                 .environments
@@ -1033,12 +1033,12 @@ impl JsObject {
             FunctionSlots::new(this, self.clone(), None),
         );
 
-        if let Some(bindings) = code.parameters_env_bindings {
+        if let Some(_bindings) = code.parameters_env_bindings {
             last_env -= 1;
             context
                 .vm
                 .environments
-                .push_lexical(bindings, code.compile_environments[last_env].clone());
+                .push_lexical(code.compile_environments[last_env].clone());
         }
 
         if let Some(binding) = code.arguments_binding {
@@ -1273,7 +1273,7 @@ impl JsObject {
                     let index = context
                         .vm
                         .environments
-                        .push_lexical(1, code.compile_environments[last_env].clone());
+                        .push_lexical(code.compile_environments[last_env].clone());
                     context
                         .vm
                         .environments
@@ -1292,11 +1292,11 @@ impl JsObject {
                     ),
                 );
 
-                if let Some(bindings) = code.parameters_env_bindings {
+                if let Some(_bindings) = code.parameters_env_bindings {
                     context
                         .vm
                         .environments
-                        .push_lexical(bindings, code.compile_environments[0].clone());
+                        .push_lexical(code.compile_environments[0].clone());
                 }
 
                 if let Some(binding) = code.arguments_binding {
