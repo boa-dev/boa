@@ -18,7 +18,7 @@ impl Operation for LogicalAnd {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.pop();
         if !lhs.to_boolean() {
-            context.vm.frame_mut().pc = exit as usize;
+            context.vm.frame_mut().pc = exit;
             context.vm.push(lhs);
         }
         Ok(CompletionType::Normal)
@@ -40,7 +40,7 @@ impl Operation for LogicalOr {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.pop();
         if lhs.to_boolean() {
-            context.vm.frame_mut().pc = exit as usize;
+            context.vm.frame_mut().pc = exit;
             context.vm.push(lhs);
         }
         Ok(CompletionType::Normal)
@@ -62,7 +62,7 @@ impl Operation for Coalesce {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.pop();
         if !lhs.is_null_or_undefined() {
-            context.vm.frame_mut().pc = exit as usize;
+            context.vm.frame_mut().pc = exit;
             context.vm.push(lhs);
         }
         Ok(CompletionType::Normal)

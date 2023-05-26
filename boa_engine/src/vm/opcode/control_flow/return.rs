@@ -20,10 +20,10 @@ impl Operation for Return {
         let mut finally_address = None;
         while let Some(env_entry) = context.vm.frame().env_stack.last() {
             if env_entry.is_finally_env() {
-                if (env_entry.start_address() as usize) < current_address {
-                    finally_address = Some(env_entry.exit_address() as usize);
+                if env_entry.start_address() < current_address {
+                    finally_address = Some(env_entry.exit_address());
                 } else {
-                    finally_address = Some(env_entry.start_address() as usize);
+                    finally_address = Some(env_entry.start_address());
                 }
                 break;
             }

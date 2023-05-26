@@ -155,7 +155,7 @@ impl Operation for IteratorUnwrapNextOrJump {
             .ok_or_else(|| JsNativeError::typ().with_message("next value should be an object"))?;
 
         if next_result.complete(context)? {
-            context.vm.frame_mut().pc = address as usize;
+            context.vm.frame_mut().pc = address;
             context.vm.push(true);
         } else {
             context.vm.push(false);

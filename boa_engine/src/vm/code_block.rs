@@ -1063,7 +1063,7 @@ impl JsObject {
             );
         }
 
-        let arg_count = args.len();
+        let argument_count = args.len();
 
         // Push function arguments to the stack.
         let mut args = if code.params.as_ref().len() > args.len() {
@@ -1081,11 +1081,7 @@ impl JsObject {
 
         std::mem::swap(&mut context.vm.stack, &mut stack);
 
-        let param_count = code.params.as_ref().len();
-
-        let mut frame = CallFrame::new(code)
-            .with_param_count(param_count)
-            .with_arg_count(arg_count);
+        let mut frame = CallFrame::new(code).with_argument_count(argument_count as u32);
         frame.promise_capability = promise_capability.clone();
 
         std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
@@ -1326,7 +1322,7 @@ impl JsObject {
                     );
                 }
 
-                let arg_count = args.len();
+                let argument_count = args.len();
 
                 // Push function arguments to the stack.
                 let args = if code.params.as_ref().len() > args.len() {
@@ -1344,16 +1340,13 @@ impl JsObject {
                     context.vm.push(arg.clone());
                 }
 
-                let param_count = code.params.as_ref().len();
                 let has_binding_identifier = code.has_binding_identifier;
 
                 std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
 
-                context.vm.push_frame(
-                    CallFrame::new(code)
-                        .with_param_count(param_count)
-                        .with_arg_count(arg_count),
-                );
+                context
+                    .vm
+                    .push_frame(CallFrame::new(code).with_argument_count(argument_count as u32));
 
                 let record = context.run();
 

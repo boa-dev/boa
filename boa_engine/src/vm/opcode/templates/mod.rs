@@ -24,7 +24,7 @@ impl Operation for TemplateLookup {
 
         if let Some(template) = context.realm().lookup_template(site) {
             context.vm.push(template);
-            context.vm.frame_mut().pc = jump as usize;
+            context.vm.frame_mut().pc = jump;
         }
 
         Ok(CompletionType::Normal)
