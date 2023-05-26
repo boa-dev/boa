@@ -129,7 +129,7 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(template) = context.realm().lookup_template(site) {
             context.vm.push(template);
-            context.vm.frame_mut().pc = jump <span class="kw">as </span>usize;
+            context.vm.frame_mut().pc = jump;
         }
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)

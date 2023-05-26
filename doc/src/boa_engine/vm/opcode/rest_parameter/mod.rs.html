@@ -75,12 +75,12 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RestParameterInit;
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>RestParameterInit {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;FunctionRestParameter&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - FunctionRestParameter&quot;</span>;
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;RestParameterInit&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - RestParameterInit&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>arg_count = context.vm.frame().arg_count;
-        <span class="kw">let </span>param_count = context.vm.frame().param_count;
+        <span class="kw">let </span>arg_count = context.vm.frame().argument_count <span class="kw">as </span>usize;
+        <span class="kw">let </span>param_count = context.vm.frame().code_block().params.as_ref().len();
         <span class="kw">if </span>arg_count &gt;= param_count {
             <span class="kw">let </span>rest_count = arg_count - param_count + <span class="number">1</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>args = Vec::with_capacity(rest_count);
@@ -113,8 +113,8 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - RestParameterPop&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>arg_count = context.vm.frame().arg_count;
-        <span class="kw">let </span>param_count = context.vm.frame().param_count;
+        <span class="kw">let </span>arg_count = context.vm.frame().argument_count;
+        <span class="kw">let </span>param_count = context.vm.frame().code_block().params.as_ref().len() <span class="kw">as </span>u32;
         <span class="kw">if </span>arg_count &gt; param_count {
             <span class="kw">for _ in </span><span class="number">0</span>..(arg_count - param_count) {
                 context.vm.pop();

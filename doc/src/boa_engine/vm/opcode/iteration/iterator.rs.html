@@ -416,7 +416,7 @@
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;next value should be an object&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">if </span>next_result.complete(context)<span class="question-mark">? </span>{
-            context.vm.frame_mut().pc = address <span class="kw">as </span>usize;
+            context.vm.frame_mut().pc = address;
             context.vm.push(<span class="bool-val">true</span>);
         } <span class="kw">else </span>{
             context.vm.push(<span class="bool-val">false</span>);

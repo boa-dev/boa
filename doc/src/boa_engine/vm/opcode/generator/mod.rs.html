@@ -450,8 +450,8 @@
                     .iter()
                     .filter(|entry| entry.is_finally_env());
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(next_finally) = finally_entries.rev().next() {
-                    <span class="kw">if </span>context.vm.frame().pc &lt; next_finally.start_address() <span class="kw">as </span>usize {
-                        context.vm.frame_mut().pc = next_finally.start_address() <span class="kw">as </span>usize;
+                    <span class="kw">if </span>context.vm.frame().pc &lt; next_finally.start_address() {
+                        context.vm.frame_mut().pc = next_finally.start_address();
                         <span class="kw">let </span>return_record = AbruptCompletionRecord::new_return();
                         context.vm.frame_mut().abrupt_completion = <span class="prelude-val">Some</span>(return_record);
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
@@ -517,10 +517,10 @@
                     <span class="prelude-val">Err</span>(e) =&gt; e.clone().to_opaque(context),
                 };
                 context.vm.push(value);
-                context.vm.frame_mut().pc = skip_yield <span class="kw">as </span>usize;
+                context.vm.frame_mut().pc = skip_yield;
             } <span class="kw">else </span>{
                 context.vm.push(completion.clone()<span class="question-mark">?</span>);
-                context.vm.frame_mut().pc = skip_yield_await <span class="kw">as </span>usize;
+                context.vm.frame_mut().pc = skip_yield_await;
             }
         } <span class="kw">else </span>{
             gen.state = AsyncGeneratorState::SuspendedYield;
@@ -545,7 +545,7 @@
 
         <span class="kw">match </span>context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal =&gt; {
-                context.vm.frame_mut().pc = normal_completion <span class="kw">as </span>usize;
+                context.vm.frame_mut().pc = normal_completion;
                 <span class="prelude-val">Ok</span>(CompletionType::Normal)
             }
             GeneratorResumeKind::Throw =&gt; <span class="prelude-val">Err</span>(JsError::from_opaque(context.vm.pop())),
@@ -600,7 +600,7 @@
                 })<span class="question-mark">?</span>;
                 <span class="kw">let </span>done = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
                 <span class="kw">if </span>done {
-                    context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
+                    context.vm.frame_mut().pc = done_address;
                     <span class="kw">let </span>value = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                     context.vm.push(value);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
@@ -621,7 +621,7 @@
                     })<span class="question-mark">?</span>;
                     <span class="kw">let </span>done = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
                     <span class="kw">if </span>done {
-                        context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
+                        context.vm.frame_mut().pc = done_address;
                         <span class="kw">let </span>value = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                         context.vm.push(value);
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
@@ -632,7 +632,7 @@
                     context.vm.frame_mut().r#yield = <span class="bool-val">true</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Return);
                 }
-                context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
+                context.vm.frame_mut().pc = done_address;
                 <span class="kw">let </span>iterator_record = IteratorRecord::new(iterator.clone(), next_method, <span class="bool-val">false</span>);
                 iterator_record.close(<span class="prelude-val">Ok</span>(JsValue::Undefined), context)<span class="question-mark">?</span>;
 
@@ -712,7 +712,7 @@
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(<span class="bool-val">false</span>);
-                    context.vm.frame_mut().pc = throw_method_undefined <span class="kw">as </span>usize;
+                    context.vm.frame_mut().pc = throw_method_undefined;
                 }
 
                 <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -730,7 +730,7 @@
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
                 context.vm.push(received);
-                context.vm.frame_mut().pc = return_method_undefined <span class="kw">as </span>usize;
+                context.vm.frame_mut().pc = return_method_undefined;
                 <span class="prelude-val">Ok</span>(CompletionType::Normal)
             }
         }
@@ -772,7 +772,7 @@
                 <span class="kw">return </span>Return::execute(context);
             }
 
-            context.vm.frame_mut().pc = exit <span class="kw">as </span>usize;
+            context.vm.frame_mut().pc = exit;
             <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
 
@@ -806,10 +806,10 @@
                     <span class="prelude-val">Err</span>(e) =&gt; e.clone().to_opaque(context),
                 };
                 context.vm.push(value);
-                context.vm.frame_mut().pc = skip_yield <span class="kw">as </span>usize;
+                context.vm.frame_mut().pc = skip_yield;
             } <span class="kw">else </span>{
                 context.vm.push(completion.clone()<span class="question-mark">?</span>);
-                context.vm.frame_mut().pc = normal_completion <span class="kw">as </span>usize;
+                context.vm.frame_mut().pc = normal_completion;
             }
         } <span class="kw">else </span>{
             gen.state = AsyncGeneratorState::SuspendedYield;

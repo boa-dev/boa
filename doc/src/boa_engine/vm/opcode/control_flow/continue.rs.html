@@ -149,7 +149,7 @@
         context.vm.frame_mut().abrupt_completion = <span class="prelude-val">Some</span>(new_record);
 
         <span class="comment">// 3. Set program counter and finally return fields.
-        </span>context.vm.frame_mut().pc = jump_address <span class="kw">as </span>usize;
+        </span>context.vm.frame_mut().pc = jump_address;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

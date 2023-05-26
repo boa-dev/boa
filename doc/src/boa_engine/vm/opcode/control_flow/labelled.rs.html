@@ -71,7 +71,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - LabelledStart&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>start = context.vm.frame().pc <span class="kw">as </span>u32 - <span class="number">1</span>;
+        <span class="kw">let </span>start = context.vm.frame().pc - <span class="number">1</span>;
         <span class="kw">let </span>end = context.vm.read::&lt;u32&gt;();
         context
             .vm

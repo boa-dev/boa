@@ -1403,13 +1403,6 @@
 <a href="#1402" id="1402">1402</a>
 <a href="#1403" id="1403">1403</a>
 <a href="#1404" id="1404">1404</a>
-<a href="#1405" id="1405">1405</a>
-<a href="#1406" id="1406">1406</a>
-<a href="#1407" id="1407">1407</a>
-<a href="#1408" id="1408">1408</a>
-<a href="#1409" id="1409">1409</a>
-<a href="#1410" id="1410">1410</a>
-<a href="#1411" id="1411">1411</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2475,7 +2468,7 @@
             );
         }
 
-        <span class="kw">let </span>arg_count = args.len();
+        <span class="kw">let </span>argument_count = args.len();
 
         <span class="comment">// Push function arguments to the stack.
         </span><span class="kw">let </span><span class="kw-2">mut </span>args = <span class="kw">if </span>code.params.as_ref().len() &gt; args.len() {
@@ -2493,11 +2486,7 @@
 
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
 
-        <span class="kw">let </span>param_count = code.params.as_ref().len();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>frame = CallFrame::new(code)
-            .with_param_count(param_count)
-            .with_arg_count(arg_count);
+        <span class="kw">let </span><span class="kw-2">mut </span>frame = CallFrame::new(code).with_argument_count(argument_count <span class="kw">as </span>u32);
         frame.promise_capability = promise_capability.clone();
 
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span>script_or_module);
@@ -2738,7 +2727,7 @@
                     );
                 }
 
-                <span class="kw">let </span>arg_count = args.len();
+                <span class="kw">let </span>argument_count = args.len();
 
                 <span class="comment">// Push function arguments to the stack.
                 </span><span class="kw">let </span>args = <span class="kw">if </span>code.params.as_ref().len() &gt; args.len() {
@@ -2756,16 +2745,13 @@
                     context.vm.push(arg.clone());
                 }
 
-                <span class="kw">let </span>param_count = code.params.as_ref().len();
                 <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier;
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span>script_or_module);
 
-                context.vm.push_frame(
-                    CallFrame::new(code)
-                        .with_param_count(param_count)
-                        .with_arg_count(arg_count),
-                );
+                context
+                    .vm
+                    .push_frame(CallFrame::new(code).with_argument_count(argument_count <span class="kw">as </span>u32));
 
                 <span class="kw">let </span>record = context.run();
 

@@ -124,7 +124,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
-        context.vm.frame_mut().pc = address <span class="kw">as </span>usize;
+        context.vm.frame_mut().pc = address;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -143,7 +143,7 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
         <span class="kw">if </span>context.vm.pop().to_boolean() {
-            context.vm.frame_mut().pc = address <span class="kw">as </span>usize;
+            context.vm.frame_mut().pc = address;
         }
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -163,7 +163,7 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
         <span class="kw">if </span>!context.vm.pop().to_boolean() {
-            context.vm.frame_mut().pc = address <span class="kw">as </span>usize;
+            context.vm.frame_mut().pc = address;
         }
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -184,7 +184,7 @@
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">if </span>!value.is_undefined() {
-            context.vm.frame_mut().pc = address <span class="kw">as </span>usize;
+            context.vm.frame_mut().pc = address;
             context.vm.push(value);
         }
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -206,7 +206,7 @@
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">if </span>value.is_null_or_undefined() {
-            context.vm.frame_mut().pc = address <span class="kw">as </span>usize;
+            context.vm.frame_mut().pc = address;
         } <span class="kw">else </span>{
             context.vm.push(value);
         }

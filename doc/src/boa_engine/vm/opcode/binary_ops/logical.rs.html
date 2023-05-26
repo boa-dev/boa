@@ -89,7 +89,7 @@
         <span class="kw">let </span>exit = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>lhs = context.vm.pop();
         <span class="kw">if </span>!lhs.to_boolean() {
-            context.vm.frame_mut().pc = exit <span class="kw">as </span>usize;
+            context.vm.frame_mut().pc = exit;
             context.vm.push(lhs);
         }
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -111,7 +111,7 @@
         <span class="kw">let </span>exit = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>lhs = context.vm.pop();
         <span class="kw">if </span>lhs.to_boolean() {
-            context.vm.frame_mut().pc = exit <span class="kw">as </span>usize;
+            context.vm.frame_mut().pc = exit;
             context.vm.push(lhs);
         }
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -133,7 +133,7 @@
         <span class="kw">let </span>exit = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>lhs = context.vm.pop();
         <span class="kw">if </span>!lhs.is_null_or_undefined() {
-            context.vm.frame_mut().pc = exit <span class="kw">as </span>usize;
+            context.vm.frame_mut().pc = exit;
             context.vm.push(lhs);
         }
         <span class="prelude-val">Ok</span>(CompletionType::Normal)

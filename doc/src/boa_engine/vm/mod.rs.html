@@ -444,6 +444,8 @@
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -560,8 +562,8 @@
 
     <span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>read&lt;T: Readable&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; T {
-        <span class="kw">let </span>value = <span class="self">self</span>.frame().code_block.read::&lt;T&gt;(<span class="self">self</span>.frame().pc);
-        <span class="self">self</span>.frame_mut().pc += size_of::&lt;T&gt;();
+        <span class="kw">let </span>value = <span class="self">self</span>.frame().code_block.read::&lt;T&gt;(<span class="self">self</span>.frame().pc <span class="kw">as </span>usize);
+        <span class="self">self</span>.frame_mut().pc += size_of::&lt;T&gt;() <span class="kw">as </span>u32;
         value
     }
 
@@ -605,7 +607,7 @@
     <span class="kw">fn </span>execute_instruction(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>opcode: Opcode = {
             <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Opcode retrieval&quot;</span>, <span class="string">&quot;vm&quot;</span>);
-            <span class="kw">let </span>opcode = <span class="self">self</span>.vm.frame().code_block.bytecode[<span class="self">self</span>.vm.frame().pc]
+            <span class="kw">let </span>opcode = <span class="self">self</span>.vm.frame().code_block.bytecode[<span class="self">self</span>.vm.frame().pc <span class="kw">as </span>usize]
                 .try_into()
                 .expect(<span class="string">&quot;could not convert code at PC to opcode&quot;</span>);
             <span class="self">self</span>.vm.frame_mut().pc += <span class="number">1</span>;
@@ -659,7 +661,9 @@
         }
 
         <span class="kw">let </span>current_stack_length = <span class="self">self</span>.vm.stack.len();
-        <span class="self">self</span>.vm.frame_mut().set_frame_pointer(current_stack_length);
+        <span class="self">self</span>.vm
+            .frame_mut()
+            .set_frame_pointer(current_stack_length <span class="kw">as </span>u32);
 
         <span class="comment">// If the current executing function is an async function we have to resolve/reject it&#39;s promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
@@ -667,7 +671,7 @@
 
         <span class="kw">let </span>execution_completion = <span class="kw">loop </span>{
             <span class="comment">// 1. Exit the execution loop if program counter ever is equal to or exceeds the amount of instructions
-            </span><span class="kw">if </span><span class="self">self</span>.vm.frame().code_block.bytecode.len() &lt;= <span class="self">self</span>.vm.frame().pc {
+            </span><span class="kw">if </span><span class="self">self</span>.vm.frame().code_block.bytecode.len() &lt;= <span class="self">self</span>.vm.frame().pc <span class="kw">as </span>usize {
                 <span class="kw">break </span>CompletionType::Normal;
             }
 
@@ -684,7 +688,7 @@
             <span class="comment">// 1. Run the next instruction.
             </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
             </span><span class="kw">let </span>result = <span class="kw">if </span><span class="self">self</span>.vm.trace || <span class="self">self</span>.vm.frame().code_block.trace.get() {
-                <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="self">self</span>.vm.frame().pc;
+                <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="self">self</span>.vm.frame().pc <span class="kw">as </span>usize;
                 <span class="kw">let </span>opcode: Opcode = <span class="self">self
                     </span>.vm
                     .frame()
@@ -803,18 +807,18 @@
         <span class="comment">// Determine the execution result
         </span><span class="kw">let </span>execution_result = <span class="kw">if </span>execution_completion == CompletionType::Throw {
             <span class="self">self</span>.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
-            <span class="self">self</span>.vm.stack.truncate(<span class="self">self</span>.vm.frame().fp);
+            <span class="self">self</span>.vm.stack.truncate(<span class="self">self</span>.vm.frame().fp <span class="kw">as </span>usize);
             JsValue::undefined()
         } <span class="kw">else if </span>execution_completion == CompletionType::Return {
             <span class="self">self</span>.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
             <span class="kw">let </span>result = <span class="self">self</span>.vm.pop();
-            <span class="self">self</span>.vm.stack.truncate(<span class="self">self</span>.vm.frame().fp);
+            <span class="self">self</span>.vm.stack.truncate(<span class="self">self</span>.vm.frame().fp <span class="kw">as </span>usize);
             result
-        } <span class="kw">else if </span><span class="self">self</span>.vm.stack.len() &lt;= <span class="self">self</span>.vm.frame().fp {
+        } <span class="kw">else if </span><span class="self">self</span>.vm.stack.len() &lt;= <span class="self">self</span>.vm.frame().fp <span class="kw">as </span>usize {
             JsValue::undefined()
         } <span class="kw">else </span>{
             <span class="kw">let </span>result = <span class="self">self</span>.vm.pop();
-            <span class="self">self</span>.vm.stack.truncate(<span class="self">self</span>.vm.frame().fp);
+            <span class="self">self</span>.vm.stack.truncate(<span class="self">self</span>.vm.frame().fp <span class="kw">as </span>usize);
             result
         };
 

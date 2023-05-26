@@ -238,7 +238,7 @@
                     context.vm.frame_mut().env_stack.pop();
                     <span class="kw">break</span>;
                 } <span class="kw">else if </span>env_entry.is_finally_env() {
-                    <span class="kw">if </span>current_address &gt; (env_entry.start_address() <span class="kw">as </span>usize) {
+                    <span class="kw">if </span>current_address &gt; env_entry.start_address() {
                         target_address = env_entry.exit_address();
                     } <span class="kw">else </span>{
                         target_address = env_entry.start_address();
@@ -253,9 +253,9 @@
             context.vm.environments.truncate(env_truncation_len);
 
             <span class="kw">if </span>target_address == catch_target {
-                context.vm.frame_mut().pc = catch_target <span class="kw">as </span>usize;
+                context.vm.frame_mut().pc = catch_target;
             } <span class="kw">else </span>{
-                context.vm.frame_mut().pc = target_address <span class="kw">as </span>usize;
+                context.vm.frame_mut().pc = target_address;
             };
 
             <span class="kw">for _ in </span><span class="number">0</span>..context.vm.frame().pop_on_return {
@@ -275,10 +275,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>env_stack_to_pop = <span class="number">0</span>;
         <span class="kw">for </span>env_entry <span class="kw">in </span>context.vm.frame_mut().env_stack.iter_mut().rev() {
             <span class="kw">if </span>env_entry.is_finally_env() {
-                <span class="kw">if </span>(env_entry.start_address() <span class="kw">as </span>usize) &lt; current_address {
-                    target_address = <span class="prelude-val">Some</span>(env_entry.exit_address() <span class="kw">as </span>usize);
+                <span class="kw">if </span>env_entry.start_address() &lt; current_address {
+                    target_address = <span class="prelude-val">Some</span>(env_entry.exit_address());
                 } <span class="kw">else </span>{
-                    target_address = <span class="prelude-val">Some</span>(env_entry.start_address() <span class="kw">as </span>usize);
+                    target_address = <span class="prelude-val">Some</span>(env_entry.start_address());
                 }
                 <span class="kw">break</span>;
             };
@@ -307,7 +307,7 @@
                 .vm
                 .stack
                 .len()
-                .saturating_sub(context.vm.frame().pop_on_return);
+                .saturating_sub(context.vm.frame().pop_on_return <span class="kw">as </span>usize);
             context.vm.stack.truncate(previous_stack_size);
             context.vm.frame_mut().pop_on_return = <span class="number">0</span>;
 

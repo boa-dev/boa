@@ -117,14 +117,6 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -146,18 +138,17 @@
 </span><span class="attr">#[derive(Clone, Debug, Finalize, Trace)]
 </span><span class="kw">pub struct </span>CallFrame {
     <span class="kw">pub</span>(<span class="kw">crate</span>) code_block: Gc&lt;CodeBlock&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) pc: usize,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) fp: usize,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) pc: u32,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) fp: u32,
     <span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) abrupt_completion: <span class="prelude-ty">Option</span>&lt;AbruptCompletionRecord&gt;,
     <span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) r#yield: bool,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) pop_on_return: usize,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) pop_on_return: u32,
     <span class="comment">// Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop&#39;ed.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) env_stack: Vec&lt;EnvStackEntry&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) param_count: usize,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) arg_count: usize,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) argument_count: u32,
     <span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) generator_resume_kind: GeneratorResumeKind,
     <span class="kw">pub</span>(<span class="kw">crate</span>) promise_capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
@@ -195,8 +186,7 @@
             env_stack: Vec::from([EnvStackEntry::new(<span class="number">0</span>, max_length)]),
             abrupt_completion: <span class="prelude-val">None</span>,
             r#yield: <span class="bool-val">false</span>,
-            param_count: <span class="number">0</span>,
-            arg_count: <span class="number">0</span>,
+            argument_count: <span class="number">0</span>,
             generator_resume_kind: GeneratorResumeKind::Normal,
             promise_capability: <span class="prelude-val">None</span>,
             async_generator: <span class="prelude-val">None</span>,
@@ -205,22 +195,16 @@
         }
     }
 
-    <span class="doccomment">/// Updates a `CallFrame`&#39;s `param_count` field with the value provided.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_param_count(<span class="kw-2">mut </span><span class="self">self</span>, count: usize) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.param_count = count;
-        <span class="self">self
-    </span>}
-
-    <span class="doccomment">/// Updates a `CallFrame`&#39;s `arg_count` field with the value provided.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_arg_count(<span class="kw-2">mut </span><span class="self">self</span>, count: usize) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.arg_count = count;
+    <span class="doccomment">/// Updates a `CallFrame`&#39;s `argument_count` field with the value provided.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_argument_count(<span class="kw-2">mut </span><span class="self">self</span>, count: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.argument_count = count;
         <span class="self">self
     </span>}
 }
 
 <span class="doccomment">/// ---- `CallFrame` stack methods ----
 </span><span class="kw">impl </span>CallFrame {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_frame_pointer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pointer: usize) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_frame_pointer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pointer: u32) {
         <span class="self">self</span>.fp = pointer;
     }
 

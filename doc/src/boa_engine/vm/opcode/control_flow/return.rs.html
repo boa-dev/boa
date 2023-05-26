@@ -73,10 +73,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>finally_address = <span class="prelude-val">None</span>;
         <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame().env_stack.last() {
             <span class="kw">if </span>env_entry.is_finally_env() {
-                <span class="kw">if </span>(env_entry.start_address() <span class="kw">as </span>usize) &lt; current_address {
-                    finally_address = <span class="prelude-val">Some</span>(env_entry.exit_address() <span class="kw">as </span>usize);
+                <span class="kw">if </span>env_entry.start_address() &lt; current_address {
+                    finally_address = <span class="prelude-val">Some</span>(env_entry.exit_address());
                 } <span class="kw">else </span>{
-                    finally_address = <span class="prelude-val">Some</span>(env_entry.start_address() <span class="kw">as </span>usize);
+                    finally_address = <span class="prelude-val">Some</span>(env_entry.start_address());
                 }
                 <span class="kw">break</span>;
             }
