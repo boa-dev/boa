@@ -49,10 +49,10 @@ impl ByteCompiler<'_, '_> {
 
             compiler.compile_statement_list(expr.body().statements(), false, false);
 
-            let env_info = compiler.pop_compile_environment();
+            let env_index = compiler.pop_compile_environment();
 
             if let Some(env_label) = env_label {
-                compiler.patch_jump_with_target(env_label, env_info.index);
+                compiler.patch_jump_with_target(env_label, env_index);
                 compiler.pop_compile_environment();
             } else {
                 compiler.is_class_constructor = true;
@@ -540,8 +540,8 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::Pop);
 
         if let Some(class_env) = class_env {
-            let env_info = self.pop_compile_environment();
-            self.patch_jump_with_target(class_env, env_info.index);
+            let env_index = self.pop_compile_environment();
+            self.patch_jump_with_target(class_env, env_index);
             self.emit_opcode(Opcode::PopEnvironment);
         }
 

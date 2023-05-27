@@ -87,8 +87,8 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::Pop);
         }
 
-        let env_info = self.pop_compile_environment();
-        self.patch_jump_with_target(push_env, env_info.index);
+        let env_index = self.pop_compile_environment();
+        self.patch_jump_with_target(push_env, env_index);
         self.emit_opcode(Opcode::PopEnvironment);
 
         if finally {

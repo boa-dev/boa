@@ -10,8 +10,8 @@ impl ByteCompiler<'_, '_> {
         self.block_declaration_instantiation(block);
         self.compile_statement_list(block.statement_list(), use_expr, true);
 
-        let env_info = self.pop_compile_environment();
-        self.patch_jump_with_target(push_env, env_info.index);
+        let env_index = self.pop_compile_environment();
+        self.patch_jump_with_target(push_env, env_index);
 
         self.emit_opcode(Opcode::PopEnvironment);
     }

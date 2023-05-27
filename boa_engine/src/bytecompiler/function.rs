@@ -128,8 +128,8 @@ impl FunctionCompiler {
         compiler.compile_statement_list(body.statements(), false, false);
 
         if let Some(env_labels) = env_label {
-            let env_info = compiler.pop_compile_environment();
-            compiler.patch_jump_with_target(env_labels, env_info.index);
+            let env_index = compiler.pop_compile_environment();
+            compiler.patch_jump_with_target(env_labels, env_index);
         }
 
         if additional_env {

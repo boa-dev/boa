@@ -238,8 +238,8 @@ impl Eval {
         compiler.eval_declaration_instantiation(&body, strict)?;
         compiler.compile_statement_list(body.statements(), true, false);
 
-        let env_info = compiler.pop_compile_environment();
-        compiler.patch_jump_with_target(push_env, env_info.index);
+        let env_index = compiler.pop_compile_environment();
+        compiler.patch_jump_with_target(push_env, env_index);
 
         compiler.emit_opcode(Opcode::PopEnvironment);
 
