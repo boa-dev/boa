@@ -10,9 +10,7 @@
 use crate::{
     builtins::{function::BuiltInFunctionObject, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    property::Attribute,
     realm::Realm,
-    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -27,17 +25,17 @@ impl IntrinsicObject for AsyncFunction {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .prototype(realm.intrinsics().constructors().function().constructor())
-            .inherits(Some(
-                realm.intrinsics().constructors().function().prototype(),
-            ))
-            .property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::ASYNC_FUNCTION_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::ASYNC_FUNCTION_PROTOTYPE_STATIC_SHAPE,
+        )
+        .prototype(realm.intrinsics().constructors().function().constructor())
+        .inherits(Some(
+            realm.intrinsics().constructors().function().prototype(),
+        ))
+        .property(Self::NAME)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> crate::object::JsObject {

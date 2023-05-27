@@ -1071,8 +1071,21 @@ fn main() -> io::Result<()> {
         .method(utf16!("return"))
         .method(utf16!("throw"))
         .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
-        .property(utf16!("CONSTRUCTOR"), Attribute::CONFIGURABLE)
+        .property(utf16!("constructor"), Attribute::CONFIGURABLE)
         .build(file)?;
+
+    BuiltInBuilderConstructor::new(&context, "ASYNC_FUNCTION")
+        .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
+        .build(file)?;
+
+    BuiltInBuilderConstructor::with_constructor_attributes(
+        &context,
+        "ASYNC_GENERATOR_FUNCTION",
+        Attribute::CONFIGURABLE,
+    )
+    .property(utf16!("prototype"), Attribute::CONFIGURABLE)
+    .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
+    .build(file)?;
 
     #[cfg(feature = "intl")]
     {
