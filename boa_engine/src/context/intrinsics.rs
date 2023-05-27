@@ -167,14 +167,14 @@ impl Default for StandardConstructors {
             object: StandardConstructor::with_prototype(
                 JsObject::from_data_and_empty_static_shape(ObjectData::object_prototype()),
             ),
-            async_generator_function: StandardConstructor::default(),
-            proxy: StandardConstructor::default(),
+            async_generator_function: StandardConstructor::default_static_shape(),
+            proxy: StandardConstructor::default_static_shape(),
             date: StandardConstructor::default_static_shape(),
             function: StandardConstructor {
                 constructor: JsFunction::empty_intrinsic_function_static_shape(true),
                 prototype: JsFunction::empty_intrinsic_function_static_shape(false).into(),
             },
-            async_function: StandardConstructor::default(),
+            async_function: StandardConstructor::default_static_shape(),
             generator_function: StandardConstructor::default_static_shape(),
             array: StandardConstructor::with_prototype(JsObject::from_data_and_empty_static_shape(
                 ObjectData::array(),
@@ -225,11 +225,11 @@ impl Default for StandardConstructors {
             #[cfg(feature = "intl")]
             collator: StandardConstructor::default_static_shape(),
             #[cfg(feature = "intl")]
-            list_format: StandardConstructor::default(),
+            list_format: StandardConstructor::default_static_shape(),
             #[cfg(feature = "intl")]
-            locale: StandardConstructor::default(),
+            locale: StandardConstructor::default_static_shape(),
             #[cfg(feature = "intl")]
-            segmenter: StandardConstructor::default(),
+            segmenter: StandardConstructor::default_static_shape(),
         }
     }
 }

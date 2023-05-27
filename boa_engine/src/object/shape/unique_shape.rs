@@ -44,15 +44,6 @@ impl UniqueShape {
         }
     }
 
-    pub(crate) fn override_internal(
-        &self,
-        property_table: PropertyTableInner,
-        prototype: JsPrototype,
-    ) {
-        *self.inner.property_table.borrow_mut() = property_table;
-        *self.inner.prototype.borrow_mut() = prototype;
-    }
-
     /// Get the prototype of the [`UniqueShape`].
     pub(crate) fn prototype(&self) -> JsPrototype {
         self.inner.prototype.borrow().clone()

@@ -1087,6 +1087,12 @@ fn main() -> io::Result<()> {
     .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
     .build(file)?;
 
+    BuiltInBuilder::new(&context, "PROXY_CONSTRUCTOR")
+        .property(utf16!("length"), Attribute::CONFIGURABLE)
+        .property(utf16!("name"), Attribute::CONFIGURABLE)
+        .method(utf16!("revocable"))
+        .build(file)?;
+
     #[cfg(feature = "intl")]
     {
         BuiltInBuilder::new(&context, "INTL_OBJECT")

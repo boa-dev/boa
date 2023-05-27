@@ -106,13 +106,6 @@ impl Shape {
         matches!(self.inner, Inner::Static(_))
     }
 
-    pub(crate) const fn as_unique(&self) -> Option<&UniqueShape> {
-        if let Inner::Unique(shape) = &self.inner {
-            return Some(shape);
-        }
-        None
-    }
-
     /// Create an insert property transitions returning the new transitioned [`Shape`].
     ///
     /// NOTE: This assumes that there is no property with the given key!

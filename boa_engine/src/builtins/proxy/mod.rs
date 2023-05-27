@@ -35,9 +35,12 @@ impl IntrinsicObject for Proxy {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::revocable, "revocable", 2)
-            .build_without_prototype();
+        BuiltInBuilder::from_standard_constructor_static_shape_without_prototype::<Self>(
+            realm,
+            &boa_builtins::PROXY_CONSTRUCTOR_STATIC_SHAPE,
+        )
+        .static_method(Self::revocable, 2)
+        .build_without_prototype();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
