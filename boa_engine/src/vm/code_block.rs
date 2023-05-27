@@ -56,7 +56,7 @@ unsafe impl Readable for f64 {}
 bitflags! {
     /// Flags for [`CodeBlock`].
     #[derive(Clone, Copy, Debug, Finalize)]
-    pub(crate) struct CodeBlockFlags: u32 {
+    pub(crate) struct CodeBlockFlags: u8 {
         /// Is this function in strict mode.
         const STRICT = 0b0000_0001;
 
@@ -167,6 +167,7 @@ impl CodeBlock {
         self.name
     }
 
+    /// Check if the function is traced.
     #[cfg(feature = "trace")]
     pub(crate) fn traceable(&self) -> bool {
         self.flags.get().contains(CodeBlockFlags::TRACEABLE)
@@ -180,19 +181,26 @@ impl CodeBlock {
         self.flags.set(flags);
     }
 
+    /// Check if the function is a class constructor.
     pub(crate) fn is_class_constructor(&self) -> bool {
         self.flags
             .get()
             .contains(CodeBlockFlags::IS_CLASS_CONSTRUCTOR)
     }
+
+    /// Check if the function is in strict mode.
     pub(crate) fn strict(&self) -> bool {
         self.flags.get().contains(CodeBlockFlags::STRICT)
     }
+
+    /// Indicates if the function is an expression and has a binding identifier.
     pub(crate) fn has_binding_identifier(&self) -> bool {
         self.flags
             .get()
             .contains(CodeBlockFlags::HAS_BINDING_IDENTIFIER)
     }
+
+    /// Does this function have a parameters environment.
     pub(crate) fn has_parameters_env_bindings(&self) -> bool {
         self.flags
             .get()
