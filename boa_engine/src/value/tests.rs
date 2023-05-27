@@ -109,7 +109,6 @@ fn hash_undefined() {
 }
 
 #[test]
-#[allow(clippy::eq_op)]
 fn hash_rational() {
     let value1 = JsValue::new(1.0);
     let value2 = JsValue::new(1.0);
@@ -123,7 +122,6 @@ fn hash_rational() {
 }
 
 #[test]
-#[allow(clippy::eq_op)]
 fn hash_object() {
     let object1 = JsValue::new(JsObject::with_null_proto());
     assert_eq!(object1, object1);

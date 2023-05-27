@@ -133,7 +133,7 @@ where
     /// predicate on the ascii char
     ///
     /// The buffer is not incremented.
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub(super) fn next_is_char_pred<F>(&mut self, pred: &F) -> io::Result<bool>
     where
         F: Fn(u32) -> bool,
@@ -190,7 +190,7 @@ where
     /// It also stops when there is no next character.
     ///
     /// Note that all characters up until the stop character are added to the buffer, including the character right before.
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub(super) fn take_while_char_pred<F>(&mut self, buf: &mut Vec<u8>, pred: &F) -> io::Result<()>
     where
         F: Fn(u32) -> bool,
@@ -284,11 +284,11 @@ where
 
 /// Inner iterator for a cursor.
 #[derive(Debug)]
-#[allow(clippy::option_option)]
 struct InnerIter<R> {
     iter: Bytes<R>,
     num_peeked_bytes: u8,
     peeked_bytes: [u8; 4],
+    #[allow(clippy::option_option)]
     peeked_char: Option<Option<u32>>,
 }
 

@@ -55,7 +55,6 @@ where
     }
 
     /// Sets the goal symbol of the cursor to `Module`.
-    #[allow(unused)]
     pub(super) fn set_module(&mut self) {
         self.buffered_lexer.set_module(true);
     }

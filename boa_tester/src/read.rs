@@ -16,10 +16,10 @@ use std::{
 
 /// Representation of the YAML metadata in Test262 tests.
 #[derive(Debug, Clone, Deserialize)]
-#[allow(dead_code)]
 pub(super) struct MetaData {
     pub(super) description: Box<str>,
     pub(super) esid: Option<Box<str>>,
+    #[allow(dead_code)]
     pub(super) es5id: Option<Box<str>>,
     pub(super) es6id: Option<Box<str>>,
     #[serde(default)]

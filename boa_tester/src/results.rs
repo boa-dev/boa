@@ -193,6 +193,7 @@ fn update_gh_pages_repo(path: &Path, verbose: u8) {
 }
 
 /// Compares the results of two test suite runs.
+#[allow(clippy::cast_possible_wrap)]
 pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) -> Result<()> {
     let base_results: ResultInfo = serde_json::from_reader(BufReader::new(
         fs::File::open(base).wrap_err("could not open the base results file")?,
@@ -470,7 +471,6 @@ fn compute_result_diff(
             )
             .into_boxed_str();
 
-            #[allow(clippy::match_same_arms)]
             match (base_test.result, new_test.result) {
                 (a, b) if a == b => {}
                 (TestOutcomeResult::Ignored, TestOutcomeResult::Failed) => {}

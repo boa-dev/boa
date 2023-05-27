@@ -11,8 +11,6 @@
 //! [spec]: https://console.spec.whatwg.org/
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
 
-#![allow(clippy::print_stdout)]
-
 #[cfg(test)]
 mod tests;
 

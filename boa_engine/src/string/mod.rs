@@ -450,7 +450,6 @@ impl JsString {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringtonumber
-    #[allow(clippy::question_mark)]
     pub(crate) fn to_number(&self) -> f64 {
         // 1. Let text be ! StringToCodePoints(str).
         // 2. Let literal be ParseText(text, StringNumericLiteral).
