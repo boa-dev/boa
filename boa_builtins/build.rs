@@ -1126,6 +1126,13 @@ fn main() -> io::Result<()> {
             .method(utf16!("resolvedOptions"))
             .build(file)?;
 
+        BuiltInBuilderConstructor::new(&context, "INTL_SEGMENTER")
+            .static_method(utf16!("supportedLocalesOf"))
+            .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
+            .method(utf16!("resolvedOptions"))
+            .method(utf16!("segment"))
+            .build(file)?;
+
         BuiltInBuilder::new(&context, "SEGMENTS_PROTOTYPE")
             .method(utf16!("containing"))
             .method(WellKnown::Iterator)

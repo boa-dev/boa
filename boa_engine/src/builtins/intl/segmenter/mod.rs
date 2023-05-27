@@ -14,7 +14,7 @@ use crate::{
     },
     property::Attribute,
     realm::Realm,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 mod iterator;
@@ -74,16 +74,16 @@ impl IntrinsicObject for Segmenter {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
-            .property(
-                JsSymbol::to_string_tag(),
-                "Intl.Segmenter",
-                Attribute::CONFIGURABLE,
-            )
-            .method(Self::resolved_options, "resolvedOptions", 0)
-            .method(Self::segment, "segment", 1)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::INTL_SEGMENTER_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::INTL_SEGMENTER_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_method(Self::supported_locales_of, 1)
+        .property("Intl.Segmenter")
+        .method(Self::resolved_options, 0)
+        .method(Self::segment, 1)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
