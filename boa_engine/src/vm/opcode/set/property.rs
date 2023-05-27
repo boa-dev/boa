@@ -35,7 +35,7 @@ impl Operation for SetPropertyByName {
             .into();
 
         let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
-        if !succeeded && context.vm.frame().code_block.strict {
+        if !succeeded && context.vm.frame().code_block.strict() {
             return Err(JsNativeError::typ()
                 .with_message(format!("cannot set non-writable property: {name}"))
                 .into());
@@ -126,7 +126,7 @@ impl Operation for SetPropertyByValue {
                                         .configurable(false)
                                         .build(),
                                 );
-                            } else if context.vm.frame().code_block.strict {
+                            } else if context.vm.frame().code_block.strict() {
                                 return Err(JsNativeError::typ().with_message("TypeError: Cannot assign to read only property 'length' of array object").into());
                             }
                             return Ok(CompletionType::Normal);
@@ -140,7 +140,7 @@ impl Operation for SetPropertyByValue {
         object.set(
             key,
             value.clone(),
-            context.vm.frame().code_block.strict,
+            context.vm.frame().code_block.strict(),
             context,
         )?;
         context.vm.stack.push(value);

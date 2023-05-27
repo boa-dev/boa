@@ -260,7 +260,7 @@ impl ByteCompiler<'_, '_> {
                 .name(name.sym())
                 .generator(generator)
                 .r#async(r#async)
-                .strict(self.strict)
+                .strict(self.strict())
                 .binding_identifier(Some(name.sym()))
                 .compile(
                     parameters,
@@ -672,7 +672,7 @@ impl ByteCompiler<'_, '_> {
                 .name(name.sym())
                 .generator(generator)
                 .r#async(r#async)
-                .strict(self.strict)
+                .strict(self.strict())
                 .binding_identifier(Some(name.sym()))
                 .compile(
                     parameters,
@@ -777,8 +777,8 @@ impl ByteCompiler<'_, '_> {
         arrow: bool,
         strict: bool,
         generator: bool,
-    ) -> (Option<(Label, Label)>, bool) {
-        let mut env_labels = None;
+    ) -> (Option<Label>, bool) {
+        let mut env_label = None;
         let mut additional_env = false;
 
         // 1. Let calleeContext be the running execution context.
@@ -987,8 +987,7 @@ impl ByteCompiler<'_, '_> {
             // b. Let varEnv be NewDeclarativeEnvironment(env).
             // c. Set the VariableEnvironment of calleeContext to varEnv.
             self.push_compile_environment(true);
-            self.function_environment_push_location = self.next_opcode_location();
-            env_labels = Some(self.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment));
+            env_label = Some(self.emit_opcode_with_operand(Opcode::PushFunctionEnvironment));
 
             // d. Let instantiatedVarNames be a new empty List.
             let mut instantiated_var_names = Vec::new();
@@ -1052,7 +1051,6 @@ impl ByteCompiler<'_, '_> {
             }
 
             // d. Let varEnv be env.
-
             instantiated_var_names
         };
 
@@ -1151,6 +1149,6 @@ impl ByteCompiler<'_, '_> {
         }
 
         // 37. Return unused.
-        (env_labels, additional_env)
+        (env_label, additional_env)
     }
 }

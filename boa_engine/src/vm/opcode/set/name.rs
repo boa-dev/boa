@@ -28,7 +28,11 @@ impl Operation for SetName {
 
         verify_initialized(binding_locator, context)?;
 
-        context.set_binding(binding_locator, value, context.vm.frame().code_block.strict)?;
+        context.set_binding(
+            binding_locator,
+            value,
+            context.vm.frame().code_block.strict(),
+        )?;
 
         Ok(CompletionType::Normal)
     }
@@ -60,7 +64,11 @@ impl Operation for SetNameByLocator {
 
         verify_initialized(binding_locator, context)?;
 
-        context.set_binding(binding_locator, value, context.vm.frame().code_block.strict)?;
+        context.set_binding(
+            binding_locator,
+            value,
+            context.vm.frame().code_block.strict(),
+        )?;
 
         Ok(CompletionType::Normal)
     }
@@ -70,7 +78,7 @@ impl Operation for SetNameByLocator {
 fn verify_initialized(locator: BindingLocator, context: &mut Context<'_>) -> JsResult<()> {
     if !context.is_initialized_binding(&locator)? {
         let key = context.interner().resolve_expect(locator.name().sym());
-        let strict = context.vm.frame().code_block.strict;
+        let strict = context.vm.frame().code_block.strict();
 
         let message = if locator.is_global() {
             strict.then(|| format!("cannot assign to uninitialized global property `{key}`"))

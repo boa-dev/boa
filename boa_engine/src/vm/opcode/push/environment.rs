@@ -17,15 +17,11 @@ impl Operation for PushDeclarativeEnvironment {
     const INSTRUCTION: &'static str = "INST - PushDeclarativeEnvironment";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let num_bindings = context.vm.read::<u32>();
         let compile_environments_index = context.vm.read::<u32>();
         let compile_environment = context.vm.frame().code_block.compile_environments
             [compile_environments_index as usize]
             .clone();
-        context
-            .vm
-            .environments
-            .push_lexical(num_bindings, compile_environment);
+        context.vm.environments.push_lexical(compile_environment);
         context.vm.frame_mut().inc_frame_env_stack();
         Ok(CompletionType::Normal)
     }
@@ -43,7 +39,6 @@ impl Operation for PushFunctionEnvironment {
     const INSTRUCTION: &'static str = "INST - PushFunctionEnvironment";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let num_bindings = context.vm.read::<u32>();
         let compile_environments_index = context.vm.read::<u32>();
         let compile_environment = context.vm.frame().code_block.compile_environments
             [compile_environments_index as usize]
@@ -51,7 +46,7 @@ impl Operation for PushFunctionEnvironment {
         context
             .vm
             .environments
-            .push_function_inherit(num_bindings, compile_environment);
+            .push_function_inherit(compile_environment);
         Ok(CompletionType::Normal)
     }
 }

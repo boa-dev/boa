@@ -60,7 +60,7 @@ impl ByteCompiler<'_, '_> {
         let catch_end = self.emit_opcode_with_operand(Opcode::CatchStart);
 
         self.push_compile_environment(false);
-        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+        let push_env = self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment);
 
         if let Some(binding) = catch.parameter() {
             match binding {
@@ -87,9 +87,8 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::Pop);
         }
 
-        let env_info = self.pop_compile_environment();
-        self.patch_jump_with_target(push_env.0, env_info.num_bindings);
-        self.patch_jump_with_target(push_env.1, env_info.index);
+        let env_index = self.pop_compile_environment();
+        self.patch_jump_with_target(push_env, env_index);
         self.emit_opcode(Opcode::PopEnvironment);
 
         if finally {

@@ -40,6 +40,7 @@ pub(crate) use {
     call_frame::GeneratorResumeKind,
     code_block::{
         create_function_object, create_function_object_fast, create_generator_function_object,
+        CodeBlockFlags,
     },
     completion_record::CompletionRecord,
     opcode::BindingOpcode,
@@ -239,7 +240,7 @@ impl Context<'_> {
 
             // 1. Run the next instruction.
             #[cfg(feature = "trace")]
-            let result = if self.vm.trace || self.vm.frame().code_block.trace.get() {
+            let result = if self.vm.trace || self.vm.frame().code_block.traceable() {
                 let mut pc = self.vm.frame().pc as usize;
                 let opcode: Opcode = self
                     .vm

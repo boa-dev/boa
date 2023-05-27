@@ -135,7 +135,7 @@ fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult
     let code = function.codeblock().ok_or_else(|| {
         JsNativeError::typ().with_message("native functions do not have bytecode")
     })?;
-    code.set_trace(value);
+    code.set_traceable(value);
     Ok(())
 }
 
