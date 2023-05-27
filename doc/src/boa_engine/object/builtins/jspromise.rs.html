@@ -871,16 +871,9 @@
 <a href="#870" id="870">870</a>
 <a href="#871" id="871">871</a>
 <a href="#872" id="872">872</a>
-<a href="#873" id="873">873</a>
-<a href="#874" id="874">874</a>
-<a href="#875" id="875">875</a>
-<a href="#876" id="876">876</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s promise Builtin ECMAScript Object
 
-</span><span class="attr">#![allow(missing_docs)]
-
-</span><span class="kw">use </span>boa_gc::{Finalize, Trace};
-
+</span><span class="kw">use super</span>::{JsArray, JsFunction};
 <span class="kw">use crate</span>::{
     builtins::{
         promise::{PromiseState, ResolvingFunctions},
@@ -891,8 +884,7 @@
     value::TryFromJs,
     Context, JsError, JsNativeError, JsResult, JsValue,
 };
-
-<span class="kw">use super</span>::{JsArray, JsFunction};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 
 <span class="doccomment">/// An ECMAScript [promise] object.
 ///

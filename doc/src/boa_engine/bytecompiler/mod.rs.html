@@ -1388,9 +1388,6 @@
 <a href="#1387" id="1387">1387</a>
 <a href="#1388" id="1388">1388</a>
 <a href="#1389" id="1389">1389</a>
-<a href="#1390" id="1390">1390</a>
-<a href="#1391" id="1391">1391</a>
-<a href="#1392" id="1392">1392</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1466,7 +1463,6 @@
 
 <span class="doccomment">/// Describes the complete specification of a function node.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
-#[allow(single_use_lifetimes)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) kind: FunctionKind,
     <span class="kw">pub</span>(<span class="kw">crate</span>) name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
@@ -1999,9 +1995,7 @@
         }
     }
 
-    <span class="comment">// The wrap is needed so it can match the function signature.
-    </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>access_set_top_of_stack_expr_fn(compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, level: u8) {
+    <span class="kw">fn </span>access_set_top_of_stack_expr_fn(compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, level: u8) {
         <span class="kw">match </span>level {
             <span class="number">0 </span>=&gt; {}
             <span class="number">1 </span>=&gt; compiler.emit_opcode(Opcode::Swap),

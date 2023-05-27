@@ -134,7 +134,6 @@
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Realm Records`
 //!
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
@@ -237,8 +236,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.global_this
     }
 
-    <span class="attr">#[allow(unused)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loaded_modules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loaded_modules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.loaded_modules
     }
 

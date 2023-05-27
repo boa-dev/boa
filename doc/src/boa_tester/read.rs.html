@@ -256,11 +256,11 @@
 
 <span class="doccomment">/// Representation of the YAML metadata in Test262 tests.
 </span><span class="attr">#[derive(Debug, Clone, Deserialize)]
-#[allow(dead_code)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>MetaData {
     <span class="kw">pub</span>(<span class="kw">super</span>) description: Box&lt;str&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) esid: <span class="prelude-ty">Option</span>&lt;Box&lt;str&gt;&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) es5id: <span class="prelude-ty">Option</span>&lt;Box&lt;str&gt;&gt;,
+    <span class="attr">#[allow(dead_code)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) es5id: <span class="prelude-ty">Option</span>&lt;Box&lt;str&gt;&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) es6id: <span class="prelude-ty">Option</span>&lt;Box&lt;str&gt;&gt;,
     <span class="attr">#[serde(default)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) info: Box&lt;str&gt;,

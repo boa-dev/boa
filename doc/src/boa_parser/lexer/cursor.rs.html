@@ -639,7 +639,7 @@
     /// predicate on the ascii char
     ///
     /// The buffer is not incremented.
-    </span><span class="attr">#[allow(dead_code)]
+    </span><span class="attr">#[cfg(test)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next_is_char_pred&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pred: <span class="kw-2">&amp;</span>F) -&gt; io::Result&lt;bool&gt;
     <span class="kw">where
         </span>F: Fn(u32) -&gt; bool,
@@ -696,7 +696,7 @@
     /// It also stops when there is no next character.
     ///
     /// Note that all characters up until the stop character are added to the buffer, including the character right before.
-    </span><span class="attr">#[allow(dead_code)]
+    </span><span class="attr">#[cfg(test)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_while_char_pred&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;, pred: <span class="kw-2">&amp;</span>F) -&gt; io::Result&lt;()&gt;
     <span class="kw">where
         </span>F: Fn(u32) -&gt; bool,
@@ -790,12 +790,12 @@
 
 <span class="doccomment">/// Inner iterator for a cursor.
 </span><span class="attr">#[derive(Debug)]
-#[allow(clippy::option_option)]
 </span><span class="kw">struct </span>InnerIter&lt;R&gt; {
     iter: Bytes&lt;R&gt;,
     num_peeked_bytes: u8,
     peeked_bytes: [u8; <span class="number">4</span>],
-    peeked_char: <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;,
+    <span class="attr">#[allow(clippy::option_option)]
+    </span>peeked_char: <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;R&gt; InnerIter&lt;R&gt; {

@@ -170,7 +170,6 @@
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     js_string,
     object::JsObject,
@@ -307,7 +306,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty
-</span><span class="attr">#[allow(clippy::float_cmp)]
 </span><span class="kw">fn </span>string_get_own_property(obj: <span class="kw-2">&amp;</span>JsObject, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
     <span class="comment">// 1. Assert: S is an Object that has a [[StringData]] internal slot.
     // 2. Assert: IsPropertyKey(P) is true.

@@ -1053,7 +1053,6 @@
 <a href="#1052" id="1052">1052</a>
 <a href="#1053" id="1053">1053</a>
 <a href="#1054" id="1054">1054</a>
-<a href="#1055" id="1055">1055</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
 //!
 //! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
@@ -1506,7 +1505,6 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringtonumber
-    </span><span class="attr">#[allow(clippy::question_mark)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
         <span class="comment">// 1. Let text be ! StringToCodePoints(str).
         // 2. Let literal be ParseText(text, StringNumericLiteral).

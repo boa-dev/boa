@@ -296,7 +296,6 @@
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Cursor implementation for the parser.
 </span><span class="kw">mod </span>buffered_lexer;
 
@@ -354,7 +353,6 @@
     }
 
     <span class="doccomment">/// Sets the goal symbol of the cursor to `Module`.
-    </span><span class="attr">#[allow(unused)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.buffered_lexer.set_module(<span class="bool-val">true</span>);
     }

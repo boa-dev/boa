@@ -2754,7 +2754,6 @@
 <a href="#2753" id="2753">2753</a>
 <a href="#2754" id="2754">2754</a>
 <a href="#2755" id="2755">2755</a>
-<a href="#2756" id="2756">2756</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -4910,8 +4909,7 @@
         </span>rx.invoke(JsSymbol::search(), <span class="kw-2">&amp;</span>[JsValue::new(string)], context)
     }
 
-    <span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterator(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterator(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,

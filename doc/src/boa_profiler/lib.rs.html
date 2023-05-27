@@ -199,7 +199,6 @@
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The **`boa_profiler`** crate is a code profiler for Boa.
 //!
 //! # Crate Overview
@@ -385,8 +384,7 @@
 #[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>Profiler;
 
-<span class="comment">//#[allow(clippy::unused_unit, clippy::unused_self)]
-</span><span class="attr">#[cfg(not(feature = <span class="string">&quot;profiler&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;profiler&quot;</span>))]
 </span><span class="kw">impl </span>Profiler {
     <span class="doccomment">/// Does nothing.
     </span><span class="attr">#[allow(clippy::unused_unit)]

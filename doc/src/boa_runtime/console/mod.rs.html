@@ -656,8 +656,6 @@
 <a href="#655" id="655">655</a>
 <a href="#656" id="656">656</a>
 <a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of JavaScript&#39;s `console` Web API object.
 //!
 //! The `console` object can be accessed from any global object.
@@ -671,9 +669,7 @@
 //! [spec]: https://console.spec.whatwg.org/
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
 
-</span><span class="attr">#![allow(clippy::print_stdout)]
-
-#[cfg(test)]
+</span><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use </span>boa_engine::{
