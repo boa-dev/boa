@@ -1154,6 +1154,14 @@ fn main() -> io::Result<()> {
             .accessor(utf16!("script"), Attribute::CONFIGURABLE)
             .accessor(utf16!("region"), Attribute::CONFIGURABLE)
             .build(file)?;
+
+        BuiltInBuilderConstructor::new(&context, "INTL_LIST_FORMAT")
+            .static_method(utf16!("supportedLocalesOf"))
+            .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
+            .method(utf16!("format"))
+            .method(utf16!("formatToParts"))
+            .method(utf16!("resolvedOptions"))
+            .build(file)?;
     }
 
     context.build(file)?;

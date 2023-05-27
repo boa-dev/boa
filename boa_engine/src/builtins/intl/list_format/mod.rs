@@ -9,10 +9,8 @@ use crate::{
     builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::Attribute,
     realm::Realm,
     string::utf16,
-    symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
@@ -52,17 +50,17 @@ impl IntrinsicObject for ListFormat {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
-            .property(
-                JsSymbol::to_string_tag(),
-                "Intl.ListFormat",
-                Attribute::CONFIGURABLE,
-            )
-            .method(Self::format, "format", 1)
-            .method(Self::format_to_parts, "formatToParts", 1)
-            .method(Self::resolved_options, "resolvedOptions", 0)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::INTL_LIST_FORMAT_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::INTL_LIST_FORMAT_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_method(Self::supported_locales_of, 1)
+        .property("Intl.ListFormat")
+        .method(Self::format, 1)
+        .method(Self::format_to_parts, 1)
+        .method(Self::resolved_options, 0)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
