@@ -23,7 +23,7 @@ impl Operation for DeletePropertyByName {
             .clone()
             .into();
         let result = object.__delete__(&key, context)?;
-        if !result && context.vm.frame().code_block.strict {
+        if !result && context.vm.frame().code_block.strict() {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());
@@ -50,7 +50,7 @@ impl Operation for DeletePropertyByValue {
         let object = value.to_object(context)?;
         let property_key = key_value.to_property_key(context)?;
         let result = object.__delete__(&property_key, context)?;
-        if !result && context.vm.frame().code_block.strict {
+        if !result && context.vm.frame().code_block.strict() {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());

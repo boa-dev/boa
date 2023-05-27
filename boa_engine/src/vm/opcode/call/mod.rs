@@ -58,7 +58,7 @@ impl Operation for CallEval {
             .map(|f| matches!(f.kind(), FunctionKind::Native { .. }))
             .unwrap_or_default();
 
-        let strict = context.vm.frame().code_block.strict;
+        let strict = context.vm.frame().code_block.strict();
 
         if eval {
             if let Some(x) = arguments.get(0) {
@@ -132,7 +132,7 @@ impl Operation for CallEvalSpread {
             .map(|f| matches!(f.kind(), FunctionKind::Native { .. }))
             .unwrap_or_default();
 
-        let strict = context.vm.frame().code_block.strict;
+        let strict = context.vm.frame().code_block.strict();
 
         if eval {
             if let Some(x) = arguments.get(0) {

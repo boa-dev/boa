@@ -11,11 +11,13 @@ mod module;
 mod statement;
 mod utils;
 
+use std::cell::Cell;
+
 use crate::{
     builtins::function::ThisMode,
     environments::{BindingLocator, CompileTimeEnvironment},
     js_string,
-    vm::{BindingOpcode, CodeBlock, Opcode},
+    vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
     Context, JsBigInt, JsString, JsValue,
 };
 use boa_ast::{
@@ -214,14 +216,8 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// Name of this function.
     pub(crate) function_name: Sym,
 
-    /// Indicates if the function is an expression and has a binding identifier.
-    pub(crate) has_binding_identifier: bool,
-
     /// The number of arguments expected.
     pub(crate) length: u32,
-
-    /// Is this function in strict mode.
-    pub(crate) strict: bool,
 
     /// \[\[ThisMode\]\]
     pub(crate) this_mode: ThisMode,
@@ -253,17 +249,13 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// Compile time environments in this function.
     pub(crate) compile_environments: Vec<Gc<GcRefCell<CompileTimeEnvironment>>>,
 
-    /// The `[[IsClassConstructor]]` internal slot.
-    pub(crate) is_class_constructor: bool,
-
     /// The `[[ClassFieldInitializerName]]` internal slot.
     pub(crate) class_field_initializer_name: Option<Sym>,
 
     /// The environment that is currently active.
     pub(crate) current_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
 
-    /// Does this function have a parameters environment.
-    pub(crate) parameters_env_bindings: bool,
+    pub(crate) code_block_flags: CodeBlockFlags,
 
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
@@ -295,9 +287,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         // TODO: remove when we separate scripts from the context
         context: &'ctx mut Context<'host>,
     ) -> ByteCompiler<'ctx, 'host> {
+        let mut code_block_flags = CodeBlockFlags::empty();
+        code_block_flags.set(CodeBlockFlags::STRICT, strict);
         Self {
             function_name: name,
-            strict,
             length: 0,
             bytecode: Vec::default(),
             literals: Vec::default(),
@@ -305,14 +298,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             private_names: Vec::default(),
             bindings: Vec::default(),
             functions: Vec::default(),
-            has_binding_identifier: false,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             arguments_binding: None,
             compile_environments: Vec::default(),
-            is_class_constructor: false,
             class_field_initializer_name: None,
-            parameters_env_bindings: false,
+            code_block_flags,
 
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
@@ -327,6 +318,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             #[cfg(feature = "annex-b")]
             annex_b_function_names: Vec::new(),
         }
+    }
+
+    pub(crate) const fn strict(&self) -> bool {
+        self.code_block_flags.contains(CodeBlockFlags::STRICT)
     }
 
     pub(crate) fn interner(&self) -> &Interner {
@@ -1083,7 +1078,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .name(name.map(Identifier::sym))
             .generator(generator)
             .r#async(r#async)
-            .strict(self.strict)
+            .strict(self.strict())
             .arrow(arrow)
             .binding_identifier(binding_identifier)
             .compile(
@@ -1177,7 +1172,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .name(name.map(Identifier::sym))
             .generator(generator)
             .r#async(r#async)
-            .strict(self.strict)
+            .strict(self.strict())
             .arrow(arrow)
             .binding_identifier(binding_identifier)
             .compile(
@@ -1348,9 +1343,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     pub fn finish(self) -> CodeBlock {
         CodeBlock {
             name: self.function_name,
-            has_binding_identifier: self.has_binding_identifier,
             length: self.length,
-            strict: self.strict,
             this_mode: self.this_mode,
             params: self.params,
             bytecode: self.bytecode.into_boxed_slice(),
@@ -1361,11 +1354,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             functions: self.functions.into_boxed_slice(),
             arguments_binding: self.arguments_binding,
             compile_environments: self.compile_environments.into_boxed_slice(),
-            is_class_constructor: self.is_class_constructor,
             class_field_initializer_name: self.class_field_initializer_name,
-            parameters_env_bindings: self.parameters_env_bindings,
-            #[cfg(feature = "trace")]
-            trace: std::cell::Cell::new(false),
+            flags: Cell::new(self.code_block_flags),
         }
     }
 

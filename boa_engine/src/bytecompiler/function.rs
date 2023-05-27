@@ -2,7 +2,7 @@ use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     environments::CompileTimeEnvironment,
-    vm::{CodeBlock, Opcode},
+    vm::{CodeBlock, CodeBlockFlags, Opcode},
     Context,
 };
 use boa_ast::function::{FormalParameterList, FunctionBody};
@@ -109,7 +109,7 @@ impl FunctionCompiler {
         }
 
         if let Some(binding_identifier) = self.binding_identifier {
-            compiler.has_binding_identifier = true;
+            compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
             compiler.push_compile_environment(false);
             compiler.create_immutable_binding(binding_identifier.into(), self.strict);
         }
@@ -134,7 +134,7 @@ impl FunctionCompiler {
 
         if additional_env {
             compiler.pop_compile_environment();
-            compiler.parameters_env_bindings = true;
+            compiler.code_block_flags |= CodeBlockFlags::PARAMETERS_ENV_BINDINGS;
         }
 
         compiler.pop_compile_environment();

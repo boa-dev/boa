@@ -1,5 +1,5 @@
 use super::{ByteCompiler, Literal};
-use crate::vm::{BindingOpcode, Opcode};
+use crate::vm::{BindingOpcode, CodeBlockFlags, Opcode};
 use boa_ast::{
     expression::Identifier,
     function::{Class, ClassElement, FormalParameterList},
@@ -27,7 +27,7 @@ impl ByteCompiler<'_, '_> {
 
         if let Some(class_name) = class.name() {
             if class.has_binding_identifier() {
-                compiler.has_binding_identifier = true;
+                compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
                 compiler.push_compile_environment(false);
                 compiler.create_immutable_binding(class_name, true);
             }
@@ -55,14 +55,14 @@ impl ByteCompiler<'_, '_> {
                 compiler.patch_jump_with_target(env_label, env_index);
                 compiler.pop_compile_environment();
             } else {
-                compiler.is_class_constructor = true;
+                compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
             }
         } else {
             if class.super_ref().is_some() {
                 compiler.emit_opcode(Opcode::SuperCallDerived);
             }
             compiler.pop_compile_environment();
-            compiler.is_class_constructor = true;
+            compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
         }
 
         if class.name().is_some() && class.has_binding_identifier() {

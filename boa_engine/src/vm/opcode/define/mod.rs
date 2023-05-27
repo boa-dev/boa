@@ -60,7 +60,11 @@ impl Operation for DefInitVar {
 
         context.find_runtime_binding(&mut binding_locator)?;
 
-        context.set_binding(binding_locator, value, context.vm.frame().code_block.strict)?;
+        context.set_binding(
+            binding_locator,
+            value,
+            context.vm.frame().code_block.strict(),
+        )?;
 
         Ok(CompletionType::Normal)
     }

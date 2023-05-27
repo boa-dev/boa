@@ -260,7 +260,7 @@ impl ByteCompiler<'_, '_> {
                 .name(name.sym())
                 .generator(generator)
                 .r#async(r#async)
-                .strict(self.strict)
+                .strict(self.strict())
                 .binding_identifier(Some(name.sym()))
                 .compile(
                     parameters,
@@ -672,7 +672,7 @@ impl ByteCompiler<'_, '_> {
                 .name(name.sym())
                 .generator(generator)
                 .r#async(r#async)
-                .strict(self.strict)
+                .strict(self.strict())
                 .binding_identifier(Some(name.sym()))
                 .compile(
                     parameters,

@@ -18,11 +18,12 @@ use crate::{
     vm::CallFrame,
     Context, JsError, JsResult, JsString, JsValue,
 };
+use bitflags::bitflags;
 use boa_ast::function::{FormalParameterList, PrivateName};
-use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
-use std::{collections::VecDeque, mem::size_of};
+use std::{cell::Cell, collections::VecDeque, mem::size_of};
 use thin_vec::ThinVec;
 
 #[cfg(any(feature = "trace", feature = "flowgraph"))]
@@ -52,26 +53,49 @@ unsafe impl Readable for i64 {}
 unsafe impl Readable for f32 {}
 unsafe impl Readable for f64 {}
 
+bitflags! {
+    /// Flags for [`CodeBlock`].
+    #[derive(Clone, Copy, Debug, Finalize)]
+    pub(crate) struct CodeBlockFlags: u32 {
+        /// Is this function in strict mode.
+        const STRICT = 0b0000_0001;
+
+        /// Indicates if the function is an expression and has a binding identifier.
+        const HAS_BINDING_IDENTIFIER = 0b0000_0010;
+
+        /// The `[[IsClassConstructor]]` internal slot.
+        const IS_CLASS_CONSTRUCTOR = 0b0000_0100;
+
+        /// Does this function have a parameters environment.
+        const PARAMETERS_ENV_BINDINGS = 0b0000_1000;
+
+        /// Trace instruction execution to `stdout`.
+        #[cfg(feature = "trace")]
+        const TRACEABLE = 0b1000_0000;
+    }
+}
+
+// SAFETY: Nothing in CodeBlockFlags needs tracing, so this is safe.
+unsafe impl Trace for CodeBlockFlags {
+    empty_trace!();
+}
+
 /// The internal representation of a JavaScript function.
 ///
 /// A `CodeBlock` is generated for each function compiled by the
 /// [`ByteCompiler`](crate::bytecompiler::ByteCompiler). It stores the bytecode and the other
 /// attributes of the function.
-#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Trace, Finalize)]
 pub struct CodeBlock {
     /// Name of this function
     #[unsafe_ignore_trace]
     pub(crate) name: Sym,
 
-    /// Indicates if the function is an expression and has a binding identifier.
-    pub(crate) has_binding_identifier: bool,
+    #[unsafe_ignore_trace]
+    pub(crate) flags: Cell<CodeBlockFlags>,
 
     /// The number of arguments expected.
     pub(crate) length: u32,
-
-    /// Is this function in strict mode.
-    pub(crate) strict: bool,
 
     /// \[\[ThisMode\]\]
     pub(crate) this_mode: ThisMode,
@@ -107,20 +131,9 @@ pub struct CodeBlock {
     /// Compile time environments in this function.
     pub(crate) compile_environments: Box<[Gc<GcRefCell<CompileTimeEnvironment>>]>,
 
-    /// The `[[IsClassConstructor]]` internal slot.
-    pub(crate) is_class_constructor: bool,
-
     /// The `[[ClassFieldInitializerName]]` internal slot.
     #[unsafe_ignore_trace]
     pub(crate) class_field_initializer_name: Option<Sym>,
-
-    /// Does this function have a parameters environment.
-    pub(crate) parameters_env_bindings: bool,
-
-    #[cfg(feature = "trace")]
-    /// Trace instruction execution to `stdout`.
-    #[unsafe_ignore_trace]
-    pub(crate) trace: std::cell::Cell<bool>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -128,6 +141,8 @@ impl CodeBlock {
     /// Creates a new `CodeBlock`.
     #[must_use]
     pub fn new(name: Sym, length: u32, strict: bool) -> Self {
+        let mut flags = CodeBlockFlags::empty();
+        flags.set(CodeBlockFlags::STRICT, strict);
         Self {
             bytecode: Box::default(),
             literals: Box::default(),
@@ -136,18 +151,13 @@ impl CodeBlock {
             bindings: Box::default(),
             functions: Box::default(),
             name,
-            has_binding_identifier: false,
+            flags: Cell::new(flags),
             length,
-            strict,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             arguments_binding: None,
             compile_environments: Box::default(),
-            is_class_constructor: false,
             class_field_initializer_name: None,
-            parameters_env_bindings: false,
-            #[cfg(feature = "trace")]
-            trace: std::cell::Cell::new(false),
         }
     }
 
@@ -157,11 +167,35 @@ impl CodeBlock {
         self.name
     }
 
+    pub(crate) fn traceable(&self) -> bool {
+        self.flags.get().contains(CodeBlockFlags::TRACEABLE)
+    }
     /// Enable or disable instruction tracing to `stdout`.
     #[cfg(feature = "trace")]
     #[inline]
-    pub fn set_trace(&self, value: bool) {
-        self.trace.set(value);
+    pub fn set_traceable(&self, value: bool) {
+        let mut flags = self.flags.get();
+        flags.set(CodeBlockFlags::TRACEABLE, value);
+        self.flags.set(flags);
+    }
+
+    pub(crate) fn is_class_constructor(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::IS_CLASS_CONSTRUCTOR)
+    }
+    pub(crate) fn strict(&self) -> bool {
+        self.flags.get().contains(CodeBlockFlags::STRICT)
+    }
+    pub(crate) fn has_binding_identifier(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::HAS_BINDING_IDENTIFIER)
+    }
+    pub(crate) fn has_parameters_env_bindings(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::PARAMETERS_ENV_BINDINGS)
     }
 }
 
@@ -278,7 +312,7 @@ impl CodeBlock {
             Opcode::PushDeclarativeEnvironment | Opcode::PushFunctionEnvironment => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
-                format!("index: {operand}")
+                format!("{operand}")
             }
             Opcode::CopyDataProperties
             | Opcode::Break
@@ -907,7 +941,7 @@ impl JsObject {
                     ..
                 } => {
                     let code = code.clone();
-                    if code.is_class_constructor {
+                    if code.is_class_constructor() {
                         return Err(JsNativeError::typ()
                             .with_message("class constructor cannot be invoked without 'new'")
                             .with_realm(context.realm().clone())
@@ -984,7 +1018,7 @@ impl JsObject {
 
         let this = if lexical_this_mode {
             ThisBindingStatus::Lexical
-        } else if code.strict {
+        } else if code.strict() {
             ThisBindingStatus::Initialized(this.clone())
         } else if this.is_null_or_undefined() {
             ThisBindingStatus::Initialized(context.realm().global_this().clone().into())
@@ -1010,7 +1044,7 @@ impl JsObject {
             last_env -= 1;
         }
 
-        if code.has_binding_identifier {
+        if code.has_binding_identifier() {
             let index = context
                 .vm
                 .environments
@@ -1027,7 +1061,7 @@ impl JsObject {
             FunctionSlots::new(this, self.clone(), None),
         );
 
-        if code.parameters_env_bindings {
+        if code.has_parameters_env_bindings() {
             last_env -= 1;
             context
                 .vm
@@ -1036,7 +1070,7 @@ impl JsObject {
         }
 
         if let Some(binding) = code.arguments_binding {
-            let arguments_obj = if code.strict || !code.params.is_simple() {
+            let arguments_obj = if code.strict() || !code.params.is_simple() {
                 Arguments::create_unmapped_arguments_object(args, context)
             } else {
                 let env = context.vm.environments.current();
@@ -1263,7 +1297,7 @@ impl JsObject {
 
                 let mut last_env = code.compile_environments.len() - 1;
 
-                if code.has_binding_identifier {
+                if code.has_binding_identifier() {
                     let index = context
                         .vm
                         .environments
@@ -1286,7 +1320,7 @@ impl JsObject {
                     ),
                 );
 
-                if code.parameters_env_bindings {
+                if code.has_parameters_env_bindings() {
                     context
                         .vm
                         .environments
@@ -1294,7 +1328,7 @@ impl JsObject {
                 }
 
                 if let Some(binding) = code.arguments_binding {
-                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                    let arguments_obj = if code.strict() || !code.params.is_simple() {
                         Arguments::create_unmapped_arguments_object(args, context)
                     } else {
                         let env = context.vm.environments.current();
@@ -1331,7 +1365,7 @@ impl JsObject {
                     context.vm.push(arg.clone());
                 }
 
-                let has_binding_identifier = code.has_binding_identifier;
+                let has_binding_identifier = code.has_binding_identifier();
 
                 std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
 
