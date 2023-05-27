@@ -167,6 +167,7 @@ impl CodeBlock {
         self.name
     }
 
+    #[cfg(feature = "trace")]
     pub(crate) fn traceable(&self) -> bool {
         self.flags.get().contains(CodeBlockFlags::TRACEABLE)
     }
