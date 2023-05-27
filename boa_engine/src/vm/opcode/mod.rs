@@ -1348,7 +1348,7 @@ generate_impl! {
 
         /// Push a declarative environment.
         ///
-        /// Operands: num_bindings: `u32`, compile_environments_index: `u32`
+        /// Operands: compile_environments_index: `u32`
         ///
         /// Stack: **=>**
         PushDeclarativeEnvironment,
@@ -1362,7 +1362,7 @@ generate_impl! {
 
         /// Push a function environment.
         ///
-        /// Operands: num_bindings: `u32`, compile_environments_index: `u32`
+        /// Operands: compile_environments_index: `u32`
         ///
         /// Stack: **=>**
         PushFunctionEnvironment,

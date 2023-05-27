@@ -7,7 +7,7 @@ use boa_gc::{Gc, GcRefCell};
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PopEnvironmentInfo {
     /// Number of bindings declared.
-    pub(crate) num_bindings: u32,
+    pub(crate) _num_bindings: u32,
     /// Index in the compile time envs array.
     pub(crate) index: u32,
 }
@@ -38,7 +38,7 @@ impl ByteCompiler<'_, '_> {
         self.current_environment = outer;
 
         PopEnvironmentInfo {
-            num_bindings,
+            _num_bindings: num_bindings,
             index,
         }
     }

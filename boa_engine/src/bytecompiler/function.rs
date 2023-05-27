@@ -117,7 +117,7 @@ impl FunctionCompiler {
         // Function environment
         compiler.push_compile_environment(true);
 
-        let (env_labels, additional_env) = compiler.function_declaration_instantiation(
+        let (env_label, additional_env) = compiler.function_declaration_instantiation(
             body,
             parameters,
             self.arrow,
@@ -127,15 +127,14 @@ impl FunctionCompiler {
 
         compiler.compile_statement_list(body.statements(), false, false);
 
-        if let Some(env_labels) = env_labels {
+        if let Some(env_labels) = env_label {
             let env_info = compiler.pop_compile_environment();
-            compiler.patch_jump_with_target(env_labels.0, env_info.num_bindings);
-            compiler.patch_jump_with_target(env_labels.1, env_info.index);
+            compiler.patch_jump_with_target(env_labels, env_info.index);
         }
 
         if additional_env {
-            compiler.parameters_env_bindings =
-                Some(compiler.pop_compile_environment().num_bindings);
+            compiler.pop_compile_environment();
+            compiler.parameters_env_bindings = true;
         }
 
         compiler.pop_compile_environment();

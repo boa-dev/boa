@@ -314,6 +314,7 @@ impl EnvironmentStack {
         compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
     ) {
         let num_bindings = compile_environment.borrow().num_bindings();
+
         debug_assert!(
             self.stack.len() as u32 == compile_environment.borrow().environment_index(),
             "tried to push an invalid compile environment"

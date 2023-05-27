@@ -232,14 +232,15 @@ impl Eval {
         );
 
         compiler.push_compile_environment(strict);
-        let push_env = compiler.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+
+        let push_env = compiler.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment);
 
         compiler.eval_declaration_instantiation(&body, strict)?;
         compiler.compile_statement_list(body.statements(), true, false);
 
         let env_info = compiler.pop_compile_environment();
-        compiler.patch_jump_with_target(push_env.0, env_info.num_bindings);
-        compiler.patch_jump_with_target(push_env.1, env_info.index);
+        compiler.patch_jump_with_target(push_env, env_info.index);
+
         compiler.emit_opcode(Opcode::PopEnvironment);
 
         let code_block = Gc::new(compiler.finish());

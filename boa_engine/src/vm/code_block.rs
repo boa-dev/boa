@@ -52,21 +52,12 @@ unsafe impl Readable for i64 {}
 unsafe impl Readable for f32 {}
 unsafe impl Readable for f64 {}
 
-// bitflags! {
-//     #[derive(Clone, Copy, Debug, Finalize)]
-//     struct Flags: u32 {
-//         const A = 0b00000001;
-//         const B = 0b00000010;
-//         const C = 0b00000100;
-//         const ABC = Self::A.bits() | Self::B.bits() | Self::C.bits();
-//     }
-// }
-
 /// The internal representation of a JavaScript function.
 ///
 /// A `CodeBlock` is generated for each function compiled by the
 /// [`ByteCompiler`](crate::bytecompiler::ByteCompiler). It stores the bytecode and the other
 /// attributes of the function.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Trace, Finalize)]
 pub struct CodeBlock {
     /// Name of this function
@@ -123,8 +114,8 @@ pub struct CodeBlock {
     #[unsafe_ignore_trace]
     pub(crate) class_field_initializer_name: Option<Sym>,
 
-    /// The number of bindings in the parameters environment.
-    pub(crate) parameters_env_bindings: Option<u32>,
+    /// Does this function have a parameters environment.
+    pub(crate) parameters_env_bindings: bool,
 
     #[cfg(feature = "trace")]
     /// Trace instruction execution to `stdout`.
@@ -154,7 +145,7 @@ impl CodeBlock {
             compile_environments: Box::default(),
             is_class_constructor: false,
             class_field_initializer_name: None,
-            parameters_env_bindings: None,
+            parameters_env_bindings: false,
             #[cfg(feature = "trace")]
             trace: std::cell::Cell::new(false),
         }
@@ -284,9 +275,12 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 result
             }
-            Opcode::PushDeclarativeEnvironment
-            | Opcode::PushFunctionEnvironment
-            | Opcode::CopyDataProperties
+            Opcode::PushDeclarativeEnvironment | Opcode::PushFunctionEnvironment => {
+                let operand = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                format!("index: {operand}")
+            }
+            Opcode::CopyDataProperties
             | Opcode::Break
             | Opcode::Continue
             | Opcode::LoopStart
@@ -1033,7 +1027,7 @@ impl JsObject {
             FunctionSlots::new(this, self.clone(), None),
         );
 
-        if let Some(_bindings) = code.parameters_env_bindings {
+        if code.parameters_env_bindings {
             last_env -= 1;
             context
                 .vm
@@ -1292,7 +1286,7 @@ impl JsObject {
                     ),
                 );
 
-                if let Some(_bindings) = code.parameters_env_bindings {
+                if code.parameters_env_bindings {
                     context
                         .vm
                         .environments

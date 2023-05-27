@@ -262,8 +262,8 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// The environment that is currently active.
     pub(crate) current_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
 
-    /// The number of bindings in the parameters environment.
-    pub(crate) parameters_env_bindings: Option<u32>,
+    /// Does this function have a parameters environment.
+    pub(crate) parameters_env_bindings: bool,
 
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
@@ -312,7 +312,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             compile_environments: Vec::default(),
             is_class_constructor: false,
             class_field_initializer_name: None,
-            parameters_env_bindings: None,
+            parameters_env_bindings: false,
 
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
@@ -515,7 +515,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
     /// Emit an opcode with a dummy operand.
     /// Return the `Label` of the operand.
-    fn emit_opcode_with_operand(&mut self, opcode: Opcode) -> Label {
+    pub(crate) fn emit_opcode_with_operand(&mut self, opcode: Opcode) -> Label {
         let index = self.next_opcode_location();
         self.emit(opcode, &[Self::DUMMY_ADDRESS]);
         Label { index }
