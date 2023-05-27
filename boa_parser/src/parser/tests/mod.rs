@@ -30,7 +30,6 @@ use boa_interner::Interner;
 use boa_macros::utf16;
 
 /// Checks that the given JavaScript string gives the expected expression.
-#[allow(clippy::unwrap_used)]
 #[track_caller]
 pub(super) fn check_script_parser<L>(js: &str, expr: L, interner: &mut Interner)
 where

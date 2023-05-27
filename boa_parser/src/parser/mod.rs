@@ -109,9 +109,9 @@ impl From<bool> for AllowDefault {
 /// [label]: https://tc39.es/ecma262/#sec-labelled-function-declarations
 /// [block]: https://tc39.es/ecma262/#sec-block-duplicates-allowed-static-semantics
 #[derive(Debug)]
-#[allow(unused)] // Right now the path is not used, but it's better to have it for future improvements.
 pub struct Parser<'a, R> {
     /// Path to the source being parsed.
+    #[allow(unused)] // Good to have for future improvements.
     path: Option<&'a Path>,
     /// Cursor of the parser, pointing to the lexer and used to get tokens for the parser.
     cursor: Cursor<R>,

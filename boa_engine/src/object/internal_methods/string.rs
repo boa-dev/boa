@@ -134,7 +134,6 @@ pub(crate) fn string_exotic_own_property_keys(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty
-#[allow(clippy::float_cmp)]
 fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<PropertyDescriptor> {
     // 1. Assert: S is an Object that has a [[StringData]] internal slot.
     // 2. Assert: IsPropertyKey(P) is true.

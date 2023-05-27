@@ -1,5 +1,4 @@
 //! Tests for the lexer.
-#![allow(clippy::indexing_slicing)]
 
 use crate::lexer::{
     template::TemplateString,

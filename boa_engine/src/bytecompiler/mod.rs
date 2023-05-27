@@ -73,7 +73,6 @@ impl FunctionKind {
 
 /// Describes the complete specification of a function node.
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[allow(single_use_lifetimes)]
 pub(crate) struct FunctionSpec<'a> {
     pub(crate) kind: FunctionKind,
     pub(crate) name: Option<Identifier>,
@@ -606,8 +605,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         }
     }
 
-    // The wrap is needed so it can match the function signature.
-    #[allow(clippy::unnecessary_wraps)]
     fn access_set_top_of_stack_expr_fn(compiler: &mut ByteCompiler<'_, '_>, level: u8) {
         match level {
             0 => {}

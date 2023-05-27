@@ -2,7 +2,6 @@ use crate::{run_test_actions, TestAction};
 use indoc::indoc;
 
 /// Test the correct type is returned from call and construct
-#[allow(clippy::unwrap_used)]
 #[test]
 fn construct_and_call() {
     run_test_actions([

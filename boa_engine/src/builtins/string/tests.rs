@@ -73,7 +73,6 @@ fn generic_concat() {
     ]);
 }
 
-#[allow(clippy::unwrap_used)]
 #[test]
 /// Test the correct type is returned from call and construct
 fn construct_and_call() {
