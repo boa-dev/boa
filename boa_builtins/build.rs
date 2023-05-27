@@ -1137,6 +1137,23 @@ fn main() -> io::Result<()> {
             .method(utf16!("containing"))
             .method(WellKnown::Iterator)
             .build(file)?;
+
+        BuiltInBuilderConstructor::new(&context, "INTL_LOCALE")
+            .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
+            .method(utf16!("maximize"))
+            .method(utf16!("minimize"))
+            .method(utf16!("toString"))
+            .accessor(utf16!("baseName"), Attribute::CONFIGURABLE)
+            .accessor(utf16!("calendar"), Attribute::CONFIGURABLE)
+            .accessor(utf16!("caseFirst"), Attribute::CONFIGURABLE)
+            .accessor(utf16!("collation"), Attribute::CONFIGURABLE)
+            .accessor(utf16!("hourCycle"), Attribute::CONFIGURABLE)
+            .accessor(utf16!("numeric"), Attribute::CONFIGURABLE)
+            .accessor(utf16!("numberingSystem"), Attribute::CONFIGURABLE)
+            .accessor(utf16!("language"), Attribute::CONFIGURABLE)
+            .accessor(utf16!("script"), Attribute::CONFIGURABLE)
+            .accessor(utf16!("region"), Attribute::CONFIGURABLE)
+            .build(file)?;
     }
 
     context.build(file)?;

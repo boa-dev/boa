@@ -21,8 +21,6 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::Attribute,
-    symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
@@ -75,76 +73,26 @@ impl IntrinsicObject for Locale {
             .name("get region")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(
-                JsSymbol::to_string_tag(),
-                "Intl.Locale",
-                Attribute::CONFIGURABLE,
-            )
-            .method(Self::maximize, "maximize", 0)
-            .method(Self::minimize, "minimize", 0)
-            .method(Self::to_string, "toString", 0)
-            .accessor(
-                utf16!("baseName"),
-                Some(base_name),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("calendar"),
-                Some(calendar),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("caseFirst"),
-                Some(case_first),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("collation"),
-                Some(collation),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("hourCycle"),
-                Some(hour_cycle),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("numeric"),
-                Some(numeric),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("numberingSystem"),
-                Some(numbering_system),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("language"),
-                Some(language),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("script"),
-                Some(script),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("region"),
-                Some(region),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::INTL_LOCALE_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::INTL_LOCALE_PROTOTYPE_STATIC_SHAPE,
+        )
+        .property("Intl.Locale")
+        .method(Self::maximize, 0)
+        .method(Self::minimize, 0)
+        .method(Self::to_string, 0)
+        .accessor(Some(base_name), None)
+        .accessor(Some(calendar), None)
+        .accessor(Some(case_first), None)
+        .accessor(Some(collation), None)
+        .accessor(Some(hour_cycle), None)
+        .accessor(Some(numeric), None)
+        .accessor(Some(numbering_system), None)
+        .accessor(Some(language), None)
+        .accessor(Some(script), None)
+        .accessor(Some(region), None)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
