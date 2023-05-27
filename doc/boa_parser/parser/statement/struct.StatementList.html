@@ -26,7 +26,7 @@
     R: <a class="trait" href="https://doc.rust-lang.org/1.69.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>,</span></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.parse" class="method trait-impl"><a class="srclink rightside" href="../../../src/boa_parser/parser/statement/mod.rs.html#290-369">source</a><a href="#method.parse" class="anchor">§</a><h4 class="code-header">fn <a href="../trait.TokenParser.html#tymethod.parse" class="fn">parse</a>(
     self,
     cursor: &amp;mut <a class="struct" href="../cursor/struct.Cursor.html" title="struct boa_parser::parser::cursor::Cursor">Cursor</a>&lt;R&gt;,
-    interner: &amp;mut Interner
+    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;Self::<a class="associatedtype" href="../trait.TokenParser.html#associatedtype.Output" title="type boa_parser::parser::TokenParser::Output">Output</a>&gt;</h4></section></summary><div class="docblock"><p>The function parses a <code>node::StatementList</code> using the <code>StatementList</code>’s
 <code>break_nodes</code> to know when to terminate.</p>
 <p>Returns a <code>ParseError::AbruptEnd</code> if end of stream is reached before a
