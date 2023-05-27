@@ -373,7 +373,7 @@
             .into();
 
         <span class="kw">let </span>succeeded = object.__set__(name.clone(), value.clone(), receiver, context)<span class="question-mark">?</span>;
-        <span class="kw">if </span>!succeeded &amp;&amp; context.vm.frame().code_block.strict {
+        <span class="kw">if </span>!succeeded &amp;&amp; context.vm.frame().code_block.strict() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot set non-writable property: {name}&quot;</span>))
                 .into());
@@ -464,7 +464,7 @@
                                         .configurable(<span class="bool-val">false</span>)
                                         .build(),
                                 );
-                            } <span class="kw">else if </span>context.vm.frame().code_block.strict {
+                            } <span class="kw">else if </span>context.vm.frame().code_block.strict() {
                                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;TypeError: Cannot assign to read only property &#39;length&#39; of array object&quot;</span>).into());
                             }
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
@@ -478,7 +478,7 @@
         </span>object.set(
             key,
             value.clone(),
-            context.vm.frame().code_block.strict,
+            context.vm.frame().code_block.strict(),
             context,
         )<span class="question-mark">?</span>;
         context.vm.stack.push(value);

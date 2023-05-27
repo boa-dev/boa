@@ -556,16 +556,8 @@
 <a href="#555" id="555">555</a>
 <a href="#556" id="556">556</a>
 <a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal};
-<span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, Opcode};
+<span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, CodeBlockFlags, Opcode};
 <span class="kw">use </span>boa_ast::{
     expression::Identifier,
     function::{Class, ClassElement, FormalParameterList},
@@ -593,7 +585,7 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(class_name) = class.name() {
             <span class="kw">if </span>class.has_binding_identifier() {
-                compiler.has_binding_identifier = <span class="bool-val">true</span>;
+                compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
                 compiler.push_compile_environment(<span class="bool-val">false</span>);
                 compiler.create_immutable_binding(class_name, <span class="bool-val">true</span>);
             }
@@ -605,7 +597,7 @@
             compiler.length = expr.parameters().length();
             compiler.params = expr.parameters().clone();
 
-            <span class="kw">let </span>(env_labels, <span class="kw">_</span>) = compiler.function_declaration_instantiation(
+            <span class="kw">let </span>(env_label, <span class="kw">_</span>) = compiler.function_declaration_instantiation(
                 expr.body(),
                 expr.parameters(),
                 <span class="bool-val">false</span>,
@@ -615,23 +607,20 @@
 
             compiler.compile_statement_list(expr.body().statements(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
-            <span class="kw">let </span>env_info = compiler.pop_compile_environment();
+            <span class="kw">let </span>env_index = compiler.pop_compile_environment();
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(env_labels) = env_labels {
-                compiler.patch_jump_with_target(env_labels.<span class="number">0</span>, env_info.num_bindings);
-                compiler.patch_jump_with_target(env_labels.<span class="number">1</span>, env_info.index);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(env_label) = env_label {
+                compiler.patch_jump_with_target(env_label, env_index);
                 compiler.pop_compile_environment();
             } <span class="kw">else </span>{
-                compiler.num_bindings = env_info.num_bindings;
-                compiler.is_class_constructor = <span class="bool-val">true</span>;
+                compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
             }
         } <span class="kw">else </span>{
             <span class="kw">if </span>class.super_ref().is_some() {
                 compiler.emit_opcode(Opcode::SuperCallDerived);
             }
-            <span class="kw">let </span>env_info = compiler.pop_compile_environment();
-            compiler.num_bindings = env_info.num_bindings;
-            compiler.is_class_constructor = <span class="bool-val">true</span>;
+            compiler.pop_compile_environment();
+            compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
         }
 
         <span class="kw">if </span>class.name().is_some() &amp;&amp; class.has_binding_identifier() {
@@ -647,11 +636,11 @@
         <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
         <span class="self">self</span>.emit_u8(<span class="number">0</span>);
 
-        <span class="kw">let </span>class_env: <span class="prelude-ty">Option</span>&lt;(<span class="kw">super</span>::Label, <span class="kw">super</span>::Label)&gt; = <span class="kw">match </span>class.name() {
+        <span class="kw">let </span>class_env: <span class="prelude-ty">Option</span>&lt;<span class="kw">super</span>::Label&gt; = <span class="kw">match </span>class.name() {
             <span class="prelude-val">Some</span>(name) <span class="kw">if </span>class.has_binding_identifier() =&gt; {
                 <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
                 <span class="self">self</span>.create_immutable_binding(name, <span class="bool-val">true</span>);
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment))
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         };
@@ -832,9 +821,8 @@
                     } <span class="kw">else </span>{
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    <span class="kw">let </span>env_info = field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
-                    field_compiler.num_bindings = env_info.num_bindings;
+                    field_compiler.pop_compile_environment();
                     field_compiler.emit_opcode(Opcode::Return);
 
                     <span class="kw">let </span><span class="kw-2">mut </span>code = field_compiler.finish();
@@ -864,9 +852,8 @@
                     } <span class="kw">else </span>{
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    <span class="kw">let </span>env_info = field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
-                    field_compiler.num_bindings = env_info.num_bindings;
+                    field_compiler.pop_compile_environment();
                     field_compiler.emit_opcode(Opcode::Return);
 
                     <span class="kw">let </span><span class="kw-2">mut </span>code = field_compiler.finish();
@@ -906,9 +893,8 @@
                     } <span class="kw">else </span>{
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    <span class="kw">let </span>env_info = field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
-                    field_compiler.num_bindings = env_info.num_bindings;
+                    field_compiler.pop_compile_environment();
                     field_compiler.emit_opcode(Opcode::Return);
 
                     <span class="kw">let </span><span class="kw-2">mut </span>code = field_compiler.finish();
@@ -958,9 +944,8 @@
                     );
 
                     compiler.compile_statement_list(body.statements(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
-                    <span class="kw">let </span>env_info = compiler.pop_compile_environment();
                     compiler.pop_compile_environment();
-                    compiler.num_bindings = env_info.num_bindings;
+                    compiler.pop_compile_environment();
 
                     <span class="kw">let </span>code = Gc::new(compiler.finish());
                     <span class="kw">let </span>index = <span class="self">self</span>.functions.len() <span class="kw">as </span>u32;
@@ -1113,9 +1098,8 @@
         <span class="self">self</span>.emit_opcode(Opcode::Pop);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(class_env) = class_env {
-            <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
-            <span class="self">self</span>.patch_jump_with_target(class_env.<span class="number">0</span>, env_info.num_bindings);
-            <span class="self">self</span>.patch_jump_with_target(class_env.<span class="number">1</span>, env_info.index);
+            <span class="kw">let </span>env_index = <span class="self">self</span>.pop_compile_environment();
+            <span class="self">self</span>.patch_jump_with_target(class_env, env_index);
             <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
         }
 

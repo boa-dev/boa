@@ -1153,8 +1153,6 @@
 <a href="#1152" id="1152">1152</a>
 <a href="#1153" id="1153">1153</a>
 <a href="#1154" id="1154">1154</a>
-<a href="#1155" id="1155">1155</a>
-<a href="#1156" id="1156">1156</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
     vm::{create_function_object_fast, create_generator_function_object, BindingOpcode, Opcode},
@@ -1417,7 +1415,7 @@
                 .name(name.sym())
                 .generator(generator)
                 .r#async(r#async)
-                .strict(<span class="self">self</span>.strict)
+                .strict(<span class="self">self</span>.strict())
                 .binding_identifier(<span class="prelude-val">Some</span>(name.sym()))
                 .compile(
                     parameters,
@@ -1829,7 +1827,7 @@
                 .name(name.sym())
                 .generator(generator)
                 .r#async(r#async)
-                .strict(<span class="self">self</span>.strict)
+                .strict(<span class="self">self</span>.strict())
                 .binding_identifier(<span class="prelude-val">Some</span>(name.sym()))
                 .compile(
                     parameters,
@@ -1934,8 +1932,8 @@
         arrow: bool,
         strict: bool,
         generator: bool,
-    ) -&gt; (<span class="prelude-ty">Option</span>&lt;(Label, Label)&gt;, bool) {
-        <span class="kw">let </span><span class="kw-2">mut </span>env_labels = <span class="prelude-val">None</span>;
+    ) -&gt; (<span class="prelude-ty">Option</span>&lt;Label&gt;, bool) {
+        <span class="kw">let </span><span class="kw-2">mut </span>env_label = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>additional_env = <span class="bool-val">false</span>;
 
         <span class="comment">// 1. Let calleeContext be the running execution context.
@@ -2144,8 +2142,7 @@
             // b. Let varEnv be NewDeclarativeEnvironment(env).
             // c. Set the VariableEnvironment of calleeContext to varEnv.
             </span><span class="self">self</span>.push_compile_environment(<span class="bool-val">true</span>);
-            <span class="self">self</span>.function_environment_push_location = <span class="self">self</span>.next_opcode_location();
-            env_labels = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment));
+            env_label = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(Opcode::PushFunctionEnvironment));
 
             <span class="comment">// d. Let instantiatedVarNames be a new empty List.
             </span><span class="kw">let </span><span class="kw-2">mut </span>instantiated_var_names = Vec::new();
@@ -2209,7 +2206,6 @@
             }
 
             <span class="comment">// d. Let varEnv be env.
-
             </span>instantiated_var_names
         };
 
@@ -2308,7 +2304,7 @@
         }
 
         <span class="comment">// 37. Return unused.
-        </span>(env_labels, additional_env)
+        </span>(env_label, additional_env)
     }
 }
 </code></pre></div>

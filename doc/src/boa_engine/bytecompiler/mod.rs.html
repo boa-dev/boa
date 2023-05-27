@@ -1365,29 +1365,6 @@
 <a href="#1364" id="1364">1364</a>
 <a href="#1365" id="1365">1365</a>
 <a href="#1366" id="1366">1366</a>
-<a href="#1367" id="1367">1367</a>
-<a href="#1368" id="1368">1368</a>
-<a href="#1369" id="1369">1369</a>
-<a href="#1370" id="1370">1370</a>
-<a href="#1371" id="1371">1371</a>
-<a href="#1372" id="1372">1372</a>
-<a href="#1373" id="1373">1373</a>
-<a href="#1374" id="1374">1374</a>
-<a href="#1375" id="1375">1375</a>
-<a href="#1376" id="1376">1376</a>
-<a href="#1377" id="1377">1377</a>
-<a href="#1378" id="1378">1378</a>
-<a href="#1379" id="1379">1379</a>
-<a href="#1380" id="1380">1380</a>
-<a href="#1381" id="1381">1381</a>
-<a href="#1382" id="1382">1382</a>
-<a href="#1383" id="1383">1383</a>
-<a href="#1384" id="1384">1384</a>
-<a href="#1385" id="1385">1385</a>
-<a href="#1386" id="1386">1386</a>
-<a href="#1387" id="1387">1387</a>
-<a href="#1388" id="1388">1388</a>
-<a href="#1389" id="1389">1389</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1401,11 +1378,13 @@
 <span class="kw">mod </span>statement;
 <span class="kw">mod </span>utils;
 
+<span class="kw">use </span>std::cell::Cell;
+
 <span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     environments::{BindingLocator, CompileTimeEnvironment},
     js_string,
-    vm::{BindingOpcode, CodeBlock, Opcode},
+    vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
     Context, JsBigInt, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::{
@@ -1603,14 +1582,8 @@
     <span class="doccomment">/// Name of this function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) function_name: Sym,
 
-    <span class="doccomment">/// Indicates if the function is an expression and has a binding identifier.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) has_binding_identifier: bool,
-
     <span class="doccomment">/// The number of arguments expected.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) length: u32,
-
-    <span class="doccomment">/// Is this function in strict mode.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) strict: bool,
 
     <span class="doccomment">/// \[\[ThisMode\]\]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) this_mode: ThisMode,
@@ -1633,9 +1606,6 @@
     <span class="doccomment">/// Locators for all bindings in the codeblock.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) bindings: Vec&lt;BindingLocator&gt;,
 
-    <span class="doccomment">/// Number of binding for the function environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) num_bindings: u32,
-
     <span class="doccomment">/// Functions inside this function
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Vec&lt;Gc&lt;CodeBlock&gt;&gt;,
 
@@ -1645,23 +1615,13 @@
     <span class="doccomment">/// Compile time environments in this function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Vec&lt;Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;&gt;,
 
-    <span class="doccomment">/// The `[[IsClassConstructor]]` internal slot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) is_class_constructor: bool,
-
     <span class="doccomment">/// The `[[ClassFieldInitializerName]]` internal slot.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) class_field_initializer_name: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
-
-    <span class="doccomment">/// Marks the location in the code where the function environment in pushed.
-    /// This is only relevant for functions with expressions in the parameters.
-    /// We execute the parameter expressions in the function code and push the function environment afterward.
-    /// When the execution of the parameter expressions throws an error, we do not need to pop the function environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) function_environment_push_location: u32,
 
     <span class="doccomment">/// The environment that is currently active.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) current_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
 
-    <span class="doccomment">/// The number of bindings in the parameters environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) parameters_env_bindings: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) code_block_flags: CodeBlockFlags,
 
     literals_map: FxHashMap&lt;Literal, u32&gt;,
     names_map: FxHashMap&lt;Identifier, u32&gt;,
@@ -1693,26 +1653,23 @@
         <span class="comment">// TODO: remove when we separate scripts from the context
         </span>context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
     ) -&gt; ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>code_block_flags = CodeBlockFlags::empty();
+        code_block_flags.set(CodeBlockFlags::STRICT, strict);
         <span class="self">Self </span>{
             function_name: name,
-            strict,
             length: <span class="number">0</span>,
             bytecode: Vec::default(),
             literals: Vec::default(),
             names: Vec::default(),
             private_names: Vec::default(),
             bindings: Vec::default(),
-            num_bindings: <span class="number">0</span>,
             functions: Vec::default(),
-            has_binding_identifier: <span class="bool-val">false</span>,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             arguments_binding: <span class="prelude-val">None</span>,
             compile_environments: Vec::default(),
-            is_class_constructor: <span class="bool-val">false</span>,
             class_field_initializer_name: <span class="prelude-val">None</span>,
-            function_environment_push_location: <span class="number">0</span>,
-            parameters_env_bindings: <span class="prelude-val">None</span>,
+            code_block_flags,
 
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
@@ -1727,6 +1684,10 @@
             <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
             </span>annex_b_function_names: Vec::new(),
         }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.code_block_flags.contains(CodeBlockFlags::STRICT)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
@@ -1915,7 +1876,7 @@
 
     <span class="doccomment">/// Emit an opcode with a dummy operand.
     /// Return the `Label` of the operand.
-    </span><span class="kw">fn </span>emit_opcode_with_operand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) -&gt; Label {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit_opcode_with_operand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) -&gt; Label {
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.emit(opcode, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS]);
         Label { index }
@@ -2481,7 +2442,7 @@
             .name(name.map(Identifier::sym))
             .generator(generator)
             .r#async(r#async)
-            .strict(<span class="self">self</span>.strict)
+            .strict(<span class="self">self</span>.strict())
             .arrow(arrow)
             .binding_identifier(binding_identifier)
             .compile(
@@ -2575,7 +2536,7 @@
             .name(name.map(Identifier::sym))
             .generator(generator)
             .r#async(r#async)
-            .strict(<span class="self">self</span>.strict)
+            .strict(<span class="self">self</span>.strict())
             .arrow(arrow)
             .binding_identifier(binding_identifier)
             .compile(
@@ -2746,9 +2707,7 @@
     </span><span class="kw">pub fn </span>finish(<span class="self">self</span>) -&gt; CodeBlock {
         CodeBlock {
             name: <span class="self">self</span>.function_name,
-            has_binding_identifier: <span class="self">self</span>.has_binding_identifier,
             length: <span class="self">self</span>.length,
-            strict: <span class="self">self</span>.strict,
             this_mode: <span class="self">self</span>.this_mode,
             params: <span class="self">self</span>.params,
             bytecode: <span class="self">self</span>.bytecode.into_boxed_slice(),
@@ -2756,16 +2715,11 @@
             names: <span class="self">self</span>.names.into_boxed_slice(),
             private_names: <span class="self">self</span>.private_names.into_boxed_slice(),
             bindings: <span class="self">self</span>.bindings.into_boxed_slice(),
-            num_bindings: <span class="self">self</span>.num_bindings,
             functions: <span class="self">self</span>.functions.into_boxed_slice(),
             arguments_binding: <span class="self">self</span>.arguments_binding,
             compile_environments: <span class="self">self</span>.compile_environments.into_boxed_slice(),
-            is_class_constructor: <span class="self">self</span>.is_class_constructor,
             class_field_initializer_name: <span class="self">self</span>.class_field_initializer_name,
-            function_environment_push_location: <span class="self">self</span>.function_environment_push_location,
-            parameters_env_bindings: <span class="self">self</span>.parameters_env_bindings,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
-            </span>trace: std::cell::Cell::new(<span class="bool-val">false</span>),
+            flags: Cell::new(<span class="self">self</span>.code_block_flags),
         }
     }
 

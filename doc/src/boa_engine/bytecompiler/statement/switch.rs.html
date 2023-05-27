@@ -66,7 +66,6 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 <span class="kw">use </span>boa_ast::statement::Switch;
 
@@ -76,7 +75,7 @@
         <span class="self">self</span>.compile_expr(switch.val(), <span class="bool-val">true</span>);
 
         <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
-        <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+        <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment);
 
         <span class="self">self</span>.block_declaration_instantiation(switch);
 
@@ -129,9 +128,8 @@
             <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
 
-        <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings);
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, env_info.index);
+        <span class="kw">let </span>env_index = <span class="self">self</span>.pop_compile_environment();
+        <span class="self">self</span>.patch_jump_with_target(push_env, env_index);
         <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
     }
 }

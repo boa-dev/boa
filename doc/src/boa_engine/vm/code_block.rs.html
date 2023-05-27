@@ -1403,6 +1403,40 @@
 <a href="#1402" id="1402">1402</a>
 <a href="#1403" id="1403">1403</a>
 <a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1423,11 +1457,12 @@
     vm::CallFrame,
     Context, JsError, JsResult, JsString, JsValue,
 };
+<span class="kw">use </span>bitflags::bitflags;
 <span class="kw">use </span>boa_ast::function::{FormalParameterList, PrivateName};
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
+<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::{collections::VecDeque, mem::size_of};
+<span class="kw">use </span>std::{cell::Cell, collections::VecDeque, mem::size_of};
 <span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
@@ -1457,6 +1492,33 @@
 <span class="kw">unsafe impl </span>Readable <span class="kw">for </span>f32 {}
 <span class="kw">unsafe impl </span>Readable <span class="kw">for </span>f64 {}
 
+<span class="macro">bitflags! </span>{
+    <span class="doccomment">/// Flags for [`CodeBlock`].
+    </span><span class="attr">#[derive(Clone, Copy, Debug, Finalize)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CodeBlockFlags: u8 {
+        <span class="doccomment">/// Is this function in strict mode.
+        </span><span class="kw">const </span>STRICT = <span class="number">0b0000_0001</span>;
+
+        <span class="doccomment">/// Indicates if the function is an expression and has a binding identifier.
+        </span><span class="kw">const </span>HAS_BINDING_IDENTIFIER = <span class="number">0b0000_0010</span>;
+
+        <span class="doccomment">/// The `[[IsClassConstructor]]` internal slot.
+        </span><span class="kw">const </span>IS_CLASS_CONSTRUCTOR = <span class="number">0b0000_0100</span>;
+
+        <span class="doccomment">/// Does this function have a parameters environment.
+        </span><span class="kw">const </span>PARAMETERS_ENV_BINDINGS = <span class="number">0b0000_1000</span>;
+
+        <span class="doccomment">/// Trace instruction execution to `stdout`.
+        </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+        </span><span class="kw">const </span>TRACEABLE = <span class="number">0b1000_0000</span>;
+    }
+}
+
+<span class="comment">// SAFETY: Nothing in CodeBlockFlags needs tracing, so this is safe.
+</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>CodeBlockFlags {
+    <span class="macro">empty_trace!</span>();
+}
+
 <span class="doccomment">/// The internal representation of a JavaScript function.
 ///
 /// A `CodeBlock` is generated for each function compiled by the
@@ -1468,14 +1530,11 @@
     </span><span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) name: Sym,
 
-    <span class="doccomment">/// Indicates if the function is an expression and has a binding identifier.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) has_binding_identifier: bool,
+    <span class="attr">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) flags: Cell&lt;CodeBlockFlags&gt;,
 
     <span class="doccomment">/// The number of arguments expected.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) length: u32,
-
-    <span class="doccomment">/// Is this function in strict mode.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) strict: bool,
 
     <span class="doccomment">/// \[\[ThisMode\]\]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) this_mode: ThisMode,
@@ -1501,9 +1560,6 @@
     </span><span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) bindings: Box&lt;[BindingLocator]&gt;,
 
-    <span class="doccomment">/// Number of binding for the function environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) num_bindings: u32,
-
     <span class="doccomment">/// Functions inside this function
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Box&lt;[Gc&lt;<span class="self">Self</span>&gt;]&gt;,
 
@@ -1514,26 +1570,9 @@
     <span class="doccomment">/// Compile time environments in this function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Box&lt;[Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;]&gt;,
 
-    <span class="doccomment">/// The `[[IsClassConstructor]]` internal slot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) is_class_constructor: bool,
-
     <span class="doccomment">/// The `[[ClassFieldInitializerName]]` internal slot.
     </span><span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) class_field_initializer_name: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
-
-    <span class="doccomment">/// Marks the location in the code where the function environment in pushed.
-    /// This is only relevant for functions with expressions in the parameters.
-    /// We execute the parameter expressions in the function code and push the function environment afterward.
-    /// When the execution of the parameter expressions throws an error, we do not need to pop the function environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) function_environment_push_location: u32,
-
-    <span class="doccomment">/// The number of bindings in the parameters environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) parameters_env_bindings: <span class="prelude-ty">Option</span>&lt;u32&gt;,
-
-    <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
-    </span><span class="doccomment">/// Trace instruction execution to `stdout`.
-    </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) trace: std::cell::Cell&lt;bool&gt;,
 }
 
 <span class="doccomment">/// ---- `CodeBlock` public API ----
@@ -1541,28 +1580,23 @@
     <span class="doccomment">/// Creates a new `CodeBlock`.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new(name: Sym, length: u32, strict: bool) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>flags = CodeBlockFlags::empty();
+        flags.set(CodeBlockFlags::STRICT, strict);
         <span class="self">Self </span>{
             bytecode: Box::default(),
             literals: Box::default(),
             names: Box::default(),
             private_names: Box::default(),
             bindings: Box::default(),
-            num_bindings: <span class="number">0</span>,
             functions: Box::default(),
             name,
-            has_binding_identifier: <span class="bool-val">false</span>,
+            flags: Cell::new(flags),
             length,
-            strict,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             arguments_binding: <span class="prelude-val">None</span>,
             compile_environments: Box::default(),
-            is_class_constructor: <span class="bool-val">false</span>,
             class_field_initializer_name: <span class="prelude-val">None</span>,
-            function_environment_push_location: <span class="number">0</span>,
-            parameters_env_bindings: <span class="prelude-val">None</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
-            </span>trace: std::cell::Cell::new(<span class="bool-val">false</span>),
         }
     }
 
@@ -1572,11 +1606,44 @@
         <span class="self">self</span>.name
     }
 
+    <span class="doccomment">/// Check if the function is traced.
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>traceable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.get().contains(CodeBlockFlags::TRACEABLE)
+    }
     <span class="doccomment">/// Enable or disable instruction tracing to `stdout`.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
     #[inline]
-    </span><span class="kw">pub fn </span>set_trace(<span class="kw-2">&amp;</span><span class="self">self</span>, value: bool) {
-        <span class="self">self</span>.trace.set(value);
+    </span><span class="kw">pub fn </span>set_traceable(<span class="kw-2">&amp;</span><span class="self">self</span>, value: bool) {
+        <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="self">self</span>.flags.get();
+        flags.set(CodeBlockFlags::TRACEABLE, value);
+        <span class="self">self</span>.flags.set(flags);
+    }
+
+    <span class="doccomment">/// Check if the function is a class constructor.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_class_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags
+            .get()
+            .contains(CodeBlockFlags::IS_CLASS_CONSTRUCTOR)
+    }
+
+    <span class="doccomment">/// Check if the function is in strict mode.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.get().contains(CodeBlockFlags::STRICT)
+    }
+
+    <span class="doccomment">/// Indicates if the function is an expression and has a binding identifier.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_binding_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags
+            .get()
+            .contains(CodeBlockFlags::HAS_BINDING_IDENTIFIER)
+    }
+
+    <span class="doccomment">/// Does this function have a parameters environment.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_parameters_env_bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags
+            .get()
+            .contains(CodeBlockFlags::PARAMETERS_ENV_BINDINGS)
     }
 }
 
@@ -1690,9 +1757,12 @@
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 result
             }
-            Opcode::PushDeclarativeEnvironment
-            | Opcode::PushFunctionEnvironment
-            | Opcode::CopyDataProperties
+            Opcode::PushDeclarativeEnvironment | Opcode::PushFunctionEnvironment =&gt; {
+                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
+                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
+                <span class="macro">format!</span>(<span class="string">&quot;{operand}&quot;</span>)
+            }
+            Opcode::CopyDataProperties
             | Opcode::Break
             | Opcode::Continue
             | Opcode::LoopStart
@@ -2319,7 +2389,7 @@
                     ..
                 } =&gt; {
                     <span class="kw">let </span>code = code.clone();
-                    <span class="kw">if </span>code.is_class_constructor {
+                    <span class="kw">if </span>code.is_class_constructor() {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                             .with_message(<span class="string">&quot;class constructor cannot be invoked without &#39;new&#39;&quot;</span>)
                             .with_realm(context.realm().clone())
@@ -2396,7 +2466,7 @@
 
         <span class="kw">let </span>this = <span class="kw">if </span>lexical_this_mode {
             ThisBindingStatus::Lexical
-        } <span class="kw">else if </span>code.strict {
+        } <span class="kw">else if </span>code.strict() {
             ThisBindingStatus::Initialized(this.clone())
         } <span class="kw">else if </span>this.is_null_or_undefined() {
             ThisBindingStatus::Initialized(context.realm().global_this().clone().into())
@@ -2414,7 +2484,7 @@
             <span class="kw">let </span>index = context
                 .vm
                 .environments
-                .push_lexical(<span class="number">1</span>, code.compile_environments[last_env].clone());
+                .push_lexical(code.compile_environments[last_env].clone());
             context
                 .vm
                 .environments
@@ -2422,11 +2492,11 @@
             last_env -= <span class="number">1</span>;
         }
 
-        <span class="kw">if </span>code.has_binding_identifier {
+        <span class="kw">if </span>code.has_binding_identifier() {
             <span class="kw">let </span>index = context
                 .vm
                 .environments
-                .push_lexical(<span class="number">1</span>, code.compile_environments[last_env].clone());
+                .push_lexical(code.compile_environments[last_env].clone());
             context
                 .vm
                 .environments
@@ -2435,21 +2505,20 @@
         }
 
         context.vm.environments.push_function(
-            code.num_bindings,
             code.compile_environments[last_env].clone(),
             FunctionSlots::new(this, <span class="self">self</span>.clone(), <span class="prelude-val">None</span>),
         );
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(bindings) = code.parameters_env_bindings {
+        <span class="kw">if </span>code.has_parameters_env_bindings() {
             last_env -= <span class="number">1</span>;
             context
                 .vm
                 .environments
-                .push_lexical(bindings, code.compile_environments[last_env].clone());
+                .push_lexical(code.compile_environments[last_env].clone());
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
-            <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict || !code.params.is_simple() {
+            <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict() || !code.params.is_simple() {
                 Arguments::create_unmapped_arguments_object(args, context)
             } <span class="kw">else </span>{
                 <span class="kw">let </span>env = context.vm.environments.current();
@@ -2676,11 +2745,11 @@
 
                 <span class="kw">let </span><span class="kw-2">mut </span>last_env = code.compile_environments.len() - <span class="number">1</span>;
 
-                <span class="kw">if </span>code.has_binding_identifier {
+                <span class="kw">if </span>code.has_binding_identifier() {
                     <span class="kw">let </span>index = context
                         .vm
                         .environments
-                        .push_lexical(<span class="number">1</span>, code.compile_environments[last_env].clone());
+                        .push_lexical(code.compile_environments[last_env].clone());
                     context
                         .vm
                         .environments
@@ -2689,7 +2758,6 @@
                 }
 
                 context.vm.environments.push_function(
-                    code.num_bindings,
                     code.compile_environments[last_env].clone(),
                     FunctionSlots::new(
                         this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
@@ -2700,15 +2768,15 @@
                     ),
                 );
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bindings) = code.parameters_env_bindings {
+                <span class="kw">if </span>code.has_parameters_env_bindings() {
                     context
                         .vm
                         .environments
-                        .push_lexical(bindings, code.compile_environments[<span class="number">0</span>].clone());
+                        .push_lexical(code.compile_environments[<span class="number">0</span>].clone());
                 }
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
-                    <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict || !code.params.is_simple() {
+                    <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict() || !code.params.is_simple() {
                         Arguments::create_unmapped_arguments_object(args, context)
                     } <span class="kw">else </span>{
                         <span class="kw">let </span>env = context.vm.environments.current();
@@ -2745,7 +2813,7 @@
                     context.vm.push(arg.clone());
                 }
 
-                <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier;
+                <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier();
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span>script_or_module);
 

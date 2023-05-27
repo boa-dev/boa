@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["PopEnvironmentInfo"]};
+window.SIDEBAR_ITEMS = {};

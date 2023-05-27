@@ -163,12 +163,11 @@
 <a href="#162" id="162">162</a>
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     environments::CompileTimeEnvironment,
-    vm::{CodeBlock, Opcode},
+    vm::{CodeBlock, CodeBlockFlags, Opcode},
     Context,
 };
 <span class="kw">use </span>boa_ast::function::{FormalParameterList, FunctionBody};
@@ -275,7 +274,7 @@
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding_identifier) = <span class="self">self</span>.binding_identifier {
-            compiler.has_binding_identifier = <span class="bool-val">true</span>;
+            compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
             compiler.push_compile_environment(<span class="bool-val">false</span>);
             compiler.create_immutable_binding(binding_identifier.into(), <span class="self">self</span>.strict);
         }
@@ -283,7 +282,7 @@
         <span class="comment">// Function environment
         </span>compiler.push_compile_environment(<span class="bool-val">true</span>);
 
-        <span class="kw">let </span>(env_labels, additional_env) = compiler.function_declaration_instantiation(
+        <span class="kw">let </span>(env_label, additional_env) = compiler.function_declaration_instantiation(
             body,
             parameters,
             <span class="self">self</span>.arrow,
@@ -293,18 +292,17 @@
 
         compiler.compile_statement_list(body.statements(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(env_labels) = env_labels {
-            <span class="kw">let </span>env_info = compiler.pop_compile_environment();
-            compiler.patch_jump_with_target(env_labels.<span class="number">0</span>, env_info.num_bindings);
-            compiler.patch_jump_with_target(env_labels.<span class="number">1</span>, env_info.index);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(env_labels) = env_label {
+            <span class="kw">let </span>env_index = compiler.pop_compile_environment();
+            compiler.patch_jump_with_target(env_labels, env_index);
         }
 
         <span class="kw">if </span>additional_env {
-            compiler.parameters_env_bindings =
-                <span class="prelude-val">Some</span>(compiler.pop_compile_environment().num_bindings);
+            compiler.pop_compile_environment();
+            compiler.code_block_flags |= CodeBlockFlags::PARAMETERS_ENV_BINDINGS;
         }
 
-        compiler.num_bindings = compiler.pop_compile_environment().num_bindings;
+        compiler.pop_compile_environment();
 
         <span class="kw">if </span><span class="self">self</span>.binding_identifier.is_some() {
             compiler.pop_compile_environment();

@@ -128,7 +128,7 @@
             .clone()
             .into();
         <span class="kw">let </span>result = object.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
-        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict {
+        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Cannot delete property&quot;</span>)
                 .into());
@@ -155,7 +155,7 @@
         <span class="kw">let </span>object = value.to_object(context)<span class="question-mark">?</span>;
         <span class="kw">let </span>property_key = key_value.to_property_key(context)<span class="question-mark">?</span>;
         <span class="kw">let </span>result = object.__delete__(<span class="kw-2">&amp;</span>property_key, context)<span class="question-mark">?</span>;
-        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict {
+        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Cannot delete property&quot;</span>)
                 .into());

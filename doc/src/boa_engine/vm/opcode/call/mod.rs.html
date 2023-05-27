@@ -530,7 +530,7 @@
             .map(|f| <span class="macro">matches!</span>(f.kind(), FunctionKind::Native { .. }))
             .unwrap_or_default();
 
-        <span class="kw">let </span>strict = context.vm.frame().code_block.strict;
+        <span class="kw">let </span>strict = context.vm.frame().code_block.strict();
 
         <span class="kw">if </span>eval {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arguments.get(<span class="number">0</span>) {
@@ -604,7 +604,7 @@
             .map(|f| <span class="macro">matches!</span>(f.kind(), FunctionKind::Native { .. }))
             .unwrap_or_default();
 
-        <span class="kw">let </span>strict = context.vm.frame().code_block.strict;
+        <span class="kw">let </span>strict = context.vm.frame().code_block.strict();
 
         <span class="kw">if </span>eval {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arguments.get(<span class="number">0</span>) {

@@ -823,6 +823,9 @@
 <a href="#822" id="822">822</a>
 <a href="#823" id="823">823</a>
 <a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::CompileTimeEnvironment,
     error::JsNativeError,
@@ -1047,9 +1050,10 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_lexical(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        num_bindings: u32,
         compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
     ) -&gt; u32 {
+        <span class="kw">let </span>num_bindings = compile_environment.borrow().num_bindings();
+
         <span class="kw">let </span>(poisoned, with) = {
             <span class="kw">let </span>with = <span class="self">self
                 </span>.stack
@@ -1091,10 +1095,11 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        num_bindings: u32,
         compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
         function_slots: FunctionSlots,
     ) {
+        <span class="kw">let </span>num_bindings = compile_environment.borrow().num_bindings();
+
         <span class="kw">let </span>(poisoned, with) = {
             <span class="kw">let </span>with = <span class="self">self
                 </span>.stack
@@ -1134,9 +1139,10 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_function_inherit(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        num_bindings: u32,
         compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
     ) {
+        <span class="kw">let </span>num_bindings = compile_environment.borrow().num_bindings();
+
         <span class="macro">debug_assert!</span>(
             <span class="self">self</span>.stack.len() <span class="kw">as </span>u32 == compile_environment.borrow().environment_index(),
             <span class="string">&quot;tried to push an invalid compile environment&quot;

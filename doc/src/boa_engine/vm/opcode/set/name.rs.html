@@ -94,6 +94,14 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::{BindingLocator, Environment},
     vm::{opcode::Operation, CompletionType},
@@ -124,7 +132,11 @@
 
         verify_initialized(binding_locator, context)<span class="question-mark">?</span>;
 
-        context.set_binding(binding_locator, value, context.vm.frame().code_block.strict)<span class="question-mark">?</span>;
+        context.set_binding(
+            binding_locator,
+            value,
+            context.vm.frame().code_block.strict(),
+        )<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -156,7 +168,11 @@
 
         verify_initialized(binding_locator, context)<span class="question-mark">?</span>;
 
-        context.set_binding(binding_locator, value, context.vm.frame().code_block.strict)<span class="question-mark">?</span>;
+        context.set_binding(
+            binding_locator,
+            value,
+            context.vm.frame().code_block.strict(),
+        )<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -166,7 +182,7 @@
 </span><span class="kw">fn </span>verify_initialized(locator: BindingLocator, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
     <span class="kw">if </span>!context.is_initialized_binding(<span class="kw-2">&amp;</span>locator)<span class="question-mark">? </span>{
         <span class="kw">let </span>key = context.interner().resolve_expect(locator.name().sym());
-        <span class="kw">let </span>strict = context.vm.frame().code_block.strict;
+        <span class="kw">let </span>strict = context.vm.frame().code_block.strict();
 
         <span class="kw">let </span>message = <span class="kw">if </span>locator.is_global() {
             strict.then(|| <span class="macro">format!</span>(<span class="string">&quot;cannot assign to uninitialized global property `{key}`&quot;</span>))
