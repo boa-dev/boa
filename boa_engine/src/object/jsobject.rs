@@ -1104,12 +1104,10 @@ impl Debug for JsObject {
             let ptr: *const _ = self.as_ref();
             let obj = self.borrow();
             let kind = obj.kind();
-            let name_prop = self
-                .borrow()
-                .properties()
-                .get(&PropertyKey::String(JsString::from("name")));
-
-            if obj.is_function() {
+            if obj.is_function() {            
+                let name_prop = obj
+                    .properties()
+                    .get(&PropertyKey::String(JsString::from("name")));
                 let name = match name_prop {
                     None => JsString::default(),
                     Some(prop) => prop
