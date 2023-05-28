@@ -882,26 +882,10 @@ impl ByteCompiler<'_, '_> {
             additional_env = true;
         }
 
-        // 21. For each String paramName of parameterNames, do
-        for param_name in &parameter_names {
-            // a. Let alreadyDeclared be ! env.HasBinding(paramName).
-            let already_declared = self.has_binding(*param_name);
-
-            // b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict
-            //    functions that do not have parameter default values or rest parameters.
-
-            // c. If alreadyDeclared is false, then
-            if !already_declared {
-                // i. Perform ! env.CreateMutableBinding(paramName, false).
-                self.create_mutable_binding(*param_name, false);
-
-                // Note: These steps are not necessary in our implementation.
-                // ii. If hasDuplicates is true, then
-                //     1. Perform ! env.InitializeBinding(paramName, undefined).
-            }
-        }
-
         // 22. If argumentsObjectNeeded is true, then
+        //
+        // NOTE(HalidOdat): Has been moved up, so "arguments" get registed as
+        //     the first binding in the environment with index 0.
         if arguments_object_needed {
             // Note: This happens at runtime.
             // a. If strict is true or simpleParameterList is false, then
@@ -926,6 +910,32 @@ impl ByteCompiler<'_, '_> {
                 self.create_mutable_binding(arguments, false);
                 self.arguments_binding = Some(self.initialize_mutable_binding(arguments, false));
             }
+        }
+
+        // 21. For each String paramName of parameterNames, do
+        for param_name in &parameter_names {
+            // a. Let alreadyDeclared be ! env.HasBinding(paramName).
+            let already_declared = self.has_binding(*param_name);
+
+            // b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict
+            //    functions that do not have parameter default values or rest parameters.
+
+            // c. If alreadyDeclared is false, then
+            if !already_declared {
+                // i. Perform ! env.CreateMutableBinding(paramName, false).
+                self.create_mutable_binding(*param_name, false);
+
+                // Note: These steps are not necessary in our implementation.
+                // ii. If hasDuplicates is true, then
+                //     1. Perform ! env.InitializeBinding(paramName, undefined).
+            }
+        }
+
+        // 22. If argumentsObjectNeeded is true, then
+        if arguments_object_needed {
+            // MOVED: a-d.
+            //
+            // NOTE(HalidOdat): Has been moved up, see comment above.
 
             // Note: This happens at runtime.
             // e. Perform ! env.InitializeBinding("arguments", ao).
@@ -933,6 +943,7 @@ impl ByteCompiler<'_, '_> {
             // f. Let parameterBindings be the list-concatenation of parameterNames and « "arguments" ».
             parameter_names.push(arguments);
         }
+
         // 23. Else,
         //     a. Let parameterBindings be parameterNames.
         let parameter_bindings = parameter_names.clone();

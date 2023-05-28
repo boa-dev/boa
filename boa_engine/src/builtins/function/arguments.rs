@@ -155,18 +155,22 @@ impl Arguments {
         // We use indices to access environment bindings at runtime.
         // To map to function parameters to binding indices, we use the fact, that bindings in a
         // function environment start with all of the arguments in order:
+        //
+        // Note: The first binding (binding 0) is where "arguments" is stored.
+        //
         // `function f (a,b,c)`
         // | binding index | `arguments` property key | identifier |
-        // | 0             | 0                        | a          |
-        // | 1             | 1                        | b          |
-        // | 2             | 2                        | c          |
+        // | 1             | 0                        | a          |
+        // | 2             | 1                        | b          |
+        // | 3             | 2                        | c          |
         //
         // Notice that the binding index does not correspond to the argument index:
         // `function f (a,a,b)` => binding indices 0 (a), 1 (b), 2 (c)
         // | binding index | `arguments` property key | identifier |
         // | -             | 0                        | -          |
-        // | 0             | 1                        | a          |
-        // | 1             | 2                        | b          |
+        // | 1             | 1                        | a          |
+        // | 2             | 2                        | b          |
+        //
         // While the `arguments` object contains all arguments, they must not be all bound.
         // In the case of duplicate parameter names, the last one is bound as the environment binding.
         //
@@ -178,10 +182,14 @@ impl Arguments {
             if property_index >= len {
                 break;
             }
-            let binding_index = bindings.len() as u32;
+
+            // NOTE(HaledOdat): Offset by +1 to account for the fitst binding ("argument").
+            let binding_index = bindings.len() as u32 + 1;
+
             let entry = bindings
                 .entry(name)
                 .or_insert((binding_index, property_index));
+
             entry.1 = property_index;
             property_index += 1;
         }
