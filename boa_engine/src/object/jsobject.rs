@@ -1114,10 +1114,9 @@ impl Debug for JsObject {
                     None => JsString::default(),
                     Some(prop) => prop
                         .value()
-                        .expect("no name property")
-                        .as_string()
-                        .expect("cannot convert to string")
-                        .clone(),
+                        .and_then(JsValue::as_string)
+                        .cloned()
+                        .unwrap_or_default()
                 };
 
                 return f.write_fmt(format_args!("({:?}) {:?} 0x{:X}", kind, name, ptr as usize));
