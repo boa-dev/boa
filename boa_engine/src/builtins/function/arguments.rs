@@ -183,7 +183,7 @@ impl Arguments {
                 break;
             }
 
-            // NOTE(HaledOdat): Offset by +1 to account for the fitst binding ("argument").
+            // NOTE(HalidOdat): Offset by +1 to account for the first binding ("argument").
             let binding_index = bindings.len() as u32 + 1;
 
             let entry = bindings

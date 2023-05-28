@@ -69,6 +69,11 @@ bitflags! {
         /// Does this function have a parameters environment.
         const PARAMETERS_ENV_BINDINGS = 0b0000_1000;
 
+        /// Does this function need a `"arguments"` object.
+        ///
+        /// The `"arguments"` binding is the first binding.
+        const NEEDS_ARGUMENTS_OBJECT = 0b0001_0000;
+
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
         const TRACEABLE = 0b1000_0000;
@@ -124,10 +129,6 @@ pub struct CodeBlock {
     /// Functions inside this function
     pub(crate) functions: Box<[Gc<Self>]>,
 
-    /// The `arguments` binding location of the function, if set.
-    #[unsafe_ignore_trace]
-    pub(crate) arguments_binding: Option<BindingLocator>,
-
     /// Compile time environments in this function.
     pub(crate) compile_environments: Box<[Gc<GcRefCell<CompileTimeEnvironment>>]>,
 
@@ -155,7 +156,6 @@ impl CodeBlock {
             length,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
-            arguments_binding: None,
             compile_environments: Box::default(),
             class_field_initializer_name: None,
         }
@@ -205,6 +205,13 @@ impl CodeBlock {
         self.flags
             .get()
             .contains(CodeBlockFlags::PARAMETERS_ENV_BINDINGS)
+    }
+
+    /// Does this function need a `"arguments"` object.
+    pub(crate) fn needs_arguments_object(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT)
     }
 }
 
@@ -1078,7 +1085,19 @@ impl JsObject {
                 .push_lexical(code.compile_environments[last_env].clone());
         }
 
-        if let Some(binding) = code.arguments_binding {
+        // Taken from: `FunctionDeclarationInstantiation` abstract function.
+        //
+        // Spec: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
+        //
+        // 22. If argumentsObjectNeeded is true, then
+        if code.needs_arguments_object() {
+            // a. If strict is true or simpleParameterList is false, then
+            //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+            // b. Else,
+            //     i. NOTE: A mapped argument object is only provided for non-strict functions
+            //              that don't have a rest parameter, any parameter
+            //              default value initializers, or any destructured parameters.
+            //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
             let arguments_obj = if code.strict() || !code.params.is_simple() {
                 Arguments::create_unmapped_arguments_object(args, context)
             } else {
@@ -1091,11 +1110,11 @@ impl JsObject {
                     context,
                 )
             };
-            context.vm.environments.put_lexical_value(
-                binding.environment_index(),
-                binding.binding_index(),
-                arguments_obj.into(),
-            );
+            let env_index = context.vm.environments.len() as u32 - 1;
+            context
+                .vm
+                .environments
+                .put_lexical_value(env_index, 0, arguments_obj.into());
         }
 
         let argument_count = args.len();
@@ -1336,7 +1355,19 @@ impl JsObject {
                         .push_lexical(code.compile_environments[0].clone());
                 }
 
-                if let Some(binding) = code.arguments_binding {
+                // Taken from: `FunctionDeclarationInstantiation` abstract function.
+                //
+                // Spec: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
+                //
+                // 22. If argumentsObjectNeeded is true, then
+                if code.needs_arguments_object() {
+                    // a. If strict is true or simpleParameterList is false, then
+                    //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+                    // b. Else,
+                    //     i. NOTE: A mapped argument object is only provided for non-strict functions
+                    //              that don't have a rest parameter, any parameter
+                    //              default value initializers, or any destructured parameters.
+                    //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
                     let arguments_obj = if code.strict() || !code.params.is_simple() {
                         Arguments::create_unmapped_arguments_object(args, context)
                     } else {
@@ -1349,11 +1380,12 @@ impl JsObject {
                             context,
                         )
                     };
-                    context.vm.environments.put_lexical_value(
-                        binding.environment_index(),
-                        binding.binding_index(),
-                        arguments_obj.into(),
-                    );
+
+                    let env_index = context.vm.environments.len() as u32 - 1;
+                    context
+                        .vm
+                        .environments
+                        .put_lexical_value(env_index, 0, arguments_obj.into());
                 }
 
                 let argument_count = args.len();

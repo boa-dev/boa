@@ -1,6 +1,9 @@
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
-    vm::{create_function_object_fast, create_generator_function_object, BindingOpcode, Opcode},
+    vm::{
+        create_function_object_fast, create_generator_function_object, BindingOpcode,
+        CodeBlockFlags, Opcode,
+    },
     JsNativeError, JsResult,
 };
 use boa_ast::{
@@ -844,7 +847,7 @@ impl ByteCompiler<'_, '_> {
         function_names.reverse();
         functions_to_initialize.reverse();
 
-        //15. Let argumentsObjectNeeded be true.
+        // 15. Let argumentsObjectNeeded be true.
         let mut arguments_object_needed = true;
 
         let arguments = Sym::ARGUMENTS.into();
@@ -884,7 +887,7 @@ impl ByteCompiler<'_, '_> {
 
         // 22. If argumentsObjectNeeded is true, then
         //
-        // NOTE(HalidOdat): Has been moved up, so "arguments" get registed as
+        // NOTE(HalidOdat): Has been moved up, so "arguments" gets registed as
         //     the first binding in the environment with index 0.
         if arguments_object_needed {
             // Note: This happens at runtime.
@@ -902,14 +905,14 @@ impl ByteCompiler<'_, '_> {
                 // ii. NOTE: In strict mode code early errors prevent attempting to assign
                 //           to this binding, so its mutability is not observable.
                 self.create_immutable_binding(arguments, false);
-                self.arguments_binding = Some(self.initialize_immutable_binding(arguments));
             }
             // d. Else,
             else {
                 // i. Perform ! env.CreateMutableBinding("arguments", false).
                 self.create_mutable_binding(arguments, false);
-                self.arguments_binding = Some(self.initialize_mutable_binding(arguments, false));
             }
+
+            self.code_block_flags |= CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT;
         }
 
         // 21. For each String paramName of parameterNames, do
