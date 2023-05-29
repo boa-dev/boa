@@ -23,6 +23,11 @@ impl<T: Trace> WeakGc<T> {
     pub fn upgrade(&self) -> Option<Gc<T>> {
         self.inner.value()
     }
+
+    /// Check if the [`WeakGc`] can be upgraded.
+    pub fn is_upgradable(&self) -> bool {
+        self.inner.has_value()
+    }
 }
 
 impl<T: Trace> Clone for WeakGc<T> {
