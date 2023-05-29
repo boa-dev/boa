@@ -1437,6 +1437,38 @@
 <a href="#1436" id="1436">1436</a>
 <a href="#1437" id="1437">1437</a>
 <a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1508,6 +1540,11 @@
         <span class="doccomment">/// Does this function have a parameters environment.
         </span><span class="kw">const </span>PARAMETERS_ENV_BINDINGS = <span class="number">0b0000_1000</span>;
 
+        <span class="doccomment">/// Does this function need a `&quot;arguments&quot;` object.
+        ///
+        /// The `&quot;arguments&quot;` binding is the first binding.
+        </span><span class="kw">const </span>NEEDS_ARGUMENTS_OBJECT = <span class="number">0b0001_0000</span>;
+
         <span class="doccomment">/// Trace instruction execution to `stdout`.
         </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
         </span><span class="kw">const </span>TRACEABLE = <span class="number">0b1000_0000</span>;
@@ -1563,10 +1600,6 @@
     <span class="doccomment">/// Functions inside this function
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Box&lt;[Gc&lt;<span class="self">Self</span>&gt;]&gt;,
 
-    <span class="doccomment">/// The `arguments` binding location of the function, if set.
-    </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) arguments_binding: <span class="prelude-ty">Option</span>&lt;BindingLocator&gt;,
-
     <span class="doccomment">/// Compile time environments in this function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Box&lt;[Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;]&gt;,
 
@@ -1594,7 +1627,6 @@
             length,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
-            arguments_binding: <span class="prelude-val">None</span>,
             compile_environments: Box::default(),
             class_field_initializer_name: <span class="prelude-val">None</span>,
         }
@@ -1644,6 +1676,13 @@
         <span class="self">self</span>.flags
             .get()
             .contains(CodeBlockFlags::PARAMETERS_ENV_BINDINGS)
+    }
+
+    <span class="doccomment">/// Does this function need a `&quot;arguments&quot;` object.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>needs_arguments_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags
+            .get()
+            .contains(CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT)
     }
 }
 
@@ -2517,8 +2556,20 @@
                 .push_lexical(code.compile_environments[last_env].clone());
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
-            <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict() || !code.params.is_simple() {
+        <span class="comment">// Taken from: `FunctionDeclarationInstantiation` abstract function.
+        //
+        // Spec: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
+        //
+        // 22. If argumentsObjectNeeded is true, then
+        </span><span class="kw">if </span>code.needs_arguments_object() {
+            <span class="comment">// a. If strict is true or simpleParameterList is false, then
+            //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+            // b. Else,
+            //     i. NOTE: A mapped argument object is only provided for non-strict functions
+            //              that don&#39;t have a rest parameter, any parameter
+            //              default value initializers, or any destructured parameters.
+            //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
+            </span><span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict() || !code.params.is_simple() {
                 Arguments::create_unmapped_arguments_object(args, context)
             } <span class="kw">else </span>{
                 <span class="kw">let </span>env = context.vm.environments.current();
@@ -2530,11 +2581,11 @@
                     context,
                 )
             };
-            context.vm.environments.put_lexical_value(
-                binding.environment_index(),
-                binding.binding_index(),
-                arguments_obj.into(),
-            );
+            <span class="kw">let </span>env_index = context.vm.environments.len() <span class="kw">as </span>u32 - <span class="number">1</span>;
+            context
+                .vm
+                .environments
+                .put_lexical_value(env_index, <span class="number">0</span>, arguments_obj.into());
         }
 
         <span class="kw">let </span>argument_count = args.len();
@@ -2775,8 +2826,20 @@
                         .push_lexical(code.compile_environments[<span class="number">0</span>].clone());
                 }
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
-                    <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict() || !code.params.is_simple() {
+                <span class="comment">// Taken from: `FunctionDeclarationInstantiation` abstract function.
+                //
+                // Spec: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
+                //
+                // 22. If argumentsObjectNeeded is true, then
+                </span><span class="kw">if </span>code.needs_arguments_object() {
+                    <span class="comment">// a. If strict is true or simpleParameterList is false, then
+                    //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+                    // b. Else,
+                    //     i. NOTE: A mapped argument object is only provided for non-strict functions
+                    //              that don&#39;t have a rest parameter, any parameter
+                    //              default value initializers, or any destructured parameters.
+                    //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
+                    </span><span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict() || !code.params.is_simple() {
                         Arguments::create_unmapped_arguments_object(args, context)
                     } <span class="kw">else </span>{
                         <span class="kw">let </span>env = context.vm.environments.current();
@@ -2788,11 +2851,12 @@
                             context,
                         )
                     };
-                    context.vm.environments.put_lexical_value(
-                        binding.environment_index(),
-                        binding.binding_index(),
-                        arguments_obj.into(),
-                    );
+
+                    <span class="kw">let </span>env_index = context.vm.environments.len() <span class="kw">as </span>u32 - <span class="number">1</span>;
+                    context
+                        .vm
+                        .environments
+                        .put_lexical_value(env_index, <span class="number">0</span>, arguments_obj.into());
                 }
 
                 <span class="kw">let </span>argument_count = args.len();

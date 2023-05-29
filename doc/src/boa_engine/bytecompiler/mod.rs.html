@@ -1360,11 +1360,6 @@
 <a href="#1359" id="1359">1359</a>
 <a href="#1360" id="1360">1360</a>
 <a href="#1361" id="1361">1361</a>
-<a href="#1362" id="1362">1362</a>
-<a href="#1363" id="1363">1363</a>
-<a href="#1364" id="1364">1364</a>
-<a href="#1365" id="1365">1365</a>
-<a href="#1366" id="1366">1366</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1609,9 +1604,6 @@
     <span class="doccomment">/// Functions inside this function
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Vec&lt;Gc&lt;CodeBlock&gt;&gt;,
 
-    <span class="doccomment">/// The `arguments` binding location of the function, if set.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) arguments_binding: <span class="prelude-ty">Option</span>&lt;BindingLocator&gt;,
-
     <span class="doccomment">/// Compile time environments in this function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Vec&lt;Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;&gt;,
 
@@ -1666,7 +1658,6 @@
             functions: Vec::default(),
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
-            arguments_binding: <span class="prelude-val">None</span>,
             compile_environments: Vec::default(),
             class_field_initializer_name: <span class="prelude-val">None</span>,
             code_block_flags,
@@ -2716,7 +2707,6 @@
             private_names: <span class="self">self</span>.private_names.into_boxed_slice(),
             bindings: <span class="self">self</span>.bindings.into_boxed_slice(),
             functions: <span class="self">self</span>.functions.into_boxed_slice(),
-            arguments_binding: <span class="self">self</span>.arguments_binding,
             compile_environments: <span class="self">self</span>.compile_environments.into_boxed_slice(),
             class_field_initializer_name: <span class="self">self</span>.class_field_initializer_name,
             flags: Cell::new(<span class="self">self</span>.code_block_flags),

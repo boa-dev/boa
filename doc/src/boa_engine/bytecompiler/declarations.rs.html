@@ -1153,9 +1153,26 @@
 <a href="#1152" id="1152">1152</a>
 <a href="#1153" id="1153">1153</a>
 <a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
-    vm::{create_function_object_fast, create_generator_function_object, BindingOpcode, Opcode},
+    vm::{
+        create_function_object_fast, create_generator_function_object, BindingOpcode,
+        CodeBlockFlags, Opcode,
+    },
     JsNativeError, JsResult,
 };
 <span class="kw">use </span>boa_ast::{
@@ -1999,7 +2016,7 @@
         function_names.reverse();
         functions_to_initialize.reverse();
 
-        <span class="comment">//15. Let argumentsObjectNeeded be true.
+        <span class="comment">// 15. Let argumentsObjectNeeded be true.
         </span><span class="kw">let </span><span class="kw-2">mut </span>arguments_object_needed = <span class="bool-val">true</span>;
 
         <span class="kw">let </span>arguments = Sym::ARGUMENTS.into();
@@ -2037,6 +2054,36 @@
             additional_env = <span class="bool-val">true</span>;
         }
 
+        <span class="comment">// 22. If argumentsObjectNeeded is true, then
+        //
+        // NOTE(HalidOdat): Has been moved up, so &quot;arguments&quot; gets registed as
+        //     the first binding in the environment with index 0.
+        </span><span class="kw">if </span>arguments_object_needed {
+            <span class="comment">// Note: This happens at runtime.
+            // a. If strict is true or simpleParameterList is false, then
+            //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+            // b. Else,
+            //     i. NOTE: A mapped argument object is only provided for non-strict functions
+            //              that don&#39;t have a rest parameter, any parameter
+            //              default value initializers, or any destructured parameters.
+            //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
+
+            // c. If strict is true, then
+            </span><span class="kw">if </span>strict {
+                <span class="comment">// i. Perform ! env.CreateImmutableBinding(&quot;arguments&quot;, false).
+                // ii. NOTE: In strict mode code early errors prevent attempting to assign
+                //           to this binding, so its mutability is not observable.
+                </span><span class="self">self</span>.create_immutable_binding(arguments, <span class="bool-val">false</span>);
+            }
+            <span class="comment">// d. Else,
+            </span><span class="kw">else </span>{
+                <span class="comment">// i. Perform ! env.CreateMutableBinding(&quot;arguments&quot;, false).
+                </span><span class="self">self</span>.create_mutable_binding(arguments, <span class="bool-val">false</span>);
+            }
+
+            <span class="self">self</span>.code_block_flags |= CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT;
+        }
+
         <span class="comment">// 21. For each String paramName of parameterNames, do
         </span><span class="kw">for </span>param_name <span class="kw">in </span><span class="kw-2">&amp;</span>parameter_names {
             <span class="comment">// a. Let alreadyDeclared be ! env.HasBinding(paramName).
@@ -2058,36 +2105,17 @@
 
         <span class="comment">// 22. If argumentsObjectNeeded is true, then
         </span><span class="kw">if </span>arguments_object_needed {
-            <span class="comment">// Note: This happens at runtime.
-            // a. If strict is true or simpleParameterList is false, then
-            //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
-            // b. Else,
-            //     i. NOTE: A mapped argument object is only provided for non-strict functions
-            //              that don&#39;t have a rest parameter, any parameter
-            //              default value initializers, or any destructured parameters.
-            //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
+            <span class="comment">// MOVED: a-d.
+            //
+            // NOTE(HalidOdat): Has been moved up, see comment above.
 
-            // c. If strict is true, then
-            </span><span class="kw">if </span>strict {
-                <span class="comment">// i. Perform ! env.CreateImmutableBinding(&quot;arguments&quot;, false).
-                // ii. NOTE: In strict mode code early errors prevent attempting to assign
-                //           to this binding, so its mutability is not observable.
-                </span><span class="self">self</span>.create_immutable_binding(arguments, <span class="bool-val">false</span>);
-                <span class="self">self</span>.arguments_binding = <span class="prelude-val">Some</span>(<span class="self">self</span>.initialize_immutable_binding(arguments));
-            }
-            <span class="comment">// d. Else,
-            </span><span class="kw">else </span>{
-                <span class="comment">// i. Perform ! env.CreateMutableBinding(&quot;arguments&quot;, false).
-                </span><span class="self">self</span>.create_mutable_binding(arguments, <span class="bool-val">false</span>);
-                <span class="self">self</span>.arguments_binding = <span class="prelude-val">Some</span>(<span class="self">self</span>.initialize_mutable_binding(arguments, <span class="bool-val">false</span>));
-            }
-
-            <span class="comment">// Note: This happens at runtime.
+            // Note: This happens at runtime.
             // e. Perform ! env.InitializeBinding(&quot;arguments&quot;, ao).
 
             // f. Let parameterBindings be the list-concatenation of parameterNames and « &quot;arguments&quot; ».
             </span>parameter_names.push(arguments);
         }
+
         <span class="comment">// 23. Else,
         //     a. Let parameterBindings be parameterNames.
         </span><span class="kw">let </span>parameter_bindings = parameter_names.clone();

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["ForwardTransition","Inner"],"type":["TransitionMap"]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["ForwardTransition","Inner","TransitionMap"]};
