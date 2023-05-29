@@ -1,6 +1,9 @@
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
-    vm::{create_function_object_fast, create_generator_function_object, BindingOpcode, Opcode},
+    vm::{
+        create_function_object_fast, create_generator_function_object, BindingOpcode,
+        CodeBlockFlags, Opcode,
+    },
     JsNativeError, JsResult,
 };
 use boa_ast::{
@@ -844,7 +847,7 @@ impl ByteCompiler<'_, '_> {
         function_names.reverse();
         functions_to_initialize.reverse();
 
-        //15. Let argumentsObjectNeeded be true.
+        // 15. Let argumentsObjectNeeded be true.
         let mut arguments_object_needed = true;
 
         let arguments = Sym::ARGUMENTS.into();
@@ -882,6 +885,36 @@ impl ByteCompiler<'_, '_> {
             additional_env = true;
         }
 
+        // 22. If argumentsObjectNeeded is true, then
+        //
+        // NOTE(HalidOdat): Has been moved up, so "arguments" gets registed as
+        //     the first binding in the environment with index 0.
+        if arguments_object_needed {
+            // Note: This happens at runtime.
+            // a. If strict is true or simpleParameterList is false, then
+            //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+            // b. Else,
+            //     i. NOTE: A mapped argument object is only provided for non-strict functions
+            //              that don't have a rest parameter, any parameter
+            //              default value initializers, or any destructured parameters.
+            //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
+
+            // c. If strict is true, then
+            if strict {
+                // i. Perform ! env.CreateImmutableBinding("arguments", false).
+                // ii. NOTE: In strict mode code early errors prevent attempting to assign
+                //           to this binding, so its mutability is not observable.
+                self.create_immutable_binding(arguments, false);
+            }
+            // d. Else,
+            else {
+                // i. Perform ! env.CreateMutableBinding("arguments", false).
+                self.create_mutable_binding(arguments, false);
+            }
+
+            self.code_block_flags |= CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT;
+        }
+
         // 21. For each String paramName of parameterNames, do
         for param_name in &parameter_names {
             // a. Let alreadyDeclared be ! env.HasBinding(paramName).
@@ -903,29 +936,9 @@ impl ByteCompiler<'_, '_> {
 
         // 22. If argumentsObjectNeeded is true, then
         if arguments_object_needed {
-            // Note: This happens at runtime.
-            // a. If strict is true or simpleParameterList is false, then
-            //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
-            // b. Else,
-            //     i. NOTE: A mapped argument object is only provided for non-strict functions
-            //              that don't have a rest parameter, any parameter
-            //              default value initializers, or any destructured parameters.
-            //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
-
-            // c. If strict is true, then
-            if strict {
-                // i. Perform ! env.CreateImmutableBinding("arguments", false).
-                // ii. NOTE: In strict mode code early errors prevent attempting to assign
-                //           to this binding, so its mutability is not observable.
-                self.create_immutable_binding(arguments, false);
-                self.arguments_binding = Some(self.initialize_immutable_binding(arguments));
-            }
-            // d. Else,
-            else {
-                // i. Perform ! env.CreateMutableBinding("arguments", false).
-                self.create_mutable_binding(arguments, false);
-                self.arguments_binding = Some(self.initialize_mutable_binding(arguments, false));
-            }
+            // MOVED: a-d.
+            //
+            // NOTE(HalidOdat): Has been moved up, see comment above.
 
             // Note: This happens at runtime.
             // e. Perform ! env.InitializeBinding("arguments", ao).
@@ -933,6 +946,7 @@ impl ByteCompiler<'_, '_> {
             // f. Let parameterBindings be the list-concatenation of parameterNames and « "arguments" ».
             parameter_names.push(arguments);
         }
+
         // 23. Else,
         //     a. Let parameterBindings be parameterNames.
         let parameter_bindings = parameter_names.clone();

@@ -242,9 +242,6 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// Functions inside this function
     pub(crate) functions: Vec<Gc<CodeBlock>>,
 
-    /// The `arguments` binding location of the function, if set.
-    pub(crate) arguments_binding: Option<BindingLocator>,
-
     /// Compile time environments in this function.
     pub(crate) compile_environments: Vec<Gc<GcRefCell<CompileTimeEnvironment>>>,
 
@@ -299,7 +296,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             functions: Vec::default(),
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
-            arguments_binding: None,
             compile_environments: Vec::default(),
             class_field_initializer_name: None,
             code_block_flags,
@@ -1349,7 +1345,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             private_names: self.private_names.into_boxed_slice(),
             bindings: self.bindings.into_boxed_slice(),
             functions: self.functions.into_boxed_slice(),
-            arguments_binding: self.arguments_binding,
             compile_environments: self.compile_environments.into_boxed_slice(),
             class_field_initializer_name: self.class_field_initializer_name,
             flags: Cell::new(self.code_block_flags),
