@@ -470,38 +470,12 @@ impl IntrinsicObject for BuiltInFunctionObject {
 
         let throw_type_error = realm.intrinsics().objects().throw_type_error();
 
-        // BuiltInBuilder::from_standard_constructor::<Self>(realm)
-        //     .method(Self::apply, "apply", 2)
-        //     .method(Self::bind, "bind", 1)
-        //     .method(Self::call, "call", 1)
-        //     .method(Self::to_string, "toString", 0)
-        //     .property(JsSymbol::has_instance(), has_instance, Attribute::default())
-        //     .accessor(
-        //         utf16!("caller"),
-        //         Some(throw_type_error.clone()),
-        //         Some(throw_type_error.clone()),
-        //         Attribute::CONFIGURABLE,
-        //     )
-        //     .accessor(
-        //         utf16!("arguments"),
-        //         Some(throw_type_error.clone()),
-        //         Some(throw_type_error),
-        //         Attribute::CONFIGURABLE,
-        //     )
-        //     .build();
-
-        // BuiltInBuilder::callable_with_object(realm, prototype.clone(), Self::prototype)
-        //     .name("")
-        //     .length(0)
-        //     .build();
-
-        // prototype.set_prototype(Some(realm.intrinsics().constructors().object().prototype()));
-
         BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
             realm,
             &boa_builtins::FUNCTION_CONSTRUCTOR_STATIC_SHAPE,
             &boa_builtins::FUNCTION_PROTOTYPE_STATIC_SHAPE,
         )
+        .inherits(Some(realm.intrinsics().constructors().object().prototype()))
         .property(0)
         .property("")
         .method(Self::apply, 2)
@@ -528,8 +502,6 @@ impl IntrinsicObject for BuiltInFunctionObject {
             );
             *prototype.kind_mut() = ObjectKind::Function(function);
         }
-        // TODO: improve this, because it's converting the static shape into a unique one, on initialization.
-        prototype.set_prototype(Some(realm.intrinsics().constructors().object().prototype()));
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
