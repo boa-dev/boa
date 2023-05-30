@@ -99,7 +99,8 @@ where
                 | Keyword::Function
                 | Keyword::Class
                 | Keyword::Async
-                | Keyword::Super,
+                | Keyword::Super
+                | Keyword::Import,
                 _,
             ))
             | TokenKind::BooleanLiteral(_)
