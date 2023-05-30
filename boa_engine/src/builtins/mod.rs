@@ -895,12 +895,17 @@ struct BuiltInBuilderStaticShape<'ctx> {
     object: JsObject,
     property_index: usize,
     storage: Vec<JsValue>,
-    prototype: JsObject,
+    prototype: Option<JsObject>,
 }
 
 impl BuiltInBuilderStaticShape<'_> {
     fn prototype(mut self, prototype: JsObject) -> Self {
-        self.prototype = prototype;
+        self.prototype = Some(prototype);
+        self
+    }
+
+    fn no_prototype(mut self) -> Self {
+        self.prototype = None;
         self
     }
 
@@ -953,7 +958,8 @@ impl BuiltInBuilderStaticShape<'_> {
 
         let mut object = self.object.borrow_mut();
         object.properties_mut().shape = StaticShape::new(self.shape).into();
-        self.storage.push(self.prototype.into());
+        self.storage
+            .push(self.prototype.map_or(JsValue::undefined(), Into::into));
         object.properties_mut().storage = self.storage;
     }
 }
@@ -969,7 +975,7 @@ impl<'ctx> BuiltInBuilder {
             object: I::get(realm.intrinsics()),
             storage: Vec::with_capacity(shape.storage_len),
             property_index: 0,
-            prototype: realm.intrinsics().constructors().object().prototype(),
+            prototype: Some(realm.intrinsics().constructors().object().prototype()),
         }
     }
 }

@@ -55,6 +55,47 @@ impl BuiltInObject for ArrayPrototypeValues {
     const NAME: &'static str = "values";
 }
 
+pub(crate) struct ArrayPrototypeUnscopables;
+
+impl IntrinsicObject for ArrayPrototypeUnscopables {
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(
+            realm,
+            &boa_builtins::ARRAY_UNSCOPABLES_OBJECT_STATIC_SHAPE,
+        )
+        // 1. Let unscopableList be OrdinaryObjectCreate(null).
+        .no_prototype()
+        // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
+        .static_property(true)
+        // 3. Perform ! CreateDataPropertyOrThrow(unscopableList, "copyWithin", true).
+        .static_property(true)
+        // 4. Perform ! CreateDataPropertyOrThrow(unscopableList, "entries", true).
+        .static_property(true)
+        // 5. Perform ! CreateDataPropertyOrThrow(unscopableList, "fill", true).
+        .static_property(true)
+        // 6. Perform ! CreateDataPropertyOrThrow(unscopableList, "find", true).
+        .static_property(true)
+        // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
+        .static_property(true)
+        // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
+        .static_property(true)
+        // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
+        .static_property(true)
+        // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
+        .static_property(true)
+        // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
+        .static_property(true)
+        // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
+        .static_property(true)
+        // 13. Return unscopableList.
+        .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().array_prototype_unscopables()
+    }
+}
+
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Array;
@@ -71,7 +112,7 @@ impl IntrinsicObject for Array {
 
         let values_function = realm.intrinsics().objects().array_prototype_values();
 
-        let unscopables_object = Self::unscopables_object();
+        let unscopables_object = Self::unscopables_object(realm);
 
         BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
             realm,
@@ -3031,41 +3072,8 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@unscopables
-    pub(crate) fn unscopables_object() -> JsObject {
-        // 1. Let unscopableList be OrdinaryObjectCreate(null).
-        let unscopable_list = JsObject::with_null_proto();
-        let true_prop = PropertyDescriptor::builder()
-            .value(true)
-            .writable(true)
-            .enumerable(true)
-            .configurable(true);
-        {
-            let mut obj = unscopable_list.borrow_mut();
-            // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
-            obj.insert(utf16!("at"), true_prop.clone());
-            // 3. Perform ! CreateDataPropertyOrThrow(unscopableList, "copyWithin", true).
-            obj.insert(utf16!("copyWithin"), true_prop.clone());
-            // 4. Perform ! CreateDataPropertyOrThrow(unscopableList, "entries", true).
-            obj.insert(utf16!("entries"), true_prop.clone());
-            // 5. Perform ! CreateDataPropertyOrThrow(unscopableList, "fill", true).
-            obj.insert(utf16!("fill"), true_prop.clone());
-            // 6. Perform ! CreateDataPropertyOrThrow(unscopableList, "find", true).
-            obj.insert(utf16!("find"), true_prop.clone());
-            // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
-            obj.insert(utf16!("findIndex"), true_prop.clone());
-            // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
-            obj.insert(utf16!("flat"), true_prop.clone());
-            // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
-            obj.insert(utf16!("flatMap"), true_prop.clone());
-            // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
-            obj.insert(utf16!("includes"), true_prop.clone());
-            // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
-            obj.insert(utf16!("keys"), true_prop.clone());
-            // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
-            obj.insert(utf16!("values"), true_prop);
-        }
-
-        // 13. Return unscopableList.
-        unscopable_list
+    fn unscopables_object(realm: &Realm) -> JsObject {
+        ArrayPrototypeUnscopables::init(realm);
+        realm.intrinsics().objects().array_prototype_unscopables()
     }
 }

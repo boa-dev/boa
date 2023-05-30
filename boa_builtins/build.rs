@@ -620,6 +620,53 @@ fn main() -> io::Result<()> {
         .static_method(utf16!("of"))
         .build(file)?;
 
+    BuiltInBuilder::new(&context, "ARRAY_UNSCOPABLES_OBJECT")
+        .property(
+            utf16!("at"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            utf16!("copyWithin"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            utf16!("entries"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            utf16!("fill"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            utf16!("find"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            utf16!("findIndex"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            utf16!("flat"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            utf16!("flatMap"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            utf16!("includes"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            utf16!("keys"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            utf16!("values"),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .build(file)?;
+
     BuiltInBuilderConstructor::new(&context, "DATE")
         .static_method(utf16!("now"))
         .static_method(utf16!("parse"))

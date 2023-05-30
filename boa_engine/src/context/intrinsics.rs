@@ -776,6 +776,9 @@ pub struct IntrinsicObjects {
     /// [`%Array.prototype.values%`](https://tc39.es/ecma262/#sec-array.prototype.values)
     array_prototype_values: JsFunction,
 
+    /// [`Array.prototype[ @@unscopables ]`](https://tc39.es/ecma262/#sec-array.prototype-@@unscopables)
+    array_prototype_unscopables: JsObject,
+
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
@@ -828,6 +831,7 @@ impl Default for IntrinsicObjects {
             json: JsObject::default_with_static_shape(),
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function_static_shape(false),
+            array_prototype_unscopables: JsObject::default_with_static_shape(),
             iterator_prototypes: IteratorPrototypes::default(),
             generator: JsObject::default_with_static_shape(),
             async_generator: JsObject::default_with_static_shape(),
@@ -864,6 +868,14 @@ impl IntrinsicObjects {
     #[inline]
     pub fn array_prototype_values(&self) -> JsFunction {
         self.array_prototype_values.clone()
+    }
+
+    /// Gets the [`Array.prototype[ @@unscopables ]`][spec] object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
+    #[inline]
+    pub(crate) fn array_prototype_unscopables(&self) -> JsObject {
+        self.array_prototype_unscopables.clone()
     }
 
     /// Gets the cached iterator prototypes.
