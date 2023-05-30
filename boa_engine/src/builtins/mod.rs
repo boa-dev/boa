@@ -905,6 +905,7 @@ impl BuiltInBuilderStaticShape<'_> {
         self
     }
 
+    #[allow(clippy::missing_const_for_fn)]
     fn no_prototype(mut self) -> Self {
         self.prototype = None;
         self
