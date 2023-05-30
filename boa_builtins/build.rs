@@ -1143,10 +1143,7 @@ fn main() -> io::Result<()> {
     #[cfg(feature = "intl")]
     {
         BuiltInBuilder::new(&context, "INTL_OBJECT")
-            .property(
-                WellKnown::ToStringTag,
-                Attribute::WRITABLE | Attribute::CONFIGURABLE,
-            )
+            .property(WellKnown::ToStringTag, Attribute::CONFIGURABLE)
             .property(
                 utf16!("Collator"),
                 Attribute::WRITABLE | Attribute::CONFIGURABLE,

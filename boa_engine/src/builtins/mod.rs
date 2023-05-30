@@ -688,6 +688,7 @@ impl<'ctx> BuiltInBuilder {
 
         this.constructor_storage.push(SC::LENGTH.into());
         this.constructor_storage.push(js_string!(SC::NAME).into());
+        this.constructor_property_index += 2;
 
         this
     }
