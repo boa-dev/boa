@@ -38,7 +38,7 @@ fn check_single_line_comment() {
         TokenKind::Keyword((Keyword::Var, false)),
         TokenKind::LineTerminator,
         TokenKind::LineTerminator,
-        TokenKind::BooleanLiteral(true),
+        TokenKind::BooleanLiteral((true, ContainsEscapeSequence(false))),
     ];
 
     expect_tokens(&mut lexer, &expected, interner);
@@ -54,7 +54,7 @@ fn check_single_line_comment_with_crlf_ending() {
         TokenKind::Keyword((Keyword::Var, false)),
         TokenKind::LineTerminator,
         TokenKind::LineTerminator,
-        TokenKind::BooleanLiteral(true),
+        TokenKind::BooleanLiteral((true, ContainsEscapeSequence(false))),
     ];
 
     expect_tokens(&mut lexer, &expected, interner);

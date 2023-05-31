@@ -604,3 +604,18 @@ fn hashbang_use_strict_with_with_statement() {
 fn hashbang_comment() {
     check_script_parser(r"#!Comment Here", vec![], &mut Interner::default());
 }
+
+#[test]
+fn deny_unicode_escape_in_false_expression() {
+    check_invalid_script(r"let x = f\u{61}lse;");
+}
+
+#[test]
+fn deny_unicode_escape_in_true_expression() {
+    check_invalid_script(r"let x = tru\u{65};");
+}
+
+#[test]
+fn deny_unicode_escape_in_null_expression() {
+    check_invalid_script(r"let x = n\u{75}ll;");
+}
