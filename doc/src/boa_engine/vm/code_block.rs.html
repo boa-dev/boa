@@ -1469,6 +1469,62 @@
 <a href="#1468" id="1468">1468</a>
 <a href="#1469" id="1469">1469</a>
 <a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1730,7 +1786,7 @@
     /// Returns an empty `String` if no operands are present.
     </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>instruction_operands(<span class="kw-2">&amp;</span><span class="self">self</span>, pc: <span class="kw-2">&amp;mut </span>usize, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
-        <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[<span class="kw-2">*</span>pc].try_into().expect(<span class="string">&quot;invalid opcode&quot;</span>);
+        <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[<span class="kw-2">*</span>pc].into();
         <span class="kw-2">*</span>pc += size_of::&lt;Opcode&gt;();
         <span class="kw">match </span>opcode {
             Opcode::SetFunctionName =&gt; {
@@ -2028,6 +2084,62 @@
             | Opcode::PopPrivateEnvironment
             | Opcode::ImportCall
             | Opcode::Nop =&gt; String::new(),
+            Opcode::Reserved1
+            | Opcode::Reserved2
+            | Opcode::Reserved3
+            | Opcode::Reserved4
+            | Opcode::Reserved5
+            | Opcode::Reserved6
+            | Opcode::Reserved7
+            | Opcode::Reserved8
+            | Opcode::Reserved9
+            | Opcode::Reserved10
+            | Opcode::Reserved11
+            | Opcode::Reserved12
+            | Opcode::Reserved13
+            | Opcode::Reserved14
+            | Opcode::Reserved15
+            | Opcode::Reserved16
+            | Opcode::Reserved17
+            | Opcode::Reserved18
+            | Opcode::Reserved19
+            | Opcode::Reserved20
+            | Opcode::Reserved21
+            | Opcode::Reserved22
+            | Opcode::Reserved23
+            | Opcode::Reserved24
+            | Opcode::Reserved25
+            | Opcode::Reserved26
+            | Opcode::Reserved27
+            | Opcode::Reserved28
+            | Opcode::Reserved29
+            | Opcode::Reserved30
+            | Opcode::Reserved31
+            | Opcode::Reserved32
+            | Opcode::Reserved33
+            | Opcode::Reserved34
+            | Opcode::Reserved35
+            | Opcode::Reserved36
+            | Opcode::Reserved37
+            | Opcode::Reserved38
+            | Opcode::Reserved39
+            | Opcode::Reserved40
+            | Opcode::Reserved41
+            | Opcode::Reserved42
+            | Opcode::Reserved43
+            | Opcode::Reserved44
+            | Opcode::Reserved45
+            | Opcode::Reserved46
+            | Opcode::Reserved47
+            | Opcode::Reserved48
+            | Opcode::Reserved49
+            | Opcode::Reserved50
+            | Opcode::Reserved51
+            | Opcode::Reserved52
+            | Opcode::Reserved53
+            | Opcode::Reserved54
+            | Opcode::Reserved55
+            | Opcode::Reserved56 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }
@@ -2050,7 +2162,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
         <span class="kw">while </span>pc &lt; <span class="self">self</span>.bytecode.len() {
-            <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[pc].try_into().expect(<span class="string">&quot;invalid opcode&quot;</span>);
+            <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[pc].into();
             <span class="kw">let </span>opcode = opcode.as_str();
             <span class="kw">let </span>previous_pc = pc;
             <span class="kw">let </span>operands = <span class="self">self</span>.instruction_operands(<span class="kw-2">&amp;mut </span>pc, interner);

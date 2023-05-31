@@ -19,6 +19,22 @@
 <a href="#18" id="18">18</a>
 <a href="#19" id="19">19</a>
 <a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a>
+<a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
+<a href="#36" id="36">36</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -37,6 +53,22 @@
 
     <span class="kw">fn </span>execute(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `Reserved` implements the Opcode Operation for `Opcode::Reserved`
+///
+/// Operation:
+///  - Panics, this should be unreachable.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Reserved;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>Reserved {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Reserved&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Reserved&quot;</span>;
+
+    <span class="kw">fn </span>execute(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unreachable!&quot;</span>)
     }
 }
 </code></pre></div>

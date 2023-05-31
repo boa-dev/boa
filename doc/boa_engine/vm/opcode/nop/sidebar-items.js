@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Nop"]};
+window.SIDEBAR_ITEMS = {"struct":["Nop","Reserved"]};
