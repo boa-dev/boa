@@ -32,7 +32,7 @@ impl CodeBlock {
 
         let mut pc = 0;
         while pc < self.bytecode.len() {
-            let opcode: Opcode = self.bytecode[pc].try_into().expect("invalid opcode");
+            let opcode: Opcode = self.bytecode[pc].into();
             let opcode_str = opcode.as_str();
             let previous_pc = pc;
 
@@ -622,6 +622,62 @@ impl CodeBlock {
                         returns.push(previous_pc);
                     }
                 }
+                Opcode::Reserved1
+                | Opcode::Reserved2
+                | Opcode::Reserved3
+                | Opcode::Reserved4
+                | Opcode::Reserved5
+                | Opcode::Reserved6
+                | Opcode::Reserved7
+                | Opcode::Reserved8
+                | Opcode::Reserved9
+                | Opcode::Reserved10
+                | Opcode::Reserved11
+                | Opcode::Reserved12
+                | Opcode::Reserved13
+                | Opcode::Reserved14
+                | Opcode::Reserved15
+                | Opcode::Reserved16
+                | Opcode::Reserved17
+                | Opcode::Reserved18
+                | Opcode::Reserved19
+                | Opcode::Reserved20
+                | Opcode::Reserved21
+                | Opcode::Reserved22
+                | Opcode::Reserved23
+                | Opcode::Reserved24
+                | Opcode::Reserved25
+                | Opcode::Reserved26
+                | Opcode::Reserved27
+                | Opcode::Reserved28
+                | Opcode::Reserved29
+                | Opcode::Reserved30
+                | Opcode::Reserved31
+                | Opcode::Reserved32
+                | Opcode::Reserved33
+                | Opcode::Reserved34
+                | Opcode::Reserved35
+                | Opcode::Reserved36
+                | Opcode::Reserved37
+                | Opcode::Reserved38
+                | Opcode::Reserved39
+                | Opcode::Reserved40
+                | Opcode::Reserved41
+                | Opcode::Reserved42
+                | Opcode::Reserved43
+                | Opcode::Reserved44
+                | Opcode::Reserved45
+                | Opcode::Reserved46
+                | Opcode::Reserved47
+                | Opcode::Reserved48
+                | Opcode::Reserved49
+                | Opcode::Reserved50
+                | Opcode::Reserved51
+                | Opcode::Reserved52
+                | Opcode::Reserved53
+                | Opcode::Reserved54
+                | Opcode::Reserved55
+                | Opcode::Reserved56 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

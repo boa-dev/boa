@@ -16,7 +16,7 @@ use crate::{
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use std::{convert::TryInto, mem::size_of};
+use std::mem::size_of;
 
 #[cfg(feature = "trace")]
 use boa_interner::ToInternedString;
@@ -160,10 +160,12 @@ impl Context<'_> {
     fn execute_instruction(&mut self) -> JsResult<CompletionType> {
         let opcode: Opcode = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
-            let opcode = self.vm.frame().code_block.bytecode[self.vm.frame().pc as usize]
-                .try_into()
-                .expect("could not convert code at PC to opcode");
-            self.vm.frame_mut().pc += 1;
+
+            let frame = self.vm.frame_mut();
+
+            let pc = frame.pc;
+            let opcode = Opcode::from(frame.code_block.bytecode[pc as usize]);
+            frame.pc += 1;
             opcode
         };
 

@@ -1,8 +1,6 @@
 /// The opcodes of the vm.
 use crate::{vm::CompletionType, Context, JsResult};
 
-use num_enum::TryFromPrimitive;
-
 // Operation modules
 mod await_stm;
 mod binary_ops;
@@ -92,12 +90,15 @@ pub(crate) use unary_ops::*;
 pub(crate) use value::*;
 
 macro_rules! generate_impl {
+    ( name $name:ident ) => { $name };
+    ( name $name:ident => $mapping:ident ) => { $mapping };
+
     (
         $(#[$outer:meta])*
         pub enum $Type:ident {
             $(
                 $(#[$inner:ident $($args:tt)*])*
-                $Variant:ident $(= $index:expr)*
+                $Variant:ident $(=> $mapping:ident)? $(= $index:expr)*
             ),*
             $(,)?
         }
@@ -111,22 +112,24 @@ macro_rules! generate_impl {
             ),*
         }
 
-        impl $Type {
-
-            /// Create opcode from `u8` byte.
-            ///
-            /// # Safety
-            ///
-            /// Does not check if `u8` type is a valid `Opcode`.
-            #[must_use]
-            pub unsafe fn from_raw(value: u8) -> Self {
-                // Safety:
-                // The caller is responsible for ensuring that the value is a valid opcode.
-                unsafe { std::mem::transmute(value) }
+        impl From<u8> for Opcode {
+            #[inline]
+            #[allow(non_upper_case_globals)]
+            fn from(value: u8) -> Self {
+                $(
+                    const $Variant: u8 = Opcode::$Variant as u8;
+                )*
+                match value {
+                    $($Variant => Self::$Variant),*
+                }
             }
+        }
 
-            const NAMES: &[&'static str] = &[
-                $($Variant::NAME),*
+        impl $Type {
+            const MAX: usize = 2usize.pow(8);
+
+            const NAMES: [&'static str; Self::MAX] = [
+                $(<generate_impl!(name $Variant $(=> $mapping)?)>::NAME),*
             ];
 
             /// Name of this opcode.
@@ -135,8 +138,8 @@ macro_rules! generate_impl {
                 Self::NAMES[self as usize]
             }
 
-            const INSTRUCTIONS: &[&'static str] = &[
-                $($Variant::INSTRUCTION),*
+            const INSTRUCTIONS: [&'static str; Self::MAX] = [
+                $(<generate_impl!(name $Variant $(=> $mapping)?)>::INSTRUCTION),*
             ];
 
             /// Name of the profiler event for this opcode.
@@ -145,8 +148,8 @@ macro_rules! generate_impl {
                 Self::INSTRUCTIONS[self as usize]
             }
 
-            const EXECUTE_FNS: &[fn(&mut Context<'_>) -> JsResult<CompletionType>] = &[
-                $($Variant::execute),*
+            const EXECUTE_FNS: [fn(&mut Context<'_>) -> JsResult<CompletionType>; Self::MAX] = [
+                $(<generate_impl!(name $Variant $(=> $mapping)?)>::execute),*
             ];
 
             pub(super) fn execute(self, context: &mut Context<'_>) -> JsResult<CompletionType> {
@@ -170,7 +173,7 @@ pub(crate) trait Operation {
 }
 
 generate_impl! {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, TryFromPrimitive)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     #[repr(u8)]
     pub enum Opcode {
         /// Pop the top value from the stack.
@@ -1655,9 +1658,120 @@ generate_impl! {
         /// Operands:
         ///
         /// Stack: **=>**
-        // Safety: Must be last in the list since, we use this for range checking
-        // in `TryFrom<u8>` impl.
         Nop,
+
+        /// Reserved [`Opcode`].
+        Reserved1 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved2 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved3 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved4 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved5 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved6 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved7 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved8 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved9 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved10 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved11 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved12 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved13 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved14 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved15 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved16 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved17 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved18 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved19 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved20 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved21 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved22 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved23 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved24 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved25 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved26 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved27 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved28 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved29 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved30 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved31 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved32 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved33 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved34 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved35 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved36 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved37 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved38 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved39 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved40 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved41 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved42 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved43 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved44 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved45 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved46 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved47 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved48 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved49 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved50 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved51 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved52 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved53 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved54 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved55 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved56 => Reserved,
     }
 }
 
