@@ -1,10 +1,9 @@
+use arbitrary::{Arbitrary, Unstructured};
 use boa_ast::{
     visitor::{VisitWith, VisitorMut},
     Expression, StatementList,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
-use libfuzzer_sys::arbitrary;
-use libfuzzer_sys::arbitrary::{Arbitrary, Unstructured};
 use std::fmt::{Debug, Formatter};
 use std::ops::ControlFlow;
 
