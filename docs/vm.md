@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![image](img/boa_architecture.drawio.png)
+![image](img/boa_architecture.png)
 
 ## Understanding the trace output
 
