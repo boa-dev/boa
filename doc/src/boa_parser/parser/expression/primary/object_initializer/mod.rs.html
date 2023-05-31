@@ -1684,8 +1684,8 @@
                 <span class="kw">let </span>(utf8, utf16) = word.as_str();
                 interner.get_or_intern_static(utf8, utf16).into()
             }
-            TokenKind::NullLiteral =&gt; (Sym::NULL).into(),
-            TokenKind::BooleanLiteral(bool) =&gt; <span class="kw">match </span>bool {
+            TokenKind::NullLiteral(<span class="kw">_</span>) =&gt; (Sym::NULL).into(),
+            TokenKind::BooleanLiteral((bool, <span class="kw">_</span>)) =&gt; <span class="kw">match </span>bool {
                 <span class="bool-val">true </span>=&gt; Sym::TRUE.into(),
                 <span class="bool-val">false </span>=&gt; Sym::FALSE.into(),
             },

@@ -423,7 +423,7 @@
 #[derive(Clone, PartialEq, Debug)]
 </span><span class="kw">pub enum </span>TokenKind {
     <span class="doccomment">/// A boolean literal, which is either `true` or `false`.
-    </span>BooleanLiteral(bool),
+    </span>BooleanLiteral((bool, ContainsEscapeSequence)),
 
     <span class="doccomment">/// The end of the file.
     </span>EOF,
@@ -446,7 +446,7 @@
     <span class="doccomment">/// The [`null` literal][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-NullLiteral
-    </span>NullLiteral,
+    </span>NullLiteral(ContainsEscapeSequence),
 
     <span class="doccomment">/// A numeric literal.
     </span>NumericLiteral(Numeric),
@@ -480,7 +480,7 @@
 <span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>TokenKind {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(oth: bool) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::BooleanLiteral(oth)
+        <span class="self">Self</span>::BooleanLiteral((oth, ContainsEscapeSequence(<span class="bool-val">false</span>)))
     }
 }
 
@@ -510,7 +510,7 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub const fn </span>boolean_literal(lit: bool) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::BooleanLiteral(lit)
+        <span class="self">Self</span>::BooleanLiteral((lit, ContainsEscapeSequence(<span class="bool-val">false</span>)))
     }
 
     <span class="doccomment">/// Creates an `EOF` token kind.
@@ -589,12 +589,12 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            <span class="self">Self</span>::BooleanLiteral(val) =&gt; val.to_string(),
+            <span class="self">Self</span>::BooleanLiteral((val, <span class="kw">_</span>)) =&gt; val.to_string(),
             <span class="self">Self</span>::EOF =&gt; <span class="string">&quot;end of file&quot;</span>.to_owned(),
             <span class="self">Self</span>::IdentifierName((ident, <span class="kw">_</span>)) =&gt; interner.resolve_expect(ident).to_string(),
             <span class="self">Self</span>::PrivateIdentifier(ident) =&gt; <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, interner.resolve_expect(ident)),
             <span class="self">Self</span>::Keyword((word, <span class="kw">_</span>)) =&gt; word.to_string(),
-            <span class="self">Self</span>::NullLiteral =&gt; <span class="string">&quot;null&quot;</span>.to_owned(),
+            <span class="self">Self</span>::NullLiteral(<span class="kw">_</span>) =&gt; <span class="string">&quot;null&quot;</span>.to_owned(),
             <span class="self">Self</span>::NumericLiteral(Numeric::Rational(num)) =&gt; num.to_string(),
             <span class="self">Self</span>::NumericLiteral(Numeric::Integer(num)) =&gt; num.to_string(),
             <span class="self">Self</span>::NumericLiteral(Numeric::BigInt(<span class="kw-2">ref </span>num)) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{num}n&quot;</span>),

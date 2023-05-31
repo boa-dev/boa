@@ -188,6 +188,8 @@
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Call expression parsing.
 //!
 //! More information:
@@ -330,13 +332,15 @@
                         TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; {
                             SimplePropertyAccess::new(lhs, kw.to_sym()).into()
                         }
-                        TokenKind::BooleanLiteral(<span class="bool-val">true</span>) =&gt; {
+                        TokenKind::BooleanLiteral((<span class="bool-val">true</span>, <span class="kw">_</span>)) =&gt; {
                             SimplePropertyAccess::new(lhs, Sym::TRUE).into()
                         }
-                        TokenKind::BooleanLiteral(<span class="bool-val">false</span>) =&gt; {
+                        TokenKind::BooleanLiteral((<span class="bool-val">false</span>, <span class="kw">_</span>)) =&gt; {
                             SimplePropertyAccess::new(lhs, Sym::FALSE).into()
                         }
-                        TokenKind::NullLiteral =&gt; SimplePropertyAccess::new(lhs, Sym::NULL).into(),
+                        TokenKind::NullLiteral(<span class="kw">_</span>) =&gt; {
+                            SimplePropertyAccess::new(lhs, Sym::NULL).into()
+                        }
                         TokenKind::PrivateIdentifier(name) =&gt; {
                             PrivatePropertyAccess::new(lhs, PrivateName::new(<span class="kw-2">*</span>name)).into()
                         }

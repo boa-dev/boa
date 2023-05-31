@@ -166,6 +166,12 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for identifiers (foo, myvar, etc.) used in ECMAScript.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{
@@ -262,9 +268,15 @@
             <span class="self">Self</span>::take_identifier_name(cursor, start_pos, <span class="self">self</span>.init)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>token_kind = <span class="kw">match </span>identifier_name.parse() {
-            <span class="prelude-val">Ok</span>(Keyword::True) =&gt; TokenKind::BooleanLiteral(<span class="bool-val">true</span>),
-            <span class="prelude-val">Ok</span>(Keyword::False) =&gt; TokenKind::BooleanLiteral(<span class="bool-val">false</span>),
-            <span class="prelude-val">Ok</span>(Keyword::Null) =&gt; TokenKind::NullLiteral,
+            <span class="prelude-val">Ok</span>(Keyword::True) =&gt; {
+                TokenKind::BooleanLiteral((<span class="bool-val">true</span>, ContainsEscapeSequence(contains_escaped_chars)))
+            }
+            <span class="prelude-val">Ok</span>(Keyword::False) =&gt; {
+                TokenKind::BooleanLiteral((<span class="bool-val">false</span>, ContainsEscapeSequence(contains_escaped_chars)))
+            }
+            <span class="prelude-val">Ok</span>(Keyword::Null) =&gt; {
+                TokenKind::NullLiteral(ContainsEscapeSequence(contains_escaped_chars))
+            }
             <span class="prelude-val">Ok</span>(keyword) =&gt; TokenKind::Keyword((keyword, contains_escaped_chars)),
             <span class="kw">_ </span>=&gt; TokenKind::IdentifierName((
                 interner.get_or_intern(identifier_name.as_str()),

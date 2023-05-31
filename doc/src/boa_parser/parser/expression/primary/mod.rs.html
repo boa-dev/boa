@@ -654,6 +654,11 @@
 <a href="#653" id="653">653</a>
 <a href="#654" id="654">654</a>
 <a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.
 //!
 //! More information:
@@ -683,7 +688,10 @@
     object_initializer::ObjectLiteral,
 };
 <span class="kw">use crate</span>::{
-    lexer::{token::Numeric, InputElement, Token, TokenKind},
+    lexer::{
+        token::{ContainsEscapeSequence, Numeric},
+        InputElement, Token, TokenKind,
+    },
     parser::{
         expression::{
             identifiers::IdentifierReference, primary::template::TemplateLiteral,
@@ -759,7 +767,9 @@
         <span class="kw">let </span>tok_position = tok.span().start();
 
         <span class="kw">match </span>tok.kind() {
-            TokenKind::Keyword((Keyword::This, <span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Err</span>(Error::general(
+            TokenKind::Keyword((Keyword::This, <span class="bool-val">true</span>))
+            | TokenKind::BooleanLiteral((<span class="kw">_</span>, ContainsEscapeSequence(<span class="bool-val">true</span>)))
+            | TokenKind::NullLiteral(ContainsEscapeSequence(<span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Err</span>(Error::general(
                 <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
                 tok_position,
             )),
@@ -843,12 +853,12 @@
                     .parse(cursor, interner)
                     .map(Into::into)
             }
-            TokenKind::BooleanLiteral(boolean) =&gt; {
+            TokenKind::BooleanLiteral((boolean, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">let </span>node = Literal::from(<span class="kw-2">*</span>boolean).into();
                 cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(node)
             }
-            TokenKind::NullLiteral =&gt; {
+            TokenKind::NullLiteral(<span class="kw">_</span>) =&gt; {
                 cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(Literal::Null.into())
             }

@@ -1975,7 +1975,7 @@
                     | TokenKind::StringLiteral(<span class="kw">_</span>)
                     | TokenKind::NumericLiteral(<span class="kw">_</span>)
                     | TokenKind::Keyword(<span class="kw">_</span>)
-                    | TokenKind::NullLiteral
+                    | TokenKind::NullLiteral(<span class="kw">_</span>)
                     | TokenKind::PrivateIdentifier(<span class="kw">_</span>)
                     | TokenKind::Punctuator(
                         Punctuator::OpenBracket | Punctuator::Mul | Punctuator::OpenBlock,
@@ -2317,7 +2317,7 @@
                     | TokenKind::StringLiteral(<span class="kw">_</span>)
                     | TokenKind::NumericLiteral(<span class="kw">_</span>)
                     | TokenKind::Keyword(<span class="kw">_</span>)
-                    | TokenKind::NullLiteral
+                    | TokenKind::NullLiteral(<span class="kw">_</span>)
                     | TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
                         <span class="kw">let </span>name_position = token.span().start();
                         <span class="kw">let </span>name = PropertyName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
@@ -2448,7 +2448,7 @@
                     | TokenKind::StringLiteral(<span class="kw">_</span>)
                     | TokenKind::NumericLiteral(<span class="kw">_</span>)
                     | TokenKind::Keyword(<span class="kw">_</span>)
-                    | TokenKind::NullLiteral
+                    | TokenKind::NullLiteral(<span class="kw">_</span>)
                     | TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
                         <span class="kw">let </span>name_position = token.span().start();
                         <span class="kw">let </span>name = PropertyName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
@@ -2609,7 +2609,7 @@
             | TokenKind::StringLiteral(<span class="kw">_</span>)
             | TokenKind::NumericLiteral(<span class="kw">_</span>)
             | TokenKind::Keyword(<span class="kw">_</span>)
-            | TokenKind::NullLiteral
+            | TokenKind::NullLiteral(<span class="kw">_</span>)
             | TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
                 <span class="kw">let </span>name_position = token.span().start();
                 <span class="kw">let </span>name = PropertyName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
