@@ -20,8 +20,8 @@ bytecode into a value.</p>
 on the context or <a href="../job/trait.JobQueue.html#tymethod.run_jobs" title="method boa_engine::job::JobQueue::run_jobs"><code>JobQueue::run_jobs</code></a> on the provided queue to run them.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.optimize_statement_list" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#185-191">source</a><h4 class="code-header">pub fn <a href="#method.optimize_statement_list" class="fn">optimize_statement_list</a>(
     &amp;mut self,
-    statement_list: &amp;mut <a class="struct" href="../../boa_ast/statement_list/struct.StatementList.html" title="struct boa_ast::statement_list::StatementList">StatementList</a>
-) -&gt; <a class="struct" href="../optimizer/struct.OptimizerStatistics.html" title="struct boa_engine::optimizer::OptimizerStatistics">OptimizerStatistics</a></h4></section></summary><div class="docblock"><p>Applies optimizations to the <a href="../../boa_ast/statement_list/struct.StatementList.html" title="struct boa_ast::statement_list::StatementList"><code>StatementList</code></a> inplace.</p>
+    statement_list: &amp;mut StatementList
+) -&gt; <a class="struct" href="../optimizer/struct.OptimizerStatistics.html" title="struct boa_engine::optimizer::OptimizerStatistics">OptimizerStatistics</a></h4></section></summary><div class="docblock"><p>Applies optimizations to the [<code>StatementList</code>] inplace.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.register_global_property" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#219-239">source</a><h4 class="code-header">pub fn <a href="#method.register_global_property" class="fn">register_global_property</a>&lt;K, V&gt;(
     &amp;mut self,
     key: K,
@@ -87,8 +87,8 @@ and <code>configurable</code> attributes. The same as when you create a function
 </span>}
 
 context.register_global_class::&lt;MyClass&gt;();</code></pre></div>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.interner" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#347-349">source</a><h4 class="code-header">pub fn <a href="#method.interner" class="fn">interner</a>(&amp;self) -&gt; &amp;<a class="struct" href="../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a></h4></section></summary><div class="docblock"><p>Gets the string interner.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.interner_mut" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#353-355">source</a><h4 class="code-header">pub fn <a href="#method.interner_mut" class="fn">interner_mut</a>(&amp;mut self) -&gt; &amp;mut <a class="struct" href="../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a></h4></section></summary><div class="docblock"><p>Gets a mutable reference to the string interner.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.interner" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#347-349">source</a><h4 class="code-header">pub fn <a href="#method.interner" class="fn">interner</a>(&amp;self) -&gt; &amp;Interner</h4></section></summary><div class="docblock"><p>Gets the string interner.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.interner_mut" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#353-355">source</a><h4 class="code-header">pub fn <a href="#method.interner_mut" class="fn">interner_mut</a>(&amp;mut self) -&gt; &amp;mut Interner</h4></section></summary><div class="docblock"><p>Gets a mutable reference to the string interner.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.global_object" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#359-361">source</a><h4 class="code-header">pub fn <a href="#method.global_object" class="fn">global_object</a>(&amp;self) -&gt; <a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a></h4></section></summary><div class="docblock"><p>Returns the global object.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.intrinsics" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#365-367">source</a><h4 class="code-header">pub fn <a href="#method.intrinsics" class="fn">intrinsics</a>(&amp;self) -&gt; &amp;<a class="struct" href="intrinsics/struct.Intrinsics.html" title="struct boa_engine::context::intrinsics::Intrinsics">Intrinsics</a></h4></section></summary><div class="docblock"><p>Returns the currently active intrinsic constructors and objects.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.realm" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#371-373">source</a><h4 class="code-header">pub fn <a href="#method.realm" class="fn">realm</a>(&amp;self) -&gt; &amp;<a class="struct" href="../realm/struct.Realm.html" title="struct boa_engine::realm::Realm">Realm</a></h4></section></summary><div class="docblock"><p>Returns the currently active realm.</p>
@@ -114,7 +114,7 @@ operation, used within the <a href="https://tc39.es/ecma262/multipage/managing-m
 </div></details><details class="toggle method-toggle" open><summary><section id="method.next_parser_identifier" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#491-494">source</a><h4 class="code-header">pub(crate) fn <a href="#method.next_parser_identifier" class="fn">next_parser_identifier</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.u32.html">u32</a></h4></section></summary><div class="docblock"><p>Increment and get the parser identifier.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.can_declare_global_function" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#502-531">source</a><h4 class="code-header">pub(crate) fn <a href="#method.can_declare_global_function" class="fn">can_declare_global_function</a>(
     &amp;mut self,
-    name: <a class="struct" href="../../boa_ast/expression/identifier/struct.Identifier.html" title="struct boa_ast::expression::identifier::Identifier">Identifier</a>
+    name: Identifier
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>&gt;</h4></section></summary><div class="docblock"><p><code>CanDeclareGlobalFunction ( N )</code></p>
 <p>More information:</p>
 <ul>
@@ -122,7 +122,7 @@ operation, used within the <a href="https://tc39.es/ecma262/multipage/managing-m
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.can_declare_global_var" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#539-555">source</a><h4 class="code-header">pub(crate) fn <a href="#method.can_declare_global_var" class="fn">can_declare_global_var</a>(
     &amp;mut self,
-    name: <a class="struct" href="../../boa_ast/expression/identifier/struct.Identifier.html" title="struct boa_ast::expression::identifier::Identifier">Identifier</a>
+    name: Identifier
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>&gt;</h4></section></summary><div class="docblock"><p><code>CanDeclareGlobalVar ( N )</code></p>
 <p>More information:</p>
 <ul>
@@ -130,7 +130,7 @@ operation, used within the <a href="https://tc39.es/ecma262/multipage/managing-m
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.create_global_var_binding" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#563-599">source</a><h4 class="code-header">pub(crate) fn <a href="#method.create_global_var_binding" class="fn">create_global_var_binding</a>(
     &amp;mut self,
-    name: <a class="struct" href="../../boa_ast/expression/identifier/struct.Identifier.html" title="struct boa_ast::expression::identifier::Identifier">Identifier</a>,
+    name: Identifier,
     configurable: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p><code>CreateGlobalVarBinding ( N, D )</code></p>
 <p>More information:</p>
@@ -139,7 +139,7 @@ operation, used within the <a href="https://tc39.es/ecma262/multipage/managing-m
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.create_global_function_binding" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#607-651">source</a><h4 class="code-header">pub(crate) fn <a href="#method.create_global_function_binding" class="fn">create_global_function_binding</a>(
     &amp;mut self,
-    name: <a class="struct" href="../../boa_ast/expression/identifier/struct.Identifier.html" title="struct boa_ast::expression::identifier::Identifier">Identifier</a>,
+    name: Identifier,
     function: <a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     configurable: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p><code>CreateGlobalFunctionBinding ( N, V, D )</code></p>
@@ -149,7 +149,7 @@ operation, used within the <a href="https://tc39.es/ecma262/multipage/managing-m
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.has_restricted_global_property" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#659-680">source</a><h4 class="code-header">pub(crate) fn <a href="#method.has_restricted_global_property" class="fn">has_restricted_global_property</a>(
     &amp;mut self,
-    name: <a class="struct" href="../../boa_ast/expression/identifier/struct.Identifier.html" title="struct boa_ast::expression::identifier::Identifier">Identifier</a>
+    name: Identifier
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>&gt;</h4></section></summary><div class="docblock"><p><code>HasRestrictedGlobalProperty ( N )</code></p>
 <p>More information:</p>
 <ul>
