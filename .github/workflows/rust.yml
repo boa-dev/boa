@@ -78,6 +78,10 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-fuzz
+          version: latest
       - uses: Swatinem/rust-cache@v2
         with:
           key: misc
@@ -96,3 +100,5 @@ jobs:
         run: cargo build --quiet --profile ci
       - name: Run example classes
         run: cargo run --bin classes --profile ci
+      - name: Build fuzzers
+        run: cargo fuzz build -s none
