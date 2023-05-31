@@ -95,10 +95,10 @@ jobs:
         run: cargo doc -v --document-private-items --all-features
       - name: Build
         run: cargo build --all-targets --quiet --profile ci
+      - name: Build fuzzers
+        run: cargo fuzz build -s none
       - run: cd boa_examples
       - name: Build examples
         run: cargo build --quiet --profile ci
       - name: Run example classes
         run: cargo run --bin classes --profile ci
-      - name: Build fuzzers
-        run: cargo fuzz build -s none
