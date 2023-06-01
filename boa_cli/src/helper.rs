@@ -7,7 +7,7 @@ use rustyline::{
     validate::{MatchingBracketValidator, ValidationContext, ValidationResult, Validator},
     Completer, Helper, Hinter,
 };
-use std::borrow::Cow;
+use std::borrow::Cow::{self, Borrowed};
 
 const STRING_COLOR: Color = Color::Green;
 const KEYWORD_COLOR: Color = Color::Yellow;
@@ -33,18 +33,22 @@ const IDENTIFIER_COLOR: Color = Color::TrueColor {
     b: 214,
 };
 
+const READLINE_COLOR: Color = Color::Cyan;
+
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Completer, Helper, Hinter)]
 pub(crate) struct RLHelper {
     highlighter: LineHighlighter,
     validator: MatchingBracketValidator,
+    colored_prompt: String,
 }
 
 impl RLHelper {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(prompt: &str) -> Self {
         Self {
             highlighter: LineHighlighter,
             validator: MatchingBracketValidator::new(),
+            colored_prompt: prompt.color(READLINE_COLOR).bold().to_string(),
         }
     }
 }
@@ -63,12 +67,26 @@ impl Validator for RLHelper {
 }
 
 impl Highlighter for RLHelper {
-    fn highlight_hint<'h>(&self, hint: &'h str) -> Cow<'h, str> {
-        hint.into()
-    }
-
     fn highlight<'l>(&self, line: &'l str, pos: usize) -> Cow<'l, str> {
         self.highlighter.highlight(line, pos)
+    }
+
+    // Must match signature of Highlighter::highlight_prompt, can't elide lifetimes.
+    #[allow(single_use_lifetimes)]
+    fn highlight_prompt<'b, 's: 'b, 'p: 'b>(
+        &'s self,
+        prompt: &'p str,
+        default: bool,
+    ) -> Cow<'b, str> {
+        if default {
+            Borrowed(&self.colored_prompt)
+        } else {
+            Borrowed(prompt)
+        }
+    }
+
+    fn highlight_hint<'h>(&self, hint: &'h str) -> Cow<'h, str> {
+        hint.into()
     }
 
     fn highlight_candidate<'c>(

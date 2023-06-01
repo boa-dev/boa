@@ -77,7 +77,7 @@ use boa_engine::{
 };
 use boa_runtime::Console;
 use clap::{Parser, ValueEnum, ValueHint};
-use colored::{Color, Colorize};
+use colored::Colorize;
 use debug::init_boa_debug_object;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{
@@ -94,8 +94,6 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// CLI configuration for Boa.
 static CLI_HISTORY: &str = ".boa_history";
-
-const READLINE_COLOR: Color = Color::Cyan;
 
 // Added #[allow(clippy::option_option)] because to StructOpt an Option<Option<T>>
 // is an optional argument that optionally takes a value ([--opt=[val]]).
@@ -419,12 +417,11 @@ fn main() -> Result<(), io::Error> {
             ReadlineError::Io(e) => e,
             e => io::Error::new(io::ErrorKind::Other, e),
         })?;
-        editor.set_helper(Some(helper::RLHelper::new()));
-
-        let readline = ">> ".color(READLINE_COLOR).bold().to_string();
+        let readline = ">> ";
+        editor.set_helper(Some(helper::RLHelper::new(readline)));
 
         loop {
-            match editor.readline(&readline) {
+            match editor.readline(readline) {
                 Ok(line) if line == ".exit" => break,
                 Err(ReadlineError::Interrupted | ReadlineError::Eof) => break,
 
