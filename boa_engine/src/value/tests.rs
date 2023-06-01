@@ -95,6 +95,7 @@ fn hash_value(value: &JsValue) -> u64 {
     hasher.finish()
 }
 
+#[allow(clippy::redundant_clone)]
 #[test]
 fn hash_undefined() {
     let value1 = JsValue::undefined();

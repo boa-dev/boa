@@ -19,10 +19,8 @@ impl ByteCompiler<'_, '_> {
             if let Some(node_label) = node.label() {
                 let items = self.jump_info.iter().rev().filter(|info| info.is_loop());
                 let mut emit_for_of_in_exit = 0_u32;
-                let mut loop_info = None;
                 for info in items {
                     if info.label() == Some(node_label) {
-                        loop_info = Some(info);
                         break;
                     }
 
@@ -30,8 +28,6 @@ impl ByteCompiler<'_, '_> {
                         emit_for_of_in_exit += 1;
                     }
                 }
-
-                loop_info.expect("Cannot use the undeclared label");
 
                 for _ in 0..emit_for_of_in_exit {
                     self.emit_opcode(Opcode::Pop);
@@ -88,10 +84,8 @@ impl ByteCompiler<'_, '_> {
         } else if let Some(node_label) = node.label() {
             let items = self.jump_info.iter().rev().filter(|info| info.is_loop());
             let mut emit_for_of_in_exit = 0_u32;
-            let mut loop_info = None;
             for info in items {
                 if info.label() == Some(node_label) {
-                    loop_info = Some(info);
                     break;
                 }
 
@@ -99,8 +93,6 @@ impl ByteCompiler<'_, '_> {
                     emit_for_of_in_exit += 1;
                 }
             }
-
-            loop_info.expect("Cannot use the undeclared label");
 
             for _ in 0..emit_for_of_in_exit {
                 self.emit_opcode(Opcode::Pop);
