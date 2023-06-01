@@ -24,7 +24,7 @@ impl Operation for RestParameterInit {
             for _ in 0..rest_count {
                 args.push(context.vm.pop());
             }
-            let array: _ = Array::create_array_from_list(args, context);
+            let array = Array::create_array_from_list(args, context);
 
             context.vm.push(array);
         } else {

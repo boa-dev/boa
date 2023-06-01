@@ -909,6 +909,8 @@ impl ToStringEscaped for [u16] {
             .collect()
     }
 }
+
+#[allow(clippy::redundant_clone)]
 #[cfg(test)]
 mod tests {
     use crate::tagged::UnwrappedTagged;
