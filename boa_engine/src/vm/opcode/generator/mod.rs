@@ -317,7 +317,6 @@ impl Operation for GeneratorDelegateResume {
                     Err(e) => e.clone().to_opaque(context),
                 };
                 context.vm.push(value);
-                context.vm.frame_mut().pc = return_gen;
             } else {
                 context.vm.push(completion.clone()?);
             }

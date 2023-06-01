@@ -276,10 +276,6 @@ impl SimpleJobQueue {
 
 impl JobQueue for SimpleJobQueue {
     fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context<'_>) {
-        // If realm is not null ...
-        // TODO
-        // Let scriptOrModule be ...
-        // TODO
         self.0.borrow_mut().push_back(job);
     }
 
