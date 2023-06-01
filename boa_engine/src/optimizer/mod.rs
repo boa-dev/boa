@@ -16,7 +16,7 @@ bitflags! {
         /// Print statistics to `stdout`.
         const STATISTICS = 0b0000_0001;
 
-        /// Apply contant folding optimization.
+        /// Apply constant folding optimization.
         const CONSTANT_FOLDING = 0b0000_0010;
 
         /// Apply all optimizations.
