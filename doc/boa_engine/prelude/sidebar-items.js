@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["JsObject","Source"]};
+window.SIDEBAR_ITEMS = {"struct":["Source"]};
