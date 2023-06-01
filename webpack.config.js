@@ -45,11 +45,14 @@ module.exports = {
     }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({ template: "index.html" }),
-    new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, "./boa_wasm/"),
-      outDir: path.resolve(__dirname, "./boa_wasm/pkg/"),
-      forceMode: "production",
-    }),
+    // WasmPackPlugin can not work in CI environment
+    !process.env.CI
+      ? new WasmPackPlugin({
+          crateDirectory: path.resolve(__dirname, "./boa_wasm/"),
+          outDir: path.resolve(__dirname, "./boa_wasm/pkg/"),
+          forceMode: "production",
+        })
+      : undefined,
     new CopyWebpackPlugin({
       patterns: [
         {
@@ -62,7 +65,7 @@ module.exports = {
         },
       ],
     }),
-  ],
+  ].filter(Boolean),
   module: {
     rules: [
       {

@@ -50,4 +50,9 @@ jobs:
         with:
           node-version: "16"
       - run: npm ci
+      - run: cd boa_wasm && wasm-pack --verbose build --out-name index --out-dir ./pkg
       - run: npm run build
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright test
+        run: npm run e2e
