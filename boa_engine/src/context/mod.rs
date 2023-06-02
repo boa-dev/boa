@@ -20,7 +20,7 @@ use crate::{
     builtins,
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
-    module::{ModuleLoader, SimpleModuleLoader},
+    module::{IdleModuleLoader, ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::{shape::RootShape, FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
@@ -873,6 +873,21 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
         let realm = Realm::create(&*host_hooks, &root_shape);
         let vm = Vm::new(realm.environment().clone());
 
+        let module_loader = if let Some(loader) = self.module_loader {
+            loader
+        } else {
+            SimpleModuleLoader::new(Path::new(".")).map_or_else(
+                |_| {
+                    let loader: &dyn ModuleLoader = &IdleModuleLoader;
+                    loader.into()
+                },
+                |loader| {
+                    let loader: Rc<dyn ModuleLoader> = Rc::new(loader);
+                    loader.into()
+                },
+            )
+        };
+
         let mut context = Context {
             realm,
             interner: self.interner.unwrap_or_default(),
@@ -892,13 +907,7 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
                 let queue: Rc<dyn JobQueue> = Rc::new(SimpleJobQueue::new());
                 queue.into()
             }),
-            module_loader: self.module_loader.unwrap_or_else(|| {
-                let loader: Rc<dyn ModuleLoader> = Rc::new(
-                    SimpleModuleLoader::new(Path::new("."))
-                        .expect("failed to initialize default module loader"),
-                );
-                loader.into()
-            }),
+            module_loader,
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
             parser_identifier: 0,

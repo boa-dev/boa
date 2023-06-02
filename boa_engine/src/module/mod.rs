@@ -129,6 +129,29 @@ pub trait ModuleLoader {
     }
 }
 
+/// A module loader that throws when trying to load any modules.
+///
+/// Useful to disable the module system on platforms that don't have a filesystem, for example.
+#[derive(Debug, Clone, Copy)]
+pub struct IdleModuleLoader;
+
+impl ModuleLoader for IdleModuleLoader {
+    fn load_imported_module(
+        &self,
+        _referrer: Referrer,
+        _specifier: JsString,
+        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context<'_>)>,
+        context: &mut Context<'_>,
+    ) {
+        finish_load(
+            Err(JsNativeError::typ()
+                .with_message("module resolution is disabled for this context")
+                .into()),
+            context,
+        );
+    }
+}
+
 /// A simple module loader that loads modules relative to a root path.
 #[derive(Debug)]
 pub struct SimpleModuleLoader {
@@ -139,6 +162,11 @@ pub struct SimpleModuleLoader {
 impl SimpleModuleLoader {
     /// Creates a new `SimpleModuleLoader` from a root module path.
     pub fn new<P: AsRef<Path>>(root: P) -> JsResult<Self> {
+        if cfg!(target_family = "wasm") {
+            return Err(JsNativeError::typ()
+                .with_message("cannot resolve a relative path in WASM targets")
+                .into());
+        }
         let root = root.as_ref();
         let absolute = root.canonicalize().map_err(|e| {
             JsNativeError::typ()
