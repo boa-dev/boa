@@ -1,15 +1,14 @@
 pub(crate) mod yield_stm;
 
 use crate::{
-    builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     error::JsNativeError,
     string::utf16,
     vm::{
-        call_frame::{AbruptCompletionRecord, GeneratorResumeKind},
+        call_frame::GeneratorResumeKind,
         opcode::{control_flow::Return, Operation},
         CompletionType,
     },
-    Context, JsError, JsResult, JsValue,
+    Context, JsError, JsResult,
 };
 
 pub(crate) use yield_stm::*;
@@ -29,115 +28,50 @@ impl Operation for GeneratorNext {
         match context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal => Ok(CompletionType::Normal),
             GeneratorResumeKind::Throw => Err(JsError::from_opaque(context.vm.pop())),
-            GeneratorResumeKind::Return => {
-                let finally_entries = context
-                    .vm
-                    .frame()
-                    .env_stack
-                    .iter()
-                    .filter(|entry| entry.is_finally_env());
-                if let Some(next_finally) = finally_entries.rev().next() {
-                    if context.vm.frame().pc < next_finally.start_address() {
-                        context.vm.frame_mut().pc = next_finally.start_address();
-                        let return_record = AbruptCompletionRecord::new_return();
-                        context.vm.frame_mut().abrupt_completion = Some(return_record);
-                        return Ok(CompletionType::Normal);
-                    }
-                }
-
-                let return_record = AbruptCompletionRecord::new_return();
-                context.vm.frame_mut().abrupt_completion = Some(return_record);
-                Ok(CompletionType::Return)
-            }
+            GeneratorResumeKind::Return => Return::execute(context),
         }
     }
 }
 
-/// `AsyncGeneratorNext` implements the Opcode Operation for `Opcode::AsyncGeneratorNext`
+/// `GeneratorJumpOnResumeKind` implements the Opcode Operation for
+/// `Opcode::GeneratorJumpOnResumeKind`
 ///
 /// Operation:
-///  - Resumes the current generator function.
+///  - Jumps to the specified instruction if the current resume kind is `Return`.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct AsyncGeneratorNext;
+pub(crate) struct GeneratorJumpOnResumeKind;
 
-impl Operation for AsyncGeneratorNext {
-    const NAME: &'static str = "AsyncGeneratorNext";
-    const INSTRUCTION: &'static str = "INST - AsyncGeneratorNext";
+impl Operation for GeneratorJumpOnResumeKind {
+    const NAME: &'static str = "GeneratorJumpOnResumeKind";
+    const INSTRUCTION: &'static str = "INST - GeneratorJumpOnResumeKind";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let skip_yield = context.vm.read::<u32>();
-        let skip_yield_await = context.vm.read::<u32>();
-
-        if context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
-            return Err(JsError::from_opaque(context.vm.pop()));
-        }
-
-        let value = context.vm.pop();
-
-        let completion = Ok(value);
-        let generator_object = context
-            .vm
-            .frame()
-            .async_generator
-            .as_ref()
-            .expect("must be in generator context here")
-            .clone();
-        let next = generator_object
-            .borrow_mut()
-            .as_async_generator_mut()
-            .expect("must be async generator object")
-            .queue
-            .pop_front()
-            .expect("must have item in queue");
-        AsyncGenerator::complete_step(&next, completion, false, None, context);
-
-        let mut generator_object_mut = generator_object.borrow_mut();
-        let gen = generator_object_mut
-            .as_async_generator_mut()
-            .expect("must be async generator object");
-
-        if let Some(next) = gen.queue.front() {
-            let (completion, r#return) = &next.completion;
-            if *r#return {
-                let value = match completion {
-                    Ok(value) => value.clone(),
-                    Err(e) => e.clone().to_opaque(context),
-                };
-                context.vm.push(value);
-                context.vm.frame_mut().pc = skip_yield;
-            } else {
-                context.vm.push(completion.clone()?);
-                context.vm.frame_mut().pc = skip_yield_await;
-            }
-        } else {
-            gen.state = AsyncGeneratorState::SuspendedYield;
+        let normal = context.vm.read::<u32>();
+        let throw = context.vm.read::<u32>();
+        let r#return = context.vm.read::<u32>();
+        match context.vm.frame().generator_resume_kind {
+            GeneratorResumeKind::Normal => context.vm.frame_mut().pc = normal,
+            GeneratorResumeKind::Throw => context.vm.frame_mut().pc = throw,
+            GeneratorResumeKind::Return => context.vm.frame_mut().pc = r#return,
         }
         Ok(CompletionType::Normal)
     }
 }
 
-/// `GeneratorAsyncResumeYield` implements the Opcode Operation for `Opcode::GeneratorAsyncResumeYield`
+/// `GeneratorSetReturn` implements the Opcode Operation for `Opcode::GeneratorSetReturn`
 ///
 /// Operation:
-///  - Resumes the current async generator function after a yield.
+///  - Sets the current generator resume kind to `Return`.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct GeneratorAsyncResumeYield;
+pub(crate) struct GeneratorSetReturn;
 
-impl Operation for GeneratorAsyncResumeYield {
-    const NAME: &'static str = "GeneratorAsyncResumeYield";
-    const INSTRUCTION: &'static str = "INST - GeneratorAsyncResumeYield";
+impl Operation for GeneratorSetReturn {
+    const NAME: &'static str = "GeneratorSetReturn";
+    const INSTRUCTION: &'static str = "INST - GeneratorSetReturn";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let normal_completion = context.vm.read::<u32>();
-
-        match context.vm.frame().generator_resume_kind {
-            GeneratorResumeKind::Normal => {
-                context.vm.frame_mut().pc = normal_completion;
-                Ok(CompletionType::Normal)
-            }
-            GeneratorResumeKind::Throw => Err(JsError::from_opaque(context.vm.pop())),
-            GeneratorResumeKind::Return => Ok(CompletionType::Normal),
-        }
+        context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -273,7 +207,7 @@ impl Operation for GeneratorDelegateResume {
             return Err(JsError::from_opaque(result));
         }
 
-        iterator.update_result(result.clone(), context)?;
+        iterator.update_result(result, context)?;
 
         if iterator.done() {
             let value = iterator.value(context)?;
@@ -284,48 +218,8 @@ impl Operation for GeneratorDelegateResume {
             return Ok(CompletionType::Normal);
         }
 
-        let Some(async_gen) = context.vm.frame().async_generator.clone() else {
-            context.vm.frame_mut().iterators.push(iterator);
-            context.vm.push(result);
-            context.vm.frame_mut().r#yield = true;
-            return Ok(CompletionType::Return);
-        };
-
-        let value = iterator.value(context)?;
         context.vm.frame_mut().iterators.push(iterator);
 
-        let completion = Ok(value);
-        let next = async_gen
-            .borrow_mut()
-            .as_async_generator_mut()
-            .expect("must be async generator object")
-            .queue
-            .pop_front()
-            .expect("must have item in queue");
-        AsyncGenerator::complete_step(&next, completion, false, None, context);
-
-        let mut generator_object_mut = async_gen.borrow_mut();
-        let gen = generator_object_mut
-            .as_async_generator_mut()
-            .expect("must be async generator object");
-
-        if let Some(next) = gen.queue.front() {
-            let (completion, r#return) = &next.completion;
-            if *r#return {
-                let value = match completion {
-                    Ok(value) => value.clone(),
-                    Err(e) => e.clone().to_opaque(context),
-                };
-                context.vm.push(value);
-            } else {
-                context.vm.push(completion.clone()?);
-            }
-            Ok(CompletionType::Normal)
-        } else {
-            gen.state = AsyncGeneratorState::SuspendedYield;
-            context.vm.push(JsValue::undefined());
-            context.vm.frame_mut().r#yield = true;
-            Ok(CompletionType::Return)
-        }
+        Ok(CompletionType::Normal)
     }
 }

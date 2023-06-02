@@ -1,7 +1,7 @@
 use std::matches;
 
 use crate::{
-    builtins::Array,
+    builtins::{iterable::create_iter_result_object, Array},
     js_string,
     vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
     Context, JsResult,
@@ -272,6 +272,29 @@ impl Operation for IteratorStackEmpty {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let is_empty = context.vm.frame().iterators.is_empty();
         context.vm.push(is_empty);
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `CreateIteratorResult` implements the Opcode Operation for `Opcode::CreateIteratorResult`
+///
+/// Operation:
+/// -  Creates a new iterator result object
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CreateIteratorResult;
+
+impl Operation for CreateIteratorResult {
+    const NAME: &'static str = "CreateIteratorResult";
+    const INSTRUCTION: &'static str = "INST - CreateIteratorResult";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let value = context.vm.pop();
+        let done = context.vm.read::<u8>() != 0;
+
+        let result = create_iter_result_object(value, done, context);
+
+        context.vm.push(result);
+
         Ok(CompletionType::Normal)
     }
 }

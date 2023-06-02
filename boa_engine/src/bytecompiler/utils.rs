@@ -43,12 +43,64 @@ impl ByteCompiler<'_, '_> {
     }
 
     /// Closes all active iterators in the current [`CallFrame`][crate::vm::CallFrame].
-    pub(super) fn close_active_iterators(&mut self, async_: bool) {
+    pub(super) fn close_active_iterators(&mut self) {
         let start = self.next_opcode_location();
         self.emit_opcode(Opcode::IteratorStackEmpty);
         let empty = self.jump_if_true();
-        self.iterator_close(async_);
+        self.iterator_close(self.in_async_generator);
         self.emit(Opcode::Jump, &[start]);
         self.patch_jump(empty);
+    }
+
+    /// Yields from the current generator.
+    ///
+    /// This is equivalent to the [`Yield ( value )`][yield] operation from the spec.
+    ///
+    /// stack:
+    /// - value **=>** received
+    ///
+    /// [yield]: https://tc39.es/ecma262/#sec-yield
+    pub(super) fn r#yield(&mut self) {
+        // 1. Let generatorKind be GetGeneratorKind().
+        if self.in_async_generator {
+            // 2. If generatorKind is async, return ? AsyncGeneratorYield(? Await(value)).
+            self.emit_opcode(Opcode::Await);
+            self.emit_opcode(Opcode::GeneratorNext);
+            self.async_generator_yield();
+        } else {
+            // 3. Otherwise, return ? GeneratorYield(CreateIterResultObject(value, false)).
+            self.emit_opcode(Opcode::CreateIteratorResult);
+            self.emit_u8(u8::from(false));
+            self.emit_opcode(Opcode::GeneratorYield);
+        }
+        self.emit_opcode(Opcode::GeneratorNext);
+    }
+
+    /// Yields from the current async generator.
+    ///
+    /// This is equivalent to the [`AsyncGeneratorYield ( value )`][async_yield] operation from the spec.
+    ///
+    /// stack:
+    /// - value **=>** received
+    ///
+    /// [async_yield]: https://tc39.es/ecma262/#sec-asyncgeneratoryield
+    pub(super) fn async_generator_yield(&mut self) {
+        self.emit_opcode(Opcode::AsyncGeneratorYield);
+        let (normal, throw, r#return) =
+            self.emit_opcode_with_three_operands(Opcode::GeneratorJumpOnResumeKind);
+        {
+            self.patch_jump(r#return);
+            self.emit_opcode(Opcode::Await);
+
+            let (normal, throw, r#return) =
+                self.emit_opcode_with_three_operands(Opcode::GeneratorJumpOnResumeKind);
+            self.patch_jump(normal);
+            self.emit_opcode(Opcode::GeneratorSetReturn);
+
+            self.patch_jump(throw);
+            self.patch_jump(r#return);
+        }
+        self.patch_jump(normal);
+        self.patch_jump(throw);
     }
 }

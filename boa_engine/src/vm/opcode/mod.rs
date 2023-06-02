@@ -1510,6 +1510,16 @@ generate_impl! {
         /// - **=>**
         IteratorStackEmpty,
 
+        /// Creates a new iterator result object.
+        ///
+        /// Operands:
+        /// - done: bool (codified as u8 with `0` -> `false` and `!0` -> `true`)
+        ///
+        /// Stack:
+        /// - value **=>**
+        ///
+        CreateIteratorResult,
+
         /// Calls `return` on the current iterator and returns the result.
         ///
         /// Stack: **=>** return_val (if return is a method), is_return_method
@@ -1566,12 +1576,12 @@ generate_impl! {
         /// Stack: **=>**
         PopOnReturnSub,
 
-        /// Yield from the current execution.
+        /// Yields from the current generator execution.
         ///
         /// Operands:
         ///
-        /// Stack: value **=>**
-        Yield,
+        /// Stack: value **=>** received
+        GeneratorYield,
 
         /// Resumes the current generator function.
         ///
@@ -1587,19 +1597,29 @@ generate_impl! {
         /// Stack: **=>**
         GeneratorResumeReturn,
 
-        /// Resumes the current generator function.
+        /// Yields from the current async generator execution.
         ///
-        /// Operands: skip_yield: u32, skip_yield_await: u32
+        /// Operands:
         ///
-        /// Stack: received **=>** `Option<value>`
-        AsyncGeneratorNext,
+        /// Stack: value **=>** received
+        AsyncGeneratorYield,
 
-        /// Resumes the current async generator function after a yield.
+        /// Jumps to the specified instruction for each resume kind.
         ///
-        /// Operands: normal_completion: u32
+        /// Operands:
+        /// - normal: u32,
+        /// - throw: u32,
+        /// - return: u32,
         ///
-        /// Stack: **=>**
-        GeneratorAsyncResumeYield,
+        /// Stack:
+        GeneratorJumpOnResumeKind,
+
+        /// Sets the current generator resume kind to `Return`.
+        ///
+        /// Operands:
+        ///
+        /// Stack:
+        GeneratorSetReturn,
 
         /// Delegates the current async generator function to another iterator.
         ///
@@ -1619,7 +1639,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: promise **=>**
+        /// Stack: promise **=>** received
         Await,
 
         /// Push the current new target to the stack.

@@ -53,7 +53,7 @@ impl ByteCompiler<'_, '_> {
                     self.compile_expr(expr, true);
                     if self.in_async_generator {
                         self.emit_opcode(Opcode::Await);
-                        self.emit_opcode(Opcode::GeneratorNext)
+                        self.emit_opcode(Opcode::GeneratorNext);
                     }
                 } else {
                     self.emit(Opcode::PushUndefined, &[]);

@@ -317,8 +317,7 @@ impl CodeBlock {
             | Opcode::Call
             | Opcode::New
             | Opcode::SuperCall
-            | Opcode::ConcatToString
-            | Opcode::GeneratorAsyncResumeYield => {
+            | Opcode::ConcatToString => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
                 result
@@ -334,7 +333,6 @@ impl CodeBlock {
             | Opcode::LoopStart
             | Opcode::IteratorLoopStart
             | Opcode::TryStart
-            | Opcode::AsyncGeneratorNext
             | Opcode::GeneratorDelegateNext
             | Opcode::GeneratorDelegateResume => {
                 let operand1 = self.read::<u32>(*pc);
@@ -364,6 +362,7 @@ impl CodeBlock {
             }
             Opcode::GetGenerator | Opcode::GetGeneratorAsync => {
                 let operand = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
                 format!(
                     "{operand:04}: '{}' (length: {})",
                     interner.resolve_expect(self.functions[operand as usize].name),
@@ -429,6 +428,20 @@ impl CodeBlock {
                 let count = self.read::<u32>(*pc);
                 *pc += size_of::<u32>() * (count as usize + 1);
                 String::new()
+            }
+            Opcode::GeneratorJumpOnResumeKind => {
+                let normal = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                let throw = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                let r#return = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                format!("n: {normal}, t: {throw}, r: {return}")
+            }
+            Opcode::CreateIteratorResult => {
+                let done = self.read::<u8>(*pc) != 0;
+                *pc += size_of::<u8>();
+                format!("done: {done}")
             }
             Opcode::Pop
             | Opcode::PopIfThrown
@@ -531,8 +544,10 @@ impl CodeBlock {
             | Opcode::PushNewArray
             | Opcode::PopOnReturnAdd
             | Opcode::PopOnReturnSub
-            | Opcode::Yield
+            | Opcode::GeneratorYield
+            | Opcode::AsyncGeneratorYield
             | Opcode::GeneratorNext
+            | Opcode::GeneratorSetReturn
             | Opcode::PushClassField
             | Opcode::SuperCallDerived
             | Opcode::Await

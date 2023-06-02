@@ -179,6 +179,13 @@ impl ByteCompiler<'_, '_> {
 
                     let (return_gen, exit) =
                         self.emit_opcode_with_two_operands(Opcode::GeneratorDelegateResume);
+                    if self.in_async_generator {
+                        self.emit_opcode(Opcode::IteratorValue);
+                        self.async_generator_yield();
+                    } else {
+                        self.emit_opcode(Opcode::IteratorResult);
+                        self.emit_opcode(Opcode::GeneratorYield);
+                    }
                     self.emit(Opcode::Jump, &[start_address]);
 
                     self.patch_jump(return_gen);
@@ -186,7 +193,7 @@ impl ByteCompiler<'_, '_> {
                     if self.in_async_generator {
                         self.emit_opcode(Opcode::Await);
                     }
-                    self.close_active_iterators(true);
+                    self.close_active_iterators();
                     self.emit_opcode(Opcode::GeneratorResumeReturn);
 
                     self.patch_jump(throw_method_undefined);
@@ -194,24 +201,8 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::Throw);
 
                     self.patch_jump(exit);
-                } else if self.in_async_generator {
-                    self.emit_opcode(Opcode::Await);
-                    let (skip_yield, skip_yield_await) =
-                        self.emit_opcode_with_two_operands(Opcode::AsyncGeneratorNext);
-                    self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_opcode(Opcode::Yield);
-                    let normal_completion =
-                        self.emit_opcode_with_operand(Opcode::GeneratorAsyncResumeYield);
-                    self.patch_jump(skip_yield);
-                    self.emit_opcode(Opcode::Await);
-                    self.close_active_iterators(true);
-                    self.emit_opcode(Opcode::GeneratorResumeReturn);
-
-                    self.patch_jump(skip_yield_await);
-                    self.patch_jump(normal_completion);
                 } else {
-                    self.emit_opcode(Opcode::Yield);
-                    self.emit_opcode(Opcode::GeneratorNext);
+                    self.r#yield();
                 }
 
                 if !use_expr {
