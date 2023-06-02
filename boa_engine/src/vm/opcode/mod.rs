@@ -1807,10 +1807,6 @@ generate_impl! {
         Reserved52 => Reserved,
         /// Reserved [`Opcode`].
         Reserved53 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved54 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved55 => Reserved,
     }
 }
 

@@ -617,9 +617,7 @@ impl CodeBlock {
             | Opcode::Reserved50
             | Opcode::Reserved51
             | Opcode::Reserved52
-            | Opcode::Reserved53
-            | Opcode::Reserved54
-            | Opcode::Reserved55 => unreachable!("Reserved opcodes are unrechable"),
+            | Opcode::Reserved53 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
