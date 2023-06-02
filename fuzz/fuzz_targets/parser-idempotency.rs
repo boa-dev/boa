@@ -4,7 +4,7 @@ mod common;
 
 use crate::common::FuzzData;
 use boa_interner::ToInternedString;
-use boa_parser::Parser;
+use boa_parser::{Parser, Source};
 use libfuzzer_sys::fuzz_target;
 use libfuzzer_sys::Corpus;
 use std::error::Error;
@@ -16,7 +16,7 @@ use std::io::Cursor;
 fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
     let original = data.ast.to_interned_string(&data.interner);
 
-    let mut parser = Parser::new(Cursor::new(&original));
+    let mut parser = Parser::new(Source::from_reader(Cursor::new(&original), None));
 
     let before = data.interner.len();
     // For a variety of reasons, we may not actually produce valid code here (e.g., nameless function).
@@ -34,7 +34,7 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
             data.ast,
             first
         );
-        let mut parser = Parser::new(Cursor::new(&first_interned));
+        let mut parser = Parser::new(Source::from_reader(Cursor::new(&first_interned), None));
 
         // Now, we most assuredly should produce valid code. It has already gone through a first pass.
         let second = parser
