@@ -490,7 +490,7 @@ struct Jobs(RefCell<VecDeque<NativeJob>>);
 
 impl JobQueue for Jobs {
     fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context<'_>) {
-        self.0.borrow_mut().push_front(job);
+        self.0.borrow_mut().push_back(job);
     }
 
     fn run_jobs(&self, context: &mut Context<'_>) {
@@ -509,6 +509,6 @@ impl JobQueue for Jobs {
 
     fn enqueue_future_job(&self, future: FutureJob, _: &mut Context<'_>) {
         let job = pollster::block_on(future);
-        self.0.borrow_mut().push_front(job);
+        self.0.borrow_mut().push_back(job);
     }
 }

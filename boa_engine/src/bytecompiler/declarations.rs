@@ -272,6 +272,9 @@ impl ByteCompiler<'_, '_> {
                     self.context,
                 );
 
+            // Ensures global functions are printed when generating the global flowgraph.
+            self.functions.push(code.clone());
+
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
             let function = if generator {
                 create_generator_function_object(code, r#async, None, self.context)
@@ -686,6 +689,9 @@ impl ByteCompiler<'_, '_> {
 
             // c. If varEnv is a Global Environment Record, then
             if var_environment_is_global {
+                // Ensures global functions are printed when generating the global flowgraph.
+                self.functions.push(code.clone());
+
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let function = if generator {
                     create_generator_function_object(code, r#async, None, self.context)
@@ -988,7 +994,9 @@ impl ByteCompiler<'_, '_> {
         }
         if generator {
             self.emit_opcode(Opcode::PushUndefined);
-            self.emit_opcode(Opcode::Yield);
+            // Don't need to use `AsyncGeneratorYield` since
+            // we just want to stop the execution of the generator.
+            self.emit_opcode(Opcode::GeneratorYield);
         }
 
         // 27. If hasParameterExpressions is false, then
