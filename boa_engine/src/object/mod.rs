@@ -2213,12 +2213,32 @@ impl Object {
         matches!(self.kind, ObjectKind::PlainDate(_))
     }
 
+    /// Gets a mutable reference to `PlainDate` data if the object is a `Temporal.PlainDate`.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn as_plain_date_mut(&mut self) -> Option<&mut PlainDate> {
+        match &mut self.kind {
+            ObjectKind::PlainDate(date) => Some(date),
+            _ => None,
+        }
+    }
+
     /// Gets the `PlainDate` data if the object is a `Temporal.PlainDate`.
     #[inline]
     #[cfg(feature = "temporal")]
     pub fn as_plain_date(&self) -> Option<&PlainDate> {
         match &self.kind {
             ObjectKind::PlainDate(date) => Some(date),
+            _ => None,
+        }
+    }
+
+    /// Gets the `PlainDate` data if the object is a `Temporal.PlainDate`.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn as_zoned_date_time(&self) -> Option<&ZonedDateTime> {
+        match &self.kind {
+            ObjectKind::ZonedDateTime(zdt) => Some(zdt),
             _ => None,
         }
     }

@@ -227,6 +227,7 @@ impl JsBigInt {
 
     /// Utility function for performing `+` operation on more than two values.
     #[inline]
+    #[must_use]
     pub fn add_n(values: &[Self]) -> Self {
         let mut result = JsBigInt::zero();
         for big_int in values {

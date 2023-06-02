@@ -55,10 +55,33 @@ impl BuiltInConstructor for ZonedDateTime {
 
 // -- ZonedDateTime Abstract Operations --
 
-/// 6.5.7 NanosecondsToDays ( nanoseconds, relativeTo )
+///6.5.5 `AddZonedDateTime ( epochNanoseconds, timeZone, calendar, years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds [ , options ] )`
+pub(crate) fn add_zoned_date_time(
+    epoch_nanos: &JsBigInt,
+    time_zone: &JsObject,
+    calendar: &JsObject,
+    duration: super::duration::DurationRecord,
+    options: Option<&JsObject>,
+) -> JsResult<JsBigInt> {
+    // 1. If options is not present, set options to undefined.
+    // 2. Assert: Type(options) is Object or Undefined.
+    // 3. If years = 0, months = 0, weeks = 0, and days = 0, then
+    // a. Return ? AddInstant(epochNanoseconds, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
+    // 4. Let instant be ! CreateTemporalInstant(epochNanoseconds).
+    // 5. Let temporalDateTime be ? GetPlainDateTimeFor(timeZone, instant, calendar).
+    // 6. Let datePart be ! CreateTemporalDate(temporalDateTime.[[ISOYear]], temporalDateTime.[[ISOMonth]], temporalDateTime.[[ISODay]], calendar).
+    // 7. Let dateDuration be ! CreateTemporalDuration(years, months, weeks, days, 0, 0, 0, 0, 0, 0).
+    // 8. Let addedDate be ? CalendarDateAdd(calendar, datePart, dateDuration, options).
+    // 9. Let intermediateDateTime be ? CreateTemporalDateTime(addedDate.[[ISOYear]], addedDate.[[ISOMonth]], addedDate.[[ISODay]], temporalDateTime.[[ISOHour]], temporalDateTime.[[ISOMinute]], temporalDateTime.[[ISOSecond]], temporalDateTime.[[ISOMillisecond]], temporalDateTime.[[ISOMicrosecond]], temporalDateTime.[[ISONanosecond]], calendar).
+    // 10. Let intermediateInstant be ? GetInstantFor(timeZone, intermediateDateTime, "compatible").
+    // 11. Return ? AddInstant(intermediateInstant.[[Nanoseconds]], hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
+    todo!()
+}
+
+/// 6.5.7 `NanosecondsToDays ( nanoseconds, relativeTo )`
 pub(crate) fn nanoseconds_to_days(
-    nanoseconds: i32,
-    relativeTo: JsValue,
+    nanoseconds: f64,
+    relative_to: &JsValue,
 ) -> JsResult<(i32, i32, i32)> {
     // 1. Let dayLengthNs be nsPerDay.
     // 2. If nanoseconds = 0, then

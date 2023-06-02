@@ -219,22 +219,23 @@ fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
     format!("{n:0min_length$}")
 }
 
-/// 13.2 ISODateToEpochDays ( year, month, date )
+/// 13.2 `ISODateToEpochDays ( year, month, date )`
 pub(crate) fn iso_date_to_epoch_days(year: i32, month: i32, date: i32) -> i32 {
     // 1. Let resolvedYear be year + floor(month / 12).
-    let resolved_year = year + (month as f64 / 12_f64).floor() as i32;
+    let resolved_year = year + (f64::from(month) / 12_f64).floor() as i32;
     // 2. Let resolvedMonth be month modulo 12.
     let resolved_month = month % 12;
 
     // 3. Find a time t such that EpochTimeToEpochYear(t) is resolvedYear, EpochTimeToMonthInYear(t) is resolvedMonth, and EpochTimeToDate(t) is 1.
-    let year_t = self::date_equations::epoch_time_for_year(resolved_year as f64);
-    let month_t = self::date_equations::epoch_time_for_month_given_year(resolved_month, resolved_year);
+    let year_t = self::date_equations::epoch_time_for_year(f64::from(resolved_year));
+    let month_t =
+        self::date_equations::epoch_time_for_month_given_year(resolved_month, resolved_year);
 
     // 4. Return EpochTimeToDayNumber(t) + date - 1.
     self::date_equations::epoch_time_to_day_number(year_t + month_t) as i32 + date - 1
 }
 
-/// Abstract Operation 13.5 GetOptionsObject ( options )
+/// Abstract Operation 13.5 `GetOptionsObject ( options )`
 #[inline]
 pub(crate) fn get_option_object(options: &JsValue) -> JsResult<JsObject> {
     // 1. If options is undefined, then
@@ -244,15 +245,18 @@ pub(crate) fn get_option_object(options: &JsValue) -> JsResult<JsObject> {
     // 2. If Type(options) is Object, then
     } else if options.is_object() {
         // a. Return options.
-        return Ok(options.as_object().unwrap().clone());
+        return Ok(options
+            .as_object()
+            .expect("options is confirmed as an object.")
+            .clone());
     }
     // 3. Throw a TypeError exception.
-    return Err(JsNativeError::typ()
+    Err(JsNativeError::typ()
         .with_message("options value was not an object.")
-        .into());
+        .into())
 }
 
-/// 13.6 CopyOptions ( options )
+/// 13.6 `CopyOptions ( options )`
 #[inline]
 pub(crate) fn copy_options(options: &JsValue, context: &mut Context<'_>) -> JsResult<JsObject> {
     // 1. Let optionsCopy be OrdinaryObjectCreate(null).
@@ -265,13 +269,14 @@ pub(crate) fn copy_options(options: &JsValue, context: &mut Context<'_>) -> JsRe
     Ok(options_copy)
 }
 
+#[derive(Debug, Clone, Copy)]
 pub(crate) enum OptionType {
     String,
     Bool,
     Number,
 }
 
-/// 13.7 GetOption ( options, property, type, values, default )
+/// 13.7 `GetOption ( options, property, type, values, default )`
 #[inline]
 pub(crate) fn get_option(
     options: &JsObject,
@@ -339,7 +344,7 @@ pub(crate) fn get_option(
     Ok(value)
 }
 
-/// 13.10 ToTemporalRoundingMode ( normalizedOptions, fallback )
+/// 13.10 `ToTemporalRoundingMode ( normalizedOptions, fallback )`
 #[inline]
 pub(crate) fn to_temporal_rounding_mode(
     normalized_options: &JsObject,
@@ -376,7 +381,7 @@ pub(crate) fn to_temporal_rounding_mode(
     }
 }
 
-// 13.11 NegateTemporalRoundingMode ( roundingMode )
+// 13.11 `NegateTemporalRoundingMode ( roundingMode )`
 fn negate_temporal_rounding_mode(rounding_mode: JsString) -> JsString {
     match rounding_mode.as_slice() {
         CEIL => FLOOR.into(),
@@ -387,7 +392,7 @@ fn negate_temporal_rounding_mode(rounding_mode: JsString) -> JsString {
     }
 }
 
-/// 13.16 ToTemporalRoundingIncrement ( normalizedOptions )
+/// 13.16 `ToTemporalRoundingIncrement ( normalizedOptions )`
 #[inline]
 pub(crate) fn to_temporal_rounding_increment(
     normalized_options: &JsObject,
@@ -414,7 +419,7 @@ pub(crate) fn to_temporal_rounding_increment(
     // 3. Let integerIncrement be truncate(ℝ(increment)).
     let integer_increment = num.trunc();
     // 4. If integerIncrement < 1 or integerIncrement > 109, throw a RangeError exception.
-    if integer_increment < 1.0 || integer_increment > 109.0 {
+    if (1.0..=109.0).contains(&integer_increment) {
         return Err(JsNativeError::range()
             .with_message("rounding increment was out of range.")
             .into());
@@ -423,7 +428,7 @@ pub(crate) fn to_temporal_rounding_increment(
     Ok(integer_increment)
 }
 
-/// 13.17 ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )
+/// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
 #[inline]
 pub(crate) fn validate_temporal_rounding_increment(
     increment: f64,
@@ -459,7 +464,7 @@ pub(crate) fn validate_temporal_rounding_increment(
     Ok(())
 }
 
-/// Abstract operation 13.20 GetTemporalUnit ( normalizedOptions, key, unitGroup, default [ , extraValues ] )
+/// Abstract operation 13.20 `GetTemporalUnit ( normalizedOptions, key, unitGroup, default [ , extraValues ] )`
 #[inline]
 pub(crate) fn get_temporal_unit(
     normalized_options: &JsObject,
@@ -468,7 +473,7 @@ pub(crate) fn get_temporal_unit(
     default: Option<&JsValue>,           // Must be required (none), undefined, or JsString.
     extra_values: Option<Vec<JsString>>, // Vec<JsString>
     context: &mut Context<'_>,
-) -> JsResult<JsString> {
+) -> JsResult<JsValue> {
     // 1. Let singularNames be a new empty List.
     let temporal_units = TemporalUnits::default();
     // 2. For each row of Table 13, except the header row, in table order, do
@@ -532,26 +537,89 @@ pub(crate) fn get_temporal_unit(
             .into());
     }
 
-    // NOTE: Should spec probably be asserting that value is not undefined at this point.
-    assert!(!value.is_undefined());
-
+    // NOTE (nekevss): Value here is either a string or undefined.
     // 11. If value is listed in the Plural column of Table 13, then
     // a. Set value to the value in the Singular column of the corresponding row.
     // 12. Return value.
-    match value.as_string() {
-        Some(string) => Ok(temporal_units.plural_lookup(string)),
+    match value {
+        JsValue::String(lookup_value) => Ok(temporal_units.plural_lookup(&lookup_value).into()),
+        JsValue::Undefined => Ok(JsValue::undefined()),
         // TODO: verify that this is correct to specification, i.e. is it possible for default value to exist and value to be undefined?
-        _ => unreachable!(),
+        _ => unreachable!("The value returned from getTemporalUnit must be a string or undefined"),
     }
 }
 
-/// 13.22 LargerOfTwoTemporalUnits ( u1, u2 )
+/// 13.21 `ToRelativeTemporalObject ( options )`
+pub(crate) fn to_relative_temporal_object(
+    options: &JsObject,
+    context: &mut Context<'_>,
+) -> JsResult<JsValue> {
+    // 1. Assert: Type(options) is Object.
+    // 2. Let value be ? Get(options, "relativeTo").
+    let value = options.get("relativeTo", context)?;
+    // 3. If value is undefined, then
+    if value.is_undefined() {
+        // a. Return value.
+        return Ok(value);
+    }
+    // 4. Let offsetBehaviour be option.
+    // 5. Let matchBehaviour be match exactly.
+    // 6. If Type(value) is Object, then
+    // a. If value has either an [[InitializedTemporalDate]] or [[InitializedTemporalZonedDateTime]] internal slot, then
+    // i. Return value.
+    // b. If value has an [[InitializedTemporalDateTime]] internal slot, then
+    // i. Return ! CreateTemporalDate(value.[[ISOYear]], value.[[ISOMonth]], value.[[ISODay]], value.[[Calendar]]).
+    // c. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(value).
+    // d. Let fieldNames be ? CalendarFields(calendar, « "day", "hour", "microsecond", "millisecond", "minute", "month", "monthCode", "nanosecond", "second", "year" »).
+    // e. Append "timeZone" to fieldNames.
+    // f. Append "offset" to fieldNames.
+    // g. Let fields be ? PrepareTemporalFields(value, fieldNames, «»).
+    // h. Let dateOptions be OrdinaryObjectCreate(null).
+    // i. Perform ! CreateDataPropertyOrThrow(dateOptions, "overflow", "constrain").
+    // j. Let result be ? InterpretTemporalDateTimeFields(calendar, fields, dateOptions).
+    // k. Let offsetString be ! Get(fields, "offset").
+    // l. Let timeZone be ! Get(fields, "timeZone").
+    // m. If timeZone is not undefined, then
+    // i. Set timeZone to ? ToTemporalTimeZoneSlotValue(timeZone).
+    // n. If offsetString is undefined, then
+    // i. Set offsetBehaviour to wall.
+    // 7. Else,
+    // a. Let string be ? ToString(value).
+    // b. Let result be ? ParseTemporalRelativeToString(string).
+    // c. Let offsetString be result.[[TimeZone]].[[OffsetString]].
+    // d. Let timeZoneName be result.[[TimeZone]].[[Name]].
+    // e. If timeZoneName is undefined, then
+    // i. Let timeZone be undefined.
+    // f. Else,
+    // i. Let timeZone be ? ToTemporalTimeZoneSlotValue(timeZoneName).
+    // ii. If result.[[TimeZone]].[[Z]] is true, then
+    // 1. Set offsetBehaviour to exact.
+    // iii. Else if offsetString is undefined, then
+    // 1. Set offsetBehaviour to wall.
+    // iv. Set matchBehaviour to match minutes.
+    // g. Let calendar be result.[[Calendar]].
+    // h. If calendar is undefined, set calendar to "iso8601".
+    // i. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
+    // j. Set calendar to the ASCII-lowercase of calendar.
+    // 8. If timeZone is undefined, then
+    // a. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
+    // 9. If offsetBehaviour is option, then
+    // a. If IsTimeZoneOffsetString(offsetString) is false, throw a RangeError exception.
+    // b. Let offsetNs be ParseTimeZoneOffsetString(offsetString).
+    // 10. Else,
+    // a. Let offsetNs be 0.
+    // 11. Let epochNanoseconds be ? InterpretISODateTimeOffset(result.[[Year]], result.[[Month]], result.[[Day]], result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]], offsetBehaviour, offsetNs, timeZone, "compatible", "reject", matchBehaviour).
+    // 12. Return ! CreateTemporalZonedDateTime(epochNanoseconds, timeZone, calendar).
+    todo!()
+}
+
+/// 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`
 fn larger_of_two_temporal_units(u1: &JsString, u2: &JsString) -> JsString {
     // 1. Assert: Both u1 and u2 are listed in the Singular column of Table 13.
     let unit_table = TemporalUnits::default();
     assert!(
-        unit_table.datetime_singulars().contains(&u1)
-            && unit_table.datetime_singulars().contains(&u2)
+        unit_table.datetime_singulars().contains(u1)
+            && unit_table.datetime_singulars().contains(u2)
     );
 
     // 2. For each row of Table 13, except the header row, in table order, do
@@ -570,10 +638,11 @@ fn larger_of_two_temporal_units(u1: &JsString, u2: &JsString) -> JsString {
             break;
         };
     }
-    return result;
+
+    result
 }
 
-/// 13.23 MaximumTemporalDurationRoundingIncrement ( unit )
+/// 13.23 `MaximumTemporalDurationRoundingIncrement ( unit )`
 fn maximum_temporal_duration_rounding_increment(unit: &JsString) -> JsValue {
     match unit.as_slice() {
         // 1. If unit is "year", "month", "week", or "day", then
@@ -592,7 +661,7 @@ fn maximum_temporal_duration_rounding_increment(unit: &JsString) -> JsValue {
     }
 }
 
-/// 13.26 GetUnsignedRoundingMode ( roundingMode, isNegative )
+/// 13.26 `GetUnsignedRoundingMode ( roundingMode, isNegative )`
 #[inline]
 pub(crate) fn get_unsigned_round_mode(
     rounding_mode: &JsString,
@@ -602,21 +671,17 @@ pub(crate) fn get_unsigned_round_mode(
         CEIL if !is_negative => UnsignedRoundingMode::Infinity,
         CEIL => UnsignedRoundingMode::Zero,
         FLOOR if !is_negative => UnsignedRoundingMode::Zero,
-        FLOOR => UnsignedRoundingMode::Infinity,
-        EXPAND => UnsignedRoundingMode::Infinity,
-        TRUNC => UnsignedRoundingMode::Zero,
+        FLOOR | TRUNC | EXPAND => UnsignedRoundingMode::Infinity,
         HALFCEIL if !is_negative => UnsignedRoundingMode::HalfInfinity,
-        HALFCEIL => UnsignedRoundingMode::HalfZero,
+        HALFCEIL | HALFTRUNC => UnsignedRoundingMode::HalfZero,
         HALFFLOOR if !is_negative => UnsignedRoundingMode::HalfZero,
-        HALFFLOOR => UnsignedRoundingMode::HalfInfinity,
-        HALFEXPAND => UnsignedRoundingMode::HalfInfinity,
-        HALFTRUNC => UnsignedRoundingMode::HalfZero,
+        HALFFLOOR | HALFEXPAND => UnsignedRoundingMode::HalfInfinity,
         HALFEVEN => UnsignedRoundingMode::HalfEven,
         _ => unreachable!(),
     }
 }
 
-/// 13.27 ApplyUnsignedRoundingMode ( x, r1, r2, unsignedRoundingMode )
+/// 13.27 `ApplyUnsignedRoundingMode ( x, r1, r2, unsignedRoundingMode )`
 #[inline]
 fn apply_unsigned_rounding_mode(
     x: f64,
@@ -625,7 +690,7 @@ fn apply_unsigned_rounding_mode(
     unsigned_rounding_mode: UnsignedRoundingMode,
 ) -> f64 {
     // 1. If x is equal to r1, return r1.
-    if x == r1 {
+    if (x - r1).abs() == 0.0 {
         return r1;
     };
     // 2. Assert: r1 < x < r2.
@@ -654,7 +719,7 @@ fn apply_unsigned_rounding_mode(
         return r2;
     }
     // 10. Assert: d1 is equal to d2.
-    assert!(d1 == d2);
+    assert!((d1 - d2).abs() == 0.0);
 
     // 11. If unsignedRoundingMode is half-zero, return r1.
     if unsigned_rounding_mode == UnsignedRoundingMode::HalfZero {
@@ -676,7 +741,37 @@ fn apply_unsigned_rounding_mode(
     r2
 }
 
-/// 13.29 RoundNumberToIncrementAsIfPositive ( x, increment, roundingMode )
+/// 13.28 `RoundNumberToIncrement ( x, increment, roundingMode )`
+pub(crate) fn round_number_to_increment(x: f64, increment: f64, rounding_mode: &JsString) -> f64 {
+    let mut is_negative = false;
+    // 1. Let quotient be x / increment.
+    let mut quotient = x / increment;
+    // 2. If quotient < 0, then
+    // 3. Else,
+    // a. Let isNegative be false.
+    if quotient < 0_f64 {
+        // a. Let isNegative be true.
+        // b. Set quotient to -quotient.
+        is_negative = true;
+        quotient = -quotient;
+    };
+    // 4. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, isNegative).
+    let unsigned_rounding_mode = get_unsigned_round_mode(rounding_mode, is_negative);
+    // 5. Let r1 be the largest integer such that r1 ≤ quotient.
+    let r1 = quotient.ceil();
+    // 6. Let r2 be the smallest integer such that r2 > quotient.
+    let r2 = quotient.floor();
+    // 7. Let rounded be ApplyUnsignedRoundingMode(quotient, r1, r2, unsignedRoundingMode).
+    let mut rounded = apply_unsigned_rounding_mode(quotient, r1, r2, unsigned_rounding_mode);
+    // 8. If isNegative is true, set rounded to -rounded.
+    if is_negative {
+        rounded = -rounded;
+    };
+    // 9. Return rounded × increment.
+    rounded * increment
+}
+
+/// 13.29 `RoundNumberToIncrementAsIfPositive ( x, increment, roundingMode )`
 #[inline]
 pub(crate) fn round_to_increment_as_if_positive(
     ns: &JsBigInt,
@@ -700,6 +795,24 @@ pub(crate) fn round_to_increment_as_if_positive(
     Ok(JsBigInt::mul(&rounded, &JsBigInt::from(increment)))
 }
 
+/// 13.44 `ToIntegerWithTruncation ( argument )`
+#[inline]
+pub(crate) fn to_integer_with_truncation(
+    value: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<i32> {
+    // 1. Let number be ? ToNumber(argument).
+    let number = value.to_number(context)?;
+    // 2. If number is NaN, +∞𝔽 or -∞𝔽, throw a RangeError exception.
+    if number.is_nan() || number.is_infinite() {
+        return Err(JsNativeError::range()
+            .with_message("truncation target must be an integer.")
+            .into());
+    }
+    // 3. Return truncate(ℝ(number)).
+    Ok(number.trunc() as i32)
+}
+
 /// Abstract operation 13.45 `ToIntegerIfIntegral( argument )`
 #[inline]
 pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -> JsResult<i32> {
@@ -715,16 +828,16 @@ pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -
     arg.to_i32(context)
 }
 
-/// 13.47 GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )
+/// 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`
 // IMPLEMENTATION NOTE: op -> true == until | false == since
 #[inline]
 pub(crate) fn get_diff_settings(
     op: bool,
     options: &JsObject,
-    unit_group: JsString,
-    disallowed_units: Vec<JsString>,
-    fallback_smallest_unit: JsString,
-    smallest_largest_default_unit: JsString,
+    unit_group: &JsString,
+    disallowed_units: &[JsString],
+    fallback_smallest_unit: &JsString,
+    smallest_largest_default_unit: &JsString,
     context: &mut Context<'_>,
 ) -> JsResult<(JsString, JsString, JsString, f64)> {
     // 1. NOTE: The following steps read options and perform independent validation in alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
@@ -732,11 +845,14 @@ pub(crate) fn get_diff_settings(
     let mut largest_unit = get_temporal_unit(
         options,
         PropertyKey::from("largestUnit"),
-        &unit_group,
+        unit_group,
         Some(&JsValue::from("auto")),
         None,
         context,
-    )?;
+    )?
+    .as_string()
+    .expect("GetTemporalUnit cannot return undefined as the default value is not Undefined.")
+    .clone();
 
     // 3. If disallowedUnits contains largestUnit, throw a RangeError exception.
     if disallowed_units.contains(&largest_unit) {
@@ -760,11 +876,14 @@ pub(crate) fn get_diff_settings(
     let smallest_unit = get_temporal_unit(
         options,
         PropertyKey::from("smallestUnit"),
-        &unit_group,
-        Some(&fallback_smallest_unit.into()),
+        unit_group,
+        Some(&fallback_smallest_unit.clone().into()),
         None,
         context,
-    )?;
+    )?
+    .as_string()
+    .expect("smallestUnit must be a string as default value is not undefined.")
+    .clone();
 
     // 8. If disallowedUnits contains smallestUnit, throw a RangeError exception.
     if disallowed_units.contains(&smallest_unit) {
@@ -775,7 +894,7 @@ pub(crate) fn get_diff_settings(
 
     // 9. Let defaultLargestUnit be ! LargerOfTwoTemporalUnits(smallestLargestDefaultUnit, smallestUnit).
     let default_largest_unit =
-        larger_of_two_temporal_units(&smallest_largest_default_unit, &smallest_unit);
+        larger_of_two_temporal_units(smallest_largest_default_unit, &smallest_unit);
     // 10. If largestUnit is "auto", set largestUnit to defaultLargestUnit.
     if largest_unit.as_slice() == utf16!("auto") {
         largest_unit = default_largest_unit;
@@ -795,9 +914,11 @@ pub(crate) fn get_diff_settings(
     if !maximum.is_undefined() {
         validate_temporal_rounding_increment(
             rounding_increment,
-            maximum.as_number().unwrap(),
+            maximum
+                .as_number()
+                .expect("MaximumTemporalDurationRoundIncrement cannot fail in according to spec."),
             false,
-        )?
+        )?;
     }
 
     // 14. Return the Record { [[SmallestUnit]]: smallestUnit, [[LargestUnit]]: largestUnit, [[RoundingMode]]: roundingMode, [[RoundingIncrement]]: roundingIncrement, }.

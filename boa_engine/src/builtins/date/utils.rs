@@ -39,7 +39,7 @@ pub(super) const fn day_from_year(year: i64) -> i64 {
 /// Abstract operation [`MakeTime`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-maketime
-pub(super) fn make_time(hour: i64, min: i64, sec: i64, ms: i64) -> Option<i64> {
+pub(crate) fn make_time(hour: i64, min: i64, sec: i64, ms: i64) -> Option<i64> {
     // 1. If hour is not finite or min is not finite or sec is not finite or ms is not finite, return NaN.
     // 2. Let h be 𝔽(! ToIntegerOrInfinity(hour)).
     // 3. Let m be 𝔽(! ToIntegerOrInfinity(min)).
@@ -59,7 +59,7 @@ pub(super) fn make_time(hour: i64, min: i64, sec: i64, ms: i64) -> Option<i64> {
 /// Abstract operation [`MakeDay`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-makeday
-pub(super) fn make_day(mut year: i64, mut month: i64, date: i64) -> Option<i64> {
+pub(crate) fn make_day(mut year: i64, mut month: i64, date: i64) -> Option<i64> {
     // 1. If year is not finite or month is not finite or date is not finite, return NaN.
     // 2. Let y be 𝔽(! ToIntegerOrInfinity(year)).
     // 3. Let m be 𝔽(! ToIntegerOrInfinity(month)).
@@ -101,7 +101,7 @@ pub(super) fn make_day(mut year: i64, mut month: i64, date: i64) -> Option<i64> 
 /// Abstract operation [`MakeDate`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-makedate
-pub(super) fn make_date(day: i64, time: i64) -> Option<i64> {
+pub(crate) fn make_date(day: i64, time: i64) -> Option<i64> {
     // 1. If day is not finite or time is not finite, return NaN.
     // 2. Let tv be day × msPerDay + time.
     // 3. If tv is not finite, return NaN.

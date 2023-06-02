@@ -1,4 +1,4 @@
-//! Boa's implementation of `Temporal.Now` EcmaScript object.
+//! Boa's implementation of `Temporal.Now` `EcmaScript` object.
 
 use crate::{
     builtins::temporal::{create_temporal_time_zone, default_time_zone},
@@ -130,8 +130,8 @@ impl Now {
 
 // -- Temporal.Now abstract operations --
 
-/// 2.3.1 `HostSystemUTCEpochNanoseconds ( global )
-fn host_system_utc_epoch_nanoseconds(_global: Realm) -> JsResult<JsBigInt> {
+/// 2.3.1 `HostSystemUTCEpochNanoseconds ( global )`
+fn host_system_utc_epoch_nanoseconds() -> JsResult<JsBigInt> {
     // TODO: Implement `SystemTime::now()` calls manually. Needed for `no_std`
     let epoch_nanos = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
@@ -143,13 +143,7 @@ fn host_system_utc_epoch_nanoseconds(_global: Realm) -> JsResult<JsBigInt> {
 fn clamp_epoc_nanos(ns: JsBigInt) -> JsBigInt {
     let max = JsBigInt::from(NS_MAX_INSTANT);
     let min = JsBigInt::from(NS_MIN_INSTANT);
-    if max < ns {
-        max
-    } else if ns < min {
-        min
-    } else {
-        ns
-    }
+    ns.clamp(min, max)
 }
 
 /// 2.3.2 `SystemUTCEpochNanoseconds`

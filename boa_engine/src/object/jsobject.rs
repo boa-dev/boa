@@ -772,7 +772,7 @@ impl JsObject {
         self.borrow().is_plain_date()
     }
 
-    /// Checks if current object is a `Temporal.PlainDate` object.
+    /// Checks if current object is a `Temporal.ZonedDateTime` object.
     ///
     /// # Panics
     ///
