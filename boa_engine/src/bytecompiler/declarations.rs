@@ -351,7 +351,7 @@ impl ByteCompiler<'_, '_> {
         //     ii. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
         //     iii. Perform ! env.InitializeBinding(fn, fo). NOTE: This step is replaced in section B.3.2.6.
         // TODO: Support B.3.2.6.
-        for d in &declarations {
+        for d in declarations {
             match d {
                 LexicallyScopedDeclaration::Function(function) => {
                     self.function_with_binding(function.into(), NodeKind::Declaration, false);

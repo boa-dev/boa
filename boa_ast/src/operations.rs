@@ -1358,37 +1358,37 @@ where
 }
 
 /// The type of a lexically scoped declaration.
-#[derive(Clone, Debug)]
-pub enum LexicallyScopedDeclaration {
+#[derive(Copy, Clone, Debug)]
+pub enum LexicallyScopedDeclaration<'a> {
     /// See [`LexicalDeclaration`]
-    LexicalDeclaration(LexicalDeclaration),
+    LexicalDeclaration(&'a LexicalDeclaration),
 
     /// See [`Function`]
-    Function(Function),
+    Function(&'a Function),
 
     /// See [`Generator`]
-    Generator(Generator),
+    Generator(&'a Generator),
 
     /// See [`AsyncFunction`]
-    AsyncFunction(AsyncFunction),
+    AsyncFunction(&'a AsyncFunction),
 
     /// See [`AsyncGenerator`]
-    AsyncGenerator(AsyncGenerator),
+    AsyncGenerator(&'a AsyncGenerator),
 
     /// See [`Class`]
-    Class(Class),
+    Class(&'a Class),
 
     /// A default assignment expression as an export declaration.
     ///
     /// Only valid inside module exports.
-    AssignmentExpression(Expression),
+    AssignmentExpression(&'a Expression),
 }
 
-impl LexicallyScopedDeclaration {
+impl LexicallyScopedDeclaration<'_> {
     /// Return the bound names of the declaration.
     #[must_use]
     pub fn bound_names(&self) -> Vec<Identifier> {
-        match self {
+        match *self {
             Self::LexicalDeclaration(v) => bound_names(v),
             Self::Function(f) => bound_names(f),
             Self::Generator(g) => bound_names(g),
@@ -1400,8 +1400,8 @@ impl LexicallyScopedDeclaration {
     }
 }
 
-impl From<Declaration> for LexicallyScopedDeclaration {
-    fn from(value: Declaration) -> Self {
+impl<'ast> From<&'ast Declaration> for LexicallyScopedDeclaration<'ast> {
+    fn from(value: &'ast Declaration) -> LexicallyScopedDeclaration<'ast> {
         match value {
             Declaration::Function(f) => Self::Function(f),
             Declaration::Generator(g) => Self::Generator(g),
@@ -1419,7 +1419,7 @@ impl From<Declaration> for LexicallyScopedDeclaration {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallyscopeddeclarations
 #[must_use]
-pub fn lexically_scoped_declarations<'a, N>(node: &'a N) -> Vec<LexicallyScopedDeclaration>
+pub fn lexically_scoped_declarations<'a, N>(node: &'a N) -> Vec<LexicallyScopedDeclaration<'a>>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -1430,9 +1430,9 @@ where
 
 /// The [`Visitor`] used to obtain the lexically scoped declarations of a node.
 #[derive(Debug)]
-struct LexicallyScopedDeclarationsVisitor<'a>(&'a mut Vec<LexicallyScopedDeclaration>);
+struct LexicallyScopedDeclarationsVisitor<'a, 'ast>(&'a mut Vec<LexicallyScopedDeclaration<'ast>>);
 
-impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_> {
+impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
     type BreakTy = Infallible;
 
     // ScriptBody : StatementList
@@ -1460,34 +1460,30 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_> {
             // ExportDeclaration : export Declaration
             ExportDeclaration::Declaration(decl) => {
                 // 1. Return a List whose sole element is DeclarationPart of Declaration.
-                decl.clone().into()
+                decl.into()
             }
 
             // ExportDeclaration : export default HoistableDeclaration
             // 1. Return a List whose sole element is DeclarationPart of HoistableDeclaration.
-            ExportDeclaration::DefaultFunction(f) => {
-                LexicallyScopedDeclaration::Function(f.clone())
-            }
-            ExportDeclaration::DefaultGenerator(g) => {
-                LexicallyScopedDeclaration::Generator(g.clone())
-            }
+            ExportDeclaration::DefaultFunction(f) => LexicallyScopedDeclaration::Function(f),
+            ExportDeclaration::DefaultGenerator(g) => LexicallyScopedDeclaration::Generator(g),
             ExportDeclaration::DefaultAsyncFunction(af) => {
-                LexicallyScopedDeclaration::AsyncFunction(af.clone())
+                LexicallyScopedDeclaration::AsyncFunction(af)
             }
             ExportDeclaration::DefaultAsyncGenerator(ag) => {
-                LexicallyScopedDeclaration::AsyncGenerator(ag.clone())
+                LexicallyScopedDeclaration::AsyncGenerator(ag)
             }
 
             // ExportDeclaration : export default ClassDeclaration
             ExportDeclaration::DefaultClassDeclaration(c) => {
                 // 1. Return a List whose sole element is ClassDeclaration.
-                LexicallyScopedDeclaration::Class(c.clone())
+                LexicallyScopedDeclaration::Class(c)
             }
 
             // ExportDeclaration : export default AssignmentExpression ;
             ExportDeclaration::DefaultAssignmentExpression(expr) => {
                 // 1. Return a List whose sole element is this ExportDeclaration.
-                LexicallyScopedDeclaration::AssignmentExpression(expr.clone())
+                LexicallyScopedDeclaration::AssignmentExpression(expr)
             }
         };
 
@@ -1514,7 +1510,7 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_> {
             // StatementListItem : Declaration
             StatementListItem::Declaration(declaration) => {
                 // 1. Return a List whose sole element is DeclarationPart of Declaration.
-                self.0.push(declaration.clone().into());
+                self.0.push(declaration.into());
                 ControlFlow::Continue(())
             }
         }
@@ -1525,7 +1521,7 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_> {
             // LabelledItem : FunctionDeclaration
             LabelledItem::Function(f) => {
                 // 1. Return « FunctionDeclaration ».
-                self.0.push(LexicallyScopedDeclaration::Function(f.clone()));
+                self.0.push(LexicallyScopedDeclaration::Function(f));
             }
 
             // LabelledItem : Statement
@@ -1555,9 +1551,11 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallyscopeddeclarations
 #[derive(Debug)]
-struct TopLevelLexicallyScopedDeclarationsVisitor<'a>(&'a mut Vec<LexicallyScopedDeclaration>);
+struct TopLevelLexicallyScopedDeclarationsVisitor<'a, 'ast>(
+    &'a mut Vec<LexicallyScopedDeclaration<'ast>>,
+);
 
-impl<'ast> Visitor<'ast> for TopLevelLexicallyScopedDeclarationsVisitor<'_> {
+impl<'ast> Visitor<'ast> for TopLevelLexicallyScopedDeclarationsVisitor<'_, 'ast> {
     type BreakTy = Infallible;
 
     fn visit_statement_list_item(
@@ -1577,11 +1575,11 @@ impl<'ast> Visitor<'ast> for TopLevelLexicallyScopedDeclarationsVisitor<'_> {
 
                 // 2. Return « Declaration ».
                 Declaration::Class(cl) => {
-                    self.0.push(LexicallyScopedDeclaration::Class(cl.clone()));
+                    self.0.push(LexicallyScopedDeclaration::Class(cl));
                 }
                 Declaration::Lexical(lex) => {
                     self.0
-                        .push(LexicallyScopedDeclaration::LexicalDeclaration(lex.clone()));
+                        .push(LexicallyScopedDeclaration::LexicalDeclaration(lex));
                 }
             },
 

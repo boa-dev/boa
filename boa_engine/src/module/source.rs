@@ -1505,7 +1505,7 @@ impl SourceTextModule {
             let lex_declarations = lexically_scoped_declarations(&self.inner.code.source);
             let mut functions = Vec::new();
             // 24. For each element d of lexDeclarations, do
-            for declaration in &lex_declarations {
+            for declaration in lex_declarations {
                 // ii. Else,
                 // a. For each element dn of the BoundNames of d, do
                 // 1. Perform ! env.CreateMutableBinding(dn, false).
@@ -1576,10 +1576,19 @@ impl SourceTextModule {
                     }
                 };
 
-                let kind = spec.kind;
-
-                functions.push((compiler.function(spec), locator, kind));
+                functions.push((spec, locator));
             }
+
+            // Should compile after initializing bindings first to ensure inner calls
+            // are correctly resolved to the outer functions instead of as global bindings.
+            let functions = functions
+                .into_iter()
+                .map(|(spec, locator)| {
+                    let kind = spec.kind;
+
+                    (compiler.function(spec), locator, kind)
+                })
+                .collect::<Vec<_>>();
 
             compiler.compile_module_item_list(self.inner.code.source.items());
 
