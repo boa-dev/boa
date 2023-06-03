@@ -481,3 +481,21 @@ fn template_literal() {
         "result: 10 and 20",
     )]);
 }
+
+#[test]
+fn null_bool_in_object_pattern() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let obj = {
+                null: 0,
+                true: 10,
+                false: 100
+            };
+
+            let { null: a, true: b, false: c } = obj;
+        "#}),
+        TestAction::assert_eq("a", 0),
+        TestAction::assert_eq("b", 10),
+        TestAction::assert_eq("c", 100),
+    ]);
+}
