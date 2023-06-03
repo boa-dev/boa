@@ -1104,7 +1104,7 @@ impl Debug for JsObject {
             let ptr: *const _ = self.as_ref();
             let obj = self.borrow();
             let kind = obj.kind();
-            if obj.is_function() {            
+            if obj.is_function() {
                 let name_prop = obj
                     .properties()
                     .get(&PropertyKey::String(JsString::from("name")));
@@ -1114,7 +1114,7 @@ impl Debug for JsObject {
                         .value()
                         .and_then(JsValue::as_string)
                         .cloned()
-                        .unwrap_or_default()
+                        .unwrap_or_default(),
                 };
 
                 return f.write_fmt(format_args!("({:?}) {:?} 0x{:X}", kind, name, ptr as usize));
