@@ -14,7 +14,7 @@ use crate::{
     property::{PropertyDescriptor, PropertyKey},
     string::utf16,
     value::PreferredType,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Sym;
@@ -1092,7 +1092,6 @@ impl RecursionLimiter {
 
 impl Debug for JsObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
-        let ptr: *const _ = self.vtable();
         let limiter = RecursionLimiter::new(self.as_ref());
 
         // Typically, using `!limiter.live` would be good enough here.
@@ -1102,10 +1101,26 @@ impl Debug for JsObject {
         // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear
         // at most once, hopefully making things a bit clearer.
         if !limiter.visited && !limiter.live {
-            f.debug_struct("JsObject")
-                .field("vtable", &ptr)
-                .field("object", &self.inner.object)
-                .finish()
+            let ptr: *const _ = self.as_ref();
+            let obj = self.borrow();
+            let kind = obj.kind();
+            if obj.is_function() {
+                let name_prop = obj
+                    .properties()
+                    .get(&PropertyKey::String(JsString::from("name")));
+                let name = match name_prop {
+                    None => JsString::default(),
+                    Some(prop) => prop
+                        .value()
+                        .and_then(JsValue::as_string)
+                        .cloned()
+                        .unwrap_or_default(),
+                };
+
+                return f.write_fmt(format_args!("({:?}) {:?} 0x{:X}", kind, name, ptr as usize));
+            }
+
+            f.write_fmt(format_args!("({:?}) 0x{:X}", kind, ptr as usize))
         } else {
             f.write_str("{ ... }")
         }
