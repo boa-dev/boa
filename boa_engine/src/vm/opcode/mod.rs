@@ -1379,7 +1379,9 @@ generate_impl! {
 
         /// Push loop start marker.
         ///
-        /// Operands: Exit Address: `u32`
+        /// Operands:
+        /// - start: `u32`
+        /// - exit: `u32`
         ///
         /// Stack: **=>**
         LoopStart,
@@ -1428,7 +1430,9 @@ generate_impl! {
 
         /// Push iterator loop start marker.
         ///
-        /// Operands: Exit Address: `u32`
+        /// Operands:
+        /// - start: `u32`
+        /// - exit: `u32`
         ///
         /// Stack: **=>**
         IteratorLoopStart,

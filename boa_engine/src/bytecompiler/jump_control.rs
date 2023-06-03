@@ -151,7 +151,7 @@ impl JumpControlInfo {
     }
 
     pub(crate) const fn for_await_of_loop(&self) -> bool {
-        self.flags.contains(JumpControlInfoFlags::ITERATOR_LOOP)
+        self.flags.contains(JumpControlInfoFlags::FOR_AWAIT_OF_LOOP)
     }
 }
 
