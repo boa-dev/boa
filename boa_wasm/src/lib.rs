@@ -63,6 +63,11 @@ use chrono as _;
 use getrandom as _;
 use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen(start)]
+fn main() {
+    console_error_panic_hook::set_once();
+}
+
 /// Evaluate the given ECMAScript code.
 #[wasm_bindgen]
 pub fn evaluate(src: &str) -> Result<String, JsValue> {

@@ -16,6 +16,7 @@ boa_engine.workspace = true
 wasm-bindgen = "0.2.86"
 getrandom = { version = "0.2.9", features = ["js"] }
 chrono = { version = "0.4.26", features = ["clock", "std", "wasmbind"] }
+console_error_panic_hook = "0.1.7"
 
 [features]
 default = ["boa_engine/annex-b"]
