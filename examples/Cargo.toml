@@ -19,6 +19,9 @@ boa_runtime.workspace = true
 time.workspace = true
 smol = "2.0.0"
 futures-util = "0.3.30"
+surf = { version = "2.3.2", default-features = false, features = [
+    "h1-client-rustls",
+] }
 
 
 # use explicit lints for examples, since we don't need to lint for docs
