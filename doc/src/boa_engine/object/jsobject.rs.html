@@ -1111,6 +1111,21 @@
 <a href="#1111" id="1111">1111</a>
 <a href="#1112" id="1112">1112</a>
 <a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -1127,7 +1142,7 @@
     property::{PropertyDescriptor, PropertyKey},
     string::utf16,
     value::PreferredType,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::{<span class="self">self</span>, Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_interner::Sym;
@@ -2205,7 +2220,6 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>JsObject {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="self">self</span>.vtable();
         <span class="kw">let </span>limiter = RecursionLimiter::new(<span class="self">self</span>.as_ref());
 
         <span class="comment">// Typically, using `!limiter.live` would be good enough here.
@@ -2215,10 +2229,26 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear
         // at most once, hopefully making things a bit clearer.
         </span><span class="kw">if </span>!limiter.visited &amp;&amp; !limiter.live {
-            f.debug_struct(<span class="string">&quot;JsObject&quot;</span>)
-                .field(<span class="string">&quot;vtable&quot;</span>, <span class="kw-2">&amp;</span>ptr)
-                .field(<span class="string">&quot;object&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.object)
-                .finish()
+            <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="self">self</span>.as_ref();
+            <span class="kw">let </span>obj = <span class="self">self</span>.borrow();
+            <span class="kw">let </span>kind = obj.kind();
+            <span class="kw">if </span>obj.is_function() {
+                <span class="kw">let </span>name_prop = obj
+                    .properties()
+                    .get(<span class="kw-2">&amp;</span>PropertyKey::String(JsString::from(<span class="string">&quot;name&quot;</span>)));
+                <span class="kw">let </span>name = <span class="kw">match </span>name_prop {
+                    <span class="prelude-val">None </span>=&gt; JsString::default(),
+                    <span class="prelude-val">Some</span>(prop) =&gt; prop
+                        .value()
+                        .and_then(JsValue::as_string)
+                        .cloned()
+                        .unwrap_or_default(),
+                };
+
+                <span class="kw">return </span>f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;({:?}) {:?} 0x{:X}&quot;</span>, kind, name, ptr <span class="kw">as </span>usize));
+            }
+
+            f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;({:?}) 0x{:X}&quot;</span>, kind, ptr <span class="kw">as </span>usize))
         } <span class="kw">else </span>{
             f.write_str(<span class="string">&quot;{ ... }&quot;</span>)
         }
