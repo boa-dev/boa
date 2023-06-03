@@ -529,6 +529,8 @@ where
                         | TokenKind::NumericLiteral(_) => true,
                         TokenKind::IdentifierName(_) if next_token_is_colon => true,
                         TokenKind::Keyword(_) if next_token_is_colon => true,
+                        TokenKind::BooleanLiteral(_) if next_token_is_colon => true,
+                        TokenKind::NullLiteral(_) if next_token_is_colon => true,
                         _ => false,
                     };
 
