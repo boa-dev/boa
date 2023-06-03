@@ -1970,6 +1970,15 @@
 <a href="#1970" id="1970">1970</a>
 <a href="#1971" id="1971">1971</a>
 <a href="#1972" id="1972">1972</a>
+<a href="#1973" id="1973">1973</a>
+<a href="#1974" id="1974">1974</a>
+<a href="#1975" id="1975">1975</a>
+<a href="#1976" id="1976">1976</a>
+<a href="#1977" id="1977">1977</a>
+<a href="#1978" id="1978">1978</a>
+<a href="#1979" id="1979">1979</a>
+<a href="#1980" id="1980">1980</a>
+<a href="#1981" id="1981">1981</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -3477,7 +3486,7 @@
             </span><span class="kw">let </span>lex_declarations = lexically_scoped_declarations(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.source);
             <span class="kw">let </span><span class="kw-2">mut </span>functions = Vec::new();
             <span class="comment">// 24. For each element d of lexDeclarations, do
-            </span><span class="kw">for </span>declaration <span class="kw">in </span><span class="kw-2">&amp;</span>lex_declarations {
+            </span><span class="kw">for </span>declaration <span class="kw">in </span>lex_declarations {
                 <span class="comment">// ii. Else,
                 // a. For each element dn of the BoundNames of d, do
                 // 1. Perform ! env.CreateMutableBinding(dn, false).
@@ -3548,10 +3557,19 @@
                     }
                 };
 
-                <span class="kw">let </span>kind = spec.kind;
-
-                functions.push((compiler.function(spec), locator, kind));
+                functions.push((spec, locator));
             }
+
+            <span class="comment">// Should compile after initializing bindings first to ensure inner calls
+            // are correctly resolved to the outer functions instead of as global bindings.
+            </span><span class="kw">let </span>functions = functions
+                .into_iter()
+                .map(|(spec, locator)| {
+                    <span class="kw">let </span>kind = spec.kind;
+
+                    (compiler.function(spec), locator, kind)
+                })
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
             compiler.compile_module_item_list(<span class="self">self</span>.inner.code.source.items());
 

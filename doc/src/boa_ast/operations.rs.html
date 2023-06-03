@@ -2074,8 +2074,6 @@
 <a href="#2074" id="2074">2074</a>
 <a href="#2075" id="2075">2075</a>
 <a href="#2076" id="2076">2076</a>
-<a href="#2077" id="2077">2077</a>
-<a href="#2078" id="2078">2078</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Definitions of various **Syntax-Directed Operations** used in the [spec].
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-syntax-directed-operations
@@ -3436,37 +3434,37 @@
 }
 
 <span class="doccomment">/// The type of a lexically scoped declaration.
-</span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub enum </span>LexicallyScopedDeclaration {
+</span><span class="attr">#[derive(Copy, Clone, Debug)]
+</span><span class="kw">pub enum </span>LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// See [`LexicalDeclaration`]
-    </span>LexicalDeclaration(LexicalDeclaration),
+    </span>LexicalDeclaration(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>LexicalDeclaration),
 
     <span class="doccomment">/// See [`Function`]
-    </span>Function(Function),
+    </span>Function(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Function),
 
     <span class="doccomment">/// See [`Generator`]
-    </span>Generator(Generator),
+    </span>Generator(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Generator),
 
     <span class="doccomment">/// See [`AsyncFunction`]
-    </span>AsyncFunction(AsyncFunction),
+    </span>AsyncFunction(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFunction),
 
     <span class="doccomment">/// See [`AsyncGenerator`]
-    </span>AsyncGenerator(AsyncGenerator),
+    </span>AsyncGenerator(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncGenerator),
 
     <span class="doccomment">/// See [`Class`]
-    </span>Class(Class),
+    </span>Class(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Class),
 
     <span class="doccomment">/// A default assignment expression as an export declaration.
     ///
     /// Only valid inside module exports.
-    </span>AssignmentExpression(Expression),
+    </span>AssignmentExpression(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Expression),
 }
 
-<span class="kw">impl </span>LexicallyScopedDeclaration {
+<span class="kw">impl </span>LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Return the bound names of the declaration.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>bound_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::LexicalDeclaration(v) =&gt; bound_names(v),
             <span class="self">Self</span>::Function(f) =&gt; bound_names(f),
             <span class="self">Self</span>::Generator(g) =&gt; bound_names(g),
@@ -3478,8 +3476,8 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;Declaration&gt; <span class="kw">for </span>LexicallyScopedDeclaration {
-    <span class="kw">fn </span>from(value: Declaration) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Declaration&gt; <span class="kw">for </span>LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;ast</span>&gt; {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Declaration) -&gt; LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;ast</span>&gt; {
         <span class="kw">match </span>value {
             Declaration::Function(f) =&gt; <span class="self">Self</span>::Function(f),
             Declaration::Generator(g) =&gt; <span class="self">Self</span>::Generator(g),
@@ -3497,7 +3495,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallyscopeddeclarations
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>lexically_scoped_declarations&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N) -&gt; Vec&lt;LexicallyScopedDeclaration&gt;
+</span><span class="kw">pub fn </span>lexically_scoped_declarations&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N) -&gt; Vec&lt;LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;a</span>&gt;&gt;
 <span class="kw">where
     </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
 {
@@ -3508,9 +3506,9 @@
 
 <span class="doccomment">/// The [`Visitor`] used to obtain the lexically scoped declarations of a node.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>LexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;LexicallyScopedDeclaration&gt;);
+</span><span class="kw">struct </span>LexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;ast</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;ast</span>&gt;&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>LexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>LexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;ast</span>&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
     <span class="comment">// ScriptBody : StatementList
@@ -3538,34 +3536,30 @@
             <span class="comment">// ExportDeclaration : export Declaration
             </span>ExportDeclaration::Declaration(decl) =&gt; {
                 <span class="comment">// 1. Return a List whose sole element is DeclarationPart of Declaration.
-                </span>decl.clone().into()
+                </span>decl.into()
             }
 
             <span class="comment">// ExportDeclaration : export default HoistableDeclaration
             // 1. Return a List whose sole element is DeclarationPart of HoistableDeclaration.
-            </span>ExportDeclaration::DefaultFunction(f) =&gt; {
-                LexicallyScopedDeclaration::Function(f.clone())
-            }
-            ExportDeclaration::DefaultGenerator(g) =&gt; {
-                LexicallyScopedDeclaration::Generator(g.clone())
-            }
+            </span>ExportDeclaration::DefaultFunction(f) =&gt; LexicallyScopedDeclaration::Function(f),
+            ExportDeclaration::DefaultGenerator(g) =&gt; LexicallyScopedDeclaration::Generator(g),
             ExportDeclaration::DefaultAsyncFunction(af) =&gt; {
-                LexicallyScopedDeclaration::AsyncFunction(af.clone())
+                LexicallyScopedDeclaration::AsyncFunction(af)
             }
             ExportDeclaration::DefaultAsyncGenerator(ag) =&gt; {
-                LexicallyScopedDeclaration::AsyncGenerator(ag.clone())
+                LexicallyScopedDeclaration::AsyncGenerator(ag)
             }
 
             <span class="comment">// ExportDeclaration : export default ClassDeclaration
             </span>ExportDeclaration::DefaultClassDeclaration(c) =&gt; {
                 <span class="comment">// 1. Return a List whose sole element is ClassDeclaration.
-                </span>LexicallyScopedDeclaration::Class(c.clone())
+                </span>LexicallyScopedDeclaration::Class(c)
             }
 
             <span class="comment">// ExportDeclaration : export default AssignmentExpression ;
             </span>ExportDeclaration::DefaultAssignmentExpression(expr) =&gt; {
                 <span class="comment">// 1. Return a List whose sole element is this ExportDeclaration.
-                </span>LexicallyScopedDeclaration::AssignmentExpression(expr.clone())
+                </span>LexicallyScopedDeclaration::AssignmentExpression(expr)
             }
         };
 
@@ -3592,7 +3586,7 @@
             <span class="comment">// StatementListItem : Declaration
             </span>StatementListItem::Declaration(declaration) =&gt; {
                 <span class="comment">// 1. Return a List whose sole element is DeclarationPart of Declaration.
-                </span><span class="self">self</span>.<span class="number">0</span>.push(declaration.clone().into());
+                </span><span class="self">self</span>.<span class="number">0</span>.push(declaration.into());
                 ControlFlow::Continue(())
             }
         }
@@ -3603,7 +3597,7 @@
             <span class="comment">// LabelledItem : FunctionDeclaration
             </span>LabelledItem::Function(f) =&gt; {
                 <span class="comment">// 1. Return « FunctionDeclaration ».
-                </span><span class="self">self</span>.<span class="number">0</span>.push(LexicallyScopedDeclaration::Function(f.clone()));
+                </span><span class="self">self</span>.<span class="number">0</span>.push(LexicallyScopedDeclaration::Function(f));
             }
 
             <span class="comment">// LabelledItem : Statement
@@ -3633,9 +3627,11 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallyscopeddeclarations
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>TopLevelLexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;LexicallyScopedDeclaration&gt;);
+</span><span class="kw">struct </span>TopLevelLexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;ast</span>&gt;(
+    <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;ast</span>&gt;&gt;,
+);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>TopLevelLexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>TopLevelLexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;ast</span>&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
     <span class="kw">fn </span>visit_statement_list_item(
@@ -3655,11 +3651,11 @@
 
                 <span class="comment">// 2. Return « Declaration ».
                 </span>Declaration::Class(cl) =&gt; {
-                    <span class="self">self</span>.<span class="number">0</span>.push(LexicallyScopedDeclaration::Class(cl.clone()));
+                    <span class="self">self</span>.<span class="number">0</span>.push(LexicallyScopedDeclaration::Class(cl));
                 }
                 Declaration::Lexical(lex) =&gt; {
                     <span class="self">self</span>.<span class="number">0
-                        </span>.push(LexicallyScopedDeclaration::LexicalDeclaration(lex.clone()));
+                        </span>.push(LexicallyScopedDeclaration::LexicalDeclaration(lex));
                 }
             },
 
