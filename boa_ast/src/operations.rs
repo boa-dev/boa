@@ -15,7 +15,7 @@ use crate::{
     expression::{
         access::{PrivatePropertyAccess, SuperPropertyAccess},
         operator::BinaryInPrivate,
-        Await, Identifier, SuperCall, Yield,
+        Await, Identifier, OptionalOperationKind, SuperCall, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
@@ -974,6 +974,30 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
             self.visit(node.rhs())
         } else {
             ControlFlow::Break(())
+        }
+    }
+
+    fn visit_optional_operation_kind(
+        &mut self,
+        node: &'ast OptionalOperationKind,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node {
+            OptionalOperationKind::SimplePropertyAccess { field } => {
+                self.visit_property_access_field(field)
+            }
+            OptionalOperationKind::PrivatePropertyAccess { field } => {
+                if self.0.contains(&field.description()) {
+                    ControlFlow::Continue(())
+                } else {
+                    ControlFlow::Break(())
+                }
+            }
+            OptionalOperationKind::Call { args } => {
+                for arg in args.iter() {
+                    try_break!(self.visit_expression(arg));
+                }
+                ControlFlow::Continue(())
+            }
         }
     }
 }

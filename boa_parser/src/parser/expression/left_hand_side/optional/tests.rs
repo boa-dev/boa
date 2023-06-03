@@ -89,3 +89,11 @@ const a = console?.log
 `Hello`"#,
     );
 }
+
+#[test]
+fn private_identifier_early_error() {
+    check_invalid_script("this?.#a");
+    check_invalid_script("this.#a");
+    check_invalid_script("this?.a?.#a");
+    check_invalid_script("this.a.#a");
+}
