@@ -37,15 +37,14 @@ cargo run -- --dump-ast # AST dump format is Debug by default.
 
 ## Bytecode generation and Execution
 
-Once the AST has been generated boa will compile it into bytecode.
-The bytecode is then executed by the vm.
+Once the AST has been generated, boa will compile it into bytecode, which is then executed by the VM.
 You can print the bytecode and the executed instructions with the command-line flag `--trace`.
 
-For more detailed information about the vm and the trace output look [here](./vm.md).
+For more detailed information about the VM and the trace output look [here](./vm.md).
 
 ## Instruction flowgraph
 
-We can to get the vm instructions flowgraph, which is a visual representation of the instruction flow.
+We can also get the VM instructions flowgraph, which is a visual representation of the instruction flow.
 
 The `Start` (in green) and `End` (in red) node in the graph represents the start and end point of execution.
 They are not instructions, just markers.
