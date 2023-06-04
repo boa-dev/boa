@@ -329,6 +329,7 @@ impl CodeBlock {
             }
             Opcode::CopyDataProperties
             | Opcode::Break
+            | Opcode::BreakLabel
             | Opcode::Continue
             | Opcode::LoopStart
             | Opcode::IteratorLoopStart
@@ -616,8 +617,7 @@ impl CodeBlock {
             | Opcode::Reserved49
             | Opcode::Reserved50
             | Opcode::Reserved51
-            | Opcode::Reserved52
-            | Opcode::Reserved53 => unreachable!("Reserved opcodes are unrechable"),
+            | Opcode::Reserved52 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

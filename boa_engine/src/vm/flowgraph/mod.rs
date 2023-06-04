@@ -154,7 +154,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Opcode::Break => {
+                Opcode::Break | Opcode::BreakLabel => {
                     let jump_operand = self.read::<u32>(pc);
                     pc += size_of::<u32>();
                     let target_operand = self.read::<u32>(pc);
@@ -709,8 +709,7 @@ impl CodeBlock {
                 | Opcode::Reserved49
                 | Opcode::Reserved50
                 | Opcode::Reserved51
-                | Opcode::Reserved52
-                | Opcode::Reserved53 => unreachable!("Reserved opcodes are unrechable"),
+                | Opcode::Reserved52 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

@@ -1180,6 +1180,13 @@ generate_impl! {
         /// Stack: loop_return_value **=>**
         Break,
 
+        /// Jumps to a label target location and pops the environments involved.
+        ///
+        /// Operands: Jump Address: u32, Target address: u32
+        ///
+        /// Stack: **=>**
+        BreakLabel,
+
         /// Sets the `AbruptCompletionRecord` for a delayed continue
         ///
         /// Operands: Jump Address: u32, Target address: u32,
@@ -1809,8 +1816,6 @@ generate_impl! {
         Reserved51 => Reserved,
         /// Reserved [`Opcode`].
         Reserved52 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved53 => Reserved,
     }
 }
 
