@@ -38,8 +38,7 @@ impl IntrinsicObject for TimeZone {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_id = BuiltInBuilder::new(realm)
-            .callable(Self::get_id)
+        let get_id = BuiltInBuilder::callable(realm, Self::get_id)
             .name("get Id")
             .build();
 

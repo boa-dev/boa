@@ -54,73 +54,59 @@ impl IntrinsicObject for PlainDate {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_calendar_id = BuiltInBuilder::new(realm)
-            .callable(Self::get_calendar_id)
+        let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
             .name("get calendarId")
             .build();
 
-        let get_year = BuiltInBuilder::new(realm)
-            .callable(Self::get_year)
+        let get_year = BuiltInBuilder::callable(realm, Self::get_year)
             .name("get year")
             .build();
 
-        let get_month = BuiltInBuilder::new(realm)
-            .callable(Self::get_month)
+        let get_month = BuiltInBuilder::callable(realm, Self::get_month)
             .name("get month")
             .build();
 
-        let get_month_code = BuiltInBuilder::new(realm)
-            .callable(Self::get_month_code)
+        let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
             .name("get monthCode")
             .build();
 
-        let get_day = BuiltInBuilder::new(realm)
-            .callable(Self::get_day)
+        let get_day = BuiltInBuilder::callable(realm, Self::get_day)
             .name("get day")
             .build();
 
-        let get_day_of_week = BuiltInBuilder::new(realm)
-            .callable(Self::get_day_of_week)
+        let get_day_of_week = BuiltInBuilder::callable(realm, Self::get_day_of_week)
             .name("get dayOfWeek")
             .build();
 
-        let get_day_of_year = BuiltInBuilder::new(realm)
-            .callable(Self::get_day_of_year)
+        let get_day_of_year = BuiltInBuilder::callable(realm, Self::get_day_of_year)
             .name("get dayOfYear")
             .build();
 
-        let get_week_of_year = BuiltInBuilder::new(realm)
-            .callable(Self::get_week_of_year)
+        let get_week_of_year = BuiltInBuilder::callable(realm, Self::get_week_of_year)
             .name("get weekOfYear")
             .build();
 
-        let get_year_of_week = BuiltInBuilder::new(realm)
-            .callable(Self::get_year_of_week)
+        let get_year_of_week = BuiltInBuilder::callable(realm, Self::get_year_of_week)
             .name("get yearOfWeek")
             .build();
 
-        let get_days_in_week = BuiltInBuilder::new(realm)
-            .callable(Self::get_days_in_week)
+        let get_days_in_week = BuiltInBuilder::callable(realm, Self::get_days_in_week)
             .name("get daysInWeek")
             .build();
 
-        let get_days_in_month = BuiltInBuilder::new(realm)
-            .callable(Self::get_days_in_month)
+        let get_days_in_month = BuiltInBuilder::callable(realm, Self::get_days_in_month)
             .name("get daysInMonth")
             .build();
 
-        let get_days_in_year = BuiltInBuilder::new(realm)
-            .callable(Self::get_days_in_year)
+        let get_days_in_year = BuiltInBuilder::callable(realm, Self::get_days_in_year)
             .name("get daysInYear")
             .build();
 
-        let get_months_in_year = BuiltInBuilder::new(realm)
-            .callable(Self::get_months_in_year)
+        let get_months_in_year = BuiltInBuilder::callable(realm, Self::get_months_in_year)
             .name("get monthsInYear")
             .build();
 
-        let get_in_leap_year = BuiltInBuilder::new(realm)
-            .callable(Self::get_in_leap_year)
+        let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year)
             .name("get inLeapYear")
             .build();
 

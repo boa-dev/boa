@@ -75,7 +75,6 @@ use crate::{
         PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
-    realm::Realm,
     Context, JsResult, JsValue,
 };
 
@@ -151,12 +150,12 @@ pub trait Class: NativeObject + Sized {
 
 /// Class builder which allows adding methods and static methods to the class.
 #[derive(Debug)]
-pub struct ClassBuilder {
-    builder: ConstructorBuilder,
+pub struct ClassBuilder<'ctx, 'host> {
+    builder: ConstructorBuilder<'ctx, 'host>,
 }
 
-impl ClassBuilder {
-    pub(crate) fn new<T>(realm: Realm) -> Self
+impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
+    pub(crate) fn new<T>(context: &'ctx mut Context<'host>) -> Self
     where
         T: Class,
     {
@@ -284,7 +283,7 @@ impl ClassBuilder {
 
     /// Return the current context.
     #[inline]
-    pub const fn realm(&self) -> &Realm {
-        self.builder.realm()
+    pub fn context(&mut self) -> &mut Context<'host> {
+        self.builder.context()
     }
 }

@@ -39,23 +39,19 @@ impl IntrinsicObject for Instant {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_seconds = BuiltInBuilder::new(realm)
-            .callable(Self::get_epoc_seconds)
+        let get_seconds = BuiltInBuilder::callable(realm, Self::get_epoc_seconds)
             .name("get epochSeconds")
             .build();
 
-        let get_millis = BuiltInBuilder::new(realm)
-            .callable(Self::get_epoc_milliseconds)
+        let get_millis = BuiltInBuilder::callable(realm, Self::get_epoc_milliseconds)
             .name("get epochMilliseconds")
             .build();
 
-        let get_micros = BuiltInBuilder::new(realm)
-            .callable(Self::get_epoc_microseconds)
+        let get_micros = BuiltInBuilder::callable(realm, Self::get_epoc_microseconds)
             .name("get epochMicroseconds")
             .build();
 
-        let get_nanos = BuiltInBuilder::new(realm)
-            .callable(Self::get_epoc_nanoseconds)
+        let get_nanos = BuiltInBuilder::callable(realm, Self::get_epoc_nanoseconds)
             .name("get epochNanoseconds")
             .build();
 

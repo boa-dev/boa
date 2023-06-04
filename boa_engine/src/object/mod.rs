@@ -2522,7 +2522,7 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
     /// Create a new `ObjectBuilder`.
     #[inline]
     pub fn new(context: &'ctx mut Context<'host>) -> Self {
-        let object = JsObject::with_object_proto(context.intrinsics());
+        let object = JsObject::with_object_proto(realm.intrinsics());
         Self { context, object }
     }
 

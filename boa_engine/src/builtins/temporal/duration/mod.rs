@@ -40,63 +40,51 @@ impl IntrinsicObject for Duration {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_years = BuiltInBuilder::new(realm)
-            .callable(Self::get_years)
+        let get_years = BuiltInBuilder::callable(realm, Self::get_years)
             .name("get Years")
             .build();
 
-        let get_months = BuiltInBuilder::new(realm)
-            .callable(Self::get_months)
+        let get_months = BuiltInBuilder::callable(realm, Self::get_months)
             .name("get Months")
             .build();
 
-        let get_weeks = BuiltInBuilder::new(realm)
-            .callable(Self::get_weeks)
+        let get_weeks = BuiltInBuilder::callable(realm, Self::get_weeks)
             .name("get Weeks")
             .build();
 
-        let get_days = BuiltInBuilder::new(realm)
-            .callable(Self::get_days)
+        let get_days = BuiltInBuilder::callable(realm, Self::get_days)
             .name("get Days")
             .build();
 
-        let get_hours = BuiltInBuilder::new(realm)
-            .callable(Self::get_hours)
+        let get_hours = BuiltInBuilder::callable(realm, Self::get_hours)
             .name("get Hours")
             .build();
 
-        let get_minutes = BuiltInBuilder::new(realm)
-            .callable(Self::get_minutes)
+        let get_minutes = BuiltInBuilder::callable(realm, Self::get_minutes)
             .name("get Minutes")
             .build();
 
-        let get_seconds = BuiltInBuilder::new(realm)
-            .callable(Self::get_seconds)
+        let get_seconds = BuiltInBuilder::callable(realm, Self::get_seconds)
             .name("get Seconds")
             .build();
 
-        let get_milliseconds = BuiltInBuilder::new(realm)
-            .callable(Self::get_milliseconds)
+        let get_milliseconds = BuiltInBuilder::callable(realm, Self::get_milliseconds)
             .name("get Milliseconds")
             .build();
 
-        let get_microseconds = BuiltInBuilder::new(realm)
-            .callable(Self::get_microseconds)
+        let get_microseconds = BuiltInBuilder::callable(realm, Self::get_microseconds)
             .name("get Microseconds")
             .build();
 
-        let get_nanoseconds = BuiltInBuilder::new(realm)
-            .callable(Self::get_nanoseconds)
+        let get_nanoseconds = BuiltInBuilder::callable(realm, Self::get_nanoseconds)
             .name("get Nanoseconds")
             .build();
 
-        let get_sign = BuiltInBuilder::new(realm)
-            .callable(Self::get_sign)
+        let get_sign = BuiltInBuilder::callable(realm, Self::get_sign)
             .name("get Sign")
             .build();
 
-        let is_blank = BuiltInBuilder::new(realm)
-            .callable(Self::get_blank)
+        let is_blank = BuiltInBuilder::callable(realm, Self::get_blank)
             .name("get blank")
             .build();
 

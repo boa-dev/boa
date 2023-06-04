@@ -14,10 +14,7 @@ mod tests;
 use crate::{
     error::ParseResult,
     lexer::Error as LexError,
-    parser::{
-        cursor::Cursor,
-        function::{FormalParameters, FunctionStatementList}
-    },
+    parser::function::{FormalParameters, FunctionStatementList},
     Error, Source,
 };
 use boa_ast::{
@@ -35,6 +32,7 @@ use std::{io::Read, path::Path};
 
 use self::statement::ModuleItemList;
 
+pub use self::cursor::Cursor;
 #[cfg(feature = "temporal")]
 pub use self::temporal::UTCOffset;
 
