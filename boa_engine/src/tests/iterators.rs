@@ -30,7 +30,6 @@ fn iterator_close_in_continue_before_jobs() {
                 }
             };
 
-
             Promise.resolve(0)
                 .then(() => actual.push("tick 1"))
                 .then(() => actual.push("tick 2"));
@@ -95,7 +94,6 @@ fn async_iterator_close_in_continue_is_awaited() {
                     }
                 }
             };
-
 
             Promise.resolve(0)
                 .then(() => actual.push("tick 1"))
@@ -182,7 +180,6 @@ fn mixed_iterators_close_in_continue() {
                     }
                 }
             };
-
 
             Promise.resolve(0)
                 .then(() => actual.push("tick 1"))
