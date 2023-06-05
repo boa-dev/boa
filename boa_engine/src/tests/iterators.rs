@@ -48,8 +48,7 @@ fn iterator_close_in_continue_before_jobs() {
         "#}),
         #[allow(clippy::redundant_closure_for_method_calls)]
         TestAction::inspect_context(|ctx| ctx.run_jobs()),
-        TestAction::assert(
-            r#"
+        TestAction::assert(indoc! {r#"
             arrayEquals(
                 actual,
                 [
@@ -62,8 +61,7 @@ fn iterator_close_in_continue_before_jobs() {
                     "tick 2",
                 ]
             )
-        "#,
-        ),
+            "#}),
     ]);
 }
 
@@ -97,7 +95,8 @@ fn async_iterator_close_in_continue_is_awaited() {
 
             Promise.resolve(0)
                 .then(() => actual.push("tick 1"))
-                .then(() => actual.push("tick 2"));
+                .then(() => actual.push("tick 2"))
+                .then(() => actual.push("tick 3"));
 
             void async function f() {
                 actual.push("async fn start");
@@ -113,8 +112,7 @@ fn async_iterator_close_in_continue_is_awaited() {
         "#}),
         #[allow(clippy::redundant_closure_for_method_calls)]
         TestAction::inspect_context(|ctx| ctx.run_jobs()),
-        TestAction::assert(
-            r#"
+        TestAction::assert(indoc! {r#"
             arrayEquals(
                 actual,
                 [
@@ -125,10 +123,10 @@ fn async_iterator_close_in_continue_is_awaited() {
                     "async return call",
                     "tick 2",
                     "async fn end",
+                    "tick 3"
                 ]
             )
-        "#,
-        ),
+        "#}),
     ]);
 }
 
@@ -183,7 +181,8 @@ fn mixed_iterators_close_in_continue() {
 
             Promise.resolve(0)
                 .then(() => actual.push("tick 1"))
-                .then(() => actual.push("tick 2"));
+                .then(() => actual.push("tick 2"))
+                .then(() => actual.push("tick 3"));
 
             void async function f() {
                 actual.push("async fn start");
@@ -201,8 +200,7 @@ fn mixed_iterators_close_in_continue() {
         "#}),
         #[allow(clippy::redundant_closure_for_method_calls)]
         TestAction::inspect_context(|ctx| ctx.run_jobs()),
-        TestAction::assert(
-            r#"
+        TestAction::assert(indoc! {r#"
             arrayEquals(
                 actual,
                 [
@@ -216,9 +214,9 @@ fn mixed_iterators_close_in_continue() {
                     "get return",
                     "return call",
                     "async fn end",
+                    "tick 3",
                 ]
             )
-        "#,
-        ),
+        "#}),
     ]);
 }
