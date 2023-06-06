@@ -1524,6 +1524,7 @@
 <a href="#1524" id="1524">1524</a>
 <a href="#1525" id="1525">1525</a>
 <a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2931,10 +2932,11 @@
                 );
 
                 <span class="kw">if </span>code.has_parameters_env_bindings() {
+                    last_env -= <span class="number">1</span>;
                     context
                         .vm
                         .environments
-                        .push_lexical(code.compile_environments[<span class="number">0</span>].clone());
+                        .push_lexical(code.compile_environments[last_env].clone());
                 }
 
                 <span class="comment">// Taken from: `FunctionDeclarationInstantiation` abstract function.
