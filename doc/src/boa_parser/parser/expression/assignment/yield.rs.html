@@ -117,6 +117,7 @@
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `YieldExpression` parsing.
 //!
 //! More information:
@@ -218,7 +219,8 @@
                 | Keyword::Function
                 | Keyword::Class
                 | Keyword::Async
-                | Keyword::Super,
+                | Keyword::Super
+                | Keyword::Import,
                 <span class="kw">_</span>,
             ))
             | TokenKind::BooleanLiteral(<span class="kw">_</span>)
