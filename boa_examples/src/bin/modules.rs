@@ -44,8 +44,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         module.clone(),
     );
 
-    // The lifecycle of the module is tracked using promises, which can be a bit cumbersome
-    // for simple uses but that use case is better suited by the `Module::load_link_evaluate` method.
+    // The lifecycle of the module is tracked using promises which can be a bit cumbersome to use.
+    // If you just want to directly execute a module, you can use the `Module::load_link_evaluate`
+    // method to skip all the boilerplate.
     // This does the full version for demonstration purposes.
     //
     // parse -> load -> link -> evaluate

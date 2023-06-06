@@ -108,6 +108,26 @@ pub trait ModuleLoader {
         context: &mut Context<'_>,
     );
 
+    /// Registers a new module into the module loader.
+    ///
+    /// This is a convenience method for module loaders caching already parsed modules, since it
+    /// allows registering a new module through the `&dyn ModuleLoader` provided by
+    /// [`Context::module_loader`].
+    ///
+    /// Does nothing by default.
+    fn register_module(&self, _specifier: JsString, _module: Module) {}
+
+    /// Gets the module associated with the provided specifier.
+    ///
+    /// This is a convenience method for module loaders caching already parsed modules, since it
+    /// allows getting a cached module through the `&dyn ModuleLoader` provided by
+    /// [`Context::module_loader`].
+    ///
+    /// Returns `None` by default.
+    fn get_module(&self, _specifier: JsString) -> Option<Module> {
+        None
+    }
+
     /// Host hooks [`HostGetImportMetaProperties ( moduleRecord )`][meta] and
     /// [`HostFinalizeImportMeta ( importMeta, moduleRecord )`][final].
     ///
@@ -232,6 +252,22 @@ impl ModuleLoader for SimpleModuleLoader {
         })();
 
         finish_load(result, context);
+    }
+
+    // TODO: Try to unify `ModuleLoader::register_module` with `SimpleModuleLoader::insert`.
+    fn register_module(&self, _specifier: JsString, _module: Module) {
+        panic!(
+            "`SimpleModuleLoader` uses paths to cache the modules instead of specifiers.
+        To register a module, you need to use the `SimpleModuleLoader::insert` method."
+        )
+    }
+
+    // TODO: Try to unify `ModuleLoader::get_module` with `SimpleModuleLoader::get`.
+    fn get_module(&self, _specifier: JsString) -> Option<Module> {
+        panic!(
+            "`SimpleModuleLoader` uses paths to cache the modules instead of specifiers.
+        To get a module, you need to use the `SimpleModuleLoader::get` method."
+        )
     }
 }
 
