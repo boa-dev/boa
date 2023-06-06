@@ -8,3 +8,5 @@ boa_wasm/pkg
 dist
 test262
 tests/js/test.js
+playwright-report
+test-results
