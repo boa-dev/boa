@@ -105,8 +105,10 @@
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    builtins::{iterable::IteratorRecord, Array},
+    builtins::Array,
     object::ObjectData,
     string::utf16,
     vm::{opcode::Operation, CompletionType},
@@ -197,15 +199,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushIteratorToArray&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>next_method = context.vm.pop();
-        <span class="kw">let </span>iterator = context.vm.pop();
-        <span class="kw">let </span>iterator = iterator.as_object().expect(<span class="string">&quot;iterator was not an object&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>iterator = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .expect(<span class="string">&quot;iterator stack should have at least an iterator&quot;</span>);
         <span class="kw">let </span>array = context.vm.pop();
 
-        <span class="kw">let </span>iterator = IteratorRecord::new(iterator.clone(), next_method, <span class="bool-val">false</span>);
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(next) = iterator.step(context)<span class="question-mark">? </span>{
-            <span class="kw">let </span>next_value = next.value(context)<span class="question-mark">?</span>;
-            Array::push(<span class="kw-2">&amp;</span>array, <span class="kw-2">&amp;</span>[next_value], context)<span class="question-mark">?</span>;
+        <span class="kw">while </span>!iterator.step(context)<span class="question-mark">? </span>{
+            <span class="kw">let </span>next = iterator.value(context)<span class="question-mark">?</span>;
+            Array::push(<span class="kw-2">&amp;</span>array, <span class="kw-2">&amp;</span>[next], context)<span class="question-mark">?</span>;
         }
 
         context.vm.push(array);

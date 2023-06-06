@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["IteratorClosePop","IteratorClosePush","IteratorNext","IteratorNextSetDone","IteratorToArray","IteratorUnwrapNext","IteratorUnwrapNextOrJump","IteratorUnwrapValue"]};
+window.SIDEBAR_ITEMS = {"struct":["CreateIteratorResult","IteratorDone","IteratorFinishAsyncNext","IteratorNext","IteratorPop","IteratorResult","IteratorReturn","IteratorStackEmpty","IteratorToArray","IteratorValue"]};

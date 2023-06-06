@@ -3071,9 +3071,6 @@
 <a href="#3071" id="3071">3071</a>
 <a href="#3072" id="3072">3072</a>
 <a href="#3073" id="3073">3073</a>
-<a href="#3074" id="3074">3074</a>
-<a href="#3075" id="3075">3075</a>
-<a href="#3076" id="3076">3076</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3637,7 +3634,7 @@
         };
 
         <span class="comment">// c. Let iteratorRecord be ? GetIterator(items, sync, usingIterator).
-        </span><span class="kw">let </span>iterator_record =
+        </span><span class="kw">let </span><span class="kw-2">mut </span>iterator_record =
             items.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), <span class="prelude-val">Some</span>(using_iterator))<span class="question-mark">?</span>;
 
         <span class="comment">// d. Let k be 0.
@@ -3647,19 +3644,16 @@
         //     x. Set k to k + 1.
         </span><span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="number">9_007_199_254_740_991_u64 </span>{
             <span class="comment">// iii. Let next be ? IteratorStep(iteratorRecord).
-            </span><span class="kw">let </span>next = iterator_record.step(context)<span class="question-mark">?</span>;
+            </span><span class="kw">if </span>iterator_record.step(context)<span class="question-mark">? </span>{
+                <span class="comment">// 1. Perform ? Set(A, &quot;length&quot;, 𝔽(k), true).
+                </span>a.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), k, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+                <span class="comment">// 2. Return A.
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(a.into());
+            }
 
             <span class="comment">// iv. If next is false, then
-            </span><span class="kw">let </span><span class="prelude-val">Some</span>(next) = next <span class="kw">else </span>{
-                    <span class="comment">// 1. Perform ? Set(A, &quot;length&quot;, 𝔽(k), true).
-                    </span>a.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), k, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
-
-                    <span class="comment">// 2. Return A.
-                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(a.into());
-                };
-
-            <span class="comment">// v. Let nextValue be ? IteratorValue(next).
-            </span><span class="kw">let </span>next_value = next.value(context)<span class="question-mark">?</span>;
+            // v. Let nextValue be ? IteratorValue(next).
+            </span><span class="kw">let </span>next_value = iterator_record.value(context)<span class="question-mark">?</span>;
 
             <span class="comment">// vi. If mapping is true, then
             </span><span class="kw">let </span>mapped_value = <span class="kw">if let </span><span class="prelude-val">Some</span>(mapfn) = mapping {

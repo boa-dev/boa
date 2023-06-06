@@ -359,17 +359,17 @@
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;WeakSet: &#39;add&#39; is not a function&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Let iteratorRecord be ? GetIterator(iterable).
-        </span><span class="kw">let </span>iterator_record = iterable.clone().get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>iterator_record = iterable.clone().get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 8. Repeat,
         // a. Let next be ? IteratorStep(iteratorRecord).
-        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(next) = iterator_record.step(context)<span class="question-mark">? </span>{
+        </span><span class="kw">while </span>!iterator_record.step(context)<span class="question-mark">? </span>{
             <span class="comment">// c. Let nextValue be ? IteratorValue(next).
-            </span><span class="kw">let </span>next_value = next.value(context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>next = iterator_record.value(context)<span class="question-mark">?</span>;
 
             <span class="comment">// d. Let status be Completion(Call(adder, set, « nextValue »)).
             // e. IfAbruptCloseIterator(status, iteratorRecord).
-            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(status) = adder.call(<span class="kw-2">&amp;</span>weak_set.clone().into(), <span class="kw-2">&amp;</span>[next_value], context) {
+            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(status) = adder.call(<span class="kw-2">&amp;</span>weak_set.clone().into(), <span class="kw-2">&amp;</span>[next], context) {
                 <span class="kw">return </span>iterator_record.close(<span class="prelude-val">Err</span>(status), context);
             }
         }

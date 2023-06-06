@@ -339,29 +339,13 @@
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
 <span class="kw">mod </span>unary;
 <span class="kw">mod </span>update;
 
-<span class="kw">use super</span>::{Access, Callable, Label, NodeKind};
+<span class="kw">use super</span>::{Access, Callable, NodeKind};
 <span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, Literal},
     vm::Opcode,
@@ -518,64 +502,48 @@
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                 }
 
-                <span class="kw">if </span>r#yield.delegate() &amp;&amp; <span class="self">self</span>.in_async_generator {
-                    <span class="self">self</span>.emit_opcode(Opcode::GetAsyncIterator);
-                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+                <span class="kw">if </span>r#yield.delegate() {
+                    <span class="kw">if </span><span class="self">self</span>.in_async_generator {
+                        <span class="self">self</span>.emit_opcode(Opcode::GetAsyncIterator);
+                    } <span class="kw">else </span>{
+                        <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
+                    }
 
+                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                     <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
                     <span class="kw">let </span>(throw_method_undefined, return_method_undefined) =
-                        <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::GeneratorAsyncDelegateNext);
-                    <span class="self">self</span>.emit_opcode(Opcode::Await);
+                        <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::GeneratorDelegateNext);
 
-                    <span class="kw">let </span>skip_yield = Label {
-                        index: <span class="self">self</span>.next_opcode_location(),
-                    };
-                    <span class="kw">let </span>exit = Label {
-                        index: <span class="self">self</span>.next_opcode_location() + <span class="number">8</span>,
-                    };
-                    <span class="self">self</span>.emit(
-                        Opcode::GeneratorAsyncDelegateResume,
-                        <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS, start_address, <span class="self">Self</span>::DUMMY_ADDRESS],
-                    );
+                    <span class="kw">if </span><span class="self">self</span>.in_async_generator {
+                        <span class="self">self</span>.emit_opcode(Opcode::Await);
+                    }
 
-                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
-                    <span class="self">self</span>.emit_opcode(Opcode::Yield);
+                    <span class="kw">let </span>(return_gen, exit) =
+                        <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::GeneratorDelegateResume);
+                    <span class="kw">if </span><span class="self">self</span>.in_async_generator {
+                        <span class="self">self</span>.emit_opcode(Opcode::IteratorValue);
+                        <span class="self">self</span>.async_generator_yield();
+                    } <span class="kw">else </span>{
+                        <span class="self">self</span>.emit_opcode(Opcode::IteratorResult);
+                        <span class="self">self</span>.emit_opcode(Opcode::GeneratorYield);
+                    }
                     <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
 
-                    <span class="self">self</span>.patch_jump(skip_yield);
+                    <span class="self">self</span>.patch_jump(return_gen);
                     <span class="self">self</span>.patch_jump(return_method_undefined);
-                    <span class="self">self</span>.emit_opcode(Opcode::Await);
+                    <span class="kw">if </span><span class="self">self</span>.in_async_generator {
+                        <span class="self">self</span>.emit_opcode(Opcode::Await);
+                    }
+                    <span class="self">self</span>.close_active_iterators();
                     <span class="self">self</span>.emit_opcode(Opcode::GeneratorResumeReturn);
 
                     <span class="self">self</span>.patch_jump(throw_method_undefined);
-                    <span class="self">self</span>.iterator_close(<span class="bool-val">true</span>);
+                    <span class="self">self</span>.iterator_close(<span class="self">self</span>.in_async_generator);
                     <span class="self">self</span>.emit_opcode(Opcode::Throw);
 
                     <span class="self">self</span>.patch_jump(exit);
-                } <span class="kw">else if </span>r#yield.delegate() {
-                    <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
-                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
-                    <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
-                    <span class="kw">let </span>start = <span class="self">self</span>.emit_opcode_with_operand(Opcode::GeneratorNextDelegate);
-                    <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
-                    <span class="self">self</span>.patch_jump(start);
-                } <span class="kw">else if </span><span class="self">self</span>.in_async_generator {
-                    <span class="self">self</span>.emit_opcode(Opcode::Await);
-                    <span class="kw">let </span>(skip_yield, skip_yield_await) =
-                        <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::AsyncGeneratorNext);
-                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
-                    <span class="self">self</span>.emit_opcode(Opcode::Yield);
-                    <span class="kw">let </span>normal_completion =
-                        <span class="self">self</span>.emit_opcode_with_operand(Opcode::GeneratorAsyncResumeYield);
-                    <span class="self">self</span>.patch_jump(skip_yield);
-                    <span class="self">self</span>.emit_opcode(Opcode::Await);
-                    <span class="self">self</span>.emit_opcode(Opcode::GeneratorResumeReturn);
-
-                    <span class="self">self</span>.patch_jump(skip_yield_await);
-                    <span class="self">self</span>.patch_jump(normal_completion);
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.emit_opcode(Opcode::Yield);
-                    <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
+                    <span class="self">self</span>.r#yield();
                 }
 
                 <span class="kw">if </span>!use_expr {

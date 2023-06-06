@@ -297,10 +297,6 @@
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s API to create and customize `ECMAScript` jobs and job queues.
 //!
 //! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
@@ -579,11 +575,7 @@
 
 <span class="kw">impl </span>JobQueue <span class="kw">for </span>SimpleJobQueue {
     <span class="kw">fn </span>enqueue_promise_job(<span class="kw-2">&amp;</span><span class="self">self</span>, job: NativeJob, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <span class="comment">// If realm is not null ...
-        // TODO
-        // Let scriptOrModule be ...
-        // TODO
-        </span><span class="self">self</span>.<span class="number">0</span>.borrow_mut().push_back(job);
+        <span class="self">self</span>.<span class="number">0</span>.borrow_mut().push_back(job);
     }
 
     <span class="kw">fn </span>run_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {

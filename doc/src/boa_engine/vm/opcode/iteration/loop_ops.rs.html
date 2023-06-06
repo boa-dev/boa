@@ -121,11 +121,57 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::JsNativeError;
 <span class="kw">use crate</span>::{
     vm::{call_frame::EnvStackEntry, opcode::Operation, CompletionType},
     Context, JsResult,
 };
+
+<span class="doccomment">/// `IteratorLoopStart` implements the Opcode Operation for `Opcode::IteratorLoopStart`
+///
+/// Operation:
+///  - Push iterator loop start marker.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorLoopStart;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorLoopStart {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorLoopStart&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorLoopStart&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>start = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>exit = context.vm.read::&lt;u32&gt;();
+
+        <span class="comment">// Create and push loop evironment entry.
+        </span><span class="kw">let </span>entry = EnvStackEntry::new(start, exit)
+            .with_iterator_loop_flag(<span class="number">1</span>, (context.vm.frame().iterators.len() - <span class="number">1</span>) <span class="kw">as </span>u32);
+        context.vm.frame_mut().env_stack.push(entry);
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
 
 <span class="doccomment">/// `LoopStart` implements the Opcode Operation for `Opcode::LoopStart`
 ///

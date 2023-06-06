@@ -116,6 +116,9 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -124,7 +127,9 @@
 <span class="kw">mod </span>env_stack;
 
 <span class="kw">use crate</span>::{
-    builtins::promise::PromiseCapability, environments::BindingLocator, object::JsObject,
+    builtins::{iterable::IteratorRecord, promise::PromiseCapability},
+    environments::BindingLocator,
+    object::JsObject,
     vm::CodeBlock,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
@@ -157,7 +162,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) async_generator: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 
     <span class="comment">// Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) iterators: ThinVec&lt;(JsObject, bool)&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) iterators: ThinVec&lt;IteratorRecord&gt;,
 
     <span class="comment">// The stack of bindings being updated.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) binding_stack: Vec&lt;BindingLocator&gt;,
@@ -228,9 +233,10 @@
 }
 
 <span class="doccomment">/// Indicates how a generator function that has been called/resumed should return.
-</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq)]
+</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Default)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>GeneratorResumeKind {
-    Normal,
+    <span class="attr">#[default]
+    </span>Normal,
     Throw,
     Return,
 }

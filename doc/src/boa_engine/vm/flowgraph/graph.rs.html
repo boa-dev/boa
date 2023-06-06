@@ -307,7 +307,17 @@
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::vm::flowgraph::{Color, Edge, EdgeStyle, EdgeType, Node, NodeShape};
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{
+    collections::hash_map::RandomState,
+    hash::{BuildHasher, Hash, Hasher},
+};
+
+<span class="kw">use </span><span class="kw">crate</span>::vm::flowgraph::{Color, Edge, EdgeStyle, EdgeType, Node, NodeShape};
 
 <span class="doccomment">/// This represents the direction of flow in the flowgraph.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
@@ -404,7 +414,10 @@
 
     <span class="doccomment">/// Format into the graphviz format.
     </span><span class="kw">fn </span>graphviz_format(<span class="kw-2">&amp;</span><span class="self">self</span>, result: <span class="kw-2">&amp;mut </span>String, prefix: <span class="kw-2">&amp;</span>str) {
-        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\tsubgraph cluster_{prefix}_{} {{\n&quot;</span>, <span class="self">self</span>.label));
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = RandomState::new().build_hasher();
+        <span class="self">self</span>.label.hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, hasher.finish());
+        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\tsubgraph cluster_{prefix}_{label} {{\n&quot;</span>));
         result.push_str(<span class="string">&quot;\t\tstyle = filled;\n&quot;</span>);
         result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
             <span class="string">&quot;\t\tlabel = \&quot;{}\&quot;;\n&quot;</span>,
@@ -416,14 +429,12 @@
         ));
 
         result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">&quot;\t\t{prefix}_{}_start [label=\&quot;Start\&quot;,shape=Mdiamond,style=filled,color=green]\n&quot;</span>,
-            <span class="self">self</span>.label
-        ));
+            <span class="string">&quot;\t\t{prefix}_{label}_start [label=\&quot;Start\&quot;,shape=Mdiamond,style=filled,color=green]\n&quot;
+        </span>));
         <span class="kw">if </span>!<span class="self">self</span>.nodes.is_empty() {
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;\t\t{prefix}_{}_start -&gt; {prefix}_{}_i_0\n&quot;</span>,
-                <span class="self">self</span>.label, <span class="self">self</span>.label
-            ));
+                <span class="string">&quot;\t\t{prefix}_{label}_start -&gt; {prefix}_{label}_i_0\n&quot;
+            </span>));
         }
 
         <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.nodes {
@@ -435,7 +446,7 @@
             <span class="kw">let </span>color = <span class="macro">format!</span>(<span class="string">&quot;,style=filled,color=\&quot;{}\&quot;&quot;</span>, node.color);
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                 <span class="string">&quot;\t\t{prefix}_{}_i_{}[label=\&quot;{:04}: {}\&quot;{shape}{color}];\n&quot;</span>,
-                <span class="self">self</span>.label, node.location, node.location, node.label
+                label, node.location, node.location, node.label
             ));
         }
 
@@ -451,9 +462,9 @@
             };
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                 <span class="string">&quot;\t\t{prefix}_{}_i_{} -&gt; {prefix}_{}_i_{} [label=\&quot;{}\&quot;, len=f{style}{color}];\n&quot;</span>,
-                <span class="self">self</span>.label,
+                label,
                 edge.from,
-                <span class="self">self</span>.label,
+                label,
                 edge.to,
                 edge.label.as_deref().unwrap_or(<span class="string">&quot;&quot;</span>)
             ));
@@ -467,6 +478,9 @@
 
     <span class="doccomment">/// Format into the mermaid format.
     </span><span class="kw">fn </span>mermaid_format(<span class="kw-2">&amp;</span><span class="self">self</span>, result: <span class="kw-2">&amp;mut </span>String, prefix: <span class="kw-2">&amp;</span>str) {
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = RandomState::new().build_hasher();
+        <span class="self">self</span>.label.hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, hasher.finish());
         <span class="kw">let </span>rankdir = <span class="kw">match </span><span class="self">self</span>.direction {
             Direction::TopToBottom =&gt; <span class="string">&quot;TB&quot;</span>,
             Direction::BottomToTop =&gt; <span class="string">&quot;BT&quot;</span>,
@@ -475,7 +489,7 @@
         };
         result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
             <span class="string">&quot;  subgraph {prefix}_{}[\&quot;{}\&quot;]\n&quot;</span>,
-            <span class="self">self</span>.label,
+            label,
             <span class="kw">if </span><span class="self">self</span>.label.is_empty() {
                 <span class="string">&quot;Anonymous Function&quot;
             </span>} <span class="kw">else </span>{
@@ -484,16 +498,12 @@
         ));
         result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  direction {rankdir}\n&quot;</span>));
 
-        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  {prefix}_{}_start{{Start}}\n&quot;</span>, <span class="self">self</span>.label));
-        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">&quot;  style {prefix}_{}_start fill:green\n&quot;</span>,
-            <span class="self">self</span>.label
-        ));
+        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  {prefix}_{label}_start{{Start}}\n&quot;</span>));
+        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  style {prefix}_{label}_start fill:green\n&quot;</span>));
         <span class="kw">if </span>!<span class="self">self</span>.nodes.is_empty() {
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;  {prefix}_{}_start --&gt; {prefix}_{}_i_0\n&quot;</span>,
-                <span class="self">self</span>.label, <span class="self">self</span>.label
-            ));
+                <span class="string">&quot;  {prefix}_{label}_start --&gt; {prefix}_{label}_i_0\n&quot;
+            </span>));
         }
 
         <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.nodes {
@@ -503,12 +513,12 @@
             };
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                 <span class="string">&quot;  {prefix}_{}_i_{}{shape_begin}\&quot;{:04}: {}\&quot;{shape_end}\n&quot;</span>,
-                <span class="self">self</span>.label, node.location, node.location, node.label
+                label, node.location, node.location, node.label
             ));
             <span class="kw">if </span>!node.color.is_none() {
                 result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                     <span class="string">&quot;  style {prefix}_{}_i_{} fill:{}\n&quot;</span>,
-                    <span class="self">self</span>.label, node.location, node.color
+                    label, node.location, node.color
                 ));
             }
         }
@@ -522,10 +532,10 @@
             };
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                 <span class="string">&quot;  {prefix}_{}_i_{} {style}| {}| {prefix}_{}_i_{}\n&quot;</span>,
-                <span class="self">self</span>.label,
+                label,
                 edge.from,
                 edge.label.as_deref().unwrap_or(<span class="string">&quot;&quot;</span>),
-                <span class="self">self</span>.label,
+                label,
                 edge.to,
             ));
 

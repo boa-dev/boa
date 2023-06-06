@@ -258,19 +258,59 @@
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    builtins::{
-        iterable::{IteratorRecord, IteratorResult},
-        Array,
-    },
-    vm::{opcode::Operation, CompletionType},
-    Context, JsNativeError, JsResult,
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::matches;
+
+<span class="kw">use crate</span>::{
+    builtins::{iterable::create_iter_result_object, Array},
+    js_string,
+    vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
+    Context, JsResult,
 };
 
 <span class="doccomment">/// `IteratorNext` implements the Opcode Operation for `Opcode::IteratorNext`
 ///
 /// Operation:
-///  - Calls the `next` method of `iterator` and puts its return value on the stack.
+///  - Calls the `next` method of `iterator`, updating its record with the next value.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorNext;
 
@@ -279,149 +319,171 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorNext&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>next_method = context.vm.pop();
-        <span class="kw">let </span>iterator = context.vm.pop();
-        <span class="kw">let </span>next_result = next_method.call(<span class="kw-2">&amp;</span>iterator, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
-        context.vm.push(iterator);
-        context.vm.push(next_method);
-        context.vm.push(next_result);
-        <span class="prelude-val">Ok</span>(CompletionType::Normal)
-    }
-}
-
-<span class="doccomment">/// `IteratorNextSetDone` implements the Opcode Operation for `Opcode::IteratorNextSetDone`
-///
-/// Operation:
-///  - Calls the `next` method of `iterator`, puts its return value on the stack
-///    and sets the `[[Done]]` value of the iterator on the call frame.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorNextSetDone;
-
-<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorNextSetDone {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorNextSetDone&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorNextSetDone&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>next_method = context.vm.pop();
-        <span class="kw">let </span>iterator = context.vm.pop();
-        <span class="kw">let </span><span class="kw-2">mut </span>done = <span class="bool-val">true</span>;
-        <span class="kw">let </span>result = next_method
-            .call(<span class="kw-2">&amp;</span>iterator, <span class="kw-2">&amp;</span>[], context)
-            .and_then(|next_result| {
-                next_method
-                    .as_object()
-                    .cloned()
-                    .map(IteratorResult::new)
-                    .ok_or_else(|| {
-                        JsNativeError::typ()
-                            .with_message(<span class="string">&quot;next value should be an object&quot;</span>)
-                            .into()
-                    })
-                    .and_then(|iterator_result| {
-                        iterator_result.complete(context).map(|d| {
-                            done = d;
-                            context.vm.push(iterator);
-                            context.vm.push(next_method);
-                            context.vm.push(next_result);
-                            CompletionType::Normal
-                        })
-                    })
-            });
-
-        context
+        <span class="kw">let </span><span class="kw-2">mut </span>iterator = context
             .vm
             .frame_mut()
             .iterators
-            .last_mut()
-            .expect(<span class="string">&quot;iterator on the call frame must exist&quot;</span>)
-            .<span class="number">1 </span>= done;
+            .pop()
+            .expect(<span class="string">&quot;iterator stack should have at least an iterator&quot;</span>);
 
-        result
-    }
-}
+        iterator.step(context)<span class="question-mark">?</span>;
 
-<span class="doccomment">/// `IteratorUnwrapNext` implements the Opcode Operation for `Opcode::IteratorUnwrapNext`
-///
-/// Operation:
-///  - Gets the `value` and `done` properties of an iterator result.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorUnwrapNext;
-
-<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorUnwrapNext {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorUnwrapNext&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorUnwrapNext&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>next_result = context.vm.pop();
-        <span class="kw">let </span>next_result = next_result
-            .as_object()
-            .cloned()
-            .map(IteratorResult::new)
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;next value should be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span>complete = next_result.complete(context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>value = next_result.value(context)<span class="question-mark">?</span>;
-        context.vm.push(complete);
-        context.vm.push(value);
+        context.vm.frame_mut().iterators.push(iterator);
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
-<span class="doccomment">/// `IteratorUnwrapValue` implements the Opcode Operation for `Opcode::IteratorUnwrapValue`
+<span class="doccomment">/// `IteratorFinishAsyncNext` implements the Opcode Operation for `Opcode::IteratorFinishAsyncNext`.
 ///
 /// Operation:
-///  - Gets the `value` property of an iterator result.
+///  - Finishes the call to `Opcode::IteratorNext` within a `for await` loop by setting the current
+/// result of the current iterator.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorUnwrapValue;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorFinishAsyncNext;
 
-<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorUnwrapValue {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorUnwrapValue&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorUnwrapValue&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorFinishAsyncNext {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorFinishAsyncNext&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorFinishAsyncNext&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>next_result = context.vm.pop();
-        <span class="kw">let </span>next_result = next_result
-            .as_object()
-            .cloned()
-            .map(IteratorResult::new)
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;next value should be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span>value = next_result.value(context)<span class="question-mark">?</span>;
-        context.vm.push(value);
+        <span class="kw">let </span><span class="kw-2">mut </span>iterator = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .expect(<span class="string">&quot;iterator on the call frame must exist&quot;</span>);
 
-        <span class="prelude-val">Ok</span>(CompletionType::Normal)
-    }
-}
-
-<span class="doccomment">/// `IteratorUnwrapNextOrJump` implements the Opcode Operation for `Opcode::IteratorUnwrapNextOrJump`
-///
-/// Operation:
-///  - Gets the `value` and `done` properties of an iterator result, or jump to `address` if
-///    `done` is true.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorUnwrapNextOrJump;
-
-<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorUnwrapNextOrJump {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorUnwrapNextOrJump&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorUnwrapNextOrJump&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
-
-        <span class="kw">let </span>next_result = context.vm.pop();
-        <span class="kw">let </span>next_result = next_result
-            .as_object()
-            .cloned()
-            .map(IteratorResult::new)
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;next value should be an object&quot;</span>))<span class="question-mark">?</span>;
-
-        <span class="kw">if </span>next_result.complete(context)<span class="question-mark">? </span>{
-            context.vm.frame_mut().pc = address;
-            context.vm.push(<span class="bool-val">true</span>);
-        } <span class="kw">else </span>{
-            context.vm.push(<span class="bool-val">false</span>);
-            <span class="kw">let </span>value = next_result.value(context)<span class="question-mark">?</span>;
-            context.vm.push(value);
+        <span class="kw">if </span><span class="macro">matches!</span>(
+            context.vm.frame().generator_resume_kind,
+            GeneratorResumeKind::Throw
+        ) {
+            <span class="comment">// If after awaiting the `next` call the iterator returned an error, it can be considered
+            // as poisoned, meaning we can remove it from the iterator stack to avoid calling
+            // cleanup operations on it.
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
+
+        <span class="kw">let </span>next_result = context.vm.pop();
+
+        iterator.update_result(next_result, context)<span class="question-mark">?</span>;
+
+        context.vm.frame_mut().iterators.push(iterator);
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `IteratorResult` implements the Opcode Operation for `Opcode::IteratorResult`
+///
+/// Operation:
+///  - Gets the last iteration result of the current iterator record.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorResult;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorResult {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorResult&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorResult&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>last_result = context
+            .vm
+            .frame()
+            .iterators
+            .last()
+            .expect(<span class="string">&quot;iterator on the call frame must exist&quot;</span>)
+            .last_result()
+            .object()
+            .clone();
+
+        context.vm.push(last_result);
+
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `IteratorValue` implements the Opcode Operation for `Opcode::IteratorValue`
+///
+/// Operation:
+///  - Gets the `value` property of the current iterator record.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorValue;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorValue {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorValue&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorValue&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>iterator = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .expect(<span class="string">&quot;iterator on the call frame must exist&quot;</span>);
+
+        <span class="kw">let </span>value = iterator.value(context)<span class="question-mark">?</span>;
+        context.vm.push(value);
+
+        context.vm.frame_mut().iterators.push(iterator);
+
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `IteratorDone` implements the Opcode Operation for `Opcode::IteratorDone`
+///
+/// Operation:
+///  - Returns `true` if the current iterator is done, or `false` otherwise
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorDone;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorDone {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorDone&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorDone&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>done = context
+            .vm
+            .frame()
+            .iterators
+            .last()
+            .expect(<span class="string">&quot;iterator on the call frame must exist&quot;</span>)
+            .done();
+
+        context.vm.push(done);
+
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `IteratorReturn` implements the Opcode Operation for `Opcode::IteratorReturn`
+///
+/// Operation:
+///  - Calls `return` on the current iterator and returns the result.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorReturn;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorReturn {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorReturn&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorReturn&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>record = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .expect(<span class="string">&quot;iterator on the call frame must exist&quot;</span>);
+
+        <span class="kw">let </span><span class="prelude-val">Some</span>(ret) = record.iterator().get_method(<span class="macro">js_string!</span>(<span class="string">&quot;return&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+            context.vm.push(<span class="bool-val">false</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+        };
+
+        <span class="kw">let </span>value = ret.call(<span class="kw-2">&amp;</span>record.iterator().clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
+
+        context.vm.push(value);
+        context.vm.push(<span class="bool-val">true</span>);
+
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -438,83 +500,101 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorToArray&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>next_method = context.vm.pop();
-        <span class="kw">let </span>iterator = context.vm.pop();
-        <span class="kw">let </span>iterator = iterator.as_object().expect(<span class="string">&quot;iterator was not an object&quot;</span>);
-
-        <span class="kw">let </span>iterator_record = IteratorRecord::new(iterator.clone(), next_method.clone(), <span class="bool-val">false</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>values = Vec::new();
-
-        <span class="kw">let </span>err = <span class="kw">loop </span>{
-            <span class="kw">match </span>iterator_record.step(context) {
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(result)) =&gt; <span class="kw">match </span>result.value(context) {
-                    <span class="prelude-val">Ok</span>(value) =&gt; values.push(value),
-                    <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">break </span><span class="prelude-val">Some</span>(err),
-                },
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">break </span><span class="prelude-val">None</span>,
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">break </span><span class="prelude-val">Some</span>(err),
-            }
-        };
-
-        context
+        <span class="kw">let </span><span class="kw-2">mut </span>iterator = context
             .vm
             .frame_mut()
             .iterators
-            .last_mut()
-            .expect(<span class="string">&quot;should exist&quot;</span>)
-            .<span class="number">1 </span>= <span class="bool-val">true</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = err {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(err);
+            .pop()
+            .expect(<span class="string">&quot;iterator on the call frame must exist&quot;</span>);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>values = Vec::new();
+
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>done = <span class="kw">match </span>iterator.step(context) {
+                <span class="prelude-val">Ok</span>(done) =&gt; done,
+                <span class="prelude-val">Err</span>(err) =&gt; {
+                    context.vm.frame_mut().iterators.push(iterator);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(err);
+                }
+            };
+
+            <span class="kw">if </span>done {
+                <span class="kw">break</span>;
+            }
+
+            <span class="kw">match </span>iterator.value(context) {
+                <span class="prelude-val">Ok</span>(value) =&gt; values.push(value),
+                <span class="prelude-val">Err</span>(err) =&gt; {
+                    context.vm.frame_mut().iterators.push(iterator);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(err);
+                }
+            }
         }
+
+        context.vm.frame_mut().iterators.push(iterator);
 
         <span class="kw">let </span>array = Array::create_array_from_list(values, context);
 
-        context.vm.push(iterator.clone());
-        context.vm.push(next_method);
         context.vm.push(array);
+
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
-<span class="doccomment">/// `IteratorClosePush` implements the Opcode Operation for `Opcode::IteratorClosePush`
-///
-/// Operation:
-///  - Push an iterator to the call frame close iterator stack.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorClosePush;
-
-<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorClosePush {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorClosePush&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorClosePush&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>next_method = context.vm.pop();
-        <span class="kw">let </span>iterator = context.vm.pop();
-        <span class="kw">let </span>iterator_object = iterator.as_object().expect(<span class="string">&quot;iterator was not an object&quot;</span>);
-        context
-            .vm
-            .frame_mut()
-            .iterators
-            .push((iterator_object.clone(), <span class="bool-val">false</span>));
-        context.vm.push(iterator);
-        context.vm.push(next_method);
-        <span class="prelude-val">Ok</span>(CompletionType::Normal)
-    }
-}
-
-<span class="doccomment">/// `IteratorClosePop` implements the Opcode Operation for `Opcode::IteratorClosePop`
+<span class="doccomment">/// `IteratorPop` implements the Opcode Operation for `Opcode::IteratorPop`
 ///
 /// Operation:
 ///  - Pop an iterator from the call frame close iterator stack.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorClosePop;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorPop;
 
-<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorClosePop {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorClosePop&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorClosePop&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorPop {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorPop&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorPop&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         context.vm.frame_mut().iterators.pop();
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `IteratorStackEmpty` implements the Opcode Operation for `Opcode::IteratorStackEmpty`
+///
+/// Operation:
+/// - Pushes `true` to the stack if the iterator stack is empty.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorStackEmpty;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorStackEmpty {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorStackEmpty&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorStackEmpty&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>is_empty = context.vm.frame().iterators.is_empty();
+        context.vm.push(is_empty);
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `CreateIteratorResult` implements the Opcode Operation for `Opcode::CreateIteratorResult`
+///
+/// Operation:
+/// -  Creates a new iterator result object
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CreateIteratorResult;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>CreateIteratorResult {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;CreateIteratorResult&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CreateIteratorResult&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">let </span>done = context.vm.read::&lt;u8&gt;() != <span class="number">0</span>;
+
+        <span class="kw">let </span>result = create_iter_result_object(value, done, context);
+
+        context.vm.push(result);
+
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

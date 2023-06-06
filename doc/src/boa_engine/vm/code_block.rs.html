@@ -1525,6 +1525,11 @@
 <a href="#1525" id="1525">1525</a>
 <a href="#1526" id="1526">1526</a>
 <a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1844,10 +1849,7 @@
             | Opcode::Call
             | Opcode::New
             | Opcode::SuperCall
-            | Opcode::IteratorUnwrapNextOrJump
-            | Opcode::ConcatToString
-            | Opcode::GeneratorAsyncResumeYield
-            | Opcode::GeneratorNextDelegate =&gt; {
+            | Opcode::ConcatToString =&gt; {
                 <span class="kw">let </span>result = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc).to_string();
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 result
@@ -1861,9 +1863,10 @@
             | Opcode::Break
             | Opcode::Continue
             | Opcode::LoopStart
+            | Opcode::IteratorLoopStart
             | Opcode::TryStart
-            | Opcode::AsyncGeneratorNext
-            | Opcode::GeneratorAsyncDelegateNext =&gt; {
+            | Opcode::GeneratorDelegateNext
+            | Opcode::GeneratorDelegateResume =&gt; {
                 <span class="kw">let </span>operand1 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 <span class="kw">let </span>operand2 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
@@ -1876,15 +1879,6 @@
                 <span class="kw">let </span>operand2 = <span class="self">self</span>.read::&lt;u64&gt;(<span class="kw-2">*</span>pc);
                 <span class="kw-2">*</span>pc += size_of::&lt;u64&gt;();
                 <span class="macro">format!</span>(<span class="string">&quot;{operand1}, {operand2}&quot;</span>)
-            }
-            Opcode::GeneratorAsyncDelegateResume =&gt; {
-                <span class="kw">let </span>operand1 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-                <span class="kw">let </span>operand2 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-                <span class="kw">let </span>operand3 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-                <span class="macro">format!</span>(<span class="string">&quot;{operand1}, {operand2}, {operand3}&quot;</span>)
             }
             Opcode::GetArrowFunction
             | Opcode::GetAsyncArrowFunction
@@ -1900,6 +1894,7 @@
             }
             Opcode::GetGenerator | Opcode::GetGeneratorAsync =&gt; {
                 <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
+                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{operand:04}: &#39;{}&#39; (length: {})&quot;</span>,
                     interner.resolve_expect(<span class="self">self</span>.functions[operand <span class="kw">as </span>usize].name),
@@ -1965,6 +1960,20 @@
                 <span class="kw">let </span>count = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;() * (count <span class="kw">as </span>usize + <span class="number">1</span>);
                 String::new()
+            }
+            Opcode::GeneratorJumpOnResumeKind =&gt; {
+                <span class="kw">let </span>normal = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
+                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
+                <span class="kw">let </span>throw = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
+                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
+                <span class="kw">let </span>r#return = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
+                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
+                <span class="macro">format!</span>(<span class="string">&quot;n: {normal}, t: {throw}, r: {return}&quot;</span>)
+            }
+            Opcode::CreateIteratorResult =&gt; {
+                <span class="kw">let </span>done = <span class="self">self</span>.read::&lt;u8&gt;(<span class="kw-2">*</span>pc) != <span class="number">0</span>;
+                <span class="kw-2">*</span>pc += size_of::&lt;u8&gt;();
+                <span class="macro">format!</span>(<span class="string">&quot;done: {done}&quot;</span>)
             }
             Opcode::Pop
             | Opcode::PopIfThrown
@@ -2049,12 +2058,14 @@
             | Opcode::GetAsyncIterator
             | Opcode::GeneratorResumeReturn
             | Opcode::IteratorNext
-            | Opcode::IteratorNextSetDone
-            | Opcode::IteratorUnwrapNext
-            | Opcode::IteratorUnwrapValue
+            | Opcode::IteratorFinishAsyncNext
+            | Opcode::IteratorValue
+            | Opcode::IteratorResult
+            | Opcode::IteratorDone
             | Opcode::IteratorToArray
-            | Opcode::IteratorClosePush
-            | Opcode::IteratorClosePop
+            | Opcode::IteratorPop
+            | Opcode::IteratorReturn
+            | Opcode::IteratorStackEmpty
             | Opcode::RequireObjectCoercible
             | Opcode::ValueNotNullOrUndefined
             | Opcode::RestParameterInit
@@ -2065,8 +2076,10 @@
             | Opcode::PushNewArray
             | Opcode::PopOnReturnAdd
             | Opcode::PopOnReturnSub
-            | Opcode::Yield
+            | Opcode::GeneratorYield
+            | Opcode::AsyncGeneratorYield
             | Opcode::GeneratorNext
+            | Opcode::GeneratorSetReturn
             | Opcode::PushClassField
             | Opcode::SuperCallDerived
             | Opcode::Await
@@ -2136,10 +2149,7 @@
             | Opcode::Reserved50
             | Opcode::Reserved51
             | Opcode::Reserved52
-            | Opcode::Reserved53
-            | Opcode::Reserved54
-            | Opcode::Reserved55
-            | Opcode::Reserved56 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Opcode::Reserved53 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }

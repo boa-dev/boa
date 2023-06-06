@@ -1359,6 +1359,24 @@
 <a href="#1359" id="1359">1359</a>
 <a href="#1360" id="1360">1360</a>
 <a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1856,10 +1874,6 @@
         <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfFalse)
     }
 
-    <span class="kw">fn </span>jump_if_not_undefined(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
-        <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined)
-    }
-
     <span class="kw">fn </span>jump_if_null_or_undefined(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
         <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNullOrUndefined)
     }
@@ -1878,6 +1892,28 @@
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.emit(opcode, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS, <span class="self">Self</span>::DUMMY_ADDRESS]);
         (Label { index }, Label { index: index + <span class="number">4 </span>})
+    }
+
+    <span class="doccomment">/// Emit an opcode with three dummy operands.
+    /// Return the `Label`s of the three operands.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit_opcode_with_three_operands(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        opcode: Opcode,
+    ) -&gt; (Label, Label, Label) {
+        <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
+        <span class="self">self</span>.emit(
+            opcode,
+            <span class="kw-2">&amp;</span>[
+                <span class="self">Self</span>::DUMMY_ADDRESS,
+                <span class="self">Self</span>::DUMMY_ADDRESS,
+                <span class="self">Self</span>::DUMMY_ADDRESS,
+            ],
+        );
+        (
+            Label { index },
+            Label { index: index + <span class="number">4 </span>},
+            Label { index: index + <span class="number">8 </span>},
+        )
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>patch_jump_with_target(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Label, target: u32) {

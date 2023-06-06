@@ -466,6 +466,11 @@
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
 <a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     declaration::Binding,
     operations::bound_names,
@@ -628,17 +633,19 @@
 
         <span class="kw">let </span>early_exit = <span class="self">self</span>.jump_if_null_or_undefined();
         <span class="self">self</span>.emit_opcode(Opcode::CreateForInIterator);
-        <span class="self">self</span>.emit_opcode(Opcode::PushFalse);
 
-        <span class="kw">let </span>(loop_start, exit_label) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::LoopStart);
+        <span class="kw">let </span>(loop_start, exit_label) =
+            <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::IteratorLoopStart);
         <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.push_loop_control_info_for_of_in_loop(label, start_address);
         <span class="self">self</span>.emit_opcode(Opcode::LoopContinue);
         <span class="self">self</span>.patch_jump_with_target(loop_start, start_address);
 
-        <span class="self">self</span>.emit_opcode(Opcode::Pop); <span class="comment">// pop the `done` value.
-        </span><span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
-        <span class="kw">let </span>exit = <span class="self">self</span>.emit_opcode_with_operand(Opcode::IteratorUnwrapNextOrJump);
+        <span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
+        <span class="self">self</span>.emit_opcode(Opcode::IteratorDone);
+        <span class="kw">let </span>exit = <span class="self">self</span>.jump_if_true();
+
+        <span class="self">self</span>.emit_opcode(Opcode::IteratorValue);
 
         <span class="kw">let </span>iteration_environment = <span class="kw">if </span>initializer_bound_names.is_empty() {
             <span class="prelude-val">None
@@ -713,11 +720,8 @@
         <span class="self">self</span>.patch_jump(exit_label);
         <span class="self">self</span>.pop_loop_control_info();
         <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
-        <span class="self">self</span>.emit_opcode(Opcode::RotateRight);
-        <span class="self">self</span>.emit_u8(<span class="number">4</span>);
-        <span class="self">self</span>.emit_opcode(Opcode::Pop);
-        <span class="self">self</span>.emit_opcode(Opcode::Pop);
-        <span class="self">self</span>.emit_opcode(Opcode::Pop);
+
+        <span class="self">self</span>.iterator_close(<span class="bool-val">false</span>);
 
         <span class="kw">let </span>skip_early_exit = <span class="self">self</span>.jump();
         <span class="self">self</span>.patch_jump(early_exit);
@@ -761,21 +765,27 @@
         } <span class="kw">else </span>{
             <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
         }
-        <span class="self">self</span>.emit_opcode(Opcode::PushFalse);
 
-        <span class="kw">let </span>(loop_start, loop_exit) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::LoopStart);
+        <span class="kw">let </span>(loop_start, loop_exit) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::IteratorLoopStart);
         <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
-        <span class="self">self</span>.push_loop_control_info_for_of_in_loop(label, start_address);
+        <span class="kw">if </span>for_of_loop.r#await() {
+            <span class="self">self</span>.push_loop_control_info_for_await_of_loop(label, start_address);
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.push_loop_control_info_for_of_in_loop(label, start_address);
+        }
         <span class="self">self</span>.emit_opcode(Opcode::LoopContinue);
         <span class="self">self</span>.patch_jump_with_target(loop_start, start_address);
 
-        <span class="self">self</span>.emit_opcode(Opcode::Pop); <span class="comment">// pop the `done` value.
-        </span><span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
+        <span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
         <span class="kw">if </span>for_of_loop.r#await() {
+            <span class="self">self</span>.emit_opcode(Opcode::IteratorResult);
             <span class="self">self</span>.emit_opcode(Opcode::Await);
+            <span class="self">self</span>.emit_opcode(Opcode::IteratorFinishAsyncNext);
             <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
         }
-        <span class="kw">let </span>exit = <span class="self">self</span>.emit_opcode_with_operand(Opcode::IteratorUnwrapNextOrJump);
+        <span class="self">self</span>.emit_opcode(Opcode::IteratorDone);
+        <span class="kw">let </span>exit = <span class="self">self</span>.jump_if_true();
+        <span class="self">self</span>.emit_opcode(Opcode::IteratorValue);
 
         <span class="kw">let </span>iteration_environment = <span class="kw">if </span>initializer_bound_names.is_empty() {
             <span class="prelude-val">None
@@ -856,9 +866,9 @@
         <span class="self">self</span>.patch_jump(loop_exit);
         <span class="self">self</span>.pop_loop_control_info();
         <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
-        <span class="self">self</span>.emit_opcode(Opcode::RotateRight);
-        <span class="self">self</span>.emit_u8(<span class="number">4</span>);
+
         <span class="self">self</span>.iterator_close(for_of_loop.r#await());
+
         <span class="kw">if </span>!use_expr {
             <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }

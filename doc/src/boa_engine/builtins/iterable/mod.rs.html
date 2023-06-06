@@ -567,6 +567,43 @@
 <a href="#567" id="567">567</a>
 <a href="#568" id="568">568</a>
 <a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `IteratorRecord` and iterator prototype objects.
 
 </span><span class="kw">use crate</span>::{
@@ -854,24 +891,32 @@
 
         <span class="comment">// 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 7. Return iteratorRecord.
-        </span><span class="prelude-val">Ok</span>(IteratorRecord::new(
-            iterator_obj.clone(),
-            next_method,
-            <span class="bool-val">false</span>,
-        ))
+        </span><span class="prelude-val">Ok</span>(IteratorRecord::new(iterator_obj.clone(), next_method))
     }
 }
 
 <span class="doccomment">/// The result of the iteration process.
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>IteratorResult {
     object: JsObject,
 }
 
 <span class="kw">impl </span>IteratorResult {
-    <span class="doccomment">/// Create a new `IteratorResult`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(object: JsObject) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ object }
+    <span class="doccomment">/// Gets a new `IteratorResult` from a value. Returns `Err` if
+    /// the value is not a [`JsObject`]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_value(value: JsValue) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span>JsValue::Object(o) = value {
+            <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ object: o })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;next value should be an object&quot;</span>)
+                .into())
+        }
+    }
+
+    <span class="doccomment">/// Gets the inner object of this `IteratorResult`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.object
     }
 
     <span class="doccomment">/// `IteratorComplete ( iterResult )`
@@ -931,16 +976,22 @@
     ///
     /// Whether the iterator has been closed.
     </span>done: bool,
+
+    <span class="doccomment">/// The result of the last call to `next`.
+    </span>last_result: IteratorResult,
 }
 
 <span class="kw">impl </span>IteratorRecord {
     <span class="doccomment">/// Creates a new `IteratorRecord` with the given iterator object, next method and `done` flag.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(iterator: JsObject, next_method: JsValue, done: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(iterator: JsObject, next_method: JsValue) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             iterator,
             next_method,
-            done,
+            done: <span class="bool-val">false</span>,
+            last_result: IteratorResult {
+                object: JsObject::with_null_proto(),
+            },
         }
     }
 
@@ -949,9 +1000,32 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.iterator
     }
 
-    <span class="doccomment">/// Get the `[[NextMethod]]` field of the `IteratorRecord`.
+    <span class="doccomment">/// Gets the `[[NextMethod]]` field of the `IteratorRecord`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>next_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
         <span class="kw-2">&amp;</span><span class="self">self</span>.next_method
+    }
+
+    <span class="doccomment">/// Gets the last result object of the iterator record.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>last_result(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IteratorResult {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.last_result
+    }
+
+    <span class="doccomment">/// Runs `f`, setting the `done` field of this `IteratorRecord` to `true` if `f` returns
+    /// an error.
+    </span><span class="kw">fn </span>set_done_on_err&lt;R, F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; JsResult&lt;R&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; JsResult&lt;R&gt;,
+    {
+        <span class="kw">let </span>result = f(<span class="self">self</span>);
+        <span class="kw">if </span>result.is_err() {
+            <span class="self">self</span>.done = <span class="bool-val">true</span>;
+        }
+        result
+    }
+
+    <span class="doccomment">/// Gets the current value of the `IteratorRecord`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="self">self</span>.set_done_on_err(|iter| iter.last_result.value(context))
     }
 
     <span class="doccomment">/// Get the `[[Done]]` field of the `IteratorRecord`.
@@ -959,9 +1033,30 @@
         <span class="self">self</span>.done
     }
 
-    <span class="doccomment">/// Sets the `[[Done]]` field of the `IteratorRecord`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_done(<span class="kw-2">&amp;mut </span><span class="self">self</span>, done: bool) {
-        <span class="self">self</span>.done = done;
+    <span class="doccomment">/// Updates the current result value of this iterator record.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update_result(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        result: JsValue,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;()&gt; {
+        <span class="self">self</span>.set_done_on_err(|iter| {
+            <span class="comment">// 3. If Type(result) is not Object, throw a TypeError exception.
+            // 4. Return result.
+            // `IteratorResult::from_value` does this for us.
+
+            // `IteratorStep(iteratorRecord)`
+            // https://tc39.es/ecma262/#sec-iteratorstep
+
+            // 1. Let result be ? IteratorNext(iteratorRecord).
+            </span><span class="kw">let </span>result = IteratorResult::from_value(result)<span class="question-mark">?</span>;
+            <span class="comment">// 2. Let done be ? IteratorComplete(result).
+            // 3. If done is true, return false.
+            </span>iter.done = result.complete(context)<span class="question-mark">?</span>;
+
+            iter.last_result = result;
+
+            <span class="prelude-val">Ok</span>(())
+        })
     }
 
     <span class="doccomment">/// `IteratorNext ( iteratorRecord [ , value ] )`
@@ -974,63 +1069,43 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>step_with(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;IteratorResult&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::next&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
+    ) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::step_with&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
 
-        <span class="comment">// 1. If value is not present, then
-        //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
-        // 2. Else,
-        //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
-        </span><span class="kw">let </span>result = <span class="self">self</span>.next_method.call(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.iterator.clone().into(),
-            value.map_or(<span class="kw-2">&amp;</span>[], std::slice::from_ref),
-            context,
-        )<span class="question-mark">?</span>;
+        <span class="self">self</span>.set_done_on_err(|iter| {
+            <span class="comment">// 1. If value is not present, then
+            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
+            // 2. Else,
+            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
+            </span><span class="kw">let </span>result = iter.next_method.call(
+                <span class="kw-2">&amp;</span>iter.iterator.clone().into(),
+                value.map_or(<span class="kw-2">&amp;</span>[], std::slice::from_ref),
+                context,
+            )<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. If Type(result) is not Object, throw a TypeError exception.
-        // 4. Return result.
-        </span>result
-            .as_object()
-            .map(|o| IteratorResult { object: o.clone() })
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message(<span class="string">&quot;next value should be an object&quot;</span>)
-                    .into()
-            })
+            iter.update_result(result, context)<span class="question-mark">?</span>;
+
+            <span class="comment">// 4. Return result.
+            </span><span class="prelude-val">Ok</span>(iter.done)
+        })
     }
 
     <span class="doccomment">/// `IteratorStep ( iteratorRecord )`
     ///
-    /// The abstract operation `IteratorStep` takes argument `iteratorRecord` (an `Iterator`
-    /// Record) and returns either a normal completion containing either an `Object` or `false`, or
-    /// a throw completion. It requests the next value from `iteratorRecord.[[Iterator]]` by
-    /// calling `iteratorRecord.[[NextMethod]]` and returns either `false` indicating that the
-    /// iterator has reached its end or the `IteratorResult` object if a next value is available.
+    /// Updates the `IteratorRecord` and returns `true` if the next result record returned
+    /// `done: true`, otherwise returns `false`. This differs slightly from the spec, but also
+    /// simplifies some logic around iterators.
     ///
     /// More information:
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorstep
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>step(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;IteratorResult&gt;&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::step&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
-
-        <span class="comment">// 1. Let result be ? IteratorNext(iteratorRecord).
-        </span><span class="kw">let </span>result = <span class="self">self</span>.next(<span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
-
-        <span class="comment">// 2. Let done be ? IteratorComplete(result).
-        </span><span class="kw">let </span>done = result.complete(context)<span class="question-mark">?</span>;
-
-        <span class="comment">// 3. If done is true, return false.
-        </span><span class="kw">if </span>done {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
-        }
-
-        <span class="comment">// 4. Return result.
-        </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(result))
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>step(<span class="kw-2">&amp;mut </span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
+        <span class="self">self</span>.step_with(<span class="prelude-val">None</span>, context)
     }
 
     <span class="doccomment">/// `IteratorClose ( iteratorRecord, completion )`
@@ -1117,7 +1192,7 @@
     // a. Let iteratorRecord be ? GetIterator(items, sync, method).
     // 2. Else,
     // a. Let iteratorRecord be ? GetIterator(items, sync).
-    </span><span class="kw">let </span>iterator_record = items.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), method)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>iterator_record = items.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), method)<span class="question-mark">?</span>;
 
     <span class="comment">// 3. Let values be a new empty List.
     </span><span class="kw">let </span><span class="kw-2">mut </span>values = Vec::new();
@@ -1128,9 +1203,8 @@
     //     b. If next is not false, then
     //         i. Let nextValue be ? IteratorValue(next).
     //         ii. Append nextValue to the end of the List values.
-    </span><span class="kw">while let </span><span class="prelude-val">Some</span>(next) = iterator_record.step(context)<span class="question-mark">? </span>{
-        <span class="kw">let </span>next_value = next.value(context)<span class="question-mark">?</span>;
-        values.push(next_value);
+    </span><span class="kw">while </span>!iterator_record.step(context)<span class="question-mark">? </span>{
+        values.push(iterator_record.value(context)<span class="question-mark">?</span>);
     }
 
     <span class="comment">// 6. Return values.

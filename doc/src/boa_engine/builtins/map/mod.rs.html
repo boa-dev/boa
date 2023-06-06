@@ -589,8 +589,6 @@
 <a href="#589" id="589">589</a>
 <a href="#590" id="590">590</a>
 <a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Map` object.
 //!
 //! The ECMAScript `Map` class is a global object that is used in the construction of maps; which
@@ -1135,20 +1133,18 @@
     })<span class="question-mark">?</span>;
 
     <span class="comment">// 2. Let iteratorRecord be ? GetIterator(iterable).
-    </span><span class="kw">let </span>iterator_record = iterable.get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>iterator_record = iterable.get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// 3. Repeat,
     </span><span class="kw">loop </span>{
         <span class="comment">// a. Let next be ? IteratorStep(iteratorRecord).
-        </span><span class="kw">let </span>next = iterator_record.step(context)<span class="question-mark">?</span>;
-
-        <span class="comment">// b. If next is false, return target.
+        // b. If next is false, return target.
         // c. Let nextItem be ? IteratorValue(next).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(next_item) = next <span class="kw">else </span>{
+        </span><span class="kw">if </span>iterator_record.step(context)<span class="question-mark">? </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(target.clone().into());
         };
 
-        <span class="kw">let </span>next_item = next_item.value(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>next_item = iterator_record.value(context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(next_item) = next_item.as_object() <span class="kw">else </span>{
             <span class="comment">// d. If Type(nextItem) is not Object, then

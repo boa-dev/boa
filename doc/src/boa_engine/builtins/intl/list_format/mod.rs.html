@@ -973,7 +973,7 @@
     }
 
     <span class="comment">// 2. Let iteratorRecord be ? GetIterator(iterable).
-    </span><span class="kw">let </span>iterator = iterable.get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>iterator = iterable.get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// 3. Let list be a new empty List.
     </span><span class="kw">let </span><span class="kw-2">mut </span>list = Vec::new();
@@ -982,10 +982,10 @@
     // 5. Repeat, while next is not false,
     //     a. Set next to ? IteratorStep(iteratorRecord).
     //     b. If next is not false, then
-    </span><span class="kw">while let </span><span class="prelude-val">Some</span>(item) = iterator.step(context)<span class="question-mark">? </span>{
+    </span><span class="kw">while </span>!iterator.step(context)<span class="question-mark">? </span>{
+        <span class="kw">let </span>item = iterator.value(context)<span class="question-mark">?</span>;
         <span class="comment">//    i. Let nextValue be ? IteratorValue(next).
-        </span><span class="kw">let </span>item = item.value(context)<span class="question-mark">?</span>;
-        <span class="comment">//    ii. If Type(nextValue) is not String, then
+        //    ii. If Type(nextValue) is not String, then
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(s) = item.as_string().cloned() <span class="kw">else </span>{
             <span class="comment">//    1. Let error be ThrowCompletion(a newly created TypeError object).
             //    2. Return ? IteratorClose(iteratorRecord, error).

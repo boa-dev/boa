@@ -41,8 +41,6 @@
 <a href="#41" id="41">41</a>
 <a href="#42" id="42">42</a>
 <a href="#43" id="43">43</a>
-<a href="#44" id="44">44</a>
-<a href="#45" id="45">45</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::iterable::IteratorHint,
     vm::{opcode::Operation, CompletionType},
@@ -63,8 +61,7 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>iterator = object.get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        context.vm.push(iterator.iterator().clone());
-        context.vm.push(iterator.next_method().clone());
+        context.vm.frame_mut().iterators.push(iterator);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -83,8 +80,7 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>iterator = object.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Async), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        context.vm.push(iterator.iterator().clone());
-        context.vm.push(iterator.next_method().clone());
+        context.vm.frame_mut().iterators.push(iterator);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

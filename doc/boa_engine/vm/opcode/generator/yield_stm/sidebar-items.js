@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Yield"]};
+window.SIDEBAR_ITEMS = {"struct":["AsyncGeneratorYield","GeneratorYield"]};

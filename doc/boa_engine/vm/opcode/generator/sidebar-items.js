@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["yield_stm"],"struct":["AsyncGeneratorNext","GeneratorAsyncDelegateNext","GeneratorAsyncDelegateResume","GeneratorAsyncResumeYield","GeneratorNext","GeneratorNextDelegate","GeneratorResumeReturn"]};
+window.SIDEBAR_ITEMS = {"mod":["yield_stm"],"struct":["GeneratorDelegateNext","GeneratorDelegateResume","GeneratorJumpOnResumeKind","GeneratorNext","GeneratorResumeReturn","GeneratorSetReturn"]};

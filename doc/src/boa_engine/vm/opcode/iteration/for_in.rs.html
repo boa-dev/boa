@@ -29,8 +29,12 @@
 <a href="#29" id="29">29</a>
 <a href="#30" id="30">30</a>
 <a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    builtins::object::for_in_iterator::ForInIterator,
+    builtins::{iterable::IteratorRecord, object::for_in_iterator::ForInIterator},
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
@@ -55,8 +59,12 @@
             .get(<span class="string">&quot;next&quot;</span>, context)
             .expect(<span class="string">&quot;ForInIterator must have a `next` method&quot;</span>);
 
-        context.vm.push(iterator);
-        context.vm.push(next_method);
+        context
+            .vm
+            .frame_mut()
+            .iterators
+            .push(IteratorRecord::new(iterator, next_method));
+
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

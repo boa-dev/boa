@@ -202,6 +202,29 @@
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Module for implementing a `CallFrame`&#39;s environment stacks
 
 </span><span class="kw">use </span><span class="kw">crate</span>::JsValue;
@@ -211,11 +234,14 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>EnvEntryKind {
     Global,
     Loop {
-        <span class="doccomment">/// This is used to keep track of how many iterations a loop has done.
+        <span class="doccomment">/// How many iterations a loop has done.
         </span>iteration_count: u64,
 
-        <span class="comment">// This is the latest return value of the loop.
+        <span class="doccomment">/// The latest return value of the loop.
         </span>value: JsValue,
+
+        <span class="doccomment">/// The index of the currently active iterator.
+        </span>iterator: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     },
     Try,
     Catch,
@@ -275,12 +301,24 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Returns calling `EnvStackEntry` with `kind` field of `Loop`, loop iteration set to zero
+    /// and iterator index set to `iterator`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_iterator_loop_flag(<span class="kw-2">mut </span><span class="self">self</span>, iteration_count: u64, iterator: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.kind = EnvEntryKind::Loop {
+            iteration_count,
+            value: JsValue::undefined(),
+            iterator: <span class="prelude-val">Some</span>(iterator),
+        };
+        <span class="self">self
+    </span>}
+
     <span class="doccomment">/// Returns calling `EnvStackEntry` with `kind` field of `Loop`.
     /// And the loop iteration set to zero.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_loop_flag(<span class="kw-2">mut </span><span class="self">self</span>, iteration_count: u64) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.kind = EnvEntryKind::Loop {
             iteration_count,
             value: JsValue::undefined(),
+            iterator: <span class="prelude-val">None</span>,
         };
         <span class="self">self
     </span>}
@@ -350,6 +388,14 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>loop_env_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
         <span class="kw">if let </span>EnvEntryKind::Loop { value, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             <span class="kw">return </span><span class="prelude-val">Some</span>(value);
+        }
+        <span class="prelude-val">None
+    </span>}
+
+    <span class="doccomment">/// Returns the active iterator index if `EnvStackEntry` is an iterator loop.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="kw">if let </span>EnvEntryKind::Loop { iterator, .. } = <span class="self">self</span>.kind {
+            <span class="kw">return </span>iterator;
         }
         <span class="prelude-val">None
     </span>}

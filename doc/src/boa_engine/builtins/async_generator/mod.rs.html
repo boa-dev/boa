@@ -693,31 +693,6 @@
 <a href="#693" id="693">693</a>
 <a href="#694" id="694">694</a>
 <a href="#695" id="695">695</a>
-<a href="#696" id="696">696</a>
-<a href="#697" id="697">697</a>
-<a href="#698" id="698">698</a>
-<a href="#699" id="699">699</a>
-<a href="#700" id="700">700</a>
-<a href="#701" id="701">701</a>
-<a href="#702" id="702">702</a>
-<a href="#703" id="703">703</a>
-<a href="#704" id="704">704</a>
-<a href="#705" id="705">705</a>
-<a href="#706" id="706">706</a>
-<a href="#707" id="707">707</a>
-<a href="#708" id="708">708</a>
-<a href="#709" id="709">709</a>
-<a href="#710" id="710">710</a>
-<a href="#711" id="711">711</a>
-<a href="#712" id="712">712</a>
-<a href="#713" id="713">713</a>
-<a href="#714" id="714">714</a>
-<a href="#715" id="715">715</a>
-<a href="#716" id="716">716</a>
-<a href="#717" id="717">717</a>
-<a href="#718" id="718">718</a>
-<a href="#719" id="719">719</a>
-<a href="#720" id="720">720</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `AsyncGenerator` object.
 //!
 //! More information:
@@ -738,7 +713,7 @@
     realm::Realm,
     symbol::JsSymbol,
     value::JsValue,
-    vm::GeneratorResumeKind,
+    vm::{CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsError, JsResult,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -766,7 +741,7 @@
 </span><span class="attr">#[derive(Debug, Clone, Finalize, Trace)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AsyncGeneratorRequest {
     <span class="doccomment">/// The `[[Completion]]` slot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) completion: (JsResult&lt;JsValue&gt;, bool),
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) completion: CompletionRecord,
 
     <span class="doccomment">/// The `[[Capability]]` slot.
     </span>capability: PromiseCapability,
@@ -884,7 +859,7 @@
         }
 
         <span class="comment">// 7. Let completion be NormalCompletion(value).
-        </span><span class="kw">let </span>completion = (<span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone()), <span class="bool-val">false</span>);
+        </span><span class="kw">let </span>completion = CompletionRecord::Normal(args.get_or_undefined(<span class="number">0</span>).clone());
 
         <span class="comment">// 8. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         </span>generator.enqueue(completion.clone(), promise_capability.clone());
@@ -952,7 +927,8 @@
         <span class="macro">if_abrupt_reject_promise!</span>(generator, promise_capability, context);
 
         <span class="comment">// 5. Let completion be Completion Record { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
-        </span><span class="kw">let </span>completion = (<span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone()), <span class="bool-val">true</span>);
+        </span><span class="kw">let </span>return_value = args.get_or_undefined(<span class="number">0</span>).clone();
+        <span class="kw">let </span>completion = CompletionRecord::Return(return_value.clone());
 
         <span class="comment">// 6. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         </span>generator.enqueue(completion.clone(), promise_capability.clone());
@@ -966,14 +942,8 @@
             </span>generator.state = AsyncGeneratorState::AwaitingReturn;
 
             <span class="comment">// b. Perform ! AsyncGeneratorAwaitReturn(generator).
-            </span><span class="kw">let </span>next = generator
-                .queue
-                .front()
-                .cloned()
-                .expect(<span class="string">&quot;queue cannot be empty here&quot;</span>);
-            drop(generator_obj_mut);
-            <span class="kw">let </span>(completion, <span class="kw">_</span>) = <span class="kw-2">&amp;</span>next.completion;
-            <span class="self">Self</span>::await_return(generator_object.clone(), completion.clone(), context);
+            </span>drop(generator_obj_mut);
+            <span class="self">Self</span>::await_return(generator_object.clone(), return_value, context);
         }
         <span class="comment">// 9. Else if state is suspendedYield, then
         </span><span class="kw">else if </span>state == AsyncGeneratorState::SuspendedYield {
@@ -1066,10 +1036,8 @@
         }
 
         <span class="comment">// 8. Let completion be ThrowCompletion(exception).
-        </span><span class="kw">let </span>completion = (
-            <span class="prelude-val">Err</span>(JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone())),
-            <span class="bool-val">false</span>,
-        );
+        </span><span class="kw">let </span>completion =
+            CompletionRecord::Throw(JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone()));
 
         <span class="comment">// 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         </span>generator.enqueue(completion.clone(), promise_capability.clone());
@@ -1104,7 +1072,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorenqueue
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enqueue(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        completion: (JsResult&lt;JsValue&gt;, bool),
+        completion: CompletionRecord,
         promise_capability: PromiseCapability,
     ) {
         <span class="comment">// 1. Let request be AsyncGeneratorRequest { [[Completion]]: completion, [[Capability]]: promiseCapability }.
@@ -1189,7 +1157,7 @@
         generator: <span class="kw-2">&amp;</span>JsObject,
         state: AsyncGeneratorState,
         <span class="kw-2">mut </span>generator_context: GeneratorContext,
-        completion: (JsResult&lt;JsValue&gt;, bool),
+        completion: CompletionRecord,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) {
         <span class="comment">// 1. Assert: generator.[[AsyncGeneratorState]] is either suspendedStart or suspendedYield.
@@ -1211,15 +1179,9 @@
             .state = AsyncGeneratorState::Executing;
 
         <span class="kw">let </span>(value, resume_kind) = <span class="kw">match </span>completion {
-            (<span class="prelude-val">Ok</span>(value), r#return) =&gt; (
-                value,
-                <span class="kw">if </span>r#return {
-                    GeneratorResumeKind::Return
-                } <span class="kw">else </span>{
-                    GeneratorResumeKind::Normal
-                },
-            ),
-            (<span class="prelude-val">Err</span>(value), <span class="kw">_</span>) =&gt; (value.to_opaque(context), GeneratorResumeKind::Throw),
+            CompletionRecord::Normal(val) =&gt; (val, GeneratorResumeKind::Normal),
+            CompletionRecord::Return(val) =&gt; (val, GeneratorResumeKind::Return),
+            CompletionRecord::Throw(err) =&gt; (err.to_opaque(context), GeneratorResumeKind::Throw),
         };
         <span class="comment">// 6. Push genContext onto the execution context stack; genContext is now the running execution context.
 
@@ -1247,20 +1209,13 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorawaitreturn
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>await_return(
-        generator: JsObject,
-        completion: JsResult&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>await_return(generator: JsObject, value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
         <span class="comment">// 1. Let queue be generator.[[AsyncGeneratorQueue]].
         // 2. Assert: queue is not empty.
         // 3. Let next be the first element of queue.
         // 4. Let completion be Completion(next.[[Completion]]).
 
-        // 5. Assert: completion.[[Type]] is return.
-        </span><span class="kw">let </span>value = completion.expect(<span class="string">&quot;completion must be a return completion&quot;</span>);
-
-        <span class="comment">// Note: The spec is currently broken here.
+        // Note: The spec is currently broken here.
         // See: https://github.com/tc39/ecma262/pull/2683
 
         // 6. Let promise be ? PromiseResolve(%Promise%, completion.[[Value]]).
@@ -1401,29 +1356,24 @@
             </span><span class="kw">let </span>next = queue.front().expect(<span class="string">&quot;must have entry&quot;</span>);
 
             <span class="comment">// b. Let completion be Completion(next.[[Completion]]).
-            </span><span class="kw">match </span><span class="kw-2">&amp;</span>next.completion {
+            </span><span class="kw">match </span>next.completion.clone() {
                 <span class="comment">// c. If completion.[[Type]] is return, then
-                </span>(completion, <span class="bool-val">true</span>) =&gt; {
+                </span>CompletionRecord::Return(val) =&gt; {
                     <span class="comment">// i. Set generator.[[AsyncGeneratorState]] to awaiting-return.
                     </span>gen.state = AsyncGeneratorState::AwaitingReturn;
+                    drop(generator_borrow_mut);
 
                     <span class="comment">// ii. Perform ! AsyncGeneratorAwaitReturn(generator).
-                    </span><span class="kw">let </span>completion = completion.clone();
-                    drop(generator_borrow_mut);
-                    <span class="self">Self</span>::await_return(generator.clone(), completion, context);
+                    </span><span class="self">Self</span>::await_return(generator.clone(), val, context);
 
                     <span class="comment">// iii. Set done to true.
                     </span><span class="kw">break</span>;
                 }
                 <span class="comment">// d. Else,
-                </span>(completion, <span class="bool-val">false</span>) =&gt; {
+                </span>completion =&gt; {
                     <span class="comment">// i. If completion.[[Type]] is normal, then
-                    </span><span class="kw">let </span>completion = <span class="kw">if </span>completion.is_ok() {
-                        <span class="comment">// 1. Set completion to NormalCompletion(undefined).
-                        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
-                    } <span class="kw">else </span>{
-                        completion.clone()
-                    };
+                    // 1. Set completion to NormalCompletion(undefined).
+                    </span><span class="kw">let </span>completion = completion.consume().map(|<span class="kw">_</span>| JsValue::undefined());
 
                     <span class="comment">// ii. Perform AsyncGeneratorCompleteStep(generator, completion, true).
                     </span><span class="kw">let </span>next = queue.pop_front().expect(<span class="string">&quot;must have entry&quot;</span>);

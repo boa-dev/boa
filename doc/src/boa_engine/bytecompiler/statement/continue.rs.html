@@ -123,9 +123,6 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 <span class="kw">use </span>boa_ast::statement::Continue;
 
@@ -146,21 +143,20 @@
             <span class="comment">// 1. Handle if node has a label.
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(node_label) = node.label() {
                 <span class="kw">let </span>items = <span class="self">self</span>.jump_info.iter().rev().filter(|info| info.is_loop());
-                <span class="kw">let </span><span class="kw-2">mut </span>emit_for_of_in_exit = <span class="number">0_u32</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>iterator_closes = Vec::new();
+
                 <span class="kw">for </span>info <span class="kw">in </span>items {
                     <span class="kw">if </span>info.label() == <span class="prelude-val">Some</span>(node_label) {
                         <span class="kw">break</span>;
                     }
 
-                    <span class="kw">if </span>info.for_of_in_loop() {
-                        emit_for_of_in_exit += <span class="number">1</span>;
+                    <span class="kw">if </span>info.iterator_loop() {
+                        iterator_closes.push(info.for_await_of_loop());
                     }
                 }
 
-                <span class="kw">for _ in </span><span class="number">0</span>..emit_for_of_in_exit {
-                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
-                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
-                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
+                <span class="kw">for </span>r#async <span class="kw">in </span>iterator_closes {
+                    <span class="self">self</span>.iterator_close(r#async);
                 }
 
                 <span class="kw">let </span>(cont_label, set_label) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::Continue);
@@ -211,21 +207,19 @@
             };
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(node_label) = node.label() {
             <span class="kw">let </span>items = <span class="self">self</span>.jump_info.iter().rev().filter(|info| info.is_loop());
-            <span class="kw">let </span><span class="kw-2">mut </span>emit_for_of_in_exit = <span class="number">0_u32</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>iterator_closes = Vec::new();
             <span class="kw">for </span>info <span class="kw">in </span>items {
                 <span class="kw">if </span>info.label() == <span class="prelude-val">Some</span>(node_label) {
                     <span class="kw">break</span>;
                 }
 
-                <span class="kw">if </span>info.for_of_in_loop() {
-                    emit_for_of_in_exit += <span class="number">1</span>;
+                <span class="kw">if </span>info.iterator_loop() {
+                    iterator_closes.push(info.for_await_of_loop());
                 }
             }
 
-            <span class="kw">for _ in </span><span class="number">0</span>..emit_for_of_in_exit {
-                <span class="self">self</span>.emit_opcode(Opcode::Pop);
-                <span class="self">self</span>.emit_opcode(Opcode::Pop);
-                <span class="self">self</span>.emit_opcode(Opcode::Pop);
+            <span class="kw">for </span>r#async <span class="kw">in </span>iterator_closes {
+                <span class="self">self</span>.iterator_close(r#async);
             }
 
             <span class="kw">let </span>(cont_label, set_label) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::Continue);
