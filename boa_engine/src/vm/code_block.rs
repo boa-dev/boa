@@ -1405,10 +1405,11 @@ impl JsObject {
                 );
 
                 if code.has_parameters_env_bindings() {
+                    last_env -= 1;
                     context
                         .vm
                         .environments
-                        .push_lexical(code.compile_environments[0].clone());
+                        .push_lexical(code.compile_environments[last_env].clone());
                 }
 
                 // Taken from: `FunctionDeclarationInstantiation` abstract function.

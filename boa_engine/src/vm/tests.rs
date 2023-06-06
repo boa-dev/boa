@@ -309,3 +309,18 @@ fn recursion_runtime_limit() {
         ),
     ]);
 }
+
+#[test]
+fn arguments_object_constructor_valid_index() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            let args;
+            function F(a = 1) {
+                args = arguments;
+            }
+            new F();
+            typeof args
+        "#},
+        "object",
+    )]);
+}
