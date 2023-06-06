@@ -14,7 +14,7 @@ pub(crate) enum EnvEntryKind {
         value: JsValue,
 
         /// The index of the currently active iterator.
-        iterator: Option<usize>,
+        iterator: Option<u32>,
     },
     Try,
     Catch,
@@ -76,7 +76,7 @@ impl EnvStackEntry {
 
     /// Returns calling `EnvStackEntry` with `kind` field of `Loop`, loop iteration set to zero
     /// and iterator index set to `iterator`.
-    pub(crate) fn with_iterator_loop_flag(mut self, iteration_count: u64, iterator: usize) -> Self {
+    pub(crate) fn with_iterator_loop_flag(mut self, iteration_count: u64, iterator: u32) -> Self {
         self.kind = EnvEntryKind::Loop {
             iteration_count,
             value: JsValue::undefined(),
@@ -166,7 +166,7 @@ impl EnvStackEntry {
     }
 
     /// Returns the active iterator index if `EnvStackEntry` is an iterator loop.
-    pub(crate) const fn iterator(&self) -> Option<usize> {
+    pub(crate) const fn iterator(&self) -> Option<u32> {
         if let EnvEntryKind::Loop { iterator, .. } = self.kind {
             return iterator;
         }

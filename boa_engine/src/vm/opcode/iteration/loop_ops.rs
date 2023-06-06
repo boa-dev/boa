@@ -21,7 +21,7 @@ impl Operation for IteratorLoopStart {
 
         // Create and push loop evironment entry.
         let entry = EnvStackEntry::new(start, exit)
-            .with_iterator_loop_flag(1, context.vm.frame().iterators.len() - 1);
+            .with_iterator_loop_flag(1, (context.vm.frame().iterators.len() - 1) as u32);
         context.vm.frame_mut().env_stack.push(entry);
         Ok(CompletionType::Normal)
     }

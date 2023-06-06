@@ -43,7 +43,7 @@ impl Operation for Throw {
                     .vm
                     .frame_mut()
                     .iterators
-                    .split_off(active_iterator + 1);
+                    .split_off(active_iterator as usize + 1);
                 for iterator in inactive {
                     if !iterator.done() {
                         drop(iterator.close(Ok(JsValue::undefined()), context));
@@ -146,7 +146,7 @@ impl Operation for Throw {
                     .vm
                     .frame_mut()
                     .iterators
-                    .split_off(active_iterator + 1);
+                    .split_off(active_iterator as usize + 1);
                 for iterator in inactive {
                     if !iterator.done() {
                         drop(iterator.close(Ok(JsValue::undefined()), context));
