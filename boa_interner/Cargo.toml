@@ -24,4 +24,4 @@ once_cell = {version = "1.18.0", default-features = false, features = ["critical
 indexmap = "1.9.3"
 serde = { version = "1.0.163", features = ["derive"], optional = true }
 arbitrary = { version = "1", features = ["derive"], optional = true }
-hashbrown = { version = "0.13.2", default-features = false, features = ["inline-more"] }
+hashbrown = { version = "0.14.0", default-features = false, features = ["inline-more"] }
