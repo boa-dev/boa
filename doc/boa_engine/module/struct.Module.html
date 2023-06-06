@@ -17,14 +17,14 @@ that will resolve when the loading process either completes or fails.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.get_exported_names" class="method"><a class="srclink rightside" href="../../src/boa_engine/module/mod.rs.html#470-475">source</a><h4 class="code-header">fn <a href="#method.get_exported_names" class="fn">get_exported_names</a>(
     &amp;self,
     export_star_set: &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="struct" href="source/struct.SourceTextModule.html" title="struct boa_engine::module::source::SourceTextModule">SourceTextModule</a>&gt;
-) -&gt; FxHashSet&lt;Sym&gt;</h4></section></summary><div class="docblock"><p>Abstract method <a href="https://tc39.es/ecma262/#table-abstract-methods-of-module-records"><code>GetExportedNames([exportStarSet])</code></a>.</p>
+) -&gt; FxHashSet&lt;<a class="struct" href="../../boa_interner/sym/struct.Sym.html" title="struct boa_interner::sym::Sym">Sym</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract method <a href="https://tc39.es/ecma262/#table-abstract-methods-of-module-records"><code>GetExportedNames([exportStarSet])</code></a>.</p>
 <p>Returns a list of all the names exported from this module.</p>
 <h5 id="note"><a href="#note">Note</a></h5>
 <p>This must only be called if the <a href="../object/builtins/jspromise/struct.JsPromise.html" title="struct boa_engine::object::builtins::jspromise::JsPromise"><code>JsPromise</code></a> returned by <a href="../struct.Module.html#method.load" title="method boa_engine::Module::load"><code>Module::load</code></a> has fulfilled.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.resolve_export" class="method"><a class="srclink rightside" href="../../src/boa_engine/module/mod.rs.html#489-498">source</a><h4 class="code-header">pub(crate) fn <a href="#method.resolve_export" class="fn">resolve_export</a>(
     &amp;self,
-    export_name: Sym,
-    resolve_set: &amp;mut FxHashSet&lt;(Self, Sym)&gt;
+    export_name: <a class="struct" href="../../boa_interner/sym/struct.Sym.html" title="struct boa_interner::sym::Sym">Sym</a>,
+    resolve_set: &amp;mut FxHashSet&lt;(Self, <a class="struct" href="../../boa_interner/sym/struct.Sym.html" title="struct boa_interner::sym::Sym">Sym</a>)&gt;
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="struct.ResolvedBinding.html" title="struct boa_engine::module::ResolvedBinding">ResolvedBinding</a>, <a class="enum" href="enum.ResolveExportError.html" title="enum boa_engine::module::ResolveExportError">ResolveExportError</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract method <a href="https://tc39.es/ecma262/#table-abstract-methods-of-module-records"><code>ResolveExport(exportName [, resolveSet])</code></a>.</p>
 <p>Returns the corresponding local binding of a binding exported by this module.
 The spec requires that this operation must be idempotent; calling this multiple times
