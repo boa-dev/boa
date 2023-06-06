@@ -18,21 +18,20 @@ impl ByteCompiler<'_, '_> {
             // 1. Handle if node has a label.
             if let Some(node_label) = node.label() {
                 let items = self.jump_info.iter().rev().filter(|info| info.is_loop());
-                let mut emit_for_of_in_exit = 0_u32;
+                let mut iterator_closes = Vec::new();
+
                 for info in items {
                     if info.label() == Some(node_label) {
                         break;
                     }
 
-                    if info.for_of_in_loop() {
-                        emit_for_of_in_exit += 1;
+                    if info.iterator_loop() {
+                        iterator_closes.push(info.for_await_of_loop());
                     }
                 }
 
-                for _ in 0..emit_for_of_in_exit {
-                    self.emit_opcode(Opcode::Pop);
-                    self.emit_opcode(Opcode::Pop);
-                    self.emit_opcode(Opcode::Pop);
+                for r#async in iterator_closes {
+                    self.iterator_close(r#async);
                 }
 
                 let (cont_label, set_label) = self.emit_opcode_with_two_operands(Opcode::Continue);
@@ -83,21 +82,19 @@ impl ByteCompiler<'_, '_> {
             };
         } else if let Some(node_label) = node.label() {
             let items = self.jump_info.iter().rev().filter(|info| info.is_loop());
-            let mut emit_for_of_in_exit = 0_u32;
+            let mut iterator_closes = Vec::new();
             for info in items {
                 if info.label() == Some(node_label) {
                     break;
                 }
 
-                if info.for_of_in_loop() {
-                    emit_for_of_in_exit += 1;
+                if info.iterator_loop() {
+                    iterator_closes.push(info.for_await_of_loop());
                 }
             }
 
-            for _ in 0..emit_for_of_in_exit {
-                self.emit_opcode(Opcode::Pop);
-                self.emit_opcode(Opcode::Pop);
-                self.emit_opcode(Opcode::Pop);
+            for r#async in iterator_closes {
+                self.iterator_close(r#async);
             }
 
             let (cont_label, set_label) = self.emit_opcode_with_two_operands(Opcode::Continue);

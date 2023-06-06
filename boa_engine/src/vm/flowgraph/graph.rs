@@ -1,3 +1,8 @@
+use std::{
+    collections::hash_map::RandomState,
+    hash::{BuildHasher, Hash, Hasher},
+};
+
 use crate::vm::flowgraph::{Color, Edge, EdgeStyle, EdgeType, Node, NodeShape};
 
 /// This represents the direction of flow in the flowgraph.
@@ -95,7 +100,10 @@ impl SubGraph {
 
     /// Format into the graphviz format.
     fn graphviz_format(&self, result: &mut String, prefix: &str) {
-        result.push_str(&format!("\tsubgraph cluster_{prefix}_{} {{\n", self.label));
+        let mut hasher = RandomState::new().build_hasher();
+        self.label.hash(&mut hasher);
+        let label = format!("{}", hasher.finish());
+        result.push_str(&format!("\tsubgraph cluster_{prefix}_{label} {{\n"));
         result.push_str("\t\tstyle = filled;\n");
         result.push_str(&format!(
             "\t\tlabel = \"{}\";\n",
@@ -107,13 +115,11 @@ impl SubGraph {
         ));
 
         result.push_str(&format!(
-            "\t\t{prefix}_{}_start [label=\"Start\",shape=Mdiamond,style=filled,color=green]\n",
-            self.label
+            "\t\t{prefix}_{label}_start [label=\"Start\",shape=Mdiamond,style=filled,color=green]\n"
         ));
         if !self.nodes.is_empty() {
             result.push_str(&format!(
-                "\t\t{prefix}_{}_start -> {prefix}_{}_i_0\n",
-                self.label, self.label
+                "\t\t{prefix}_{label}_start -> {prefix}_{label}_i_0\n"
             ));
         }
 
@@ -126,7 +132,7 @@ impl SubGraph {
             let color = format!(",style=filled,color=\"{}\"", node.color);
             result.push_str(&format!(
                 "\t\t{prefix}_{}_i_{}[label=\"{:04}: {}\"{shape}{color}];\n",
-                self.label, node.location, node.location, node.label
+                label, node.location, node.location, node.label
             ));
         }
 
@@ -142,9 +148,9 @@ impl SubGraph {
             };
             result.push_str(&format!(
                 "\t\t{prefix}_{}_i_{} -> {prefix}_{}_i_{} [label=\"{}\", len=f{style}{color}];\n",
-                self.label,
+                label,
                 edge.from,
-                self.label,
+                label,
                 edge.to,
                 edge.label.as_deref().unwrap_or("")
             ));
@@ -158,6 +164,9 @@ impl SubGraph {
 
     /// Format into the mermaid format.
     fn mermaid_format(&self, result: &mut String, prefix: &str) {
+        let mut hasher = RandomState::new().build_hasher();
+        self.label.hash(&mut hasher);
+        let label = format!("{}", hasher.finish());
         let rankdir = match self.direction {
             Direction::TopToBottom => "TB",
             Direction::BottomToTop => "BT",
@@ -166,7 +175,7 @@ impl SubGraph {
         };
         result.push_str(&format!(
             "  subgraph {prefix}_{}[\"{}\"]\n",
-            self.label,
+            label,
             if self.label.is_empty() {
                 "Anonymous Function"
             } else {
@@ -175,15 +184,11 @@ impl SubGraph {
         ));
         result.push_str(&format!("  direction {rankdir}\n"));
 
-        result.push_str(&format!("  {prefix}_{}_start{{Start}}\n", self.label));
-        result.push_str(&format!(
-            "  style {prefix}_{}_start fill:green\n",
-            self.label
-        ));
+        result.push_str(&format!("  {prefix}_{label}_start{{Start}}\n"));
+        result.push_str(&format!("  style {prefix}_{label}_start fill:green\n"));
         if !self.nodes.is_empty() {
             result.push_str(&format!(
-                "  {prefix}_{}_start --> {prefix}_{}_i_0\n",
-                self.label, self.label
+                "  {prefix}_{label}_start --> {prefix}_{label}_i_0\n"
             ));
         }
 
@@ -194,12 +199,12 @@ impl SubGraph {
             };
             result.push_str(&format!(
                 "  {prefix}_{}_i_{}{shape_begin}\"{:04}: {}\"{shape_end}\n",
-                self.label, node.location, node.location, node.label
+                label, node.location, node.location, node.label
             ));
             if !node.color.is_none() {
                 result.push_str(&format!(
                     "  style {prefix}_{}_i_{} fill:{}\n",
-                    self.label, node.location, node.color
+                    label, node.location, node.color
                 ));
             }
         }
@@ -213,10 +218,10 @@ impl SubGraph {
             };
             result.push_str(&format!(
                 "  {prefix}_{}_i_{} {style}| {}| {prefix}_{}_i_{}\n",
-                self.label,
+                label,
                 edge.from,
                 edge.label.as_deref().unwrap_or(""),
-                self.label,
+                label,
                 edge.to,
             ));
 

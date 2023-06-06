@@ -495,10 +495,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         self.emit_opcode_with_operand(Opcode::JumpIfFalse)
     }
 
-    fn jump_if_not_undefined(&mut self) -> Label {
-        self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined)
-    }
-
     fn jump_if_null_or_undefined(&mut self) -> Label {
         self.emit_opcode_with_operand(Opcode::JumpIfNullOrUndefined)
     }
@@ -517,6 +513,28 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         let index = self.next_opcode_location();
         self.emit(opcode, &[Self::DUMMY_ADDRESS, Self::DUMMY_ADDRESS]);
         (Label { index }, Label { index: index + 4 })
+    }
+
+    /// Emit an opcode with three dummy operands.
+    /// Return the `Label`s of the three operands.
+    pub(crate) fn emit_opcode_with_three_operands(
+        &mut self,
+        opcode: Opcode,
+    ) -> (Label, Label, Label) {
+        let index = self.next_opcode_location();
+        self.emit(
+            opcode,
+            &[
+                Self::DUMMY_ADDRESS,
+                Self::DUMMY_ADDRESS,
+                Self::DUMMY_ADDRESS,
+            ],
+        );
+        (
+            Label { index },
+            Label { index: index + 4 },
+            Label { index: index + 8 },
+        )
     }
 
     pub(crate) fn patch_jump_with_target(&mut self, label: Label, target: u32) {

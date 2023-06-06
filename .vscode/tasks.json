@@ -15,6 +15,16 @@
     },
     {
       "type": "process",
+      "label": "Cargo Build boa_cli",
+      "command": "cargo",
+      "args": ["build", "-p", "boa_cli"],
+      "group": "build",
+      "presentation": {
+        "clear": true
+      }
+    },
+    {
+      "type": "process",
       "label": "Cargo Run",
       "command": "cargo",
       "args": ["run", "--bin", "boa", "./tests/js/test.js"],

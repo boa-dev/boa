@@ -18,7 +18,7 @@ use crate::{
     realm::Realm,
     symbol::JsSymbol,
     value::JsValue,
-    vm::GeneratorResumeKind,
+    vm::{CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsError, JsResult,
 };
 use boa_gc::{Finalize, Trace};
@@ -46,7 +46,7 @@ pub(crate) enum AsyncGeneratorState {
 #[derive(Debug, Clone, Finalize, Trace)]
 pub(crate) struct AsyncGeneratorRequest {
     /// The `[[Completion]]` slot.
-    pub(crate) completion: (JsResult<JsValue>, bool),
+    pub(crate) completion: CompletionRecord,
 
     /// The `[[Capability]]` slot.
     capability: PromiseCapability,
@@ -164,7 +164,7 @@ impl AsyncGenerator {
         }
 
         // 7. Let completion be NormalCompletion(value).
-        let completion = (Ok(args.get_or_undefined(0).clone()), false);
+        let completion = CompletionRecord::Normal(args.get_or_undefined(0).clone());
 
         // 8. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         generator.enqueue(completion.clone(), promise_capability.clone());
@@ -232,7 +232,8 @@ impl AsyncGenerator {
         if_abrupt_reject_promise!(generator, promise_capability, context);
 
         // 5. Let completion be Completion Record { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
-        let completion = (Ok(args.get_or_undefined(0).clone()), true);
+        let return_value = args.get_or_undefined(0).clone();
+        let completion = CompletionRecord::Return(return_value.clone());
 
         // 6. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         generator.enqueue(completion.clone(), promise_capability.clone());
@@ -246,14 +247,8 @@ impl AsyncGenerator {
             generator.state = AsyncGeneratorState::AwaitingReturn;
 
             // b. Perform ! AsyncGeneratorAwaitReturn(generator).
-            let next = generator
-                .queue
-                .front()
-                .cloned()
-                .expect("queue cannot be empty here");
             drop(generator_obj_mut);
-            let (completion, _) = &next.completion;
-            Self::await_return(generator_object.clone(), completion.clone(), context);
+            Self::await_return(generator_object.clone(), return_value, context);
         }
         // 9. Else if state is suspendedYield, then
         else if state == AsyncGeneratorState::SuspendedYield {
@@ -346,10 +341,8 @@ impl AsyncGenerator {
         }
 
         // 8. Let completion be ThrowCompletion(exception).
-        let completion = (
-            Err(JsError::from_opaque(args.get_or_undefined(0).clone())),
-            false,
-        );
+        let completion =
+            CompletionRecord::Throw(JsError::from_opaque(args.get_or_undefined(0).clone()));
 
         // 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         generator.enqueue(completion.clone(), promise_capability.clone());
@@ -384,7 +377,7 @@ impl AsyncGenerator {
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorenqueue
     pub(crate) fn enqueue(
         &mut self,
-        completion: (JsResult<JsValue>, bool),
+        completion: CompletionRecord,
         promise_capability: PromiseCapability,
     ) {
         // 1. Let request be AsyncGeneratorRequest { [[Completion]]: completion, [[Capability]]: promiseCapability }.
@@ -469,7 +462,7 @@ impl AsyncGenerator {
         generator: &JsObject,
         state: AsyncGeneratorState,
         mut generator_context: GeneratorContext,
-        completion: (JsResult<JsValue>, bool),
+        completion: CompletionRecord,
         context: &mut Context<'_>,
     ) {
         // 1. Assert: generator.[[AsyncGeneratorState]] is either suspendedStart or suspendedYield.
@@ -491,15 +484,9 @@ impl AsyncGenerator {
             .state = AsyncGeneratorState::Executing;
 
         let (value, resume_kind) = match completion {
-            (Ok(value), r#return) => (
-                value,
-                if r#return {
-                    GeneratorResumeKind::Return
-                } else {
-                    GeneratorResumeKind::Normal
-                },
-            ),
-            (Err(value), _) => (value.to_opaque(context), GeneratorResumeKind::Throw),
+            CompletionRecord::Normal(val) => (val, GeneratorResumeKind::Normal),
+            CompletionRecord::Return(val) => (val, GeneratorResumeKind::Return),
+            CompletionRecord::Throw(err) => (err.to_opaque(context), GeneratorResumeKind::Throw),
         };
         // 6. Push genContext onto the execution context stack; genContext is now the running execution context.
 
@@ -527,18 +514,11 @@ impl AsyncGenerator {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorawaitreturn
-    pub(crate) fn await_return(
-        generator: JsObject,
-        completion: JsResult<JsValue>,
-        context: &mut Context<'_>,
-    ) {
+    pub(crate) fn await_return(generator: JsObject, value: JsValue, context: &mut Context<'_>) {
         // 1. Let queue be generator.[[AsyncGeneratorQueue]].
         // 2. Assert: queue is not empty.
         // 3. Let next be the first element of queue.
         // 4. Let completion be Completion(next.[[Completion]]).
-
-        // 5. Assert: completion.[[Type]] is return.
-        let value = completion.expect("completion must be a return completion");
 
         // Note: The spec is currently broken here.
         // See: https://github.com/tc39/ecma262/pull/2683
@@ -681,29 +661,24 @@ impl AsyncGenerator {
             let next = queue.front().expect("must have entry");
 
             // b. Let completion be Completion(next.[[Completion]]).
-            match &next.completion {
+            match next.completion.clone() {
                 // c. If completion.[[Type]] is return, then
-                (completion, true) => {
+                CompletionRecord::Return(val) => {
                     // i. Set generator.[[AsyncGeneratorState]] to awaiting-return.
                     gen.state = AsyncGeneratorState::AwaitingReturn;
+                    drop(generator_borrow_mut);
 
                     // ii. Perform ! AsyncGeneratorAwaitReturn(generator).
-                    let completion = completion.clone();
-                    drop(generator_borrow_mut);
-                    Self::await_return(generator.clone(), completion, context);
+                    Self::await_return(generator.clone(), val, context);
 
                     // iii. Set done to true.
                     break;
                 }
                 // d. Else,
-                (completion, false) => {
+                completion => {
                     // i. If completion.[[Type]] is normal, then
-                    let completion = if completion.is_ok() {
-                        // 1. Set completion to NormalCompletion(undefined).
-                        Ok(JsValue::undefined())
-                    } else {
-                        completion.clone()
-                    };
+                    // 1. Set completion to NormalCompletion(undefined).
+                    let completion = completion.consume().map(|_| JsValue::undefined());
 
                     // ii. Perform AsyncGeneratorCompleteStep(generator, completion, true).
                     let next = queue.pop_front().expect("must have entry");

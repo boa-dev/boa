@@ -542,20 +542,18 @@ pub(crate) fn add_entries_from_iterable(
     })?;
 
     // 2. Let iteratorRecord be ? GetIterator(iterable).
-    let iterator_record = iterable.get_iterator(context, None, None)?;
+    let mut iterator_record = iterable.get_iterator(context, None, None)?;
 
     // 3. Repeat,
     loop {
         // a. Let next be ? IteratorStep(iteratorRecord).
-        let next = iterator_record.step(context)?;
-
         // b. If next is false, return target.
         // c. Let nextItem be ? IteratorValue(next).
-        let Some(next_item) = next else {
+        if iterator_record.step(context)? {
             return Ok(target.clone().into());
         };
 
-        let next_item = next_item.value(context)?;
+        let next_item = iterator_record.value(context)?;
 
         let Some(next_item) = next_item.as_object() else {
             // d. If Type(nextItem) is not Object, then

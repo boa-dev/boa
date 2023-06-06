@@ -1379,7 +1379,9 @@ generate_impl! {
 
         /// Push loop start marker.
         ///
-        /// Operands: Exit Address: `u32`
+        /// Operands:
+        /// - start: `u32`
+        /// - exit: `u32`
         ///
         /// Stack: **=>**
         LoopStart,
@@ -1421,82 +1423,122 @@ generate_impl! {
 
         /// Creates the ForInIterator of an object.
         ///
-        /// Stack: object **=>** iterator, next_method
+        /// Stack: object **=>**
+        ///
+        /// Iterator Stack: `iterator`
         CreateForInIterator,
+
+        /// Push iterator loop start marker.
+        ///
+        /// Operands:
+        /// - start: `u32`
+        /// - exit: `u32`
+        ///
+        /// Stack: **=>**
+        IteratorLoopStart,
 
         /// Gets the iterator of an object.
         ///
         /// Operands:
         ///
-        /// Stack: object **=>** iterator, next_method
+        /// Stack: object **=>**
+        ///
+        /// Iterator Stack: `iterator`
         GetIterator,
 
         /// Gets the async iterator of an object.
         ///
         /// Operands:
         ///
-        /// Stack: object **=>** iterator, next_method
+        /// Stack: object **=>**
+        ///
+        /// Iterator Stack: `iterator`
         GetAsyncIterator,
 
-        /// Calls the `next` method of `iterator` and puts its return value on the stack.
+        /// Calls the `next` method of `iterator`, updating its record with the next value.
         ///
         /// Operands:
         ///
-        /// Stack: iterator, next_method **=>** iterator, next_method, next_value
+        /// Iterator Stack: `iterator` **=>** `iterator`
         IteratorNext,
 
-        /// Calls the `next` method of `iterator`, puts its return value on the stack
-        /// and sets the `[[Done]]` value of the iterator on the call frame.
+        /// Returns `true` if the current iterator is done, or `false` otherwise
+        ///
+        /// Stack: **=>** done
+        ///
+        /// Iterator Stack: `iterator` **=>** `iterator`
+        IteratorDone,
+
+        /// Finishes the call to `Opcode::IteratorNext` within a `for await` loop by setting the current
+        /// result of the current iterator.
         ///
         /// Operands:
         ///
-        /// Stack: iterator, next_method **=>** iterator, next_method, next_value
-        IteratorNextSetDone,
+        /// Stack: `next_result` **=>**
+        ///
+        /// Iterator Stack: iterator **=>** iterator
+        IteratorFinishAsyncNext,
 
-        /// Gets the `value` and `done` properties of an iterator result.
+        ///  - Gets the `value` property of the current iterator record.
         ///
-        /// Stack: next_result **=>** done, next_value
-        IteratorUnwrapNext,
+        /// Stack: **=>** `value`
+        ///
+        /// Iterator Stack: `iterator` **=>** `iterator`
+        IteratorValue,
 
-        /// Gets the `value` property of an iterator result.
+        ///  - Gets the last iteration result of the current iterator record.
         ///
-        /// Stack: next_result **=>** next_value
-        IteratorUnwrapValue,
-
-        /// Gets the `value` and `done` properties of an iterator result, or jump to `address` if
-        /// `done` is true.
+        /// Stack: **=>** `result`
         ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: next_result **=>** done, next_value ( if done != true  )
-        IteratorUnwrapNextOrJump,
+        /// Iterator Stack: `iterator` **=>** `iterator`
+        IteratorResult,
 
         /// Consume the iterator and construct and array with all the values.
         ///
         /// Operands:
         ///
-        /// Stack: iterator, next_method **=>** iterator, next_method, array
+        /// Stack: **=>** array
+        ///
+        /// Iterator Stack: `iterator` **=>** `iterator`
         IteratorToArray,
-
-        /// Push an iterator to the call frame close iterator stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: iterator, next_method => iterator, next_method
-        IteratorClosePush,
 
         /// Pop an iterator from the call frame close iterator stack.
         ///
-        /// Operands:
+        /// Iterator Stack:
+        /// - `iterator` **=>**
+        IteratorPop,
+
+        /// Pushes `true` to the stack if the iterator stack is empty.
         ///
         /// Stack:
-        IteratorClosePop,
+        /// - **=>** `is_empty`
+        ///
+        /// Iterator Stack:
+        /// - **=>**
+        IteratorStackEmpty,
+
+        /// Creates a new iterator result object.
+        ///
+        /// Operands:
+        /// - done: bool (codified as u8 with `0` -> `false` and `!0` -> `true`)
+        ///
+        /// Stack:
+        /// - value **=>**
+        ///
+        CreateIteratorResult,
+
+        /// Calls `return` on the current iterator and returns the result.
+        ///
+        /// Stack: **=>** return_val (if return is a method), is_return_method
+        ///
+        /// Iterator Stack: `iterator` **=>**
+        IteratorReturn,
 
         /// Concat multiple stack objects into a string.
         ///
         /// Operands: value_count: `u32`
         ///
-        /// Stack: value_1,...value_n **=>** string
+        /// Stack: `value_1`,...`value_n` **=>** `string`
         ConcatToString,
 
         /// Call RequireObjectCoercible on the stack value.
@@ -1541,12 +1583,12 @@ generate_impl! {
         /// Stack: **=>**
         PopOnReturnSub,
 
-        /// Yield from the current execution.
+        /// Yields from the current generator execution.
         ///
         /// Operands:
         ///
-        /// Stack: value **=>**
-        Yield,
+        /// Stack: value **=>** received
+        GeneratorYield,
 
         /// Resumes the current generator function.
         ///
@@ -1562,46 +1604,49 @@ generate_impl! {
         /// Stack: **=>**
         GeneratorResumeReturn,
 
-        /// Resumes the current generator function.
+        /// Yields from the current async generator execution.
         ///
-        /// Operands: skip_yield: u32, skip_yield_await: u32
+        /// Operands:
         ///
-        /// Stack: received **=>** `Option<value>`
-        AsyncGeneratorNext,
+        /// Stack: value **=>** received
+        AsyncGeneratorYield,
 
-        /// Resumes the current async generator function after a yield.
+        /// Jumps to the specified instruction for each resume kind.
         ///
-        /// Operands: normal_completion: u32
+        /// Operands:
+        /// - normal: u32,
+        /// - throw: u32,
+        /// - return: u32,
         ///
-        /// Stack: **=>**
-        GeneratorAsyncResumeYield,
+        /// Stack:
+        GeneratorJumpOnResumeKind,
 
-        /// Delegates the current generator function to another iterator.
+        /// Sets the current generator resume kind to `Return`.
         ///
-        /// Operands: done_address: `u32`
+        /// Operands:
         ///
-        /// Stack: iterator, next_method, received **=>** iterator, next_method
-        GeneratorNextDelegate,
+        /// Stack:
+        GeneratorSetReturn,
 
         /// Delegates the current async generator function to another iterator.
         ///
         /// Operands: throw_method_undefined: `u32`, return_method_undefined: `u32`
         ///
-        /// Stack: iterator, next_method, received **=>** iterator, next_method, is_return, result
-        GeneratorAsyncDelegateNext,
+        /// Stack: received **=>** result
+        GeneratorDelegateNext,
 
         /// Resume the async generator with yield delegate logic after it awaits a value.
         ///
-        /// Operands: skip_yield: `u32`, normal_completion: `u32`, exit: `u32`
+        /// Operands: return: `u32`, exit: `u32`
         ///
         /// Stack: is_return, received **=>** value
-        GeneratorAsyncDelegateResume,
+        GeneratorDelegateResume,
 
         /// Stops the current async function and schedules it to resume later.
         ///
         /// Operands:
         ///
-        /// Stack: promise **=>**
+        /// Stack: promise **=>** received
         Await,
 
         /// Push the current new target to the stack.
@@ -1766,12 +1811,6 @@ generate_impl! {
         Reserved52 => Reserved,
         /// Reserved [`Opcode`].
         Reserved53 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved54 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved55 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved56 => Reserved,
     }
 }
 

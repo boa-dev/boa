@@ -1,16 +1,30 @@
 //! An implementation of a `CompletionRecord` for Boa's VM.
 
+use boa_gc::{custom_trace, Finalize, Trace};
+
 use crate::{JsError, JsResult, JsValue};
 
 /// An implementation of the ECMAScript's `CompletionRecord` [specification] for
 /// Boa's VM output Completion and Result.
 ///
 /// [specification]: https://tc39.es/ecma262/#sec-completion-record-specification-type
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Finalize)]
 pub(crate) enum CompletionRecord {
     Normal(JsValue),
     Return(JsValue),
     Throw(JsError),
+}
+
+// SAFETY: this matches all possible variants and traces
+// their inner contents, which makes this safe.
+unsafe impl Trace for CompletionRecord {
+    custom_trace!(this, {
+        match this {
+            Self::Normal(v) => mark(v),
+            Self::Return(r) => mark(r),
+            Self::Throw(th) => mark(th),
+        }
+    });
 }
 
 // ---- `CompletionRecord` methods ----

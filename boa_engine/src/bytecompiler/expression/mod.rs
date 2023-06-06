@@ -4,7 +4,7 @@ mod object_literal;
 mod unary;
 mod update;
 
-use super::{Access, Callable, Label, NodeKind};
+use super::{Access, Callable, NodeKind};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
     vm::Opcode,
@@ -161,64 +161,48 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::PushUndefined);
                 }
 
-                if r#yield.delegate() && self.in_async_generator {
-                    self.emit_opcode(Opcode::GetAsyncIterator);
-                    self.emit_opcode(Opcode::PushUndefined);
+                if r#yield.delegate() {
+                    if self.in_async_generator {
+                        self.emit_opcode(Opcode::GetAsyncIterator);
+                    } else {
+                        self.emit_opcode(Opcode::GetIterator);
+                    }
 
+                    self.emit_opcode(Opcode::PushUndefined);
                     let start_address = self.next_opcode_location();
                     let (throw_method_undefined, return_method_undefined) =
-                        self.emit_opcode_with_two_operands(Opcode::GeneratorAsyncDelegateNext);
-                    self.emit_opcode(Opcode::Await);
+                        self.emit_opcode_with_two_operands(Opcode::GeneratorDelegateNext);
 
-                    let skip_yield = Label {
-                        index: self.next_opcode_location(),
-                    };
-                    let exit = Label {
-                        index: self.next_opcode_location() + 8,
-                    };
-                    self.emit(
-                        Opcode::GeneratorAsyncDelegateResume,
-                        &[Self::DUMMY_ADDRESS, start_address, Self::DUMMY_ADDRESS],
-                    );
+                    if self.in_async_generator {
+                        self.emit_opcode(Opcode::Await);
+                    }
 
-                    self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_opcode(Opcode::Yield);
+                    let (return_gen, exit) =
+                        self.emit_opcode_with_two_operands(Opcode::GeneratorDelegateResume);
+                    if self.in_async_generator {
+                        self.emit_opcode(Opcode::IteratorValue);
+                        self.async_generator_yield();
+                    } else {
+                        self.emit_opcode(Opcode::IteratorResult);
+                        self.emit_opcode(Opcode::GeneratorYield);
+                    }
                     self.emit(Opcode::Jump, &[start_address]);
 
-                    self.patch_jump(skip_yield);
+                    self.patch_jump(return_gen);
                     self.patch_jump(return_method_undefined);
-                    self.emit_opcode(Opcode::Await);
+                    if self.in_async_generator {
+                        self.emit_opcode(Opcode::Await);
+                    }
+                    self.close_active_iterators();
                     self.emit_opcode(Opcode::GeneratorResumeReturn);
 
                     self.patch_jump(throw_method_undefined);
-                    self.iterator_close(true);
+                    self.iterator_close(self.in_async_generator);
                     self.emit_opcode(Opcode::Throw);
 
                     self.patch_jump(exit);
-                } else if r#yield.delegate() {
-                    self.emit_opcode(Opcode::GetIterator);
-                    self.emit_opcode(Opcode::PushUndefined);
-                    let start_address = self.next_opcode_location();
-                    let start = self.emit_opcode_with_operand(Opcode::GeneratorNextDelegate);
-                    self.emit(Opcode::Jump, &[start_address]);
-                    self.patch_jump(start);
-                } else if self.in_async_generator {
-                    self.emit_opcode(Opcode::Await);
-                    let (skip_yield, skip_yield_await) =
-                        self.emit_opcode_with_two_operands(Opcode::AsyncGeneratorNext);
-                    self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_opcode(Opcode::Yield);
-                    let normal_completion =
-                        self.emit_opcode_with_operand(Opcode::GeneratorAsyncResumeYield);
-                    self.patch_jump(skip_yield);
-                    self.emit_opcode(Opcode::Await);
-                    self.emit_opcode(Opcode::GeneratorResumeReturn);
-
-                    self.patch_jump(skip_yield_await);
-                    self.patch_jump(normal_completion);
                 } else {
-                    self.emit_opcode(Opcode::Yield);
-                    self.emit_opcode(Opcode::GeneratorNext);
+                    self.r#yield();
                 }
 
                 if !use_expr {

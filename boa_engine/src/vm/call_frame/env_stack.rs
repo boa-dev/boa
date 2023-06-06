@@ -7,11 +7,14 @@ use boa_gc::{Finalize, Trace};
 pub(crate) enum EnvEntryKind {
     Global,
     Loop {
-        /// This is used to keep track of how many iterations a loop has done.
+        /// How many iterations a loop has done.
         iteration_count: u64,
 
-        // This is the latest return value of the loop.
+        /// The latest return value of the loop.
         value: JsValue,
+
+        /// The index of the currently active iterator.
+        iterator: Option<u32>,
     },
     Try,
     Catch,
@@ -71,12 +74,24 @@ impl EnvStackEntry {
         self
     }
 
+    /// Returns calling `EnvStackEntry` with `kind` field of `Loop`, loop iteration set to zero
+    /// and iterator index set to `iterator`.
+    pub(crate) fn with_iterator_loop_flag(mut self, iteration_count: u64, iterator: u32) -> Self {
+        self.kind = EnvEntryKind::Loop {
+            iteration_count,
+            value: JsValue::undefined(),
+            iterator: Some(iterator),
+        };
+        self
+    }
+
     /// Returns calling `EnvStackEntry` with `kind` field of `Loop`.
     /// And the loop iteration set to zero.
     pub(crate) fn with_loop_flag(mut self, iteration_count: u64) -> Self {
         self.kind = EnvEntryKind::Loop {
             iteration_count,
             value: JsValue::undefined(),
+            iterator: None,
         };
         self
     }
@@ -146,6 +161,14 @@ impl EnvStackEntry {
     pub(crate) const fn loop_env_value(&self) -> Option<&JsValue> {
         if let EnvEntryKind::Loop { value, .. } = &self.kind {
             return Some(value);
+        }
+        None
+    }
+
+    /// Returns the active iterator index if `EnvStackEntry` is an iterator loop.
+    pub(crate) const fn iterator(&self) -> Option<u32> {
+        if let EnvEntryKind::Loop { iterator, .. } = self.kind {
+            return iterator;
         }
         None
     }
