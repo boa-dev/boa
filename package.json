@@ -24,6 +24,6 @@
   },
   "dependencies": {
     "mime-types": "^2.1.35",
-    "monaco-editor": "^0.38.0"
+    "monaco-editor": "^0.39.0"
   }
 }
