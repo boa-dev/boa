@@ -173,6 +173,12 @@ impl ModuleLoader for IdleModuleLoader {
 }
 
 /// A simple module loader that loads modules relative to a root path.
+///
+/// # Note
+///
+/// This loader only works by using the type methods [`SimpleModuleLoader::insert`] and
+/// [`SimpleModuleLoader::get`]. The utility methods on [`ModuleLoader`] don't work at the moment,
+/// but we'll unify both APIs in the future.
 #[derive(Debug)]
 pub struct SimpleModuleLoader {
     root: PathBuf,
@@ -252,22 +258,6 @@ impl ModuleLoader for SimpleModuleLoader {
         })();
 
         finish_load(result, context);
-    }
-
-    // TODO: Try to unify `ModuleLoader::register_module` with `SimpleModuleLoader::insert`.
-    fn register_module(&self, _specifier: JsString, _module: Module) {
-        panic!(
-            "`SimpleModuleLoader` uses paths to cache the modules instead of specifiers.
-        To register a module, you need to use the `SimpleModuleLoader::insert` method."
-        )
-    }
-
-    // TODO: Try to unify `ModuleLoader::get_module` with `SimpleModuleLoader::get`.
-    fn get_module(&self, _specifier: JsString) -> Option<Module> {
-        panic!(
-            "`SimpleModuleLoader` uses paths to cache the modules instead of specifiers.
-        To get a module, you need to use the `SimpleModuleLoader::get` method."
-        )
     }
 }
 
