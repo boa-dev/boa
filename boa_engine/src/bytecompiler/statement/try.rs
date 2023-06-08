@@ -4,7 +4,7 @@ use crate::{
 };
 use boa_ast::{
     declaration::Binding,
-    operations::bound_names,
+    operations::{bound_names, returns_value},
     statement::{Catch, Finally, Try},
 };
 
@@ -21,7 +21,7 @@ impl ByteCompiler<'_, '_> {
         self.push_try_control_info(t.finally().is_some(), try_start);
 
         self.compile_block(t.block(), true);
-        if t.block().statement_list().statements().is_empty() {
+        if !returns_value(t.block()) {
             self.emit_opcode(Opcode::PushUndefined);
         }
         if !use_expr {
@@ -80,7 +80,7 @@ impl ByteCompiler<'_, '_> {
         }
 
         self.compile_block(catch.block(), true);
-        if catch.block().statement_list().statements().is_empty() {
+        if !returns_value(catch.block()) {
             self.emit_opcode(Opcode::PushUndefined);
         }
         if !use_expr {
@@ -103,7 +103,7 @@ impl ByteCompiler<'_, '_> {
 
     pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally, finally_end_label: Label) {
         self.compile_block(finally.block(), true);
-        if !finally.block().statement_list().statements().is_empty() {
+        if returns_value(finally.block()) {
             self.emit_opcode(Opcode::Pop);
         }
 

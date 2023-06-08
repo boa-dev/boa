@@ -31,6 +31,7 @@ use boa_ast::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class,
         FormalParameterList, Function, FunctionBody, Generator, PrivateName,
     },
+    operations::returns_value,
     pattern::Pattern,
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
@@ -734,34 +735,34 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     /// Compile a [`StatementList`].
     pub fn compile_statement_list(&mut self, list: &StatementList, use_expr: bool, block: bool) {
         if use_expr {
-            let list_until_loop_exit: Vec<_> = list
-                .statements()
-                .iter()
-                .take_while(|item| {
-                    !matches!(
-                        item,
-                        StatementListItem::Statement(Statement::Break(_) | Statement::Continue(_))
-                    )
-                })
-                .collect();
-            let expr_index = list_until_loop_exit
-                .iter()
-                .rev()
-                .skip_while(|item| {
-                    matches!(
-                        item,
-                        &&StatementListItem::Statement(Statement::Empty | Statement::Var(_))
-                            | &&StatementListItem::Declaration(_)
-                    )
-                })
-                .count();
+            let mut has_returns_value = false;
+            let mut use_expr_index = 0;
+            let mut first_return_is_abrupt = false;
+            for (i, statement) in list.statements().iter().enumerate() {
+                match statement {
+                    StatementListItem::Statement(Statement::Break(_) | Statement::Continue(_)) => {
+                        if !has_returns_value {
+                            first_return_is_abrupt = true;
+                        }
+                        break;
+                    }
+                    StatementListItem::Statement(Statement::Empty | Statement::Var(_))
+                    | StatementListItem::Declaration(_) => {}
+                    StatementListItem::Statement(Statement::Block(block))
+                        if !returns_value(block) => {}
+                    StatementListItem::Statement(_) => {
+                        has_returns_value = true;
+                        use_expr_index = i;
+                    }
+                }
+            }
 
-            if expr_index == 0 && !list.statements().is_empty() {
+            if first_return_is_abrupt {
                 self.emit_opcode(Opcode::PushUndefined);
             }
 
             for (i, item) in list.statements().iter().enumerate() {
-                self.compile_stmt_list_item(item, i + 1 == expr_index, block);
+                self.compile_stmt_list_item(item, i == use_expr_index, block);
             }
         } else {
             for item in list.statements() {

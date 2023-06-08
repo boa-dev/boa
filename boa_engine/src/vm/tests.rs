@@ -324,3 +324,36 @@ fn arguments_object_constructor_valid_index() {
         "object",
     )]);
 }
+
+#[test]
+fn empty_return_values() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"do {{}} while (false);"#}),
+        TestAction::run(indoc! {r#"do try {{}} catch {} while (false);"#}),
+        TestAction::run(indoc! {r#"do {} while (false);"#}),
+        TestAction::run(indoc! {r#"do try {{}{}} catch {} while (false);"#}),
+        TestAction::run(indoc! {r#"do {{}{}} while (false);"#}),
+        TestAction::run(indoc! {r#"do {;{}} while (false);"#}),
+        TestAction::run(indoc! {r#"do {e: {}} while (false);"#}),
+        TestAction::run(indoc! {r#"do {e: ;} while (false);"#}),
+        TestAction::run(indoc! {r#"do { break } while (false);"#}),
+        TestAction::run(indoc! {r#"while (true) a: break"#}),
+        TestAction::run(indoc! {r#"while (true) a: {"a"; break};"#}),
+        TestAction::run(indoc! {r#"do {"a";{}} while (false);"#}),
+        TestAction::run(indoc! {r#"
+            switch (false) {
+                default: {}
+            }
+        "#}),
+        TestAction::run(indoc! {r#"
+            switch (false) {
+                default: {}{}
+            }
+        "#}),
+        TestAction::run(indoc! {r#"
+            switch (false) {
+                default: ;{}{}
+            }
+        "#}),
+    ]);
+}
