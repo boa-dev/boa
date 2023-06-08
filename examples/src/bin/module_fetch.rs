@@ -79,7 +79,7 @@ impl ModuleLoader for HttpModuleLoader {
     }
 }
 
-fn main() {
+fn main() -> JsResult<()> {
     // A simple snippet that imports modules from the web instead of the file system.
     const SRC: &str = r#"
         import YAML from 'https://esm.run/yaml';
@@ -107,10 +107,9 @@ fn main() {
         .job_queue(queue)
         // NEW: sets the context module loader to our custom loader
         .module_loader(Rc::new(HttpModuleLoader))
-        .build()
-        .unwrap();
+        .build()?;
 
-    let module = Module::parse(Source::from_bytes(SRC.as_bytes()), None, context).unwrap();
+    let module = Module::parse(Source::from_bytes(SRC.as_bytes()), None, context)?;
 
     // Calling `Module::load_link_evaluate` takes care of having to define promise handlers for
     // `Module::load` and `Module::evaluate`.
@@ -138,16 +137,26 @@ fn main() {
 
     let default = module.namespace(context).get(js_string!("default"), context).unwrap();
     // `default` should contain the result of our calculations.
-    let default = default.as_object().unwrap();
+    let default = default
+        .as_object()
+        .ok_or_else(|| JsNativeError::typ().with_message("default export was not an object"))?;
 
     assert_eq!(
-        default.get(0, context).unwrap().as_string().unwrap(),
+        default
+            .get(0, context)?
+            .as_string()
+            .ok_or_else(|| JsNativeError::typ().with_message("array element was not a string"))?,
         utf16!("aGVsbG8=")
     );
     assert_eq!(
-        default.get(1, context).unwrap().as_string().unwrap(),
+        default
+            .get(1, context)?
+            .as_string()
+            .ok_or_else(|| JsNativeError::typ().with_message("array element was not a string"))?,
         utf16!("d29ybGQ=")
     );
+
+    Ok(())
 }
 
 // Taken from the `futures.rs` example.
