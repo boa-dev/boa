@@ -150,17 +150,13 @@ impl NativeFunction {
     /// fully lazy, which makes `test` equivalent to something like:
     ///
     /// ```
-    /// # use boa_engine::{
-    /// #   JsValue,
-    /// #   Context,
-    /// #   JsResult,
-    /// #   NativeFunction
-    /// # };
-    /// async fn test(
+    /// # use std::future::Future;
+    /// # use boa_engine::{JsValue, Context, JsResult};
+    /// fn test<'a>(
     ///     _this: &JsValue,
-    ///     args: &[JsValue],
+    ///     args: &'a [JsValue],
     ///     _context: &mut Context<'_>,
-    /// ) -> JsResult<JsValue> {
+    /// ) -> impl Future<Output = JsResult<JsValue>> + 'a {
     ///     async move {
     ///         let arg = args.get(0).cloned();
     ///         std::future::ready(()).await;

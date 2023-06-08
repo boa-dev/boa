@@ -1,7 +1,7 @@
 //! Boa's **`boa_icu_provider`** exports the default data provider used by its `Intl` implementation.
 //!
 //! # Crate Overview
-//! This crate exports the function [`buffer`], which contains an extensive dataset of locale data to
+//! This crate exports the function `buffer`, which contains an extensive dataset of locale data to
 //! enable `Intl` functionality in the engine. The set of locales included is precisely the ["modern"]
 //! subset of locales in the [Unicode Common Locale Data Repository][cldr].
 //!
