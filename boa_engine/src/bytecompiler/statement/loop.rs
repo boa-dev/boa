@@ -1,6 +1,6 @@
 use boa_ast::{
     declaration::Binding,
-    operations::bound_names,
+    operations::{bound_names, returns_value},
     statement::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
         DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop,
@@ -95,7 +95,7 @@ impl ByteCompiler<'_, '_> {
         }
         let exit = self.jump_if_false();
 
-        if !for_loop.body().returns_value() {
+        if !returns_value(for_loop.body()) {
             self.emit_opcode(Opcode::PushUndefined);
         }
         self.compile_stmt(for_loop.body(), true);
@@ -229,7 +229,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        if !for_in_loop.body().returns_value() {
+        if !returns_value(for_in_loop.body()) {
             self.emit_opcode(Opcode::PushUndefined);
         }
         self.compile_stmt(for_in_loop.body(), true);
@@ -375,7 +375,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        if !for_of_loop.body().returns_value() {
+        if !returns_value(for_of_loop.body()) {
             self.emit_opcode(Opcode::PushUndefined);
         }
         self.compile_stmt(for_of_loop.body(), true);
@@ -416,7 +416,7 @@ impl ByteCompiler<'_, '_> {
         self.compile_expr(while_loop.condition(), true);
         let exit = self.jump_if_false();
 
-        if !while_loop.body().returns_value() {
+        if !returns_value(while_loop.body()) {
             self.emit_opcode(Opcode::PushUndefined);
         }
         self.compile_stmt(while_loop.body(), true);
@@ -454,7 +454,7 @@ impl ByteCompiler<'_, '_> {
 
         self.patch_jump(initial_label);
 
-        if !do_while_loop.body().returns_value() {
+        if !returns_value(do_while_loop.body()) {
             self.emit_opcode(Opcode::PushUndefined);
         }
         self.compile_stmt(do_while_loop.body(), true);

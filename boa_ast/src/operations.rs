@@ -2098,3 +2098,61 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         self.visit(node.statement())
     }
 }
+
+/// Returns `true` if the given statement returns a value.
+#[must_use]
+pub fn returns_value<'a, N>(node: &'a N) -> bool
+where
+    &'a N: Into<NodeRef<'a>>,
+{
+    ReturnsValueVisitor.visit(node.into()).is_break()
+}
+
+/// The [`Visitor`] used for [`returns_value`].
+#[derive(Debug)]
+struct ReturnsValueVisitor;
+
+impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
+    type BreakTy = ();
+
+    fn visit_block(&mut self, node: &'ast crate::statement::Block) -> ControlFlow<Self::BreakTy> {
+        for statement in node.statement_list().statements() {
+            match statement {
+                StatementListItem::Declaration(_) => {}
+                StatementListItem::Statement(node) => try_break!(self.visit(node)),
+            }
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+        match node {
+            Statement::Empty | Statement::Var(_) => {}
+            Statement::Block(node) => try_break!(self.visit(node)),
+            Statement::Labelled(node) => try_break!(self.visit(node)),
+            _ => return ControlFlow::Break(()),
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_case(&mut self, node: &'ast crate::statement::Case) -> ControlFlow<Self::BreakTy> {
+        for statement in node.body().statements() {
+            match statement {
+                StatementListItem::Declaration(_) => {}
+                StatementListItem::Statement(node) => try_break!(self.visit(node)),
+            }
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_labelled(
+        &mut self,
+        node: &'ast crate::statement::Labelled,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node.item() {
+            LabelledItem::Statement(node) => try_break!(self.visit(node)),
+            LabelledItem::Function(_) => {}
+        }
+        ControlFlow::Continue(())
+    }
+}

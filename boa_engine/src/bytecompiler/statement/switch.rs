@@ -1,5 +1,5 @@
 use crate::{bytecompiler::ByteCompiler, vm::Opcode};
-use boa_ast::statement::Switch;
+use boa_ast::{operations::returns_value, statement::Switch};
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Switch`] `boa_ast` node
@@ -44,7 +44,7 @@ impl ByteCompiler<'_, '_> {
             };
             self.patch_jump(label);
             self.compile_statement_list(case.body(), true, true);
-            if !case.body().statements().is_empty() {
+            if returns_value(case) {
                 self.emit_opcode(Opcode::LoopUpdateReturnValue);
             }
         }

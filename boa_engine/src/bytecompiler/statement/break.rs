@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{ByteCompiler, Label},
+    bytecompiler::{ByteCompiler, JumpControlInfo},
     vm::Opcode,
 };
 use boa_ast::statement::Break;
@@ -29,10 +29,11 @@ impl ByteCompiler<'_, '_> {
             let (break_label, target_jump_label) = self.emit_opcode_with_two_operands(opcode);
 
             if let Some(node_label) = node.label() {
-                self.search_jump_info_label(target_jump_label, node_label);
+                let info = self.jump_info_label(node_label);
+                info.push_break_label(target_jump_label);
 
                 if !has_finally_or_is_finally {
-                    self.search_jump_info_label(break_label, node_label);
+                    info.push_break_label(break_label);
                     return;
                 }
             } else {
@@ -55,29 +56,32 @@ impl ByteCompiler<'_, '_> {
         // Emit the break opcode -> (Label, Label)
         let (break_label, target_label) = self.emit_opcode_with_two_operands(opcode);
         if let Some(label) = node.label() {
-            self.search_jump_info_label(break_label, label);
-            self.search_jump_info_label(target_label, label);
+            let info = self.jump_info_label(label);
+            info.push_break_label(break_label);
+            info.push_break_label(target_label);
             return;
         }
 
-        let info = self
-            .jump_info
-            .last_mut()
-            .expect("unlabeled break must be inside loop or switch");
-
+        let info = self.jump_info_non_labelled();
         info.push_break_label(break_label);
         info.push_break_label(target_label);
     }
 
-    fn search_jump_info_label(&mut self, address: Label, node_label: Sym) {
-        let mut found = false;
+    fn jump_info_non_labelled(&mut self) -> &mut JumpControlInfo {
         for info in self.jump_info.iter_mut().rev() {
-            if info.label() == Some(node_label) {
-                info.push_break_label(address);
-                found = true;
-                break;
+            if !info.is_labelled() {
+                return info;
             }
         }
-        assert!(found, "Cannot use the undeclared label");
+        panic!("Jump info without label must exist");
+    }
+
+    fn jump_info_label(&mut self, label: Sym) -> &mut JumpControlInfo {
+        for info in self.jump_info.iter_mut().rev() {
+            if info.label() == Some(label) {
+                return info;
+            }
+        }
+        panic!("Jump info with label must exist");
     }
 }
