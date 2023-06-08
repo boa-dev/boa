@@ -22,6 +22,6 @@ rustc-hash = { version = "1.1.0", default-features = false }
 static_assertions = "1.1.0"
 once_cell = {version = "1.18.0", default-features = false, features = ["critical-section"]}
 indexmap = "1.9.3"
-serde = { version = "1.0.163", features = ["derive"], optional = true }
+serde = { version = "1.0.164", features = ["derive"], optional = true }
 arbitrary = { version = "1", features = ["derive"], optional = true }
 hashbrown = { version = "0.14.0", default-features = false, features = ["inline-more"] }
