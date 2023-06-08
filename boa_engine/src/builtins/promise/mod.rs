@@ -2005,22 +2005,10 @@ impl Promise {
             // 9. Return unused.
         }
 
-        #[derive(Debug, Trace, Finalize)]
-        struct RejectResolveCaptures {
-            promise: JsObject,
-            #[unsafe_ignore_trace]
-            already_resolved: Rc<Cell<bool>>,
-        }
-
         // 1. Let alreadyResolved be the Record { [[Value]]: false }.
-        let already_resolved = Rc::new(Cell::new(false));
-
         // 5. Set resolve.[[Promise]] to promise.
         // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
-        let resolve_captures = RejectResolveCaptures {
-            already_resolved: already_resolved.clone(),
-            promise: promise.clone(),
-        };
+        let promise = Gc::new(Cell::new(Some(promise.clone())));
 
         // 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions.
         // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
@@ -2035,18 +2023,11 @@ impl Promise {
                     // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
                     // 3. Let promise be F.[[Promise]].
                     // 4. Let alreadyResolved be F.[[AlreadyResolved]].
-                    let RejectResolveCaptures {
-                        promise,
-                        already_resolved,
-                    } = captures;
-
                     // 5. If alreadyResolved.[[Value]] is true, return undefined.
-                    if already_resolved.get() {
-                        return Ok(JsValue::Undefined);
-                    }
-
                     // 6. Set alreadyResolved.[[Value]] to true.
-                    already_resolved.set(true);
+                    let Some(promise) = captures.take() else {
+                        return Ok(JsValue::undefined())
+                    };
 
                     let resolution = args.get_or_undefined(0);
 
@@ -2058,7 +2039,7 @@ impl Promise {
                             .to_opaque(context);
 
                         //   b. Perform RejectPromise(promise, selfResolutionError).
-                        reject_promise(promise, self_resolution_error.into(), context);
+                        reject_promise(&promise, self_resolution_error.into(), context);
 
                         //   c. Return undefined.
                         return Ok(JsValue::Undefined);
@@ -2067,7 +2048,7 @@ impl Promise {
                     let Some(then) = resolution.as_object() else {
                         // 8. If Type(resolution) is not Object, then
                         //   a. Perform FulfillPromise(promise, resolution).
-                        fulfill_promise(promise, resolution.clone(), context);
+                        fulfill_promise(&promise, resolution.clone(), context);
 
                         //   b. Return undefined.
                         return Ok(JsValue::Undefined);
@@ -2078,7 +2059,7 @@ impl Promise {
                         // 10. If then is an abrupt completion, then
                         Err(e) => {
                             //   a. Perform RejectPromise(promise, then.[[Value]]).
-                            reject_promise(promise, e.to_opaque(context), context);
+                            reject_promise(&promise, e.to_opaque(context), context);
 
                             //   b. Return undefined.
                             return Ok(JsValue::Undefined);
@@ -2090,7 +2071,7 @@ impl Promise {
                     // 12. If IsCallable(thenAction) is false, then
                     let Some(then_action) = then_action.as_object().cloned().and_then(JsFunction::from_object) else {
                         // a. Perform FulfillPromise(promise, resolution).
-                        fulfill_promise(promise, resolution.clone(), context);
+                        fulfill_promise(&promise, resolution.clone(), context);
 
                         //   b. Return undefined.
                         return Ok(JsValue::Undefined);
@@ -2113,7 +2094,7 @@ impl Promise {
                     // 16. Return undefined.
                     Ok(JsValue::Undefined)
                 },
-                resolve_captures,
+                promise.clone(),
             ),
         )
         .name("")
@@ -2123,11 +2104,6 @@ impl Promise {
 
         // 10. Set reject.[[Promise]] to promise.
         // 11. Set reject.[[AlreadyResolved]] to alreadyResolved.
-        let reject_captures = RejectResolveCaptures {
-            promise: promise.clone(),
-            already_resolved,
-        };
-
         // 7. Let stepsReject be the algorithm steps defined in Promise Reject Functions.
         // 8. Let lengthReject be the number of non-optional parameters of the function definition in Promise Reject Functions.
         // 9. Let reject be CreateBuiltinFunction(stepsReject, lengthReject, "", « [[Promise]], [[AlreadyResolved]] »).
@@ -2141,26 +2117,19 @@ impl Promise {
                     // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
                     // 3. Let promise be F.[[Promise]].
                     // 4. Let alreadyResolved be F.[[AlreadyResolved]].
-                    let RejectResolveCaptures {
-                        promise,
-                        already_resolved,
-                    } = captures;
-
                     // 5. If alreadyResolved.[[Value]] is true, return undefined.
-                    if already_resolved.get() {
-                        return Ok(JsValue::Undefined);
-                    }
-
                     // 6. Set alreadyResolved.[[Value]] to true.
-                    already_resolved.set(true);
+                    let Some(promise) = captures.take() else {
+                        return Ok(JsValue::undefined());
+                    };
 
                     // 7. Perform RejectPromise(promise, reason).
-                    reject_promise(promise, args.get_or_undefined(0).clone(), context);
+                    reject_promise(&promise, args.get_or_undefined(0).clone(), context);
 
                     // 8. Return undefined.
                     Ok(JsValue::Undefined)
                 },
-                reject_captures,
+                promise,
             ),
         )
         .name("")

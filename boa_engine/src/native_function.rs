@@ -3,11 +3,9 @@
 //! [`NativeFunction`] is the main type of this module, providing APIs to create native callables
 //! from native Rust functions and closures.
 
-use std::future::Future;
-
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 
-use crate::{job::NativeJob, object::JsPromise, Context, JsResult, JsValue};
+use crate::{object::JsPromise, Context, JsResult, JsValue};
 
 /// The required signature for all native built-in function pointers.
 ///
@@ -115,14 +113,18 @@ impl NativeFunction {
         }
     }
 
-    /// Creates a `NativeFunction` from a function returning a [`Future`].
+    /// Creates a `NativeFunction` from a function returning a [`Future`]-like.
     ///
     /// The returned `NativeFunction` will return an ECMAScript `Promise` that will be fulfilled
     /// or rejected when the returned [`Future`] completes.
     ///
+    /// If you only need to convert a [`Future`]-like into a [`JsPromise`], see
+    /// [`JsPromise::from_future`].
+    ///
     /// # Caveats
     ///
-    /// Consider the next snippet:
+    /// Certain async functions need to be desugared for them to be `'static'`. For example, the
+    /// following won't compile:
     ///
     /// ```compile_fail
     /// # use boa_engine::{
@@ -144,14 +146,33 @@ impl NativeFunction {
     /// NativeFunction::from_async_fn(test);
     /// ```
     ///
-    /// Seems like a perfectly fine code, right? `args` is not used after the await point, which
-    /// in theory should make the whole future `'static` ... in theory ...
+    /// Even though `args` is only used before the first await point, Rust's async functions are
+    /// fully lazy, which makes `test` equivalent to something like:
     ///
-    /// This code unfortunately fails to compile at the moment. This is because `rustc` currently
-    /// cannot determine that `args` can be dropped before the await point, which would trivially
-    /// make the future `'static`. Track [this issue] for more information.
+    /// ```
+    /// # use boa_engine::{
+    /// #   JsValue,
+    /// #   Context,
+    /// #   JsResult,
+    /// #   NativeFunction
+    /// # };
+    /// async fn test(
+    ///     _this: &JsValue,
+    ///     args: &[JsValue],
+    ///     _context: &mut Context<'_>,
+    /// ) -> JsResult<JsValue> {
+    ///     async move {
+    ///         let arg = args.get(0).cloned();
+    ///         std::future::ready(()).await;
+    ///         drop(arg);
+    ///         Ok(JsValue::null())
+    ///     }
+    /// }
+    /// ```
     ///
-    /// In the meantime, a manual desugaring of the async function does the trick:
+    /// Note that `args` is used inside the `async move`, making the whole future not `'static`.
+    ///
+    /// In those cases, you can manually restrict the lifetime of the arguments:
     ///
     /// ```
     /// # use std::future::Future;
@@ -175,29 +196,18 @@ impl NativeFunction {
     /// }
     /// NativeFunction::from_async_fn(test);
     /// ```
-    /// [this issue]: https://github.com/rust-lang/rust/issues/69663
+    ///
+    /// And this should always return a `'static` future.
+    ///
+    /// [`Future`]: std::future::Future
     pub fn from_async_fn<Fut>(f: fn(&JsValue, &[JsValue], &mut Context<'_>) -> Fut) -> Self
     where
-        Fut: Future<Output = JsResult<JsValue>> + 'static,
+        Fut: std::future::IntoFuture<Output = JsResult<JsValue>> + 'static,
     {
         Self::from_copy_closure(move |this, args, context| {
-            let (promise, resolvers) = JsPromise::new_pending(context);
-
             let future = f(this, args, context);
-            let future = async move {
-                let result = future.await;
-                NativeJob::new(move |ctx| match result {
-                    Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], ctx),
-                    Err(e) => {
-                        let e = e.to_opaque(ctx);
-                        resolvers.reject.call(&JsValue::undefined(), &[e], ctx)
-                    }
-                })
-            };
-            context
-                .job_queue()
-                .enqueue_future_job(Box::pin(future), context);
-            Ok(promise.into())
+
+            Ok(JsPromise::from_future(future, context).into())
         })
     }
 

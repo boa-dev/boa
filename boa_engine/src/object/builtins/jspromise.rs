@@ -1,5 +1,7 @@
 //! A Rust API wrapper for Boa's promise Builtin ECMAScript Object
 
+use std::{future::Future, pin::Pin, task};
+
 use super::{JsArray, JsFunction};
 use crate::{
     builtins::{
@@ -7,11 +9,12 @@ use crate::{
         Promise,
     },
     context::intrinsics::StandardConstructors,
-    object::{JsObject, JsObjectType, ObjectData},
+    job::NativeJob,
+    object::{FunctionObjectBuilder, JsObject, JsObjectType, ObjectData},
     value::TryFromJs,
-    Context, JsError, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 
 /// An ECMAScript [promise] object.
 ///
@@ -245,6 +248,61 @@ impl JsPromise {
                 .into());
         }
         Ok(Self { inner: object })
+    }
+
+    /// Creates a new `JsPromise` from a [`Future`]-like.
+    ///
+    /// If you want to convert a Rust async function into an ECMAScript async function, see
+    /// [`NativeFunction::from_async_fn`][async_fn].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::error::Error;
+    /// # use boa_engine::{
+    /// #    object::builtins::JsPromise,
+    /// #    builtins::promise::PromiseState,
+    /// #    Context, JsResult, JsValue
+    /// # };
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    /// async fn f() -> JsResult<JsValue> {
+    ///     Ok(JsValue::null())
+    /// }
+    /// let context = &mut Context::default();
+    ///
+    /// let promise = JsPromise::from_future(f(), context);
+    ///
+    /// context.run_jobs();
+    ///
+    /// assert_eq!(promise.state()?, PromiseState::Fulfilled(JsValue::null()));
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// [async_fn]: crate::native_function::NativeFunction::from_async_fn
+    pub fn from_future<Fut>(future: Fut, context: &mut Context<'_>) -> Self
+    where
+        Fut: std::future::IntoFuture<Output = JsResult<JsValue>> + 'static,
+    {
+        let (promise, resolvers) = Self::new_pending(context);
+
+        let future = async move {
+            let result = future.await;
+
+            NativeJob::new(move |context| match result {
+                Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
+                Err(e) => {
+                    let e = e.to_opaque(context);
+                    resolvers.reject.call(&JsValue::undefined(), &[e], context)
+                }
+            })
+        };
+
+        context
+            .job_queue()
+            .enqueue_future_job(Box::pin(future), context);
+
+        promise
     }
 
     /// Resolves a `JsValue` into a `JsPromise`.
@@ -833,6 +891,114 @@ impl JsPromise {
 
         Self::from_object(value.clone())
     }
+
+    /// Creates a `JsFuture` from this `JsPromise`.
+    ///
+    /// The returned `JsFuture` implements [`Future`], which means it can be `await`ed within Rust's
+    /// async contexts (async functions and async blocks).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::error::Error;
+    /// # use boa_engine::{
+    /// #     builtins::promise::PromiseState,
+    /// #     object::builtins::JsPromise,
+    /// #     Context, JsValue, JsError
+    /// # };
+    /// # use futures_lite::future;
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    /// let context = &mut Context::default();
+    ///
+    /// let (promise, resolvers) = JsPromise::new_pending(context);
+    /// let promise_future = promise.into_js_future(context)?;
+    ///
+    /// let future1 = async move {
+    ///     promise_future.await
+    /// };
+    ///
+    /// let future2 = async move {
+    ///     resolvers.resolve.call(&JsValue::undefined(), &[10.into()], context)?;
+    ///     context.run_jobs();
+    ///     Ok::<(), JsError>(())
+    /// };
+    ///
+    /// let (result1, result2) = future::block_on(future::zip(future1, future2));
+    ///
+    /// assert_eq!(result1, Ok(JsValue::from(10)));
+    /// assert_eq!(result2, Ok(()));
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn into_js_future(self, context: &mut Context<'_>) -> JsResult<JsFuture> {
+        // Mostly based from:
+        // https://rustwasm.github.io/wasm-bindgen/api/src/wasm_bindgen_futures/lib.rs.html#109-168
+
+        fn finish(state: &GcRefCell<Inner>, val: JsResult<JsValue>) {
+            let task = {
+                let mut state = state.borrow_mut();
+
+                // The engine ensures both `resolve` and `reject` are called only once,
+                // and only one of them.
+                debug_assert!(state.result.is_none());
+
+                // Store the received value into the state shared by the resolving functions
+                // and the `JsFuture` itself. This will be accessed when the executor polls
+                // the `JsFuture` again.
+                state.result = Some(val);
+                state.task.take()
+            };
+
+            // `task` could be `None` if the `JsPromise` was already fulfilled before polling
+            // the `JsFuture`.
+            if let Some(task) = task {
+                task.wake();
+            }
+        }
+
+        let state = Gc::new(GcRefCell::new(Inner {
+            result: None,
+            task: None,
+        }));
+
+        let resolve = {
+            let state = state.clone();
+
+            FunctionObjectBuilder::new(
+                context,
+                NativeFunction::from_copy_closure_with_captures(
+                    move |_, args, state, _| {
+                        finish(state, Ok(args.get_or_undefined(0).clone()));
+                        Ok(JsValue::undefined())
+                    },
+                    state,
+                ),
+            )
+            .build()
+        };
+
+        let reject = {
+            let state = state.clone();
+
+            FunctionObjectBuilder::new(
+                context,
+                NativeFunction::from_copy_closure_with_captures(
+                    move |_, args, state, _| {
+                        let err = JsError::from_opaque(args.get_or_undefined(0).clone());
+                        finish(state, Err(err));
+                        Ok(JsValue::undefined())
+                    },
+                    state,
+                ),
+            )
+            .build()
+        };
+
+        drop(self.then(Some(resolve), Some(reject), context)?);
+
+        Ok(JsFuture { inner: state })
+    }
 }
 
 impl From<JsPromise> for JsObject {
@@ -868,5 +1034,45 @@ impl TryFromJs for JsPromise {
                 .with_message("value is not a Promise object")
                 .into()),
         }
+    }
+}
+
+/// A Rust's `Future` that becomes ready when a `JsPromise` fulfills.
+///
+/// This type allows `await`ing `JsPromise`s inside Rust's async contexts, which makes interfacing
+/// between promises and futures a bit easier.
+///
+/// The only way to construct an instance of `JsFuture` is by calling [`JsPromise::into_js_future`].
+pub struct JsFuture {
+    inner: Gc<GcRefCell<Inner>>,
+}
+
+impl std::fmt::Debug for JsFuture {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("JsFuture").finish_non_exhaustive()
+    }
+}
+
+#[derive(Trace, Finalize)]
+struct Inner {
+    result: Option<JsResult<JsValue>>,
+    #[unsafe_ignore_trace]
+    task: Option<task::Waker>,
+}
+
+// Taken from:
+// https://rustwasm.github.io/wasm-bindgen/api/src/wasm_bindgen_futures/lib.rs.html#171-187
+impl Future for JsFuture {
+    type Output = JsResult<JsValue>;
+
+    fn poll(self: Pin<&mut Self>, cx: &mut task::Context<'_>) -> task::Poll<Self::Output> {
+        let mut inner = self.inner.borrow_mut();
+
+        if let Some(result) = inner.result.take() {
+            return task::Poll::Ready(result);
+        }
+
+        inner.task = Some(cx.waker().clone());
+        task::Poll::Pending
     }
 }

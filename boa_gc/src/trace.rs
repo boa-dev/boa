@@ -1,5 +1,6 @@
 use std::{
     borrow::{Cow, ToOwned},
+    cell::Cell,
     collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque},
     hash::{BuildHasher, Hash},
     marker::PhantomData,
@@ -429,6 +430,18 @@ where
     custom_trace!(this, {
         if let Cow::Owned(ref v) = this {
             mark(v);
+        }
+    });
+}
+
+impl<T: Trace> Finalize for Cell<Option<T>> {}
+// SAFETY: Taking and setting is done in a single action, and recursive traces should find a `None`
+// value instead of the original `T`, making this safe.
+unsafe impl<T: Trace> Trace for Cell<Option<T>> {
+    custom_trace!(this, {
+        if let Some(v) = this.take() {
+            mark(&v);
+            this.set(Some(v));
         }
     });
 }

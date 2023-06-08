@@ -414,6 +414,7 @@ dependencies = [
  "dashmap",
  "fast-float",
  "float-cmp",
+ "futures-lite",
  "icu_calendar",
  "icu_casemapping",
  "icu_collator",
