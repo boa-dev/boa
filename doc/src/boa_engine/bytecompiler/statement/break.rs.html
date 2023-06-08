@@ -79,6 +79,8 @@
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, Label},
     vm::Opcode,
@@ -89,6 +91,12 @@
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compile a [`Break`] `boa_ast` node
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_break(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: Break) {
+        <span class="kw">let </span>opcode = <span class="kw">if </span>node.label().is_some() {
+            Opcode::BreakLabel
+        } <span class="kw">else </span>{
+            Opcode::Break
+        };
+
         <span class="kw">if let </span><span class="prelude-val">Some</span>(info) = <span class="self">self</span>.jump_info.last().filter(|info| info.is_try_block()) {
             <span class="kw">let </span>in_finally = info.in_finally();
             <span class="kw">let </span>in_catch_no_finally = info.in_catch() &amp;&amp; !info.has_finally();
@@ -101,8 +109,7 @@
                 <span class="self">self</span>.emit_opcode(Opcode::CatchEnd2);
             }
 
-            <span class="kw">let </span>(break_label, target_jump_label) =
-                <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::Break);
+            <span class="kw">let </span>(break_label, target_jump_label) = <span class="self">self</span>.emit_opcode_with_two_operands(opcode);
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(node_label) = node.label() {
                 <span class="self">self</span>.search_jump_info_label(target_jump_label, node_label);
@@ -129,15 +136,12 @@
         }
 
         <span class="comment">// Emit the break opcode -&gt; (Label, Label)
-        </span><span class="kw">let </span>(break_label, target_label) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::Break);
-        <span class="kw">if </span>node.label().is_some() {
-            <span class="self">self</span>.search_jump_info_label(
-                break_label,
-                node.label().expect(<span class="string">&quot;must exist in this block&quot;</span>),
-            );
-            <span class="self">self</span>.search_jump_info_label(target_label, node.label().expect(<span class="string">&quot;must exist&quot;</span>));
+        </span><span class="kw">let </span>(break_label, target_label) = <span class="self">self</span>.emit_opcode_with_two_operands(opcode);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = node.label() {
+            <span class="self">self</span>.search_jump_info_label(break_label, label);
+            <span class="self">self</span>.search_jump_info_label(target_label, label);
             <span class="kw">return</span>;
-        };
+        }
 
         <span class="kw">let </span>info = <span class="self">self
             </span>.jump_info

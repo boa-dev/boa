@@ -1825,6 +1825,11 @@
 <a href="#1825" id="1825">1825</a>
 <a href="#1826" id="1826">1826</a>
 <a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -3007,6 +3012,13 @@
         /// Stack: loop_return_value **=&gt;**
         </span>Break,
 
+        <span class="doccomment">/// Jumps to a label target location and pops the environments involved.
+        ///
+        /// Operands: Jump Address: u32, Target address: u32
+        ///
+        /// Stack: **=&gt;**
+        </span>BreakLabel,
+
         <span class="doccomment">/// Sets the `AbruptCompletionRecord` for a delayed continue
         ///
         /// Operands: Jump Address: u32, Target address: u32,
@@ -3636,8 +3648,6 @@
         </span>Reserved51 =&gt; Reserved,
         <span class="doccomment">/// Reserved [`Opcode`].
         </span>Reserved52 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved53 =&gt; Reserved,
     }
 }
 

@@ -1861,6 +1861,7 @@
             }
             Opcode::CopyDataProperties
             | Opcode::Break
+            | Opcode::BreakLabel
             | Opcode::Continue
             | Opcode::LoopStart
             | Opcode::IteratorLoopStart
@@ -2148,8 +2149,7 @@
             | Opcode::Reserved49
             | Opcode::Reserved50
             | Opcode::Reserved51
-            | Opcode::Reserved52
-            | Opcode::Reserved53 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Opcode::Reserved52 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }
