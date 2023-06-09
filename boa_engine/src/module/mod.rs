@@ -108,6 +108,26 @@ pub trait ModuleLoader {
         context: &mut Context<'_>,
     );
 
+    /// Registers a new module into the module loader.
+    ///
+    /// This is a convenience method for module loaders caching already parsed modules, since it
+    /// allows registering a new module through the `&dyn ModuleLoader` provided by
+    /// [`Context::module_loader`].
+    ///
+    /// Does nothing by default.
+    fn register_module(&self, _specifier: JsString, _module: Module) {}
+
+    /// Gets the module associated with the provided specifier.
+    ///
+    /// This is a convenience method for module loaders caching already parsed modules, since it
+    /// allows getting a cached module through the `&dyn ModuleLoader` provided by
+    /// [`Context::module_loader`].
+    ///
+    /// Returns `None` by default.
+    fn get_module(&self, _specifier: JsString) -> Option<Module> {
+        None
+    }
+
     /// Host hooks [`HostGetImportMetaProperties ( moduleRecord )`][meta] and
     /// [`HostFinalizeImportMeta ( importMeta, moduleRecord )`][final].
     ///
@@ -153,6 +173,12 @@ impl ModuleLoader for IdleModuleLoader {
 }
 
 /// A simple module loader that loads modules relative to a root path.
+///
+/// # Note
+///
+/// This loader only works by using the type methods [`SimpleModuleLoader::insert`] and
+/// [`SimpleModuleLoader::get`]. The utility methods on [`ModuleLoader`] don't work at the moment,
+/// but we'll unify both APIs in the future.
 #[derive(Debug)]
 pub struct SimpleModuleLoader {
     root: PathBuf,
