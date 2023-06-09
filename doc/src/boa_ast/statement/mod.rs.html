@@ -246,17 +246,6 @@
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
-<a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
-<a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a>
-<a href="#253" id="253">253</a>
-<a href="#254" id="254">254</a>
-<a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The [`Statement`] Parse Node, as defined by the [spec].
 //!
 //! ECMAScript [statements] are mainly composed of control flow operations, such as [`If`],
@@ -419,17 +408,6 @@
                 LabelledItem::Statement(stmt) =&gt; stmt.is_labelled_function(),
             },
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-        }
-    }
-
-    <span class="doccomment">/// Returns `true` if the statement returns a value.
-    </span><span class="attr">#[inline]
-    #[must_use]
-    </span><span class="kw">pub const fn </span>returns_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Block(block) <span class="kw">if </span>block.statement_list().statements().is_empty() =&gt; <span class="bool-val">false</span>,
-            <span class="self">Self</span>::Empty | <span class="self">Self</span>::Var(<span class="kw">_</span>) | <span class="self">Self</span>::Break(<span class="kw">_</span>) | <span class="self">Self</span>::Continue(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
         }
     }
 }

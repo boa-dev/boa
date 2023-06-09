@@ -81,8 +81,12 @@
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    bytecompiler::{ByteCompiler, Label},
+    bytecompiler::{ByteCompiler, JumpControlInfo},
     vm::Opcode,
 };
 <span class="kw">use </span>boa_ast::statement::Break;
@@ -112,10 +116,11 @@
             <span class="kw">let </span>(break_label, target_jump_label) = <span class="self">self</span>.emit_opcode_with_two_operands(opcode);
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(node_label) = node.label() {
-                <span class="self">self</span>.search_jump_info_label(target_jump_label, node_label);
+                <span class="kw">let </span>info = <span class="self">self</span>.jump_info_label(node_label);
+                info.push_break_label(target_jump_label);
 
                 <span class="kw">if </span>!has_finally_or_is_finally {
-                    <span class="self">self</span>.search_jump_info_label(break_label, node_label);
+                    info.push_break_label(break_label);
                     <span class="kw">return</span>;
                 }
             } <span class="kw">else </span>{
@@ -138,30 +143,33 @@
         <span class="comment">// Emit the break opcode -&gt; (Label, Label)
         </span><span class="kw">let </span>(break_label, target_label) = <span class="self">self</span>.emit_opcode_with_two_operands(opcode);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = node.label() {
-            <span class="self">self</span>.search_jump_info_label(break_label, label);
-            <span class="self">self</span>.search_jump_info_label(target_label, label);
+            <span class="kw">let </span>info = <span class="self">self</span>.jump_info_label(label);
+            info.push_break_label(break_label);
+            info.push_break_label(target_label);
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let </span>info = <span class="self">self
-            </span>.jump_info
-            .last_mut()
-            .expect(<span class="string">&quot;unlabeled break must be inside loop or switch&quot;</span>);
-
+        <span class="kw">let </span>info = <span class="self">self</span>.jump_info_non_labelled();
         info.push_break_label(break_label);
         info.push_break_label(target_label);
     }
 
-    <span class="kw">fn </span>search_jump_info_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, address: Label, node_label: Sym) {
-        <span class="kw">let </span><span class="kw-2">mut </span>found = <span class="bool-val">false</span>;
+    <span class="kw">fn </span>jump_info_non_labelled(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>JumpControlInfo {
         <span class="kw">for </span>info <span class="kw">in </span><span class="self">self</span>.jump_info.iter_mut().rev() {
-            <span class="kw">if </span>info.label() == <span class="prelude-val">Some</span>(node_label) {
-                info.push_break_label(address);
-                found = <span class="bool-val">true</span>;
-                <span class="kw">break</span>;
+            <span class="kw">if </span>!info.is_labelled() {
+                <span class="kw">return </span>info;
             }
         }
-        <span class="macro">assert!</span>(found, <span class="string">&quot;Cannot use the undeclared label&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">&quot;Jump info without label must exist&quot;</span>);
+    }
+
+    <span class="kw">fn </span>jump_info_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Sym) -&gt; <span class="kw-2">&amp;mut </span>JumpControlInfo {
+        <span class="kw">for </span>info <span class="kw">in </span><span class="self">self</span>.jump_info.iter_mut().rev() {
+            <span class="kw">if </span>info.label() == <span class="prelude-val">Some</span>(label) {
+                <span class="kw">return </span>info;
+            }
+        }
+        <span class="macro">panic!</span>(<span class="string">&quot;Jump info with label must exist&quot;</span>);
     }
 }
 </code></pre></div></section></main></body></html>

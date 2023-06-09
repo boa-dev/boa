@@ -66,7 +66,7 @@
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
-<span class="kw">use </span>boa_ast::statement::Switch;
+<span class="kw">use </span>boa_ast::{operations::returns_value, statement::Switch};
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compile a [`Switch`] `boa_ast` node
@@ -111,7 +111,7 @@
             };
             <span class="self">self</span>.patch_jump(label);
             <span class="self">self</span>.compile_statement_list(case.body(), <span class="bool-val">true</span>, <span class="bool-val">true</span>);
-            <span class="kw">if </span>!case.body().statements().is_empty() {
+            <span class="kw">if </span>returns_value(case) {
                 <span class="self">self</span>.emit_opcode(Opcode::LoopUpdateReturnValue);
             }
         }

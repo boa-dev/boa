@@ -32,14 +32,14 @@
 <a href="#32" id="32">32</a>
 <a href="#33" id="33">33</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
-<span class="kw">use </span>boa_ast::statement::If;
+<span class="kw">use </span>boa_ast::{operations::returns_value, statement::If};
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>If, use_expr: bool) {
         <span class="self">self</span>.compile_expr(node.cond(), <span class="bool-val">true</span>);
         <span class="kw">let </span>jelse = <span class="self">self</span>.jump_if_false();
 
-        <span class="kw">if </span>!node.body().returns_value() {
+        <span class="kw">if </span>!returns_value(node.body()) {
             <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
         }
         <span class="self">self</span>.compile_stmt(node.body(), <span class="bool-val">true</span>);
@@ -51,7 +51,7 @@
                 <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
             }
             <span class="prelude-val">Some</span>(else_body) =&gt; {
-                <span class="kw">if </span>!else_body.returns_value() {
+                <span class="kw">if </span>!returns_value(else_body) {
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                 }
                 <span class="self">self</span>.compile_stmt(else_body, <span class="bool-val">true</span>);

@@ -473,7 +473,7 @@
 <a href="#473" id="473">473</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     declaration::Binding,
-    operations::bound_names,
+    operations::{bound_names, returns_value},
     statement::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
         DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop,
@@ -568,7 +568,7 @@
         }
         <span class="kw">let </span>exit = <span class="self">self</span>.jump_if_false();
 
-        <span class="kw">if </span>!for_loop.body().returns_value() {
+        <span class="kw">if </span>!returns_value(for_loop.body()) {
             <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
         }
         <span class="self">self</span>.compile_stmt(for_loop.body(), <span class="bool-val">true</span>);
@@ -702,7 +702,7 @@
             }
         }
 
-        <span class="kw">if </span>!for_in_loop.body().returns_value() {
+        <span class="kw">if </span>!returns_value(for_in_loop.body()) {
             <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
         }
         <span class="self">self</span>.compile_stmt(for_in_loop.body(), <span class="bool-val">true</span>);
@@ -848,7 +848,7 @@
             }
         }
 
-        <span class="kw">if </span>!for_of_loop.body().returns_value() {
+        <span class="kw">if </span>!returns_value(for_of_loop.body()) {
             <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
         }
         <span class="self">self</span>.compile_stmt(for_of_loop.body(), <span class="bool-val">true</span>);
@@ -889,7 +889,7 @@
         <span class="self">self</span>.compile_expr(while_loop.condition(), <span class="bool-val">true</span>);
         <span class="kw">let </span>exit = <span class="self">self</span>.jump_if_false();
 
-        <span class="kw">if </span>!while_loop.body().returns_value() {
+        <span class="kw">if </span>!returns_value(while_loop.body()) {
             <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
         }
         <span class="self">self</span>.compile_stmt(while_loop.body(), <span class="bool-val">true</span>);
@@ -927,7 +927,7 @@
 
         <span class="self">self</span>.patch_jump(initial_label);
 
-        <span class="kw">if </span>!do_while_loop.body().returns_value() {
+        <span class="kw">if </span>!returns_value(do_while_loop.body()) {
             <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
         }
         <span class="self">self</span>.compile_stmt(do_while_loop.body(), <span class="bool-val">true</span>);

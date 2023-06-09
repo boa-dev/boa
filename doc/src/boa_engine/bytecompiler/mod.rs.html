@@ -1377,6 +1377,7 @@
 <a href="#1377" id="1377">1377</a>
 <a href="#1378" id="1378">1378</a>
 <a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1410,6 +1411,7 @@
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class,
         FormalParameterList, Function, FunctionBody, Generator, PrivateName,
     },
+    operations::returns_value,
     pattern::Pattern,
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
@@ -2113,34 +2115,34 @@
     <span class="doccomment">/// Compile a [`StatementList`].
     </span><span class="kw">pub fn </span>compile_statement_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>, list: <span class="kw-2">&amp;</span>StatementList, use_expr: bool, block: bool) {
         <span class="kw">if </span>use_expr {
-            <span class="kw">let </span>list_until_loop_exit: Vec&lt;<span class="kw">_</span>&gt; = list
-                .statements()
-                .iter()
-                .take_while(|item| {
-                    !<span class="macro">matches!</span>(
-                        item,
-                        StatementListItem::Statement(Statement::Break(<span class="kw">_</span>) | Statement::Continue(<span class="kw">_</span>))
-                    )
-                })
-                .collect();
-            <span class="kw">let </span>expr_index = list_until_loop_exit
-                .iter()
-                .rev()
-                .skip_while(|item| {
-                    <span class="macro">matches!</span>(
-                        item,
-                        &amp;&amp;StatementListItem::Statement(Statement::Empty | Statement::Var(<span class="kw">_</span>))
-                            | &amp;&amp;StatementListItem::Declaration(<span class="kw">_</span>)
-                    )
-                })
-                .count();
+            <span class="kw">let </span><span class="kw-2">mut </span>has_returns_value = <span class="bool-val">false</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>use_expr_index = <span class="number">0</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>first_return_is_abrupt = <span class="bool-val">false</span>;
+            <span class="kw">for </span>(i, statement) <span class="kw">in </span>list.statements().iter().enumerate() {
+                <span class="kw">match </span>statement {
+                    StatementListItem::Statement(Statement::Break(<span class="kw">_</span>) | Statement::Continue(<span class="kw">_</span>)) =&gt; {
+                        <span class="kw">if </span>!has_returns_value {
+                            first_return_is_abrupt = <span class="bool-val">true</span>;
+                        }
+                        <span class="kw">break</span>;
+                    }
+                    StatementListItem::Statement(Statement::Empty | Statement::Var(<span class="kw">_</span>))
+                    | StatementListItem::Declaration(<span class="kw">_</span>) =&gt; {}
+                    StatementListItem::Statement(Statement::Block(block))
+                        <span class="kw">if </span>!returns_value(block) =&gt; {}
+                    StatementListItem::Statement(<span class="kw">_</span>) =&gt; {
+                        has_returns_value = <span class="bool-val">true</span>;
+                        use_expr_index = i;
+                    }
+                }
+            }
 
-            <span class="kw">if </span>expr_index == <span class="number">0 </span>&amp;&amp; !list.statements().is_empty() {
+            <span class="kw">if </span>first_return_is_abrupt {
                 <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
             }
 
             <span class="kw">for </span>(i, item) <span class="kw">in </span>list.statements().iter().enumerate() {
-                <span class="self">self</span>.compile_stmt_list_item(item, i + <span class="number">1 </span>== expr_index, block);
+                <span class="self">self</span>.compile_stmt_list_item(item, i == use_expr_index, block);
             }
         } <span class="kw">else </span>{
             <span class="kw">for </span>item <span class="kw">in </span>list.statements() {
