@@ -659,17 +659,14 @@ where
                     let strict = cursor.strict();
                     cursor.set_strict(true);
                     let position = cursor.peek(0, interner).or_abrupt()?.span().start();
-                    let statement_list = StatementList::new(
-                        false,
-                        true,
-                        false,
-                        &FUNCTION_BREAK_TOKENS,
-                        false,
-                        false,
-                    )
-                    .parse(cursor, interner)?;
+                    let statement_list =
+                        StatementList::new(false, true, false, &FUNCTION_BREAK_TOKENS, false, true)
+                            .parse(cursor, interner)?;
 
                     let mut lexical_names = FxHashSet::default();
+
+                    // It is a Syntax Error if the LexicallyDeclaredNames of
+                    // ClassStaticBlockStatementList contains any duplicate entries.
                     for name in &lexically_declared_names(&statement_list) {
                         if !lexical_names.insert(*name) {
                             return Err(Error::general(
@@ -679,6 +676,9 @@ where
                         }
                     }
 
+                    // It is a Syntax Error if any element of the LexicallyDeclaredNames of
+                    // ClassStaticBlockStatementList also occurs in the VarDeclaredNames of
+                    // ClassStaticBlockStatementList.
                     for name in var_declared_names(&statement_list) {
                         if lexical_names.contains(&name) {
                             return Err(Error::general(
@@ -686,6 +686,41 @@ where
                                 position,
                             ));
                         }
+                    }
+
+                    // It is a Syntax Error if ContainsDuplicateLabels of
+                    // ClassStaticBlockStatementList with argument « » is true.
+                    // It is a Syntax Error if ContainsUndefinedBreakTarget of
+                    // ClassStaticBlockStatementList with argument « » is true.
+                    // It is a Syntax Error if ContainsUndefinedContinueTarget of
+                    // ClassStaticBlockStatementList with arguments « » and « » is true.
+                    check_labels(&statement_list).map_err(|error| {
+                        Error::lex(LexError::Syntax(error.message(interner).into(), position))
+                    })?;
+
+                    // It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
+                    if contains_arguments(&statement_list) {
+                        return Err(Error::general(
+                            "'arguments' not allowed in class static block",
+                            position,
+                        ));
+                    }
+
+                    // It is a Syntax Error if ClassStaticBlockStatementList Contains SuperCall is true.
+                    if contains(&statement_list, ContainsSymbol::SuperCall) {
+                        return Err(Error::general("invalid super usage", position));
+                    }
+
+                    // It is a Syntax Error if ClassStaticBlockStatementList Contains await is true.
+                    if contains(&statement_list, ContainsSymbol::AwaitExpression) {
+                        return Err(Error::general("invalid await usage", position));
+                    }
+
+                    if contains_invalid_object_literal(&statement_list) {
+                        return Err(Error::lex(LexError::Syntax(
+                            "invalid object literal in class static block statement list".into(),
+                            position,
+                        )));
                     }
 
                     cursor.expect(
@@ -1346,37 +1381,7 @@ where
                     ));
                 }
             }
-            // ClassStaticBlockBody : ClassStaticBlockStatementList
-            function::ClassElement::StaticBlock(block) => {
-                for node in &**block.statements() {
-                    // It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
-                    if contains_arguments(node) {
-                        return Err(Error::general(
-                            "'arguments' not allowed in class static block",
-                            position,
-                        ));
-                    }
 
-                    // It is a Syntax Error if ClassStaticBlockStatementList Contains SuperCall is true.
-                    if contains(node, ContainsSymbol::SuperCall) {
-                        return Err(Error::general("invalid super usage", position));
-                    }
-                }
-
-                if let Err(error) = check_labels(block) {
-                    return Err(Error::lex(LexError::Syntax(
-                        error.message(interner).into(),
-                        position,
-                    )));
-                }
-
-                if contains_invalid_object_literal(block) {
-                    return Err(Error::lex(LexError::Syntax(
-                        "invalid object literal in class static block statement list".into(),
-                        position,
-                    )));
-                }
-            }
             _ => {}
         }
 
