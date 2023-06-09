@@ -409,6 +409,22 @@ impl<'host> Context<'host> {
         self.clear_kept_objects();
     }
 
+    /// Asynchronously runs all the jobs in the job queue.
+    ///
+    /// # Note
+    ///
+    /// Concurrent job execution cannot be guaranteed by the engine, since this depends on the
+    /// specific handling of each [`JobQueue`]. If you need to ensure that jobs are executed
+    /// concurrently, you can provide a custom implementor of `JobQueue` to the context.
+    #[allow(clippy::future_not_send)]
+    pub async fn run_jobs_async<'a>(self: &'a mut Context<'host>)
+    where
+        'host: 'a,
+    {
+        self.job_queue().run_jobs_async(self).await;
+        self.clear_kept_objects();
+    }
+
     /// Abstract operation [`ClearKeptObjects`][clear].
     ///
     /// Clears all objects maintained alive by calls to the [`AddToKeptObjects`][add] abstract
@@ -424,7 +440,7 @@ impl<'host> Context<'host> {
 
     /// Retrieves the current stack trace of the context.
     #[inline]
-    pub fn stack_trace(&mut self) -> impl Iterator<Item = &CallFrame> {
+    pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
         self.vm.frames.iter().rev()
     }
 

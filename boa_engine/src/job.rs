@@ -225,6 +225,26 @@ pub trait JobQueue {
     /// to do this will leave the inner `Promise` in the `pending` state, which won't call any `then`
     /// or `catch` handlers, even if `future` was already completed.
     fn enqueue_future_job(&self, future: FutureJob, context: &mut Context<'_>);
+
+    /// Asynchronously runs all jobs in the queue.
+    ///
+    /// Running a job could enqueue more jobs in the queue. The implementor of the trait
+    /// determines if the method should loop until there are no more queued jobs or if
+    /// it should only run one iteration of the queue.
+    ///
+    /// By default forwards to [`JobQueue::run_jobs`]. Implementors using async should override this
+    /// with a proper algorithm to run jobs asynchronously.
+    fn run_jobs_async<'a, 'ctx, 'host, 'fut>(
+        &'a self,
+        context: &'ctx mut Context<'host>,
+    ) -> Pin<Box<dyn Future<Output = ()> + 'fut>>
+    where
+        'a: 'fut,
+        'ctx: 'fut,
+        'host: 'fut,
+    {
+        Box::pin(async { self.run_jobs(context) })
+    }
 }
 
 /// A job queue that does nothing.
