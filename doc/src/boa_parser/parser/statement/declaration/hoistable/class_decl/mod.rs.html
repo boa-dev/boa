@@ -1383,6 +1383,11 @@
 <a href="#1383" id="1383">1383</a>
 <a href="#1384" id="1384">1384</a>
 <a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -2044,18 +2049,15 @@
                     <span class="kw">let </span>strict = cursor.strict();
                     cursor.set_strict(<span class="bool-val">true</span>);
                     <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
-                    <span class="kw">let </span>statement_list = StatementList::new(
-                        <span class="bool-val">false</span>,
-                        <span class="bool-val">true</span>,
-                        <span class="bool-val">false</span>,
-                        <span class="kw-2">&amp;</span>FUNCTION_BREAK_TOKENS,
-                        <span class="bool-val">false</span>,
-                        <span class="bool-val">false</span>,
-                    )
-                    .parse(cursor, interner)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>statement_list =
+                        StatementList::new(<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>FUNCTION_BREAK_TOKENS, <span class="bool-val">false</span>, <span class="bool-val">true</span>)
+                            .parse(cursor, interner)<span class="question-mark">?</span>;
 
                     <span class="kw">let </span><span class="kw-2">mut </span>lexical_names = FxHashSet::default();
-                    <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>lexically_declared_names(<span class="kw-2">&amp;</span>statement_list) {
+
+                    <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of
+                    // ClassStaticBlockStatementList contains any duplicate entries.
+                    </span><span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>lexically_declared_names(<span class="kw-2">&amp;</span>statement_list) {
                         <span class="kw">if </span>!lexical_names.insert(<span class="kw-2">*</span>name) {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                                 <span class="string">&quot;lexical name declared multiple times&quot;</span>,
@@ -2064,13 +2066,51 @@
                         }
                     }
 
-                    <span class="kw">for </span>name <span class="kw">in </span>var_declared_names(<span class="kw-2">&amp;</span>statement_list) {
+                    <span class="comment">// It is a Syntax Error if any element of the LexicallyDeclaredNames of
+                    // ClassStaticBlockStatementList also occurs in the VarDeclaredNames of
+                    // ClassStaticBlockStatementList.
+                    </span><span class="kw">for </span>name <span class="kw">in </span>var_declared_names(<span class="kw-2">&amp;</span>statement_list) {
                         <span class="kw">if </span>lexical_names.contains(<span class="kw-2">&amp;</span>name) {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                                 <span class="string">&quot;lexical name declared in var names&quot;</span>,
                                 position,
                             ));
                         }
+                    }
+
+                    <span class="comment">// It is a Syntax Error if ContainsDuplicateLabels of
+                    // ClassStaticBlockStatementList with argument « » is true.
+                    // It is a Syntax Error if ContainsUndefinedBreakTarget of
+                    // ClassStaticBlockStatementList with argument « » is true.
+                    // It is a Syntax Error if ContainsUndefinedContinueTarget of
+                    // ClassStaticBlockStatementList with arguments « » and « » is true.
+                    </span>check_labels(<span class="kw-2">&amp;</span>statement_list).map_err(|error| {
+                        Error::lex(LexError::Syntax(error.message(interner).into(), position))
+                    })<span class="question-mark">?</span>;
+
+                    <span class="comment">// It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
+                    </span><span class="kw">if </span>contains_arguments(<span class="kw-2">&amp;</span>statement_list) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                            <span class="string">&quot;&#39;arguments&#39; not allowed in class static block&quot;</span>,
+                            position,
+                        ));
+                    }
+
+                    <span class="comment">// It is a Syntax Error if ClassStaticBlockStatementList Contains SuperCall is true.
+                    </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>statement_list, ContainsSymbol::SuperCall) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid super usage&quot;</span>, position));
+                    }
+
+                    <span class="comment">// It is a Syntax Error if ClassStaticBlockStatementList Contains await is true.
+                    </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>statement_list, ContainsSymbol::AwaitExpression) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid await usage&quot;</span>, position));
+                    }
+
+                    <span class="kw">if </span>contains_invalid_object_literal(<span class="kw-2">&amp;</span>statement_list) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                            <span class="string">&quot;invalid object literal in class static block statement list&quot;</span>.into(),
+                            position,
+                        )));
                     }
 
                     cursor.expect(
@@ -2731,37 +2771,7 @@
                     ));
                 }
             }
-            <span class="comment">// ClassStaticBlockBody : ClassStaticBlockStatementList
-            </span>function::ClassElement::StaticBlock(block) =&gt; {
-                <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;**</span>block.statements() {
-                    <span class="comment">// It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
-                    </span><span class="kw">if </span>contains_arguments(node) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                            <span class="string">&quot;&#39;arguments&#39; not allowed in class static block&quot;</span>,
-                            position,
-                        ));
-                    }
 
-                    <span class="comment">// It is a Syntax Error if ClassStaticBlockStatementList Contains SuperCall is true.
-                    </span><span class="kw">if </span>contains(node, ContainsSymbol::SuperCall) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid super usage&quot;</span>, position));
-                    }
-                }
-
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = check_labels(block) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        error.message(interner).into(),
-                        position,
-                    )));
-                }
-
-                <span class="kw">if </span>contains_invalid_object_literal(block) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="string">&quot;invalid object literal in class static block statement list&quot;</span>.into(),
-                        position,
-                    )));
-                }
-            }
             <span class="kw">_ </span>=&gt; {}
         }
 
