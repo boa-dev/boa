@@ -38,7 +38,7 @@ impl ModuleLoader for HttpModuleLoader {
             println!("Fetching `{url}`...");
             // This could also retry fetching in case there's an error while requesting the module.
             let body = client.get(&url).recv_string().await;
-            println!("Finished fetching `{url}`!");
+            println!("Finished fetching `{url}`");
 
             // Since the async context cannot take the `context` by ref, we have to continue
             // parsing inside a new `NativeJob` that will be enqueued into the promise job queue.
@@ -82,9 +82,9 @@ impl ModuleLoader for HttpModuleLoader {
 fn main() -> JsResult<()> {
     // A simple snippet that imports modules from the web instead of the file system.
     const SRC: &str = r#"
-        import YAML from 'https://esm.run/yaml';
-        import fromAsync from 'https://esm.run/array-from-async';
-        import { Base64 } from 'https://esm.run/js-base64';
+        import YAML from 'https://esm.run/yaml@2.3.1';
+        import fromAsync from 'https://esm.run/array-from-async@3.0.0';
+        import { Base64 } from 'https://esm.run/js-base64@3.7.5';
 
         const data = `
             object:
