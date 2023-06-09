@@ -14,12 +14,13 @@ impl Operation for GetArrowFunction {
     const NAME: &'static str = "GetArrowFunction";
     const INSTRUCTION: &'static str = "INST - GetArrowFunction";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        context.vm.read::<u8>();
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        raw_context.vm.read::<u8>();
+        let code = raw_context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_function_object_fast(code, false, true, false, context);
-        context.vm.push(function);
+        context.as_raw_context_mut().vm.push(function);
         Ok(CompletionType::Normal)
     }
 }
@@ -35,12 +36,13 @@ impl Operation for GetAsyncArrowFunction {
     const NAME: &'static str = "GetAsyncArrowFunction";
     const INSTRUCTION: &'static str = "INST - GetAsyncArrowFunction";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        context.vm.read::<u8>();
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        raw_context.vm.read::<u8>();
+        let code = raw_context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_function_object_fast(code, true, true, false, context);
-        context.vm.push(function);
+        context.as_raw_context_mut().vm.push(function);
         Ok(CompletionType::Normal)
     }
 }
@@ -56,12 +58,13 @@ impl Operation for GetFunction {
     const NAME: &'static str = "GetFunction";
     const INSTRUCTION: &'static str = "INST - GetFunction";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let method = context.vm.read::<u8>() != 0;
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let method = raw_context.vm.read::<u8>() != 0;
+        let code = raw_context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_function_object_fast(code, false, false, method, context);
-        context.vm.push(function);
+        context.as_raw_context_mut().vm.push(function);
         Ok(CompletionType::Normal)
     }
 }
@@ -77,12 +80,13 @@ impl Operation for GetFunctionAsync {
     const NAME: &'static str = "GetFunctionAsync";
     const INSTRUCTION: &'static str = "INST - GetFunctionAsync";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let method = context.vm.read::<u8>() != 0;
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let method = raw_context.vm.read::<u8>() != 0;
+        let code = raw_context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_function_object_fast(code, true, false, method, context);
-        context.vm.push(function);
+        context.as_raw_context_mut().vm.push(function);
         Ok(CompletionType::Normal)
     }
 }

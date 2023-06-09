@@ -15,8 +15,8 @@ impl Operation for CreateForInIterator {
     const NAME: &'static str = "CreateForInIterator";
     const INSTRUCTION: &'static str = "INST - CreateForInIterator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let object = context.as_raw_context_mut().vm.pop();
 
         let object = object.to_object(context)?;
         let iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), context);
@@ -25,6 +25,7 @@ impl Operation for CreateForInIterator {
             .expect("ForInIterator must have a `next` method");
 
         context
+            .as_raw_context_mut()
             .vm
             .frame_mut()
             .iterators

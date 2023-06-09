@@ -82,11 +82,16 @@ impl ArrayIterator {
     pub(crate) fn create_array_iterator(
         array: JsObject,
         kind: PropertyNameKind,
-        context: &Context<'_>,
+        context: &dyn Context<'_>,
     ) -> JsValue {
         let array_iterator = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            context.intrinsics().objects().iterator_prototypes().array(),
+            context.as_raw_context().root_shape(),
+            context
+                .as_raw_context()
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .array(),
             ObjectData::array_iterator(Self::new(array, kind)),
         );
         array_iterator.into()
@@ -103,7 +108,7 @@ impl ArrayIterator {
     pub(crate) fn next(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let mut array_iterator = this.as_object().map(JsObject::borrow_mut);
         let array_iterator = array_iterator
@@ -150,7 +155,10 @@ impl ArrayIterator {
             }
             PropertyNameKind::KeyAndValue => {
                 let element_value = array_iterator.array.get(index, context)?;
-                let result = Array::create_array_from_list([index.into(), element_value], context);
+                let result = Array::create_array_from_list(
+                    [index.into(), element_value],
+                    context.as_raw_context(),
+                );
                 Ok(create_iter_result_object(result.into(), false, context))
             }
         }

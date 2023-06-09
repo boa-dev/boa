@@ -140,12 +140,12 @@ pub mod realm;
 pub mod script;
 pub mod string;
 pub mod symbol;
-// pub(crate) mod tagged;
+pub mod value;
+pub mod vm;
+
 mod tagged;
 #[cfg(test)]
 mod tests;
-pub mod value;
-pub mod vm;
 
 /// A convenience module that re-exports the most commonly-used Boa APIs
 pub mod prelude {
@@ -155,7 +155,7 @@ pub mod prelude {
         native_function::NativeFunction,
         object::JsObject,
         script::Script,
-        Context, JsBigInt, JsResult, JsString, JsValue,
+        Context, DefaultContext, JsBigInt, JsResult, JsString, JsValue,
     };
     pub use boa_parser::Source;
 }
@@ -166,7 +166,7 @@ use std::result::Result as StdResult;
 #[doc(inline)]
 pub use crate::{
     bigint::JsBigInt,
-    context::Context,
+    context::{Context, DefaultContext},
     error::{JsError, JsNativeError, JsNativeErrorKind},
     module::Module,
     native_function::NativeFunction,
@@ -219,7 +219,7 @@ enum Inner {
         source: Cow<'static, str>,
     },
     InspectContext {
-        op: fn(&mut Context<'_>),
+        op: fn(&mut dyn Context<'_>),
     },
     Assert {
         source: Cow<'static, str>,
@@ -230,7 +230,7 @@ enum Inner {
     },
     AssertWithOp {
         source: Cow<'static, str>,
-        op: fn(JsValue, &mut Context<'_>) -> bool,
+        op: fn(JsValue, &mut dyn Context<'_>) -> bool,
     },
     AssertOpaqueError {
         source: Cow<'static, str>,
@@ -242,7 +242,7 @@ enum Inner {
         message: &'static str,
     },
     AssertContext {
-        op: fn(&mut Context<'_>) -> bool,
+        op: fn(&mut dyn Context<'_>) -> bool,
     },
 }
 
@@ -263,7 +263,7 @@ impl TestAction {
     /// Executes `op` with the currently active context.
     ///
     /// Useful to make custom assertions that must be done from Rust code.
-    fn inspect_context(op: fn(&mut Context<'_>)) -> Self {
+    fn inspect_context(op: fn(&mut dyn Context<'_>)) -> Self {
         Self(Inner::InspectContext { op })
     }
 
@@ -287,7 +287,7 @@ impl TestAction {
     /// Useful to check properties of the obtained value that cannot be checked from JS code.
     fn assert_with_op(
         source: impl Into<Cow<'static, str>>,
-        op: fn(JsValue, &mut Context<'_>) -> bool,
+        op: fn(JsValue, &mut dyn Context<'_>) -> bool,
     ) -> Self {
         Self(Inner::AssertWithOp {
             source: source.into(),
@@ -320,7 +320,7 @@ impl TestAction {
     }
 
     /// Asserts that calling `op` with the currently executing context returns `true`.
-    fn assert_context(op: fn(&mut Context<'_>) -> bool) -> Self {
+    fn assert_context(op: fn(&mut dyn Context<'_>) -> bool) -> Self {
         Self(Inner::AssertContext { op })
     }
 }
@@ -329,16 +329,19 @@ impl TestAction {
 #[cfg(test)]
 #[track_caller]
 fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
-    let context = &mut Context::default();
+    let context = &mut DefaultContext::default();
     run_test_actions_with(actions, context);
 }
 
 /// Executes a list of test actions on the provided context.
 #[cfg(test)]
 #[track_caller]
-fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context: &mut Context<'_>) {
+fn run_test_actions_with(
+    actions: impl IntoIterator<Item = TestAction>,
+    context: &mut dyn Context<'_>,
+) {
     #[track_caller]
-    fn forward_val(context: &mut Context<'_>, source: &str) -> JsResult<JsValue> {
+    fn forward_val(context: &mut dyn Context<'_>, source: &str) -> JsResult<JsValue> {
         context.eval(Source::from_bytes(source))
     }
 

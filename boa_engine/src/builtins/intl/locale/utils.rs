@@ -6,7 +6,7 @@ use crate::{
         },
         Array,
     },
-    context::{icu::Icu, BoaProvider},
+    context::IcuProvider,
     object::JsObject,
     string::utf16,
     Context, JsNativeError, JsResult, JsValue,
@@ -60,7 +60,7 @@ pub(crate) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
 /// [canon]: https://unicode.org/reports/tr35/#LocaleId_Canonicalization
 pub(crate) fn canonicalize_locale_list(
     locales: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<Vec<Locale>> {
     // 1. If locales is undefined, then
     if locales.is_undefined() {
@@ -78,7 +78,7 @@ pub(crate) fn canonicalize_locale_list(
             .map_or(false, |o| o.borrow().is_locale())
     {
         // a. Let O be CreateArrayFromList(« locales »).
-        Array::create_array_from_list([locales.clone()], context)
+        Array::create_array_from_list([locales.clone()], context.as_raw_context())
     } else {
         // 4. Else,
         // a. Let O be ? ToObject(locales).
@@ -133,7 +133,10 @@ pub(crate) fn canonicalize_locale_list(
             };
 
             // vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
-            context.icu().locale_canonicalizer().canonicalize(&mut tag);
+            context
+                .icu_provider()
+                .locale_canonicalizer()
+                .canonicalize(&mut tag);
 
             // vii. If canonicalizedTag is not an element of seen, append canonicalizedTag as the last element of seen.
             seen.insert(tag);
@@ -289,10 +292,10 @@ pub(crate) fn best_locale_for_provider<M: KeyedDataMarker>(
 /// [spec]: https://tc39.es/ecma402/#sec-lookupmatcher
 fn lookup_matcher<'provider, M: KeyedDataMarker>(
     requested_locales: &[Locale],
-    icu: &Icu<'provider>,
+    icu: &IcuProvider<'provider>,
 ) -> Locale
 where
-    BoaProvider<'provider>: DataProvider<M>,
+    IcuProvider<'provider>: DataProvider<M>,
 {
     // 1. Let result be a new Record.
     // 2. For each element locale of requestedLocales, do
@@ -303,7 +306,7 @@ where
         let id = std::mem::take(&mut locale.id);
 
         // b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
-        let available_locale = best_available_locale::<M>(id, &icu.provider());
+        let available_locale = best_available_locale::<M>(id, icu);
 
         // c. If availableLocale is not undefined, then
         if let Some(available_locale) = available_locale {
@@ -337,10 +340,10 @@ where
 /// [spec]: https://tc39.es/ecma402/#sec-bestfitmatcher
 fn best_fit_matcher<'provider, M: KeyedDataMarker>(
     requested_locales: &[Locale],
-    icu: &Icu<'provider>,
+    icu: &IcuProvider<'provider>,
 ) -> Locale
 where
-    BoaProvider<'provider>: DataProvider<M>,
+    IcuProvider<'provider>: DataProvider<M>,
 {
     for mut locale in requested_locales
         .iter()
@@ -351,7 +354,7 @@ where
     {
         let id = std::mem::take(&mut locale.id);
 
-        if let Some(available) = best_locale_for_provider(id, &icu.provider()) {
+        if let Some(available) = best_locale_for_provider(id, icu) {
             locale.id = available;
 
             return locale;
@@ -374,11 +377,11 @@ where
 pub(in crate::builtins::intl) fn resolve_locale<'provider, S>(
     requested_locales: &[Locale],
     options: &mut IntlOptions<S::LocaleOptions>,
-    icu: &Icu<'provider>,
+    icu: &IcuProvider<'provider>,
 ) -> Locale
 where
     S: Service,
-    BoaProvider<'provider>: DataProvider<S::LangMarker>,
+    IcuProvider<'provider>: DataProvider<S::LangMarker>,
 {
     // 1. Let matcher be options.[[localeMatcher]].
     // 2. If matcher is "lookup", then
@@ -444,11 +447,7 @@ where
     // 11. Set result.[[locale]] to foundLocale.
 
     // 12. Return result.
-    S::resolve(
-        &mut found_locale,
-        &mut options.service_options,
-        icu.provider(),
-    );
+    S::resolve(&mut found_locale, &mut options.service_options, icu);
     icu.locale_canonicalizer().canonicalize(&mut found_locale);
     found_locale
 }
@@ -510,10 +509,10 @@ fn best_fit_supported_locales<M: KeyedDataMarker>(
 pub(in crate::builtins::intl) fn supported_locales<'ctx, 'icu: 'ctx, M: KeyedDataMarker>(
     requested_locales: &[Locale],
     options: &JsValue,
-    context: &'ctx mut Context<'icu>,
+    context: &'ctx mut dyn Context<'icu>,
 ) -> JsResult<JsObject>
 where
-    BoaProvider<'icu>: DataProvider<M>,
+    IcuProvider<'icu>: DataProvider<M>,
 {
     // 1. Set options to ? CoerceOptionsToObject(options).
     let options = coerce_options_to_object(options, context)?;
@@ -526,19 +525,19 @@ where
         // 4. Else,
         //     a. Let supportedLocales be LookupSupportedLocales(availableLocales, requestedLocales).
         LocaleMatcher::Lookup => {
-            lookup_supported_locales(requested_locales, &context.icu().provider())
+            lookup_supported_locales(requested_locales, context.icu_provider())
         }
         // 3. If matcher is "best fit", then
         //     a. Let supportedLocales be BestFitSupportedLocales(availableLocales, requestedLocales).
         LocaleMatcher::BestFit => {
-            best_fit_supported_locales(requested_locales, &context.icu().provider())
+            best_fit_supported_locales(requested_locales, context.icu_provider())
         }
     };
 
     // 5. Return CreateArrayFromList(supportedLocales).
     Ok(Array::create_array_from_list(
         elements.into_iter().map(|loc| loc.to_string().into()),
-        context,
+        context.as_raw_context(),
     ))
 }
 
@@ -568,13 +567,13 @@ pub(in crate::builtins::intl) fn validate_extension<M: KeyedDataMarker>(
 mod tests {
     use icu_locid::{langid, locale, Locale};
     use icu_plurals::provider::CardinalV1Marker;
-    use icu_provider::{AsDeserializingBufferProvider, BufferProvider};
+    use icu_provider::AsDeserializingBufferProvider;
 
     use crate::{
         builtins::intl::locale::utils::{
             best_available_locale, best_fit_matcher, default_locale, lookup_matcher,
         },
-        context::icu::{BoaProvider, Icu},
+        context::icu::IcuProvider,
     };
 
     #[test]
@@ -600,8 +599,7 @@ mod tests {
 
     #[test]
     fn lookup_match() {
-        let provider: &dyn BufferProvider = boa_icu_provider::buffer();
-        let icu = Icu::new(BoaProvider::Buffer(provider)).unwrap();
+        let icu = IcuProvider::from_buffer_provider(boa_icu_provider::buffer()).unwrap();
 
         // requested: []
 

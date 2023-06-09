@@ -65,15 +65,14 @@ impl fmt::Display for OptimizerStatistics {
 }
 
 /// This represents an AST optimizer.
-#[derive(Debug)]
-pub(crate) struct Optimizer<'context, 'host> {
+pub(crate) struct Optimizer<'context, 'icu> {
     statistics: OptimizerStatistics,
-    context: &'context mut Context<'host>,
+    context: &'context mut dyn Context<'icu>,
 }
 
-impl<'context, 'host> Optimizer<'context, 'host> {
+impl<'context, 'icu> Optimizer<'context, 'icu> {
     /// Create a optimizer.
-    pub(crate) fn new(context: &'context mut Context<'host>) -> Self {
+    pub(crate) fn new(context: &'context mut dyn Context<'icu>) -> Self {
         Self {
             statistics: OptimizerStatistics::default(),
             context,

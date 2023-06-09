@@ -8,19 +8,20 @@ mod maybe_shared;
 
 pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
-pub use icu::{BoaProvider, IcuError};
+pub use icu::{IcuError, IcuProvider};
 use intrinsics::Intrinsics;
 pub use maybe_shared::MaybeShared;
 
 #[cfg(not(feature = "intl"))]
 pub use std::marker::PhantomData;
-use std::{io::Read, path::Path, rc::Rc};
+use std::{collections::VecDeque, io::Read, path::Path};
 
 use crate::{
-    builtins,
+    builtins::{self},
     class::{Class, ClassBuilder},
-    job::{JobQueue, NativeJob, SimpleJobQueue},
-    module::{IdleModuleLoader, ModuleLoader, SimpleModuleLoader},
+    job::{JobQueue, NativeJob},
+    js_string,
+    module::{ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::{shape::RootShape, FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
@@ -28,7 +29,7 @@ use crate::{
     realm::Realm,
     script::Script,
     vm::{CallFrame, Vm},
-    JsResult, JsValue, Source,
+    JsError, JsNativeError, JsResult, JsValue, Module, Source,
 };
 use boa_ast::{expression::Identifier, StatementList};
 use boa_interner::Interner;
@@ -36,121 +37,25 @@ use boa_profiler::Profiler;
 
 use crate::vm::RuntimeLimits;
 
-/// ECMAScript context. It is the primary way to interact with the runtime.
 ///
-/// `Context`s constructed in a thread share the same runtime, therefore it
-/// is possible to share objects from one context to another context, but they
-/// have to be in the same thread.
-///
-/// # Examples
-///
-/// ## Execute Function of Script File
-///
-/// ```rust
-/// use boa_engine::{
-///     object::ObjectInitializer,
-///     property::{Attribute, PropertyDescriptor},
-///     Context,
-///     Source
-/// };
-///
-/// let script = r#"
-///     function test(arg1) {
-///         if(arg1 != null) {
-///             return arg1.x;
-///         }
-///         return 112233;
-///     }
-/// "#;
-///
-/// let mut context = Context::default();
-///
-/// // Populate the script definition to the context.
-/// context.eval(Source::from_bytes(script)).unwrap();
-///
-/// // Create an object that can be used in eval calls.
-/// let arg = ObjectInitializer::new(&mut context)
-///     .property("x", 12, Attribute::READONLY)
-///     .build();
-/// context.register_global_property("arg", arg, Attribute::all());
-///
-/// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
-///
-/// assert_eq!(value.as_number(), Some(12.0))
-/// ```
-pub struct Context<'host> {
-    /// realm holds both the global object and the environment
-    realm: Realm,
-
-    /// String interner in the context.
-    interner: Interner,
-
-    /// Execute in strict mode,
-    strict: bool,
-
-    /// Number of instructions remaining before a forced exit
-    #[cfg(feature = "fuzz")]
-    pub(crate) instructions_remaining: usize,
-
-    pub(crate) vm: Vm,
-
-    pub(crate) kept_alive: Vec<JsObject>,
-
-    /// ICU related utilities
-    #[cfg(feature = "intl")]
-    icu: icu::Icu<'host>,
-
-    host_hooks: MaybeShared<'host, dyn HostHooks>,
-
-    job_queue: MaybeShared<'host, dyn JobQueue>,
-
-    module_loader: MaybeShared<'host, dyn ModuleLoader>,
-
-    optimizer_options: OptimizerOptions,
-    root_shape: RootShape,
-
-    /// Unique identifier for each parser instance used during the context lifetime.
-    parser_identifier: u32,
+pub trait Context<'icu>: JobQueue + ModuleLoader {
+    ///
+    fn as_raw_context(&self) -> &RawContext<'icu>;
+    ///
+    fn as_raw_context_mut(&mut self) -> &mut RawContext<'icu>;
 }
 
-impl std::fmt::Debug for Context<'_> {
+impl std::fmt::Debug for dyn Context<'_> + '_ {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut debug = f.debug_struct("Context");
-
-        debug
-            .field("realm", &self.realm)
-            .field("interner", &self.interner)
-            .field("vm", &self.vm)
-            .field("strict", &self.strict)
-            .field("promise_job_queue", &"JobQueue")
-            .field("hooks", &"HostHooks")
-            .field("module_loader", &"ModuleLoader")
-            .field("optimizer_options", &self.optimizer_options);
-
-        #[cfg(feature = "intl")]
-        debug.field("icu", &self.icu);
-
-        debug.finish()
-    }
-}
-
-impl Default for Context<'_> {
-    fn default() -> Self {
-        ContextBuilder::default()
-            .build()
-            .expect("Building the default context should not fail")
+        f.debug_tuple("Context")
+            .field(self.as_raw_context())
+            .finish()
     }
 }
 
 // ==== Public API ====
-impl<'host> Context<'host> {
-    /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
-    /// the icu data provider.
-    #[must_use]
-    pub fn builder() -> ContextBuilder<'static, 'static, 'static, 'static> {
-        ContextBuilder::default()
-    }
 
+impl dyn Context<'_> + '_ {
     /// Evaluates the given source by compiling down to bytecode, then interpreting the
     /// bytecode into a value.
     ///
@@ -188,54 +93,6 @@ impl<'host> Context<'host> {
     ) -> OptimizerStatistics {
         let mut optimizer = Optimizer::new(self);
         optimizer.apply(statement_list)
-    }
-
-    /// Register a global property.
-    ///
-    /// It will return an error if the property is already defined.
-    ///
-    /// # Example
-    /// ```
-    /// use boa_engine::{
-    ///     object::ObjectInitializer,
-    ///     property::{Attribute, PropertyDescriptor},
-    ///     Context,
-    /// };
-    ///
-    /// let mut context = Context::default();
-    ///
-    /// context
-    ///     .register_global_property("myPrimitiveProperty", 10, Attribute::all())
-    ///     .expect("property shouldn't exist");
-    ///
-    /// let object = ObjectInitializer::new(&mut context)
-    ///     .property("x", 0, Attribute::all())
-    ///     .property("y", 1, Attribute::all())
-    ///     .build();
-    /// context
-    ///     .register_global_property("myObjectProperty", object, Attribute::all())
-    ///     .expect("property shouldn't exist");
-    /// ```
-    pub fn register_global_property<K, V>(
-        &mut self,
-        key: K,
-        value: V,
-        attribute: Attribute,
-    ) -> JsResult<()>
-    where
-        K: Into<PropertyKey>,
-        V: Into<JsValue>,
-    {
-        self.global_object().define_property_or_throw(
-            key,
-            PropertyDescriptor::builder()
-                .value(value)
-                .writable(attribute.writable())
-                .enumerable(attribute.enumerable())
-                .configurable(attribute.configurable()),
-            self,
-        )?;
-        Ok(())
     }
 
     /// Register a global native callable.
@@ -307,6 +164,54 @@ impl<'host> Context<'host> {
         Ok(())
     }
 
+    /// Register a global property.
+    ///
+    /// It will return an error if the property is already defined.
+    ///
+    /// # Example
+    /// ```
+    /// use boa_engine::{
+    ///     object::ObjectInitializer,
+    ///     property::{Attribute, PropertyDescriptor},
+    ///     Context,
+    /// };
+    ///
+    /// let mut context = Context::default();
+    ///
+    /// context
+    ///     .register_global_property("myPrimitiveProperty", 10, Attribute::all())
+    ///     .expect("property shouldn't exist");
+    ///
+    /// let object = ObjectInitializer::new(&mut context)
+    ///     .property("x", 0, Attribute::all())
+    ///     .property("y", 1, Attribute::all())
+    ///     .build();
+    /// context
+    ///     .register_global_property("myObjectProperty", object, Attribute::all())
+    ///     .expect("property shouldn't exist");
+    /// ```
+    pub fn register_global_property<K, V>(
+        &mut self,
+        key: K,
+        value: V,
+        attribute: Attribute,
+    ) -> JsResult<()>
+    where
+        K: Into<PropertyKey>,
+        V: Into<JsValue>,
+    {
+        self.global_object().define_property_or_throw(
+            key,
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(attribute.writable())
+                .enumerable(attribute.enumerable())
+                .configurable(attribute.configurable()),
+            self,
+        )?;
+        Ok(())
+    }
+
     /// Register a global class of type `T`, where `T` implements `Class`.
     ///
     /// It will return an error if the global property is already defined.
@@ -344,68 +249,69 @@ impl<'host> Context<'host> {
 
     /// Gets the string interner.
     #[inline]
-    pub const fn interner(&self) -> &Interner {
-        &self.interner
+    pub fn interner(&self) -> &Interner {
+        self.as_raw_context().interner()
     }
 
     /// Gets a mutable reference to the string interner.
     #[inline]
     pub fn interner_mut(&mut self) -> &mut Interner {
-        &mut self.interner
+        self.as_raw_context_mut().interner_mut()
     }
 
     /// Returns the global object.
     #[inline]
     pub fn global_object(&self) -> JsObject {
-        self.realm.global_object().clone()
+        self.as_raw_context().global_object()
     }
 
     /// Returns the currently active intrinsic constructors and objects.
     #[inline]
     pub fn intrinsics(&self) -> &Intrinsics {
-        self.realm.intrinsics()
+        self.realm().intrinsics()
     }
 
     /// Returns the currently active realm.
     #[inline]
-    pub const fn realm(&self) -> &Realm {
-        &self.realm
+    pub fn realm(&self) -> &Realm {
+        self.as_raw_context().realm()
     }
 
     /// Set the value of trace on the context
     #[cfg(feature = "trace")]
     #[inline]
     pub fn set_trace(&mut self, trace: bool) {
-        self.vm.trace = trace;
+        self.as_raw_context_mut().set_trace(trace)
     }
 
     /// Get optimizer options.
     #[inline]
-    pub const fn optimizer_options(&self) -> OptimizerOptions {
-        self.optimizer_options
+    pub fn optimizer_options(&self) -> OptimizerOptions {
+        self.as_raw_context().optimizer_options()
     }
     /// Enable or disable optimizations
     #[inline]
     pub fn set_optimizer_options(&mut self, optimizer_options: OptimizerOptions) {
-        self.optimizer_options = optimizer_options;
+        self.as_raw_context_mut()
+            .set_optimizer_options(optimizer_options);
     }
 
     /// Changes the strictness mode of the context.
     #[inline]
     pub fn strict(&mut self, strict: bool) {
-        self.strict = strict;
+        self.as_raw_context_mut().strict(strict);
     }
 
     /// Enqueues a [`NativeJob`] on the [`JobQueue`].
     #[inline]
     pub fn enqueue_job(&mut self, job: NativeJob) {
-        self.job_queue().enqueue_promise_job(job, self);
+        self.enqueue_promise_job(job);
     }
 
-    /// Runs all the jobs in the job queue.
+    /// Runs all the jobs in the job queue and clears the kept objects.
     #[inline]
-    pub fn run_jobs(&mut self) {
-        self.job_queue().run_jobs(self);
+    pub fn run_jobs_and_cleanup(&mut self) {
+        self.run_jobs();
         self.clear_kept_objects();
     }
 
@@ -419,80 +325,49 @@ impl<'host> Context<'host> {
     /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
     #[inline]
     pub fn clear_kept_objects(&mut self) {
-        self.kept_alive.clear();
-    }
-
-    /// Retrieves the current stack trace of the context.
-    #[inline]
-    pub fn stack_trace(&mut self) -> impl Iterator<Item = &CallFrame> {
-        self.vm.frames.iter().rev()
+        self.as_raw_context_mut().clear_kept_objects();
     }
 
     /// Replaces the currently active realm with `realm`, and returns the old realm.
     #[inline]
     pub fn enter_realm(&mut self, realm: Realm) -> Realm {
-        self.vm
-            .environments
-            .replace_global(realm.environment().clone());
-        std::mem::replace(&mut self.realm, realm)
+        self.as_raw_context_mut().enter_realm(realm)
     }
 
     /// Get the [`RootShape`].
     #[inline]
-    pub const fn root_shape(&self) -> &RootShape {
-        &self.root_shape
+    pub fn root_shape(&self) -> &RootShape {
+        self.as_raw_context().root_shape()
     }
 
     /// Gets the host hooks.
     #[inline]
-    pub fn host_hooks(&self) -> MaybeShared<'host, dyn HostHooks> {
-        self.host_hooks.clone()
-    }
-
-    /// Gets the job queue.
-    #[inline]
-    pub fn job_queue(&self) -> MaybeShared<'host, dyn JobQueue> {
-        self.job_queue.clone()
-    }
-
-    /// Gets the module loader.
-    pub fn module_loader(&self) -> MaybeShared<'host, dyn ModuleLoader> {
-        self.module_loader.clone()
+    pub fn host_hooks(&self) -> &'static dyn HostHooks {
+        self.as_raw_context().host_hooks()
     }
 
     /// Get the [`RuntimeLimits`].
     #[inline]
-    pub const fn runtime_limits(&self) -> RuntimeLimits {
-        self.vm.runtime_limits
+    pub fn runtime_limits(&self) -> RuntimeLimits {
+        self.as_raw_context().runtime_limits()
     }
 
     /// Set the [`RuntimeLimits`].
     #[inline]
     pub fn set_runtime_limits(&mut self, runtime_limits: RuntimeLimits) {
-        self.vm.runtime_limits = runtime_limits;
+        self.as_raw_context_mut().set_runtime_limits(runtime_limits);
     }
 
     /// Get a mutable reference to the [`RuntimeLimits`].
     #[inline]
     pub fn runtime_limits_mut(&mut self) -> &mut RuntimeLimits {
-        &mut self.vm.runtime_limits
+        self.as_raw_context_mut().runtime_limits_mut()
     }
 }
 
 // ==== Private API ====
 
-impl Context<'_> {
-    /// Swaps the currently active realm with `realm`.
-    pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
-        std::mem::swap(&mut self.realm, realm);
-    }
-
-    /// Increment and get the parser identifier.
-    pub(crate) fn next_parser_identifier(&mut self) -> u32 {
-        self.parser_identifier += 1;
-        self.parser_identifier
-    }
-
+impl<'host> dyn Context<'host> + '_ {
     /// `CanDeclareGlobalFunction ( N )`
     ///
     /// More information:
@@ -679,25 +554,286 @@ impl Context<'_> {
         Ok(true)
     }
 
-    /// Returns `true` if this context is in strict mode.
-    pub(crate) const fn is_strict(&self) -> bool {
-        self.strict
-    }
-}
-
-impl<'host> Context<'host> {
     /// Creates a `ContextCleanupGuard` that executes some cleanup after being dropped.
     pub(crate) fn guard<F>(&mut self, cleanup: F) -> ContextCleanupGuard<'_, 'host, F>
     where
-        F: FnOnce(&mut Context<'_>) + 'static,
+        F: FnOnce(&mut dyn Context<'_>) + 'static,
     {
         ContextCleanupGuard::new(self, cleanup)
     }
 
-    /// Get the ICU related utilities
+    /// Gets the icu provider.
     #[cfg(feature = "intl")]
-    pub(crate) const fn icu(&self) -> &icu::Icu<'host> {
-        &self.icu
+    pub(crate) fn icu_provider(&self) -> &IcuProvider<'host> {
+        &self.as_raw_context().icu_provider()
+    }
+}
+
+/// ECMAScript context. It is the primary way to interact with the runtime.
+///
+/// `Context`s constructed in a thread share the same runtime, therefore it
+/// is possible to share objects from one context to another context, but they
+/// have to be in the same thread.
+///
+/// # Examples
+///
+/// ## Execute Function of Script File
+///
+/// ```rust
+/// use boa_engine::{
+///     object::ObjectInitializer,
+///     property::{Attribute, PropertyDescriptor},
+///     Context,
+///     Source
+/// };
+///
+/// let script = r#"
+///     function test(arg1) {
+///         if(arg1 != null) {
+///             return arg1.x;
+///         }
+///         return 112233;
+///     }
+/// "#;
+///
+/// let mut context = Context::default();
+///
+/// // Populate the script definition to the context.
+/// context.eval(Source::from_bytes(script)).unwrap();
+///
+/// // Create an object that can be used in eval calls.
+/// let arg = ObjectInitializer::new(&mut context)
+///     .property("x", 12, Attribute::READONLY)
+///     .build();
+/// context.register_global_property("arg", arg, Attribute::all());
+///
+/// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
+///
+/// assert_eq!(value.as_number(), Some(12.0))
+/// ```
+pub struct RawContext<'icu> {
+    /// realm holds both the global object and the environment
+    realm: Realm,
+
+    /// String interner in the context.
+    interner: Interner,
+
+    /// Execute in strict mode,
+    strict: bool,
+
+    /// Number of instructions remaining before a forced exit
+    #[cfg(feature = "fuzz")]
+    pub(crate) instructions_remaining: usize,
+
+    pub(crate) vm: Vm,
+
+    pub(crate) kept_alive: Vec<JsObject>,
+
+    optimizer_options: OptimizerOptions,
+
+    root_shape: RootShape,
+
+    /// ICU related utilities
+    #[cfg(feature = "intl")]
+    icu_provider: IcuProvider<'icu>,
+
+    pub(crate) host_hooks: &'static dyn HostHooks,
+
+    /// Unique identifier for each parser instance used during the context lifetime.
+    parser_identifier: u32,
+}
+
+impl std::fmt::Debug for RawContext<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("RawContext");
+
+        debug
+            .field("realm", &self.realm)
+            .field("interner", &self.interner)
+            .field("vm", &self.vm)
+            .field("strict", &self.strict)
+            .field("promise_job_queue", &"JobQueue")
+            .field("hooks", &"HostHooks")
+            .field("module_loader", &"ModuleLoader")
+            .field("optimizer_options", &self.optimizer_options);
+
+        debug.finish()
+    }
+}
+
+impl Default for RawContext<'_> {
+    fn default() -> Self {
+        RawContextBuilder::default()
+            .build()
+            .expect("Building the default context should not fail")
+    }
+}
+
+impl<'icu> RawContext<'icu> {
+    /// Gets the string interner.
+    #[inline]
+    pub fn interner(&self) -> &Interner {
+        &self.interner
+    }
+
+    /// Gets a mutable reference to the string interner.
+    #[inline]
+    pub fn interner_mut(&mut self) -> &mut Interner {
+        &mut self.interner
+    }
+
+    /// Returns the global object.
+    #[inline]
+    pub fn global_object(&self) -> JsObject {
+        self.realm.global_object().clone()
+    }
+
+    /// Returns the currently active intrinsic constructors and objects.
+    #[inline]
+    pub fn intrinsics(&self) -> &Intrinsics {
+        self.realm.intrinsics()
+    }
+
+    /// Returns the currently active realm.
+    #[inline]
+    pub fn realm(&self) -> &Realm {
+        &self.realm
+    }
+
+    /// Set the value of trace on the context
+    #[cfg(feature = "trace")]
+    #[inline]
+    pub fn set_trace(&mut self, trace: bool) {
+        self.vm.trace = trace;
+    }
+
+    /// Get optimizer options.
+    #[inline]
+    pub fn optimizer_options(&self) -> OptimizerOptions {
+        self.optimizer_options
+    }
+    /// Enable or disable optimizations
+    #[inline]
+    pub fn set_optimizer_options(&mut self, optimizer_options: OptimizerOptions) {
+        self.optimizer_options = optimizer_options;
+    }
+
+    /// Changes the strictness mode of the context.
+    #[inline]
+    pub fn strict(&mut self, strict: bool) {
+        self.strict = strict;
+    }
+
+    /// Abstract operation [`ClearKeptObjects`][clear].
+    ///
+    /// Clears all objects maintained alive by calls to the [`AddToKeptObjects`][add] abstract
+    /// operation, used within the [`WeakRef`][weak] constructor.
+    ///
+    /// [clear]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-clear-kept-objects
+    /// [add]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-addtokeptobjects
+    /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
+    #[inline]
+    pub fn clear_kept_objects(&mut self) {
+        self.kept_alive.clear();
+    }
+
+    /// Retrieves the current stack trace of the context.
+    #[inline]
+    pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
+        self.vm.frames.iter().rev()
+    }
+
+    /// Replaces the currently active realm with `realm`, and returns the old realm.
+    #[inline]
+    pub fn enter_realm(&mut self, realm: Realm) -> Realm {
+        self.vm
+            .environments
+            .replace_global(self.realm.environment().clone());
+        std::mem::replace(&mut self.realm, realm)
+    }
+
+    /// Get the [`RootShape`].
+    #[inline]
+    pub fn root_shape(&self) -> &RootShape {
+        &self.root_shape
+    }
+
+    /// Gets the host hooks.
+    #[inline]
+    pub fn host_hooks(&self) -> &'static dyn HostHooks {
+        self.host_hooks
+    }
+
+    /// Get the [`RuntimeLimits`].
+    #[inline]
+    pub fn runtime_limits(&self) -> RuntimeLimits {
+        self.vm.runtime_limits
+    }
+
+    /// Set the [`RuntimeLimits`].
+    #[inline]
+    pub fn set_runtime_limits(&mut self, runtime_limits: RuntimeLimits) {
+        self.vm.runtime_limits = runtime_limits;
+    }
+
+    /// Get a mutable reference to the [`RuntimeLimits`].
+    #[inline]
+    pub fn runtime_limits_mut(&mut self) -> &mut RuntimeLimits {
+        &mut self.vm.runtime_limits
+    }
+
+    /// Swaps the currently active realm with `realm`.
+    pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
+        let global_env = realm.environment().clone();
+        std::mem::swap(&mut self.realm, realm);
+        self.vm.environments.replace_global(global_env);
+    }
+
+    /// Increment and get the parser identifier.
+    pub(crate) fn next_parser_identifier(&mut self) -> u32 {
+        self.parser_identifier += 1;
+        self.parser_identifier
+    }
+
+    /// Returns `true` if this context is in strict mode.
+    pub(crate) fn is_strict(&self) -> bool {
+        self.strict
+    }
+
+    /// Gets the icu provider.
+    #[cfg(feature = "intl")]
+    pub(crate) fn icu_provider(&self) -> &IcuProvider<'icu> {
+        &self.icu_provider
+    }
+}
+
+impl JobQueue for RawContext<'_> {
+    fn enqueue_promise_job(&mut self, _job: NativeJob) {}
+
+    fn run_jobs(&mut self) {}
+
+    fn enqueue_future_job(&mut self, _future: crate::job::FutureJob) {}
+}
+
+impl ModuleLoader for RawContext<'_> {
+    fn load_imported_module(
+        &mut self,
+        _referrer: crate::module::Referrer,
+        _specifier: crate::JsString,
+        _finish_load: Box<dyn FnOnce(JsResult<Module>, &mut dyn Context<'_>)>,
+    ) {
+    }
+}
+
+impl<'icu> Context<'icu> for RawContext<'icu> {
+    #[inline]
+    fn as_raw_context(&self) -> &RawContext<'icu> {
+        self
+    }
+
+    #[inline]
+    fn as_raw_context_mut(&mut self) -> &mut RawContext<'icu> {
+        self
     }
 }
 
@@ -705,45 +841,45 @@ impl<'host> Context<'host> {
 ///
 /// This builder allows custom initialization of the [`Interner`] within
 /// the context.
-/// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes
+/// Additionally, if the `intl` feature is enabled, [`RawContextBuilder`] becomes
 /// the only way to create a new [`Context`], since now it requires a
 /// valid data provider for the `Intl` functionality.
 #[cfg_attr(
     feature = "intl",
-    doc = "The required data in a valid provider is specified in [`BoaProvider`]"
+    doc = "The required data in a valid provider is specified in [`IcuProvider`]"
 )]
-#[derive(Default)]
-pub struct ContextBuilder<'icu, 'hooks, 'queue, 'module> {
+pub struct RawContextBuilder<'icu> {
     interner: Option<Interner>,
-    host_hooks: Option<MaybeShared<'hooks, dyn HostHooks>>,
-    job_queue: Option<MaybeShared<'queue, dyn JobQueue>>,
-    module_loader: Option<MaybeShared<'module, dyn ModuleLoader>>,
+    host_hooks: &'static dyn HostHooks,
     #[cfg(feature = "intl")]
-    icu: Option<icu::Icu<'icu>>,
+    icu: Option<IcuProvider<'icu>>,
     #[cfg(not(feature = "intl"))]
     icu: PhantomData<&'icu ()>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
 }
 
-impl std::fmt::Debug for ContextBuilder<'_, '_, '_, '_> {
+impl Default for RawContextBuilder<'_> {
+    fn default() -> Self {
+        Self {
+            interner: Default::default(),
+            host_hooks: &DefaultHooks,
+            icu: Default::default(),
+            #[cfg(feature = "fuzz")]
+            instructions_remaining: Default::default(),
+        }
+    }
+}
+
+impl std::fmt::Debug for RawContextBuilder<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[derive(Clone, Copy, Debug)]
-        struct JobQueue;
-        #[derive(Clone, Copy, Debug)]
         struct HostHooks;
-        #[derive(Clone, Copy, Debug)]
-        struct ModuleLoader;
 
         let mut out = f.debug_struct("ContextBuilder");
 
-        out.field("interner", &self.interner)
-            .field("host_hooks", &self.host_hooks.as_ref().map(|_| HostHooks))
-            .field("job_queue", &self.job_queue.as_ref().map(|_| JobQueue))
-            .field(
-                "module_loader",
-                &self.module_loader.as_ref().map(|_| ModuleLoader),
-            );
+        out.field("host_hooks", &HostHooks)
+            .field("interner", &self.interner);
 
         #[cfg(feature = "intl")]
         out.field("icu", &self.icu);
@@ -755,7 +891,7 @@ impl std::fmt::Debug for ContextBuilder<'_, '_, '_, '_> {
     }
 }
 
-impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module> {
+impl<'icu> RawContextBuilder<'icu> {
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
     /// and a default `BoaProvider` if the `intl` feature is enabled.
     #[must_use]
@@ -790,10 +926,10 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
     #[cfg(feature = "intl")]
     pub fn icu_provider(
         self,
-        provider: BoaProvider<'_>,
-    ) -> Result<ContextBuilder<'_, 'hooks, 'queue, 'module>, IcuError> {
-        Ok(ContextBuilder {
-            icu: Some(icu::Icu::new(provider)?),
+        provider: IcuProvider<'_>,
+    ) -> Result<RawContextBuilder<'_>, IcuError> {
+        Ok(RawContextBuilder {
+            icu: Some(provider),
             ..self
         })
     }
@@ -802,47 +938,8 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
     ///
     /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary
     #[must_use]
-    pub fn host_hooks<'new_hooks, H>(
-        self,
-        host_hooks: H,
-    ) -> ContextBuilder<'icu, 'new_hooks, 'queue, 'module>
-    where
-        H: Into<MaybeShared<'new_hooks, dyn HostHooks>>,
-    {
-        ContextBuilder {
-            host_hooks: Some(host_hooks.into()),
-            ..self
-        }
-    }
-
-    /// Initializes the [`JobQueue`] for the context.
-    #[must_use]
-    pub fn job_queue<'new_queue, Q>(
-        self,
-        job_queue: Q,
-    ) -> ContextBuilder<'icu, 'hooks, 'new_queue, 'module>
-    where
-        Q: Into<MaybeShared<'new_queue, dyn JobQueue>>,
-    {
-        ContextBuilder {
-            job_queue: Some(job_queue.into()),
-            ..self
-        }
-    }
-
-    /// Initializes the [`ModuleLoader`] for the context.
-    #[must_use]
-    pub fn module_loader<'new_module, M>(
-        self,
-        module_loader: M,
-    ) -> ContextBuilder<'icu, 'hooks, 'queue, 'new_module>
-    where
-        M: Into<MaybeShared<'new_module, dyn ModuleLoader>>,
-    {
-        ContextBuilder {
-            module_loader: Some(module_loader.into()),
-            ..self
-        }
+    pub fn host_hooks(self, host_hooks: &'static dyn HostHooks) -> RawContextBuilder<'icu> {
+        RawContextBuilder { host_hooks, ..self }
     }
 
     /// Specifies the number of instructions remaining to the [`Context`].
@@ -857,57 +954,41 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
 
     /// Builds a new [`Context`] with the provided parameters, and defaults
     /// all missing parameters to their default values.
-    pub fn build<'host>(self) -> JsResult<Context<'host>>
-    where
-        'icu: 'host,
-        'hooks: 'host,
-        'queue: 'host,
-        'module: 'host,
-    {
+    pub fn build(self) -> JsResult<RawContext<'icu>> {
         let root_shape = RootShape::default();
 
-        let host_hooks = self.host_hooks.unwrap_or_else(|| {
-            let hooks: &dyn HostHooks = &DefaultHooks;
-            hooks.into()
-        });
-        let realm = Realm::create(&*host_hooks, &root_shape);
+        let realm = Realm::create(self.host_hooks, &root_shape);
         let vm = Vm::new(realm.environment().clone());
 
-        let module_loader = if let Some(loader) = self.module_loader {
-            loader
-        } else {
-            SimpleModuleLoader::new(Path::new(".")).map_or_else(
-                |_| {
-                    let loader: &dyn ModuleLoader = &IdleModuleLoader;
-                    loader.into()
-                },
-                |loader| {
-                    let loader: Rc<dyn ModuleLoader> = Rc::new(loader);
-                    loader.into()
-                },
-            )
-        };
+        // let module_loader = if let Some(loader) = self.module_loader {
+        //     loader
+        // } else {
+        //     SimpleModuleLoader::new(Path::new(".")).map_or_else(
+        //         |_| {
+        //             let loader: &dyn ModuleLoader = &IdleModuleLoader;
+        //             loader.into()
+        //         },
+        //         |loader| {
+        //             let loader: Rc<dyn ModuleLoader> = Rc::new(loader);
+        //             loader.into()
+        //         },
+        //     )
+        // };
 
-        let mut context = Context {
+        let mut context = RawContext {
             realm,
             interner: self.interner.unwrap_or_default(),
             vm,
             strict: false,
             #[cfg(feature = "intl")]
-            icu: self.icu.unwrap_or_else(|| {
-                let buffer: &dyn icu_provider::BufferProvider = boa_icu_provider::buffer();
-                let provider = BoaProvider::Buffer(buffer);
-                icu::Icu::new(provider).expect("Failed to initialize default icu data.")
+            icu_provider: self.icu.unwrap_or_else(|| {
+                IcuProvider::from_buffer_provider(boa_icu_provider::buffer())
+                    .expect("Failed to initialize default icu data.")
             }),
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             kept_alive: Vec::new(),
-            host_hooks,
-            job_queue: self.job_queue.unwrap_or_else(|| {
-                let queue: Rc<dyn JobQueue> = Rc::new(SimpleJobQueue::new());
-                queue.into()
-            }),
-            module_loader,
+            host_hooks: self.host_hooks,
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
             parser_identifier: 0,
@@ -921,20 +1002,20 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
 
 /// A cleanup guard for a [`Context`] that is executed when dropped.
 #[derive(Debug)]
-pub(crate) struct ContextCleanupGuard<'a, 'host, F>
+pub(crate) struct ContextCleanupGuard<'a, 'icu, F>
 where
-    F: FnOnce(&mut Context<'_>) + 'static,
+    F: FnOnce(&mut dyn Context<'_>) + 'static,
 {
-    context: &'a mut Context<'host>,
+    context: &'a mut (dyn Context<'icu> + 'a),
     cleanup: Option<F>,
 }
 
-impl<'a, 'host, F> ContextCleanupGuard<'a, 'host, F>
+impl<'a, 'icu, F> ContextCleanupGuard<'a, 'icu, F>
 where
-    F: FnOnce(&mut Context<'_>) + 'static,
+    F: FnOnce(&mut dyn Context<'_>) + 'static,
 {
     /// Creates a new `ContextCleanupGuard` from the current context and its cleanup operation.
-    pub(crate) fn new(context: &'a mut Context<'host>, cleanup: F) -> Self {
+    pub(crate) fn new(context: &'a mut dyn Context<'icu>, cleanup: F) -> Self {
         Self {
             context,
             cleanup: Some(cleanup),
@@ -942,11 +1023,11 @@ where
     }
 }
 
-impl<'host, F> std::ops::Deref for ContextCleanupGuard<'_, 'host, F>
+impl<'a, 'icu, F> std::ops::Deref for ContextCleanupGuard<'a, 'icu, F>
 where
-    F: FnOnce(&mut Context<'_>) + 'static,
+    F: FnOnce(&mut dyn Context<'_>) + 'static,
 {
-    type Target = Context<'host>;
+    type Target = dyn Context<'icu> + 'a;
 
     fn deref(&self) -> &Self::Target {
         self.context
@@ -955,7 +1036,7 @@ where
 
 impl<F> std::ops::DerefMut for ContextCleanupGuard<'_, '_, F>
 where
-    F: FnOnce(&mut Context<'_>) + 'static,
+    F: FnOnce(&mut dyn Context<'_>) + 'static,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.context
@@ -964,11 +1045,127 @@ where
 
 impl<F> Drop for ContextCleanupGuard<'_, '_, F>
 where
-    F: FnOnce(&mut Context<'_>) + 'static,
+    F: FnOnce(&mut dyn Context<'_>) + 'static,
 {
     fn drop(&mut self) {
         if let Some(cleanup) = self.cleanup.take() {
             cleanup(self.context);
         }
+    }
+}
+
+///
+#[derive(Debug)]
+pub struct DefaultContext<'icu> {
+    raw: RawContext<'icu>,
+    module_loader: SimpleModuleLoader,
+    job_queue: VecDeque<NativeJob>,
+}
+
+impl DefaultContext<'_> {
+    ///
+    pub fn with_root<P>(root: P) -> JsResult<Self>
+    where
+        P: AsRef<Path>,
+    {
+        Ok(Self {
+            raw: RawContext::default(),
+            module_loader: SimpleModuleLoader::new(root)?,
+            job_queue: VecDeque::default(),
+        })
+    }
+
+    ///
+    #[inline]
+    pub fn module_loader(&mut self) -> &mut SimpleModuleLoader {
+        &mut self.module_loader
+    }
+}
+
+impl Default for DefaultContext<'_> {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            raw: RawContext::default(),
+            module_loader: SimpleModuleLoader::new(".").expect(""),
+            job_queue: VecDeque::default(),
+        }
+    }
+}
+
+impl<'icu> Context<'icu> for DefaultContext<'icu> {
+    #[inline]
+    fn as_raw_context(&self) -> &RawContext<'icu> {
+        &self.raw
+    }
+
+    #[inline]
+    fn as_raw_context_mut(&mut self) -> &mut RawContext<'icu> {
+        &mut self.raw
+    }
+}
+
+impl JobQueue for DefaultContext<'_> {
+    #[inline]
+    fn enqueue_promise_job(&mut self, job: NativeJob) {
+        self.job_queue.push_back(job);
+    }
+
+    #[inline]
+    fn run_jobs(&mut self) {
+        while let Some(job) = self.job_queue.pop_front() {
+            if job.call(self).is_err() {
+                self.job_queue.clear();
+                return;
+            }
+        }
+    }
+
+    #[inline]
+    fn enqueue_future_job(&mut self, future: crate::job::FutureJob) {
+        let job = pollster::block_on(future);
+        self.enqueue_promise_job(job);
+    }
+}
+
+impl ModuleLoader for DefaultContext<'_> {
+    fn load_imported_module(
+        &mut self,
+        _referrer: crate::module::Referrer,
+        specifier: crate::JsString,
+        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut dyn Context<'_>)>,
+    ) {
+        let result = (|| {
+            let path = specifier
+                .to_std_string()
+                .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+            let short_path = Path::new(&path);
+            let path = self.module_loader.root().join(short_path);
+            let path = path.canonicalize().map_err(|err| {
+                JsNativeError::typ()
+                    .with_message(format!(
+                        "could not canonicalize path `{}`",
+                        short_path.display()
+                    ))
+                    .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
+            })?;
+            if let Some(module) = self.module_loader.get(&path) {
+                return Ok(module);
+            }
+            let source = Source::from_filepath(&path).map_err(|err| {
+                JsNativeError::typ()
+                    .with_message(format!("could not open file `{}`", short_path.display()))
+                    .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
+            })?;
+            let module = Module::parse(source, None, self).map_err(|err| {
+                JsNativeError::syntax()
+                    .with_message(format!("could not parse module `{}`", short_path.display()))
+                    .with_cause(err)
+            })?;
+            self.module_loader.insert(path, module.clone());
+            Ok(module)
+        })();
+
+        finish_load(result, self);
     }
 }

@@ -11,7 +11,7 @@
 
 use crate::{
     builtins::iterable::create_iter_result_object,
-    context::intrinsics::Intrinsics,
+    context::{intrinsics::Intrinsics, RawContext},
     environments::EnvironmentStack,
     error::JsNativeError,
     object::{JsObject, CONSTRUCTOR},
@@ -84,7 +84,7 @@ impl GeneratorContext {
     }
 
     /// Creates a new `GeneratorContext` from the current `Context` state.
-    pub(crate) fn from_current(context: &mut Context<'_>) -> Self {
+    pub(crate) fn from_current(context: &RawContext<'_>) -> Self {
         Self {
             environments: context.vm.environments.clone(),
             call_frame: Some(context.vm.frame().clone()),
@@ -99,27 +99,36 @@ impl GeneratorContext {
         &mut self,
         value: Option<JsValue>,
         resume_kind: GeneratorResumeKind,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> CompletionRecord {
-        std::mem::swap(&mut context.vm.environments, &mut self.environments);
-        std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        std::mem::swap(&mut context.vm.active_function, &mut self.active_function);
-        context.swap_realm(&mut self.realm);
-        context
+        let raw_context = context.as_raw_context_mut();
+        std::mem::swap(&mut raw_context.vm.environments, &mut self.environments);
+        std::mem::swap(&mut raw_context.vm.stack, &mut self.stack);
+        std::mem::swap(
+            &mut raw_context.vm.active_function,
+            &mut self.active_function,
+        );
+        raw_context.swap_realm(&mut self.realm);
+        raw_context
             .vm
             .push_frame(self.call_frame.take().expect("should have a call frame"));
-        context.vm.frame_mut().generator_resume_kind = resume_kind;
+        raw_context.vm.frame_mut().generator_resume_kind = resume_kind;
         if let Some(value) = value {
-            context.vm.push(value);
+            raw_context.vm.push(value);
         }
 
         let result = context.run();
 
-        std::mem::swap(&mut context.vm.environments, &mut self.environments);
-        std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        std::mem::swap(&mut context.vm.active_function, &mut self.active_function);
-        context.swap_realm(&mut self.realm);
-        self.call_frame = context.vm.pop_frame();
+        let raw_context = context.as_raw_context_mut();
+
+        std::mem::swap(&mut raw_context.vm.environments, &mut self.environments);
+        std::mem::swap(&mut raw_context.vm.stack, &mut self.stack);
+        std::mem::swap(
+            &mut raw_context.vm.active_function,
+            &mut self.active_function,
+        );
+        raw_context.swap_realm(&mut self.realm);
+        self.call_frame = raw_context.vm.pop_frame();
         assert!(self.call_frame.is_some());
         result
     }
@@ -186,7 +195,7 @@ impl Generator {
     pub(crate) fn next(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Return ? GeneratorResume(this value, value, empty).
         Self::generator_resume(this, args.get_or_undefined(0).clone(), context)
@@ -205,7 +214,7 @@ impl Generator {
     pub(crate) fn r#return(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let g be the this value.
         // 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
@@ -227,7 +236,7 @@ impl Generator {
     pub(crate) fn throw(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let g be the this value.
         // 2. Let C be ThrowCompletion(exception).
@@ -248,7 +257,7 @@ impl Generator {
     pub(crate) fn generator_resume(
         gen: &JsValue,
         value: JsValue,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let Some(generator_obj) = gen.as_object() else {
@@ -336,7 +345,7 @@ impl Generator {
     pub(crate) fn generator_resume_abrupt(
         gen: &JsValue,
         abrupt_completion: JsResult<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let Some(generator_obj) = gen.as_object() else {

@@ -109,7 +109,7 @@ impl Math {
     pub(crate) fn abs(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -135,7 +135,7 @@ impl Math {
     pub(crate) fn acos(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -159,7 +159,7 @@ impl Math {
     pub(crate) fn acosh(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -184,7 +184,7 @@ impl Math {
     pub(crate) fn asin(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -208,7 +208,7 @@ impl Math {
     pub(crate) fn asinh(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -231,7 +231,7 @@ impl Math {
     pub(crate) fn atan(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -256,7 +256,7 @@ impl Math {
     pub(crate) fn atanh(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -282,7 +282,7 @@ impl Math {
     pub(crate) fn atan2(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let ny be ? ToNumber(y).
         let y = args.get_or_undefined(0).to_number(context)?;
@@ -329,7 +329,7 @@ impl Math {
     pub(crate) fn cbrt(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -352,7 +352,7 @@ impl Math {
     pub(crate) fn ceil(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -377,7 +377,7 @@ impl Math {
     pub(crate) fn clz32(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -400,7 +400,7 @@ impl Math {
     pub(crate) fn cos(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -424,7 +424,7 @@ impl Math {
     pub(crate) fn cosh(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -449,7 +449,7 @@ impl Math {
     pub(crate) fn exp(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -476,7 +476,7 @@ impl Math {
     pub(crate) fn expm1(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -500,7 +500,7 @@ impl Math {
     pub(crate) fn floor(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -525,7 +525,7 @@ impl Math {
     pub(crate) fn fround(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let n be ? ToNumber(x).
         let x = args.get_or_undefined(0).to_number(context)?;
@@ -549,7 +549,7 @@ impl Math {
     pub(crate) fn hypot(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let coerced be a new empty List.
         // 2. For each element arg of args, do
@@ -583,7 +583,7 @@ impl Math {
     pub(crate) fn imul(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let a be ℝ(? ToUint32(x)).
         let x = args.get_or_undefined(0).to_u32(context)?;
@@ -607,7 +607,7 @@ impl Math {
     pub(crate) fn log(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -633,7 +633,7 @@ impl Math {
     pub(crate) fn log1p(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -658,7 +658,7 @@ impl Math {
     pub(crate) fn log10(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -684,7 +684,7 @@ impl Math {
     pub(crate) fn log2(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -710,7 +710,7 @@ impl Math {
     pub(crate) fn max(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let coerced be a new empty List.
         // 2. For each element arg of args, do
@@ -752,7 +752,7 @@ impl Math {
     pub(crate) fn min(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let coerced be a new empty List.
         // 2. For each element arg of args, do
@@ -795,7 +795,7 @@ impl Math {
     pub(crate) fn pow(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Set base to ? ToNumber(base).
         let x = args.get_or_undefined(0).to_number(context)?;
@@ -821,7 +821,7 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.random
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn random(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn random(_: &JsValue, _: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // NOTE: Each Math.random function created for distinct realms must produce a distinct sequence of values from successive calls.
         Ok(rand::random::<f64>().into())
     }
@@ -838,7 +838,7 @@ impl Math {
     pub(crate) fn round(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let num = args
             .get_or_undefined(0)
@@ -868,7 +868,7 @@ impl Math {
     pub(crate) fn sign(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let n be ? ToNumber(x).
         let n = args.get_or_undefined(0).to_number(context)?;
@@ -893,7 +893,7 @@ impl Math {
     pub(crate) fn sin(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -917,7 +917,7 @@ impl Math {
     pub(crate) fn sinh(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -940,7 +940,7 @@ impl Math {
     pub(crate) fn sqrt(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -964,7 +964,7 @@ impl Math {
     pub(crate) fn tan(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -988,7 +988,7 @@ impl Math {
     pub(crate) fn tanh(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
@@ -1013,7 +1013,7 @@ impl Math {
     pub(crate) fn trunc(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)

@@ -79,7 +79,7 @@ impl SegmentIterator {
     pub(crate) fn create(
         segmenter: JsObject,
         string: JsString,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsObject {
         // 1. Let internalSlotsList be « [[IteratingSegmenter]], [[IteratedString]], [[IteratedStringNextSegmentCodeUnitIndex]] ».
         // 2. Let iterator be OrdinaryObjectCreate(%SegmentIteratorPrototype%, internalSlotsList).
@@ -104,7 +104,7 @@ impl SegmentIterator {
     /// [`%SegmentIteratorPrototype%.next ( )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-%segmentiteratorprototype%.next
-    fn next(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn next(this: &JsValue, _: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let iterator be the this value.
         // 2. Perform ? RequireInternalSlot(iterator, [[IteratingSegmenter]]).
         let mut iter = this.as_object().map(JsObject::borrow_mut).ok_or_else(|| {

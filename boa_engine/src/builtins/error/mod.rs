@@ -160,11 +160,12 @@ impl BuiltInConstructor for Error {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         let new_target = &if new_target.is_undefined() {
             context
+                .as_raw_context()
                 .vm
                 .active_function
                 .clone()
@@ -205,7 +206,7 @@ impl Error {
     pub(crate) fn install_error_cause(
         o: &JsObject,
         options: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
         if let Some(options) = options.as_object() {
@@ -236,7 +237,7 @@ impl Error {
     pub(crate) fn to_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, throw a TypeError exception.

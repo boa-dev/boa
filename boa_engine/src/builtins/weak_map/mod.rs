@@ -71,7 +71,7 @@ impl BuiltInConstructor for WeakMap {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -123,7 +123,7 @@ impl WeakMap {
     pub(crate) fn delete(
         this: &JsValue,
         args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
@@ -163,7 +163,7 @@ impl WeakMap {
     pub(crate) fn get(
         this: &JsValue,
         args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
@@ -200,7 +200,7 @@ impl WeakMap {
     pub(crate) fn has(
         this: &JsValue,
         args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
@@ -237,7 +237,7 @@ impl WeakMap {
     pub(crate) fn set(
         this: &JsValue,
         args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).

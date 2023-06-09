@@ -15,10 +15,11 @@ impl Operation for PushClassField {
     const NAME: &'static str = "PushClassField";
     const INSTRUCTION: &'static str = "INST - PushClassField";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let field_function_value = context.vm.pop();
-        let field_name_value = context.vm.pop();
-        let class_value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let field_function_value = raw_context.vm.pop();
+        let field_name_value = raw_context.vm.pop();
+        let class_value = raw_context.vm.pop();
 
         let field_name_key = field_name_value.to_property_key(context)?;
         let field_function_object = field_function_value
@@ -56,11 +57,12 @@ impl Operation for PushClassFieldPrivate {
     const NAME: &'static str = "PushClassFieldPrivate";
     const INSTRUCTION: &'static str = "INST - PushClassFieldPrivate";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
-        let field_function_value = context.vm.pop();
-        let class_value = context.vm.pop();
+fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+    let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let name = raw_context.vm.frame().code_block.names[index as usize].clone();
+        let field_function_value = raw_context.vm.pop();
+        let class_value = raw_context.vm.pop();
 
         let field_function_object = field_function_value
             .as_object()

@@ -89,7 +89,7 @@ impl FunctionCompiler {
         parameters: &FormalParameterList,
         body: &FunctionBody,
         outer_env: Gc<GcRefCell<CompileTimeEnvironment>>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
 

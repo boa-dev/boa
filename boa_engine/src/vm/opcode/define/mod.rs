@@ -20,7 +20,8 @@ impl Operation for DefVar {
     const NAME: &'static str = "DefVar";
     const INSTRUCTION: &'static str = "INST - DefVar";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
@@ -49,18 +50,16 @@ impl Operation for DefInitVar {
     const NAME: &'static str = "DefInitVar";
     const INSTRUCTION: &'static str = "INST - DefInitVar";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let value = context.vm.pop();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let value = raw_context.vm.pop();
+        let mut binding_locator = raw_context.vm.frame().code_block.bindings[index as usize];
+        let strict = raw_context.vm.frame().code_block.strict();
 
         context.find_runtime_binding(&mut binding_locator)?;
 
-        context.set_binding(
-            binding_locator,
-            value,
-            context.vm.frame().code_block.strict(),
-        )?;
+        context.set_binding(binding_locator, value, strict)?;
 
         Ok(CompletionType::Normal)
     }
@@ -77,7 +76,8 @@ impl Operation for PutLexicalValue {
     const NAME: &'static str = "PutLexicalValue";
     const INSTRUCTION: &'static str = "INST - PutLexicalValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];

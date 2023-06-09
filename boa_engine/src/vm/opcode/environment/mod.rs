@@ -15,7 +15,8 @@ impl Operation for This {
     const NAME: &'static str = "This";
     const INSTRUCTION: &'static str = "INST - This";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let this = context.vm.environments.get_this_binding()?;
         context.vm.push(this);
         Ok(CompletionType::Normal)
@@ -33,9 +34,10 @@ impl Operation for Super {
     const NAME: &'static str = "Super";
     const INSTRUCTION: &'static str = "INST - Super";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
         let home_object = {
             let env = context
+                .as_raw_context()
                 .vm
                 .environments
                 .get_this_environment()
@@ -57,7 +59,7 @@ impl Operation for Super {
             .flatten()
             .map_or_else(JsValue::null, JsValue::from);
 
-        context.vm.push(value);
+        context.as_raw_context_mut().vm.push(value);
         Ok(CompletionType::Normal)
     }
 }
@@ -73,8 +75,9 @@ impl Operation for SuperCallPrepare {
     const NAME: &'static str = "SuperCallPrepare";
     const INSTRUCTION: &'static str = "INST - SuperCallPrepare";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
         let this_env = context
+            .as_raw_context()
             .vm
             .environments
             .get_this_environment()
@@ -90,6 +93,7 @@ impl Operation for SuperCallPrepare {
             .__get_prototype_of__(context)
             .expect("function object must have prototype");
 
+        let context = context.as_raw_context_mut();
         if let Some(constructor) = super_constructor {
             context.vm.push(constructor);
         } else {
@@ -112,16 +116,17 @@ impl Operation for SuperCall {
     const NAME: &'static str = "SuperCall";
     const INSTRUCTION: &'static str = "INST - SuperCall";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u32>();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let argument_count = raw_context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
         for _ in 0..argument_count {
-            arguments.push(context.vm.pop());
+            arguments.push(raw_context.vm.pop());
         }
         arguments.reverse();
 
-        let new_target_value = context.vm.pop();
-        let super_constructor = context.vm.pop();
+        let new_target_value = raw_context.vm.pop();
+        let super_constructor = raw_context.vm.pop();
 
         let new_target = new_target_value
             .as_object()
@@ -136,6 +141,7 @@ impl Operation for SuperCall {
         let result = super_constructor.__construct__(&arguments, new_target, context)?;
 
         let this_env = context
+            .as_raw_context()
             .vm
             .environments
             .get_this_environment()
@@ -147,7 +153,7 @@ impl Operation for SuperCall {
 
         result.initialize_instance_elements(&function_object, context)?;
 
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
@@ -163,9 +169,10 @@ impl Operation for SuperCallSpread {
     const NAME: &'static str = "SuperCallWithRest";
     const INSTRUCTION: &'static str = "INST - SuperCallWithRest";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.pop();
+        let arguments_array = raw_context.vm.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -176,8 +183,8 @@ impl Operation for SuperCallSpread {
             .expect("arguments array in call spread function must be dense")
             .clone();
 
-        let new_target_value = context.vm.pop();
-        let super_constructor = context.vm.pop();
+        let new_target_value = raw_context.vm.pop();
+        let super_constructor = raw_context.vm.pop();
 
         let new_target = new_target_value
             .as_object()
@@ -192,6 +199,7 @@ impl Operation for SuperCallSpread {
         let result = super_constructor.__construct__(&arguments, new_target, context)?;
 
         let this_env = context
+            .as_raw_context()
             .vm
             .environments
             .get_this_environment()
@@ -203,7 +211,7 @@ impl Operation for SuperCallSpread {
 
         result.initialize_instance_elements(&function_object, context)?;
 
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
@@ -219,15 +227,16 @@ impl Operation for SuperCallDerived {
     const NAME: &'static str = "SuperCallDerived";
     const INSTRUCTION: &'static str = "INST - SuperCallDerived";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let argument_count = context.vm.frame().argument_count;
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let argument_count = raw_context.vm.frame().argument_count;
         let mut arguments = Vec::with_capacity(argument_count as usize);
         for _ in 0..argument_count {
-            arguments.push(context.vm.pop());
+            arguments.push(raw_context.vm.pop());
         }
         arguments.reverse();
 
-        let this_env = context
+        let this_env = raw_context
             .vm
             .environments
             .get_this_environment()
@@ -253,6 +262,7 @@ impl Operation for SuperCallDerived {
         let result = super_constructor.__construct__(&arguments, &new_target, context)?;
 
         let this_env = context
+            .as_raw_context()
             .vm
             .environments
             .get_this_environment()
@@ -263,7 +273,7 @@ impl Operation for SuperCallDerived {
 
         result.initialize_instance_elements(&active_function, context)?;
 
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }

@@ -148,11 +148,11 @@ macro_rules! generate_impl {
                 Self::INSTRUCTIONS[self as usize]
             }
 
-            const EXECUTE_FNS: [fn(&mut Context<'_>) -> JsResult<CompletionType>; Self::MAX] = [
+            const EXECUTE_FNS: [fn(&mut dyn Context<'_>) -> JsResult<CompletionType>; Self::MAX] = [
                 $(<generate_impl!(name $Variant $(=> $mapping)?)>::execute),*
             ];
 
-            pub(super) fn execute(self, context: &mut Context<'_>) -> JsResult<CompletionType> {
+            pub(super) fn execute(self, context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
                 Self::EXECUTE_FNS[self as usize](context)
             }
         }
@@ -169,7 +169,7 @@ pub(crate) trait Operation {
     const NAME: &'static str;
     const INSTRUCTION: &'static str;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType>;
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType>;
 }
 
 generate_impl! {

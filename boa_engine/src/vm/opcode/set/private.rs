@@ -17,21 +17,23 @@ impl Operation for SetPrivateField {
     const NAME: &'static str = "SetPrivateField";
     const INSTRUCTION: &'static str = "INST - SetPrivateField";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
-        let value = context.vm.pop();
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let name = raw_context.vm.frame().code_block.names[index as usize].clone();
+        let value = raw_context.vm.pop();
+        let object = raw_context.vm.pop();
         let base_obj = object.to_object(context)?;
 
         let name = context
+            .as_raw_context_mut()
             .vm
             .environments
             .resolve_private_identifier(name)
             .expect("private name must be in environment");
 
         base_obj.private_set(&name, value.clone(), context)?;
-        context.vm.push(value);
+        context.as_raw_context_mut().vm.push(value);
         Ok(CompletionType::Normal)
     }
 }
@@ -47,7 +49,8 @@ impl Operation for DefinePrivateField {
     const NAME: &'static str = "DefinePrivateField";
     const INSTRUCTION: &'static str = "INST - DefinePrivateField";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.names[index as usize].clone();
         let value = context.vm.pop();
@@ -75,10 +78,11 @@ impl Operation for SetPrivateMethod {
     const NAME: &'static str = "SetPrivateMethod";
     const INSTRUCTION: &'static str = "INST - SetPrivateMethod";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let name = raw_context.vm.frame().code_block.names[index as usize].clone();
+        let value = raw_context.vm.pop();
         let value = value.as_callable().expect("method must be callable");
 
         let name_string = format!("#{}", name.to_std_string_escaped());
@@ -92,7 +96,7 @@ impl Operation for SetPrivateMethod {
             .__define_own_property__(&utf16!("name").into(), desc, context)
             .expect("failed to set name property on private method");
 
-        let object = context.vm.pop();
+        let object = context.as_raw_context_mut().vm.pop();
         let object = object
             .as_object()
             .expect("class prototype must be an object");
@@ -122,7 +126,8 @@ impl Operation for SetPrivateSetter {
     const NAME: &'static str = "SetPrivateSetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateSetter";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.names[index as usize].clone();
         let value = context.vm.pop();
@@ -160,7 +165,8 @@ impl Operation for SetPrivateGetter {
     const NAME: &'static str = "SetPrivateGetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateGetter";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.names[index as usize].clone();
         let value = context.vm.pop();

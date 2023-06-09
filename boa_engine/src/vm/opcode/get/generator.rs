@@ -14,11 +14,12 @@ impl Operation for GetGenerator {
     const NAME: &'static str = "GetGenerator";
     const INSTRUCTION: &'static str = "INST - GetGenerator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let code = raw_context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_generator_function_object(code, false, None, context);
-        context.vm.push(function);
+        context.as_raw_context_mut().vm.push(function);
         Ok(CompletionType::Normal)
     }
 }
@@ -34,11 +35,12 @@ impl Operation for GetGeneratorAsync {
     const NAME: &'static str = "GetGeneratorAsync";
     const INSTRUCTION: &'static str = "INST - GetGeneratorAsync";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let code = raw_context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_generator_function_object(code, true, None, context);
-        context.vm.push(function);
+        context.as_raw_context_mut().vm.push(function);
         Ok(CompletionType::Normal)
     }
 }

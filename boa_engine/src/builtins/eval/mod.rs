@@ -57,7 +57,7 @@ impl Eval {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
-    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn eval(_: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Return ? PerformEval(x, false, false).
         Self::perform_eval(args.get_or_undefined(0), false, false, context)
     }
@@ -72,7 +72,7 @@ impl Eval {
         x: &JsValue,
         direct: bool,
         mut strict: bool,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         bitflags::bitflags! {
             /// Flags used to throw early errors on invalid `eval` calls.
@@ -112,24 +112,31 @@ impl Eval {
             .host_hooks()
             .ensure_can_compile_strings(context.realm().clone(), context)?;
 
+        let raw_context = context.as_raw_context_mut();
+
         // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
         //     a. Let script be ParseText(StringToCodePoints(x), Script).
         //     b. If script is a List of errors, throw a SyntaxError exception.
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
         let mut parser = Parser::new(Source::from_bytes(&x));
-        parser.set_identifier(context.next_parser_identifier());
+        parser.set_identifier(raw_context.next_parser_identifier());
         if strict {
             parser.set_strict();
         }
-        let body = parser.parse_eval(direct, context.interner_mut())?;
+        let body = parser.parse_eval(direct, raw_context.interner_mut())?;
 
         // 6. Let inFunction be false.
         // 7. Let inMethod be false.
         // 8. Let inDerivedConstructor be false.
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
-        let flags = match context.vm.environments.get_this_environment().as_function() {
+        let flags = match raw_context
+            .vm
+            .environments
+            .get_this_environment()
+            .as_function()
+        {
             // 10. If direct is true, then
             //     b. If thisEnvRec is a Function Environment Record, then
             Some(function_env) if direct => {
@@ -197,11 +204,11 @@ impl Eval {
 
             // Poison the last parent function environment, because it may contain new declarations after/during eval.
             if !strict {
-                context.vm.environments.poison_until_last_function();
+                raw_context.vm.environments.poison_until_last_function();
             }
 
             // Set the compile time environment to the current running environment and save the number of current environments.
-            let environments_len = context.vm.environments.len();
+            let environments_len = raw_context.vm.environments.len();
 
             // Pop any added runtime environments that were not removed during the eval execution.
             EnvStackAction::Truncate(environments_len)
@@ -209,17 +216,20 @@ impl Eval {
             // If the call to eval is indirect, the code is executed in the global environment.
 
             // Pop all environments before the eval execution.
-            let environments = context.vm.environments.pop_to_global();
+            let environments = raw_context.vm.environments.pop_to_global();
 
             // Restore all environments to the state from before the eval execution.
             EnvStackAction::Restore(environments)
         };
 
-        let context = &mut context.guard(move |ctx| match action {
-            EnvStackAction::Truncate(len) => ctx.vm.environments.truncate(len),
-            EnvStackAction::Restore(envs) => {
-                ctx.vm.environments.truncate(1);
-                ctx.vm.environments.extend(envs);
+        let context = &mut context.guard(move |ctx| {
+            let context = ctx.as_raw_context_mut();
+            match action {
+                EnvStackAction::Truncate(len) => context.vm.environments.truncate(len),
+                EnvStackAction::Restore(envs) => {
+                    context.vm.environments.truncate(1);
+                    context.vm.environments.extend(envs);
+                }
             }
         });
 
@@ -227,8 +237,12 @@ impl Eval {
             Sym::MAIN,
             body.strict(),
             false,
-            context.vm.environments.current_compile_environment(),
-            context,
+            context
+                .as_raw_context()
+                .vm
+                .environments
+                .current_compile_environment(),
+            &mut **context,
         );
 
         compiler.push_compile_environment(strict);
@@ -245,18 +259,22 @@ impl Eval {
 
         let code_block = Gc::new(compiler.finish());
 
-        // Indirect calls don't need extensions, because a non-strict indirect call modifies only
-        // the global object.
-        // Strict direct calls also don't need extensions, since all strict eval calls push a new
-        // function environment before evaluating.
-        if direct && !strict {
-            context.vm.environments.extend_outer_function_environment();
+        {
+            let vm = &mut context.as_raw_context_mut().vm;
+            // Indirect calls don't need extensions, because a non-strict indirect call modifies only
+            // the global object.
+            // Strict direct calls also don't need extensions, since all strict eval calls push a new
+            // function environment before evaluating.
+            if direct && !strict {
+                vm.environments.extend_outer_function_environment();
+            }
+
+            vm.push_frame(CallFrame::new(code_block));
         }
 
-        context.vm.push_frame(CallFrame::new(code_block));
         context.realm().resize_global_env();
         let record = context.run();
-        context.vm.pop_frame();
+        context.as_raw_context_mut().vm.pop_frame();
 
         record.consume()
     }

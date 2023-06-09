@@ -29,7 +29,7 @@ pub(crate) fn array_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     match *key {
@@ -109,7 +109,7 @@ pub(crate) fn array_exotic_define_own_property(
 fn array_set_length(
     obj: &JsObject,
     desc: PropertyDescriptor,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<bool> {
     // 1. If Desc.[[Value]] is absent, then
     let Some(new_len_val) = desc.value() else {

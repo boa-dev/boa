@@ -80,7 +80,7 @@ impl BuiltInConstructor for BigInt {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is not undefined, throw a TypeError exception.
         if !new_target.is_undefined() {
@@ -168,7 +168,7 @@ impl BigInt {
     pub(crate) fn to_string(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let x be ? thisBigIntValue(this value).
         let x = Self::this_bigint_value(this)?;
@@ -220,7 +220,7 @@ impl BigInt {
     pub(crate) fn value_of(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_bigint_value(this)?))
     }
@@ -235,7 +235,7 @@ impl BigInt {
     pub(crate) fn as_int_n(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let (modulo, bits) = Self::calculate_as_uint_n(args, context)?;
 
@@ -261,7 +261,7 @@ impl BigInt {
     pub(crate) fn as_uint_n(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let (modulo, _) = Self::calculate_as_uint_n(args, context)?;
 
@@ -275,7 +275,7 @@ impl BigInt {
     /// can be reused from the `as_int_n` method.
     fn calculate_as_uint_n(
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<(JsBigInt, u32)> {
         let bits_arg = args.get_or_undefined(0);
         let bigint_arg = args.get_or_undefined(1);

@@ -870,7 +870,7 @@ fn array_spread_non_iterable() {
 #[test]
 fn get_relative_start() {
     #[track_caller]
-    fn assert(context: &mut Context<'_>, arg: Option<&JsValue>, len: u64, expected: u64) {
+    fn assert(context: &mut dyn Context<'_>, arg: Option<&JsValue>, len: u64, expected: u64) {
         assert_eq!(
             Array::get_relative_start(context, arg, len).unwrap(),
             expected
@@ -896,7 +896,7 @@ fn get_relative_start() {
 #[test]
 fn get_relative_end() {
     #[track_caller]
-    fn assert(context: &mut Context<'_>, arg: Option<&JsValue>, len: u64, expected: u64) {
+    fn assert(context: &mut dyn Context<'_>, arg: Option<&JsValue>, len: u64, expected: u64) {
         assert_eq!(
             Array::get_relative_end(context, arg, len).unwrap(),
             expected

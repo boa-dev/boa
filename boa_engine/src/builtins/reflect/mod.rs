@@ -83,7 +83,7 @@ impl Reflect {
     pub(crate) fn apply(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
@@ -112,7 +112,7 @@ impl Reflect {
     pub(crate) fn construct(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If IsConstructor(target) is false, throw a TypeError exception.
         let target = args
@@ -152,7 +152,7 @@ impl Reflect {
     pub(crate) fn define_property(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
@@ -183,7 +183,7 @@ impl Reflect {
     pub(crate) fn delete_property(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
@@ -205,7 +205,7 @@ impl Reflect {
     pub(crate) fn get(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = args
@@ -235,7 +235,7 @@ impl Reflect {
     pub(crate) fn get_own_property_descriptor(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         if args.get_or_undefined(0).is_object() {
             // This function is the same as Object.prototype.getOwnPropertyDescriptor, that why
@@ -263,7 +263,7 @@ impl Reflect {
     pub(crate) fn get_prototype_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
@@ -285,7 +285,7 @@ impl Reflect {
     pub(crate) fn has(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
@@ -309,7 +309,7 @@ impl Reflect {
     pub(crate) fn is_extensible(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
@@ -329,7 +329,7 @@ impl Reflect {
     pub(crate) fn own_keys(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
@@ -342,7 +342,7 @@ impl Reflect {
             .map(Into::into)
             .collect();
 
-        Ok(Array::create_array_from_list(keys, context).into())
+        Ok(Array::create_array_from_list(keys, context.as_raw_context()).into())
     }
 
     /// Prevents new properties from ever being added to an object.
@@ -356,7 +356,7 @@ impl Reflect {
     pub(crate) fn prevent_extensions(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
@@ -377,7 +377,7 @@ impl Reflect {
     pub(crate) fn set(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
@@ -405,7 +405,7 @@ impl Reflect {
     pub(crate) fn set_prototype_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)

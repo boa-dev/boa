@@ -11,7 +11,7 @@
 
 use crate::{
     builtins::{Array, BuiltInBuilder, BuiltInObject, IntrinsicObject},
-    context::{intrinsics::Intrinsics, BoaProvider},
+    context::{intrinsics::Intrinsics, IcuProvider},
     object::JsObject,
     property::Attribute,
     realm::Realm,
@@ -109,7 +109,7 @@ impl Intl {
     pub(crate) fn get_canonical_locales(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
 
@@ -119,7 +119,7 @@ impl Intl {
         // 2. Return CreateArrayFromList(ll).
         Ok(JsValue::Object(Array::create_array_from_list(
             ll.into_iter().map(|loc| loc.to_string().into()),
-            context,
+            context.as_raw_context(),
         )))
     }
 }
@@ -151,7 +151,7 @@ trait Service {
     fn resolve(
         _locale: &mut icu_locid::Locale,
         _options: &mut Self::LocaleOptions,
-        _provider: BoaProvider<'_>,
+        _provider: &IcuProvider<'_>,
     ) {
     }
 }

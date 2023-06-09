@@ -17,7 +17,8 @@ impl Operation for NewTarget {
     const NAME: &'static str = "NewTarget";
     const INSTRUCTION: &'static str = "INST - NewTarget";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let new_target = if let Some(new_target) = context
             .vm
             .environments
@@ -45,7 +46,7 @@ impl Operation for ImportMeta {
     const NAME: &'static str = "ImportMeta";
     const INSTRUCTION: &'static str = "INST - ImportMeta";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
         // Meta Properties
         //
         // ImportMeta : import . meta
@@ -54,7 +55,7 @@ impl Operation for ImportMeta {
 
         // 1. Let module be GetActiveScriptOrModule().
 
-        let Some(ActiveRunnable::Module(module)) = context.vm.active_runnable.clone() else {
+        let Some(ActiveRunnable::Module(module)) = context.as_raw_context().vm.active_runnable.clone() else {
             unreachable!("2. Assert: module is a Source Text Module Record.");
         };
 
@@ -77,9 +78,7 @@ impl Operation for ImportMeta {
                 // c. For each Record { [[Key]], [[Value]] } p of importMetaValues, do
                 //     i. Perform ! CreateDataPropertyOrThrow(importMeta, p.[[Key]], p.[[Value]]).
                 // d. Perform HostFinalizeImportMeta(importMeta, module).
-                context
-                    .module_loader()
-                    .init_import_meta(&import_meta, &module, context);
+                context.init_import_meta(&import_meta, &module);
 
                 // e. Set module.[[ImportMeta]] to importMeta.
                 import_meta
@@ -88,7 +87,7 @@ impl Operation for ImportMeta {
 
         //     b. Return importMeta.
         //     f. Return importMeta.
-        context.vm.push(import_meta);
+        context.as_raw_context_mut().vm.push(import_meta);
 
         Ok(CompletionType::Normal)
     }

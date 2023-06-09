@@ -27,7 +27,7 @@
 //!     const LENGTH: usize = 1;
 //!
 //!     // This is what is called when we do `new Animal()`
-//!     fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self> {
+//!     fn constructor(_this: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<Self> {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
@@ -83,7 +83,11 @@ pub trait Class: NativeObject + Sized {
     const ATTRIBUTES: Attribute = Attribute::all();
 
     /// The constructor of the class.
-    fn constructor(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self>;
+    fn constructor(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<Self>;
 
     /// Initializes the internals and the methods of the class.
     fn init(class: &mut ClassBuilder<'_, '_>) -> JsResult<()>;
@@ -97,7 +101,7 @@ pub trait ClassConstructor: Class {
     fn raw_constructor(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue>
     where
         Self: Sized;
@@ -107,7 +111,7 @@ impl<T: Class> ClassConstructor for T {
     fn raw_constructor(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue>
     where
         Self: Sized,
@@ -162,12 +166,12 @@ impl<T: Class> ClassConstructor for T {
 
 /// Class builder which allows adding methods and static methods to the class.
 #[derive(Debug)]
-pub struct ClassBuilder<'ctx, 'host> {
-    builder: ConstructorBuilder<'ctx, 'host>,
+pub struct ClassBuilder<'ctx, 'icu> {
+    builder: ConstructorBuilder<'ctx, 'icu>,
 }
 
-impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
-    pub(crate) fn new<T>(context: &'ctx mut Context<'host>) -> Self
+impl<'ctx, 'icu> ClassBuilder<'ctx, 'icu> {
+    pub(crate) fn new<T>(context: &'ctx mut dyn Context<'icu>) -> Self
     where
         T: ClassConstructor,
     {
@@ -293,7 +297,7 @@ impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
 
     /// Return the current context.
     #[inline]
-    pub fn context(&mut self) -> &mut Context<'host> {
+    pub fn context(&mut self) -> &mut dyn Context<'icu> {
         self.builder.context()
     }
 }

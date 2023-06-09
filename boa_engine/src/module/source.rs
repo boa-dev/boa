@@ -412,7 +412,7 @@ impl SourceTextModule {
     /// Abstract operation [`InnerModuleLoading`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLoading
-    pub(super) fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut Context<'_>) {
+    pub(super) fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut dyn Context<'_>) {
         // 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
@@ -444,7 +444,7 @@ impl SourceTextModule {
                         .into_common(false);
                     let src = self.clone();
                     let state = state.clone();
-                    context.module_loader().load_imported_module(
+                    context.load_imported_module(
                         Referrer::Module(self.parent()),
                         name_specifier,
                         Box::new(move |completion, context| {
@@ -503,7 +503,6 @@ impl SourceTextModule {
 
                             // 4. Return unused.
                         }),
-                        context,
                     );
                 }
                 // iii. If state.[[IsLoading]] is false, return unused.
@@ -693,7 +692,7 @@ impl SourceTextModule {
     /// Concrete method [`Link ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
-    pub(super) fn link(&self, context: &mut Context<'_>) -> JsResult<()> {
+    pub(super) fn link(&self, context: &mut dyn Context<'_>) -> JsResult<()> {
         // 1. Assert: module.[[Status]] is one of unlinked, linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
             &*self.inner.status.borrow(),
@@ -741,7 +740,7 @@ impl SourceTextModule {
         &self,
         stack: &mut Vec<Self>,
         mut index: usize,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<usize> {
         // 2. If module.[[Status]] is one of linking, linked, evaluating-async, or evaluated, then
         if matches!(
@@ -884,7 +883,7 @@ impl SourceTextModule {
     /// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduleevaluation
-    pub(super) fn evaluate(&self, context: &mut Context<'_>) -> JsPromise {
+    pub(super) fn evaluate(&self, context: &mut dyn Context<'_>) -> JsPromise {
         // 1. Assert: This call to Evaluate is not happening at the same time as another call to Evaluate within the surrounding agent.
         let (module, promise) = {
             match &*self.inner.status.borrow() {
@@ -1014,7 +1013,7 @@ impl SourceTextModule {
         stack: &mut Vec<Self>,
         mut index: usize,
         capability: Option<PromiseCapability>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<usize> {
         /// Gets the next evaluation index of an async module.
         ///
@@ -1245,7 +1244,7 @@ impl SourceTextModule {
     /// Abstract operation [`ExecuteAsyncModule ( module )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-execute-async-module
-    fn execute_async(&self, context: &mut Context<'_>) {
+    fn execute_async(&self, context: &mut dyn Context<'_>) {
         // 1. Assert: module.[[Status]] is either evaluating or evaluating-async.
         debug_assert!(matches!(
             &*self.inner.status.borrow(),
@@ -1354,7 +1353,7 @@ impl SourceTextModule {
     /// Abstract operation [`InitializeEnvironment ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-initialize-environment
-    fn initialize_environment(&self, context: &mut Context<'_>) -> JsResult<()> {
+    fn initialize_environment(&self, context: &mut dyn Context<'_>) -> JsResult<()> {
         #[derive(Debug)]
         enum ImportBinding {
             Namespace {
@@ -1366,6 +1365,8 @@ impl SourceTextModule {
                 export_locator: ResolvedBinding,
             },
         }
+
+        let raw_context = context.as_raw_context();
 
         let parent = self.parent();
 
@@ -1380,13 +1381,13 @@ impl SourceTextModule {
                         ResolveExportError::NotFound => {
                             JsNativeError::syntax().with_message(format!(
                                 "could not find export `{}`",
-                                context.interner().resolve_expect(e.export_name())
+                                raw_context.interner().resolve_expect(e.export_name())
                             ))
                         }
                         ResolveExportError::Ambiguous => {
                             JsNativeError::syntax().with_message(format!(
                                 "could not resolve ambiguous export `{}`",
-                                context.interner().resolve_expect(e.export_name())
+                                raw_context.interner().resolve_expect(e.export_name())
                             ))
                         }
                     })?;
@@ -1599,8 +1600,10 @@ impl SourceTextModule {
         let mut envs = EnvironmentStack::new(global_env);
         envs.push_module(module_compile_env);
 
+        let raw_context = context.as_raw_context_mut();
+
         // 12. Set the ScriptOrModule of moduleContext to module.
-        let active_runnable = context
+        let active_runnable = raw_context
             .vm
             .active_runnable
             .replace(ActiveRunnable::Module(parent.clone()));
@@ -1608,15 +1611,15 @@ impl SourceTextModule {
         // 13. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 14. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
         // 15. Set the PrivateEnvironment of moduleContext to null.
-        std::mem::swap(&mut context.vm.environments, &mut envs);
-        let stack = std::mem::take(&mut context.vm.stack);
+        std::mem::swap(&mut raw_context.vm.environments, &mut envs);
+        let stack = std::mem::take(&mut raw_context.vm.stack);
 
         // 9. Set the Function of moduleContext to null.
-        let active_function = context.vm.active_function.take();
+        let active_function = raw_context.vm.active_function.take();
 
         // 10. Assert: module.[[Realm]] is not undefined.
         // 11. Set the Realm of moduleContext to module.[[Realm]].
-        context.swap_realm(&mut realm);
+        raw_context.swap_realm(&mut realm);
         // 17. Push moduleContext onto the execution context stack; moduleContext is now the running execution context.
 
         // deferred initialization of import bindings
@@ -1624,8 +1627,8 @@ impl SourceTextModule {
             match import {
                 ImportBinding::Namespace { locator, module } => {
                     // i. Let namespace be GetModuleNamespace(importedModule).
-                    let namespace = module.namespace(context);
-                    context.vm.environments.put_lexical_value(
+                    let namespace = module.namespace(raw_context);
+                    raw_context.vm.environments.put_lexical_value(
                         locator.environment_index(),
                         locator.binding_index(),
                         namespace.into(),
@@ -1635,7 +1638,7 @@ impl SourceTextModule {
                     locator,
                     export_locator,
                 } => match export_locator.binding_name() {
-                    BindingName::Name(name) => context
+                    BindingName::Name(name) => raw_context
                         .vm
                         .environments
                         .current()
@@ -1645,8 +1648,8 @@ impl SourceTextModule {
                         .expect("last environment should be the module env")
                         .set_indirect(locator.binding_index(), export_locator.module, name),
                     BindingName::Namespace => {
-                        let namespace = export_locator.module.namespace(context);
-                        context.vm.environments.put_lexical_value(
+                        let namespace = export_locator.module.namespace(raw_context);
+                        raw_context.vm.environments.put_lexical_value(
                             locator.environment_index(),
                             locator.binding_index(),
                             namespace.into(),
@@ -1666,19 +1669,25 @@ impl SourceTextModule {
                 create_function_object_fast(code, kind.is_async(), false, false, context)
             };
 
-            context.vm.environments.put_lexical_value(
-                locator.environment_index(),
-                locator.binding_index(),
-                function.into(),
-            );
+            context
+                .as_raw_context_mut()
+                .vm
+                .environments
+                .put_lexical_value(
+                    locator.environment_index(),
+                    locator.binding_index(),
+                    function.into(),
+                );
         }
 
+        let raw_context = context.as_raw_context_mut();
+
         // 25. Remove moduleContext from the execution context stack.
-        std::mem::swap(&mut context.vm.environments, &mut envs);
-        context.vm.stack = stack;
-        context.vm.active_function = active_function;
-        context.vm.active_runnable = active_runnable;
-        context.swap_realm(&mut realm);
+        std::mem::swap(&mut raw_context.vm.environments, &mut envs);
+        raw_context.vm.stack = stack;
+        raw_context.vm.active_function = active_function;
+        raw_context.vm.active_runnable = active_runnable;
+        raw_context.swap_realm(&mut realm);
 
         debug_assert!(envs.current().as_declarative().is_some());
         *parent.inner.environment.borrow_mut() = envs.current().as_declarative().cloned();
@@ -1711,7 +1720,7 @@ impl SourceTextModule {
     fn execute(
         &self,
         capability: Option<PromiseCapability>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         // 1. Let moduleContext be a new ECMAScript code execution context.
         let SourceTextContext {
@@ -1728,8 +1737,10 @@ impl SourceTextModule {
         let mut callframe = CallFrame::new(codeblock);
         callframe.promise_capability = capability;
 
+        let raw_context = context.as_raw_context_mut();
+
         // 4. Set the ScriptOrModule of moduleContext to module.
-        let active_runnable = context
+        let active_runnable = raw_context
             .vm
             .active_runnable
             .replace(ActiveRunnable::Module(self.parent()));
@@ -1737,14 +1748,14 @@ impl SourceTextModule {
         // 5. Assert: module has been linked and declarations in its module environment have been instantiated.
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 7. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
-        std::mem::swap(&mut context.vm.environments, &mut environments);
-        let stack = std::mem::take(&mut context.vm.stack);
+        std::mem::swap(&mut raw_context.vm.environments, &mut environments);
+        let stack = std::mem::take(&mut raw_context.vm.stack);
         // 2. Set the Function of moduleContext to null.
-        let function = context.vm.active_function.take();
+        let function = raw_context.vm.active_function.take();
         // 3. Set the Realm of moduleContext to module.[[Realm]].
-        context.swap_realm(&mut realm);
+        raw_context.swap_realm(&mut realm);
         // 8. Suspend the running execution context.
-        context.vm.push_frame(callframe);
+        raw_context.vm.push_frame(callframe);
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.
@@ -1757,12 +1768,14 @@ impl SourceTextModule {
         //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
         let result = context.run();
 
-        std::mem::swap(&mut context.vm.environments, &mut environments);
-        context.vm.stack = stack;
-        context.vm.active_function = function;
-        context.vm.active_runnable = active_runnable;
-        context.swap_realm(&mut realm);
-        context.vm.pop_frame();
+        let raw_context = context.as_raw_context_mut();
+
+        std::mem::swap(&mut raw_context.vm.environments, &mut environments);
+        raw_context.vm.stack = stack;
+        raw_context.vm.active_function = function;
+        raw_context.vm.active_runnable = active_runnable;
+        raw_context.swap_realm(&mut realm);
+        raw_context.vm.pop_frame();
 
         //     f. If result is an abrupt completion, then
         if let CompletionRecord::Throw(err) = result {
@@ -1789,7 +1802,7 @@ impl SourceTextModule {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-async-module-execution-fulfilled
 #[allow(clippy::mutable_key_type)]
-fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut Context<'_>) {
+fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut dyn Context<'_>) {
     // 1. If module.[[Status]] is evaluated, then
     if let Status::Evaluated { error, .. } = &*module.inner.status.borrow() {
         //     a. Assert: module.[[EvaluationError]] is not empty.
@@ -1914,7 +1927,7 @@ fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut Con
 fn async_module_execution_rejected(
     module: &SourceTextModule,
     error: &JsError,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) {
     // 1. If module.[[Status]] is evaluated, then
     if let Status::Evaluated { error, .. } = &*module.inner.status.borrow() {

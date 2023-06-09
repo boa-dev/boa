@@ -104,7 +104,7 @@ impl BuiltInConstructor for Segmenter {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -137,7 +137,7 @@ impl BuiltInConstructor for Segmenter {
                 matcher,
                 ..Default::default()
             },
-            context.icu(),
+            context.icu_provider(),
         );
 
         // 12. Let granularity be ? GetOption(options, "granularity", string, « "grapheme", "word", "sentence" », "grapheme").
@@ -147,8 +147,7 @@ impl BuiltInConstructor for Segmenter {
         // 13. Set segmenter.[[SegmenterGranularity]] to granularity.
 
         let kind = context
-            .icu()
-            .provider()
+            .icu_provider()
             .try_new_segmenter(granularity)
             .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
 
@@ -188,7 +187,7 @@ impl Segmenter {
     fn supported_locales_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
@@ -215,7 +214,7 @@ impl Segmenter {
     fn resolved_options(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
@@ -256,7 +255,11 @@ impl Segmenter {
     /// Segments a string according to the locale and granularity of this `Intl.Segmenter` object.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.segmenter.prototype.segment
-    fn segment(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn segment(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
         let segmenter = this
@@ -283,7 +286,7 @@ fn create_segment_data_object(
     string: JsString,
     range: Range<usize>,
     is_word_like: Option<bool>,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsObject {
     // 1. Let len be the length of string.
     // 2. Assert: startIndex ≥ 0.

@@ -16,11 +16,12 @@ macro_rules! implement_bin_ops {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
 
-            fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-                let rhs = context.vm.pop();
-                let lhs = context.vm.pop();
+            fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+                let raw_context = context.as_raw_context_mut();
+                let rhs = raw_context.vm.pop();
+                let lhs = raw_context.vm.pop();
                 let value = lhs.$op(&rhs, context)?;
-                context.vm.push(value);
+                context.as_raw_context_mut().vm.push(value);
                 Ok(CompletionType::Normal)
             }
         }

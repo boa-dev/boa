@@ -18,7 +18,8 @@ impl Operation for TemplateLookup {
     const NAME: &'static str = "TemplateLookup";
     const INSTRUCTION: &'static str = "INST - TemplateLookup";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let jump = context.vm.read::<u32>();
         let site = context.vm.read::<u64>();
 
@@ -42,9 +43,10 @@ impl Operation for TemplateCreate {
     const NAME: &'static str = "TemplateCreate";
     const INSTRUCTION: &'static str = "INST - TemplateCreate";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let count = context.vm.read::<u32>();
-        let site = context.vm.read::<u64>();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let count = raw_context.vm.read::<u32>();
+        let site = raw_context.vm.read::<u64>();
 
         let template =
             Array::array_create(count.into(), None, context).expect("cannot fail per spec");
@@ -52,8 +54,9 @@ impl Operation for TemplateCreate {
             Array::array_create(count.into(), None, context).expect("cannot fail per spec");
 
         for index in (0..count).rev() {
-            let raw_value = context.vm.pop();
-            let cooked_value = context.vm.pop();
+            let raw_context = context.as_raw_context_mut();
+            let raw_value = raw_context.vm.pop();
+            let cooked_value = raw_context.vm.pop();
             template
                 .define_property_or_throw(
                     index,
@@ -98,7 +101,7 @@ impl Operation for TemplateCreate {
 
         context.realm().push_template(site, template.clone());
 
-        context.vm.push(template);
+        context.as_raw_context_mut().vm.push(template);
         Ok(CompletionType::Normal)
     }
 }

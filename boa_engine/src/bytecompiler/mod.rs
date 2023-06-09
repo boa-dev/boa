@@ -210,9 +210,9 @@ impl Access<'_> {
 }
 
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
-#[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
-pub struct ByteCompiler<'ctx, 'host> {
+#[derive(Debug)]
+pub struct ByteCompiler<'ctx, 'icu> {
     /// Name of this function.
     pub(crate) function_name: Sym,
 
@@ -256,13 +256,13 @@ pub struct ByteCompiler<'ctx, 'host> {
     json_parse: bool,
 
     // TODO: remove when we separate scripts from the context
-    context: &'ctx mut Context<'host>,
+    context: &'ctx mut dyn Context<'icu>,
 
     #[cfg(feature = "annex-b")]
     annex_b_function_names: Vec<Identifier>,
 }
 
-impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
+impl<'ctx, 'icu> ByteCompiler<'ctx, 'icu> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
     const DUMMY_LABEL: Label = Label { index: u32::MAX };
@@ -275,8 +275,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         json_parse: bool,
         current_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
         // TODO: remove when we separate scripts from the context
-        context: &'ctx mut Context<'host>,
-    ) -> ByteCompiler<'ctx, 'host> {
+        context: &'ctx mut dyn Context<'icu>,
+    ) -> ByteCompiler<'ctx, 'icu> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
         Self {

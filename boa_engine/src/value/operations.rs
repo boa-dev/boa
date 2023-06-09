@@ -11,7 +11,7 @@ use crate::{
 
 impl JsValue {
     /// Perform the binary `+` operator on the value and return the result.
-    pub fn add(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn add(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             // Numeric add
@@ -51,7 +51,7 @@ impl JsValue {
     }
 
     /// Perform the binary `-` operator on the value and return the result.
-    pub fn sub(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn sub(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => x
@@ -77,7 +77,7 @@ impl JsValue {
     }
 
     /// Perform the binary `*` operator on the value and return the result.
-    pub fn mul(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn mul(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => x
@@ -103,7 +103,7 @@ impl JsValue {
     }
 
     /// Perform the binary `/` operator on the value and return the result.
-    pub fn div(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn div(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => x
@@ -144,7 +144,7 @@ impl JsValue {
     }
 
     /// Perform the binary `%` operator on the value and return the result.
-    pub fn rem(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn rem(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => {
@@ -197,7 +197,7 @@ impl JsValue {
     /// Perform the binary `**` operator on the value and return the result.
     // NOTE: There are some cases in the spec where we have to compare floats
     #[allow(clippy::float_cmp)]
-    pub fn pow(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn pow(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => u32::try_from(*y)
@@ -241,7 +241,7 @@ impl JsValue {
     }
 
     /// Perform the binary `&` operator on the value and return the result.
-    pub fn bitand(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn bitand(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::new(x & y),
@@ -271,7 +271,7 @@ impl JsValue {
     }
 
     /// Perform the binary `|` operator on the value and return the result.
-    pub fn bitor(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn bitor(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::new(x | y),
@@ -301,7 +301,7 @@ impl JsValue {
     }
 
     /// Perform the binary `^` operator on the value and return the result.
-    pub fn bitxor(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn bitxor(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::new(x ^ y),
@@ -331,7 +331,7 @@ impl JsValue {
     }
 
     /// Perform the binary `<<` operator on the value and return the result.
-    pub fn shl(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn shl(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::new(x.wrapping_shl(*y as u32)),
@@ -363,7 +363,7 @@ impl JsValue {
     }
 
     /// Perform the binary `>>` operator on the value and return the result.
-    pub fn shr(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn shr(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::new(x.wrapping_shr(*y as u32)),
@@ -395,7 +395,7 @@ impl JsValue {
     }
 
     /// Perform the binary `>>>` operator on the value and return the result.
-    pub fn ushr(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn ushr(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::new((*x as u32).wrapping_shr(*y as u32)),
@@ -434,7 +434,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-instanceofoperator
-    pub fn instance_of(&self, target: &Self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub fn instance_of(&self, target: &Self, context: &mut dyn Context<'_>) -> JsResult<bool> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         if !target.is_object() {
             return Err(JsNativeError::typ()
@@ -468,7 +468,7 @@ impl JsValue {
     }
 
     /// Returns the negated value.
-    pub fn neg(&self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn neg(&self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Ok(match *self {
             Self::Symbol(_) | Self::Undefined => Self::new(f64::NAN),
             Self::Object(_) => Self::new(
@@ -512,7 +512,7 @@ impl JsValue {
         &self,
         other: &Self,
         left_first: bool,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<AbstractRelation> {
         Ok(match (self, other) {
             // Fast path (for some common operations):
@@ -590,7 +590,7 @@ impl JsValue {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn lt(&self, other: &Self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub fn lt(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<bool> {
         match self.abstract_relation(other, true, context)? {
             AbstractRelation::True => Ok(true),
             AbstractRelation::False | AbstractRelation::Undefined => Ok(false),
@@ -607,7 +607,7 @@ impl JsValue {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than_or_equal
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn le(&self, other: &Self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub fn le(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<bool> {
         match other.abstract_relation(self, false, context)? {
             AbstractRelation::False => Ok(true),
             AbstractRelation::True | AbstractRelation::Undefined => Ok(false),
@@ -624,7 +624,7 @@ impl JsValue {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn gt(&self, other: &Self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub fn gt(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<bool> {
         match other.abstract_relation(self, false, context)? {
             AbstractRelation::True => Ok(true),
             AbstractRelation::False | AbstractRelation::Undefined => Ok(false),
@@ -641,7 +641,7 @@ impl JsValue {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than_or_equal
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn ge(&self, other: &Self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub fn ge(&self, other: &Self, context: &mut dyn Context<'_>) -> JsResult<bool> {
         match self.abstract_relation(other, true, context)? {
             AbstractRelation::False => Ok(true),
             AbstractRelation::True | AbstractRelation::Undefined => Ok(false),

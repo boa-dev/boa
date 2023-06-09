@@ -68,11 +68,12 @@ impl BuiltInConstructor for TypeError {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         let new_target = &if new_target.is_undefined() {
             context
+                .as_raw_context()
                 .vm
                 .active_function
                 .clone()
@@ -119,7 +120,11 @@ pub(crate) struct ThrowTypeError;
 
 impl IntrinsicObject for ThrowTypeError {
     fn init(realm: &Realm) {
-        fn throw_type_error(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+        fn throw_type_error(
+            _: &JsValue,
+            _: &[JsValue],
+            _: &mut dyn Context<'_>,
+        ) -> JsResult<JsValue> {
             Err(JsNativeError::typ()
                 .with_message(
                     "'caller', 'callee', and 'arguments' properties may not be accessed on strict mode \

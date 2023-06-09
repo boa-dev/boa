@@ -174,7 +174,7 @@ impl BuiltInConstructor for Locale {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -256,7 +256,10 @@ impl BuiltInConstructor for Locale {
                 .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
 
             // 10. Set tag to ! CanonicalizeUnicodeLocaleId(tag).
-            context.icu().locale_canonicalizer().canonicalize(&mut tag);
+            context
+                .icu_provider()
+                .locale_canonicalizer()
+                .canonicalize(&mut tag);
 
             // Skipping some boilerplate since this is easier to do using the `Locale` type, but putting the
             // spec for completion.
@@ -287,7 +290,10 @@ impl BuiltInConstructor for Locale {
             }
 
             // 17. Return ! CanonicalizeUnicodeLocaleId(tag).
-            context.icu().locale_canonicalizer().canonicalize(&mut tag);
+            context
+                .icu_provider()
+                .locale_canonicalizer()
+                .canonicalize(&mut tag);
         }
 
         // 12. Let opt be a new Record.
@@ -376,7 +382,10 @@ impl BuiltInConstructor for Locale {
             tag.extensions.unicode.keywords.set(key!("nu"), nu);
         }
 
-        context.icu().locale_canonicalizer().canonicalize(&mut tag);
+        context
+            .icu_provider()
+            .locale_canonicalizer()
+            .canonicalize(&mut tag);
 
         // 6. Let locale be ? OrdinaryCreateFromConstructor(NewTarget, "%Locale.prototype%", internalSlotsList).
         let prototype =
@@ -403,7 +412,7 @@ impl Locale {
     pub(crate) fn maximize(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -419,7 +428,7 @@ impl Locale {
             .clone();
 
         // 3. Let maximal be the result of the Add Likely Subtags algorithm applied to loc.[[Locale]]. If an error is signaled, set maximal to loc.[[Locale]].
-        context.icu().locale_expander().maximize(&mut loc);
+        context.icu_provider().locale_expander().maximize(&mut loc);
 
         // 4. Return ! Construct(%Locale%, maximal).
         let prototype = context.intrinsics().constructors().locale().prototype();
@@ -441,7 +450,7 @@ impl Locale {
     pub(crate) fn minimize(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -457,7 +466,7 @@ impl Locale {
             .clone();
 
         // 3. Let minimal be the result of the Remove Likely Subtags algorithm applied to loc.[[Locale]]. If an error is signaled, set minimal to loc.[[Locale]].
-        context.icu().locale_expander().minimize(&mut loc);
+        context.icu_provider().locale_expander().minimize(&mut loc);
 
         // 4. Return ! Construct(%Locale%, minimal).
         let prototype = context.intrinsics().constructors().locale().prototype();
@@ -479,7 +488,7 @@ impl Locale {
     pub(crate) fn to_string(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -504,7 +513,7 @@ impl Locale {
     pub(crate) fn base_name(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -532,7 +541,7 @@ impl Locale {
     pub(crate) fn calendar(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -565,7 +574,7 @@ impl Locale {
     pub(crate) fn case_first(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -598,7 +607,7 @@ impl Locale {
     pub(crate) fn collation(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -631,7 +640,7 @@ impl Locale {
     pub(crate) fn hour_cycle(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -661,7 +670,11 @@ impl Locale {
     ///
     /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/numeric
     /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.numeric
-    pub(crate) fn numeric(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn numeric(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -697,7 +710,7 @@ impl Locale {
     pub(crate) fn numbering_system(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -730,7 +743,7 @@ impl Locale {
     pub(crate) fn language(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -756,7 +769,11 @@ impl Locale {
     ///
     /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/script
     /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.script
-    pub(crate) fn script(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn script(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -786,7 +803,11 @@ impl Locale {
     ///
     /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/region
     /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.region
-    pub(crate) fn region(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn region(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {

@@ -14,7 +14,8 @@ impl Operation for FinallyStart {
     const NAME: &'static str = "FinallyStart";
     const INSTRUCTION: &'static str = "INST - FinallyStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let exit = context.vm.read::<u32>();
 
         let finally_env = context
@@ -40,7 +41,8 @@ impl Operation for FinallyEnd {
     const NAME: &'static str = "FinallyEnd";
     const INSTRUCTION: &'static str = "INST - FinallyEnd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let finally_candidates = context
             .vm
             .frame()

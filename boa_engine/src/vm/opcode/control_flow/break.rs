@@ -13,7 +13,8 @@ impl Operation for Break {
     const NAME: &'static str = "Break";
     const INSTRUCTION: &'static str = "INST - Break";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let jump_address = context.vm.read::<u32>();
         let target_address = context.vm.read::<u32>();
 
@@ -72,7 +73,8 @@ impl Operation for BreakLabel {
     const NAME: &'static str = "BreakLabel";
     const INSTRUCTION: &'static str = "INST - BreakLabel";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let jump_address = context.vm.read::<u32>();
         let target_address = context.vm.read::<u32>();
 

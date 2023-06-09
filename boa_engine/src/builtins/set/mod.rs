@@ -111,7 +111,7 @@ impl BuiltInConstructor for Set {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -170,7 +170,10 @@ impl BuiltInConstructor for Set {
 
 impl Set {
     /// Utility for constructing `Set` objects.
-    pub(crate) fn set_create(prototype: Option<JsObject>, context: &mut Context<'_>) -> JsObject {
+    pub(crate) fn set_create(
+        prototype: Option<JsObject>,
+        context: &mut dyn Context<'_>,
+    ) -> JsObject {
         let prototype =
             prototype.unwrap_or_else(|| context.intrinsics().constructors().set().prototype());
 
@@ -182,7 +185,7 @@ impl Set {
     }
 
     /// Utility for constructing `Set` objects from an iterator of `JsValue`'s.
-    pub(crate) fn create_set_from_list<I>(elements: I, context: &mut Context<'_>) -> JsObject
+    pub(crate) fn create_set_from_list<I>(elements: I, context: &mut dyn Context<'_>) -> JsObject
     where
         I: IntoIterator<Item = JsValue>,
     {
@@ -208,7 +211,7 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-get-set-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -223,7 +226,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/add
-    pub(crate) fn add(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn add(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         const JS_ZERO: &JsValue = &JsValue::Integer(0);
 
         // 1. Let S be the this value.
@@ -266,7 +273,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/clear
-    pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn clear(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         let mut object = this
             .as_object()
             .map(JsObject::borrow_mut)
@@ -295,7 +306,7 @@ impl Set {
     pub(crate) fn delete(
         this: &JsValue,
         args: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         const JS_ZERO: &JsValue = &JsValue::Integer(0);
 
@@ -339,7 +350,7 @@ impl Set {
     pub(crate) fn entries(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let Some(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) else {
             return Err(JsNativeError::typ()
@@ -368,7 +379,7 @@ impl Set {
     pub(crate) fn for_each(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
@@ -431,7 +442,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn has(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         const JS_ZERO: &JsValue = &JsValue::Integer(0);
 
         // 1. Let S be the this value.
@@ -472,7 +487,7 @@ impl Set {
     pub(crate) fn values(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let Some(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) else {
             return Err(JsNativeError::typ()
@@ -488,7 +503,7 @@ impl Set {
         ))
     }
 
-    fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn size_getter(this: &JsValue, _: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
         Self::get_size(this).map(JsValue::from)
     }
 

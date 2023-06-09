@@ -14,7 +14,8 @@ impl Operation for Jump {
     const NAME: &'static str = "Jump";
     const INSTRUCTION: &'static str = "INST - Jump";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let address = context.vm.read::<u32>();
         context.vm.frame_mut().pc = address;
         Ok(CompletionType::Normal)
@@ -32,7 +33,8 @@ impl Operation for JumpIfTrue {
     const NAME: &'static str = "JumpIfTrue";
     const INSTRUCTION: &'static str = "INST - JumpIfTrue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let address = context.vm.read::<u32>();
         if context.vm.pop().to_boolean() {
             context.vm.frame_mut().pc = address;
@@ -52,7 +54,8 @@ impl Operation for JumpIfFalse {
     const NAME: &'static str = "JumpIfFalse";
     const INSTRUCTION: &'static str = "INST - JumpIfFalse";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let address = context.vm.read::<u32>();
         if !context.vm.pop().to_boolean() {
             context.vm.frame_mut().pc = address;
@@ -72,7 +75,8 @@ impl Operation for JumpIfNotUndefined {
     const NAME: &'static str = "JumpIfNotUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNotUndefined";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let address = context.vm.read::<u32>();
         let value = context.vm.pop();
         if !value.is_undefined() {
@@ -94,7 +98,8 @@ impl Operation for JumpIfNullOrUndefined {
     const NAME: &'static str = "JumpIfNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNullOrUndefined";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let address = context.vm.read::<u32>();
         let value = context.vm.pop();
         if value.is_null_or_undefined() {

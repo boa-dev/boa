@@ -15,7 +15,8 @@ impl Operation for ThrowMutateImmutable {
     const NAME: &'static str = "ThrowMutateImmutable";
     const INSTRUCTION: &'static str = "INST - ThrowMutateImmutable";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let index = context.vm.read::<u32>();
         let name = &context.vm.frame().code_block.names[index as usize];
 
@@ -39,20 +40,18 @@ impl Operation for SetName {
     const NAME: &'static str = "SetName";
     const INSTRUCTION: &'static str = "INST - SetName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let mut binding_locator = raw_context.vm.frame().code_block.bindings[index as usize];
+        let value = raw_context.vm.pop();
+        let strict = raw_context.vm.frame().code_block.strict();
 
         context.find_runtime_binding(&mut binding_locator)?;
 
         verify_initialized(binding_locator, context)?;
 
-        context.set_binding(
-            binding_locator,
-            value,
-            context.vm.frame().code_block.strict(),
-        )?;
+        context.set_binding(binding_locator, value, strict)?;
 
         Ok(CompletionType::Normal)
     }
@@ -69,30 +68,29 @@ impl Operation for SetNameByLocator {
     const NAME: &'static str = "SetNameByLocator";
     const INSTRUCTION: &'static str = "INST - SetNameByLocator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let binding_locator = context
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let binding_locator = raw_context
             .vm
             .frame_mut()
             .binding_stack
             .pop()
             .expect("locator should have been popped before");
-        let value = context.vm.pop();
+        let value = raw_context.vm.pop();
+        let strict = raw_context.vm.frame().code_block.strict();
 
         verify_initialized(binding_locator, context)?;
 
-        context.set_binding(
-            binding_locator,
-            value,
-            context.vm.frame().code_block.strict(),
-        )?;
+        context.set_binding(binding_locator, value, strict)?;
 
         Ok(CompletionType::Normal)
     }
 }
 
 /// Checks that the binding pointed by `locator` exists and is initialized.
-fn verify_initialized(locator: BindingLocator, context: &mut Context<'_>) -> JsResult<()> {
+fn verify_initialized(locator: BindingLocator, context: &mut dyn Context<'_>) -> JsResult<()> {
     if !context.is_initialized_binding(&locator)? {
+        let context = context.as_raw_context_mut();
         let key = context.interner().resolve_expect(locator.name().sym());
         let strict = context.vm.frame().code_block.strict();
 

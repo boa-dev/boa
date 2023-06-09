@@ -14,7 +14,8 @@ impl Operation for CatchStart {
     const NAME: &'static str = "CatchStart";
     const INSTRUCTION: &'static str = "INST - CatchStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let start = context.vm.frame().pc - 1;
         let finally = context.vm.read::<u32>();
 
@@ -40,7 +41,8 @@ impl Operation for CatchEnd {
     const NAME: &'static str = "CatchEnd";
     const INSTRUCTION: &'static str = "INST - CatchEnd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
@@ -68,7 +70,8 @@ impl Operation for CatchEnd2 {
     const NAME: &'static str = "CatchEnd2";
     const INSTRUCTION: &'static str = "INST - CatchEnd2";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         if let Some(catch_entry) = context
             .vm
             .frame()

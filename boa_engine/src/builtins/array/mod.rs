@@ -17,7 +17,10 @@ use crate::{
     builtins::iterable::{if_abrupt_close_iterator, IteratorHint},
     builtins::BuiltInObject,
     builtins::Number,
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    context::{
+        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+        RawContext,
+    },
     error::JsNativeError,
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
@@ -146,11 +149,12 @@ impl BuiltInConstructor for Array {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         let new_target = &if new_target.is_undefined() {
             context
+                .as_raw_context()
                 .vm
                 .active_function
                 .clone()
@@ -237,7 +241,7 @@ impl BuiltInConstructor for Array {
 
 impl Array {
     /// Optimized helper function, that sets the length of the array.
-    fn set_length(o: &JsObject, len: u64, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_length(o: &JsObject, len: u64, context: &mut dyn Context<'_>) -> JsResult<()> {
         if o.is_array() && len < (2u64.pow(32) - 1) {
             let mut borrowed_object = o.borrow_mut();
             if borrowed_object.properties().shape.to_addr_usize()
@@ -267,7 +271,7 @@ impl Array {
     pub(crate) fn array_create(
         length: u64,
         prototype: Option<JsObject>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. If length > 2^32 - 1, throw a RangeError exception.
         if length > 2u64.pow(32) - 1 {
@@ -335,7 +339,7 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createarrayfromlist
-    pub(crate) fn create_array_from_list<I>(elements: I, context: &mut Context<'_>) -> JsObject
+    pub(crate) fn create_array_from_list<I>(elements: I, context: &RawContext<'_>) -> JsObject
     where
         I: IntoIterator<Item = JsValue>,
     {
@@ -366,7 +370,7 @@ impl Array {
     /// Returns a Boolean valued property that if `true` indicates that
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
-    fn is_concat_spreadable(o: &JsValue, context: &mut Context<'_>) -> JsResult<bool> {
+    fn is_concat_spreadable(o: &JsValue, context: &mut dyn Context<'_>) -> JsResult<bool> {
         // 1. If Type(O) is not Object, return false.
         let Some(o) = o.as_object() else {
             return Ok(false);
@@ -395,7 +399,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-get-array-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -407,7 +411,7 @@ impl Array {
     pub(crate) fn array_species_create(
         original_array: &JsObject,
         length: u64,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let isArray be ? IsArray(originalArray).
         // 2. If isArray is false, return ? ArrayCreate(length).
@@ -478,7 +482,7 @@ impl Array {
     pub(crate) fn from(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let items = args.get_or_undefined(0);
         let mapfn = args.get_or_undefined(1);
@@ -627,7 +631,7 @@ impl Array {
     pub(crate) fn is_array(
         _: &JsValue,
         args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Return ? IsArray(arg).
         args.get_or_undefined(0).is_array().map(Into::into)
@@ -647,7 +651,7 @@ impl Array {
     pub(crate) fn of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let len be the number of elements in items.
         // 2. Let lenNumber be 𝔽(len).
@@ -695,7 +699,7 @@ impl Array {
     pub(crate) fn at(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         //1. let O be ? ToObject(this value)
         let obj = this.to_object(context)?;
@@ -736,7 +740,7 @@ impl Array {
     pub(crate) fn concat(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let obj = this.to_object(context)?;
@@ -819,7 +823,7 @@ impl Array {
     pub(crate) fn push(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -862,7 +866,7 @@ impl Array {
     pub(crate) fn pop(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -906,7 +910,7 @@ impl Array {
     pub(crate) fn for_each(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -952,7 +956,7 @@ impl Array {
     pub(crate) fn join(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1008,7 +1012,7 @@ impl Array {
     pub(crate) fn to_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let array be ? ToObject(this value).
         let array = this.to_object(context)?;
@@ -1038,7 +1042,7 @@ impl Array {
     pub(crate) fn reverse(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1119,7 +1123,7 @@ impl Array {
     pub(crate) fn shift(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1181,7 +1185,7 @@ impl Array {
     pub(crate) fn unshift(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1253,7 +1257,7 @@ impl Array {
     pub(crate) fn every(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1305,7 +1309,7 @@ impl Array {
     pub(crate) fn map(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1354,7 +1358,7 @@ impl Array {
     pub(crate) fn index_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1441,7 +1445,7 @@ impl Array {
     pub(crate) fn last_index_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1511,7 +1515,7 @@ impl Array {
     pub(crate) fn find(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1568,7 +1572,7 @@ impl Array {
     pub(crate) fn find_index(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1620,7 +1624,7 @@ impl Array {
     pub(crate) fn find_last(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1672,7 +1676,7 @@ impl Array {
     pub(crate) fn find_last_index(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1722,7 +1726,7 @@ impl Array {
     pub(crate) fn flat(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ToObject(this value)
         let o = this.to_object(context)?;
@@ -1778,7 +1782,7 @@ impl Array {
     pub(crate) fn flat_map(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ToObject(this value)
         let o = this.to_object(context)?;
@@ -1825,7 +1829,7 @@ impl Array {
         depth: u64,
         mapper_function: Option<&JsObject>,
         this_arg: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<u64> {
         // 1. Assert target is Object
         // 2. Assert source is Object
@@ -1938,7 +1942,7 @@ impl Array {
     pub(crate) fn fill(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1986,7 +1990,7 @@ impl Array {
     pub(crate) fn includes_value(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2063,7 +2067,7 @@ impl Array {
     pub(crate) fn slice(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2131,7 +2135,7 @@ impl Array {
     pub(crate) fn to_locale_string(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let array be ? ToObject(this value).
         let array = this.to_object(context)?;
@@ -2191,7 +2195,7 @@ impl Array {
     pub(crate) fn splice(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2371,7 +2375,7 @@ impl Array {
     pub(crate) fn filter(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2437,7 +2441,7 @@ impl Array {
     pub(crate) fn some(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2489,7 +2493,7 @@ impl Array {
     pub(crate) fn sort(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
         let comparefn = match args.get_or_undefined(0) {
@@ -2509,7 +2513,7 @@ impl Array {
         //
         // [spec]: https://tc39.es/ecma262/#sec-sortcompare
         let sort_compare =
-            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<Ordering> {
+            |x: &JsValue, y: &JsValue, context: &mut dyn Context<'_>| -> JsResult<Ordering> {
                 match (x.is_undefined(), y.is_undefined()) {
                     // 1. If x and y are both undefined, return +0𝔽.
                     (true, true) => return Ok(Ordering::Equal),
@@ -2620,7 +2624,7 @@ impl Array {
     pub(crate) fn reduce(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2717,7 +2721,7 @@ impl Array {
     pub(crate) fn reduce_right(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2811,7 +2815,7 @@ impl Array {
     pub(crate) fn copy_within(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2901,7 +2905,7 @@ impl Array {
     pub(crate) fn values(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2927,7 +2931,7 @@ impl Array {
     pub(crate) fn keys(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2953,7 +2957,7 @@ impl Array {
     pub(crate) fn entries(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -2968,7 +2972,7 @@ impl Array {
 
     /// Represents the algorithm to calculate `relativeStart` (or `k`) in array functions.
     pub(super) fn get_relative_start(
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
         arg: Option<&JsValue>,
         len: u64,
     ) -> JsResult<u64> {
@@ -2993,7 +2997,7 @@ impl Array {
 
     /// Represents the algorithm to calculate `relativeEnd` (or `final`) in array functions.
     pub(super) fn get_relative_end(
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
         arg: Option<&JsValue>,
         len: u64,
     ) -> JsResult<u64> {

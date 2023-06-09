@@ -40,7 +40,7 @@ impl JsTypedArray {
     ///
     /// Same a `array.length` in JavaScript.
     #[inline]
-    pub fn length(&self, context: &mut Context<'_>) -> JsResult<usize> {
+    pub fn length(&self, context: &mut dyn Context<'_>) -> JsResult<usize> {
         Ok(TypedArray::length(&self.inner, &[], context)?
             .as_number()
             .map(|x| x as usize)
@@ -49,12 +49,12 @@ impl JsTypedArray {
 
     /// Check if the array is empty, i.e. the `length` is zero.
     #[inline]
-    pub fn is_empty(&self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub fn is_empty(&self, context: &mut dyn Context<'_>) -> JsResult<bool> {
         Ok(self.length(context)? == 0)
     }
 
     /// Calls `TypedArray.prototype.at()`.
-    pub fn at<T>(&self, index: T, context: &mut Context<'_>) -> JsResult<JsValue>
+    pub fn at<T>(&self, index: T, context: &mut dyn Context<'_>) -> JsResult<JsValue>
     where
         T: Into<i64>,
     {
@@ -63,7 +63,7 @@ impl JsTypedArray {
 
     /// Returns `TypedArray.prototype.byteLength`.
     #[inline]
-    pub fn byte_length(&self, context: &mut Context<'_>) -> JsResult<usize> {
+    pub fn byte_length(&self, context: &mut dyn Context<'_>) -> JsResult<usize> {
         Ok(TypedArray::byte_length(&self.inner, &[], context)?
             .as_number()
             .map(|x| x as usize)
@@ -72,7 +72,7 @@ impl JsTypedArray {
 
     /// Returns `TypedArray.prototype.byteOffset`.
     #[inline]
-    pub fn byte_offset(&self, context: &mut Context<'_>) -> JsResult<usize> {
+    pub fn byte_offset(&self, context: &mut dyn Context<'_>) -> JsResult<usize> {
         Ok(TypedArray::byte_offset(&self.inner, &[], context)?
             .as_number()
             .map(|x| x as usize)
@@ -85,7 +85,7 @@ impl JsTypedArray {
         value: T,
         start: Option<usize>,
         end: Option<usize>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Self>
     where
         T: Into<JsValue>,
@@ -107,7 +107,7 @@ impl JsTypedArray {
         &self,
         predicate: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<bool> {
         let result = TypedArray::every(
             &self.inner,
@@ -126,7 +126,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<bool> {
         let result = TypedArray::some(
             &self.inner,
@@ -144,7 +144,7 @@ impl JsTypedArray {
     pub fn sort(
         &self,
         compare_fn: Option<JsFunction>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Self> {
         TypedArray::sort(&self.inner, &[compare_fn.into_or_undefined()], context)?;
 
@@ -157,7 +157,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Self> {
         let object = TypedArray::filter(
             &self.inner,
@@ -174,7 +174,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Self> {
         let object = TypedArray::map(
             &self.inner,
@@ -191,7 +191,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         initial_value: Option<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         TypedArray::reduce(
             &self.inner,
@@ -206,7 +206,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         initial_value: Option<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         TypedArray::reduceright(
             &self.inner,
@@ -217,7 +217,7 @@ impl JsTypedArray {
 
     /// Calls `TypedArray.prototype.reverse()`.
     #[inline]
-    pub fn reverse(&self, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn reverse(&self, context: &mut dyn Context<'_>) -> JsResult<Self> {
         TypedArray::reverse(&self.inner, &[], context)?;
         Ok(self.clone())
     }
@@ -228,7 +228,7 @@ impl JsTypedArray {
         &self,
         start: Option<usize>,
         end: Option<usize>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Self> {
         let object = TypedArray::slice(
             &self.inner,
@@ -245,7 +245,7 @@ impl JsTypedArray {
         &self,
         predicate: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         TypedArray::find(
             &self.inner,
@@ -259,7 +259,7 @@ impl JsTypedArray {
         &self,
         search_element: T,
         from_index: Option<usize>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Option<usize>>
     where
         T: Into<JsValue>,
@@ -285,7 +285,7 @@ impl JsTypedArray {
         &self,
         search_element: T,
         from_index: Option<usize>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Option<usize>>
     where
         T: Into<JsValue>,
@@ -311,7 +311,7 @@ impl JsTypedArray {
     pub fn join(
         &self,
         separator: Option<JsString>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsString> {
         TypedArray::join(&self.inner, &[separator.into_or_undefined()], context).map(|x| {
             x.as_string()
@@ -350,7 +350,7 @@ impl Deref for JsTypedArray {
 impl JsObjectType for JsTypedArray {}
 
 impl TryFromJs for JsTypedArray {
-    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &mut dyn Context<'_>) -> JsResult<Self> {
         match value {
             JsValue::Object(o) => Self::from_object(o.clone()),
             _ => Err(JsNativeError::typ()
@@ -401,7 +401,7 @@ macro_rules! JsTypedArrayType {
             /// Create the typed array from a [`JsArrayBuffer`].
             pub fn from_array_buffer(
                 array_buffer: JsArrayBuffer,
-                context: &mut Context<'_>,
+                context: &mut dyn Context<'_>,
             ) -> JsResult<Self> {
                 let new_target = context
                     .intrinsics()
@@ -426,7 +426,7 @@ macro_rules! JsTypedArrayType {
             }
 
             /// Create the typed array from an iterator.
-            pub fn from_iter<I>(elements: I, context: &mut Context<'_>) -> JsResult<Self>
+            pub fn from_iter<I>(elements: I, context: &mut dyn Context<'_>) -> JsResult<Self>
             where
                 I: IntoIterator<Item = $element>,
             {
@@ -486,7 +486,7 @@ macro_rules! JsTypedArrayType {
         }
 
         impl TryFromJs for $name {
-            fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+            fn try_from_js(value: &JsValue, _context: &mut dyn Context<'_>) -> JsResult<Self> {
                 match value {
                     JsValue::Object(o) => Self::from_object(o.clone()),
                     _ => Err(JsNativeError::typ()

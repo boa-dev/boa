@@ -17,12 +17,13 @@ impl Operation for DefineClassStaticMethodByName {
     const NAME: &'static str = "DefineClassStaticMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let function = context.vm.pop();
-        let class = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let function = raw_context.vm.pop();
+        let class = raw_context.vm.pop();
         let class = class.as_object().expect("class must be object");
-        let key = context.vm.frame().code_block.names[index as usize]
+        let key = raw_context.vm.frame().code_block.names[index as usize]
             .clone()
             .into();
         {
@@ -63,12 +64,13 @@ impl Operation for DefineClassMethodByName {
     const NAME: &'static str = "DefineClassMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let function = context.vm.pop();
-        let class_proto = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let function = raw_context.vm.pop();
+        let class_proto = raw_context.vm.pop();
         let class_proto = class_proto.as_object().expect("class must be object");
-        let key = context.vm.frame().code_block.names[index as usize]
+        let key = raw_context.vm.frame().code_block.names[index as usize]
             .clone()
             .into();
         {
@@ -115,10 +117,11 @@ impl Operation for DefineClassStaticMethodByValue {
     const NAME: &'static str = "DefineClassStaticMethodByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let key = context.vm.pop();
-        let class = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let function = raw_context.vm.pop();
+        let key = raw_context.vm.pop();
+        let class = raw_context.vm.pop();
         let class = class.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -161,10 +164,11 @@ impl Operation for DefineClassMethodByValue {
     const NAME: &'static str = "DefineClassMethodByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let key = context.vm.pop();
-        let class_proto = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let function = raw_context.vm.pop();
+        let key = raw_context.vm.pop();
+        let class_proto = raw_context.vm.pop();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)

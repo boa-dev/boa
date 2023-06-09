@@ -387,8 +387,8 @@ impl ByteCompiler<'_, '_> {
         body: &Script,
         strict: bool,
     ) -> JsResult<()> {
-        let var_environment_is_global = self
-            .context
+        let raw_context = self.context.as_raw_context();
+        let var_environment_is_global = raw_context
             .vm
             .environments
             .is_next_outer_function_environment_global()
@@ -418,8 +418,7 @@ impl ByteCompiler<'_, '_> {
             //                 ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
             //             b. NOTE: A direct eval will not hoist var declaration over a like-named lexical declaration.
             //     ii. Set thisEnv to thisEnv.[[OuterEnv]].
-            if let Some(name) = self
-                .context
+            if let Some(name) = raw_context
                 .vm
                 .environments
                 .has_lex_binding_until_function_environment(&var_names)
@@ -437,11 +436,11 @@ impl ByteCompiler<'_, '_> {
         //         i. If privateIdentifiers does not contain binding.[[Description]],
         //            append binding.[[Description]] to privateIdentifiers.
         //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
-        let private_identifiers = self.context.vm.environments.private_name_descriptions();
+        let private_identifiers = raw_context.vm.environments.private_name_descriptions();
         let private_identifiers = private_identifiers
             .into_iter()
             .map(|ident| {
-                self.context
+                raw_context
                     .interner()
                     .get(ident.as_slice())
                     .expect("string should be in interner")
@@ -693,7 +692,11 @@ impl ByteCompiler<'_, '_> {
                 .compile(
                     parameters,
                     body,
-                    self.context.vm.environments.current_compile_environment(),
+                    self.context
+                        .as_raw_context()
+                        .vm
+                        .environments
+                        .current_compile_environment(),
                     self.context,
                 );
 

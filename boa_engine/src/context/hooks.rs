@@ -34,7 +34,7 @@ use super::intrinsics::Intrinsics;
 ///     fn ensure_can_compile_strings(
 ///         &self,
 ///         _realm: Realm,
-///         context: &mut Context<'_>,
+///         context: &mut dyn Context<'_>,
 ///     ) -> JsResult<()> {
 ///         Err(JsNativeError::typ().with_message("eval calls not available").into())
 ///     }
@@ -54,7 +54,11 @@ pub trait HostHooks {
     /// - It must return a `JobCallback` Record whose `[[Callback]]` field is `callback`.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostmakejobcallback
-    fn make_job_callback(&self, callback: JsFunction, _context: &mut Context<'_>) -> JobCallback {
+    fn make_job_callback(
+        &self,
+        callback: JsFunction,
+        _context: &mut dyn Context<'_>,
+    ) -> JobCallback {
         // The default implementation of HostMakeJobCallback performs the following steps when called:
 
         // 1. Return the JobCallback Record { [[Callback]]: callback, [[HostDefined]]: empty }.
@@ -73,7 +77,7 @@ pub trait HostHooks {
         job: JobCallback,
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // The default implementation of HostCallJobCallback performs the following steps when called:
 
@@ -95,7 +99,7 @@ pub trait HostHooks {
         &self,
         _promise: &JsObject,
         _operation: OperationType,
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) {
         // The default implementation of HostPromiseRejectionTracker is to return unused.
     }
@@ -112,7 +116,7 @@ pub trait HostHooks {
     fn ensure_can_compile_strings(
         &self,
         _realm: Realm,
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         // The default implementation of HostEnsureCanCompileStrings is to return NormalCompletion(unused).
         Ok(())
@@ -129,7 +133,7 @@ pub trait HostHooks {
     fn has_source_text_available(
         &self,
         _function: &JsFunction,
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> bool {
         // The default implementation of HostHasSourceTextAvailable is to return true.
         true
@@ -149,7 +153,7 @@ pub trait HostHooks {
     fn ensure_can_add_private_element(
         &self,
         _o: &JsObject,
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         Ok(())
     }

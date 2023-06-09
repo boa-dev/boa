@@ -19,8 +19,8 @@ impl Operation for Await {
     const NAME: &'static str = "Await";
     const INSTRUCTION: &'static str = "INST - Await";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let value = context.as_raw_context_mut().vm.pop();
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
         let promise = Promise::promise_resolve(
@@ -29,7 +29,7 @@ impl Operation for Await {
             context,
         )?;
 
-        let gen = GeneratorContext::from_current(context);
+        let gen = GeneratorContext::from_current(context.as_raw_context());
 
         let captures = Gc::new(GcRefCell::new(Some(gen)));
 
@@ -124,9 +124,11 @@ impl Operation for Await {
             None,
             context,
         );
-
-        context.vm.push(JsValue::undefined());
-        context.vm.frame_mut().r#yield = true;
+        {
+            let context = context.as_raw_context_mut();
+            context.vm.push(JsValue::undefined());
+            context.vm.frame_mut().r#yield = true;
+        }
         Ok(CompletionType::Return)
     }
 }

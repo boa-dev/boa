@@ -2,7 +2,7 @@
 
 use boa_engine::{
     context::DefaultHooks, object::shape::RootShape, optimizer::OptimizerOptions, realm::Realm,
-    script::Script, Context, Source,
+    script::Script, Context, DefaultContext, Source,
 };
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
@@ -27,7 +27,7 @@ macro_rules! full_benchmarks {
             $(
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
-                    let mut context = Context::default();
+                    let context: &mut dyn Context = &mut DefaultContext::default();
 
                     // Disable optimizations
                     context.set_optimizer_options(OptimizerOptions::empty());
@@ -37,7 +37,7 @@ macro_rules! full_benchmarks {
                             Script::parse(
                                 black_box(Source::from_bytes(CODE)),
                                 None,
-                                &mut context,
+                                context,
                             ).unwrap()
                         })
                     });
@@ -48,7 +48,7 @@ macro_rules! full_benchmarks {
             $(
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
-                    let context = &mut Context::default();
+                    let context: &mut dyn Context = &mut DefaultContext::default();
 
                     // Disable optimizations
                     context.set_optimizer_options(OptimizerOptions::empty());
@@ -70,7 +70,7 @@ macro_rules! full_benchmarks {
             $(
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
-                    let context = &mut Context::default();
+                    let context: &mut dyn Context = &mut DefaultContext::default();
 
                     // Disable optimizations
                     context.set_optimizer_options(OptimizerOptions::empty());

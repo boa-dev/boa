@@ -1,6 +1,6 @@
 use super::{formatter, Console};
 use crate::test::{run_test_actions, run_test_actions_with, TestAction};
-use boa_engine::{property::Attribute, Context, JsValue};
+use boa_engine::{property::Attribute, Context, DefaultContext, JsValue};
 use indoc::indoc;
 
 #[test]
@@ -87,8 +87,8 @@ fn formatter_float_format_works() {
 
 #[test]
 fn console_log_cyclic() {
-    let mut context = Context::default();
-    let console = Console::init(&mut context);
+    let context: &mut dyn Context<'_> = &mut DefaultContext::default();
+    let console = Console::init(context);
     context
         .register_global_property(Console::NAME, console, Attribute::all())
         .unwrap();
@@ -99,7 +99,7 @@ fn console_log_cyclic() {
                 a[1] = a;
                 console.log(a);
             "#})],
-        &mut context,
+        context,
     );
     // Should not stack overflow
 }

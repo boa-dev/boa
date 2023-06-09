@@ -169,7 +169,7 @@ impl JsError {
     ///
     /// assert!(error_val.as_object().unwrap().borrow().is_error());
     /// ```
-    pub fn to_opaque(&self, context: &mut Context<'_>) -> JsValue {
+    pub fn to_opaque(&self, context: &mut dyn Context<'_>) -> JsValue {
         match &self.inner {
             Repr::Native(e) => e.to_opaque(context).into(),
             Repr::Opaque(v) => v.clone(),
@@ -214,7 +214,10 @@ impl JsError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
     /// assert_eq!(error.message(), "type error!");
     /// ```
-    pub fn try_native(&self, context: &mut Context<'_>) -> Result<JsNativeError, TryNativeError> {
+    pub fn try_native(
+        &self,
+        context: &mut dyn Context<'_>,
+    ) -> Result<JsNativeError, TryNativeError> {
         match &self.inner {
             Repr::Native(e) => Ok(e.clone()),
             Repr::Opaque(val) => {
@@ -226,7 +229,7 @@ impl JsError {
                     .as_error()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
-                let try_get_property = |key, context: &mut Context<'_>| {
+                let try_get_property = |key, context: &mut dyn Context<'_>| {
                     obj.has_property(key, context)
                         .map_err(|e| TryNativeError::InaccessibleProperty {
                             property: key,
@@ -768,7 +771,7 @@ impl JsNativeError {
     ///
     /// If converting a [`JsNativeErrorKind::RuntimeLimit`] to an opaque object.
     #[inline]
-    pub fn to_opaque(&self, context: &mut Context<'_>) -> JsObject {
+    pub fn to_opaque(&self, context: &mut dyn Context<'_>) -> JsObject {
         let Self {
             kind,
             message,
@@ -828,7 +831,7 @@ impl JsNativeError {
                 .iter()
                 .map(|e| e.to_opaque(context))
                 .collect::<Vec<_>>();
-            let errors = Array::create_array_from_list(errors, context);
+            let errors = Array::create_array_from_list(errors, context.as_raw_context());
             o.define_property_or_throw(
                 utf16!("errors"),
                 PropertyDescriptor::builder()

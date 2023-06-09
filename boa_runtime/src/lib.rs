@@ -111,7 +111,7 @@ pub use console::Console;
 
 #[cfg(test)]
 pub(crate) mod test {
-    use boa_engine::{builtins, Context, JsResult, JsValue, Source};
+    use boa_engine::{builtins, Context, DefaultContext, JsResult, JsValue, Source};
     use std::borrow::Cow;
 
     /// A test action executed in a test function.
@@ -127,7 +127,7 @@ pub(crate) mod test {
             source: Cow<'static, str>,
         },
         InspectContext {
-            op: fn(&mut Context<'_>),
+            op: fn(&mut dyn Context<'_>),
         },
         Assert {
             source: Cow<'static, str>,
@@ -138,7 +138,7 @@ pub(crate) mod test {
         },
         AssertWithOp {
             source: Cow<'static, str>,
-            op: fn(JsValue, &mut Context<'_>) -> bool,
+            op: fn(JsValue, &mut dyn Context<'_>) -> bool,
         },
         AssertOpaqueError {
             source: Cow<'static, str>,
@@ -150,7 +150,7 @@ pub(crate) mod test {
             message: &'static str,
         },
         AssertContext {
-            op: fn(&mut Context<'_>) -> bool,
+            op: fn(&mut dyn Context<'_>) -> bool,
         },
     }
 
@@ -165,7 +165,7 @@ pub(crate) mod test {
         /// Executes `op` with the currently active context.
         ///
         /// Useful to make custom assertions that must be done from Rust code.
-        pub(crate) fn inspect_context(op: fn(&mut Context<'_>)) -> Self {
+        pub(crate) fn inspect_context(op: fn(&mut dyn Context<'_>)) -> Self {
             Self(Inner::InspectContext { op })
         }
     }
@@ -173,7 +173,7 @@ pub(crate) mod test {
     /// Executes a list of test actions on a new, default context.
     #[track_caller]
     pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
-        let context = &mut Context::default();
+        let context = &mut DefaultContext::default();
         run_test_actions_with(actions, context);
     }
 
@@ -182,10 +182,10 @@ pub(crate) mod test {
     #[allow(clippy::too_many_lines, clippy::missing_panics_doc)]
     pub(crate) fn run_test_actions_with(
         actions: impl IntoIterator<Item = TestAction>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) {
         #[track_caller]
-        fn forward_val(context: &mut Context<'_>, source: &str) -> JsResult<JsValue> {
+        fn forward_val(context: &mut dyn Context<'_>, source: &str) -> JsResult<JsValue> {
             context.eval(Source::from_bytes(source))
         }
 

@@ -16,21 +16,24 @@ impl Operation for SetClassPrototype {
     const NAME: &'static str = "SetClassPrototype";
     const INSTRUCTION: &'static str = "INST - SetClassPrototype";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let prototype_value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let prototype_value = raw_context.vm.pop();
         let prototype = match &prototype_value {
             JsValue::Object(proto) => Some(proto.clone()),
             JsValue::Null => None,
-            JsValue::Undefined => Some(context.intrinsics().constructors().object().prototype()),
+            JsValue::Undefined => {
+                Some(raw_context.intrinsics().constructors().object().prototype())
+            }
             _ => unreachable!(),
         };
 
         let proto = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
+            raw_context.root_shape(),
             prototype,
             ObjectData::ordinary(),
         );
-        let class = context.vm.pop();
+        let class = raw_context.vm.pop();
 
         {
             let class_object = class.as_object().expect("class must be object");
@@ -65,7 +68,7 @@ impl Operation for SetClassPrototype {
             )
             .expect("cannot fail per spec");
 
-        context.vm.push(proto);
+        context.as_raw_context_mut().vm.push(proto);
         Ok(CompletionType::Normal)
     }
 }

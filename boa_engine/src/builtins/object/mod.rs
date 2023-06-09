@@ -125,12 +125,13 @@ impl BuiltInConstructor for Object {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is neither undefined nor the active function object, then
         if !new_target.is_undefined()
             && new_target
                 != &context
+                    .as_raw_context()
                     .vm
                     .active_function
                     .clone()
@@ -175,7 +176,7 @@ impl Object {
     pub fn legacy_proto_getter(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let obj = this.to_object(context)?;
@@ -200,7 +201,7 @@ impl Object {
     pub fn legacy_proto_setter(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -244,7 +245,7 @@ impl Object {
     pub fn legacy_define_getter(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let getter = args.get_or_undefined(1);
 
@@ -287,7 +288,7 @@ impl Object {
     pub fn legacy_define_setter(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let setter = args.get_or_undefined(1);
 
@@ -330,7 +331,7 @@ impl Object {
     pub fn legacy_lookup_getter(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let mut obj = this.to_object(context)?;
@@ -374,7 +375,7 @@ impl Object {
     pub fn legacy_lookup_setter(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let mut obj = this.to_object(context)?;
@@ -416,7 +417,11 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.create
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-    pub fn create(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn create(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         let prototype = args.get_or_undefined(0);
         let properties = args.get_or_undefined(1);
 
@@ -457,7 +462,7 @@ impl Object {
     pub fn get_own_property_descriptor(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let obj be ? ToObject(O).
         let obj = args.get_or_undefined(0).to_object(context)?;
@@ -485,7 +490,7 @@ impl Object {
     pub fn get_own_property_descriptors(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let obj be ? ToObject(O).
         let obj = args.get_or_undefined(0).to_object(context)?;
@@ -524,7 +529,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-frompropertydescriptor
     pub(crate) fn from_property_descriptor(
         desc: Option<PropertyDescriptor>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsValue {
         // 1. If Desc is undefined, return undefined.
         let Some(desc)= desc else {
@@ -582,7 +587,7 @@ impl Object {
     }
 
     /// Uses the `SameValue` algorithm to check equality of objects
-    pub fn is(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn is(_: &JsValue, args: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
         let x = args.get_or_undefined(0);
         let y = args.get_or_undefined(1);
 
@@ -597,7 +602,7 @@ impl Object {
     pub fn get_prototype_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         if args.is_empty() {
             return Err(JsNativeError::typ()
@@ -624,7 +629,7 @@ impl Object {
     pub fn set_prototype_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         if args.len() < 2 {
             return Err(JsNativeError::typ()
@@ -689,7 +694,7 @@ impl Object {
     pub fn is_prototype_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let v = args.get_or_undefined(0);
         if !v.is_object() {
@@ -712,7 +717,7 @@ impl Object {
     pub fn define_property(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let object = args.get_or_undefined(0);
         if let JsValue::Object(object) = object {
@@ -748,7 +753,7 @@ impl Object {
     pub fn define_properties(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let arg = args.get_or_undefined(0);
         if let JsValue::Object(obj) = arg {
@@ -770,7 +775,11 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/valueOf
-    pub fn value_of(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn value_of(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Return ? ToObject(this value).
         Ok(this.to_object(context)?.into())
     }
@@ -789,7 +798,7 @@ impl Object {
     pub fn to_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If the this value is undefined, return "[object Undefined]".
         if this.is_undefined() {
@@ -851,7 +860,7 @@ impl Object {
     pub fn to_locale_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Return ? Invoke(O, "toString").
@@ -872,7 +881,7 @@ impl Object {
     pub fn has_own_property(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let P be ? ToPropertyKey(V).
         let key = args.get_or_undefined(0).to_property_key(context)?;
@@ -898,7 +907,7 @@ impl Object {
     pub fn property_is_enumerable(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let Some(key) = args.get(0) else {
             return Ok(JsValue::new(false));
@@ -928,7 +937,11 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.assign
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
-    pub fn assign(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn assign(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let to be ? ToObject(target).
         let to = args.get_or_undefined(0).to_object(context)?;
 
@@ -978,7 +991,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
-    pub fn keys(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn keys(_: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let obj be ? ToObject(target).
         let obj = args
             .get(0)
@@ -990,7 +1003,7 @@ impl Object {
         let name_list = obj.enumerable_own_property_names(PropertyNameKind::Key, context)?;
 
         // 3. Return CreateArrayFromList(nameList).
-        let result = Array::create_array_from_list(name_list, context);
+        let result = Array::create_array_from_list(name_list, context.as_raw_context());
 
         Ok(result.into())
     }
@@ -1003,7 +1016,11 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/values
-    pub fn values(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn values(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let obj be ? ToObject(target).
         let obj = args
             .get(0)
@@ -1015,7 +1032,7 @@ impl Object {
         let name_list = obj.enumerable_own_property_names(PropertyNameKind::Value, context)?;
 
         // 3. Return CreateArrayFromList(nameList).
-        let result = Array::create_array_from_list(name_list, context);
+        let result = Array::create_array_from_list(name_list, context.as_raw_context());
 
         Ok(result.into())
     }
@@ -1032,7 +1049,11 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
-    pub fn entries(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn entries(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let obj be ? ToObject(target).
         let obj = args
             .get(0)
@@ -1045,7 +1066,7 @@ impl Object {
             obj.enumerable_own_property_names(PropertyNameKind::KeyAndValue, context)?;
 
         // 3. Return CreateArrayFromList(nameList).
-        let result = Array::create_array_from_list(name_list, context);
+        let result = Array::create_array_from_list(name_list, context.as_raw_context());
 
         Ok(result.into())
     }
@@ -1058,7 +1079,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.seal
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal
-    pub fn seal(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn seal(_: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         let o = args.get_or_undefined(0);
 
         if let Some(o) = o.as_object() {
@@ -1087,7 +1108,7 @@ impl Object {
     pub fn is_sealed(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let o = args.get_or_undefined(0);
 
@@ -1109,7 +1130,11 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.freeze
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
-    pub fn freeze(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn freeze(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         let o = args.get_or_undefined(0);
 
         if let Some(o) = o.as_object() {
@@ -1138,7 +1163,7 @@ impl Object {
     pub fn is_frozen(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let o = args.get_or_undefined(0);
 
@@ -1163,7 +1188,7 @@ impl Object {
     pub fn prevent_extensions(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let o = args.get_or_undefined(0);
 
@@ -1193,7 +1218,7 @@ impl Object {
     pub fn is_extensible(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let o = args.get_or_undefined(0);
         // 1. If Type(O) is not Object, return false.
@@ -1216,7 +1241,7 @@ impl Object {
     pub fn get_own_property_names(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Return ? GetOwnPropertyKeys(O, string).
         let o = args.get_or_undefined(0);
@@ -1234,7 +1259,7 @@ impl Object {
     pub fn get_own_property_symbols(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Return ? GetOwnPropertyKeys(O, symbol).
         let o = args.get_or_undefined(0);
@@ -1249,7 +1274,11 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.hasown
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwn
-    pub fn has_own(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn has_own(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let obj be ? ToObject(O).
         let obj = args.get_or_undefined(0).to_object(context)?;
 
@@ -1271,7 +1300,7 @@ impl Object {
     pub fn from_entries(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireObjectCoercible(iterable).
         let iterable = args.get_or_undefined(0).require_object_coercible()?;
@@ -1319,7 +1348,7 @@ impl Object {
 fn object_define_properties(
     object: &JsObject,
     props: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<()> {
     // 1. Assert: Type(O) is Object.
     // 2. Let props be ? ToObject(Properties).
@@ -1377,7 +1406,7 @@ enum PropertyKeyType {
 fn get_own_property_keys(
     o: &JsValue,
     r#type: PropertyKeyType,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsValue> {
     // 1. Let obj be ? ToObject(o).
     let obj = o.to_object(context)?;
@@ -1399,5 +1428,5 @@ fn get_own_property_keys(
     });
 
     // 5. Return CreateArrayFromList(nameList).
-    Ok(Array::create_array_from_list(name_list, context).into())
+    Ok(Array::create_array_from_list(name_list, context.as_raw_context()).into())
 }

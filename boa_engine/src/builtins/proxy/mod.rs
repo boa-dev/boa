@@ -64,7 +64,7 @@ impl BuiltInConstructor for Proxy {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -105,7 +105,7 @@ impl Proxy {
     pub(crate) fn create(
         target: &JsValue,
         handler: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = target.as_object().ok_or_else(|| {
@@ -139,7 +139,7 @@ impl Proxy {
         Ok(p)
     }
 
-    pub(crate) fn revoker(proxy: JsObject, context: &mut Context<'_>) -> JsFunction {
+    pub(crate) fn revoker(proxy: JsObject, context: &mut dyn Context<'_>) -> JsFunction {
         // 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, "", « [[RevocableProxy]] »).
         // 4. Set revoker.[[RevocableProxy]] to p.
         FunctionObjectBuilder::new(
@@ -175,7 +175,11 @@ impl Proxy {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-proxy.revocable
-    fn revocable(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn revocable(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let p be ? ProxyCreate(target, handler).
         let p = Self::create(args.get_or_undefined(0), args.get_or_undefined(1), context)?;
 

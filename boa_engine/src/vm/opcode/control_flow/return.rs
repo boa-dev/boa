@@ -14,7 +14,8 @@ impl Operation for Return {
     const NAME: &'static str = "Return";
     const INSTRUCTION: &'static str = "INST - Return";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let current_address = context.vm.frame().pc;
         let mut env_to_pop = 0;
         let mut finally_address = None;

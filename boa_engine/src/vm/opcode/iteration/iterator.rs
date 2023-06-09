@@ -18,8 +18,9 @@ impl Operation for IteratorNext {
     const NAME: &'static str = "IteratorNext";
     const INSTRUCTION: &'static str = "INST - IteratorNext";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
         let mut iterator = context
+            .as_raw_context_mut()
             .vm
             .frame_mut()
             .iterators
@@ -28,7 +29,12 @@ impl Operation for IteratorNext {
 
         iterator.step(context)?;
 
-        context.vm.frame_mut().iterators.push(iterator);
+        context
+            .as_raw_context_mut()
+            .vm
+            .frame_mut()
+            .iterators
+            .push(iterator);
 
         Ok(CompletionType::Normal)
     }
@@ -46,8 +52,9 @@ impl Operation for IteratorFinishAsyncNext {
     const NAME: &'static str = "IteratorFinishAsyncNext";
     const INSTRUCTION: &'static str = "INST - IteratorFinishAsyncNext";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let mut iterator = context
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let mut iterator = raw_context
             .vm
             .frame_mut()
             .iterators
@@ -55,7 +62,7 @@ impl Operation for IteratorFinishAsyncNext {
             .expect("iterator on the call frame must exist");
 
         if matches!(
-            context.vm.frame().generator_resume_kind,
+            raw_context.vm.frame().generator_resume_kind,
             GeneratorResumeKind::Throw
         ) {
             // If after awaiting the `next` call the iterator returned an error, it can be considered
@@ -64,11 +71,16 @@ impl Operation for IteratorFinishAsyncNext {
             return Ok(CompletionType::Normal);
         }
 
-        let next_result = context.vm.pop();
+        let next_result = raw_context.vm.pop();
 
         iterator.update_result(next_result, context)?;
 
-        context.vm.frame_mut().iterators.push(iterator);
+        context
+            .as_raw_context_mut()
+            .vm
+            .frame_mut()
+            .iterators
+            .push(iterator);
         Ok(CompletionType::Normal)
     }
 }
@@ -84,7 +96,8 @@ impl Operation for IteratorResult {
     const NAME: &'static str = "IteratorResult";
     const INSTRUCTION: &'static str = "INST - IteratorResult";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let last_result = context
             .vm
             .frame()
@@ -112,8 +125,9 @@ impl Operation for IteratorValue {
     const NAME: &'static str = "IteratorValue";
     const INSTRUCTION: &'static str = "INST - IteratorValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
         let mut iterator = context
+            .as_raw_context_mut()
             .vm
             .frame_mut()
             .iterators
@@ -121,9 +135,12 @@ impl Operation for IteratorValue {
             .expect("iterator on the call frame must exist");
 
         let value = iterator.value(context)?;
-        context.vm.push(value);
+        {
+            let context = context.as_raw_context_mut();
+            context.vm.push(value);
 
-        context.vm.frame_mut().iterators.push(iterator);
+            context.vm.frame_mut().iterators.push(iterator);
+        }
 
         Ok(CompletionType::Normal)
     }
@@ -140,7 +157,8 @@ impl Operation for IteratorDone {
     const NAME: &'static str = "IteratorDone";
     const INSTRUCTION: &'static str = "INST - IteratorDone";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let done = context
             .vm
             .frame()
@@ -166,8 +184,9 @@ impl Operation for IteratorReturn {
     const NAME: &'static str = "IteratorReturn";
     const INSTRUCTION: &'static str = "INST - IteratorReturn";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
         let record = context
+            .as_raw_context_mut()
             .vm
             .frame_mut()
             .iterators
@@ -175,14 +194,16 @@ impl Operation for IteratorReturn {
             .expect("iterator on the call frame must exist");
 
         let Some(ret) = record.iterator().get_method(js_string!("return"), context)? else {
-            context.vm.push(false);
+            context.as_raw_context_mut().vm.push(false);
             return Ok(CompletionType::Normal);
         };
 
         let value = ret.call(&record.iterator().clone().into(), &[], context)?;
-
-        context.vm.push(value);
-        context.vm.push(true);
+        {
+            let context = context.as_raw_context_mut();
+            context.vm.push(value);
+            context.vm.push(true);
+        }
 
         Ok(CompletionType::Normal)
     }
@@ -199,8 +220,9 @@ impl Operation for IteratorToArray {
     const NAME: &'static str = "IteratorToArray";
     const INSTRUCTION: &'static str = "INST - IteratorToArray";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
         let mut iterator = context
+            .as_raw_context_mut()
             .vm
             .frame_mut()
             .iterators
@@ -213,7 +235,12 @@ impl Operation for IteratorToArray {
             let done = match iterator.step(context) {
                 Ok(done) => done,
                 Err(err) => {
-                    context.vm.frame_mut().iterators.push(iterator);
+                    context
+                        .as_raw_context_mut()
+                        .vm
+                        .frame_mut()
+                        .iterators
+                        .push(iterator);
                     return Err(err);
                 }
             };
@@ -225,17 +252,26 @@ impl Operation for IteratorToArray {
             match iterator.value(context) {
                 Ok(value) => values.push(value),
                 Err(err) => {
-                    context.vm.frame_mut().iterators.push(iterator);
+                    context
+                        .as_raw_context_mut()
+                        .vm
+                        .frame_mut()
+                        .iterators
+                        .push(iterator);
                     return Err(err);
                 }
             }
         }
 
-        context.vm.frame_mut().iterators.push(iterator);
+        {
+            let context = context.as_raw_context_mut();
 
-        let array = Array::create_array_from_list(values, context);
+            context.vm.frame_mut().iterators.push(iterator);
 
-        context.vm.push(array);
+            let array = Array::create_array_from_list(values, context);
+
+            context.vm.push(array);
+        }
 
         Ok(CompletionType::Normal)
     }
@@ -252,7 +288,8 @@ impl Operation for IteratorPop {
     const NAME: &'static str = "IteratorPop";
     const INSTRUCTION: &'static str = "INST - IteratorPop";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         context.vm.frame_mut().iterators.pop();
         Ok(CompletionType::Normal)
     }
@@ -269,7 +306,8 @@ impl Operation for IteratorStackEmpty {
     const NAME: &'static str = "IteratorStackEmpty";
     const INSTRUCTION: &'static str = "INST - IteratorStackEmpty";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let is_empty = context.vm.frame().iterators.is_empty();
         context.vm.push(is_empty);
         Ok(CompletionType::Normal)
@@ -287,13 +325,14 @@ impl Operation for CreateIteratorResult {
     const NAME: &'static str = "CreateIteratorResult";
     const INSTRUCTION: &'static str = "INST - CreateIteratorResult";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let done = context.vm.read::<u8>() != 0;
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let value = raw_context.vm.pop();
+        let done = raw_context.vm.read::<u8>() != 0;
 
         let result = create_iter_result_object(value, done, context);
 
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
 
         Ok(CompletionType::Normal)
     }

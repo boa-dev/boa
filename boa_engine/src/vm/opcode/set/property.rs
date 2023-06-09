@@ -18,29 +18,31 @@ impl Operation for SetPropertyByName {
     const NAME: &'static str = "SetPropertyByName";
     const INSTRUCTION: &'static str = "INST - SetPropertyByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
 
-        let value = context.vm.pop();
-        let receiver = context.vm.pop();
-        let object = context.vm.pop();
+        let value = raw_context.vm.pop();
+        let receiver = raw_context.vm.pop();
+        let object = raw_context.vm.pop();
+        let strict = raw_context.vm.frame().code_block.strict();
+        let name: PropertyKey = raw_context.vm.frame().code_block.names[index as usize]
+            .clone()
+            .into();
+
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
             object.to_object(context)?
         };
 
-        let name: PropertyKey = context.vm.frame().code_block.names[index as usize]
-            .clone()
-            .into();
-
         let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
-        if !succeeded && context.vm.frame().code_block.strict() {
+        if !succeeded && strict {
             return Err(JsNativeError::typ()
                 .with_message(format!("cannot set non-writable property: {name}"))
                 .into());
         }
-        context.vm.stack.push(value);
+        context.as_raw_context_mut().vm.stack.push(value);
         Ok(CompletionType::Normal)
     }
 }
@@ -56,10 +58,12 @@ impl Operation for SetPropertyByValue {
     const NAME: &'static str = "SetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertyByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let key = context.vm.pop();
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let value = raw_context.vm.pop();
+        let key = raw_context.vm.pop();
+        let object = raw_context.vm.pop();
+        let strict = raw_context.vm.frame().code_block.strict();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
@@ -88,7 +92,7 @@ impl Operation for SetPropertyByValue {
                         let index = *index as usize;
                         if let Some(element) = dense_elements.get_mut(index) {
                             *element = value;
-                            context.vm.push(element.clone());
+                            context.as_raw_context_mut().vm.push(element.clone());
                             return Ok(CompletionType::Normal);
                         } else if dense_elements.len() == index {
                             // Cannot use fast path if the [[prototype]] is a proxy object,
@@ -100,7 +104,7 @@ impl Operation for SetPropertyByValue {
                             }
 
                             dense_elements.push(value.clone());
-                            context.vm.push(value);
+                            context.as_raw_context_mut().vm.push(value);
 
                             let len = dense_elements.len() as u32;
                             let length_key = PropertyKey::from(utf16!("length"));
@@ -126,7 +130,7 @@ impl Operation for SetPropertyByValue {
                                         .configurable(false)
                                         .build(),
                                 );
-                            } else if context.vm.frame().code_block.strict() {
+                            } else if strict {
                                 return Err(JsNativeError::typ().with_message("TypeError: Cannot assign to read only property 'length' of array object").into());
                             }
                             return Ok(CompletionType::Normal);
@@ -137,13 +141,8 @@ impl Operation for SetPropertyByValue {
         }
 
         // Slow path:
-        object.set(
-            key,
-            value.clone(),
-            context.vm.frame().code_block.strict(),
-            context,
-        )?;
-        context.vm.stack.push(value);
+        object.set(key, value.clone(), strict, context)?;
+        context.as_raw_context_mut().vm.stack.push(value);
         Ok(CompletionType::Normal)
     }
 }
@@ -159,14 +158,15 @@ impl Operation for SetPropertyGetterByName {
     const NAME: &'static str = "SetPropertyGetterByName";
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let value = context.vm.pop();
-        let object = context.vm.pop();
-        let object = object.to_object(context)?;
-        let name = context.vm.frame().code_block.names[index as usize]
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let value = raw_context.vm.pop();
+        let object = raw_context.vm.pop();
+        let name = raw_context.vm.frame().code_block.names[index as usize]
             .clone()
             .into();
+        let object = object.to_object(context)?;
         let set = object
             .__get_own_property__(&name, context)?
             .as_ref()
@@ -197,10 +197,11 @@ impl Operation for SetPropertyGetterByValue {
     const NAME: &'static str = "SetPropertyGetterByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let key = context.vm.pop();
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let value = raw_context.vm.pop();
+        let key = raw_context.vm.pop();
+        let object = raw_context.vm.pop();
         let object = object.to_object(context)?;
         let name = key.to_property_key(context)?;
         let set = object
@@ -233,14 +234,15 @@ impl Operation for SetPropertySetterByName {
     const NAME: &'static str = "SetPropertySetterByName";
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let value = context.vm.pop();
-        let object = context.vm.pop();
-        let object = object.to_object(context)?;
-        let name = context.vm.frame().code_block.names[index as usize]
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let value = raw_context.vm.pop();
+        let object = raw_context.vm.pop();
+        let name = raw_context.vm.frame().code_block.names[index as usize]
             .clone()
             .into();
+        let object = object.to_object(context)?;
         let get = object
             .__get_own_property__(&name, context)?
             .as_ref()
@@ -271,10 +273,11 @@ impl Operation for SetPropertySetterByValue {
     const NAME: &'static str = "SetPropertySetterByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let key = context.vm.pop();
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let value = raw_context.vm.pop();
+        let key = raw_context.vm.pop();
+        let object = raw_context.vm.pop();
         let object = object.to_object(context)?;
         let name = key.to_property_key(context)?;
         let get = object
@@ -307,10 +310,11 @@ impl Operation for SetFunctionName {
     const NAME: &'static str = "SetFunctionName";
     const INSTRUCTION: &'static str = "INST - SetFunctionName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let prefix = context.vm.read::<u8>();
-        let function = context.vm.pop();
-        let name = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let prefix = raw_context.vm.read::<u8>();
+        let function = raw_context.vm.pop();
+        let name = raw_context.vm.pop();
 
         let name = match name {
             JsValue::String(name) => name.into(),
@@ -331,7 +335,7 @@ impl Operation for SetFunctionName {
             context,
         );
 
-        context.vm.stack.push(function);
+        context.as_raw_context_mut().vm.stack.push(function);
         Ok(CompletionType::Normal)
     }
 }

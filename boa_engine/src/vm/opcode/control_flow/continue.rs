@@ -17,7 +17,8 @@ impl Operation for Continue {
     const NAME: &'static str = "Continue";
     const INSTRUCTION: &'static str = "INST - Continue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let jump_address = context.vm.read::<u32>();
         let target_address = context.vm.read::<u32>();
 

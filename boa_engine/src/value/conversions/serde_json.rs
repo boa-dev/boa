@@ -35,7 +35,7 @@ impl JsValue {
     /// #
     /// # assert_eq!(json, value.to_json(&mut context).unwrap());
     /// ```
-    pub fn from_json(json: &Value, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn from_json(json: &Value, context: &mut dyn Context<'_>) -> JsResult<Self> {
         /// Biggest possible integer, as i64.
         const MAX_INT: i64 = i32::MAX as i64;
 
@@ -61,7 +61,7 @@ impl JsValue {
                 for val in vec {
                     arr.push(Self::from_json(val, context)?);
                 }
-                Ok(Array::create_array_from_list(arr, context).into())
+                Ok(Array::create_array_from_list(arr, context.as_raw_context()).into())
             }
             Value::Object(obj) => {
                 let js_obj = JsObject::with_object_proto(context.intrinsics());
@@ -109,7 +109,7 @@ impl JsValue {
     /// # Panics
     ///
     /// Panics if the `JsValue` is `Undefined`.
-    pub fn to_json(&self, context: &mut Context<'_>) -> JsResult<Value> {
+    pub fn to_json(&self, context: &mut dyn Context<'_>) -> JsResult<Value> {
         match self {
             Self::Null => Ok(Value::Null),
             Self::Undefined => todo!("undefined to JSON"),

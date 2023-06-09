@@ -1,7 +1,8 @@
 use crate::{
+    context::RawContext,
     environments::DeclarativeEnvironment,
     object::{JsObject, ObjectData},
-    Context, JsValue,
+    JsValue,
 };
 use boa_ast::{function::FormalParameterList, operations::bound_names};
 use boa_gc::{Finalize, Gc, Trace};
@@ -71,7 +72,7 @@ impl Arguments {
     /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
     pub(crate) fn create_unmapped_arguments_object(
         arguments_list: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut RawContext<'_>,
     ) -> JsObject {
         // 1. Let len be the number of elements in argumentsList.
         let len = arguments_list.len();
@@ -125,7 +126,7 @@ impl Arguments {
         formals: &FormalParameterList,
         arguments_list: &[JsValue],
         env: &Gc<DeclarativeEnvironment>,
-        context: &mut Context<'_>,
+        context: &mut RawContext<'_>,
     ) -> JsObject {
         // 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.
         // It may contain duplicate identifiers.

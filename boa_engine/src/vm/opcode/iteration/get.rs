@@ -15,10 +15,15 @@ impl Operation for GetIterator {
     const NAME: &'static str = "GetIterator";
     const INSTRUCTION: &'static str = "INST - GetIterator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let object = context.as_raw_context_mut().vm.pop();
         let iterator = object.get_iterator(context, None, None)?;
-        context.vm.frame_mut().iterators.push(iterator);
+        context
+            .as_raw_context_mut()
+            .vm
+            .frame_mut()
+            .iterators
+            .push(iterator);
         Ok(CompletionType::Normal)
     }
 }
@@ -34,10 +39,15 @@ impl Operation for GetAsyncIterator {
     const NAME: &'static str = "GetAsyncIterator";
     const INSTRUCTION: &'static str = "INST - GetAsyncIterator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let object = context.as_raw_context_mut().vm.pop();
         let iterator = object.get_iterator(context, Some(IteratorHint::Async), None)?;
-        context.vm.frame_mut().iterators.push(iterator);
+        context
+            .as_raw_context_mut()
+            .vm
+            .frame_mut()
+            .iterators
+            .push(iterator);
         Ok(CompletionType::Normal)
     }
 }

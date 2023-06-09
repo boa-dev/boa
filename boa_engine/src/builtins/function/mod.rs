@@ -527,9 +527,10 @@ impl BuiltInConstructor for BuiltInFunctionObject {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let active_function = context
+            .as_raw_context()
             .vm
             .active_function
             .clone()
@@ -552,7 +553,7 @@ impl BuiltInFunctionObject {
         args: &[JsValue],
         r#async: bool,
         generator: bool,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let currentRealm be the current Realm Record.
         // 2. Perform ? HostEnsureCanCompileStrings(currentRealm).
@@ -615,13 +616,15 @@ impl BuiltInFunctionObject {
                 }
                 let parameters = parameters.join(utf16!(","));
 
+                let raw_context = context.as_raw_context_mut();
+
                 // TODO: make parser generic to u32 iterators
                 let parameters = String::from_utf16_lossy(&parameters);
                 let mut parser = Parser::new(Source::from_bytes(&parameters));
-                parser.set_identifier(context.next_parser_identifier());
+                parser.set_identifier(raw_context.next_parser_identifier());
 
                 let parameters = match parser.parse_formal_parameters(
-                    context.interner_mut(),
+                    raw_context.interner_mut(),
                     generator,
                     r#async,
                 ) {
@@ -660,19 +663,21 @@ impl BuiltInFunctionObject {
             let body_arg = body_arg.to_string(context)?.to_std_string_escaped();
             let body = b"\n".chain(body_arg.as_bytes()).chain(b"\n".as_slice());
 
+            let raw_context = context.as_raw_context_mut();
+
             // TODO: make parser generic to u32 iterators
             let mut parser = Parser::new(Source::from_reader(body, None));
-            parser.set_identifier(context.next_parser_identifier());
+            parser.set_identifier(raw_context.next_parser_identifier());
 
-            let body = match parser.parse_function_body(context.interner_mut(), generator, r#async)
-            {
-                Ok(statement_list) => statement_list,
-                Err(e) => {
-                    return Err(JsNativeError::syntax()
-                        .with_message(format!("failed to parse function body: {e}"))
-                        .into())
-                }
-            };
+            let body =
+                match parser.parse_function_body(raw_context.interner_mut(), generator, r#async) {
+                    Ok(statement_list) => statement_list,
+                    Err(e) => {
+                        return Err(JsNativeError::syntax()
+                            .with_message(format!("failed to parse function body: {e}"))
+                            .into())
+                    }
+                };
 
             // Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
             // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
@@ -728,7 +733,7 @@ impl BuiltInFunctionObject {
                         return Err(JsNativeError::syntax()
                             .with_message(format!(
                                 "Redeclaration of formal parameter `{}`",
-                                context.interner().resolve_expect(name.sym())
+                                raw_context.interner().resolve_expect(name.sym())
                             ))
                             .into());
                     }
@@ -758,7 +763,7 @@ impl BuiltInFunctionObject {
                     context,
                 );
 
-            let environments = context.vm.environments.pop_to_global();
+            let environments = context.as_raw_context_mut().vm.environments.pop_to_global();
 
             let function_object = if generator {
                 crate::vm::create_generator_function_object(code, r#async, Some(prototype), context)
@@ -766,7 +771,11 @@ impl BuiltInFunctionObject {
                 crate::vm::create_function_object(code, r#async, prototype, context)
             };
 
-            context.vm.environments.extend(environments);
+            context
+                .as_raw_context_mut()
+                .vm
+                .environments
+                .extend(environments);
 
             Ok(function_object)
         } else if generator {
@@ -780,14 +789,18 @@ impl BuiltInFunctionObject {
                     context,
                 );
 
-            let environments = context.vm.environments.pop_to_global();
+            let environments = context.as_raw_context_mut().vm.environments.pop_to_global();
             let function_object = crate::vm::create_generator_function_object(
                 code,
                 r#async,
                 Some(prototype),
                 context,
             );
-            context.vm.environments.extend(environments);
+            context
+                .as_raw_context_mut()
+                .vm
+                .environments
+                .extend(environments);
 
             Ok(function_object)
         } else {
@@ -798,10 +811,14 @@ impl BuiltInFunctionObject {
                 context,
             );
 
-            let environments = context.vm.environments.pop_to_global();
+            let environments = context.as_raw_context_mut().vm.environments.pop_to_global();
             let function_object =
                 crate::vm::create_function_object(code, r#async, prototype, context);
-            context.vm.environments.extend(environments);
+            context
+                .as_raw_context_mut()
+                .vm
+                .environments
+                .extend(environments);
 
             Ok(function_object)
         }
@@ -818,7 +835,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-    fn apply(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn apply(this: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
@@ -858,7 +875,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.bind
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
-    fn bind(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn bind(this: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let Target be the this value.
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
         let target = this.as_callable().ok_or_else(|| {
@@ -940,7 +957,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-    fn call(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn call(this: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
@@ -956,7 +973,11 @@ impl BuiltInFunctionObject {
     }
 
     #[allow(clippy::wrong_self_convention)]
-    fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn to_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         let object = this.as_object().map(JsObject::borrow);
         let function = object
             .as_deref()
@@ -1006,7 +1027,7 @@ impl BuiltInFunctionObject {
     fn has_instance(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let F be the this value.
         // 2. Return ? OrdinaryHasInstance(F, V).
@@ -1014,7 +1035,7 @@ impl BuiltInFunctionObject {
     }
 
     #[allow(clippy::unnecessary_wraps)]
-    fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn prototype(_: &JsValue, _: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
         Ok(JsValue::undefined())
     }
 }
@@ -1029,7 +1050,7 @@ pub(crate) fn set_function_name(
     function: &JsObject,
     name: &PropertyKey,
     prefix: Option<JsString>,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) {
     // 1. Assert: F is an extensible object that does not have a "name" own property.
     // 2. If Type(name) is Symbol, then
@@ -1097,7 +1118,7 @@ impl BoundFunction {
         target_function: JsObject,
         this: JsValue,
         args: Vec<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let proto be ? targetFunction.[[GetPrototypeOf]]().
         let proto = target_function.__get_prototype_of__(context)?;

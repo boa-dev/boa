@@ -18,7 +18,8 @@ impl Operation for Throw {
     const NAME: &'static str = "Throw";
     const INSTRUCTION: &'static str = "INST - Throw";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let error = if let Some(err) = context.vm.err.take() {
             err
         } else {
@@ -196,7 +197,8 @@ impl Operation for ThrowNewTypeError {
     const NAME: &'static str = "ThrowNewTypeError";
     const INSTRUCTION: &'static str = "INST - ThrowNewTypeError";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let index = context.vm.read::<u32>();
         let msg = context.vm.frame().code_block.literals[index as usize]
             .as_string()

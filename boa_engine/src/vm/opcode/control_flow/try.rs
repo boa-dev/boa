@@ -14,7 +14,8 @@ impl Operation for TryStart {
     const NAME: &'static str = "TryStart";
     const INSTRUCTION: &'static str = "INST - TryStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let catch = context.vm.read::<u32>();
         let finally = context.vm.read::<u32>();
 
@@ -48,7 +49,8 @@ impl Operation for TryEnd {
     const NAME: &'static str = "TryEnd";
     const INSTRUCTION: &'static str = "INST - TryEnd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();

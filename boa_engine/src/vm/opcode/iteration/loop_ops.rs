@@ -15,7 +15,8 @@ impl Operation for IteratorLoopStart {
     const NAME: &'static str = "IteratorLoopStart";
     const INSTRUCTION: &'static str = "INST - IteratorLoopStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let start = context.vm.read::<u32>();
         let exit = context.vm.read::<u32>();
 
@@ -38,7 +39,8 @@ impl Operation for LoopStart {
     const NAME: &'static str = "LoopStart";
     const INSTRUCTION: &'static str = "INST - LoopStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let start = context.vm.read::<u32>();
         let exit = context.vm.read::<u32>();
 
@@ -60,7 +62,8 @@ impl Operation for LoopContinue {
     const NAME: &'static str = "LoopContinue";
     const INSTRUCTION: &'static str = "INST - LoopContinue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         // 1. Clean up the previous environment.
         let env = context
             .vm
@@ -102,7 +105,8 @@ impl Operation for LoopEnd {
     const NAME: &'static str = "LoopEnd";
     const INSTRUCTION: &'static str = "INST - LoopEnd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
@@ -132,7 +136,8 @@ impl Operation for LoopUpdateReturnValue {
     const NAME: &'static str = "LoopUpdateReturnValue";
     const INSTRUCTION: &'static str = "INST - LoopUpdateReturnValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let value = context.vm.pop();
         context
             .vm

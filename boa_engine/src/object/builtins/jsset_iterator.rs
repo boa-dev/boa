@@ -30,7 +30,7 @@ impl JsSetIterator {
         }
     }
     /// Advances the `JsSetIterator` and gets the next result in the `JsSet`.
-    pub fn next(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn next(&self, context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         SetIterator::next(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 }
@@ -61,7 +61,7 @@ impl Deref for JsSetIterator {
 impl JsObjectType for JsSetIterator {}
 
 impl TryFromJs for JsSetIterator {
-    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &mut dyn Context<'_>) -> JsResult<Self> {
         match value {
             JsValue::Object(o) => Self::from_object(o.clone()),
             _ => Err(JsNativeError::typ()

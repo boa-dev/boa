@@ -27,7 +27,8 @@ impl Operation for TypeOf {
     const NAME: &'static str = "TypeOf";
     const INSTRUCTION: &'static str = "INST - TypeOf";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let value = context.vm.pop();
         context.vm.push(value.type_of());
         Ok(CompletionType::Normal)
@@ -45,10 +46,10 @@ impl Operation for Pos {
     const NAME: &'static str = "Pos";
     const INSTRUCTION: &'static str = "INST - Pos";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let value = context.as_raw_context_mut().vm.pop();
         let value = value.to_number(context)?;
-        context.vm.push(value);
+        context.as_raw_context_mut().vm.push(value);
         Ok(CompletionType::Normal)
     }
 }
@@ -64,11 +65,11 @@ impl Operation for Neg {
     const NAME: &'static str = "Neg";
     const INSTRUCTION: &'static str = "INST - Neg";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let value = context.as_raw_context_mut().vm.pop();
         match value.to_numeric(context)? {
-            Numeric::Number(number) => context.vm.push(number.neg()),
-            Numeric::BigInt(bigint) => context.vm.push(JsBigInt::neg(&bigint)),
+            Numeric::Number(number) => context.as_raw_context_mut().vm.push(number.neg()),
+            Numeric::BigInt(bigint) => context.as_raw_context_mut().vm.push(JsBigInt::neg(&bigint)),
         }
         Ok(CompletionType::Normal)
     }
@@ -85,11 +86,11 @@ impl Operation for BitNot {
     const NAME: &'static str = "BitNot";
     const INSTRUCTION: &'static str = "INST - BitNot";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let value = context.as_raw_context_mut().vm.pop();
         match value.to_numeric(context)? {
-            Numeric::Number(number) => context.vm.push(Number::not(number)),
-            Numeric::BigInt(bigint) => context.vm.push(JsBigInt::not(&bigint)),
+            Numeric::Number(number) => context.as_raw_context_mut().vm.push(Number::not(number)),
+            Numeric::BigInt(bigint) => context.as_raw_context_mut().vm.push(JsBigInt::not(&bigint)),
         }
         Ok(CompletionType::Normal)
     }

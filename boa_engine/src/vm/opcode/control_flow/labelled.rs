@@ -14,7 +14,8 @@ impl Operation for LabelledStart {
     const NAME: &'static str = "LabelledStart";
     const INSTRUCTION: &'static str = "INST - LabelledStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let start = context.vm.frame().pc - 1;
         let end = context.vm.read::<u32>();
         context
@@ -37,7 +38,8 @@ impl Operation for LabelledEnd {
     const NAME: &'static str = "LabelledEnd";
     const INSTRUCTION: &'static str = "INST - LabelledEnd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();

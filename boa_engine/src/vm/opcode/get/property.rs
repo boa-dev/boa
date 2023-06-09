@@ -15,22 +15,25 @@ impl Operation for GetPropertyByName {
     const NAME: &'static str = "GetPropertyByName";
     const INSTRUCTION: &'static str = "INST - GetPropertyByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
 
-        let value = context.vm.pop();
+        let value = raw_context.vm.pop();
+
+        let key = raw_context.vm.frame().code_block.names[index as usize]
+            .clone()
+            .into();
+
         let object = if let Some(object) = value.as_object() {
             object.clone()
         } else {
             value.to_object(context)?
         };
 
-        let key = context.vm.frame().code_block.names[index as usize]
-            .clone()
-            .into();
         let result = object.__get__(&key, value, context)?;
 
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
@@ -46,9 +49,10 @@ impl Operation for GetPropertyByValue {
     const NAME: &'static str = "GetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let key = context.vm.pop();
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let key = raw_context.vm.pop();
+        let value = raw_context.vm.pop();
         let object = if let Some(object) = value.as_object() {
             object.clone()
         } else {
@@ -66,7 +70,7 @@ impl Operation for GetPropertyByValue {
                     .dense_indexed_properties()
                     .and_then(|vec| vec.get(*index as usize))
                 {
-                    context.vm.push(element.clone());
+                    context.as_raw_context_mut().vm.push(element.clone());
                     return Ok(CompletionType::Normal);
                 }
             }
@@ -75,7 +79,7 @@ impl Operation for GetPropertyByValue {
         // Slow path:
         let result = object.__get__(&key, value, context)?;
 
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
@@ -91,16 +95,20 @@ impl Operation for GetMethod {
     const NAME: &'static str = "GetMethod";
     const INSTRUCTION: &'static str = "INST - GetMethod";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let key = context.vm.frame().code_block.names[index as usize].clone();
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let key = raw_context.vm.frame().code_block.names[index as usize].clone();
+        let value = raw_context.vm.pop();
 
         let method = value.get_method(key, context)?;
-        context.vm.push(value);
-        context
-            .vm
-            .push(method.map(JsValue::from).unwrap_or_default());
+        {
+            let context = context.as_raw_context_mut();
+            context.vm.push(value);
+            context
+                .vm
+                .push(method.map(JsValue::from).unwrap_or_default());
+        }
         Ok(CompletionType::Normal)
     }
 }
@@ -116,9 +124,10 @@ impl Operation for GetPropertyByValuePush {
     const NAME: &'static str = "GetPropertyByValuePush";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValuePush";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let key = context.vm.pop();
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let key = raw_context.vm.pop();
+        let value = raw_context.vm.pop();
         let object = if let Some(object) = value.as_object() {
             object.clone()
         } else {
@@ -136,8 +145,11 @@ impl Operation for GetPropertyByValuePush {
                     .dense_indexed_properties()
                     .and_then(|vec| vec.get(*index as usize))
                 {
-                    context.vm.push(key);
-                    context.vm.push(element.clone());
+                    {
+                        let context = context.as_raw_context_mut();
+                        context.vm.push(key);
+                        context.vm.push(element.clone());
+                    }
                     return Ok(CompletionType::Normal);
                 }
             }
@@ -146,8 +158,11 @@ impl Operation for GetPropertyByValuePush {
         // Slow path:
         let result = object.__get__(&key, value, context)?;
 
-        context.vm.push(key);
-        context.vm.push(result);
+        {
+            let context = context.as_raw_context_mut();
+            context.vm.push(key);
+            context.vm.push(result);
+        }
         Ok(CompletionType::Normal)
     }
 }

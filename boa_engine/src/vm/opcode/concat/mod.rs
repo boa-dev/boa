@@ -14,7 +14,8 @@ impl Operation for ConcatToString {
     const NAME: &'static str = "ConcatToString";
     const INSTRUCTION: &'static str = "INST - ConcatToString";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let value_count = context.vm.read::<u32>();
         let mut strings = Vec::with_capacity(value_count as usize);
         for _ in 0..value_count {

@@ -77,7 +77,7 @@ impl Deref for JsFunction {
 impl JsObjectType for JsFunction {}
 
 impl TryFromJs for JsFunction {
-    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &mut dyn Context<'_>) -> JsResult<Self> {
         match value {
             JsValue::Object(o) => Self::from_object(o.clone()).ok_or_else(|| {
                 JsNativeError::typ()

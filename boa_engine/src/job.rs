@@ -17,7 +17,7 @@
 //! [Job]: https://tc39.es/ecma262/#sec-jobs
 //! [JobCallback]: https://tc39.es/ecma262/#sec-jobcallback-records
 
-use std::{any::Any, cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
+use std::{any::Any, fmt::Debug, future::Future, pin::Pin};
 
 use crate::{
     object::{JsFunction, NativeObject},
@@ -67,7 +67,7 @@ pub type FutureJob = Pin<Box<dyn Future<Output = NativeJob> + 'static>>;
 /// [`NativeFunction`]: crate::native_function::NativeFunction
 pub struct NativeJob {
     #[allow(clippy::type_complexity)]
-    f: Box<dyn FnOnce(&mut Context<'_>) -> JsResult<JsValue>>,
+    f: Box<dyn FnOnce(&mut dyn Context<'_>) -> JsResult<JsValue>>,
     realm: Option<Realm>,
     active_runnable: Option<ActiveRunnable>,
 }
@@ -82,7 +82,7 @@ impl NativeJob {
     /// Creates a new `NativeJob` from a closure.
     pub fn new<F>(f: F) -> Self
     where
-        F: FnOnce(&mut Context<'_>) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&mut dyn Context<'_>) -> JsResult<JsValue> + 'static,
     {
         Self {
             f: Box::new(f),
@@ -92,14 +92,14 @@ impl NativeJob {
     }
 
     /// Creates a new `NativeJob` from a closure and an execution realm.
-    pub fn with_realm<F>(f: F, realm: Realm, context: &mut Context<'_>) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm, context: &mut dyn Context<'_>) -> Self
     where
-        F: FnOnce(&mut Context<'_>) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&mut dyn Context<'_>) -> JsResult<JsValue> + 'static,
     {
         Self {
             f: Box::new(f),
             realm: Some(realm),
-            active_runnable: context.vm.active_runnable.clone(),
+            active_runnable: context.as_raw_context().vm.active_runnable.clone(),
         }
     }
 
@@ -114,23 +114,33 @@ impl NativeJob {
     ///
     /// If the native job has an execution realm defined, this sets the running execution
     /// context to the realm's before calling the inner closure, and resets it after execution.
-    pub fn call(mut self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn call(mut self, context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // If realm is not null, each time job is invoked the implementation must perform
         // implementation-defined steps such that execution is prepared to evaluate ECMAScript
         // code at the time of job's invocation.
         if let Some(realm) = self.realm {
-            let old_realm = context.enter_realm(realm);
+            let old_realm = {
+                let context = context.as_raw_context_mut();
 
-            // Let scriptOrModule be GetActiveScriptOrModule() at the time HostEnqueuePromiseJob is
-            // invoked. If realm is not null, each time job is invoked the implementation must
-            // perform implementation-defined steps such that scriptOrModule is the active script or
-            // module at the time of job's invocation.
-            std::mem::swap(&mut context.vm.active_runnable, &mut self.active_runnable);
+                let old_realm = context.enter_realm(realm);
+
+                // Let scriptOrModule be GetActiveScriptOrModule() at the time HostEnqueuePromiseJob is
+                // invoked. If realm is not null, each time job is invoked the implementation must
+                // perform implementation-defined steps such that scriptOrModule is the active script or
+                // module at the time of job's invocation.
+                std::mem::swap(&mut context.vm.active_runnable, &mut self.active_runnable);
+
+                old_realm
+            };
 
             let result = (self.f)(context);
 
-            context.enter_realm(old_realm);
-            std::mem::swap(&mut context.vm.active_runnable, &mut self.active_runnable);
+            {
+                let context = context.as_raw_context_mut();
+
+                context.enter_realm(old_realm);
+                std::mem::swap(&mut context.vm.active_runnable, &mut self.active_runnable);
+            }
 
             result
         } else {
@@ -209,14 +219,14 @@ pub trait JobQueue {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
     /// [Jobs]: https://tc39.es/ecma262/#sec-jobs
-    fn enqueue_promise_job(&self, job: NativeJob, context: &mut Context<'_>);
+    fn enqueue_promise_job(&mut self, job: NativeJob);
 
     /// Runs all jobs in the queue.
     ///
     /// Running a job could enqueue more jobs in the queue. The implementor of the trait
     /// determines if the method should loop until there are no more queued jobs or if
     /// it should only run one iteration of the queue.
-    fn run_jobs(&self, context: &mut Context<'_>);
+    fn run_jobs(&mut self);
 
     /// Enqueues a new [`Future`] job on the job queue.
     ///
@@ -224,76 +234,5 @@ pub trait JobQueue {
     /// job queue to update the state of the inner `Promise`, which is what ECMAScript sees. Failing
     /// to do this will leave the inner `Promise` in the `pending` state, which won't call any `then`
     /// or `catch` handlers, even if `future` was already completed.
-    fn enqueue_future_job(&self, future: FutureJob, context: &mut Context<'_>);
-}
-
-/// A job queue that does nothing.
-///
-/// This queue is mostly useful if you want to disable the promise capabilities of the engine. This
-/// can be done by passing a reference to it to the [`ContextBuilder`]:
-///
-/// ```
-/// use boa_engine::{context::ContextBuilder, job::{JobQueue, IdleJobQueue}};
-///
-/// let queue: &dyn JobQueue = &IdleJobQueue;
-/// let context = ContextBuilder::new().job_queue(queue).build();
-/// ```
-///
-/// [`ContextBuilder`]: crate::context::ContextBuilder
-#[derive(Debug, Clone, Copy)]
-pub struct IdleJobQueue;
-
-impl JobQueue for IdleJobQueue {
-    fn enqueue_promise_job(&self, _: NativeJob, _: &mut Context<'_>) {}
-
-    fn run_jobs(&self, _: &mut Context<'_>) {}
-
-    fn enqueue_future_job(&self, _: FutureJob, _: &mut Context<'_>) {}
-}
-
-/// A simple FIFO job queue that bails on the first error.
-///
-/// This is the default job queue for the [`Context`], but it is mostly pretty limited for
-/// custom event queues.
-///
-/// To disable running promise jobs on the engine, see [`IdleJobQueue`].
-#[derive(Default)]
-pub struct SimpleJobQueue(RefCell<VecDeque<NativeJob>>);
-
-impl Debug for SimpleJobQueue {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("SimpleQueue").field(&"..").finish()
-    }
-}
-
-impl SimpleJobQueue {
-    /// Creates an empty `SimpleJobQueue`.
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl JobQueue for SimpleJobQueue {
-    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context<'_>) {
-        self.0.borrow_mut().push_back(job);
-    }
-
-    fn run_jobs(&self, context: &mut Context<'_>) {
-        // Yeah, I have no idea why Rust extends the lifetime of a `RefCell` that should be immediately
-        // dropped after calling `pop_front`.
-        let mut next_job = self.0.borrow_mut().pop_front();
-        while let Some(job) = next_job {
-            if job.call(context).is_err() {
-                self.0.borrow_mut().clear();
-                return;
-            };
-            next_job = self.0.borrow_mut().pop_front();
-        }
-    }
-
-    fn enqueue_future_job(&self, future: FutureJob, context: &mut Context<'_>) {
-        let job = pollster::block_on(future);
-        self.enqueue_promise_job(job, context);
-    }
+    fn enqueue_future_job(&mut self, future: FutureJob);
 }

@@ -15,27 +15,28 @@ impl Operation for New {
     const NAME: &'static str = "New";
     const INSTRUCTION: &'static str = "INST - New";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        if raw_context.vm.runtime_limits.recursion_limit() <= raw_context.vm.frames.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message(format!(
                     "Maximum recursion limit {} exceeded",
-                    context.vm.runtime_limits.recursion_limit()
+                    raw_context.vm.runtime_limits.recursion_limit()
                 ))
                 .into());
         }
-        if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
+        if raw_context.vm.runtime_limits.stack_size_limit() <= raw_context.vm.stack.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message("Maximum call stack size exceeded")
                 .into());
         }
-        let argument_count = context.vm.read::<u32>();
+        let argument_count = raw_context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
         for _ in 0..argument_count {
-            arguments.push(context.vm.pop());
+            arguments.push(raw_context.vm.pop());
         }
         arguments.reverse();
-        let func = context.vm.pop();
+        let func = raw_context.vm.pop();
 
         let result = func
             .as_constructor()
@@ -46,7 +47,7 @@ impl Operation for New {
             })
             .and_then(|cons| cons.__construct__(&arguments, cons, context))?;
 
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
@@ -62,22 +63,23 @@ impl Operation for NewSpread {
     const NAME: &'static str = "NewSpread";
     const INSTRUCTION: &'static str = "INST - NewSpread";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        if raw_context.vm.runtime_limits.recursion_limit() <= raw_context.vm.frames.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message(format!(
                     "Maximum recursion limit {} exceeded",
-                    context.vm.runtime_limits.recursion_limit()
+                    raw_context.vm.runtime_limits.recursion_limit()
                 ))
                 .into());
         }
-        if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
+        if raw_context.vm.runtime_limits.stack_size_limit() <= raw_context.vm.stack.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message("Maximum call stack size exceeded")
                 .into());
         }
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.pop();
+        let arguments_array = raw_context.vm.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -88,7 +90,7 @@ impl Operation for NewSpread {
             .expect("arguments array in call spread function must be dense")
             .clone();
 
-        let func = context.vm.pop();
+        let func = raw_context.vm.pop();
 
         let result = func
             .as_constructor()
@@ -99,7 +101,7 @@ impl Operation for NewSpread {
             })
             .and_then(|cons| cons.__construct__(&arguments, cons, context))?;
 
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }

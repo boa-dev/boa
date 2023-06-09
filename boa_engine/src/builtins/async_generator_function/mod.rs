@@ -69,15 +69,20 @@ impl BuiltInConstructor for AsyncGeneratorFunction {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
-        let active_function = context.vm.active_function.clone().unwrap_or_else(|| {
-            context
-                .intrinsics()
-                .constructors()
-                .generator_function()
-                .constructor()
-        });
+        let active_function = context
+            .as_raw_context()
+            .vm
+            .active_function
+            .clone()
+            .unwrap_or_else(|| {
+                context
+                    .intrinsics()
+                    .constructors()
+                    .generator_function()
+                    .constructor()
+            });
         BuiltInFunctionObject::create_dynamic_function(
             active_function,
             new_target,

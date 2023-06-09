@@ -25,7 +25,7 @@ use num_traits::Num;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isFinite
-fn is_finite(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn is_finite(_: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
     if let Some(value) = args.get(0) {
         let number = value.to_number(context)?;
         Ok(number.is_finite().into())
@@ -70,7 +70,7 @@ impl BuiltInObject for IsFinite {
 pub(crate) fn is_nan(
     _: &JsValue,
     args: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsValue> {
     if let Some(value) = args.get(0) {
         let number = value.to_number(context)?;
@@ -116,7 +116,7 @@ impl BuiltInObject for IsNaN {
 pub(crate) fn parse_int(
     _: &JsValue,
     args: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsValue> {
     if let (Some(val), radix) = (args.get(0), args.get_or_undefined(1)) {
         // 1. Let inputString be ? ToString(string).
@@ -258,7 +258,7 @@ impl BuiltInObject for ParseInt {
 pub(crate) fn parse_float(
     _: &JsValue,
     args: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsValue> {
     if let Some(val) = args.get(0) {
         // TODO: parse float with optimal utf16 algorithm

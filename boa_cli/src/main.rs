@@ -60,30 +60,27 @@
 #![allow(clippy::option_if_let_else, clippy::redundant_pub_crate)]
 
 use boa_ast as _;
+use pollster as _;
 
 mod debug;
 mod helper;
 
 use boa_engine::{
     builtins::promise::PromiseState,
-    context::ContextBuilder,
-    job::{FutureJob, JobQueue, NativeJob},
-    module::{Module, ModuleLoader, SimpleModuleLoader},
+    job::JobQueue,
+    module::Module,
     optimizer::OptimizerOptions,
     property::Attribute,
     script::Script,
     vm::flowgraph::{Direction, Graph},
-    Context, JsError, JsNativeError, JsResult, Source,
+    Context, DefaultContext, JsError, JsNativeError, JsResult, Source,
 };
 use boa_runtime::Console;
 use clap::{Parser, ValueEnum, ValueHint};
 use colored::Colorize;
 use debug::init_boa_debug_object;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
-use std::{
-    cell::RefCell, collections::VecDeque, eprintln, fs::read, fs::OpenOptions, io, path::PathBuf,
-    println,
-};
+use std::{eprintln, fs::read, fs::OpenOptions, io, path::PathBuf, println};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
@@ -220,7 +217,7 @@ enum FlowgraphDirection {
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump<S>(src: &S, args: &Opt, context: &mut Context<'_>) -> Result<(), String>
+fn dump<S>(src: &S, args: &Opt, context: &mut dyn Context<'_>) -> Result<(), String>
 where
     S: AsRef<[u8]> + ?Sized,
 {
@@ -265,7 +262,7 @@ where
 }
 
 fn generate_flowgraph(
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
     src: &[u8],
     format: FlowgraphFormat,
     direction: Option<FlowgraphDirection>,
@@ -289,11 +286,7 @@ fn generate_flowgraph(
     Ok(result)
 }
 
-fn evaluate_files(
-    args: &Opt,
-    context: &mut Context<'_>,
-    loader: &SimpleModuleLoader,
-) -> Result<(), io::Error> {
+fn evaluate_files(args: &Opt, context: &mut DefaultContext<'_>) -> Result<(), io::Error> {
     for file in &args.files {
         let buffer = read(file)?;
 
@@ -315,7 +308,7 @@ fn evaluate_files(
             let result = (|| {
                 let module = Module::parse(Source::from_bytes(&buffer), None, context)?;
 
-                loader.insert(
+                context.module_loader().insert(
                     file.canonicalize()
                         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?,
                     module.clone(),
@@ -352,6 +345,7 @@ fn evaluate_files(
                 }
             }
         } else {
+            let context: &mut dyn Context<'_> = context;
             match context.eval(Source::from_bytes(&buffer)) {
                 Ok(v) => println!("{}", v.display()),
                 Err(v) => eprintln!("Uncaught {v}"),
@@ -366,34 +360,29 @@ fn evaluate_files(
 fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
-    let queue: &dyn JobQueue = &Jobs::default();
-    let loader = &SimpleModuleLoader::new(&args.root)
+    let mut context = DefaultContext::with_root(&args.root)
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
-    let dyn_loader: &dyn ModuleLoader = loader;
-    let mut context = ContextBuilder::new()
-        .job_queue(queue)
-        .module_loader(dyn_loader)
-        .build()
-        .expect("cannot fail with default global object");
+
+    let dyn_context: &mut dyn Context<'_> = &mut context;
 
     // Strict mode
-    context.strict(args.strict);
+    dyn_context.strict(args.strict);
 
     // Add `console`.
-    add_runtime(&mut context);
+    add_runtime(dyn_context);
 
     // Trace Output
-    context.set_trace(args.trace);
+    dyn_context.set_trace(args.trace);
 
     if args.debug_object {
-        init_boa_debug_object(&mut context);
+        init_boa_debug_object(dyn_context);
     }
 
     // Configure optimizer options
     let mut optimizer_options = OptimizerOptions::empty();
     optimizer_options.set(OptimizerOptions::STATISTICS, args.optimizer_statistics);
     optimizer_options.set(OptimizerOptions::OPTIMIZE_ALL, args.optimize);
-    context.set_optimizer_options(optimizer_options);
+    dyn_context.set_optimizer_options(optimizer_options);
 
     if args.files.is_empty() {
         let config = Config::builder()
@@ -431,12 +420,12 @@ fn main() -> Result<(), io::Error> {
                         .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
 
                     if args.has_dump_flag() {
-                        if let Err(e) = dump(&line, &args, &mut context) {
+                        if let Err(e) = dump(&line, &args, dyn_context) {
                             eprintln!("{e}");
                         }
                     } else if let Some(flowgraph) = args.flowgraph {
                         match generate_flowgraph(
-                            &mut context,
+                            dyn_context,
                             line.trim_end().as_bytes(),
                             flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
                             args.flowgraph_direction,
@@ -445,7 +434,7 @@ fn main() -> Result<(), io::Error> {
                             Err(v) => eprintln!("Uncaught {v}"),
                         }
                     } else {
-                        match context.eval(Source::from_bytes(line.trim_end())) {
+                        match dyn_context.eval(Source::from_bytes(line.trim_end())) {
                             Ok(v) => {
                                 println!("{}", v.display());
                             }
@@ -453,7 +442,7 @@ fn main() -> Result<(), io::Error> {
                                 eprintln!("{}: {}", "Uncaught".red(), v.to_string().red());
                             }
                         }
-                        context.run_jobs();
+                        dyn_context.run_jobs();
                     }
                 }
 
@@ -468,44 +457,16 @@ fn main() -> Result<(), io::Error> {
             .save_history(CLI_HISTORY)
             .expect("could not save CLI history");
     } else {
-        evaluate_files(&args, &mut context, loader)?;
+        evaluate_files(&args, &mut context)?;
     }
 
     Ok(())
 }
 
 /// Adds the CLI runtime to the context.
-fn add_runtime(context: &mut Context<'_>) {
+fn add_runtime(context: &mut dyn Context<'_>) {
     let console = Console::init(context);
     context
         .register_global_property(Console::NAME, console, Attribute::all())
         .expect("the console object shouldn't exist");
-}
-
-#[derive(Default)]
-struct Jobs(RefCell<VecDeque<NativeJob>>);
-
-impl JobQueue for Jobs {
-    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context<'_>) {
-        self.0.borrow_mut().push_back(job);
-    }
-
-    fn run_jobs(&self, context: &mut Context<'_>) {
-        loop {
-            let jobs = std::mem::take(&mut *self.0.borrow_mut());
-            if jobs.is_empty() {
-                return;
-            }
-            for job in jobs {
-                if let Err(e) = job.call(context) {
-                    eprintln!("Uncaught {e}");
-                }
-            }
-        }
-    }
-
-    fn enqueue_future_job(&self, future: FutureJob, _: &mut Context<'_>) {
-        let job = pollster::block_on(future);
-        self.0.borrow_mut().push_back(job);
-    }
 }

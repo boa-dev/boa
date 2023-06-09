@@ -16,7 +16,8 @@ impl Operation for PushDeclarativeEnvironment {
     const NAME: &'static str = "PushDeclarativeEnvironment";
     const INSTRUCTION: &'static str = "INST - PushDeclarativeEnvironment";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let compile_environments_index = context.vm.read::<u32>();
         let compile_environment = context.vm.frame().code_block.compile_environments
             [compile_environments_index as usize]
@@ -38,7 +39,8 @@ impl Operation for PushFunctionEnvironment {
     const NAME: &'static str = "PushFunctionEnvironment";
     const INSTRUCTION: &'static str = "INST - PushFunctionEnvironment";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let compile_environments_index = context.vm.read::<u32>();
         let compile_environment = context.vm.frame().code_block.compile_environments
             [compile_environments_index as usize]
@@ -62,10 +64,11 @@ impl Operation for PushObjectEnvironment {
     const NAME: &'static str = "PushObjectEnvironment";
     const INSTRUCTION: &'static str = "INST - PushObjectEnvironment";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let object = context.as_raw_context_mut().vm.pop();
         let object = object.to_object(context)?;
 
+        let context = context.as_raw_context_mut();
         context.vm.environments.push_object(object);
         context.vm.frame_mut().inc_frame_env_stack();
         Ok(CompletionType::Normal)
@@ -83,10 +86,11 @@ impl Operation for PushPrivateEnvironment {
     const NAME: &'static str = "PushPrivateEnvironment";
     const INSTRUCTION: &'static str = "INST - PushPrivateEnvironment";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let class_value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let class_value = context.as_raw_context_mut().vm.pop();
         let class = class_value.to_object(context)?;
 
+        let context = context.as_raw_context_mut();
         let count = context.vm.read::<u32>();
         let mut names = Vec::with_capacity(count as usize);
         for _ in 0..count {
@@ -122,8 +126,8 @@ impl Operation for PopPrivateEnvironment {
     const NAME: &'static str = "PopPrivateEnvironment";
     const INSTRUCTION: &'static str = "INST - PopPrivateEnvironment";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        context.vm.environments.pop_private();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        context.as_raw_context_mut().vm.environments.pop_private();
 
         Ok(CompletionType::Normal)
     }

@@ -15,16 +15,20 @@ impl Operation for Inc {
     const NAME: &'static str = "Inc";
     const INSTRUCTION: &'static str = "INST - Inc";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let value = raw_context.vm.pop();
         match value {
             JsValue::Integer(number) if number < i32::MAX => {
-                context.vm.push(number + 1);
+                raw_context.vm.push(number + 1);
             }
             _ => match value.to_numeric(context)? {
-                Numeric::Number(number) => context.vm.push(number + 1f64),
+                Numeric::Number(number) => context.as_raw_context_mut().vm.push(number + 1f64),
                 Numeric::BigInt(bigint) => {
-                    context.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()));
+                    context
+                        .as_raw_context_mut()
+                        .vm
+                        .push(JsBigInt::add(&bigint, &JsBigInt::one()));
                 }
             },
         }
@@ -43,15 +47,17 @@ impl Operation for IncPost {
     const NAME: &'static str = "IncPost";
     const INSTRUCTION: &'static str = "INST - IncPost";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let value = raw_context.vm.pop();
         match value {
             JsValue::Integer(number) if number < i32::MAX => {
-                context.vm.push(number + 1);
-                context.vm.push(value);
+                raw_context.vm.push(number + 1);
+                raw_context.vm.push(value);
             }
             _ => {
                 let value = value.to_numeric(context)?;
+                let context = context.as_raw_context_mut();
                 match value {
                     Numeric::Number(number) => context.vm.push(number + 1f64),
                     Numeric::BigInt(ref bigint) => {

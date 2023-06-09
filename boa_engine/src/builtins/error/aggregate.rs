@@ -58,11 +58,12 @@ impl BuiltInConstructor for AggregateError {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         let new_target = &if new_target.is_undefined() {
             context
+                .as_raw_context()
                 .vm
                 .active_function
                 .clone()
@@ -118,7 +119,10 @@ impl BuiltInConstructor for AggregateError {
                 .configurable(true)
                 .enumerable(false)
                 .writable(true)
-                .value(Array::create_array_from_list(errors_list, context))
+                .value(Array::create_array_from_list(
+                    errors_list,
+                    context.as_raw_context(),
+                ))
                 .build(),
             context,
         )

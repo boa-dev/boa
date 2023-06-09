@@ -15,7 +15,8 @@ impl Operation for GeneratorYield {
     const NAME: &'static str = "GeneratorYield";
     const INSTRUCTION: &'static str = "INST - GeneratorYield";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         context.vm.frame_mut().r#yield = true;
         Ok(CompletionType::Return)
     }
@@ -32,10 +33,11 @@ impl Operation for AsyncGeneratorYield {
     const NAME: &'static str = "AsyncGeneratorYield";
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorYield";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let value = raw_context.vm.pop();
 
-        let async_gen = context
+        let async_gen = raw_context
             .vm
             .frame()
             .async_generator
@@ -57,6 +59,8 @@ impl Operation for AsyncGeneratorYield {
         let gen = generator_object_mut
             .as_async_generator_mut()
             .expect("must be async generator object");
+
+        let context = context.as_raw_context_mut();
 
         if let Some(next) = gen.queue.front() {
             let resume_kind = match next.completion.clone() {

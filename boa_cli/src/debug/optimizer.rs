@@ -8,7 +8,7 @@ use boa_engine::{
 fn get_constant_folding(
     _: &JsValue,
     _: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsValue> {
     Ok(context
         .optimizer_options()
@@ -19,7 +19,7 @@ fn get_constant_folding(
 fn set_constant_folding(
     _: &JsValue,
     args: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_boolean();
     let mut options = context.optimizer_options();
@@ -28,14 +28,18 @@ fn set_constant_folding(
     Ok(JsValue::undefined())
 }
 
-fn get_statistics(_: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn get_statistics(_: &JsValue, _: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
     Ok(context
         .optimizer_options()
         .contains(OptimizerOptions::STATISTICS)
         .into())
 }
 
-fn set_statistics(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn set_statistics(
+    _: &JsValue,
+    args: &[JsValue],
+    context: &mut dyn Context<'_>,
+) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_boolean();
     let mut options = context.optimizer_options();
     options.set(OptimizerOptions::STATISTICS, value);
@@ -43,7 +47,7 @@ fn set_statistics(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> J
     Ok(JsValue::undefined())
 }
 
-pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
+pub(super) fn create_object(context: &mut dyn Context<'_>) -> JsObject {
     let get_constant_folding =
         FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get_constant_folding))
             .name("get constantFolding")

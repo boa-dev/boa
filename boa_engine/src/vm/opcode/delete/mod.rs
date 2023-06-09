@@ -15,20 +15,22 @@ impl Operation for DeletePropertyByName {
     const NAME: &'static str = "DeletePropertyByName";
     const INSTRUCTION: &'static str = "INST - DeletePropertyByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let value = context.vm.pop();
-        let object = value.to_object(context)?;
-        let key = context.vm.frame().code_block.names[index as usize]
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let value = raw_context.vm.pop();
+        let strict = raw_context.vm.frame().code_block.strict();
+        let key = raw_context.vm.frame().code_block.names[index as usize]
             .clone()
             .into();
+        let object = value.to_object(context)?;
         let result = object.__delete__(&key, context)?;
-        if !result && context.vm.frame().code_block.strict() {
+        if !result && strict {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());
         }
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
@@ -44,18 +46,20 @@ impl Operation for DeletePropertyByValue {
     const NAME: &'static str = "DeletePropertyByValue";
     const INSTRUCTION: &'static str = "INST - DeletePropertyByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let key_value = context.vm.pop();
-        let value = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let key_value = raw_context.vm.pop();
+        let value = raw_context.vm.pop();
+        let strict = raw_context.vm.frame().code_block.strict();
         let object = value.to_object(context)?;
         let property_key = key_value.to_property_key(context)?;
         let result = object.__delete__(&property_key, context)?;
-        if !result && context.vm.frame().code_block.strict() {
+        if !result && strict {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());
         }
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
@@ -71,15 +75,16 @@ impl Operation for DeleteName {
     const NAME: &'static str = "DeleteName";
     const INSTRUCTION: &'static str = "INST - DeleteName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let mut binding_locator = raw_context.vm.frame().code_block.bindings[index as usize];
 
         context.find_runtime_binding(&mut binding_locator)?;
 
         let deleted = context.delete_binding(binding_locator)?;
 
-        context.vm.push(deleted);
+        context.as_raw_context_mut().vm.push(deleted);
         Ok(CompletionType::Normal)
     }
 }
@@ -95,7 +100,7 @@ impl Operation for DeleteSuperThrow {
     const NAME: &'static str = "DeleteSuperThrow";
     const INSTRUCTION: &'static str = "INST - DeleteSuperThrow";
 
-    fn execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(_: &mut dyn Context<'_>) -> JsResult<CompletionType> {
         Err(JsNativeError::reference()
             .with_message("cannot delete a property of `super`")
             .into())

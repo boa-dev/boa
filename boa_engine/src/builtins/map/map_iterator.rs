@@ -74,7 +74,7 @@ impl MapIterator {
     pub(crate) fn create_map_iterator(
         map: &JsValue,
         kind: PropertyNameKind,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         if let Some(map_obj) = map.as_object() {
             if let Some(map) = map_obj.borrow_mut().as_map_mut() {
@@ -109,7 +109,7 @@ impl MapIterator {
     pub(crate) fn next(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let mut map_iterator = this.as_object().map(JsObject::borrow_mut);
         let map_iterator = map_iterator
@@ -139,7 +139,8 @@ impl MapIterator {
                     PropertyNameKind::Key => Ok(create_iter_result_object(key, false, context)),
                     PropertyNameKind::Value => Ok(create_iter_result_object(value, false, context)),
                     PropertyNameKind::KeyAndValue => {
-                        let result = Array::create_array_from_list([key, value], context);
+                        let result =
+                            Array::create_array_from_list([key, value], context.as_raw_context());
                         Ok(create_iter_result_object(result.into(), false, context))
                     }
                 };

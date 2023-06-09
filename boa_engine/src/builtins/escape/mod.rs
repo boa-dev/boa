@@ -38,7 +38,7 @@ impl BuiltInObject for Escape {
 }
 
 /// Builtin JavaScript `escape ( string )` function.
-fn escape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn escape(_: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
     /// Returns `true` if the codepoint `cp` is part of the `unescapedSet`.
     fn is_unescaped(cp: u16) -> bool {
         let Ok(cp) = TryInto::<u8>::try_into(cp) else {
@@ -110,7 +110,7 @@ impl BuiltInObject for Unescape {
 }
 
 /// Builtin JavaScript `unescape ( string )` function.
-fn unescape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn unescape(_: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
     /// Converts a char `cp` to its corresponding hex digit value.
     fn to_hex_digit(cp: u16) -> Option<u16> {
         char::from_u32(u32::from(cp))

@@ -29,7 +29,7 @@ pub(crate) static STRING_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = Intern
 pub(crate) fn string_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be OrdinaryGetOwnProperty(S, P).
@@ -54,7 +54,7 @@ pub(crate) fn string_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let stringDesc be ! StringGetOwnProperty(S, P).
@@ -85,7 +85,7 @@ pub(crate) fn string_exotic_define_own_property(
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn string_exotic_own_property_keys(
     obj: &JsObject,
-    _context: &mut Context<'_>,
+    _context: &mut dyn Context<'_>,
 ) -> JsResult<Vec<PropertyKey>> {
     let obj = obj.borrow();
 

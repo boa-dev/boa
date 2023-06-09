@@ -71,16 +71,18 @@ impl Script {
     pub fn parse<R: Read>(
         src: Source<'_, R>,
         realm: Option<Realm>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Script parsing", "Main");
         let mut parser = Parser::new(src);
-        parser.set_identifier(context.next_parser_identifier());
-        if context.is_strict() {
+
+        let raw_context = context.as_raw_context_mut();
+        parser.set_identifier(raw_context.next_parser_identifier());
+        if raw_context.is_strict() {
             parser.set_strict();
         }
-        let mut code = parser.parse_script(context.interner_mut())?;
-        if !context.optimizer_options().is_empty() {
+        let mut code = parser.parse_script(raw_context.interner_mut())?;
+        if !raw_context.optimizer_options().is_empty() {
             context.optimize_statement_list(code.statements_mut());
         }
 
@@ -98,7 +100,7 @@ impl Script {
     /// Compiles the codeblock of this script.
     ///
     /// This is a no-op if this has been called previously.
-    pub fn codeblock(&self, context: &mut Context<'_>) -> JsResult<Gc<CodeBlock>> {
+    pub fn codeblock(&self, context: &mut dyn Context<'_>) -> JsResult<Gc<CodeBlock>> {
         let mut codeblock = self.inner.codeblock.borrow_mut();
 
         if let Some(codeblock) = &*codeblock {
@@ -131,32 +133,37 @@ impl Script {
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     ///
     /// [`JobQueue::run_jobs`]: crate::job::JobQueue::run_jobs
-    pub fn evaluate(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn evaluate(&self, context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Execution", "Main");
 
         let codeblock = self.codeblock(context)?;
 
-        let old_realm = context.enter_realm(self.inner.realm.clone());
-        let active_function = context.vm.active_function.take();
-        let stack = std::mem::take(&mut context.vm.stack);
-        let old_active = context
+        let raw_context = context.as_raw_context_mut();
+
+        let old_realm = raw_context.enter_realm(self.inner.realm.clone());
+        let active_function = raw_context.vm.active_function.take();
+        let stack = std::mem::take(&mut raw_context.vm.stack);
+        let old_active = raw_context
             .vm
             .active_runnable
             .replace(ActiveRunnable::Script(self.clone()));
-        context.vm.push_frame(CallFrame::new(codeblock));
+        raw_context.vm.push_frame(CallFrame::new(codeblock));
 
         // TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
 
-        self.realm().resize_global_env();
+        raw_context.realm().resize_global_env();
         let record = context.run();
-        context.vm.pop_frame();
 
-        context.vm.stack = stack;
-        context.vm.active_function = active_function;
-        context.vm.active_runnable = old_active;
-        context.enter_realm(old_realm);
+        let raw_context = context.as_raw_context_mut();
 
-        context.clear_kept_objects();
+        raw_context.vm.pop_frame();
+
+        raw_context.vm.stack = stack;
+        raw_context.vm.active_function = active_function;
+        raw_context.vm.active_runnable = old_active;
+        raw_context.enter_realm(old_realm);
+
+        raw_context.clear_kept_objects();
 
         record.consume()
     }

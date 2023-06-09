@@ -40,7 +40,7 @@ impl FromStr for ListFormatType {
 impl OptionTypeParsable for ListFormatType {}
 
 impl OptionType for ListLength {
-    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &mut dyn Context<'_>) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
             "long" => Ok(Self::Wide),
             "short" => Ok(Self::Short),

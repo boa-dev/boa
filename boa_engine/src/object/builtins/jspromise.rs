@@ -146,9 +146,9 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
-    pub fn new<F>(executor: F, context: &mut Context<'_>) -> JsResult<Self>
+    pub fn new<F>(executor: F, context: &mut dyn Context<'_>) -> JsResult<Self>
     where
-        F: FnOnce(&ResolvingFunctions, &mut Context<'_>) -> JsResult<JsValue>,
+        F: FnOnce(&ResolvingFunctions, &mut dyn Context<'_>) -> JsResult<JsValue>,
     {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
@@ -197,7 +197,7 @@ impl JsPromise {
     /// # }
     /// ```
     #[inline]
-    pub fn new_pending(context: &mut Context<'_>) -> (Self, ResolvingFunctions) {
+    pub fn new_pending(context: &mut dyn Context<'_>) -> (Self, ResolvingFunctions) {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
@@ -277,7 +277,7 @@ impl JsPromise {
     ///
     /// [`Promise.resolve()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
     /// [thenables]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    pub fn resolve<V: Into<JsValue>>(value: V, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn resolve<V: Into<JsValue>>(value: V, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Promise::promise_resolve(
             &context.intrinsics().constructors().promise().constructor(),
             value.into(),
@@ -315,7 +315,7 @@ impl JsPromise {
     ///
     /// [`Promise.reject`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
     /// [thenable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    pub fn reject<E: Into<JsError>>(error: E, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn reject<E: Into<JsError>>(error: E, context: &mut dyn Context<'_>) -> JsResult<Self> {
         Promise::promise_reject(
             &context.intrinsics().constructors().promise().constructor(),
             &error.into(),
@@ -433,7 +433,7 @@ impl JsPromise {
         &self,
         on_fulfilled: Option<JsFunction>,
         on_rejected: Option<JsFunction>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Self> {
         let result_promise = Promise::inner_then(self, on_fulfilled, on_rejected, context)?;
         Self::from_object(result_promise)
@@ -494,7 +494,7 @@ impl JsPromise {
     /// [`Promise.prototype.catch`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/catch
     /// [then]: JsPromise::then
     #[inline]
-    pub fn catch(&self, on_rejected: JsFunction, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn catch(&self, on_rejected: JsFunction, context: &mut dyn Context<'_>) -> JsResult<Self> {
         self.then(None, Some(on_rejected), context)
     }
 
@@ -562,7 +562,7 @@ impl JsPromise {
     /// [`Promise.prototype.finally()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
     /// [then]: JsPromise::then
     #[inline]
-    pub fn finally(&self, on_finally: JsFunction, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn finally(&self, on_finally: JsFunction, context: &mut dyn Context<'_>) -> JsResult<Self> {
         let c = self.species_constructor(StandardConstructors::promise, context)?;
         let (then, catch) = Promise::then_catch_finally_closures(c, on_finally, context);
         self.then(Some(then), Some(catch), context)
@@ -619,7 +619,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.all`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
-    pub fn all<I>(promises: I, context: &mut Context<'_>) -> JsResult<Self>
+    pub fn all<I>(promises: I, context: &mut dyn Context<'_>) -> JsResult<Self>
     where
         I: IntoIterator<Item = Self>,
     {
@@ -688,7 +688,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.allSettled`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
-    pub fn all_settled<I>(promises: I, context: &mut Context<'_>) -> JsResult<Self>
+    pub fn all_settled<I>(promises: I, context: &mut dyn Context<'_>) -> JsResult<Self>
     where
         I: IntoIterator<Item = Self>,
     {
@@ -750,7 +750,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.any`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/any
-    pub fn any<I>(promises: I, context: &mut Context<'_>) -> JsResult<Self>
+    pub fn any<I>(promises: I, context: &mut dyn Context<'_>) -> JsResult<Self>
     where
         I: IntoIterator<Item = Self>,
     {
@@ -813,7 +813,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.race`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-    pub fn race<I>(promises: I, context: &mut Context<'_>) -> JsResult<Self>
+    pub fn race<I>(promises: I, context: &mut dyn Context<'_>) -> JsResult<Self>
     where
         I: IntoIterator<Item = Self>,
     {
@@ -861,7 +861,7 @@ impl std::ops::Deref for JsPromise {
 impl JsObjectType for JsPromise {}
 
 impl TryFromJs for JsPromise {
-    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &mut dyn Context<'_>) -> JsResult<Self> {
         match value {
             JsValue::Object(o) => Self::from_object(o.clone()),
             _ => Err(JsNativeError::typ()

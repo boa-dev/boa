@@ -14,9 +14,10 @@ impl Operation for SetPrototype {
     const NAME: &'static str = "SetPrototype";
     const INSTRUCTION: &'static str = "INST - SetPrototype";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let value = raw_context.vm.pop();
+        let object = raw_context.vm.pop();
 
         let prototype = if let Some(prototype) = value.as_object() {
             Some(prototype.clone())

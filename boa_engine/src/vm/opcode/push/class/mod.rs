@@ -23,8 +23,8 @@ impl Operation for PushClassPrototype {
     const NAME: &'static str = "PushClassPrototype";
     const INSTRUCTION: &'static str = "INST - PushClassPrototype";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let superclass = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let superclass = context.as_raw_context_mut().vm.pop();
 
         if let Some(superclass) = superclass.as_constructor() {
             let proto = superclass.get(PROTOTYPE, context)?;
@@ -34,7 +34,7 @@ impl Operation for PushClassPrototype {
                     .into());
             }
 
-            let class = context.vm.pop();
+            let class = context.as_raw_context_mut().vm.pop();
             {
                 let class_object = class.as_object().expect("class must be object");
                 class_object.set_prototype(Some(superclass.clone()));
@@ -51,11 +51,14 @@ impl Operation for PushClassPrototype {
                 }
             }
 
-            context.vm.push(class);
-            context.vm.push(proto);
+            {
+                let context = context.as_raw_context_mut();
+                context.vm.push(class);
+                context.vm.push(proto);
+            }
             Ok(CompletionType::Normal)
         } else if superclass.is_null() {
-            context.vm.push(JsValue::Null);
+            context.as_raw_context_mut().vm.push(JsValue::Null);
             Ok(CompletionType::Normal)
         } else {
             Err(JsNativeError::typ()

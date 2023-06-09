@@ -199,7 +199,7 @@ impl BuiltInConstructor for Date {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
@@ -294,7 +294,7 @@ impl Date {
     /// Gets the timestamp from a list of component values.
     fn construct_date(
         values: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Option<NaiveDateTime>> {
         // 1. Let y be ? ToNumber(year).
         let Some(mut year) = values.get_or_undefined(0).to_integer_or_nan(context)?.as_integer() else {
@@ -387,7 +387,11 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn now(_: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn now(
+        _: &JsValue,
+        _: &[JsValue],
+        context: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         Ok(JsValue::new(
             context.host_hooks().utc_now().timestamp_millis(),
         ))
@@ -408,7 +412,7 @@ impl Date {
     pub(crate) fn parse(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
@@ -438,7 +442,7 @@ impl Date {
     pub(crate) fn utc(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let t = some_or_nan!(Self::construct_date(args, context)?);
 
@@ -455,7 +459,7 @@ impl Date {
     pub(crate) fn get_date<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let t = this_time_value(this)?;
@@ -484,7 +488,7 @@ impl Date {
     pub(crate) fn get_day<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let t = this_time_value(this)?;
@@ -516,7 +520,7 @@ impl Date {
     pub(crate) fn get_year(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let t = this_time_value(this)?;
@@ -539,7 +543,7 @@ impl Date {
     pub(crate) fn get_full_year<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let t = this_time_value(this)?;
@@ -567,7 +571,7 @@ impl Date {
     pub(crate) fn get_hours<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let t = this_time_value(this)?;
@@ -595,7 +599,7 @@ impl Date {
     pub(crate) fn get_milliseconds<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let t = this_time_value(this)?;
@@ -623,7 +627,7 @@ impl Date {
     pub(crate) fn get_minutes<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let t = this_time_value(this)?;
@@ -652,7 +656,7 @@ impl Date {
     pub(crate) fn get_month<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let t = this_time_value(this)?;
@@ -680,7 +684,7 @@ impl Date {
     pub(crate) fn get_seconds<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let t = this_time_value(this)?;
@@ -711,7 +715,7 @@ impl Date {
     pub(crate) fn get_time(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Return ? thisTimeValue(this value).
         Ok(this_time_value(this)?.map_or(JsValue::nan(), JsValue::from))
@@ -731,7 +735,7 @@ impl Date {
     pub(crate) fn get_timezone_offset(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
@@ -759,7 +763,7 @@ impl Date {
     pub(crate) fn set_date<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
         get_mut_date!(let t = this);
@@ -800,7 +804,7 @@ impl Date {
     pub(crate) fn set_full_year<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         get_mut_date!(let t = this);
@@ -868,7 +872,7 @@ impl Date {
     pub(crate) fn set_hours<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         get_mut_date!(let t = this);
@@ -932,7 +936,7 @@ impl Date {
     pub(crate) fn set_milliseconds<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
@@ -973,7 +977,7 @@ impl Date {
     pub(crate) fn set_minutes<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         get_mut_date!(let t = this);
@@ -1030,7 +1034,7 @@ impl Date {
     pub(crate) fn set_month<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         get_mut_date!(let t = this);
@@ -1078,7 +1082,7 @@ impl Date {
     pub(crate) fn set_seconds<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         get_mut_date!(let t = this);
@@ -1133,7 +1137,7 @@ impl Date {
     pub(crate) fn set_year(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         get_mut_date!(let t = this);
@@ -1200,7 +1204,7 @@ impl Date {
     pub(crate) fn set_time(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Perform ? thisTimeValue(this value).
         get_mut_date!(let t = this);
@@ -1232,7 +1236,7 @@ impl Date {
     pub(crate) fn to_date_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
@@ -1265,7 +1269,7 @@ impl Date {
     pub(crate) fn to_iso_string(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let t = this_time_value(this)?
             .and_then(NaiveDateTime::from_timestamp_millis)
@@ -1289,7 +1293,7 @@ impl Date {
     pub(crate) fn to_json(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1322,7 +1326,7 @@ impl Date {
     pub(crate) fn to_locale_date_string(
         _this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Err(JsError::from_opaque(JsValue::new("Function Unimplemented")))
     }
@@ -1339,7 +1343,7 @@ impl Date {
     pub(crate) fn to_locale_string(
         _this: &JsValue,
         _: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Err(JsError::from_opaque(JsValue::new(
             "Function Unimplemented]",
@@ -1359,7 +1363,7 @@ impl Date {
     pub(crate) fn to_locale_time_string(
         _this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Err(JsError::from_opaque(JsValue::new(
             "Function Unimplemented]",
@@ -1378,7 +1382,7 @@ impl Date {
     pub(crate) fn to_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let tv be ? thisTimeValue(this value).
         // 2. Return ToDateString(tv).
@@ -1406,7 +1410,7 @@ impl Date {
     pub(crate) fn to_time_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
@@ -1437,7 +1441,7 @@ impl Date {
     pub(crate) fn to_utc_string(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         let Some(t) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
@@ -1471,7 +1475,7 @@ impl Date {
     pub(crate) fn value_of(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Return ? thisTimeValue(this value).
         Ok(Self::new(this_time_value(this)?).as_value())
@@ -1489,7 +1493,7 @@ impl Date {
     pub(crate) fn to_primitive(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, throw a TypeError exception.

@@ -40,6 +40,7 @@ use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
+use crate::context::RawContext;
 use crate::object::FunctionObjectBuilder;
 use crate::script::Script;
 use crate::vm::ActiveRunnable;
@@ -101,11 +102,10 @@ pub trait ModuleLoader {
     /// [finish]: https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
     #[allow(clippy::type_complexity)]
     fn load_imported_module(
-        &self,
+        &mut self,
         referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context<'_>)>,
-        context: &mut Context<'_>,
+        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut dyn Context<'_>)>,
     );
 
     /// Registers a new module into the module loader.
@@ -140,36 +140,7 @@ pub trait ModuleLoader {
     ///
     /// [meta]: https://tc39.es/ecma262/#sec-hostgetimportmetaproperties
     /// [final]: https://tc39.es/ecma262/#sec-hostfinalizeimportmeta
-    fn init_import_meta(
-        &self,
-        _import_meta: &JsObject,
-        _module: &Module,
-        _context: &mut Context<'_>,
-    ) {
-    }
-}
-
-/// A module loader that throws when trying to load any modules.
-///
-/// Useful to disable the module system on platforms that don't have a filesystem, for example.
-#[derive(Debug, Clone, Copy)]
-pub struct IdleModuleLoader;
-
-impl ModuleLoader for IdleModuleLoader {
-    fn load_imported_module(
-        &self,
-        _referrer: Referrer,
-        _specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context<'_>)>,
-        context: &mut Context<'_>,
-    ) {
-        finish_load(
-            Err(JsNativeError::typ()
-                .with_message("module resolution is disabled for this context")
-                .into()),
-            context,
-        );
-    }
+    fn init_import_meta(&mut self, _import_meta: &JsObject, _module: &Module) {}
 }
 
 /// A simple module loader that loads modules relative to a root path.
@@ -182,7 +153,7 @@ impl ModuleLoader for IdleModuleLoader {
 #[derive(Debug)]
 pub struct SimpleModuleLoader {
     root: PathBuf,
-    module_map: GcRefCell<FxHashMap<PathBuf, Module>>,
+    module_map: FxHashMap<PathBuf, Module>,
 }
 
 impl SimpleModuleLoader {
@@ -201,63 +172,25 @@ impl SimpleModuleLoader {
         })?;
         Ok(Self {
             root: absolute,
-            module_map: GcRefCell::default(),
+            module_map: FxHashMap::default(),
         })
+    }
+
+    /// Gets the root path of the module loader.
+    pub fn root(&self) -> &Path {
+        &self.root
     }
 
     /// Inserts a new module onto the module map.
     #[inline]
-    pub fn insert(&self, path: PathBuf, module: Module) {
-        self.module_map.borrow_mut().insert(path, module);
+    pub fn insert(&mut self, path: PathBuf, module: Module) {
+        self.module_map.insert(path, module);
     }
 
     /// Gets a module from its original path.
     #[inline]
     pub fn get(&self, path: &Path) -> Option<Module> {
-        self.module_map.borrow().get(path).cloned()
-    }
-}
-
-impl ModuleLoader for SimpleModuleLoader {
-    fn load_imported_module(
-        &self,
-        _referrer: Referrer,
-        specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context<'_>)>,
-        context: &mut Context<'_>,
-    ) {
-        let result = (|| {
-            let path = specifier
-                .to_std_string()
-                .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
-            let short_path = Path::new(&path);
-            let path = self.root.join(short_path);
-            let path = path.canonicalize().map_err(|err| {
-                JsNativeError::typ()
-                    .with_message(format!(
-                        "could not canonicalize path `{}`",
-                        short_path.display()
-                    ))
-                    .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
-            })?;
-            if let Some(module) = self.get(&path) {
-                return Ok(module);
-            }
-            let source = Source::from_filepath(&path).map_err(|err| {
-                JsNativeError::typ()
-                    .with_message(format!("could not open file `{}`", short_path.display()))
-                    .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
-            })?;
-            let module = Module::parse(source, None, context).map_err(|err| {
-                JsNativeError::syntax()
-                    .with_message(format!("could not parse module `{}`", short_path.display()))
-                    .with_cause(err)
-            })?;
-            self.insert(path, module.clone());
-            Ok(module)
-        })();
-
-        finish_load(result, context);
+        self.module_map.get(path).cloned()
     }
 }
 
@@ -357,18 +290,19 @@ impl Module {
     pub fn parse<R: Read>(
         src: Source<'_, R>,
         realm: Option<Realm>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Self> {
+        let raw_context = context.as_raw_context_mut();
         let _timer = Profiler::global().start_event("Module parsing", "Main");
         let mut parser = Parser::new(src);
-        parser.set_identifier(context.next_parser_identifier());
-        let module = parser.parse_module(context.interner_mut())?;
+        parser.set_identifier(raw_context.next_parser_identifier());
+        let module = parser.parse_module(raw_context.interner_mut())?;
 
         let src = SourceTextModule::new(module);
 
         let module = Self {
             inner: Gc::new(Inner {
-                realm: realm.unwrap_or_else(|| context.realm().clone()),
+                realm: realm.unwrap_or_else(|| raw_context.realm().clone()),
                 environment: GcRefCell::default(),
                 namespace: GcRefCell::default(),
                 kind: ModuleKind::SourceText(src.clone()),
@@ -405,7 +339,7 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
     #[inline]
-    pub fn load(&self, context: &mut Context<'_>) -> JsPromise {
+    pub fn load(&self, context: &mut dyn Context<'_>) -> JsPromise {
         match self.kind() {
             ModuleKind::SourceText(_) => {
                 // Concrete method [`LoadRequestedModules ( [ hostDefined ] )`][spec].
@@ -448,7 +382,7 @@ impl Module {
     /// Abstract operation [`InnerModuleLoading`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLoading
-    fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut Context<'_>) {
+    fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut dyn Context<'_>) {
         // 1. Assert: state.[[IsLoading]] is true.
         assert!(state.loading.get());
 
@@ -535,7 +469,7 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
     #[inline]
-    pub fn link(&self, context: &mut Context<'_>) -> JsResult<()> {
+    pub fn link(&self, context: &mut dyn Context<'_>) -> JsResult<()> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.link(context),
             ModuleKind::Synthetic => todo!("synthetic.link()"),
@@ -549,7 +483,7 @@ impl Module {
         &self,
         stack: &mut Vec<SourceTextModule>,
         index: usize,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<usize> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.inner_link(stack, index, context),
@@ -578,7 +512,7 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
     #[inline]
-    pub fn evaluate(&self, context: &mut Context<'_>) -> JsPromise {
+    pub fn evaluate(&self, context: &mut dyn Context<'_>) -> JsPromise {
         match self.kind() {
             ModuleKind::SourceText(src) => src.evaluate(context),
             ModuleKind::Synthetic => todo!("synthetic.evaluate()"),
@@ -592,7 +526,7 @@ impl Module {
         &self,
         stack: &mut Vec<SourceTextModule>,
         index: usize,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<usize> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.inner_evaluate(stack, index, None, context),
@@ -643,7 +577,7 @@ impl Module {
     /// ```
     #[allow(clippy::drop_copy)]
     #[inline]
-    pub fn load_link_evaluate(&self, context: &mut Context<'_>) -> JsResult<JsPromise> {
+    pub fn load_link_evaluate(&self, context: &mut dyn Context<'_>) -> JsResult<JsPromise> {
         let main_timer = Profiler::global().start_event("Module evaluation", "Main");
 
         let promise = self
@@ -693,7 +627,7 @@ impl Module {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmodulenamespace
     /// [ns]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects
-    pub fn namespace(&self, context: &mut Context<'_>) -> JsObject {
+    pub fn namespace(&self, context: &RawContext<'_>) -> JsObject {
         // 1. Assert: If module is a Cyclic Module Record, then module.[[Status]] is not new or unlinked.
         // 2. Let namespace be module.[[Namespace]].
         // 3. If namespace is empty, then
@@ -755,7 +689,7 @@ impl ModuleNamespace {
     /// Abstract operation [`ModuleNamespaceCreate ( module, exports )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-modulenamespacecreate
-    pub(crate) fn create(module: Module, names: Vec<Sym>, context: &mut Context<'_>) -> JsObject {
+    pub(crate) fn create(module: Module, names: Vec<Sym>, context: &RawContext<'_>) -> JsObject {
         // 1. Assert: module.[[Namespace]] is empty.
         // ignored since this is ensured by `Module::namespace`.
 

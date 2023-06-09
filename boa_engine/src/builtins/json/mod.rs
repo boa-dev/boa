@@ -85,7 +85,7 @@ impl Json {
     pub(crate) fn parse(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let jsonString be ? ToString(text).
         let json_string = args
@@ -128,10 +128,14 @@ impl Json {
             Gc::new(compiler.finish())
         };
 
-        context.vm.push_frame(CallFrame::new(code_block));
-        context.realm().resize_global_env();
+        {
+            let raw_context = context.as_raw_context_mut();
+            raw_context.vm.push_frame(CallFrame::new(code_block));
+            raw_context.realm().resize_global_env();
+        }
+
         let record = context.run();
-        context.vm.pop_frame();
+        context.as_raw_context_mut().vm.pop_frame();
 
         let unfiltered = record.consume()?;
 
@@ -164,7 +168,7 @@ impl Json {
         holder: &JsObject,
         name: JsString,
         reviver: &JsObject,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let val be ? Get(holder, name).
         let val = holder.get(name.clone(), context)?;
@@ -254,7 +258,7 @@ impl Json {
     pub(crate) fn stringify(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let stack be a new empty List.
         let stack = Vec::new();
@@ -404,7 +408,7 @@ impl Json {
         state: &mut StateRecord,
         key: JsString,
         holder: &JsObject,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<Option<JsString>> {
         // 1. Let value be ? Get(holder, key).
         let mut value = holder.get(key.clone(), context)?;
@@ -575,7 +579,7 @@ impl Json {
     fn serialize_json_object(
         state: &mut StateRecord,
         value: &JsObject,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         if state.stack.contains(value) {
@@ -708,7 +712,7 @@ impl Json {
     fn serialize_json_array(
         state: &mut StateRecord,
         value: &JsObject,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         if state.stack.contains(value) {

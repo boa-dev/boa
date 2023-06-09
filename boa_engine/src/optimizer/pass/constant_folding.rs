@@ -13,7 +13,7 @@ use boa_ast::{
     Expression,
 };
 
-fn literal_to_js_value(literal: &Literal, context: &mut Context<'_>) -> JsValue {
+fn literal_to_js_value(literal: &Literal, context: &mut dyn Context<'_>) -> JsValue {
     match literal {
         Literal::String(v) => JsValue::new(JsString::from(
             context.interner().resolve_expect(*v).utf16(),
@@ -27,7 +27,7 @@ fn literal_to_js_value(literal: &Literal, context: &mut Context<'_>) -> JsValue 
     }
 }
 
-fn js_value_to_literal(value: JsValue, context: &mut Context<'_>) -> Literal {
+fn js_value_to_literal(value: JsValue, context: &mut dyn Context<'_>) -> Literal {
     match value {
         JsValue::Null => Literal::Null,
         JsValue::Undefined => Literal::Undefined,
@@ -48,7 +48,7 @@ pub(crate) struct ConstantFolding {}
 impl ConstantFolding {
     pub(crate) fn fold_expression(
         expr: &mut Expression,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> PassAction<Expression> {
         match expr {
             Expression::Unary(unary) => Self::constant_fold_unary_expr(unary, context),
@@ -59,7 +59,7 @@ impl ConstantFolding {
 
     fn constant_fold_unary_expr(
         unary: &mut Unary,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> PassAction<Expression> {
         let Expression::Literal(literal) = unary.target() else {
             return PassAction::Keep;
@@ -102,7 +102,7 @@ impl ConstantFolding {
 
     fn constant_fold_binary_expr(
         binary: &mut Binary,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> PassAction<Expression> {
         let Expression::Literal(lhs) = binary.lhs() else {
             return PassAction::Keep;

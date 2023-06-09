@@ -85,7 +85,7 @@ impl SetIterator {
         set: JsValue,
         kind: PropertyNameKind,
         lock: SetLock,
-        context: &Context<'_>,
+        context: &dyn Context<'_>,
     ) -> JsValue {
         let set_iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
@@ -106,7 +106,7 @@ impl SetIterator {
     pub(crate) fn next(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let mut set_iterator = this.as_object().map(JsObject::borrow_mut);
 
@@ -146,7 +146,7 @@ impl SetIterator {
                         PropertyNameKind::KeyAndValue => {
                             let result = Array::create_array_from_list(
                                 [value.clone(), value.clone()],
-                                context,
+                                context.as_raw_context(),
                             );
                             return Ok(create_iter_result_object(result.into(), false, context));
                         }

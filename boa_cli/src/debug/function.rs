@@ -50,7 +50,11 @@ fn flowgraph_parse_direction_option(value: &JsValue) -> JsResult<Direction> {
 }
 
 /// Get functions instruction flowgraph
-fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn flowgraph(
+    _this: &JsValue,
+    args: &[JsValue],
+    context: &mut dyn Context<'_>,
+) -> JsResult<JsValue> {
     let Some(value) = args.get(0) else {
         return Err(JsNativeError::typ()
         .with_message("expected function argument")
@@ -100,7 +104,7 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
     Ok(JsValue::new(result))
 }
 
-fn bytecode(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn bytecode(_: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
     let Some(value) = args.get(0) else {
         return Err(JsNativeError::typ()
         .with_message("expected function argument")
@@ -140,7 +144,7 @@ fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult
 }
 
 /// Trace function.
-fn trace(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn trace(_: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0);
     let this = args.get_or_undefined(1);
 
@@ -159,7 +163,7 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<J
     result
 }
 
-fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+fn traceable(_: &JsValue, args: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0);
     let traceable = args.get_or_undefined(1).to_boolean();
 
@@ -174,7 +178,7 @@ fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsV
     Ok(value.clone())
 }
 
-pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
+pub(super) fn create_object(context: &mut dyn Context<'_>) -> JsObject {
     ObjectInitializer::new(context)
         .function(NativeFunction::from_fn_ptr(flowgraph), "flowgraph", 1)
         .function(NativeFunction::from_fn_ptr(bytecode), "bytecode", 1)

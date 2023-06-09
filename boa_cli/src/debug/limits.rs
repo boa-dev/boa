@@ -4,23 +4,27 @@ use boa_engine::{
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
 
-fn get_loop(_: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn get_loop(_: &JsValue, _: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
     let max = context.runtime_limits().loop_iteration_limit();
     Ok(JsValue::from(max))
 }
 
-fn set_loop(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn set_loop(_: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_length(context)?;
     context.runtime_limits_mut().set_loop_iteration_limit(value);
     Ok(JsValue::undefined())
 }
 
-fn get_recursion(_: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn get_recursion(_: &JsValue, _: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
     let max = context.runtime_limits().recursion_limit();
     Ok(JsValue::from(max))
 }
 
-fn set_recursion(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn set_recursion(
+    _: &JsValue,
+    args: &[JsValue],
+    context: &mut dyn Context<'_>,
+) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_length(context)?;
     let Ok(value) = value.try_into() else {
         return Err(
@@ -31,7 +35,7 @@ fn set_recursion(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
     Ok(JsValue::undefined())
 }
 
-pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
+pub(super) fn create_object(context: &mut dyn Context<'_>) -> JsObject {
     let get_loop = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get_loop))
         .name("get loop")
         .length(0)

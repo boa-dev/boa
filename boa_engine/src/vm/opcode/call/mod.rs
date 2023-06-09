@@ -18,29 +18,30 @@ impl Operation for CallEval {
     const NAME: &'static str = "CallEval";
     const INSTRUCTION: &'static str = "INST - CallEval";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        if raw_context.vm.runtime_limits.recursion_limit() <= raw_context.vm.frames.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message(format!(
                     "Maximum recursion limit {} exceeded",
-                    context.vm.runtime_limits.recursion_limit()
+                    raw_context.vm.runtime_limits.recursion_limit()
                 ))
                 .into());
         }
-        if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
+        if raw_context.vm.runtime_limits.stack_size_limit() <= raw_context.vm.stack.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message("Maximum call stack size exceeded")
                 .into());
         }
-        let argument_count = context.vm.read::<u32>();
+        let argument_count = raw_context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
         for _ in 0..argument_count {
-            arguments.push(context.vm.pop());
+            arguments.push(raw_context.vm.pop());
         }
         arguments.reverse();
 
-        let func = context.vm.pop();
-        let this = context.vm.pop();
+        let func = raw_context.vm.pop();
+        let this = raw_context.vm.pop();
 
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
@@ -58,18 +59,18 @@ impl Operation for CallEval {
             .map(|f| matches!(f.kind(), FunctionKind::Native { .. }))
             .unwrap_or_default();
 
-        let strict = context.vm.frame().code_block.strict();
+        let strict = raw_context.vm.frame().code_block.strict();
 
         if eval {
             if let Some(x) = arguments.get(0) {
                 let result = crate::builtins::eval::Eval::perform_eval(x, true, strict, context)?;
-                context.vm.push(result);
+                context.as_raw_context_mut().vm.push(result);
             } else {
-                context.vm.push(JsValue::Undefined);
+                context.as_raw_context_mut().vm.push(JsValue::Undefined);
             }
         } else {
             let result = object.__call__(&this, &arguments, context)?;
-            context.vm.push(result);
+            context.as_raw_context_mut().vm.push(result);
         }
         Ok(CompletionType::Normal)
     }
@@ -86,23 +87,24 @@ impl Operation for CallEvalSpread {
     const NAME: &'static str = "CallEvalSpread";
     const INSTRUCTION: &'static str = "INST - CallEvalSpread";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        if raw_context.vm.runtime_limits.recursion_limit() <= raw_context.vm.frames.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message(format!(
                     "Maximum recursion limit {} exceeded",
-                    context.vm.runtime_limits.recursion_limit()
+                    raw_context.vm.runtime_limits.recursion_limit()
                 ))
                 .into());
         }
-        if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
+        if raw_context.vm.runtime_limits.stack_size_limit() <= raw_context.vm.stack.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message("Maximum call stack size exceeded")
                 .into());
         }
 
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.pop();
+        let arguments_array = raw_context.vm.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -113,8 +115,8 @@ impl Operation for CallEvalSpread {
             .expect("arguments array in call spread function must be dense")
             .clone();
 
-        let func = context.vm.pop();
-        let this = context.vm.pop();
+        let func = raw_context.vm.pop();
+        let this = raw_context.vm.pop();
 
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
@@ -132,18 +134,18 @@ impl Operation for CallEvalSpread {
             .map(|f| matches!(f.kind(), FunctionKind::Native { .. }))
             .unwrap_or_default();
 
-        let strict = context.vm.frame().code_block.strict();
+        let strict = raw_context.vm.frame().code_block.strict();
 
         if eval {
             if let Some(x) = arguments.get(0) {
                 let result = crate::builtins::eval::Eval::perform_eval(x, true, strict, context)?;
-                context.vm.push(result);
+                context.as_raw_context_mut().vm.push(result);
             } else {
-                context.vm.push(JsValue::Undefined);
+                context.as_raw_context_mut().vm.push(JsValue::Undefined);
             }
         } else {
             let result = object.__call__(&this, &arguments, context)?;
-            context.vm.push(result);
+            context.as_raw_context_mut().vm.push(result);
         }
         Ok(CompletionType::Normal)
     }
@@ -160,29 +162,30 @@ impl Operation for Call {
     const NAME: &'static str = "Call";
     const INSTRUCTION: &'static str = "INST - Call";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        if raw_context.vm.runtime_limits.recursion_limit() <= raw_context.vm.frames.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message(format!(
                     "Maximum recursion limit {} exceeded",
-                    context.vm.runtime_limits.recursion_limit()
+                    raw_context.vm.runtime_limits.recursion_limit()
                 ))
                 .into());
         }
-        if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
+        if raw_context.vm.runtime_limits.stack_size_limit() <= raw_context.vm.stack.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message("Maximum call stack size exceeded")
                 .into());
         }
-        let argument_count = context.vm.read::<u32>();
+        let argument_count = raw_context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
         for _ in 0..argument_count {
-            arguments.push(context.vm.pop());
+            arguments.push(raw_context.vm.pop());
         }
         arguments.reverse();
 
-        let func = context.vm.pop();
-        let this = context.vm.pop();
+        let func = raw_context.vm.pop();
+        let this = raw_context.vm.pop();
 
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
@@ -195,7 +198,7 @@ impl Operation for Call {
 
         let result = object.__call__(&this, &arguments, context)?;
 
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
@@ -207,23 +210,24 @@ impl Operation for CallSpread {
     const NAME: &'static str = "CallSpread";
     const INSTRUCTION: &'static str = "INST - CallSpread";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        if raw_context.vm.runtime_limits.recursion_limit() <= raw_context.vm.frames.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message(format!(
                     "Maximum recursion limit {} exceeded",
-                    context.vm.runtime_limits.recursion_limit()
+                    raw_context.vm.runtime_limits.recursion_limit()
                 ))
                 .into());
         }
-        if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
+        if raw_context.vm.runtime_limits.stack_size_limit() <= raw_context.vm.stack.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message("Maximum call stack size exceeded")
                 .into());
         }
 
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.pop();
+        let arguments_array = raw_context.vm.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -234,8 +238,8 @@ impl Operation for CallSpread {
             .expect("arguments array in call spread function must be dense")
             .clone();
 
-        let func = context.vm.pop();
-        let this = context.vm.pop();
+        let func = raw_context.vm.pop();
+        let this = raw_context.vm.pop();
 
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
@@ -248,7 +252,7 @@ impl Operation for CallSpread {
 
         let result = object.__call__(&this, &arguments, context)?;
 
-        context.vm.push(result);
+        context.as_raw_context_mut().vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
@@ -264,22 +268,23 @@ impl Operation for ImportCall {
     const NAME: &'static str = "ImportCall";
     const INSTRUCTION: &'static str = "INST - ImportCall";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
         // Import Calls
         // Runtime Semantics: Evaluation
         // https://tc39.es/ecma262/#sec-import-call-runtime-semantics-evaluation
 
         // 1. Let referrer be GetActiveScriptOrModule().
         // 2. If referrer is null, set referrer to the current Realm Record.
-        let referrer = context
+        let referrer = raw_context
             .vm
             .active_runnable
             .clone()
-            .map_or_else(|| Referrer::Realm(context.realm().clone()), Into::into);
+            .map_or_else(|| Referrer::Realm(raw_context.realm().clone()), Into::into);
 
         // 3. Let argRef be ? Evaluation of AssignmentExpression.
         // 4. Let specifier be ? GetValue(argRef).
-        let arg = context.vm.pop();
+        let arg = raw_context.vm.pop();
 
         // 5. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let cap = PromiseCapability::new(
@@ -297,7 +302,7 @@ impl Operation for ImportCall {
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
             }
             // 8. Perform HostLoadImportedModule(referrer, specifierString, empty, promiseCapability).
-            Ok(specifier) => context.module_loader().load_imported_module(
+            Ok(specifier) => context.load_imported_module(
                 referrer.clone(),
                 specifier.clone(),
                 Box::new(move |completion, context| {
@@ -412,7 +417,8 @@ impl Operation for ImportCall {
                                     NativeFunction::from_copy_closure_with_captures(
                                         |_, _, (module, cap), context| {
                                             // i. Let namespace be GetModuleNamespace(module).
-                                            let namespace = module.namespace(context);
+                                            let namespace =
+                                                module.namespace(context.as_raw_context());
 
                                             // ii. Perform ! Call(promiseCapability.[[Resolve]], undefined, « namespace »).
                                             cap.resolve()
@@ -459,12 +465,11 @@ impl Operation for ImportCall {
 
                     // 9. Return unused.
                 }),
-                context,
             ),
         };
 
         // 9. Return promiseCapability.[[Promise]].
-        context.vm.push(promise);
+        context.as_raw_context_mut().vm.push(promise);
 
         Ok(CompletionType::Normal)
     }

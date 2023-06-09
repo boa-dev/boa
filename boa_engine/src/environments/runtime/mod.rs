@@ -1,4 +1,5 @@
 use crate::{
+    context::RawContext,
     environments::CompileTimeEnvironment,
     object::{JsObject, PrivateName},
     Context, JsResult, JsString, JsSymbol, JsValue,
@@ -584,7 +585,7 @@ pub(crate) enum BindingLocatorError {
     Silent,
 }
 
-impl Context<'_> {
+impl dyn Context<'_> + '_ {
     /// Gets the corresponding runtime binding of the provided `BindingLocator`, modifying
     /// its indexes in place.
     ///
@@ -595,16 +596,18 @@ impl Context<'_> {
     /// are completely removed of runtime checks because the specification guarantees that runtime
     /// semantics cannot add or remove lexical bindings.
     pub(crate) fn find_runtime_binding(&mut self, locator: &mut BindingLocator) -> JsResult<()> {
-        let current = self.vm.environments.current();
+        let raw_context = self.as_raw_context_mut();
+        let current = raw_context.vm.environments.current();
         if let Some(env) = current.as_declarative() {
             if !env.with() && !env.poisoned() {
                 return Ok(());
             }
         }
 
-        for env_index in (locator.environment_index..self.vm.environments.stack.len() as u32).rev()
+        for env_index in
+            (locator.environment_index..raw_context.vm.environments.stack.len() as u32).rev()
         {
-            match self.environment_expect(env_index) {
+            match self.as_raw_context().environment_expect(env_index) {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
                         let compile = env.compile_env();
@@ -658,7 +661,10 @@ impl Context<'_> {
                 .into_common(false);
             self.global_object().has_property(key, self)
         } else {
-            match self.environment_expect(locator.environment_index) {
+            match self
+                .as_raw_context()
+                .environment_expect(locator.environment_index)
+            {
                 Environment::Declarative(env) => Ok(env.get(locator.binding_index).is_some()),
                 Environment::Object(obj) => {
                     let key: JsString = self
@@ -689,7 +695,10 @@ impl Context<'_> {
                 Ok(None)
             }
         } else {
-            match self.environment_expect(locator.environment_index) {
+            match self
+                .as_raw_context()
+                .environment_expect(locator.environment_index)
+            {
                 Environment::Declarative(env) => Ok(env.get(locator.binding_index)),
                 Environment::Object(obj) => {
                     let obj = obj.clone();
@@ -723,7 +732,10 @@ impl Context<'_> {
 
             self.global_object().set(key, value, strict, self)?;
         } else {
-            match self.environment_expect(locator.environment_index) {
+            match self
+                .as_raw_context()
+                .environment_expect(locator.environment_index)
+            {
                 Environment::Declarative(decl) => {
                     decl.set(locator.binding_index, value);
                 }
@@ -757,7 +769,10 @@ impl Context<'_> {
                 .into_common::<JsString>(false);
             self.global_object().__delete__(&key.into(), self)
         } else {
-            match self.environment_expect(locator.environment_index) {
+            match self
+                .as_raw_context()
+                .environment_expect(locator.environment_index)
+            {
                 Environment::Declarative(_) => Ok(false),
                 Environment::Object(obj) => {
                     let obj = obj.clone();
@@ -771,7 +786,9 @@ impl Context<'_> {
             }
         }
     }
+}
 
+impl RawContext<'_> {
     /// Return the environment at the given index. Panics if the index is out of range.
     pub(crate) fn environment_expect(&self, index: u32) -> &Environment {
         self.vm

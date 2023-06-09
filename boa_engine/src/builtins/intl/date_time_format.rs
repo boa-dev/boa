@@ -25,7 +25,7 @@ use icu_datetime::options::preferences::HourCycle;
 use super::options::OptionType;
 
 impl OptionType for HourCycle {
-    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &mut dyn Context<'_>) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
             "h11" => Ok(Self::H11),
             "h12" => Ok(Self::H12),
@@ -94,11 +94,12 @@ impl BuiltInConstructor for DateTimeFormat {
     fn constructor(
         new_target: &JsValue,
         _args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
         let new_target = &if new_target.is_undefined() {
             context
+                .as_raw_context()
                 .vm
                 .active_function
                 .clone()
@@ -183,7 +184,7 @@ pub(crate) fn to_date_time_options(
     options: &JsValue,
     required: &DateTimeReqs,
     defaults: &DateTimeReqs,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsObject> {
     // 1. If options is undefined, let options be null;
     // otherwise let options be ? ToObject(options).

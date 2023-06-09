@@ -173,7 +173,7 @@ impl BuiltInObject for EncodeUriComponent {
 pub(crate) fn decode_uri(
     _: &JsValue,
     args: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsValue> {
     let encoded_uri = args.get_or_undefined(0);
 
@@ -201,7 +201,7 @@ pub(crate) fn decode_uri(
 pub(crate) fn decode_uri_component(
     _: &JsValue,
     args: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsValue> {
     let encoded_uri_component = args.get_or_undefined(0);
 
@@ -233,7 +233,7 @@ pub(crate) fn decode_uri_component(
 pub(crate) fn encode_uri(
     _: &JsValue,
     args: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsValue> {
     let uri = args.get_or_undefined(0);
 
@@ -262,7 +262,7 @@ pub(crate) fn encode_uri(
 pub(crate) fn encode_uri_component(
     _: &JsValue,
     args: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<JsValue> {
     let uri_component = args.get_or_undefined(0);
 

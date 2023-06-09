@@ -75,7 +75,7 @@ impl std::ops::Deref for JsProxy {
 impl JsObjectType for JsProxy {}
 
 impl TryFromJs for JsProxy {
-    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &mut dyn Context<'_>) -> JsResult<Self> {
         match value {
             JsValue::Object(o) => Self::from_object(o.clone()),
             _ => Err(JsNativeError::typ()
@@ -107,7 +107,7 @@ impl JsRevocableProxy {
     /// Disables the traps of the internal `proxy` object, essentially
     /// making it unusable and throwing `TypeError`s for all the traps.
     #[inline]
-    pub fn revoke(self, context: &mut Context<'_>) -> JsResult<()> {
+    pub fn revoke(self, context: &mut dyn Context<'_>) -> JsResult<()> {
         self.revoker.call(&JsValue::undefined(), &[], context)?;
         Ok(())
     }
@@ -397,7 +397,7 @@ impl JsProxyBuilder {
     /// [`JsObject`] in case there's a need to manipulate the returned object
     /// inside Rust code.
     #[must_use]
-    pub fn build(self, context: &mut Context<'_>) -> JsProxy {
+    pub fn build(self, context: &mut dyn Context<'_>) -> JsProxy {
         let handler = JsObject::with_object_proto(context.intrinsics());
 
         if let Some(apply) = self.apply {
@@ -535,7 +535,7 @@ impl JsProxyBuilder {
     /// revoker in case there's a need to manipulate the returned objects
     /// inside Rust code.
     #[must_use]
-    pub fn build_revocable(self, context: &mut Context<'_>) -> JsRevocableProxy {
+    pub fn build_revocable(self, context: &mut dyn Context<'_>) -> JsRevocableProxy {
         let proxy = self.build(context);
         let revoker = Proxy::revoker(proxy.inner.clone(), context);
 

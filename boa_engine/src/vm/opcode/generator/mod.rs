@@ -24,7 +24,8 @@ impl Operation for GeneratorNext {
     const NAME: &'static str = "GeneratorNext";
     const INSTRUCTION: &'static str = "INST - GeneratorNext";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         match context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal => Ok(CompletionType::Normal),
             GeneratorResumeKind::Throw => Err(JsError::from_opaque(context.vm.pop())),
@@ -45,7 +46,8 @@ impl Operation for GeneratorJumpOnResumeKind {
     const NAME: &'static str = "GeneratorJumpOnResumeKind";
     const INSTRUCTION: &'static str = "INST - GeneratorJumpOnResumeKind";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let normal = context.vm.read::<u32>();
         let throw = context.vm.read::<u32>();
         let r#return = context.vm.read::<u32>();
@@ -69,7 +71,8 @@ impl Operation for GeneratorSetReturn {
     const NAME: &'static str = "GeneratorSetReturn";
     const INSTRUCTION: &'static str = "INST - GeneratorSetReturn";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
         Ok(CompletionType::Normal)
     }
@@ -86,7 +89,8 @@ impl Operation for GeneratorResumeReturn {
     const NAME: &'static str = "GeneratorResumeReturn";
     const INSTRUCTION: &'static str = "INST - GeneratorResumeReturn";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         if context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
             return Err(JsError::from_opaque(context.vm.pop()));
         }
@@ -105,29 +109,33 @@ impl Operation for GeneratorDelegateNext {
     const NAME: &'static str = "GeneratorDelegateNext";
     const INSTRUCTION: &'static str = "INST - GeneratorDelegateNext";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let throw_method_undefined = context.vm.read::<u32>();
-        let return_method_undefined = context.vm.read::<u32>();
-        let received = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let throw_method_undefined = raw_context.vm.read::<u32>();
+        let return_method_undefined = raw_context.vm.read::<u32>();
+        let received = raw_context.vm.pop();
 
         // Preemptively popping removes the iterator from the iterator stack if any operation
         // throws, which avoids calling cleanup operations on the poisoned iterator.
-        let iterator_record = context
+        let iterator_record = raw_context
             .vm
             .frame_mut()
             .iterators
             .pop()
             .expect("iterator stack should have at least an iterator");
 
-        match std::mem::take(&mut context.vm.frame_mut().generator_resume_kind) {
+        match std::mem::take(&mut raw_context.vm.frame_mut().generator_resume_kind) {
             GeneratorResumeKind::Normal => {
                 let result = iterator_record.next_method().call(
                     &iterator_record.iterator().clone().into(),
                     &[received],
                     context,
                 )?;
-                context.vm.push(false);
-                context.vm.push(result);
+                {
+                    let context = context.as_raw_context_mut();
+                    context.vm.push(false);
+                    context.vm.push(result);
+                }
             }
             GeneratorResumeKind::Throw => {
                 let throw = iterator_record
@@ -139,14 +147,20 @@ impl Operation for GeneratorDelegateNext {
                         &[received],
                         context,
                     )?;
-                    context.vm.push(false);
-                    context.vm.push(result);
+                    {
+                        let context = context.as_raw_context_mut();
+                        context.vm.push(false);
+                        context.vm.push(result);
+                    }
                 } else {
                     let error = JsNativeError::typ()
                         .with_message("iterator does not have a throw method")
                         .to_opaque(context);
-                    context.vm.push(error);
-                    context.vm.frame_mut().pc = throw_method_undefined;
+                    {
+                        let context = context.as_raw_context_mut();
+                        context.vm.push(error);
+                        context.vm.frame_mut().pc = throw_method_undefined;
+                    }
                 }
             }
             GeneratorResumeKind::Return => {
@@ -159,9 +173,13 @@ impl Operation for GeneratorDelegateNext {
                         &[received],
                         context,
                     )?;
-                    context.vm.push(true);
-                    context.vm.push(result);
+                    {
+                        let context = context.as_raw_context_mut();
+                        context.vm.push(true);
+                        context.vm.push(result);
+                    }
                 } else {
+                    let context = context.as_raw_context_mut();
                     context.vm.push(received);
                     context.vm.frame_mut().pc = return_method_undefined;
 
@@ -172,7 +190,12 @@ impl Operation for GeneratorDelegateNext {
             }
         }
 
-        context.vm.frame_mut().iterators.push(iterator_record);
+        context
+            .as_raw_context_mut()
+            .vm
+            .frame_mut()
+            .iterators
+            .push(iterator_record);
 
         Ok(CompletionType::Normal)
     }
@@ -189,7 +212,9 @@ impl Operation for GeneratorDelegateResume {
     const NAME: &'static str = "GeneratorDelegateResume";
     const INSTRUCTION: &'static str = "INST - GeneratorDelegateResume";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
+
         let return_gen = context.vm.read::<u32>();
         let exit = context.vm.read::<u32>();
 

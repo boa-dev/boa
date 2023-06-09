@@ -14,7 +14,7 @@ impl Operation for Nop {
     const NAME: &'static str = "Nop";
     const INSTRUCTION: &'static str = "INST - Nop";
 
-    fn execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(_: &mut dyn Context<'_>) -> JsResult<CompletionType> {
         Ok(CompletionType::Normal)
     }
 }
@@ -30,7 +30,7 @@ impl Operation for Reserved {
     const NAME: &'static str = "Reserved";
     const INSTRUCTION: &'static str = "INST - Reserved";
 
-    fn execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(_: &mut dyn Context<'_>) -> JsResult<CompletionType> {
         unreachable!("Reserved opcodes are unreachable!")
     }
 }

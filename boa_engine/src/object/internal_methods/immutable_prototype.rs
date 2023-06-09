@@ -21,7 +21,7 @@ pub(crate) static IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS: InternalObjectMet
 pub(crate) fn immutable_prototype_exotic_set_prototype_of(
     obj: &JsObject,
     val: JsPrototype,
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
 ) -> JsResult<bool> {
     // 1. Return ? SetImmutablePrototype(O, V).
 

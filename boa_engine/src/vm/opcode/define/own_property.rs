@@ -15,16 +15,17 @@ impl Operation for DefineOwnPropertyByName {
     const NAME: &'static str = "DefineOwnPropertyByName";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let value = context.vm.pop();
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let value = raw_context.vm.pop();
+        let object = raw_context.vm.pop();
+        let name = raw_context.vm.frame().code_block.names[index as usize].clone();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
             object.to_object(context)?
         };
-        let name = context.vm.frame().code_block.names[index as usize].clone();
         object.__define_own_property__(
             &name.into(),
             PropertyDescriptor::builder()
@@ -50,10 +51,11 @@ impl Operation for DefineOwnPropertyByValue {
     const NAME: &'static str = "DefineOwnPropertyByValue";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let key = context.vm.pop();
-        let object = context.vm.pop();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let value = raw_context.vm.pop();
+        let key = raw_context.vm.pop();
+        let object = raw_context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {

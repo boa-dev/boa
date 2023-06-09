@@ -115,7 +115,7 @@ impl AsyncGenerator {
     pub(crate) fn next(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let generator be the this value.
         let generator = this;
@@ -203,7 +203,7 @@ impl AsyncGenerator {
     pub(crate) fn r#return(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let generator be the this value.
         let generator = this;
@@ -281,7 +281,7 @@ impl AsyncGenerator {
     pub(crate) fn throw(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let generator be the this value.
         let generator = this;
@@ -401,7 +401,7 @@ impl AsyncGenerator {
         completion: JsResult<JsValue>,
         done: bool,
         realm: Option<Realm>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) {
         // 1. Let queue be generator.[[AsyncGeneratorQueue]].
         // 2. Assert: queue is not empty.
@@ -463,7 +463,7 @@ impl AsyncGenerator {
         state: AsyncGeneratorState,
         mut generator_context: GeneratorContext,
         completion: CompletionRecord,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) {
         // 1. Assert: generator.[[AsyncGeneratorState]] is either suspendedStart or suspendedYield.
         assert!(
@@ -514,7 +514,7 @@ impl AsyncGenerator {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorawaitreturn
-    pub(crate) fn await_return(generator: JsObject, value: JsValue, context: &mut Context<'_>) {
+    pub(crate) fn await_return(generator: JsObject, value: JsValue, context: &mut dyn Context<'_>) {
         // 1. Let queue be generator.[[AsyncGeneratorQueue]].
         // 2. Assert: queue is not empty.
         // 3. Let next be the first element of queue.
@@ -637,7 +637,7 @@ impl AsyncGenerator {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratordrainqueue
-    pub(crate) fn drain_queue(generator: &JsObject, context: &mut Context<'_>) {
+    pub(crate) fn drain_queue(generator: &JsObject, context: &mut dyn Context<'_>) {
         let mut generator_borrow_mut = generator.borrow_mut();
         let gen = generator_borrow_mut
             .as_async_generator_mut()

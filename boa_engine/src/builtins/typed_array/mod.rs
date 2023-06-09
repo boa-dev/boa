@@ -109,7 +109,7 @@ macro_rules! typed_array {
             fn constructor(
                 new_target: &JsValue,
                 args: &[JsValue],
-                context: &mut Context<'_>,
+                context: &mut dyn Context<'_>,
             ) -> JsResult<JsValue> {
                 // 1. If NewTarget is undefined, throw a TypeError exception.
                 if new_target.is_undefined() {
@@ -365,7 +365,7 @@ impl BuiltInConstructor for TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%
-    fn constructor(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn constructor(_: &JsValue, _: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Throw a TypeError exception.
         Err(JsNativeError::typ()
             .with_message("the TypedArray constructor should never be called directly")
@@ -380,7 +380,7 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.from
-    fn from(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn from(this: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let C be the this value.
         // 2. If IsConstructor(C) is false, throw a TypeError exception.
         let constructor = match this.as_object() {
@@ -490,7 +490,7 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.of
-    fn of(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn of(this: &JsValue, args: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let len be the number of elements in items.
 
         // 2. Let C be the this value.
@@ -527,7 +527,7 @@ impl TypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%-@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -541,7 +541,7 @@ impl TypedArray {
     pub(crate) fn at(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -592,7 +592,7 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.buffer
-    fn buffer(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn buffer(this: &JsValue, _: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
@@ -620,7 +620,7 @@ impl TypedArray {
     pub(crate) fn byte_length(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
@@ -653,7 +653,7 @@ impl TypedArray {
     pub(crate) fn byte_offset(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
@@ -686,7 +686,7 @@ impl TypedArray {
     fn copy_within(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         let obj = this.as_object().ok_or_else(|| {
@@ -860,7 +860,7 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.entries
-    fn entries(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn entries(this: &JsValue, _: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
         let o = this.as_object().ok_or_else(|| {
@@ -893,7 +893,7 @@ impl TypedArray {
     pub(crate) fn every(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -960,7 +960,7 @@ impl TypedArray {
     pub(crate) fn fill(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1048,7 +1048,7 @@ impl TypedArray {
     pub(crate) fn filter(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1136,7 +1136,7 @@ impl TypedArray {
     pub(crate) fn find(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1202,7 +1202,7 @@ impl TypedArray {
     pub(crate) fn findindex(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1266,7 +1266,7 @@ impl TypedArray {
     pub(crate) fn foreach(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1325,7 +1325,7 @@ impl TypedArray {
     pub(crate) fn includes(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1404,7 +1404,7 @@ impl TypedArray {
     pub(crate) fn index_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1492,7 +1492,7 @@ impl TypedArray {
     pub(crate) fn join(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1555,7 +1555,7 @@ impl TypedArray {
     pub(crate) fn keys(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1589,7 +1589,7 @@ impl TypedArray {
     pub(crate) fn last_index_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1666,7 +1666,11 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.length
-    pub(crate) fn length(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn length(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut dyn Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has [[ViewedArrayBuffer]] and [[ArrayLength]] internal slots.
@@ -1698,7 +1702,7 @@ impl TypedArray {
     pub(crate) fn map(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1764,7 +1768,7 @@ impl TypedArray {
     pub(crate) fn reduce(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1849,7 +1853,7 @@ impl TypedArray {
     pub(crate) fn reduceright(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1937,7 +1941,7 @@ impl TypedArray {
     pub(crate) fn reverse(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1998,7 +2002,7 @@ impl TypedArray {
     pub(crate) fn set(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let target be the this value.
         // 2. Perform ? RequireInternalSlot(target, [[TypedArrayName]]).
@@ -2058,7 +2062,7 @@ impl TypedArray {
         target: &JsObject,
         target_offset: IntegerOrInfinity,
         source: &JsObject,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         let target_borrow = target.borrow();
         let target_array = target_borrow
@@ -2281,7 +2285,7 @@ impl TypedArray {
         target: &JsObject,
         target_offset: IntegerOrInfinity,
         source: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         let target_borrow = target.borrow();
         let target_array = target_borrow
@@ -2400,7 +2404,7 @@ impl TypedArray {
     pub(crate) fn slice(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -2573,7 +2577,7 @@ impl TypedArray {
     pub(crate) fn some(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -2639,7 +2643,7 @@ impl TypedArray {
     pub(crate) fn sort(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
         let compare_fn = match args.get(0) {
@@ -2706,7 +2710,7 @@ impl TypedArray {
         let sort_compare = |x: &JsValue,
                             y: &JsValue,
                             compare_fn: Option<&JsObject>,
-                            context: &mut Context<'_>|
+                            context: &mut dyn Context<'_>|
          -> JsResult<Ordering> {
             // 1. Assert: Both Type(x) and Type(y) are Number or both are BigInt.
             // 2. If comparefn is not undefined, then
@@ -2853,7 +2857,7 @@ impl TypedArray {
     pub(crate) fn subarray(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
@@ -2939,7 +2943,7 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.values
-    fn values(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn values(this: &JsValue, _: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
         let o = this.as_object().ok_or_else(|| {
@@ -2970,7 +2974,7 @@ impl TypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype-@@tostringtag
     #[allow(clippy::unnecessary_wraps)]
-    fn to_string_tag(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn to_string_tag(this: &JsValue, _: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, return undefined.
         // 3. If O does not have a [[TypedArrayName]] internal slot, return undefined.
@@ -2997,7 +3001,7 @@ impl TypedArray {
         exemplar: &JsObject,
         typed_array_name: TypedArrayKind,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let defaultConstructor be the intrinsic object listed in column one of Table 73 for exemplar.[[TypedArrayName]].
         let default_constructor = match typed_array_name {
@@ -3048,7 +3052,7 @@ impl TypedArray {
     fn create(
         constructor: &JsObject,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let newTypedArray be ? Construct(constructor, argumentList).
         let new_typed_array = constructor.construct(args, Some(constructor), context)?;
@@ -3084,7 +3088,7 @@ impl TypedArray {
     fn allocate_buffer(
         indexed: &mut IntegerIndexed,
         length: u64,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         // 1. Assert: O.[[ViewedArrayBuffer]] is undefined.
         assert!(indexed.viewed_array_buffer().is_none());
@@ -3125,7 +3129,7 @@ impl TypedArray {
     pub(crate) fn initialize_from_list(
         o: &JsObject,
         values: Vec<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         // 1. Let len be the number of elements in values.
         let len = values.len() as u64;
@@ -3167,7 +3171,7 @@ impl TypedArray {
         new_target: &JsValue,
         default_proto: P,
         length: Option<u64>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsObject>
     where
         P: FnOnce(&StandardConstructors) -> &StandardConstructor,
@@ -3211,7 +3215,7 @@ impl TypedArray {
     fn initialize_from_typed_array(
         o: &JsObject,
         src_array: &JsObject,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         let o_obj = o.borrow();
         let src_array_obj = src_array.borrow();
@@ -3362,7 +3366,7 @@ impl TypedArray {
         buffer: JsObject,
         byte_offset: &JsValue,
         length: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         // 1. Let constructorName be the String value of O.[[TypedArrayName]].
         // 2. Let elementSize be the Element Size value specified in Table 73 for constructorName.
@@ -3463,7 +3467,7 @@ impl TypedArray {
     fn initialize_from_array_like(
         o: &JsObject,
         array_like: &JsObject,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         // 1. Let len be ? LengthOfArrayLike(arrayLike).
         let len = array_like.length_of_array_like(context)?;

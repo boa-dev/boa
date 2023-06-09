@@ -3,7 +3,7 @@ use boa_engine::{
 };
 
 /// Returns objects pointer in memory.
-fn id(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+fn id(_: &JsValue, args: &[JsValue], _: &mut dyn Context<'_>) -> JsResult<JsValue> {
     let Some(value) = args.get(0) else {
         return Err(JsNativeError::typ()
         .with_message("expected object argument")
@@ -20,7 +20,7 @@ fn id(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
     Ok(format!("0x{:X}", ptr as usize).into())
 }
 
-pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
+pub(super) fn create_object(context: &mut dyn Context<'_>) -> JsObject {
     ObjectInitializer::new(context)
         .function(NativeFunction::from_fn_ptr(id), "id", 1)
         .build()

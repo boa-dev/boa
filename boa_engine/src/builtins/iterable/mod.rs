@@ -196,7 +196,11 @@ impl IntrinsicObject for AsyncIterator {
 /// `CreateIterResultObject( value, done )`
 ///
 /// Generates an object supporting the `IteratorResult` interface.
-pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Context<'_>) -> JsValue {
+pub fn create_iter_result_object(
+    value: JsValue,
+    done: bool,
+    context: &mut dyn Context<'_>,
+) -> JsValue {
     let _timer = Profiler::global().start_event("create_iter_result_object", "init");
 
     // 1. Assert: Type(done) is Boolean.
@@ -232,7 +236,7 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-getiterator
     pub fn get_iterator(
         &self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
         hint: Option<IteratorHint>,
         method: Option<JsObject>,
     ) -> JsResult<IteratorRecord> {
@@ -323,7 +327,7 @@ impl IteratorResult {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorcomplete
     #[inline]
-    pub fn complete(&self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub fn complete(&self, context: &mut dyn Context<'_>) -> JsResult<bool> {
         // 1. Return ToBoolean(? Get(iterResult, "done")).
         Ok(self.object.get(js_string!("done"), context)?.to_boolean())
     }
@@ -339,7 +343,7 @@ impl IteratorResult {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorvalue
     #[inline]
-    pub fn value(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn value(&self, context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         // 1. Return ? Get(iterResult, "value").
         self.object.get(js_string!("value"), context)
     }
@@ -418,7 +422,7 @@ impl IteratorRecord {
     }
 
     /// Gets the current value of the `IteratorRecord`.
-    pub(crate) fn value(&mut self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn value(&mut self, context: &mut dyn Context<'_>) -> JsResult<JsValue> {
         self.set_done_on_err(|iter| iter.last_result.value(context))
     }
 
@@ -431,7 +435,7 @@ impl IteratorRecord {
     pub(crate) fn update_result(
         &mut self,
         result: JsValue,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<()> {
         self.set_done_on_err(|iter| {
             // 3. If Type(result) is not Object, throw a TypeError exception.
@@ -466,7 +470,7 @@ impl IteratorRecord {
     pub(crate) fn step_with(
         &mut self,
         value: Option<&JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("IteratorRecord::step_with", "iterator");
 
@@ -498,7 +502,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorstep
-    pub(crate) fn step(&mut self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub(crate) fn step(&mut self, context: &mut dyn Context<'_>) -> JsResult<bool> {
         self.step_with(None, context)
     }
 
@@ -516,7 +520,7 @@ impl IteratorRecord {
     pub(crate) fn close(
         &self,
         completion: JsResult<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("IteratorRecord::close", "iterator");
 
@@ -576,7 +580,7 @@ impl IteratorRecord {
 ///
 ///  [spec]: https://tc39.es/ecma262/#sec-iterabletolist
 pub(crate) fn iterable_to_list(
-    context: &mut Context<'_>,
+    context: &mut dyn Context<'_>,
     items: &JsValue,
     method: Option<JsObject>,
 ) -> JsResult<Vec<JsValue>> {

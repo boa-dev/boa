@@ -15,9 +15,10 @@ impl Operation for GetName {
     const NAME: &'static str = "GetName";
     const INSTRUCTION: &'static str = "INST - GetName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let mut binding_locator = raw_context.vm.frame().code_block.bindings[index as usize];
         context.find_runtime_binding(&mut binding_locator)?;
         let value = context.get_binding(binding_locator)?.ok_or_else(|| {
             let name = context
@@ -27,7 +28,7 @@ impl Operation for GetName {
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
-        context.vm.push(value);
+        context.as_raw_context_mut().vm.push(value);
         Ok(CompletionType::Normal)
     }
 }
@@ -43,12 +44,18 @@ impl Operation for GetLocator {
     const NAME: &'static str = "GetLocator";
     const INSTRUCTION: &'static str = "INST - GetLocator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let mut binding_locator = raw_context.vm.frame().code_block.bindings[index as usize];
         context.find_runtime_binding(&mut binding_locator)?;
 
-        context.vm.frame_mut().binding_stack.push(binding_locator);
+        context
+            .as_raw_context_mut()
+            .vm
+            .frame_mut()
+            .binding_stack
+            .push(binding_locator);
 
         Ok(CompletionType::Normal)
     }
@@ -66,9 +73,10 @@ impl Operation for GetNameAndLocator {
     const NAME: &'static str = "GetNameAndLocator";
     const INSTRUCTION: &'static str = "INST - GetNameAndLocator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let mut binding_locator = raw_context.vm.frame().code_block.bindings[index as usize];
         context.find_runtime_binding(&mut binding_locator)?;
         let value = context.get_binding(binding_locator)?.ok_or_else(|| {
             let name = context
@@ -77,9 +85,11 @@ impl Operation for GetNameAndLocator {
                 .to_string();
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
-
-        context.vm.frame_mut().binding_stack.push(binding_locator);
-        context.vm.push(value);
+        {
+            let context = context.as_raw_context_mut();
+            context.vm.frame_mut().binding_stack.push(binding_locator);
+            context.vm.push(value);
+        }
         Ok(CompletionType::Normal)
     }
 }
@@ -95,9 +105,10 @@ impl Operation for GetNameOrUndefined {
     const NAME: &'static str = "GetNameOrUndefined";
     const INSTRUCTION: &'static str = "INST - GetNameOrUndefined";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
+        let index = raw_context.vm.read::<u32>();
+        let mut binding_locator = raw_context.vm.frame().code_block.bindings[index as usize];
 
         let is_global = binding_locator.is_global();
 
@@ -117,7 +128,7 @@ impl Operation for GetNameOrUndefined {
                 .into());
         };
 
-        context.vm.push(value);
+        context.as_raw_context_mut().vm.push(value);
         Ok(CompletionType::Normal)
     }
 }

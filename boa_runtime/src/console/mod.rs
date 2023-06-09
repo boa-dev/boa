@@ -49,7 +49,7 @@ fn logger(msg: LogMessage, console_state: &Console) {
 }
 
 /// This represents the `console` formatter.
-fn formatter(data: &[JsValue], context: &mut Context<'_>) -> JsResult<String> {
+fn formatter(data: &[JsValue], context: &mut dyn Context<'_>) -> JsResult<String> {
     match data {
         [] => Ok(String::new()),
         [val] => Ok(val.to_string(context)?.to_std_string_escaped()),
@@ -133,9 +133,9 @@ impl Console {
     pub const NAME: &'static str = "console";
 
     /// Initializes the `console` built-in object.
-    pub fn init(context: &mut Context<'_>) -> JsObject {
+    pub fn init(context: &mut dyn Context<'_>) -> JsObject {
         fn console_method(
-            f: fn(&JsValue, &[JsValue], &Console, &mut Context<'_>) -> JsResult<JsValue>,
+            f: fn(&JsValue, &[JsValue], &Console, &mut dyn Context<'_>) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
@@ -146,7 +146,7 @@ impl Console {
             }
         }
         fn console_method_mut(
-            f: fn(&JsValue, &[JsValue], &mut Console, &mut Context<'_>) -> JsResult<JsValue>,
+            f: fn(&JsValue, &[JsValue], &mut Console, &mut dyn Context<'_>) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
@@ -213,7 +213,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let assertion = args.get(0).map_or(false, JsValue::to_boolean);
 
@@ -250,7 +250,7 @@ impl Console {
         _: &JsValue,
         _: &[JsValue],
         console: &mut Self,
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         console.groups.clear();
         Ok(JsValue::undefined())
@@ -270,7 +270,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Log(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -290,7 +290,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Error(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -310,7 +310,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Info(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -330,7 +330,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Log(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -350,12 +350,13 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         if !args.is_empty() {
             logger(LogMessage::Log(formatter(args, context)?), console);
 
             let stack_trace_dump = context
+                .as_raw_context()
                 .stack_trace()
                 .map(|frame| frame.code_block().name())
                 .collect::<Vec<_>>()
@@ -383,7 +384,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Warn(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -403,7 +404,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -432,7 +433,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -471,7 +472,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -508,7 +509,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -552,7 +553,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -599,7 +600,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let group_label = formatter(args, context)?;
 
@@ -624,7 +625,7 @@ impl Console {
         _: &JsValue,
         _: &[JsValue],
         console: &mut Self,
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         console.groups.pop();
 
@@ -646,7 +647,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         logger(
             LogMessage::Info(args.get_or_undefined(0).display_obj(true)),

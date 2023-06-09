@@ -15,7 +15,8 @@ impl Operation for PushEmptyObject {
     const NAME: &'static str = "PushEmptyObject";
     const INSTRUCTION: &'static str = "INST - PushEmptyObject";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let context = context.as_raw_context_mut();
         let o = context
             .intrinsics()
             .templates()

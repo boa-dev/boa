@@ -59,7 +59,7 @@ impl BuiltInConstructor for Boolean {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         // Get the argument, if any
         let data = args.get(0).map_or(false, JsValue::to_boolean);
@@ -108,7 +108,7 @@ impl Boolean {
     pub(crate) fn to_string(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         let boolean = Self::this_boolean_value(this)?;
         Ok(JsValue::new(boolean.to_string()))
@@ -125,7 +125,7 @@ impl Boolean {
     pub(crate) fn value_of(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut dyn Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_boolean_value(this)?))
     }
