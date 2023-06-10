@@ -394,15 +394,8 @@ impl CodeBlock {
             | Opcode::SetPropertySetterByName
             | Opcode::DefineClassStaticSetterByName
             | Opcode::DefineClassSetterByName
-            | Opcode::DeletePropertyByName => {
-                let operand = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-                format!(
-                    "{operand:04}: '{}'",
-                    self.names[operand as usize].to_std_string_escaped(),
-                )
-            }
-            Opcode::SetPrivateField
+            | Opcode::DeletePropertyByName
+            | Opcode::SetPrivateField
             | Opcode::DefinePrivateField
             | Opcode::SetPrivateMethod
             | Opcode::SetPrivateSetter
