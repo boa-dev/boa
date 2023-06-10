@@ -1494,12 +1494,12 @@
         </span>}
     }
 
-    <span class="doccomment">/// Returns the `[[ClassFieldInitializerName]]` internal slot of the function.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>class_field_initializer_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
+    <span class="doccomment">/// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>in_class_field_initializer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span>FunctionKind::Ordinary { code, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.kind {
-            code.class_field_initializer_name
+            code.in_class_field_initializer()
         } <span class="kw">else </span>{
-            <span class="prelude-val">None
+            <span class="bool-val">false
         </span>}
     }
 

@@ -1518,6 +1518,11 @@
 <a href="#1518" id="1518">1518</a>
 <a href="#1519" id="1519">1519</a>
 <a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1594,6 +1599,9 @@
         /// The `&quot;arguments&quot;` binding is the first binding.
         </span><span class="kw">const </span>NEEDS_ARGUMENTS_OBJECT = <span class="number">0b0001_0000</span>;
 
+        <span class="doccomment">/// The `[[ClassFieldInitializerName]]` internal slot.
+        </span><span class="kw">const </span>IN_CLASS_FIELD_INITIALIZER = <span class="number">0b0010_0000</span>;
+
         <span class="doccomment">/// Trace instruction execution to `stdout`.
         </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
         </span><span class="kw">const </span>TRACEABLE = <span class="number">0b1000_0000</span>;
@@ -1647,10 +1655,6 @@
 
     <span class="doccomment">/// Compile time environments in this function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Box&lt;[Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;]&gt;,
-
-    <span class="doccomment">/// The `[[ClassFieldInitializerName]]` internal slot.
-    </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) class_field_initializer_name: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
 }
 
 <span class="doccomment">/// ---- `CodeBlock` public API ----
@@ -1672,7 +1676,6 @@
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             compile_environments: Box::default(),
-            class_field_initializer_name: <span class="prelude-val">None</span>,
         }
     }
 
@@ -1727,6 +1730,13 @@
         <span class="self">self</span>.flags
             .get()
             .contains(CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT)
+    }
+
+    <span class="doccomment">/// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>in_class_field_initializer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags
+            .get()
+            .contains(CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER)
     }
 }
 
