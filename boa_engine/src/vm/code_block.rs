@@ -74,6 +74,9 @@ bitflags! {
         /// The `"arguments"` binding is the first binding.
         const NEEDS_ARGUMENTS_OBJECT = 0b0001_0000;
 
+        /// The `[[ClassFieldInitializerName]]` internal slot.
+        const IN_CLASS_FIELD_INITIALIZER = 0b0010_0000;
+
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
         const TRACEABLE = 0b1000_0000;
@@ -131,10 +134,6 @@ pub struct CodeBlock {
 
     /// Compile time environments in this function.
     pub(crate) compile_environments: Box<[Gc<GcRefCell<CompileTimeEnvironment>>]>,
-
-    /// The `[[ClassFieldInitializerName]]` internal slot.
-    #[unsafe_ignore_trace]
-    pub(crate) class_field_initializer_name: Option<Sym>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -157,7 +156,6 @@ impl CodeBlock {
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             compile_environments: Box::default(),
-            class_field_initializer_name: None,
         }
     }
 
@@ -212,6 +210,13 @@ impl CodeBlock {
         self.flags
             .get()
             .contains(CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT)
+    }
+
+    /// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
+    pub(crate) fn in_class_field_initializer(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER)
     }
 }
 

@@ -350,12 +350,12 @@ impl Function {
         }
     }
 
-    /// Returns the `[[ClassFieldInitializerName]]` internal slot of the function.
-    pub(crate) fn class_field_initializer_name(&self) -> Option<Sym> {
+    /// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
+    pub(crate) fn in_class_field_initializer(&self) -> bool {
         if let FunctionKind::Ordinary { code, .. } = &self.kind {
-            code.class_field_initializer_name
+            code.in_class_field_initializer()
         } else {
-            None
+            false
         }
     }
 
