@@ -2009,7 +2009,7 @@
         <span class="comment">// 4. Append PrivateElement { [[Key]]: P, [[Kind]]: field, [[Value]]: value } to O.[[PrivateElements]].
         </span><span class="self">self</span>.borrow_mut()
             .private_elements
-            .push((<span class="kw-2">*</span>name, PrivateElement::Field(value)));
+            .push((name.clone(), PrivateElement::Field(value)));
 
         <span class="comment">// 5. Return unused.
         </span><span class="prelude-val">Ok</span>(())
@@ -2058,7 +2058,7 @@
 
         <span class="comment">// 5. Append method to O.[[PrivateElements]].
         </span><span class="self">self</span>.borrow_mut()
-            .append_private_element(<span class="kw-2">*</span>name, method.clone());
+            .append_private_element(name.clone(), method.clone());
 
         <span class="comment">// 6. Return unused.
         </span><span class="prelude-val">Ok</span>(())

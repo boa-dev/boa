@@ -1518,18 +1518,6 @@
 <a href="#1518" id="1518">1518</a>
 <a href="#1519" id="1519">1519</a>
 <a href="#1520" id="1520">1520</a>
-<a href="#1521" id="1521">1521</a>
-<a href="#1522" id="1522">1522</a>
-<a href="#1523" id="1523">1523</a>
-<a href="#1524" id="1524">1524</a>
-<a href="#1525" id="1525">1525</a>
-<a href="#1526" id="1526">1526</a>
-<a href="#1527" id="1527">1527</a>
-<a href="#1528" id="1528">1528</a>
-<a href="#1529" id="1529">1529</a>
-<a href="#1530" id="1530">1530</a>
-<a href="#1531" id="1531">1531</a>
-<a href="#1532" id="1532">1532</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1551,7 +1539,7 @@
     Context, JsError, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>bitflags::bitflags;
-<span class="kw">use </span>boa_ast::function::{FormalParameterList, PrivateName};
+<span class="kw">use </span>boa_ast::function::FormalParameterList;
 <span class="kw">use </span>boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -1647,12 +1635,8 @@
     <span class="doccomment">/// Literals
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) literals: Box&lt;[JsValue]&gt;,
 
-    <span class="doccomment">/// Property field names.
+    <span class="doccomment">/// Property field names and private names `[[description]]`s.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) names: Box&lt;[JsString]&gt;,
-
-    <span class="doccomment">/// Private names.
-    </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) private_names: Box&lt;[PrivateName]&gt;,
 
     <span class="doccomment">/// Locators for all bindings in the codeblock.
     </span><span class="attr">#[unsafe_ignore_trace]
@@ -1680,7 +1664,6 @@
             bytecode: Box::default(),
             literals: Box::default(),
             names: Box::default(),
-            private_names: Box::default(),
             bindings: Box::default(),
             functions: Box::default(),
             name,
@@ -1931,15 +1914,8 @@
             | Opcode::SetPropertySetterByName
             | Opcode::DefineClassStaticSetterByName
             | Opcode::DefineClassSetterByName
-            | Opcode::DeletePropertyByName =&gt; {
-                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-                <span class="macro">format!</span>(
-                    <span class="string">&quot;{operand:04}: &#39;{}&#39;&quot;</span>,
-                    <span class="self">self</span>.names[operand <span class="kw">as </span>usize].to_std_string_escaped(),
-                )
-            }
-            Opcode::SetPrivateField
+            | Opcode::DeletePropertyByName
+            | Opcode::SetPrivateField
             | Opcode::DefinePrivateField
             | Opcode::SetPrivateMethod
             | Opcode::SetPrivateSetter
@@ -1954,7 +1930,7 @@
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{operand:04}: &#39;{}&#39;&quot;</span>,
-                    interner.resolve_expect(<span class="self">self</span>.private_names[operand <span class="kw">as </span>usize].description()),
+                    <span class="self">self</span>.names[operand <span class="kw">as </span>usize].to_std_string_escaped(),
                 )
             }
             Opcode::PushPrivateEnvironment =&gt; {

@@ -1125,7 +1125,6 @@
 <a href="#1125" id="1125">1125</a>
 <a href="#1126" id="1126">1126</a>
 <a href="#1127" id="1127">1127</a>
-<a href="#1128" id="1128">1128</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -1145,7 +1144,6 @@
     Context, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::{<span class="self">self</span>, Finalize, Gc, GcRefCell, Trace};
-<span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>std::{
     cell::RefCell,
     collections::HashMap,
@@ -2075,7 +2073,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     }
 
     <span class="doccomment">/// Create a new private name with this object as the unique identifier.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>private_name(<span class="kw-2">&amp;</span><span class="self">self</span>, description: Sym) -&gt; PrivateName {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>private_name(<span class="kw-2">&amp;</span><span class="self">self</span>, description: JsString) -&gt; PrivateName {
         <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="self">self</span>.as_ref();
         PrivateName::new(description, ptr <span class="kw">as </span>usize)
     }

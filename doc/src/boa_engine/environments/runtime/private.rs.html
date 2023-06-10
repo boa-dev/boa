@@ -32,8 +32,10 @@
 <a href="#32" id="32">32</a>
 <a href="#33" id="33">33</a>
 <a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
-<span class="kw">use </span>boa_interner::Sym;
+
+<span class="kw">use </span><span class="kw">crate</span>::JsString;
 
 <span class="doccomment">/// Private runtime environment.
 </span><span class="attr">#[derive(Clone, Debug, Finalize)]
@@ -42,7 +44,7 @@
     </span>id: usize,
 
     <span class="doccomment">/// The `[[Description]]` internal slot of the private names.
-    </span>descriptions: Vec&lt;Sym&gt;,
+    </span>descriptions: Vec&lt;JsString&gt;,
 }
 
 <span class="comment">// Safety: PrivateEnvironment does not contain any objects that need to be traced.
@@ -52,7 +54,7 @@
 
 <span class="kw">impl </span>PrivateEnvironment {
     <span class="doccomment">/// Creates a new `PrivateEnvironment`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(id: usize, descriptions: Vec&lt;Sym&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(id: usize, descriptions: Vec&lt;JsString&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ id, descriptions }
     }
 
@@ -62,7 +64,7 @@
     }
 
     <span class="doccomment">/// Gets the descriptions of this private environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>descriptions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Sym] {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>descriptions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[JsString] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.descriptions
     }
 }

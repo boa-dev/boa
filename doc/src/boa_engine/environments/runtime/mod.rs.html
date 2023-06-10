@@ -824,7 +824,6 @@
 <a href="#824" id="824">824</a>
 <a href="#825" id="825">825</a>
 <a href="#826" id="826">826</a>
-<a href="#827" id="827">827</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::CompileTimeEnvironment,
     error::JsNativeError,
@@ -833,7 +832,6 @@
 };
 <span class="kw">use </span>boa_ast::expression::Identifier;
 <span class="kw">use </span>boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
-<span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="kw">mod </span>declarative;
@@ -1313,7 +1311,7 @@
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-resolve-private-identifier
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolve_private_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>, identifier: Sym) -&gt; <span class="prelude-ty">Option</span>&lt;PrivateName&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolve_private_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>, identifier: JsString) -&gt; <span class="prelude-ty">Option</span>&lt;PrivateName&gt; {
         <span class="comment">// 1. Let names be privEnv.[[Names]].
         // 2. For each Private Name pn of names, do
         //     a. If pn.[[Description]] is identifier, then
@@ -1330,12 +1328,12 @@
     </span>}
 
     <span class="doccomment">/// Return all private name descriptions in all private environments.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>private_name_descriptions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Sym&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>private_name_descriptions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>JsString&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>names = Vec::new();
         <span class="kw">for </span>environment <span class="kw">in </span><span class="self">self</span>.private_stack.iter().rev() {
             <span class="kw">for </span>name <span class="kw">in </span>environment.descriptions() {
-                <span class="kw">if </span>!names.contains(name) {
-                    names.push(<span class="kw-2">*</span>name);
+                <span class="kw">if </span>!names.contains(<span class="kw-2">&amp;</span>name) {
+                    names.push(name);
                 }
             }
         }

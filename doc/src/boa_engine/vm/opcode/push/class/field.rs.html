@@ -146,7 +146,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>field_function_value = context.vm.pop();
         <span class="kw">let </span>class_value = context.vm.pop();
 
@@ -168,7 +168,7 @@
             .as_function_mut()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_field_private(
-                class_object.private_name(name.description()),
+                class_object.private_name(name),
                 JsFunction::from_object_unchecked(field_function_object.clone()),
             );
         <span class="prelude-val">Ok</span>(CompletionType::Normal)

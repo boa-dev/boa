@@ -153,11 +153,11 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>method = context.vm.pop();
         <span class="kw">let </span>method_object = method.as_callable().expect(<span class="string">&quot;method must be callable&quot;</span>);
 
-        <span class="kw">let </span>name_string = <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, context.interner().resolve_expect(name.description()));
+        <span class="kw">let </span>name_string = <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, name.to_std_string_escaped());
         <span class="kw">let </span>desc = PropertyDescriptor::builder()
             .value(name_string)
             .writable(<span class="bool-val">false</span>)
@@ -176,7 +176,7 @@
             .as_function_mut()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_private_method(
-                class_object.private_name(name.description()),
+                class_object.private_name(name),
                 PrivateElement::Method(method_object.clone()),
             );
 
@@ -202,7 +202,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>getter = context.vm.pop();
         <span class="kw">let </span>getter_object = getter.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
         <span class="kw">let </span>class = context.vm.pop();
@@ -213,7 +213,7 @@
             .as_function_mut()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_private_method(
-                class_object.private_name(name.description()),
+                class_object.private_name(name),
                 PrivateElement::Accessor {
                     getter: <span class="prelude-val">Some</span>(getter_object.clone()),
                     setter: <span class="prelude-val">None</span>,
@@ -241,7 +241,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>setter = context.vm.pop();
         <span class="kw">let </span>setter_object = setter.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
         <span class="kw">let </span>class = context.vm.pop();
@@ -252,7 +252,7 @@
             .as_function_mut()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_private_method(
-                class_object.private_name(name.description()),
+                class_object.private_name(name),
                 PrivateElement::Accessor {
                     getter: <span class="prelude-val">None</span>,
                     setter: <span class="prelude-val">Some</span>(setter_object.clone()),

@@ -221,8 +221,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>names = Vec::with_capacity(count <span class="kw">as </span>usize);
         <span class="kw">for _ in </span><span class="number">0</span>..count {
             <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-            <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
-            names.push(name.description());
+            <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
+            names.push(name);
         }
 
         <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= class.as_ref();

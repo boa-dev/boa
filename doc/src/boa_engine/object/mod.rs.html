@@ -2400,13 +2400,11 @@
 <a href="#2400" id="2400">2400</a>
 <a href="#2401" id="2401">2401</a>
 <a href="#2402" id="2402">2402</a>
-<a href="#2403" id="2403">2403</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
-</span><span class="kw">use </span>boa_interner::Sym;
-<span class="kw">pub use </span>jsobject::{RecursionLimiter, Ref, RefMut};
+</span><span class="kw">pub use </span>jsobject::{RecursionLimiter, Ref, RefMut};
 <span class="kw">pub use </span>operations::IntegrityLevel;
 <span class="kw">pub use </span>property_map::<span class="kw-2">*</span>;
 <span class="kw">use </span>thin_vec::ThinVec;
@@ -2568,10 +2566,10 @@
 }
 
 <span class="doccomment">/// A Private Name.
-</span><span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="attr">#[derive(Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>PrivateName {
     <span class="doccomment">/// The `[[Description]]` internal slot of the private name.
-    </span>description: Sym,
+    </span>description: JsString,
 
     <span class="doccomment">/// The unique identifier of the private name.
     </span>id: usize,
@@ -2579,7 +2577,7 @@
 
 <span class="kw">impl </span>PrivateName {
     <span class="doccomment">/// Create a new private name.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(description: Sym, id: usize) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(description: JsString, id: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ description, id }
     }
 }

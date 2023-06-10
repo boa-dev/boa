@@ -186,7 +186,6 @@
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     object::PrivateElement,
     property::PropertyDescriptor,
@@ -208,7 +207,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>base_obj = object.to_object(context)<span class="question-mark">?</span>;
@@ -216,7 +215,7 @@
         <span class="kw">let </span>name = context
             .vm
             .environments
-            .resolve_private_identifier(name.description())
+            .resolve_private_identifier(name)
             .expect(<span class="string">&quot;private name must be in environment&quot;</span>);
 
         base_obj.private_set(<span class="kw-2">&amp;</span>name, value.clone(), context)<span class="question-mark">?</span>;
@@ -238,17 +237,16 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>object = object
             .as_object()
             .expect(<span class="string">&quot;class prototype must be an object&quot;</span>);
 
-        object.borrow_mut().append_private_element(
-            object.private_name(name.description()),
-            PrivateElement::Field(value),
-        );
+        object
+            .borrow_mut()
+            .append_private_element(object.private_name(name), PrivateElement::Field(value));
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -267,11 +265,11 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>value = value.as_callable().expect(<span class="string">&quot;method must be callable&quot;</span>);
 
-        <span class="kw">let </span>name_string = <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, context.interner().resolve_expect(name.description()));
+        <span class="kw">let </span>name_string = <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, name.to_std_string_escaped());
         <span class="kw">let </span>desc = PropertyDescriptor::builder()
             .value(name_string)
             .writable(<span class="bool-val">false</span>)
@@ -288,7 +286,7 @@
             .expect(<span class="string">&quot;class prototype must be an object&quot;</span>);
 
         object.borrow_mut().append_private_element(
-            object.private_name(name.description()),
+            object.private_name(name),
             PrivateElement::Method(value.clone()),
         );
         <span class="kw">let </span><span class="kw-2">mut </span>value_mut = value.borrow_mut();
@@ -314,7 +312,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>value = value.as_callable().expect(<span class="string">&quot;setter must be callable&quot;</span>);
         <span class="kw">let </span>object = context.vm.pop();
@@ -323,7 +321,7 @@
             .expect(<span class="string">&quot;class prototype must be an object&quot;</span>);
 
         object.borrow_mut().append_private_element(
-            object.private_name(name.description()),
+            object.private_name(name),
             PrivateElement::Accessor {
                 getter: <span class="prelude-val">None</span>,
                 setter: <span class="prelude-val">Some</span>(value.clone()),
@@ -352,7 +350,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>value = value.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
         <span class="kw">let </span>object = context.vm.pop();
@@ -361,7 +359,7 @@
             .expect(<span class="string">&quot;class prototype must be an object&quot;</span>);
 
         object.borrow_mut().append_private_element(
-            object.private_name(name.description()),
+            object.private_name(name),
             PrivateElement::Accessor {
                 getter: <span class="prelude-val">Some</span>(value.clone()),
                 setter: <span class="prelude-val">None</span>,

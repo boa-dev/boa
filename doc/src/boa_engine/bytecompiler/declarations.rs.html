@@ -1174,6 +1174,15 @@
 <a href="#1174" id="1174">1174</a>
 <a href="#1175" id="1175">1175</a>
 <a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
     vm::{
@@ -1613,6 +1622,15 @@
         //            append binding.[[Description]] to privateIdentifiers.
         //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
         </span><span class="kw">let </span>private_identifiers = <span class="self">self</span>.context.vm.environments.private_name_descriptions();
+        <span class="kw">let </span>private_identifiers = private_identifiers
+            .into_iter()
+            .map(|ident| {
+                <span class="self">self</span>.context
+                    .interner()
+                    .get(ident.as_slice())
+                    .expect(<span class="string">&quot;string should be in interner&quot;</span>)
+            })
+            .collect();
 
         <span class="comment">// 7. If AllPrivateIdentifiersValid of body with argument privateIdentifiers is false, throw a SyntaxError exception.
         </span><span class="kw">if </span>!all_private_identifiers_valid(body, private_identifiers) {
