@@ -1,5 +1,6 @@
 use boa_gc::{empty_trace, Finalize, Trace};
-use boa_interner::Sym;
+
+use crate::JsString;
 
 /// Private runtime environment.
 #[derive(Clone, Debug, Finalize)]
@@ -8,7 +9,7 @@ pub(crate) struct PrivateEnvironment {
     id: usize,
 
     /// The `[[Description]]` internal slot of the private names.
-    descriptions: Vec<Sym>,
+    descriptions: Vec<JsString>,
 }
 
 // Safety: PrivateEnvironment does not contain any objects that need to be traced.
@@ -18,7 +19,7 @@ unsafe impl Trace for PrivateEnvironment {
 
 impl PrivateEnvironment {
     /// Creates a new `PrivateEnvironment`.
-    pub(crate) fn new(id: usize, descriptions: Vec<Sym>) -> Self {
+    pub(crate) fn new(id: usize, descriptions: Vec<JsString>) -> Self {
         Self { id, descriptions }
     }
 
@@ -28,7 +29,7 @@ impl PrivateEnvironment {
     }
 
     /// Gets the descriptions of this private environment.
-    pub(crate) fn descriptions(&self) -> &[Sym] {
+    pub(crate) fn descriptions(&self) -> &[JsString] {
         &self.descriptions
     }
 }

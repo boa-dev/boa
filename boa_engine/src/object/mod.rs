@@ -2,7 +2,6 @@
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
-use boa_interner::Sym;
 pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
@@ -165,10 +164,10 @@ unsafe impl Trace for Object {
 }
 
 /// A Private Name.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrivateName {
     /// The `[[Description]]` internal slot of the private name.
-    description: Sym,
+    description: JsString,
 
     /// The unique identifier of the private name.
     id: usize,
@@ -176,7 +175,7 @@ pub struct PrivateName {
 
 impl PrivateName {
     /// Create a new private name.
-    pub(crate) const fn new(description: Sym, id: usize) -> Self {
+    pub(crate) const fn new(description: JsString, id: usize) -> Self {
         Self { description, id }
     }
 }

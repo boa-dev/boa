@@ -19,7 +19,7 @@ use crate::{
     Context, JsError, JsResult, JsString, JsValue,
 };
 use bitflags::bitflags;
-use boa_ast::function::{FormalParameterList, PrivateName};
+use boa_ast::function::FormalParameterList;
 use boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
@@ -115,12 +115,8 @@ pub struct CodeBlock {
     /// Literals
     pub(crate) literals: Box<[JsValue]>,
 
-    /// Property field names.
+    /// Property field names and private names `[[description]]`s.
     pub(crate) names: Box<[JsString]>,
-
-    /// Private names.
-    #[unsafe_ignore_trace]
-    pub(crate) private_names: Box<[PrivateName]>,
 
     /// Locators for all bindings in the codeblock.
     #[unsafe_ignore_trace]
@@ -148,7 +144,6 @@ impl CodeBlock {
             bytecode: Box::default(),
             literals: Box::default(),
             names: Box::default(),
-            private_names: Box::default(),
             bindings: Box::default(),
             functions: Box::default(),
             name,
@@ -399,15 +394,8 @@ impl CodeBlock {
             | Opcode::SetPropertySetterByName
             | Opcode::DefineClassStaticSetterByName
             | Opcode::DefineClassSetterByName
-            | Opcode::DeletePropertyByName => {
-                let operand = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-                format!(
-                    "{operand:04}: '{}'",
-                    self.names[operand as usize].to_std_string_escaped(),
-                )
-            }
-            Opcode::SetPrivateField
+            | Opcode::DeletePropertyByName
+            | Opcode::SetPrivateField
             | Opcode::DefinePrivateField
             | Opcode::SetPrivateMethod
             | Opcode::SetPrivateSetter
@@ -422,7 +410,7 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!(
                     "{operand:04}: '{}'",
-                    interner.resolve_expect(self.private_names[operand as usize].description()),
+                    self.names[operand as usize].to_std_string_escaped(),
                 )
             }
             Opcode::PushPrivateEnvironment => {

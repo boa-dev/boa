@@ -231,11 +231,8 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// Literals
     pub(crate) literals: Vec<JsValue>,
 
-    /// Property field names.
+    /// Property field names and private name `[[Description]]`s.
     pub(crate) names: Vec<JsString>,
-
-    /// Private names.
-    pub(crate) private_names: Vec<PrivateName>,
 
     /// Locators for all bindings in the codeblock.
     pub(crate) bindings: Vec<BindingLocator>,
@@ -256,7 +253,6 @@ pub struct ByteCompiler<'ctx, 'host> {
 
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
-    private_names_map: FxHashMap<PrivateName, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
     in_async_generator: bool,
@@ -292,7 +288,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             bytecode: Vec::default(),
             literals: Vec::default(),
             names: Vec::default(),
-            private_names: Vec::default(),
             bindings: Vec::default(),
             functions: Vec::default(),
             this_mode: ThisMode::Global,
@@ -303,7 +298,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
-            private_names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
             in_async_generator: false,
@@ -354,14 +348,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
     #[inline]
     fn get_or_insert_private_name(&mut self, name: PrivateName) -> u32 {
-        if let Some(index) = self.private_names_map.get(&name) {
-            return *index;
-        }
-
-        let index = self.private_names.len() as u32;
-        self.private_names.push(name);
-        self.private_names_map.insert(name, index);
-        index
+        self.get_or_insert_name(Identifier::new(name.description()))
     }
 
     #[inline]
@@ -1361,7 +1348,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             bytecode: self.bytecode.into_boxed_slice(),
             literals: self.literals.into_boxed_slice(),
             names: self.names.into_boxed_slice(),
-            private_names: self.private_names.into_boxed_slice(),
             bindings: self.bindings.into_boxed_slice(),
             functions: self.functions.into_boxed_slice(),
             compile_environments: self.compile_environments.into_boxed_slice(),

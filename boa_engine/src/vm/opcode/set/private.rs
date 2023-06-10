@@ -19,7 +19,7 @@ impl Operation for SetPrivateField {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.private_names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize].clone();
         let value = context.vm.pop();
         let object = context.vm.pop();
         let base_obj = object.to_object(context)?;
@@ -27,7 +27,7 @@ impl Operation for SetPrivateField {
         let name = context
             .vm
             .environments
-            .resolve_private_identifier(name.description())
+            .resolve_private_identifier(name)
             .expect("private name must be in environment");
 
         base_obj.private_set(&name, value.clone(), context)?;
@@ -49,17 +49,16 @@ impl Operation for DefinePrivateField {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.private_names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize].clone();
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object
             .as_object()
             .expect("class prototype must be an object");
 
-        object.borrow_mut().append_private_element(
-            object.private_name(name.description()),
-            PrivateElement::Field(value),
-        );
+        object
+            .borrow_mut()
+            .append_private_element(object.private_name(name), PrivateElement::Field(value));
 
         Ok(CompletionType::Normal)
     }
@@ -78,11 +77,11 @@ impl Operation for SetPrivateMethod {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.private_names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize].clone();
         let value = context.vm.pop();
         let value = value.as_callable().expect("method must be callable");
 
-        let name_string = format!("#{}", context.interner().resolve_expect(name.description()));
+        let name_string = format!("#{}", name.to_std_string_escaped());
         let desc = PropertyDescriptor::builder()
             .value(name_string)
             .writable(false)
@@ -99,7 +98,7 @@ impl Operation for SetPrivateMethod {
             .expect("class prototype must be an object");
 
         object.borrow_mut().append_private_element(
-            object.private_name(name.description()),
+            object.private_name(name),
             PrivateElement::Method(value.clone()),
         );
         let mut value_mut = value.borrow_mut();
@@ -125,7 +124,7 @@ impl Operation for SetPrivateSetter {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.private_names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize].clone();
         let value = context.vm.pop();
         let value = value.as_callable().expect("setter must be callable");
         let object = context.vm.pop();
@@ -134,7 +133,7 @@ impl Operation for SetPrivateSetter {
             .expect("class prototype must be an object");
 
         object.borrow_mut().append_private_element(
-            object.private_name(name.description()),
+            object.private_name(name),
             PrivateElement::Accessor {
                 getter: None,
                 setter: Some(value.clone()),
@@ -163,7 +162,7 @@ impl Operation for SetPrivateGetter {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.private_names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize].clone();
         let value = context.vm.pop();
         let value = value.as_callable().expect("getter must be callable");
         let object = context.vm.pop();
@@ -172,7 +171,7 @@ impl Operation for SetPrivateGetter {
             .expect("class prototype must be an object");
 
         object.borrow_mut().append_private_element(
-            object.private_name(name.description()),
+            object.private_name(name),
             PrivateElement::Accessor {
                 getter: Some(value.clone()),
                 setter: None,

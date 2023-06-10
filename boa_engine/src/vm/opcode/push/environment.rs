@@ -91,8 +91,8 @@ impl Operation for PushPrivateEnvironment {
         let mut names = Vec::with_capacity(count as usize);
         for _ in 0..count {
             let index = context.vm.read::<u32>();
-            let name = context.vm.frame().code_block.private_names[index as usize];
-            names.push(name.description());
+            let name = context.vm.frame().code_block.names[index as usize].clone();
+            names.push(name);
         }
 
         let ptr: *const _ = class.as_ref();
