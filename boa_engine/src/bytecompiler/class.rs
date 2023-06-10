@@ -267,8 +267,9 @@ impl ByteCompiler<'_, '_> {
                     field_compiler.pop_compile_environment();
                     field_compiler.emit_opcode(Opcode::Return);
 
-                    let mut code = field_compiler.finish();
-                    code.class_field_initializer_name = Some(Sym::EMPTY_STRING);
+                    field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
+
+                    let code = field_compiler.finish();
                     let code = Gc::new(code);
                     let index = self.functions.len() as u32;
                     self.functions.push(code);
@@ -298,8 +299,9 @@ impl ByteCompiler<'_, '_> {
                     field_compiler.pop_compile_environment();
                     field_compiler.emit_opcode(Opcode::Return);
 
-                    let mut code = field_compiler.finish();
-                    code.class_field_initializer_name = Some(Sym::EMPTY_STRING);
+                    field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
+
+                    let code = field_compiler.finish();
                     let code = Gc::new(code);
                     let index = self.functions.len() as u32;
                     self.functions.push(code);
@@ -339,8 +341,9 @@ impl ByteCompiler<'_, '_> {
                     field_compiler.pop_compile_environment();
                     field_compiler.emit_opcode(Opcode::Return);
 
-                    let mut code = field_compiler.finish();
-                    code.class_field_initializer_name = Some(Sym::EMPTY_STRING);
+                    field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
+
+                    let code = field_compiler.finish();
                     let code = Gc::new(code);
                     let index = self.functions.len() as u32;
                     self.functions.push(code);

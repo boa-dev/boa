@@ -155,7 +155,7 @@ impl Eval {
 
                 // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
                 // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
-                if function_object.class_field_initializer_name().is_some() {
+                if function_object.in_class_field_initializer() {
                     flags |= Flags::IN_CLASS_FIELD_INITIALIZER;
                 }
 

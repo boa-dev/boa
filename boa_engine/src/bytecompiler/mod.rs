@@ -243,9 +243,6 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// Compile time environments in this function.
     pub(crate) compile_environments: Vec<Gc<GcRefCell<CompileTimeEnvironment>>>,
 
-    /// The `[[ClassFieldInitializerName]]` internal slot.
-    pub(crate) class_field_initializer_name: Option<Sym>,
-
     /// The environment that is currently active.
     pub(crate) current_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
 
@@ -293,7 +290,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             compile_environments: Vec::default(),
-            class_field_initializer_name: None,
             code_block_flags,
 
             literals_map: FxHashMap::default(),
@@ -1351,7 +1347,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             bindings: self.bindings.into_boxed_slice(),
             functions: self.functions.into_boxed_slice(),
             compile_environments: self.compile_environments.into_boxed_slice(),
-            class_field_initializer_name: self.class_field_initializer_name,
             flags: Cell::new(self.code_block_flags),
         }
     }
