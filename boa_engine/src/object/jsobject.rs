@@ -17,7 +17,6 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, GcRefCell, Trace};
-use boa_interner::Sym;
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -947,7 +946,7 @@ Cannot both specify accessors and a value or writable attribute",
     }
 
     /// Create a new private name with this object as the unique identifier.
-    pub(crate) fn private_name(&self, description: Sym) -> PrivateName {
+    pub(crate) fn private_name(&self, description: JsString) -> PrivateName {
         let ptr: *const _ = self.as_ref();
         PrivateName::new(description, ptr as usize)
     }

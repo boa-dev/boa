@@ -6,7 +6,6 @@ use crate::{
 };
 use boa_ast::expression::Identifier;
 use boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
-use boa_interner::Sym;
 use rustc_hash::FxHashSet;
 
 mod declarative;
@@ -486,7 +485,7 @@ impl EnvironmentStack {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-resolve-private-identifier
-    pub(crate) fn resolve_private_identifier(&self, identifier: Sym) -> Option<PrivateName> {
+    pub(crate) fn resolve_private_identifier(&self, identifier: JsString) -> Option<PrivateName> {
         // 1. Let names be privEnv.[[Names]].
         // 2. For each Private Name pn of names, do
         //     a. If pn.[[Description]] is identifier, then
@@ -503,12 +502,12 @@ impl EnvironmentStack {
     }
 
     /// Return all private name descriptions in all private environments.
-    pub(crate) fn private_name_descriptions(&self) -> Vec<Sym> {
+    pub(crate) fn private_name_descriptions(&self) -> Vec<&JsString> {
         let mut names = Vec::new();
         for environment in self.private_stack.iter().rev() {
             for name in environment.descriptions() {
-                if !names.contains(name) {
-                    names.push(*name);
+                if !names.contains(&name) {
+                    names.push(name);
                 }
             }
         }

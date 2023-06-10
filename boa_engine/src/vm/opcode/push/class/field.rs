@@ -58,7 +58,7 @@ impl Operation for PushClassFieldPrivate {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.private_names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize].clone();
         let field_function_value = context.vm.pop();
         let class_value = context.vm.pop();
 
@@ -80,7 +80,7 @@ impl Operation for PushClassFieldPrivate {
             .as_function_mut()
             .expect("class must be function object")
             .push_field_private(
-                class_object.private_name(name.description()),
+                class_object.private_name(name),
                 JsFunction::from_object_unchecked(field_function_object.clone()),
             );
         Ok(CompletionType::Normal)

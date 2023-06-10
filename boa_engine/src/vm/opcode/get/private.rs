@@ -16,14 +16,14 @@ impl Operation for GetPrivateField {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.private_names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize].clone();
         let value = context.vm.pop();
         let base_obj = value.to_object(context)?;
 
         let name = context
             .vm
             .environments
-            .resolve_private_identifier(name.description())
+            .resolve_private_identifier(name)
             .expect("private name must be in environment");
 
         let result = base_obj.private_get(&name, context)?;

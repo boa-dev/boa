@@ -762,7 +762,7 @@ impl JsObject {
         // 4. Append PrivateElement { [[Key]]: P, [[Kind]]: field, [[Value]]: value } to O.[[PrivateElements]].
         self.borrow_mut()
             .private_elements
-            .push((*name, PrivateElement::Field(value)));
+            .push((name.clone(), PrivateElement::Field(value)));
 
         // 5. Return unused.
         Ok(())
@@ -811,7 +811,7 @@ impl JsObject {
 
         // 5. Append method to O.[[PrivateElements]].
         self.borrow_mut()
-            .append_private_element(*name, method.clone());
+            .append_private_element(name.clone(), method.clone());
 
         // 6. Return unused.
         Ok(())

@@ -111,7 +111,7 @@ impl Operation for InPrivate {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.private_names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize].clone();
         let rhs = context.vm.pop();
 
         let Some(rhs) = rhs.as_object() else {
@@ -126,7 +126,7 @@ impl Operation for InPrivate {
         let name = context
             .vm
             .environments
-            .resolve_private_identifier(name.description())
+            .resolve_private_identifier(name)
             .expect("private name must be in environment");
 
         if rhs.private_element_find(&name, true, true).is_some() {
