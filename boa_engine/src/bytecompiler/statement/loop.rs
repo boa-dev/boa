@@ -323,9 +323,16 @@ impl ByteCompiler<'_, '_> {
 
         match for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(ref ident) => {
-                let binding = self.set_mutable_binding(*ident);
-                let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::DefInitVar, &[index]);
+                match self.set_mutable_binding(*ident) {
+                    Ok(binding) => {
+                        let index = self.get_or_insert_binding(binding);
+                        self.emit(Opcode::DefInitVar, &[index]);
+                    }
+                    Err(()) => {
+                        let index = self.get_or_insert_name(*ident);
+                        self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                    }
+                }
             }
             IterableLoopInitializer::Access(access) => {
                 self.access_set(

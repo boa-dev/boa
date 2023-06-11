@@ -56,7 +56,6 @@ impl Operation for DefInitVar {
         if binding_locator.is_silent() {
             return Ok(CompletionType::Normal);
         }
-        binding_locator.throw_mutate_immutable(context)?;
 
         context.find_runtime_binding(&mut binding_locator)?;
 

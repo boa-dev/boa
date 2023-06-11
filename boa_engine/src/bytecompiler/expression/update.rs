@@ -40,9 +40,16 @@ impl ByteCompiler<'_, '_> {
                 }
 
                 if lex {
-                    let binding = self.set_mutable_binding(name);
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit(Opcode::SetName, &[index]);
+                    match self.set_mutable_binding(name) {
+                        Ok(binding) => {
+                            let index = self.get_or_insert_binding(binding);
+                            self.emit(Opcode::SetName, &[index]);
+                        }
+                        Err(()) => {
+                            let index = self.get_or_insert_name(name);
+                            self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                        }
+                    }
                 } else {
                     self.emit_opcode(Opcode::SetNameByLocator);
                 }

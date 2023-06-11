@@ -1,6 +1,5 @@
 use crate::{
     environments::CompileTimeEnvironment,
-    error::JsNativeError,
     object::{JsObject, PrivateName},
     Context, JsResult, JsString, JsSymbol, JsValue,
 };
@@ -524,7 +523,6 @@ pub(crate) struct BindingLocator {
     environment_index: u32,
     binding_index: u32,
     global: bool,
-    mutate_immutable: bool,
     silent: bool,
 }
 
@@ -544,7 +542,6 @@ impl BindingLocator {
             environment_index,
             binding_index,
             global: false,
-            mutate_immutable: false,
             silent: false,
         }
     }
@@ -556,20 +553,6 @@ impl BindingLocator {
             environment_index: 0,
             binding_index: 0,
             global: true,
-            mutate_immutable: false,
-            silent: false,
-        }
-    }
-
-    /// Creates a binding locator that indicates that it was attempted to mutate an immutable binding.
-    /// At runtime this should always produce a type error.
-    pub(in crate::environments) const fn mutate_immutable(name: Identifier) -> Self {
-        Self {
-            name,
-            environment_index: 0,
-            binding_index: 0,
-            global: false,
-            mutate_immutable: true,
             silent: false,
         }
     }
@@ -581,7 +564,6 @@ impl BindingLocator {
             environment_index: 0,
             binding_index: 0,
             global: false,
-            mutate_immutable: false,
             silent: true,
         }
     }
@@ -609,21 +591,6 @@ impl BindingLocator {
     /// Returns if the binding is a silent operation.
     pub(crate) const fn is_silent(&self) -> bool {
         self.silent
-    }
-
-    /// Helper method to throws an error if the binding access is illegal.
-    pub(crate) fn throw_mutate_immutable(
-        &self,
-        context: &mut Context<'_>,
-    ) -> Result<(), JsNativeError> {
-        if self.mutate_immutable {
-            Err(JsNativeError::typ().with_message(format!(
-                "cannot mutate an immutable binding '{}'",
-                context.interner().resolve_expect(self.name.sym())
-            )))
-        } else {
-            Ok(())
-        }
     }
 }
 

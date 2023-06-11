@@ -245,41 +245,47 @@ impl CompileTimeEnvironment {
     }
 
     /// Return the binding locator for a mutable binding.
-    pub(crate) fn set_mutable_binding_recursive(&self, name: Identifier) -> BindingLocator {
-        match self.bindings.get(&name) {
+    pub(crate) fn set_mutable_binding_recursive(
+        &self,
+        name: Identifier,
+    ) -> Result<BindingLocator, ()> {
+        Ok(match self.bindings.get(&name) {
             Some(binding) if binding.mutable => {
                 BindingLocator::declarative(name, self.environment_index, binding.index)
             }
-            Some(binding) if binding.strict => BindingLocator::mutate_immutable(name),
+            Some(binding) if binding.strict => return Err(()),
             Some(_) => BindingLocator::silent(name),
             None => self.outer.as_ref().map_or_else(
-                || BindingLocator::global(name),
+                || Ok(BindingLocator::global(name)),
                 |outer| outer.borrow().set_mutable_binding_recursive(name),
-            ),
-        }
+            )?,
+        })
     }
 
     #[cfg(feature = "annex-b")]
     /// Return the binding locator for a set operation on an existing var binding.
-    pub(crate) fn set_mutable_binding_var_recursive(&self, name: Identifier) -> BindingLocator {
+    pub(crate) fn set_mutable_binding_var_recursive(
+        &self,
+        name: Identifier,
+    ) -> Result<BindingLocator, ()> {
         if !self.is_function() {
             return self.outer.as_ref().map_or_else(
-                || BindingLocator::global(name),
+                || Ok(BindingLocator::global(name)),
                 |outer| outer.borrow().set_mutable_binding_var_recursive(name),
             );
         }
 
-        match self.bindings.get(&name) {
+        Ok(match self.bindings.get(&name) {
             Some(binding) if binding.mutable => {
                 BindingLocator::declarative(name, self.environment_index, binding.index)
             }
-            Some(binding) if binding.strict => BindingLocator::mutate_immutable(name),
+            Some(binding) if binding.strict => return Err(()),
             Some(_) => BindingLocator::silent(name),
             None => self.outer.as_ref().map_or_else(
-                || BindingLocator::global(name),
+                || Ok(BindingLocator::global(name)),
                 |outer| outer.borrow().set_mutable_binding_var_recursive(name),
-            ),
-        }
+            )?,
+        })
     }
 
     /// Gets the outer environment of this environment.
