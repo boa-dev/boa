@@ -1,12 +1,13 @@
+use std::{cell::RefCell, rc::Rc};
+
 use super::ByteCompiler;
 use crate::environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment};
 use boa_ast::expression::Identifier;
-use boa_gc::{Gc, GcRefCell};
 
 impl ByteCompiler<'_, '_> {
     /// Push either a new declarative or function environment on the compile time environment stack.
     pub(crate) fn push_compile_environment(&mut self, function_scope: bool) {
-        self.current_environment = Gc::new(GcRefCell::new(CompileTimeEnvironment::new(
+        self.current_environment = Rc::new(RefCell::new(CompileTimeEnvironment::new(
             self.current_environment.clone(),
             function_scope,
         )));

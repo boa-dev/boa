@@ -11,7 +11,10 @@ mod module;
 mod statement;
 mod utils;
 
-use std::cell::Cell;
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+};
 
 use crate::{
     builtins::function::ThisMode,
@@ -35,7 +38,7 @@ use boa_ast::{
     pattern::Pattern,
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
-use boa_gc::{Gc, GcRefCell};
+use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
 
@@ -241,10 +244,10 @@ pub struct ByteCompiler<'ctx, 'host> {
     pub(crate) functions: Vec<Gc<CodeBlock>>,
 
     /// Compile time environments in this function.
-    pub(crate) compile_environments: Vec<Gc<GcRefCell<CompileTimeEnvironment>>>,
+    pub(crate) compile_environments: Vec<Rc<RefCell<CompileTimeEnvironment>>>,
 
     /// The environment that is currently active.
-    pub(crate) current_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
+    pub(crate) current_environment: Rc<RefCell<CompileTimeEnvironment>>,
 
     pub(crate) code_block_flags: CodeBlockFlags,
 
@@ -273,7 +276,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         name: Sym,
         strict: bool,
         json_parse: bool,
-        current_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
+        current_environment: Rc<RefCell<CompileTimeEnvironment>>,
         // TODO: remove when we separate scripts from the context
         context: &'ctx mut Context<'host>,
     ) -> ByteCompiler<'ctx, 'host> {

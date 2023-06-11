@@ -3,9 +3,12 @@ mod global;
 mod lexical;
 mod module;
 
-use std::cell::Cell;
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+};
 
-use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{Finalize, GcRefCell, Trace};
 pub(crate) use function::{FunctionEnvironment, FunctionSlots, ThisBindingStatus};
 pub(crate) use global::GlobalEnvironment;
 pub(crate) use lexical::LexicalEnvironment;
@@ -36,7 +39,10 @@ use crate::{environments::CompileTimeEnvironment, JsObject, JsResult, JsValue};
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct DeclarativeEnvironment {
     kind: DeclarativeEnvironmentKind,
-    compile: Gc<GcRefCell<CompileTimeEnvironment>>,
+
+    // Safety: Nothing in CompileTimeEnvironment needs tracing.
+    #[unsafe_ignore_trace]
+    compile: Rc<RefCell<CompileTimeEnvironment>>,
 }
 
 impl DeclarativeEnvironment {
@@ -44,20 +50,20 @@ impl DeclarativeEnvironment {
     pub(crate) fn global(global_this: JsObject) -> Self {
         Self {
             kind: DeclarativeEnvironmentKind::Global(GlobalEnvironment::new(global_this)),
-            compile: Gc::new(GcRefCell::new(CompileTimeEnvironment::new_global())),
+            compile: Rc::new(RefCell::new(CompileTimeEnvironment::new_global())),
         }
     }
 
     /// Creates a new `DeclarativeEnvironment` from its kind and compile environment.
     pub(crate) fn new(
         kind: DeclarativeEnvironmentKind,
-        compile: Gc<GcRefCell<CompileTimeEnvironment>>,
+        compile: Rc<RefCell<CompileTimeEnvironment>>,
     ) -> Self {
         Self { kind, compile }
     }
 
     /// Gets the compile time environment of this environment.
-    pub(crate) fn compile_env(&self) -> Gc<GcRefCell<CompileTimeEnvironment>> {
+    pub(crate) fn compile_env(&self) -> Rc<RefCell<CompileTimeEnvironment>> {
         self.compile.clone()
     }
 

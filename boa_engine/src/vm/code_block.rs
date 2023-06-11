@@ -20,10 +20,15 @@ use crate::{
 };
 use bitflags::bitflags;
 use boa_ast::function::FormalParameterList;
-use boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{empty_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
-use std::{cell::Cell, collections::VecDeque, mem::size_of};
+use std::{
+    cell::{Cell, RefCell},
+    collections::VecDeque,
+    mem::size_of,
+    rc::Rc,
+};
 use thin_vec::ThinVec;
 
 #[cfg(any(feature = "trace", feature = "flowgraph"))]
@@ -129,7 +134,10 @@ pub struct CodeBlock {
     pub(crate) functions: Box<[Gc<Self>]>,
 
     /// Compile time environments in this function.
-    pub(crate) compile_environments: Box<[Gc<GcRefCell<CompileTimeEnvironment>>]>,
+    ///
+    // Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
+    #[unsafe_ignore_trace]
+    pub(crate) compile_environments: Box<[Rc<RefCell<CompileTimeEnvironment>>]>,
 }
 
 /// ---- `CodeBlock` public API ----

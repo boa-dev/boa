@@ -1,6 +1,8 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::environments::runtime::BindingLocator;
 use boa_ast::expression::Identifier;
-use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{empty_trace, Finalize, Trace};
 
 use rustc_hash::FxHashMap;
 
@@ -20,13 +22,17 @@ struct CompileTimeBinding {
 /// A compile time environment maps bound identifiers to their binding positions.
 ///
 /// A compile time environment also indicates, if it is a function environment.
-#[derive(Debug, Finalize, Trace)]
+#[derive(Debug, Finalize)]
 pub(crate) struct CompileTimeEnvironment {
-    outer: Option<Gc<GcRefCell<Self>>>,
+    outer: Option<Rc<RefCell<Self>>>,
     environment_index: u32,
-    #[unsafe_ignore_trace]
     bindings: FxHashMap<Identifier, CompileTimeBinding>,
     function_scope: bool,
+}
+
+// Safety: Nothing in this struct needs tracing, so this is safe.
+unsafe impl Trace for CompileTimeEnvironment {
+    empty_trace!();
 }
 
 impl CompileTimeEnvironment {
@@ -41,7 +47,7 @@ impl CompileTimeEnvironment {
     }
 
     /// Creates a new compile time environment.
-    pub(crate) fn new(parent: Gc<GcRefCell<Self>>, function_scope: bool) -> Self {
+    pub(crate) fn new(parent: Rc<RefCell<Self>>, function_scope: bool) -> Self {
         let index = parent.borrow().environment_index + 1;
         Self {
             outer: Some(parent),
@@ -291,7 +297,7 @@ impl CompileTimeEnvironment {
     }
 
     /// Gets the outer environment of this environment.
-    pub(crate) fn outer(&self) -> Option<Gc<GcRefCell<Self>>> {
+    pub(crate) fn outer(&self) -> Option<Rc<RefCell<Self>>> {
         self.outer.clone()
     }
 
