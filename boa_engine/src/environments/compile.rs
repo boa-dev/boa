@@ -255,9 +255,7 @@ impl CompileTimeEnvironment {
             Some(binding) if binding.mutable => {
                 BindingLocator::declarative(name, self.environment_index, binding.index)
             }
-            Some(binding) if binding.strict => {
-                return Err(BindingLocatorError::MutateImmutable)
-            }
+            Some(binding) if binding.strict => return Err(BindingLocatorError::MutateImmutable),
             Some(_) => return Err(BindingLocatorError::Silent),
             None => self.outer.as_ref().map_or_else(
                 || Ok(BindingLocator::global(name)),
@@ -283,9 +281,7 @@ impl CompileTimeEnvironment {
             Some(binding) if binding.mutable => {
                 BindingLocator::declarative(name, self.environment_index, binding.index)
             }
-            Some(binding) if binding.strict => {
-                return Err(BindingLocatorError::MutateImmutable)
-            }
+            Some(binding) if binding.strict => return Err(BindingLocatorError::MutateImmutable),
             Some(_) => return Err(BindingLocatorError::Silent),
             None => self.outer.as_ref().map_or_else(
                 || Ok(BindingLocator::global(name)),
