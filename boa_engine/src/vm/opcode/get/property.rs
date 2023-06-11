@@ -18,6 +18,7 @@ impl Operation for GetPropertyByName {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
 
+        let receiver = context.vm.pop();
         let value = context.vm.pop();
         let object = if let Some(object) = value.as_object() {
             object.clone()
@@ -28,7 +29,7 @@ impl Operation for GetPropertyByName {
         let key = context.vm.frame().code_block.names[index as usize]
             .clone()
             .into();
-        let result = object.__get__(&key, value, context)?;
+        let result = object.__get__(&key, receiver, context)?;
 
         context.vm.push(result);
         Ok(CompletionType::Normal)
@@ -48,6 +49,7 @@ impl Operation for GetPropertyByValue {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let key = context.vm.pop();
+        let receiver = context.vm.pop();
         let value = context.vm.pop();
         let object = if let Some(object) = value.as_object() {
             object.clone()
@@ -73,7 +75,7 @@ impl Operation for GetPropertyByValue {
         }
 
         // Slow path:
-        let result = object.__get__(&key, value, context)?;
+        let result = object.__get__(&key, receiver, context)?;
 
         context.vm.push(result);
         Ok(CompletionType::Normal)
@@ -118,6 +120,7 @@ impl Operation for GetPropertyByValuePush {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let key = context.vm.pop();
+        let receiver = context.vm.pop();
         let value = context.vm.pop();
         let object = if let Some(object) = value.as_object() {
             object.clone()
@@ -144,7 +147,7 @@ impl Operation for GetPropertyByValuePush {
         }
 
         // Slow path:
-        let result = object.__get__(&key, value, context)?;
+        let result = object.__get__(&key, receiver, context)?;
 
         context.vm.push(key);
         context.vm.push(result);

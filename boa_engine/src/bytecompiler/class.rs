@@ -353,7 +353,7 @@ impl ByteCompiler<'_, '_> {
                     self.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
                     self.emit_u8(0);
-                    self.emit_opcode(Opcode::SetHomeObject);
+                    self.emit_opcode(Opcode::SetHomeObjectClass);
                     self.emit(Opcode::Call, &[0]);
                     if let Some(name_index) = name_index {
                         self.emit(Opcode::DefineOwnPropertyByName, &[name_index]);
@@ -401,7 +401,7 @@ impl ByteCompiler<'_, '_> {
                     self.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
                     self.emit_u8(0);
-                    self.emit_opcode(Opcode::SetHomeObject);
+                    self.emit_opcode(Opcode::SetHomeObjectClass);
                     self.emit(Opcode::Call, &[0]);
                     self.emit_opcode(Opcode::Pop);
                 }

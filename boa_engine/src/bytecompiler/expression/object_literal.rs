@@ -47,6 +47,7 @@ impl ByteCompiler<'_, '_> {
                     MethodDefinition::Get(expr) => match name {
                         PropertyName::Literal(name) => {
                             self.object_method(expr.into());
+                            self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::SetPropertyGetterByName, &[index]);
                         }
@@ -57,12 +58,20 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(1);
+                            self.emit_opcode(Opcode::RotateLeft);
+                            self.emit_u8(3);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::SetHomeObject);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::RotateRight);
+                            self.emit_u8(3);
                             self.emit_opcode(Opcode::SetPropertyGetterByValue);
                         }
                     },
                     MethodDefinition::Set(expr) => match name {
                         PropertyName::Literal(name) => {
                             self.object_method(expr.into());
+                            self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::SetPropertySetterByName, &[index]);
                         }
@@ -73,12 +82,20 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(2);
+                            self.emit_opcode(Opcode::RotateLeft);
+                            self.emit_u8(3);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::SetHomeObject);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::RotateRight);
+                            self.emit_u8(3);
                             self.emit_opcode(Opcode::SetPropertySetterByValue);
                         }
                     },
                     MethodDefinition::Ordinary(expr) => match name {
                         PropertyName::Literal(name) => {
                             self.object_method(expr.into());
+                            self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
@@ -89,12 +106,20 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(0);
+                            self.emit_opcode(Opcode::RotateLeft);
+                            self.emit_u8(3);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::SetHomeObject);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::RotateRight);
+                            self.emit_u8(3);
                             self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                         }
                     },
                     MethodDefinition::Async(expr) => match name {
                         PropertyName::Literal(name) => {
                             self.object_method(expr.into());
+                            self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
@@ -105,12 +130,20 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(0);
+                            self.emit_opcode(Opcode::RotateLeft);
+                            self.emit_u8(3);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::SetHomeObject);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::RotateRight);
+                            self.emit_u8(3);
                             self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                         }
                     },
                     MethodDefinition::Generator(expr) => match name {
                         PropertyName::Literal(name) => {
                             self.object_method(expr.into());
+                            self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
@@ -121,12 +154,20 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(0);
+                            self.emit_opcode(Opcode::RotateLeft);
+                            self.emit_u8(3);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::SetHomeObject);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::RotateRight);
+                            self.emit_u8(3);
                             self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                         }
                     },
                     MethodDefinition::AsyncGenerator(expr) => match name {
                         PropertyName::Literal(name) => {
                             self.object_method(expr.into());
+                            self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
@@ -137,6 +178,13 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(0);
+                            self.emit_opcode(Opcode::RotateLeft);
+                            self.emit_u8(3);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::SetHomeObject);
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::RotateRight);
+                            self.emit_u8(3);
                             self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                         }
                     },

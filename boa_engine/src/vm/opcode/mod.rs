@@ -346,12 +346,19 @@ generate_impl! {
         /// Stack: class, prototype **=>** class.prototype
         SetClassPrototype,
 
-        /// Set home object internal slot of a function object.
+        /// Set home object internal slot of an object literal method.
         ///
         /// Operands:
         ///
         /// Stack: home, function **=>** home, function
         SetHomeObject,
+
+        /// Set home object internal slot of a class method.
+        ///
+        /// Operands:
+        ///
+        /// Stack: home, function **=>** home, function
+        SetHomeObjectClass,
 
         /// Set the prototype of an object if the value is an object or null.
         ///
@@ -729,7 +736,7 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object **=>** value
+        /// Stack: object, receiver **=>** value
         GetPropertyByName,
 
         /// Get a property method or undefined if the property is null or undefined.
@@ -746,7 +753,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: object, key **=>** value
+        /// Stack: object, receiver, key **=>** value
         GetPropertyByValue,
 
         /// Get a property by value from an object an push the key and value on the stack.
@@ -755,7 +762,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: object, key **=>** key, value
+        /// Stack: object, receiver, key **=>** key, value
         GetPropertyByValuePush,
 
         /// Sets a property by name of an object.
@@ -810,7 +817,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=>** value
+        /// Stack: object, receiver, key, value **=>** value
         SetPropertyByValue,
 
         /// Defines a own property of an object by value.
@@ -1819,8 +1826,6 @@ generate_impl! {
         Reserved49 => Reserved,
         /// Reserved [`Opcode`].
         Reserved50 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved51 => Reserved,
     }
 }
 

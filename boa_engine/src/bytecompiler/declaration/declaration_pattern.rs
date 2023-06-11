@@ -36,6 +36,7 @@ impl ByteCompiler<'_, '_> {
                             default_init,
                         } => {
                             self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::Dup);
                             match name {
                                 PropertyName::Literal(name) => {
                                     let index = self.get_or_insert_name((*name).into());
@@ -107,6 +108,7 @@ impl ByteCompiler<'_, '_> {
                             default_init,
                         } => {
                             self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::Dup);
                             match name {
                                 PropertyName::Literal(name) => {
                                     let index = self.get_or_insert_name((*name).into());
@@ -145,6 +147,7 @@ impl ByteCompiler<'_, '_> {
                             pattern,
                             default_init,
                         } => {
+                            self.emit_opcode(Opcode::Dup);
                             self.emit_opcode(Opcode::Dup);
                             match name {
                                 PropertyName::Literal(name) => {

@@ -213,7 +213,8 @@ impl ByteCompiler<'_, '_> {
                 match template.tag() {
                     Expression::PropertyAccess(PropertyAccess::Simple(access)) => {
                         self.compile_expr(access.target(), true);
-                        self.emit(Opcode::Dup, &[]);
+                        self.emit_opcode(Opcode::Dup);
+                        self.emit_opcode(Opcode::Dup);
                         match access.field() {
                             PropertyAccessField::Const(field) => {
                                 let index = self.get_or_insert_name((*field).into());
@@ -221,7 +222,7 @@ impl ByteCompiler<'_, '_> {
                             }
                             PropertyAccessField::Expr(field) => {
                                 self.compile_expr(field, true);
-                                self.emit(Opcode::GetPropertyByValue, &[]);
+                                self.emit_opcode(Opcode::GetPropertyByValue);
                             }
                         }
                     }
