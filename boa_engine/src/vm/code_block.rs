@@ -410,7 +410,8 @@ impl CodeBlock {
             | Opcode::PushClassPrivateGetter
             | Opcode::PushClassPrivateSetter
             | Opcode::PushClassPrivateMethod
-            | Opcode::InPrivate => {
+            | Opcode::InPrivate
+            | Opcode::ThrowMutateImmutable => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(
@@ -609,8 +610,7 @@ impl CodeBlock {
             | Opcode::Reserved48
             | Opcode::Reserved49
             | Opcode::Reserved50
-            | Opcode::Reserved51
-            | Opcode::Reserved52 => unreachable!("Reserved opcodes are unrechable"),
+            | Opcode::Reserved51 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

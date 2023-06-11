@@ -668,6 +668,13 @@ generate_impl! {
         /// Stack: value **=>**
         PutLexicalValue,
 
+        /// Throws an error because the binding access is illegal.
+        ///
+        /// Operands: binding_index: `u32`
+        ///
+        /// Stack: **=>**
+        ThrowMutateImmutable,
+
         /// Find a binding on the environment chain and push its value.
         ///
         /// Operands: name_index: `u32`
@@ -1814,8 +1821,6 @@ generate_impl! {
         Reserved50 => Reserved,
         /// Reserved [`Opcode`].
         Reserved51 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved52 => Reserved,
     }
 }
 

@@ -4,6 +4,30 @@ use crate::{
     Context, JsNativeError, JsResult,
 };
 
+/// `ThrowMutateImmutable` implements the Opcode Operation for `Opcode::ThrowMutateImmutable`
+///
+/// Operation:
+///  - Throws an error because the binding access is illegal.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ThrowMutateImmutable;
+
+impl Operation for ThrowMutateImmutable {
+    const NAME: &'static str = "ThrowMutateImmutable";
+    const INSTRUCTION: &'static str = "INST - ThrowMutateImmutable";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        let name = &context.vm.frame().code_block.names[index as usize];
+
+        Err(JsNativeError::typ()
+            .with_message(format!(
+                "cannot mutate an immutable binding '{}'",
+                name.to_std_string_escaped()
+            ))
+            .into())
+    }
+}
+
 /// `SetName` implements the Opcode Operation for `Opcode::SetName`
 ///
 /// Operation:
@@ -19,10 +43,6 @@ impl Operation for SetName {
         let index = context.vm.read::<u32>();
         let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
         let value = context.vm.pop();
-        if binding_locator.is_silent() {
-            return Ok(CompletionType::Normal);
-        }
-        binding_locator.throw_mutate_immutable(context)?;
 
         context.find_runtime_binding(&mut binding_locator)?;
 
@@ -57,10 +77,6 @@ impl Operation for SetNameByLocator {
             .pop()
             .expect("locator should have been popped before");
         let value = context.vm.pop();
-        if binding_locator.is_silent() {
-            return Ok(CompletionType::Normal);
-        }
-        binding_locator.throw_mutate_immutable(context)?;
 
         verify_initialized(binding_locator, context)?;
 

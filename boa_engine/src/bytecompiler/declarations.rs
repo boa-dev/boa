@@ -1,5 +1,6 @@
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
+    environments::BindingLocatorError,
     vm::{
         create_function_object_fast, create_generator_function_object, BindingOpcode,
         CodeBlockFlags, Opcode,
@@ -737,9 +738,19 @@ impl ByteCompiler<'_, '_> {
                 // iii. Else,
                 if binding_exists {
                     // 1. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-                    let binding = self.set_mutable_binding(name);
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit(Opcode::SetName, &[index]);
+                    match self.set_mutable_binding(name) {
+                        Ok(binding) => {
+                            let index = self.get_or_insert_binding(binding);
+                            self.emit(Opcode::SetName, &[index]);
+                        }
+                        Err(BindingLocatorError::MutateImmutable) => {
+                            let index = self.get_or_insert_name(name);
+                            self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                        }
+                        Err(BindingLocatorError::Silent) => {
+                            self.emit(Opcode::Pop, &[]);
+                        }
+                    }
                 } else {
                     // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
                     // 2. Perform ! varEnv.CreateMutableBinding(fn, true).
