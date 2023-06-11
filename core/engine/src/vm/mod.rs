@@ -17,7 +17,7 @@ use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 use crate::sys::time::Instant;
 
 mod call_frame;
-mod code_block;
+pub(crate) mod code_block;
 mod completion_record;
 mod opcode;
 

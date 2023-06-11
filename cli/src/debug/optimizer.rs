@@ -1,9 +1,15 @@
 use boa_engine::{
+    builtins::function::OrdinaryFunction,
     js_string,
     object::{FunctionObjectBuilder, ObjectInitializer},
-    optimizer::OptimizerOptions,
+    optimizer::{
+        control_flow_graph::{
+            ControlFlowGraph, GraphEliminateUnreachableBasicBlocks, GraphSimplification,
+        },
+        OptimizerOptions,
+    },
     property::Attribute,
-    Context, JsArgs, JsObject, JsResult, JsValue, NativeFunction,
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
 
 fn get_constant_folding(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -33,6 +39,44 @@ fn set_statistics(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsRes
     let mut options = context.optimizer_options();
     options.set(OptimizerOptions::STATISTICS, value);
     context.set_optimizer_options(options);
+    Ok(JsValue::undefined())
+}
+
+fn graph(_: &JsValue, args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+    let Some(value) = args.get(0) else {
+        return Err(JsNativeError::typ()
+            .with_message("expected function argument")
+            .into());
+    };
+
+    let Some(object) = value.as_object() else {
+        return Err(JsNativeError::typ()
+            .with_message(format!("expected object, got {}", value.type_of()))
+            .into());
+    };
+    let object = object.borrow();
+    let Some(function) = object.downcast_ref::<OrdinaryFunction>() else {
+        return Err(JsNativeError::typ()
+            .with_message("expected function object")
+            .into());
+    };
+    let code = function.codeblock();
+
+    let cfg = ControlFlowGraph::generate(code.bytecode());
+    // println!("{:#?}", cfg);
+
+    let bytecode = cfg.finalize();
+    assert_eq!(code.bytecode(), &bytecode);
+
+    let mut cfg = ControlFlowGraph::generate(&bytecode);
+    println!("Original\n{cfg:#?}\n");
+
+    let changed = GraphSimplification::perform(&mut cfg);
+    println!("Simplified({changed}) \n{cfg:#?}");
+
+    let changed = GraphEliminateUnreachableBasicBlocks::perform(&mut cfg);
+    println!("Eliminate Unreachble({changed}) \n{cfg:#?}");
+
     Ok(JsValue::undefined())
 }
 
@@ -75,5 +119,6 @@ pub(super) fn create_object(context: &mut Context) -> JsObject {
             Some(set_statistics),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
+        .function(NativeFunction::from_fn_ptr(graph), js_string!("graph"), 1)
         .build()
 }

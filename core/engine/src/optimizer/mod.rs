@@ -1,5 +1,6 @@
 //! Implements optimizations.
 
+pub mod control_flow_graph;
 pub(crate) mod pass;
 pub(crate) mod walker;
 

@@ -17,6 +17,7 @@ use crate::{
     builtins::function::ThisMode,
     environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
+    optimizer::control_flow_graph::ControlFlowGraph,
     vm::{
         BindingOpcode, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler,
         InlineCache, Opcode, VaryingOperandKind,
@@ -1521,12 +1522,17 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
         self.r#return(false);
 
+        // FIXME: remove this, this is used to ensure that `finalize` works correctly.
+        let graph = ControlFlowGraph::generate(&self.bytecode);
+        let bytecode = graph.finalize().into_boxed_slice();
+        assert_eq!(self.bytecode.as_slice(), bytecode.as_ref());
+
         CodeBlock {
             name: self.function_name,
             length: self.length,
             this_mode: self.this_mode,
             params: self.params,
-            bytecode: self.bytecode.into_boxed_slice(),
+            bytecode,
             constants: self.constants,
             bindings: self.bindings.into_boxed_slice(),
             handlers: self.handlers,

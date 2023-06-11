@@ -128,12 +128,12 @@ where
 }
 
 /// Represents a varying operand kind.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum VaryingOperandKind {
     #[default]
-    U8,
-    U16,
-    U32,
+    U8 = 0,
+    U16 = 1,
+    U32 = 2,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -354,6 +354,31 @@ impl BytecodeConversion for ThinVec<u32> {
     }
 }
 
+trait VaryingKindTrait {
+    fn get_varying_kind(&self) -> VaryingOperandKind {
+        VaryingOperandKind::U8
+    }
+}
+
+impl VaryingKindTrait for u8 {}
+impl VaryingKindTrait for i8 {}
+impl VaryingKindTrait for u16 {}
+impl VaryingKindTrait for i16 {}
+impl VaryingKindTrait for u32 {}
+impl VaryingKindTrait for i32 {}
+impl VaryingKindTrait for u64 {}
+impl VaryingKindTrait for i64 {}
+impl VaryingKindTrait for f32 {}
+impl VaryingKindTrait for f64 {}
+impl VaryingKindTrait for bool {}
+impl VaryingKindTrait for GeneratorResumeKind {}
+impl VaryingKindTrait for ThinVec<u32> {}
+impl VaryingKindTrait for VaryingOperand {
+    fn get_varying_kind(&self) -> VaryingOperandKind {
+        self.kind()
+    }
+}
+
 /// Generate [`Opcode`]s and [`Instruction`]s enums.
 macro_rules! generate_opcodes {
     ( name $name:ident ) => { $name };
@@ -484,13 +509,22 @@ macro_rules! generate_opcodes {
         impl Instruction {
             /// Convert [`Instruction`] to compact bytecode.
             #[inline]
-            #[allow(dead_code)]
+            #[allow(unused_mut)]
             pub(crate) fn to_bytecode(&self, bytes: &mut Vec<u8>) {
                 match self {
                     $(
                         Self::$Variant $({
                             $( $FieldName ),*
                         })? => {
+                            let mut kind = VaryingOperandKind::U8;
+                            $({
+                                $( kind = VaryingKindTrait::get_varying_kind($FieldName).max(kind); )*
+                            })?
+                            match kind {
+                                VaryingOperandKind::U8 => {},
+                                VaryingOperandKind::U16 => bytes.push(Opcode::U16Operands as u8),
+                                VaryingOperandKind::U32 => bytes.push(Opcode::U32Operands as u8),
+                            }
                             bytes.push(Opcode::$Variant as u8);
                             $({
                                 $( BytecodeConversion::to_bytecode($FieldName, bytes); )*
