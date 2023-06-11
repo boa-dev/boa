@@ -1359,6 +1359,47 @@
 <a href="#1359" id="1359">1359</a>
 <a href="#1360" id="1360">1360</a>
 <a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1376,7 +1417,7 @@
 
 <span class="kw">use crate</span>::{
     builtins::function::ThisMode,
-    environments::{BindingLocator, CompileTimeEnvironment},
+    environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
     vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
     Context, JsBigInt, JsString, JsValue,
@@ -1728,13 +1769,25 @@
                 <span class="self">self</span>.emit(Opcode::DefVar, <span class="kw-2">&amp;</span>[index]);
             }
             BindingOpcode::InitVar =&gt; {
-                <span class="kw">let </span>binding = <span class="kw">if </span><span class="self">self</span>.has_binding(name) {
-                    <span class="self">self</span>.set_mutable_binding(name)
+                <span class="kw">if </span><span class="self">self</span>.has_binding(name) {
+                    <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
+                        <span class="prelude-val">Ok</span>(binding) =&gt; {
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                            <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[index]);
+                        }
+                        <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
+                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                        }
+                        <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
+                            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                        }
+                    }
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.initialize_mutable_binding(name, <span class="bool-val">true</span>)
+                    <span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(name, <span class="bool-val">true</span>);
+                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                    <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[index]);
                 };
-                <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[index]);
             }
             BindingOpcode::InitLet =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(name, <span class="bool-val">false</span>);
@@ -1746,11 +1799,19 @@
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                 <span class="self">self</span>.emit(Opcode::PutLexicalValue, <span class="kw-2">&amp;</span>[index]);
             }
-            BindingOpcode::SetName =&gt; {
-                <span class="kw">let </span>binding = <span class="self">self</span>.set_mutable_binding(name);
-                <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
-            }
+            BindingOpcode::SetName =&gt; <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
+                <span class="prelude-val">Ok</span>(binding) =&gt; {
+                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                    <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                }
+                <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
+                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
+                    <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                }
+                <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
+                    <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                }
+            },
         }
     }
 
@@ -1979,9 +2040,19 @@
                 }
 
                 <span class="kw">if </span>lex {
-                    <span class="kw">let </span>binding = <span class="self">self</span>.set_mutable_binding(name);
-                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                    <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
+                        <span class="prelude-val">Ok</span>(binding) =&gt; {
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                            <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                        }
+                        <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
+                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                        }
+                        <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
+                            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                        }
+                    }
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.emit_opcode(Opcode::SetNameByLocator);
                 }
@@ -2393,9 +2464,20 @@
                     <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(name);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                     <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[index]);
-                    <span class="kw">let </span>binding = <span class="self">self</span>.set_mutable_binding_var(name);
-                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+
+                    <span class="kw">match </span><span class="self">self</span>.set_mutable_binding_var(name) {
+                        <span class="prelude-val">Ok</span>(binding) =&gt; {
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                            <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                        }
+                        <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
+                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                        }
+                        <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
+                            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                        }
+                    }
                 }
             }
             Declaration::Class(class) =&gt; <span class="self">self</span>.class(class, <span class="bool-val">false</span>),

@@ -1830,6 +1830,11 @@
 <a href="#1830" id="1830">1830</a>
 <a href="#1831" id="1831">1831</a>
 <a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -2499,6 +2504,13 @@
         ///
         /// Stack: value **=&gt;**
         </span>PutLexicalValue,
+
+        <span class="doccomment">/// Throws an error because the binding access is illegal.
+        ///
+        /// Operands: binding_index: `u32`
+        ///
+        /// Stack: **=&gt;**
+        </span>ThrowMutateImmutable,
 
         <span class="doccomment">/// Find a binding on the environment chain and push its value.
         ///
@@ -3646,8 +3658,6 @@
         </span>Reserved50 =&gt; Reserved,
         <span class="doccomment">/// Reserved [`Opcode`].
         </span>Reserved51 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved52 =&gt; Reserved,
     }
 }
 

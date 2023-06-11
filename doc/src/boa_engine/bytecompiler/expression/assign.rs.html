@@ -210,8 +210,20 @@
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler},
+    environments::BindingLocatorError,
     vm::{BindingOpcode, Opcode},
 };
 <span class="kw">use </span>boa_ast::expression::{
@@ -287,9 +299,19 @@
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
                     }
                     <span class="kw">if </span>lex {
-                        <span class="kw">let </span>binding = <span class="self">self</span>.set_mutable_binding(name);
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                        <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
+                            <span class="prelude-val">Ok</span>(binding) =&gt; {
+                                <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                                <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                            }
+                            <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
+                                <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
+                                <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                            }
+                            <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
+                                <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                            }
+                        }
                     } <span class="kw">else </span>{
                         <span class="self">self</span>.emit_opcode(Opcode::SetNameByLocator);
                     }

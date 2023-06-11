@@ -1198,7 +1198,8 @@
                 | Opcode::PushClassPrivateGetter
                 | Opcode::PushClassPrivateSetter
                 | Opcode::PushClassPrivateMethod
-                | Opcode::InPrivate =&gt; {
+                | Opcode::InPrivate
+                | Opcode::ThrowMutateImmutable =&gt; {
                     <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
                     pc += size_of::&lt;u32&gt;();
                     <span class="kw">let </span>label = <span class="macro">format!</span>(
@@ -1435,8 +1436,7 @@
                 | Opcode::Reserved48
                 | Opcode::Reserved49
                 | Opcode::Reserved50
-                | Opcode::Reserved51
-                | Opcode::Reserved52 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+                | Opcode::Reserved51 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
             }
         }
 

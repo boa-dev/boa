@@ -292,11 +292,21 @@
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::environments::runtime::BindingLocator;
 <span class="kw">use </span>boa_ast::expression::Identifier;
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 
 <span class="kw">use </span>rustc_hash::FxHashMap;
+
+<span class="kw">use </span><span class="kw">super</span>::runtime::BindingLocatorError;
 
 <span class="doccomment">/// A compile time binding represents a binding at bytecode compile time in a [`CompileTimeEnvironment`].
 ///
@@ -539,41 +549,47 @@
     }
 
     <span class="doccomment">/// Return the binding locator for a mutable binding.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_mutable_binding_recursive(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; BindingLocator {
-        <span class="kw">match </span><span class="self">self</span>.bindings.get(<span class="kw-2">&amp;</span>name) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_mutable_binding_recursive(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        name: Identifier,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BindingLocator, BindingLocatorError&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self</span>.bindings.get(<span class="kw-2">&amp;</span>name) {
             <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.mutable =&gt; {
                 BindingLocator::declarative(name, <span class="self">self</span>.environment_index, binding.index)
             }
-            <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.strict =&gt; BindingLocator::mutate_immutable(name),
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; BindingLocator::silent(name),
+            <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.strict =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(BindingLocatorError::Silent),
             <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.outer.as_ref().map_or_else(
-                || BindingLocator::global(name),
+                || <span class="prelude-val">Ok</span>(BindingLocator::global(name)),
                 |outer| outer.borrow().set_mutable_binding_recursive(name),
-            ),
-        }
+            )<span class="question-mark">?</span>,
+        })
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
     </span><span class="doccomment">/// Return the binding locator for a set operation on an existing var binding.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_mutable_binding_var_recursive(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; BindingLocator {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_mutable_binding_var_recursive(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        name: Identifier,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BindingLocator, BindingLocatorError&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_function() {
             <span class="kw">return </span><span class="self">self</span>.outer.as_ref().map_or_else(
-                || BindingLocator::global(name),
+                || <span class="prelude-val">Ok</span>(BindingLocator::global(name)),
                 |outer| outer.borrow().set_mutable_binding_var_recursive(name),
             );
         }
 
-        <span class="kw">match </span><span class="self">self</span>.bindings.get(<span class="kw-2">&amp;</span>name) {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self</span>.bindings.get(<span class="kw-2">&amp;</span>name) {
             <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.mutable =&gt; {
                 BindingLocator::declarative(name, <span class="self">self</span>.environment_index, binding.index)
             }
-            <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.strict =&gt; BindingLocator::mutate_immutable(name),
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; BindingLocator::silent(name),
+            <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.strict =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(BindingLocatorError::Silent),
             <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.outer.as_ref().map_or_else(
-                || BindingLocator::global(name),
+                || <span class="prelude-val">Ok</span>(BindingLocator::global(name)),
                 |outer| outer.borrow().set_mutable_binding_var_recursive(name),
-            ),
-        }
+            )<span class="question-mark">?</span>,
+        })
     }
 
     <span class="doccomment">/// Gets the outer environment of this environment.

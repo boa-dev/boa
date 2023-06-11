@@ -1183,8 +1183,20 @@
 <a href="#1183" id="1183">1183</a>
 <a href="#1184" id="1184">1184</a>
 <a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
+    environments::BindingLocatorError,
     vm::{
         create_function_object_fast, create_generator_function_object, BindingOpcode,
         CodeBlockFlags, Opcode,
@@ -1922,9 +1934,19 @@
                 // iii. Else,
                 </span><span class="kw">if </span>binding_exists {
                     <span class="comment">// 1. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-                    </span><span class="kw">let </span>binding = <span class="self">self</span>.set_mutable_binding(name);
-                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                    </span><span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
+                        <span class="prelude-val">Ok</span>(binding) =&gt; {
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                            <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                        }
+                        <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
+                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                        }
+                        <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
+                            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                        }
+                    }
                 } <span class="kw">else </span>{
                     <span class="comment">// 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
                     // 2. Perform ! varEnv.CreateMutableBinding(fn, true).

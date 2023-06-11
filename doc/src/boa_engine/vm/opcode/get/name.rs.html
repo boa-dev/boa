@@ -121,9 +121,6 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
@@ -144,7 +141,6 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
-        binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
         <span class="kw">let </span>value = context.get_binding(binding_locator)<span class="question-mark">?</span>.ok_or_else(|| {
             <span class="kw">let </span>name = context
@@ -196,7 +192,6 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
-        binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
         <span class="kw">let </span>value = context.get_binding(binding_locator)<span class="question-mark">?</span>.ok_or_else(|| {
             <span class="kw">let </span>name = context
@@ -226,7 +221,6 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
-        binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>is_global = binding_locator.is_global();
 

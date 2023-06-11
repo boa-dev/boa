@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["verify_initialized"],"struct":["SetName","SetNameByLocator"]};
+window.SIDEBAR_ITEMS = {"fn":["verify_initialized"],"struct":["SetName","SetNameByLocator","ThrowMutateImmutable"]};

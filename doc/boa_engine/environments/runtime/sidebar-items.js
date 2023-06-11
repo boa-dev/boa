@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Environment"],"fn":["mark"],"mod":["declarative","private"],"struct":["BindingLocator","EnvironmentStack"]};
+window.SIDEBAR_ITEMS = {"enum":["BindingLocatorError","Environment"],"fn":["mark"],"mod":["declarative","private"],"struct":["BindingLocator","EnvironmentStack"]};

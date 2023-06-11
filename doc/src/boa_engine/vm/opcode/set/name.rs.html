@@ -101,11 +101,51 @@
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::{BindingLocator, Environment},
     vm::{opcode::Operation, CompletionType},
     Context, JsNativeError, JsResult,
 };
+
+<span class="doccomment">/// `ThrowMutateImmutable` implements the Opcode Operation for `Opcode::ThrowMutateImmutable`
+///
+/// Operation:
+///  - Throws an error because the binding access is illegal.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ThrowMutateImmutable;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>ThrowMutateImmutable {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ThrowMutateImmutable&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - ThrowMutateImmutable&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>name = <span class="kw-2">&amp;</span>context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
+
+        <span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="macro">format!</span>(
+                <span class="string">&quot;cannot mutate an immutable binding &#39;{}&#39;&quot;</span>,
+                name.to_std_string_escaped()
+            ))
+            .into())
+    }
+}
 
 <span class="doccomment">/// `SetName` implements the Opcode Operation for `Opcode::SetName`
 ///
@@ -122,10 +162,6 @@
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
         <span class="kw">let </span>value = context.vm.pop();
-        <span class="kw">if </span>binding_locator.is_silent() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
-        }
-        binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
 
@@ -160,10 +196,6 @@
             .pop()
             .expect(<span class="string">&quot;locator should have been popped before&quot;</span>);
         <span class="kw">let </span>value = context.vm.pop();
-        <span class="kw">if </span>binding_locator.is_silent() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
-        }
-        binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         verify_initialized(binding_locator, context)<span class="question-mark">?</span>;
 
