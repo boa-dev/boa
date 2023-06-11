@@ -1,5 +1,6 @@
 use crate::{
     bytecompiler::{Access, ByteCompiler},
+    environments::BindingLocatorError,
     vm::Opcode,
 };
 use boa_ast::expression::{
@@ -45,9 +46,12 @@ impl ByteCompiler<'_, '_> {
                             let index = self.get_or_insert_binding(binding);
                             self.emit(Opcode::SetName, &[index]);
                         }
-                        Err(()) => {
+                        Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
                             self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                        }
+                        Err(BindingLocatorError::Silent) => {
+                            self.emit(Opcode::Pop, &[]);
                         }
                     }
                 } else {

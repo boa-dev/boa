@@ -53,9 +53,6 @@ impl Operation for DefInitVar {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
-        if binding_locator.is_silent() {
-            return Ok(CompletionType::Normal);
-        }
 
         context.find_runtime_binding(&mut binding_locator)?;
 

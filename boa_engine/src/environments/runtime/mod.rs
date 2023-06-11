@@ -523,7 +523,6 @@ pub(crate) struct BindingLocator {
     environment_index: u32,
     binding_index: u32,
     global: bool,
-    silent: bool,
 }
 
 unsafe impl Trace for BindingLocator {
@@ -542,7 +541,6 @@ impl BindingLocator {
             environment_index,
             binding_index,
             global: false,
-            silent: false,
         }
     }
 
@@ -553,18 +551,6 @@ impl BindingLocator {
             environment_index: 0,
             binding_index: 0,
             global: true,
-            silent: false,
-        }
-    }
-
-    /// Creates a binding locator that indicates that any action is silently ignored.
-    pub(in crate::environments) const fn silent(name: Identifier) -> Self {
-        Self {
-            name,
-            environment_index: 0,
-            binding_index: 0,
-            global: false,
-            silent: true,
         }
     }
 
@@ -587,11 +573,15 @@ impl BindingLocator {
     pub(crate) const fn binding_index(&self) -> u32 {
         self.binding_index
     }
+}
 
-    /// Returns if the binding is a silent operation.
-    pub(crate) const fn is_silent(&self) -> bool {
-        self.silent
-    }
+/// Action that is returned when a fallible binding operation.
+pub(crate) enum BindingLocatorError {
+    /// Trying to mutate immutable binding,
+    MutateImmutable,
+
+    /// Indicates that any action is silently ignored.
+    Silent,
 }
 
 impl Context<'_> {

@@ -43,9 +43,6 @@ impl Operation for SetName {
         let index = context.vm.read::<u32>();
         let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
         let value = context.vm.pop();
-        if binding_locator.is_silent() {
-            return Ok(CompletionType::Normal);
-        }
 
         context.find_runtime_binding(&mut binding_locator)?;
 
@@ -80,9 +77,6 @@ impl Operation for SetNameByLocator {
             .pop()
             .expect("locator should have been popped before");
         let value = context.vm.pop();
-        if binding_locator.is_silent() {
-            return Ok(CompletionType::Normal);
-        }
 
         verify_initialized(binding_locator, context)?;
 

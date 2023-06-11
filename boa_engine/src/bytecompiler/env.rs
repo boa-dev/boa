@@ -1,5 +1,5 @@
 use super::ByteCompiler;
-use crate::environments::{BindingLocator, CompileTimeEnvironment};
+use crate::environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment};
 use boa_ast::expression::Identifier;
 use boa_gc::{Gc, GcRefCell};
 
@@ -108,7 +108,10 @@ impl ByteCompiler<'_, '_> {
     }
 
     /// Return the binding locator for a set operation on an existing binding.
-    pub(crate) fn set_mutable_binding(&self, name: Identifier) -> Result<BindingLocator, ()> {
+    pub(crate) fn set_mutable_binding(
+        &self,
+        name: Identifier,
+    ) -> Result<BindingLocator, BindingLocatorError> {
         self.current_environment
             .borrow()
             .set_mutable_binding_recursive(name)
@@ -116,7 +119,10 @@ impl ByteCompiler<'_, '_> {
 
     #[cfg(feature = "annex-b")]
     /// Return the binding locator for a set operation on an existing var binding.
-    pub(crate) fn set_mutable_binding_var(&self, name: Identifier) -> Result<BindingLocator, ()> {
+    pub(crate) fn set_mutable_binding_var(
+        &self,
+        name: Identifier,
+    ) -> Result<BindingLocator, BindingLocatorError> {
         self.current_environment
             .borrow()
             .set_mutable_binding_var_recursive(name)

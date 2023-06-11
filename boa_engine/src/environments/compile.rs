@@ -4,6 +4,8 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 
 use rustc_hash::FxHashMap;
 
+use super::runtime::BindingLocatorError;
+
 /// A compile time binding represents a binding at bytecode compile time in a [`CompileTimeEnvironment`].
 ///
 /// It contains the binding index and a flag to indicate if this is a mutable binding or not.
@@ -248,13 +250,15 @@ impl CompileTimeEnvironment {
     pub(crate) fn set_mutable_binding_recursive(
         &self,
         name: Identifier,
-    ) -> Result<BindingLocator, ()> {
+    ) -> Result<BindingLocator, BindingLocatorError> {
         Ok(match self.bindings.get(&name) {
             Some(binding) if binding.mutable => {
                 BindingLocator::declarative(name, self.environment_index, binding.index)
             }
-            Some(binding) if binding.strict => return Err(()),
-            Some(_) => BindingLocator::silent(name),
+            Some(binding) if binding.strict => {
+                return Err(BindingLocatorError::MutateImmutable)
+            }
+            Some(_) => return Err(BindingLocatorError::Silent),
             None => self.outer.as_ref().map_or_else(
                 || Ok(BindingLocator::global(name)),
                 |outer| outer.borrow().set_mutable_binding_recursive(name),
@@ -267,7 +271,7 @@ impl CompileTimeEnvironment {
     pub(crate) fn set_mutable_binding_var_recursive(
         &self,
         name: Identifier,
-    ) -> Result<BindingLocator, ()> {
+    ) -> Result<BindingLocator, BindingLocatorError> {
         if !self.is_function() {
             return self.outer.as_ref().map_or_else(
                 || Ok(BindingLocator::global(name)),
@@ -279,8 +283,10 @@ impl CompileTimeEnvironment {
             Some(binding) if binding.mutable => {
                 BindingLocator::declarative(name, self.environment_index, binding.index)
             }
-            Some(binding) if binding.strict => return Err(()),
-            Some(_) => BindingLocator::silent(name),
+            Some(binding) if binding.strict => {
+                return Err(BindingLocatorError::MutateImmutable)
+            }
+            Some(_) => return Err(BindingLocatorError::Silent),
             None => self.outer.as_ref().map_or_else(
                 || Ok(BindingLocator::global(name)),
                 |outer| outer.borrow().set_mutable_binding_var_recursive(name),

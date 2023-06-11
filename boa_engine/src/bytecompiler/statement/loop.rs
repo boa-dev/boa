@@ -10,6 +10,7 @@ use boa_interner::Sym;
 
 use crate::{
     bytecompiler::{Access, ByteCompiler},
+    environments::BindingLocatorError,
     vm::{BindingOpcode, Opcode},
 };
 
@@ -328,9 +329,12 @@ impl ByteCompiler<'_, '_> {
                         let index = self.get_or_insert_binding(binding);
                         self.emit(Opcode::DefInitVar, &[index]);
                     }
-                    Err(()) => {
+                    Err(BindingLocatorError::MutateImmutable) => {
                         let index = self.get_or_insert_name(*ident);
                         self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                    }
+                    Err(BindingLocatorError::Silent) => {
+                        self.emit(Opcode::Pop, &[]);
                     }
                 }
             }

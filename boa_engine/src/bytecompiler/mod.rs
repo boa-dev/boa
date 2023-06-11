@@ -15,7 +15,7 @@ use std::cell::Cell;
 
 use crate::{
     builtins::function::ThisMode,
-    environments::{BindingLocator, CompileTimeEnvironment},
+    environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
     vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
     Context, JsBigInt, JsString, JsValue,
@@ -373,9 +373,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                             let index = self.get_or_insert_binding(binding);
                             self.emit(Opcode::DefInitVar, &[index]);
                         }
-                        Err(()) => {
+                        Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
                             self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                        }
+                        Err(BindingLocatorError::Silent) => {
+                            self.emit(Opcode::Pop, &[]);
                         }
                     }
                 } else {
@@ -399,9 +402,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     let index = self.get_or_insert_binding(binding);
                     self.emit(Opcode::SetName, &[index]);
                 }
-                Err(()) => {
+                Err(BindingLocatorError::MutateImmutable) => {
                     let index = self.get_or_insert_name(name);
                     self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                }
+                Err(BindingLocatorError::Silent) => {
+                    self.emit(Opcode::Pop, &[]);
                 }
             },
         }
@@ -637,9 +643,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                             let index = self.get_or_insert_binding(binding);
                             self.emit(Opcode::SetName, &[index]);
                         }
-                        Err(()) => {
+                        Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
                             self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                        }
+                        Err(BindingLocatorError::Silent) => {
+                            self.emit(Opcode::Pop, &[]);
                         }
                     }
                 } else {
@@ -1059,9 +1068,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                             let index = self.get_or_insert_binding(binding);
                             self.emit(Opcode::SetName, &[index]);
                         }
-                        Err(()) => {
+                        Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
                             self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                        }
+                        Err(BindingLocatorError::Silent) => {
+                            self.emit(Opcode::Pop, &[]);
                         }
                     }
                 }

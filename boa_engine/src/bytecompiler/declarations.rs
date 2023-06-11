@@ -1,5 +1,6 @@
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
+    environments::BindingLocatorError,
     vm::{
         create_function_object_fast, create_generator_function_object, BindingOpcode,
         CodeBlockFlags, Opcode,
@@ -742,9 +743,12 @@ impl ByteCompiler<'_, '_> {
                             let index = self.get_or_insert_binding(binding);
                             self.emit(Opcode::SetName, &[index]);
                         }
-                        Err(()) => {
+                        Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
                             self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                        }
+                        Err(BindingLocatorError::Silent) => {
+                            self.emit(Opcode::Pop, &[]);
                         }
                     }
                 } else {
