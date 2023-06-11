@@ -15,11 +15,9 @@ impl Operation for Swap {
     const INSTRUCTION: &'static str = "INST - Swap";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let first = context.vm.pop();
-        let second = context.vm.pop();
-
-        context.vm.push(first);
-        context.vm.push(second);
+        let len = context.vm.stack.len();
+        assert!(len > 1);
+        context.vm.stack.swap(len - 1, len - 2);
         Ok(CompletionType::Normal)
     }
 }
