@@ -57,8 +57,8 @@ impl Operation for PushClassFieldPrivate {
     const NAME: &'static str = "PushClassFieldPrivate";
     const INSTRUCTION: &'static str = "INST - PushClassFieldPrivate";
 
-fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
-    let raw_context = context.as_raw_context_mut();
+    fn execute(context: &mut dyn Context<'_>) -> JsResult<CompletionType> {
+        let raw_context = context.as_raw_context_mut();
         let index = raw_context.vm.read::<u32>();
         let name = raw_context.vm.frame().code_block.names[index as usize].clone();
         let field_function_value = raw_context.vm.pop();

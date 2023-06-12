@@ -637,6 +637,9 @@ pub struct RawContext<'icu> {
     #[cfg(feature = "intl")]
     icu_provider: IcuProvider<'icu>,
 
+    #[cfg(not(feature = "intl"))]
+    icu_provider: PhantomData<&'icu ()>,
+
     pub(crate) host_hooks: &'static dyn HostHooks,
 
     /// Unique identifier for each parser instance used during the context lifetime.
@@ -669,7 +672,7 @@ impl Default for RawContext<'_> {
     }
 }
 
-impl<'icu> RawContext<'icu> {
+impl RawContext<'_> {
     /// Gets the string interner.
     #[inline]
     pub fn interner(&self) -> &Interner {
@@ -799,9 +802,11 @@ impl<'icu> RawContext<'icu> {
     pub(crate) fn is_strict(&self) -> bool {
         self.strict
     }
+}
 
-    /// Gets the icu provider.
-    #[cfg(feature = "intl")]
+/// Gets the icu provider.
+#[cfg(feature = "intl")]
+impl<'icu> RawContext<'icu> {
     pub(crate) fn icu_provider(&self) -> &IcuProvider<'icu> {
         &self.icu_provider
     }
@@ -985,6 +990,8 @@ impl<'icu> RawContextBuilder<'icu> {
                 IcuProvider::from_buffer_provider(boa_icu_provider::buffer())
                     .expect("Failed to initialize default icu data.")
             }),
+            #[cfg(not(feature = "intl"))]
+            icu_provider: PhantomData,
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             kept_alive: Vec::new(),
