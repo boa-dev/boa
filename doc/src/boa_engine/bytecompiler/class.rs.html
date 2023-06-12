@@ -558,6 +558,10 @@
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal};
 <span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, CodeBlockFlags, Opcode};
 <span class="kw">use </span>boa_ast::{
@@ -617,9 +621,14 @@
             } <span class="kw">else </span>{
                 compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
             }
+
+            compiler.emit_opcode(Opcode::PushUndefined);
         } <span class="kw">else </span>{
             <span class="kw">if </span>class.super_ref().is_some() {
                 compiler.emit_opcode(Opcode::SuperCallDerived);
+            } <span class="kw">else </span>{
+                compiler.emit_opcode(Opcode::RestParameterPop);
+                compiler.emit_opcode(Opcode::PushUndefined);
             }
             compiler.pop_compile_environment();
             compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
@@ -629,7 +638,6 @@
             compiler.pop_compile_environment();
         }
 
-        compiler.emit_opcode(Opcode::PushUndefined);
         compiler.emit_opcode(Opcode::Return);
 
         <span class="kw">let </span>code = Gc::new(compiler.finish());
