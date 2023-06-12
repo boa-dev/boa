@@ -57,9 +57,14 @@ impl ByteCompiler<'_, '_> {
             } else {
                 compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
             }
+
+            compiler.emit_opcode(Opcode::PushUndefined);
         } else {
             if class.super_ref().is_some() {
                 compiler.emit_opcode(Opcode::SuperCallDerived);
+            } else {
+                compiler.emit_opcode(Opcode::RestParameterPop);
+                compiler.emit_opcode(Opcode::PushUndefined);
             }
             compiler.pop_compile_environment();
             compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
@@ -69,7 +74,6 @@ impl ByteCompiler<'_, '_> {
             compiler.pop_compile_environment();
         }
 
-        compiler.emit_opcode(Opcode::PushUndefined);
         compiler.emit_opcode(Opcode::Return);
 
         let code = Gc::new(compiler.finish());
