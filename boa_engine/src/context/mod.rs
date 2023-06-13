@@ -417,10 +417,7 @@ impl<'host> Context<'host> {
     /// specific handling of each [`JobQueue`]. If you need to ensure that jobs are executed
     /// concurrently, you can provide a custom implementor of `JobQueue` to the context.
     #[allow(clippy::future_not_send)]
-    pub async fn run_jobs_async<'a>(self: &'a mut Context<'host>)
-    where
-        'host: 'a,
-    {
+    pub async fn run_jobs_async(&mut self) {
         self.job_queue().run_jobs_async(self).await;
         self.clear_kept_objects();
     }
