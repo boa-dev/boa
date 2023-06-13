@@ -972,6 +972,19 @@
 <a href="#972" id="972">972</a>
 <a href="#973" id="973">973</a>
 <a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1383,6 +1396,19 @@
         <span class="self">self</span>.clear_kept_objects();
     }
 
+    <span class="doccomment">/// Asynchronously runs all the jobs in the job queue.
+    ///
+    /// # Note
+    ///
+    /// Concurrent job execution cannot be guaranteed by the engine, since this depends on the
+    /// specific handling of each [`JobQueue`]. If you need to ensure that jobs are executed
+    /// concurrently, you can provide a custom implementor of `JobQueue` to the context.
+    </span><span class="attr">#[allow(clippy::future_not_send)]
+    </span><span class="kw">pub async fn </span>run_jobs_async(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.job_queue().run_jobs_async(<span class="self">self</span>).<span class="kw">await</span>;
+        <span class="self">self</span>.clear_kept_objects();
+    }
+
     <span class="doccomment">/// Abstract operation [`ClearKeptObjects`][clear].
     ///
     /// Clears all objects maintained alive by calls to the [`AddToKeptObjects`][add] abstract
@@ -1398,7 +1424,7 @@
 
     <span class="doccomment">/// Retrieves the current stack trace of the context.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>stack_trace(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>CallFrame&gt; {
+    </span><span class="kw">pub fn </span>stack_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>CallFrame&gt; {
         <span class="self">self</span>.vm.frames.iter().rev()
     }
 

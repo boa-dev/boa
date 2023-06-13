@@ -297,6 +297,26 @@
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s API to create and customize `ECMAScript` jobs and job queues.
 //!
 //! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
@@ -524,6 +544,26 @@
     /// to do this will leave the inner `Promise` in the `pending` state, which won&#39;t call any `then`
     /// or `catch` handlers, even if `future` was already completed.
     </span><span class="kw">fn </span>enqueue_future_job(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureJob, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;);
+
+    <span class="doccomment">/// Asynchronously runs all jobs in the queue.
+    ///
+    /// Running a job could enqueue more jobs in the queue. The implementor of the trait
+    /// determines if the method should loop until there are no more queued jobs or if
+    /// it should only run one iteration of the queue.
+    ///
+    /// By default forwards to [`JobQueue::run_jobs`]. Implementors using async should override this
+    /// with a proper algorithm to run jobs asynchronously.
+    </span><span class="kw">fn </span>run_jobs_async&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>, <span class="lifetime">&#39;fut</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
+    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;fut</span>&gt;&gt;
+    <span class="kw">where
+        </span><span class="lifetime">&#39;a</span>: <span class="lifetime">&#39;fut</span>,
+        <span class="lifetime">&#39;ctx</span>: <span class="lifetime">&#39;fut</span>,
+        <span class="lifetime">&#39;host</span>: <span class="lifetime">&#39;fut</span>,
+    {
+        Box::pin(<span class="kw">async </span>{ <span class="self">self</span>.run_jobs(context) })
+    }
 }
 
 <span class="doccomment">/// A job queue that does nothing.
