@@ -147,6 +147,8 @@ mod tests;
 pub mod value;
 pub mod vm;
 
+pub mod snapshot;
+
 /// A convenience module that re-exports the most commonly-used Boa APIs
 pub mod prelude {
     pub use crate::{

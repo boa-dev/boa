@@ -36,3 +36,6 @@ chrome_profiler.json
 # e2e test
 playwright-report
 test-results
+
+# Binary snapshot file
+snapshot.bin

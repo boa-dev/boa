@@ -176,7 +176,7 @@ impl CodePoint {
 
 /// The raw representation of a [`JsString`] in the heap.
 #[repr(C)]
-struct RawJsString {
+pub(crate) struct RawJsString {
     /// The UTF-16 length.
     len: usize,
 
@@ -206,7 +206,7 @@ const DATA_OFFSET: usize = std::mem::size_of::<RawJsString>();
 /// <code>\[u16\]</code>'s methods.
 #[derive(Finalize)]
 pub struct JsString {
-    ptr: Tagged<RawJsString>,
+    pub(crate) ptr: Tagged<RawJsString>,
 }
 
 // JsString should always be pointer sized.
@@ -615,6 +615,10 @@ impl JsString {
             // Safety: `allocate_inner` guarantees `ptr` is a valid heap pointer.
             ptr: Tagged::from_non_null(ptr),
         }
+    }
+
+    pub(crate) fn is_static(&self) -> bool {
+        self.ptr.is_tagged()
     }
 }
 

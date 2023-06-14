@@ -51,6 +51,18 @@ pub struct VTableObject {
     vtable: &'static InternalObjectMethods,
 }
 
+impl crate::snapshot::Serialize for VTableObject {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> StdResult<(), crate::snapshot::SnapshotError> {
+        // TODO: add internal methods to references
+
+        self.object.borrow().serialize(s)?;
+        Ok(())
+    }
+}
+
 impl Default for JsObject {
     fn default() -> Self {
         let data = ObjectData::ordinary();

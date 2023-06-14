@@ -554,3 +554,48 @@ pub fn has_weak_maps() -> bool {
         gc.weak_map_start.get().is_some()
     })
 }
+
+/// Returns `true` is any weak maps are currently allocated.
+#[cfg(test)]
+#[must_use]
+pub fn walk_gc_alloc_pointers<F>(mut f: F)
+where
+    F: FnMut(usize),
+{
+    BOA_GC.with(|current| {
+        let gc = current.borrow();
+
+        let mut weak_map_head = gc.weak_map_start.get();
+        while let Some(node) = weak_map_head {
+            f(node.as_ptr() as *const u8 as usize);
+
+            // SAFETY:
+            // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+            // was allocated by `Box::from_raw(Box::new(..))`.
+            let unmarked_node = unsafe { node.as_ref() };
+            weak_map_head = unmarked_node.next().take();
+        }
+
+        let mut strong_head = gc.strong_start.get();
+        while let Some(node) = strong_head {
+            f(node.as_ptr() as *const u8 as usize);
+
+            // SAFETY:
+            // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+            // was allocated by `Box::from_raw(Box::new(..))`.
+            let unmarked_node = unsafe { node.as_ref() };
+            strong_head = unmarked_node.header.next.take();
+        }
+
+        let mut eph_head = gc.weak_start.get();
+        while let Some(node) = eph_head {
+            f(node.as_ptr() as *const u8 as usize);
+
+            // SAFETY:
+            // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+            // was allocated by `Box::from_raw(Box::new(..))`.
+            let unmarked_node = unsafe { node.as_ref() };
+            eph_head = unmarked_node.header().next.take();
+        }
+    });
+}

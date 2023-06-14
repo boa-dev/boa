@@ -111,14 +111,14 @@ impl WellKnown {
 
 /// The inner representation of a JavaScript symbol.
 #[derive(Debug, Clone)]
-struct Inner {
+pub(crate) struct Inner {
     hash: u64,
     description: Option<JsString>,
 }
 
 /// This represents a JavaScript symbol primitive.
 pub struct JsSymbol {
-    repr: Tagged<Inner>,
+    pub(crate) repr: Tagged<Inner>,
 }
 
 // SAFETY: `JsSymbol` uses `Arc` to do the reference counting, making this type thread-safe.

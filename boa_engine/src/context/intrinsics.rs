@@ -26,6 +26,16 @@ pub struct Intrinsics {
     pub(super) templates: ObjectTemplates,
 }
 
+impl crate::snapshot::Serialize for Intrinsics {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.constructors.serialize(s)?;
+        Ok(())
+    }
+}
+
 impl Intrinsics {
     pub(crate) fn new(root_shape: &RootShape) -> Self {
         let constructors = StandardConstructors::default();
@@ -60,6 +70,17 @@ impl Intrinsics {
 pub struct StandardConstructor {
     constructor: JsFunction,
     prototype: JsObject,
+}
+
+impl crate::snapshot::Serialize for StandardConstructor {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.constructor.serialize(s)?;
+        self.prototype.serialize(s)?;
+        Ok(())
+    }
 }
 
 impl Default for StandardConstructor {
@@ -151,6 +172,67 @@ pub struct StandardConstructors {
     locale: StandardConstructor,
     #[cfg(feature = "intl")]
     segmenter: StandardConstructor,
+}
+
+impl crate::snapshot::Serialize for StandardConstructors {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.object.serialize(s)?;
+        self.proxy.serialize(s)?;
+        self.date.serialize(s)?;
+        self.function.serialize(s)?;
+        self.async_function.serialize(s)?;
+        self.generator_function.serialize(s)?;
+        self.async_generator_function.serialize(s)?;
+        self.array.serialize(s)?;
+        self.bigint.serialize(s)?;
+        self.number.serialize(s)?;
+        self.boolean.serialize(s)?;
+        self.string.serialize(s)?;
+        self.regexp.serialize(s)?;
+        self.symbol.serialize(s)?;
+        self.error.serialize(s)?;
+        self.type_error.serialize(s)?;
+        self.reference_error.serialize(s)?;
+        self.range_error.serialize(s)?;
+        self.syntax_error.serialize(s)?;
+        self.eval_error.serialize(s)?;
+        self.uri_error.serialize(s)?;
+        self.aggregate_error.serialize(s)?;
+        self.map.serialize(s)?;
+        self.set.serialize(s)?;
+        self.typed_array.serialize(s)?;
+        self.typed_int8_array.serialize(s)?;
+        self.typed_uint8_array.serialize(s)?;
+        self.typed_uint8clamped_array.serialize(s)?;
+        self.typed_int16_array.serialize(s)?;
+        self.typed_uint16_array.serialize(s)?;
+        self.typed_int32_array.serialize(s)?;
+        self.typed_uint32_array.serialize(s)?;
+        self.typed_bigint64_array.serialize(s)?;
+        self.typed_biguint64_array.serialize(s)?;
+        self.typed_float32_array.serialize(s)?;
+        self.typed_float64_array.serialize(s)?;
+        self.array_buffer.serialize(s)?;
+        self.data_view.serialize(s)?;
+        self.date_time_format.serialize(s)?;
+        self.promise.serialize(s)?;
+        self.weak_ref.serialize(s)?;
+        self.weak_map.serialize(s)?;
+        self.weak_set.serialize(s)?;
+        #[cfg(feature = "intl")]
+        self.collator.serialize(s)?;
+        #[cfg(feature = "intl")]
+        self.list_format.serialize(s)?;
+        #[cfg(feature = "intl")]
+        self.locale.serialize(s)?;
+        #[cfg(feature = "intl")]
+        self.segmenter.serialize(s)?;
+
+        Ok(())
+    }
 }
 
 impl Default for StandardConstructors {

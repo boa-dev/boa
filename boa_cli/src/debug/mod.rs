@@ -10,6 +10,7 @@ mod object;
 mod optimizer;
 mod realm;
 mod shape;
+mod snapshot;
 
 fn create_boa_object(context: &mut Context<'_>) -> JsObject {
     let function_module = function::create_object(context);
@@ -19,6 +20,7 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
     let gc_module = gc::create_object(context);
     let realm_module = realm::create_object(context);
     let limits_module = limits::create_object(context);
+    let snapshot_module = snapshot::create_object(context);
 
     ObjectInitializer::new(context)
         .property(
@@ -54,6 +56,11 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
         .property(
             "limits",
             limits_module,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            "snapshot",
+            snapshot_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .build()

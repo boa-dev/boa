@@ -142,6 +142,17 @@ pub struct Object {
     private_elements: ThinVec<(PrivateName, PrivateElement)>,
 }
 
+impl crate::snapshot::Serialize for Object {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        s.write_bool(self.extensible)?;
+        self.properties.serialize(s)?;
+        Ok(())
+    }
+}
+
 impl Default for Object {
     fn default() -> Self {
         Self {

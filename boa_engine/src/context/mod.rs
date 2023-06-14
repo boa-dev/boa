@@ -985,3 +985,14 @@ where
         }
     }
 }
+
+impl crate::snapshot::Serialize for Context<'_> {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        s.write_bool(self.strict)?;
+        self.realm.serialize(s)?;
+        Ok(())
+    }
+}
