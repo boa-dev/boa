@@ -66,7 +66,7 @@ impl IntegerIndexed {
     }
 
     /// Get the integer indexed object's byte offset.
-    pub(crate) const fn byte_offset(&self) -> u64 {
+    pub const fn byte_offset(&self) -> u64 {
         self.byte_offset
     }
 
