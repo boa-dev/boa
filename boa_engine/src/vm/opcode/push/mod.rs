@@ -29,6 +29,7 @@ macro_rules! implement_push_generics {
         impl Operation for $name {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
+            const COST: u8 = 1;
 
             fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
                 context.vm.push($push_value);

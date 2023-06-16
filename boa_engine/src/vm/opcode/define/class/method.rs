@@ -47,6 +47,7 @@ impl DefineClassStaticMethodByName {
 impl Operation for DefineClassStaticMethodByName {
     const NAME: &'static str = "DefineClassStaticMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByName";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -106,6 +107,7 @@ impl DefineClassMethodByName {
 impl Operation for DefineClassMethodByName {
     const NAME: &'static str = "DefineClassMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -133,6 +135,7 @@ pub(crate) struct DefineClassStaticMethodByValue;
 impl Operation for DefineClassStaticMethodByValue {
     const NAME: &'static str = "DefineClassStaticMethodByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByValue";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();
@@ -178,6 +181,7 @@ pub(crate) struct DefineClassMethodByValue;
 impl Operation for DefineClassMethodByValue {
     const NAME: &'static str = "DefineClassMethodByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByValue";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();

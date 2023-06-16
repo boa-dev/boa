@@ -13,6 +13,7 @@ pub(crate) struct Dup;
 impl Operation for Dup {
     const NAME: &'static str = "Dup";
     const INSTRUCTION: &'static str = "INST - Dup";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();

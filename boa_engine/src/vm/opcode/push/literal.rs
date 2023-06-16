@@ -23,6 +23,7 @@ impl PushLiteral {
 impl Operation for PushLiteral {
     const NAME: &'static str = "PushLiteral";
     const INSTRUCTION: &'static str = "INST - PushLiteral";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -65,6 +66,7 @@ impl PushRegExp {
 impl Operation for PushRegExp {
     const NAME: &'static str = "PushRegExp";
     const INSTRUCTION: &'static str = "INST - PushRegExp";
+    const COST: u8 = 5;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let pattern_index = context.vm.read::<u8>() as usize;

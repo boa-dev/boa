@@ -63,6 +63,9 @@ impl CallEval {
 impl Operation for CallEval {
     const NAME: &'static str = "CallEval";
     const INSTRUCTION: &'static str = "INST - CallEval";
+    // TODO: Calls will require a big refactor in order to track
+    // the cost of the call.
+    const COST: u8 = 5;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u8>();
@@ -90,6 +93,9 @@ pub(crate) struct CallEvalSpread;
 impl Operation for CallEvalSpread {
     const NAME: &'static str = "CallEvalSpread";
     const INSTRUCTION: &'static str = "INST - CallEvalSpread";
+    // TODO: Calls will require a big refactor in order to track
+    // the cost of the call.
+    const COST: u8 = 5;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
@@ -176,6 +182,7 @@ impl Call {
 impl Operation for Call {
     const NAME: &'static str = "Call";
     const INSTRUCTION: &'static str = "INST - Call";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u8>();
@@ -199,6 +206,7 @@ pub(crate) struct CallSpread;
 impl Operation for CallSpread {
     const NAME: &'static str = "CallSpread";
     const INSTRUCTION: &'static str = "INST - CallSpread";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
@@ -240,6 +248,7 @@ pub(crate) struct ImportCall;
 impl Operation for ImportCall {
     const NAME: &'static str = "ImportCall";
     const INSTRUCTION: &'static str = "INST - ImportCall";
+    const COST: u8 = 15;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Import Calls

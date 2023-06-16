@@ -15,6 +15,7 @@ pub(crate) struct SetClassPrototype;
 impl Operation for SetClassPrototype {
     const NAME: &'static str = "SetClassPrototype";
     const INSTRUCTION: &'static str = "INST - SetClassPrototype";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let prototype_value = context.vm.pop();

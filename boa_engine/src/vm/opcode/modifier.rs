@@ -12,11 +12,22 @@ pub(crate) struct U16Operands;
 impl Operation for U16Operands {
     const NAME: &'static str = "U16Operands";
     const INSTRUCTION: &'static str = "INST - U16Operands";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let opcode = context.vm.read::<u8>() as usize;
 
         Opcode::EXECUTE_FNS[256 + opcode](context)
+    }
+
+    fn spend_budget_and_execute(
+        context: &mut Context<'_>,
+        budget: &mut u32,
+    ) -> JsResult<CompletionType> {
+        *budget = budget.saturating_sub(u32::from(Self::COST));
+
+        let opcode = context.vm.read::<u8>() as usize;
+        Opcode::SPEND_FNS[256 + opcode](context, budget)
     }
 }
 
@@ -30,10 +41,21 @@ pub(crate) struct U32Operands;
 impl Operation for U32Operands {
     const NAME: &'static str = "U32Operands";
     const INSTRUCTION: &'static str = "INST - U32Operands";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let opcode = context.vm.read::<u8>() as usize;
 
         Opcode::EXECUTE_FNS[256 * 2 + opcode](context)
+    }
+
+    fn spend_budget_and_execute(
+        context: &mut Context<'_>,
+        budget: &mut u32,
+    ) -> JsResult<CompletionType> {
+        *budget = budget.saturating_sub(u32::from(Self::COST));
+
+        let opcode = context.vm.read::<u8>() as usize;
+        Opcode::SPEND_FNS[256 * 2 + opcode](context, budget)
     }
 }

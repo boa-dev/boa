@@ -31,6 +31,7 @@ impl GetName {
 impl Operation for GetName {
     const NAME: &'static str = "GetName";
     const INSTRUCTION: &'static str = "INST - GetName";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
@@ -69,6 +70,7 @@ impl GetLocator {
 impl Operation for GetLocator {
     const NAME: &'static str = "GetLocator";
     const INSTRUCTION: &'static str = "INST - GetLocator";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
@@ -115,6 +117,7 @@ impl GetNameAndLocator {
 impl Operation for GetNameAndLocator {
     const NAME: &'static str = "GetNameAndLocator";
     const INSTRUCTION: &'static str = "INST - GetNameAndLocator";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
@@ -169,6 +172,7 @@ impl GetNameOrUndefined {
 impl Operation for GetNameOrUndefined {
     const NAME: &'static str = "GetNameOrUndefined";
     const INSTRUCTION: &'static str = "INST - GetNameOrUndefined";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();

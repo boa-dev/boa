@@ -14,6 +14,7 @@ pub(crate) struct GetIterator;
 impl Operation for GetIterator {
     const NAME: &'static str = "GetIterator";
     const INSTRUCTION: &'static str = "INST - GetIterator";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let object = context.vm.pop();
@@ -33,6 +34,7 @@ pub(crate) struct GetAsyncIterator;
 impl Operation for GetAsyncIterator {
     const NAME: &'static str = "GetAsyncIterator";
     const INSTRUCTION: &'static str = "INST - GetAsyncIterator";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let object = context.vm.pop();

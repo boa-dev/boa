@@ -426,6 +426,21 @@ macro_rules! generate_opcodes {
                 Self::INSTRUCTIONS[self as usize]
             }
 
+            const SPEND_FNS: [fn(&mut Context<'_>, &mut u32) -> JsResult<CompletionType>; Self::MAX] = [
+                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::spend_budget_and_execute),*,
+                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::spend_budget_and_execute_with_u16_operands),*,
+                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::spend_budget_and_execute_with_u32_operands),*
+            ];
+
+            /// Spends the cost of this opcode into the provided budget and executes it.
+            pub(super) fn spend_budget_and_execute(
+                self,
+                context: &mut Context<'_>,
+                budget: &mut u32
+            ) -> JsResult<CompletionType> {
+                Self::SPEND_FNS[self as usize](context, budget)
+            }
+
             const EXECUTE_FNS: [fn(&mut Context<'_>) -> JsResult<CompletionType>; Self::MAX] = [
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute),*,
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute_with_u16_operands),*,
@@ -440,7 +455,7 @@ macro_rules! generate_opcodes {
         /// This represents a VM instruction, it contains both opcode and operands.
         ///
         // TODO: An instruction should be a representation of a valid executable instruction (opcode + operands),
-        //       so variants like `ResevedN`, or operand width prefix modifiers, idealy shouldn't
+        //       so variants like `ReservedN`, or operand width prefix modifiers, idealy shouldn't
         //       be a part of `Instruction`.
         #[derive(Debug, Clone, PartialEq)]
         #[repr(u8)]
@@ -530,6 +545,7 @@ macro_rules! generate_opcodes {
 pub(crate) trait Operation {
     const NAME: &'static str;
     const INSTRUCTION: &'static str;
+    const COST: u8;
 
     /// Execute opcode with [`VaryingOperandKind::U8`] sized [`VaryingOperand`]s.
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType>;
@@ -546,6 +562,33 @@ pub(crate) trait Operation {
     /// By default if not implemented will call [`Reserved::execute_with_u32_operands()`] which panics.
     fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         Reserved::execute_with_u32_operands(context)
+    }
+
+    /// Spends the cost of this operation into `budget` and runs `execute`.
+    fn spend_budget_and_execute(
+        context: &mut Context<'_>,
+        budget: &mut u32,
+    ) -> JsResult<CompletionType> {
+        *budget = budget.saturating_sub(u32::from(Self::COST));
+        Self::execute(context)
+    }
+
+    /// Spends the cost of this operation into `budget` and runs `execute_with_u16_operands`.
+    fn spend_budget_and_execute_with_u16_operands(
+        context: &mut Context<'_>,
+        budget: &mut u32,
+    ) -> JsResult<CompletionType> {
+        *budget = budget.saturating_sub(u32::from(Self::COST));
+        Self::execute_with_u16_operands(context)
+    }
+
+    /// Spends the cost of this operation into `budget` and runs `execute_with_u32_operands`.
+    fn spend_budget_and_execute_with_u32_operands(
+        context: &mut Context<'_>,
+        budget: &mut u32,
+    ) -> JsResult<CompletionType> {
+        *budget = budget.saturating_sub(u32::from(Self::COST));
+        Self::execute_with_u32_operands(context)
     }
 }
 

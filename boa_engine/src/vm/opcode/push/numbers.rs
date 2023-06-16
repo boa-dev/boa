@@ -15,6 +15,7 @@ macro_rules! implement_push_numbers_with_conversion {
         impl Operation for $name {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
+            const COST: u8 = 1;
 
             fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
                 let value = context.vm.read::<$num_type>();
@@ -37,6 +38,7 @@ macro_rules! implement_push_numbers_no_conversion {
         impl Operation for $name {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
+            const COST: u8 = 1;
 
             fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
                 let value = context.vm.read::<$num_type>();

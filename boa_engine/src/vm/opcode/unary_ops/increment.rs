@@ -14,6 +14,7 @@ pub(crate) struct Inc;
 impl Operation for Inc {
     const NAME: &'static str = "Inc";
     const INSTRUCTION: &'static str = "INST - Inc";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
@@ -42,6 +43,7 @@ pub(crate) struct IncPost;
 impl Operation for IncPost {
     const NAME: &'static str = "IncPost";
     const INSTRUCTION: &'static str = "INST - IncPost";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();

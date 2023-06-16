@@ -51,6 +51,7 @@ impl DefineClassStaticGetterByName {
 impl Operation for DefineClassStaticGetterByName {
     const NAME: &'static str = "DefineClassStaticGetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticGetterByName";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -114,6 +115,7 @@ impl DefineClassGetterByName {
 impl Operation for DefineClassGetterByName {
     const NAME: &'static str = "DefineClassGetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassGetterByName";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -141,6 +143,7 @@ pub(crate) struct DefineClassStaticGetterByValue;
 impl Operation for DefineClassStaticGetterByValue {
     const NAME: &'static str = "DefineClassStaticGetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticGetterByValue";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();
@@ -190,6 +193,7 @@ pub(crate) struct DefineClassGetterByValue;
 impl Operation for DefineClassGetterByValue {
     const NAME: &'static str = "DefineClassGetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassGetterByValue";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();

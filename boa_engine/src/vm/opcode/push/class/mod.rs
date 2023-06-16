@@ -22,6 +22,7 @@ pub(crate) struct PushClassPrototype;
 impl Operation for PushClassPrototype {
     const NAME: &'static str = "PushClassPrototype";
     const INSTRUCTION: &'static str = "INST - PushClassPrototype";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let superclass = context.vm.pop();

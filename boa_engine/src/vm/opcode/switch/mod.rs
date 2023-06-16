@@ -14,6 +14,7 @@ pub(crate) struct Case;
 impl Operation for Case {
     const NAME: &'static str = "Case";
     const INSTRUCTION: &'static str = "INST - Case";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
@@ -39,6 +40,7 @@ pub(crate) struct Default;
 impl Operation for Default {
     const NAME: &'static str = "Default";
     const INSTRUCTION: &'static str = "INST - Default";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();

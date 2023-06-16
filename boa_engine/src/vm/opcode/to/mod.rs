@@ -13,6 +13,7 @@ pub(crate) struct ToBoolean;
 impl Operation for ToBoolean {
     const NAME: &'static str = "ToBoolean";
     const INSTRUCTION: &'static str = "INST - ToBoolean";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
@@ -31,6 +32,7 @@ pub(crate) struct ToPropertyKey;
 impl Operation for ToPropertyKey {
     const NAME: &'static str = "ToPropertyKey";
     const INSTRUCTION: &'static str = "INST - ToPropertyKey";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();

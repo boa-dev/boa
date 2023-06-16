@@ -32,6 +32,7 @@ pub(crate) struct Generator;
 impl Operation for Generator {
     const NAME: &'static str = "Generator";
     const INSTRUCTION: &'static str = "INST - Generator";
+    const COST: u8 = 8;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let r#async = context.vm.read::<u8>() != 0;
@@ -128,6 +129,7 @@ pub(crate) struct AsyncGeneratorClose;
 impl Operation for AsyncGeneratorClose {
     const NAME: &'static str = "AsyncGeneratorClose";
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorClose";
+    const COST: u8 = 8;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
@@ -176,6 +178,7 @@ pub(crate) struct GeneratorNext;
 impl Operation for GeneratorNext {
     const NAME: &'static str = "GeneratorNext";
     const INSTRUCTION: &'static str = "INST - GeneratorNext";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let generator_resume_kind = context.vm.pop().to_generator_resume_kind();
@@ -202,6 +205,7 @@ pub(crate) struct JumpIfNotResumeKind;
 impl Operation for JumpIfNotResumeKind {
     const NAME: &'static str = "JumpIfNotResumeKind";
     const INSTRUCTION: &'static str = "INST - JumpIfNotResumeKind";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
@@ -228,6 +232,7 @@ pub(crate) struct GeneratorDelegateNext;
 impl Operation for GeneratorDelegateNext {
     const NAME: &'static str = "GeneratorDelegateNext";
     const INSTRUCTION: &'static str = "INST - GeneratorDelegateNext";
+    const COST: u8 = 18;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let throw_method_undefined = context.vm.read::<u32>();
@@ -317,6 +322,7 @@ pub(crate) struct GeneratorDelegateResume;
 impl Operation for GeneratorDelegateResume {
     const NAME: &'static str = "GeneratorDelegateResume";
     const INSTRUCTION: &'static str = "INST - GeneratorDelegateResume";
+    const COST: u8 = 7;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let return_gen = context.vm.read::<u32>();

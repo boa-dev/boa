@@ -27,6 +27,7 @@ impl ThrowMutateImmutable {
 impl Operation for ThrowMutateImmutable {
     const NAME: &'static str = "ThrowMutateImmutable";
     const INSTRUCTION: &'static str = "INST - ThrowMutateImmutable";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
@@ -73,6 +74,7 @@ impl SetName {
 impl Operation for SetName {
     const NAME: &'static str = "SetName";
     const INSTRUCTION: &'static str = "INST - SetName";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
@@ -100,6 +102,7 @@ pub(crate) struct SetNameByLocator;
 impl Operation for SetNameByLocator {
     const NAME: &'static str = "SetNameByLocator";
     const INSTRUCTION: &'static str = "INST - SetNameByLocator";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let binding_locator = context

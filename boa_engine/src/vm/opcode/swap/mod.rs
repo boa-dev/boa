@@ -13,6 +13,7 @@ pub(crate) struct Swap;
 impl Operation for Swap {
     const NAME: &'static str = "Swap";
     const INSTRUCTION: &'static str = "INST - Swap";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let len = context.vm.stack.len();
@@ -32,6 +33,7 @@ pub(crate) struct RotateLeft;
 impl Operation for RotateLeft {
     const NAME: &'static str = "RotateLeft";
     const INSTRUCTION: &'static str = "INST - RotateLeft";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let n = context.vm.read::<u8>() as usize;
@@ -51,6 +53,7 @@ pub(crate) struct RotateRight;
 impl Operation for RotateRight {
     const NAME: &'static str = "RotateRight";
     const INSTRUCTION: &'static str = "INST - RotateRight";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let n = context.vm.read::<u8>() as usize;
