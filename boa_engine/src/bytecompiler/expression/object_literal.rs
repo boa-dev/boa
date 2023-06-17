@@ -1,10 +1,11 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler},
+    bytecompiler::{Access, ByteCompiler, FunctionSpec},
     vm::Opcode,
 };
 use boa_ast::{
     expression::literal::ObjectLiteral,
     property::{MethodDefinition, PropertyDefinition, PropertyName},
+    Expression,
 };
 use boa_interner::Sym;
 
@@ -52,20 +53,11 @@ impl ByteCompiler<'_, '_> {
                             self.emit(Opcode::SetPropertyGetterByName, &[index]);
                         }
                         PropertyName::Computed(name_node) => {
-                            self.compile_expr(name_node, true);
-                            self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetFunctionName);
-                            self.emit_u8(1);
-                            self.emit_opcode(Opcode::RotateLeft);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::RotateRight);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::SetPropertyGetterByValue);
+                            self.compile_object_literal_computed_method(
+                                name_node,
+                                expr.into(),
+                                MethodKind::Get,
+                            );
                         }
                     },
                     MethodDefinition::Set(expr) => match name {
@@ -76,20 +68,11 @@ impl ByteCompiler<'_, '_> {
                             self.emit(Opcode::SetPropertySetterByName, &[index]);
                         }
                         PropertyName::Computed(name_node) => {
-                            self.compile_expr(name_node, true);
-                            self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetFunctionName);
-                            self.emit_u8(2);
-                            self.emit_opcode(Opcode::RotateLeft);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::RotateRight);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::SetPropertySetterByValue);
+                            self.compile_object_literal_computed_method(
+                                name_node,
+                                expr.into(),
+                                MethodKind::Set,
+                            );
                         }
                     },
                     MethodDefinition::Ordinary(expr) => match name {
@@ -100,20 +83,11 @@ impl ByteCompiler<'_, '_> {
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
                         PropertyName::Computed(name_node) => {
-                            self.compile_expr(name_node, true);
-                            self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetFunctionName);
-                            self.emit_u8(0);
-                            self.emit_opcode(Opcode::RotateLeft);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::RotateRight);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                            self.compile_object_literal_computed_method(
+                                name_node,
+                                expr.into(),
+                                MethodKind::Ordinary,
+                            );
                         }
                     },
                     MethodDefinition::Async(expr) => match name {
@@ -124,20 +98,11 @@ impl ByteCompiler<'_, '_> {
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
                         PropertyName::Computed(name_node) => {
-                            self.compile_expr(name_node, true);
-                            self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetFunctionName);
-                            self.emit_u8(0);
-                            self.emit_opcode(Opcode::RotateLeft);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::RotateRight);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                            self.compile_object_literal_computed_method(
+                                name_node,
+                                expr.into(),
+                                MethodKind::Ordinary,
+                            );
                         }
                     },
                     MethodDefinition::Generator(expr) => match name {
@@ -148,20 +113,11 @@ impl ByteCompiler<'_, '_> {
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
                         PropertyName::Computed(name_node) => {
-                            self.compile_expr(name_node, true);
-                            self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetFunctionName);
-                            self.emit_u8(0);
-                            self.emit_opcode(Opcode::RotateLeft);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::RotateRight);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                            self.compile_object_literal_computed_method(
+                                name_node,
+                                expr.into(),
+                                MethodKind::Ordinary,
+                            );
                         }
                     },
                     MethodDefinition::AsyncGenerator(expr) => match name {
@@ -172,20 +128,11 @@ impl ByteCompiler<'_, '_> {
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
                         PropertyName::Computed(name_node) => {
-                            self.compile_expr(name_node, true);
-                            self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetFunctionName);
-                            self.emit_u8(0);
-                            self.emit_opcode(Opcode::RotateLeft);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::RotateRight);
-                            self.emit_u8(3);
-                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                            self.compile_object_literal_computed_method(
+                                name_node,
+                                expr.into(),
+                                MethodKind::Ordinary,
+                            );
                         }
                     },
                 },
@@ -205,4 +152,62 @@ impl ByteCompiler<'_, '_> {
             self.emit(Opcode::Pop, &[]);
         }
     }
+
+    fn compile_object_literal_computed_method(
+        &mut self,
+        name: &Expression,
+        function: FunctionSpec<'_>,
+        kind: MethodKind,
+    ) {
+        // stack: object, object
+        self.compile_expr(name, true);
+
+        // stack: object, object, name
+        self.emit_opcode(Opcode::ToPropertyKey);
+
+        // stack: object, object, ToPropertyKey(name)
+        self.emit_opcode(Opcode::Dup);
+
+        // stack: object, object, ToPropertyKey(name), ToPropertyKey(name)
+        self.object_method(function);
+
+        // stack: object, object, ToPropertyKey(name), ToPropertyKey(name), method
+        self.emit_opcode(Opcode::SetFunctionName);
+        match kind {
+            MethodKind::Get => self.emit_u8(1),
+            MethodKind::Set => self.emit_u8(2),
+            MethodKind::Ordinary => self.emit_u8(0),
+        }
+
+        // stack: object, object, ToPropertyKey(name), method
+        self.emit_opcode(Opcode::RotateLeft);
+        self.emit_u8(3);
+
+        // stack: object, ToPropertyKey(name), method, object
+        self.emit_opcode(Opcode::Swap);
+
+        // stack: object, ToPropertyKey(name), object, method
+        self.emit_opcode(Opcode::SetHomeObject);
+
+        // stack: object, ToPropertyKey(name), object, method
+        self.emit_opcode(Opcode::Swap);
+
+        // stack: object, ToPropertyKey(name), method, object
+        self.emit_opcode(Opcode::RotateRight);
+        self.emit_u8(3);
+
+        // stack: object, object, ToPropertyKey(name), method
+        match kind {
+            MethodKind::Get => self.emit_opcode(Opcode::SetPropertyGetterByValue),
+            MethodKind::Set => self.emit_opcode(Opcode::SetPropertySetterByValue),
+            MethodKind::Ordinary => self.emit_opcode(Opcode::DefineOwnPropertyByValue),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum MethodKind {
+    Get,
+    Set,
+    Ordinary,
 }
