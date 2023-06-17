@@ -933,7 +933,7 @@ impl JsPromise {
     /// ```
     pub fn into_js_future(self, context: &mut Context<'_>) -> JsResult<JsFuture> {
         // Mostly based from:
-        // https://rustwasm.github.io/wasm-bindgen/api/src/wasm_bindgen_futures/lib.rs.html#109-168
+        // https://docs.rs/wasm-bindgen-futures/0.4.37/src/wasm_bindgen_futures/lib.rs.html#109-168
 
         fn finish(state: &GcRefCell<Inner>, val: JsResult<JsValue>) {
             let task = {
@@ -1061,7 +1061,7 @@ struct Inner {
 }
 
 // Taken from:
-// https://rustwasm.github.io/wasm-bindgen/api/src/wasm_bindgen_futures/lib.rs.html#171-187
+// https://docs.rs/wasm-bindgen-futures/0.4.37/src/wasm_bindgen_futures/lib.rs.html#171-187
 impl Future for JsFuture {
     type Output = JsResult<JsValue>;
 
