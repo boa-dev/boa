@@ -251,6 +251,9 @@
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
 <a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler, Literal},
     vm::{BindingOpcode, Opcode},
@@ -288,6 +291,7 @@
                             name,
                             default_init,
                         } =&gt; {
+                            <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="kw">match </span>name {
                                 PropertyName::Literal(name) =&gt; {
@@ -360,6 +364,7 @@
                             default_init,
                         } =&gt; {
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
+                            <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="kw">match </span>name {
                                 PropertyName::Literal(name) =&gt; {
                                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
@@ -398,6 +403,7 @@
                             pattern,
                             default_init,
                         } =&gt; {
+                            <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="kw">match </span>name {
                                 PropertyName::Literal(name) =&gt; {

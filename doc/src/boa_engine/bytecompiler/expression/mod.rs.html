@@ -339,6 +339,7 @@
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
@@ -554,7 +555,8 @@
                 <span class="kw">match </span>template.tag() {
                     Expression::PropertyAccess(PropertyAccess::Simple(access)) =&gt; {
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
-                        <span class="self">self</span>.emit(Opcode::Dup, <span class="kw-2">&amp;</span>[]);
+                        <span class="self">self</span>.emit_opcode(Opcode::Dup);
+                        <span class="self">self</span>.emit_opcode(Opcode::Dup);
                         <span class="kw">match </span>access.field() {
                             PropertyAccessField::Const(field) =&gt; {
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>field).into());
@@ -562,7 +564,7 @@
                             }
                             PropertyAccessField::Expr(field) =&gt; {
                                 <span class="self">self</span>.compile_expr(field, <span class="bool-val">true</span>);
-                                <span class="self">self</span>.emit(Opcode::GetPropertyByValue, <span class="kw-2">&amp;</span>[]);
+                                <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValue);
                             }
                         }
                     }

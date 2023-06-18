@@ -151,6 +151,9 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     property::PropertyKey,
     vm::{opcode::Operation, CompletionType},
@@ -171,6 +174,7 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
 
+        <span class="kw">let </span>receiver = context.vm.pop();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = value.as_object() {
             object.clone()
@@ -181,7 +185,7 @@
         <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize]
             .clone()
             .into();
-        <span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, value, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -201,6 +205,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>key = context.vm.pop();
+        <span class="kw">let </span>receiver = context.vm.pop();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = value.as_object() {
             object.clone()
@@ -226,7 +231,7 @@
         }
 
         <span class="comment">// Slow path:
-        </span><span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, value, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -271,6 +276,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>key = context.vm.pop();
+        <span class="kw">let </span>receiver = context.vm.pop();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = value.as_object() {
             object.clone()
@@ -297,7 +303,7 @@
         }
 
         <span class="comment">// Slow path:
-        </span><span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, value, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, context)<span class="question-mark">?</span>;
 
         context.vm.push(key);
         context.vm.push(result);

@@ -1835,6 +1835,11 @@
 <a href="#1835" id="1835">1835</a>
 <a href="#1836" id="1836">1836</a>
 <a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -2183,12 +2188,19 @@
         /// Stack: class, prototype **=&gt;** class.prototype
         </span>SetClassPrototype,
 
-        <span class="doccomment">/// Set home object internal slot of a function object.
+        <span class="doccomment">/// Set home object internal slot of an object literal method.
         ///
         /// Operands:
         ///
         /// Stack: home, function **=&gt;** home, function
         </span>SetHomeObject,
+
+        <span class="doccomment">/// Set home object internal slot of a class method.
+        ///
+        /// Operands:
+        ///
+        /// Stack: home, function **=&gt;** home, function
+        </span>SetHomeObjectClass,
 
         <span class="doccomment">/// Set the prototype of an object if the value is an object or null.
         ///
@@ -2566,7 +2578,7 @@
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object **=&gt;** value
+        /// Stack: object, receiver **=&gt;** value
         </span>GetPropertyByName,
 
         <span class="doccomment">/// Get a property method or undefined if the property is null or undefined.
@@ -2583,7 +2595,7 @@
         ///
         /// Operands:
         ///
-        /// Stack: object, key **=&gt;** value
+        /// Stack: object, receiver, key **=&gt;** value
         </span>GetPropertyByValue,
 
         <span class="doccomment">/// Get a property by value from an object an push the key and value on the stack.
@@ -2592,7 +2604,7 @@
         ///
         /// Operands:
         ///
-        /// Stack: object, key **=&gt;** key, value
+        /// Stack: object, receiver, key **=&gt;** key, value
         </span>GetPropertyByValuePush,
 
         <span class="doccomment">/// Sets a property by name of an object.
@@ -2647,7 +2659,7 @@
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=&gt;** value
+        /// Stack: object, receiver, key, value **=&gt;** value
         </span>SetPropertyByValue,
 
         <span class="doccomment">/// Defines a own property of an object by value.
@@ -3656,8 +3668,6 @@
         </span>Reserved49 =&gt; Reserved,
         <span class="doccomment">/// Reserved [`Opcode`].
         </span>Reserved50 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved51 =&gt; Reserved,
     }
 }
 

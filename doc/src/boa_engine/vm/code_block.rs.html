@@ -1980,6 +1980,7 @@
             | Opcode::PushClassPrototype
             | Opcode::SetClassPrototype
             | Opcode::SetHomeObject
+            | Opcode::SetHomeObjectClass
             | Opcode::Add
             | Opcode::Sub
             | Opcode::Div
@@ -2134,8 +2135,7 @@
             | Opcode::Reserved47
             | Opcode::Reserved48
             | Opcode::Reserved49
-            | Opcode::Reserved50
-            | Opcode::Reserved51 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Opcode::Reserved50 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }

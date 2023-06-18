@@ -34,6 +34,37 @@
 <a href="#34" id="34">34</a>
 <a href="#35" id="35">35</a>
 <a href="#36" id="36">36</a>
+<a href="#37" id="37">37</a>
+<a href="#38" id="38">38</a>
+<a href="#39" id="39">39</a>
+<a href="#40" id="40">40</a>
+<a href="#41" id="41">41</a>
+<a href="#42" id="42">42</a>
+<a href="#43" id="43">43</a>
+<a href="#44" id="44">44</a>
+<a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
+<a href="#47" id="47">47</a>
+<a href="#48" id="48">48</a>
+<a href="#49" id="49">49</a>
+<a href="#50" id="50">50</a>
+<a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -49,6 +80,37 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>SetHomeObject {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetHomeObject&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetHomeObject&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>function = context.vm.pop();
+        <span class="kw">let </span>home = context.vm.pop();
+
+        {
+            <span class="kw">let </span>function_object = function.as_object().expect(<span class="string">&quot;must be object&quot;</span>);
+            <span class="kw">let </span>home_object = home.as_object().expect(<span class="string">&quot;must be object&quot;</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>function_object_mut = function_object.borrow_mut();
+            <span class="kw">let </span>function_mut = function_object_mut
+                .as_function_mut()
+                .expect(<span class="string">&quot;must be function object&quot;</span>);
+            function_mut.set_home_object(home_object.clone());
+        }
+
+        context.vm.push(home);
+        context.vm.push(function);
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `SetHomeObjectClass` implements the Opcode Operation for `Opcode::SetHomeObjectClass`
+///
+/// Operation:
+///  - Set home object internal slot of a function object.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetHomeObjectClass;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>SetHomeObjectClass {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetHomeObjectClass&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetHomeObjectClass&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>function = context.vm.pop();

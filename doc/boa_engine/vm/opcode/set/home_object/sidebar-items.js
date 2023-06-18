@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["SetHomeObject"]};
+window.SIDEBAR_ITEMS = {"struct":["SetHomeObject","SetHomeObjectClass"]};
