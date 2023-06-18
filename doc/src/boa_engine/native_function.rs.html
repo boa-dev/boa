@@ -283,16 +283,20 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s wrappers for native Rust functions to be compatible with ECMAScript calls.
 //!
 //! [`NativeFunction`] is the main type of this module, providing APIs to create native callables
 //! from native Rust functions and closures.
 
-</span><span class="kw">use </span>std::future::Future;
+</span><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Gc, Trace};
 
-<span class="kw">use </span>boa_gc::{custom_trace, Finalize, Gc, Trace};
-
-<span class="kw">use crate</span>::{job::NativeJob, object::JsPromise, Context, JsResult, JsValue};
+<span class="kw">use crate</span>::{object::JsPromise, Context, JsResult, JsValue};
 
 <span class="doccomment">/// The required signature for all native built-in function pointers.
 ///
@@ -400,14 +404,18 @@
         }
     }
 
-    <span class="doccomment">/// Creates a `NativeFunction` from a function returning a [`Future`].
+    <span class="doccomment">/// Creates a `NativeFunction` from a function returning a [`Future`]-like.
     ///
     /// The returned `NativeFunction` will return an ECMAScript `Promise` that will be fulfilled
     /// or rejected when the returned [`Future`] completes.
     ///
+    /// If you only need to convert a [`Future`]-like into a [`JsPromise`], see
+    /// [`JsPromise::from_future`].
+    ///
     /// # Caveats
     ///
-    /// Consider the next snippet:
+    /// Certain async functions need to be desugared for them to be `&#39;static&#39;`. For example, the
+    /// following won&#39;t compile:
     ///
     /// ```compile_fail
     /// # use boa_engine::{
@@ -429,14 +437,29 @@
     /// NativeFunction::from_async_fn(test);
     /// ```
     ///
-    /// Seems like a perfectly fine code, right? `args` is not used after the await point, which
-    /// in theory should make the whole future `&#39;static` ... in theory ...
+    /// Even though `args` is only used before the first await point, Rust&#39;s async functions are
+    /// fully lazy, which makes `test` equivalent to something like:
     ///
-    /// This code unfortunately fails to compile at the moment. This is because `rustc` currently
-    /// cannot determine that `args` can be dropped before the await point, which would trivially
-    /// make the future `&#39;static`. Track [this issue] for more information.
+    /// ```
+    /// # use std::future::Future;
+    /// # use boa_engine::{JsValue, Context, JsResult};
+    /// fn test&lt;&#39;a&gt;(
+    ///     _this: &amp;JsValue,
+    ///     args: &amp;&#39;a [JsValue],
+    ///     _context: &amp;mut Context&lt;&#39;_&gt;,
+    /// ) -&gt; impl Future&lt;Output = JsResult&lt;JsValue&gt;&gt; + &#39;a {
+    ///     async move {
+    ///         let arg = args.get(0).cloned();
+    ///         std::future::ready(()).await;
+    ///         drop(arg);
+    ///         Ok(JsValue::null())
+    ///     }
+    /// }
+    /// ```
     ///
-    /// In the meantime, a manual desugaring of the async function does the trick:
+    /// Note that `args` is used inside the `async move`, making the whole future not `&#39;static`.
+    ///
+    /// In those cases, you can manually restrict the lifetime of the arguments:
     ///
     /// ```
     /// # use std::future::Future;
@@ -460,29 +483,18 @@
     /// }
     /// NativeFunction::from_async_fn(test);
     /// ```
-    /// [this issue]: https://github.com/rust-lang/rust/issues/69663
+    ///
+    /// And this should always return a `&#39;static` future.
+    ///
+    /// [`Future`]: std::future::Future
     </span><span class="kw">pub fn </span>from_async_fn&lt;Fut&gt;(f: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Fut) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Fut: Future&lt;Output = JsResult&lt;JsValue&gt;&gt; + <span class="lifetime">&#39;static</span>,
+        </span>Fut: std::future::IntoFuture&lt;Output = JsResult&lt;JsValue&gt;&gt; + <span class="lifetime">&#39;static</span>,
     {
         <span class="self">Self</span>::from_copy_closure(<span class="kw">move </span>|this, args, context| {
-            <span class="kw">let </span>(promise, resolvers) = JsPromise::new_pending(context);
-
             <span class="kw">let </span>future = f(this, args, context);
-            <span class="kw">let </span>future = <span class="kw">async move </span>{
-                <span class="kw">let </span>result = future.<span class="kw">await</span>;
-                NativeJob::new(<span class="kw">move </span>|ctx| <span class="kw">match </span>result {
-                    <span class="prelude-val">Ok</span>(v) =&gt; resolvers.resolve.call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[v], ctx),
-                    <span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="kw">let </span>e = e.to_opaque(ctx);
-                        resolvers.reject.call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[e], ctx)
-                    }
-                })
-            };
-            context
-                .job_queue()
-                .enqueue_future_job(Box::pin(future), context);
-            <span class="prelude-val">Ok</span>(promise.into())
+
+            <span class="prelude-val">Ok</span>(JsPromise::from_future(future, context).into())
         })
     }
 

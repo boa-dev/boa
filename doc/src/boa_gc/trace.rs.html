@@ -432,8 +432,22 @@
 <a href="#432" id="432">432</a>
 <a href="#433" id="433">433</a>
 <a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     borrow::{Cow, ToOwned},
+    cell::Cell,
     collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque},
     hash::{BuildHasher, Hash},
     marker::PhantomData,
@@ -863,6 +877,18 @@
     <span class="macro">custom_trace!</span>(this, {
         <span class="kw">if let </span>Cow::Owned(<span class="kw-2">ref </span>v) = this {
             mark(v);
+        }
+    });
+}
+
+<span class="kw">impl</span>&lt;T: Trace&gt; Finalize <span class="kw">for </span>Cell&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {}
+<span class="comment">// SAFETY: Taking and setting is done in a single action, and recursive traces should find a `None`
+// value instead of the original `T`, making this safe.
+</span><span class="kw">unsafe impl</span>&lt;T: Trace&gt; Trace <span class="kw">for </span>Cell&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
+    <span class="macro">custom_trace!</span>(this, {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = this.take() {
+            mark(<span class="kw-2">&amp;</span>v);
+            this.set(<span class="prelude-val">Some</span>(v));
         }
     });
 }

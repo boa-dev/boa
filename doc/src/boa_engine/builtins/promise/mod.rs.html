@@ -2288,37 +2288,6 @@
 <a href="#2288" id="2288">2288</a>
 <a href="#2289" id="2289">2289</a>
 <a href="#2290" id="2290">2290</a>
-<a href="#2291" id="2291">2291</a>
-<a href="#2292" id="2292">2292</a>
-<a href="#2293" id="2293">2293</a>
-<a href="#2294" id="2294">2294</a>
-<a href="#2295" id="2295">2295</a>
-<a href="#2296" id="2296">2296</a>
-<a href="#2297" id="2297">2297</a>
-<a href="#2298" id="2298">2298</a>
-<a href="#2299" id="2299">2299</a>
-<a href="#2300" id="2300">2300</a>
-<a href="#2301" id="2301">2301</a>
-<a href="#2302" id="2302">2302</a>
-<a href="#2303" id="2303">2303</a>
-<a href="#2304" id="2304">2304</a>
-<a href="#2305" id="2305">2305</a>
-<a href="#2306" id="2306">2306</a>
-<a href="#2307" id="2307">2307</a>
-<a href="#2308" id="2308">2308</a>
-<a href="#2309" id="2309">2309</a>
-<a href="#2310" id="2310">2310</a>
-<a href="#2311" id="2311">2311</a>
-<a href="#2312" id="2312">2312</a>
-<a href="#2313" id="2313">2313</a>
-<a href="#2314" id="2314">2314</a>
-<a href="#2315" id="2315">2315</a>
-<a href="#2316" id="2316">2316</a>
-<a href="#2317" id="2317">2317</a>
-<a href="#2318" id="2318">2318</a>
-<a href="#2319" id="2319">2319</a>
-<a href="#2320" id="2320">2320</a>
-<a href="#2321" id="2321">2321</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -4326,22 +4295,10 @@
             <span class="comment">// 9. Return unused.
         </span>}
 
-        <span class="attr">#[derive(Debug, Trace, Finalize)]
-        </span><span class="kw">struct </span>RejectResolveCaptures {
-            promise: JsObject,
-            <span class="attr">#[unsafe_ignore_trace]
-            </span>already_resolved: Rc&lt;Cell&lt;bool&gt;&gt;,
-        }
-
         <span class="comment">// 1. Let alreadyResolved be the Record { [[Value]]: false }.
-        </span><span class="kw">let </span>already_resolved = Rc::new(Cell::new(<span class="bool-val">false</span>));
-
-        <span class="comment">// 5. Set resolve.[[Promise]] to promise.
+        // 5. Set resolve.[[Promise]] to promise.
         // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
-        </span><span class="kw">let </span>resolve_captures = RejectResolveCaptures {
-            already_resolved: already_resolved.clone(),
-            promise: promise.clone(),
-        };
+        </span><span class="kw">let </span>promise = Gc::new(Cell::new(<span class="prelude-val">Some</span>(promise.clone())));
 
         <span class="comment">// 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions.
         // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
@@ -4356,18 +4313,11 @@
                     // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
                     // 3. Let promise be F.[[Promise]].
                     // 4. Let alreadyResolved be F.[[AlreadyResolved]].
-                    </span><span class="kw">let </span>RejectResolveCaptures {
-                        promise,
-                        already_resolved,
-                    } = captures;
-
-                    <span class="comment">// 5. If alreadyResolved.[[Value]] is true, return undefined.
-                    </span><span class="kw">if </span>already_resolved.get() {
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
-                    }
-
-                    <span class="comment">// 6. Set alreadyResolved.[[Value]] to true.
-                    </span>already_resolved.set(<span class="bool-val">true</span>);
+                    // 5. If alreadyResolved.[[Value]] is true, return undefined.
+                    // 6. Set alreadyResolved.[[Value]] to true.
+                    </span><span class="kw">let </span><span class="prelude-val">Some</span>(promise) = captures.take() <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                    };
 
                     <span class="kw">let </span>resolution = args.get_or_undefined(<span class="number">0</span>);
 
@@ -4379,7 +4329,7 @@
                             .to_opaque(context);
 
                         <span class="comment">//   b. Perform RejectPromise(promise, selfResolutionError).
-                        </span>reject_promise(promise, self_resolution_error.into(), context);
+                        </span>reject_promise(<span class="kw-2">&amp;</span>promise, self_resolution_error.into(), context);
 
                         <span class="comment">//   c. Return undefined.
                         </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
@@ -4388,7 +4338,7 @@
                     <span class="kw">let </span><span class="prelude-val">Some</span>(then) = resolution.as_object() <span class="kw">else </span>{
                         <span class="comment">// 8. If Type(resolution) is not Object, then
                         //   a. Perform FulfillPromise(promise, resolution).
-                        </span>fulfill_promise(promise, resolution.clone(), context);
+                        </span>fulfill_promise(<span class="kw-2">&amp;</span>promise, resolution.clone(), context);
 
                         <span class="comment">//   b. Return undefined.
                         </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
@@ -4399,7 +4349,7 @@
                         <span class="comment">// 10. If then is an abrupt completion, then
                         </span><span class="prelude-val">Err</span>(e) =&gt; {
                             <span class="comment">//   a. Perform RejectPromise(promise, then.[[Value]]).
-                            </span>reject_promise(promise, e.to_opaque(context), context);
+                            </span>reject_promise(<span class="kw-2">&amp;</span>promise, e.to_opaque(context), context);
 
                             <span class="comment">//   b. Return undefined.
                             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
@@ -4411,7 +4361,7 @@
                     <span class="comment">// 12. If IsCallable(thenAction) is false, then
                     </span><span class="kw">let </span><span class="prelude-val">Some</span>(then_action) = then_action.as_object().cloned().and_then(JsFunction::from_object) <span class="kw">else </span>{
                         <span class="comment">// a. Perform FulfillPromise(promise, resolution).
-                        </span>fulfill_promise(promise, resolution.clone(), context);
+                        </span>fulfill_promise(<span class="kw-2">&amp;</span>promise, resolution.clone(), context);
 
                         <span class="comment">//   b. Return undefined.
                         </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
@@ -4434,7 +4384,7 @@
                     <span class="comment">// 16. Return undefined.
                     </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
                 },
-                resolve_captures,
+                promise.clone(),
             ),
         )
         .name(<span class="string">&quot;&quot;</span>)
@@ -4444,12 +4394,7 @@
 
         <span class="comment">// 10. Set reject.[[Promise]] to promise.
         // 11. Set reject.[[AlreadyResolved]] to alreadyResolved.
-        </span><span class="kw">let </span>reject_captures = RejectResolveCaptures {
-            promise: promise.clone(),
-            already_resolved,
-        };
-
-        <span class="comment">// 7. Let stepsReject be the algorithm steps defined in Promise Reject Functions.
+        // 7. Let stepsReject be the algorithm steps defined in Promise Reject Functions.
         // 8. Let lengthReject be the number of non-optional parameters of the function definition in Promise Reject Functions.
         // 9. Let reject be CreateBuiltinFunction(stepsReject, lengthReject, &quot;&quot;, « [[Promise]], [[AlreadyResolved]] »).
         </span><span class="kw">let </span>reject = FunctionObjectBuilder::new(
@@ -4462,26 +4407,19 @@
                     // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
                     // 3. Let promise be F.[[Promise]].
                     // 4. Let alreadyResolved be F.[[AlreadyResolved]].
-                    </span><span class="kw">let </span>RejectResolveCaptures {
-                        promise,
-                        already_resolved,
-                    } = captures;
-
-                    <span class="comment">// 5. If alreadyResolved.[[Value]] is true, return undefined.
-                    </span><span class="kw">if </span>already_resolved.get() {
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
-                    }
-
-                    <span class="comment">// 6. Set alreadyResolved.[[Value]] to true.
-                    </span>already_resolved.set(<span class="bool-val">true</span>);
+                    // 5. If alreadyResolved.[[Value]] is true, return undefined.
+                    // 6. Set alreadyResolved.[[Value]] to true.
+                    </span><span class="kw">let </span><span class="prelude-val">Some</span>(promise) = captures.take() <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
+                    };
 
                     <span class="comment">// 7. Perform RejectPromise(promise, reason).
-                    </span>reject_promise(promise, args.get_or_undefined(<span class="number">0</span>).clone(), context);
+                    </span>reject_promise(<span class="kw-2">&amp;</span>promise, args.get_or_undefined(<span class="number">0</span>).clone(), context);
 
                     <span class="comment">// 8. Return undefined.
                     </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
                 },
-                reject_captures,
+                promise,
             ),
         )
         .name(<span class="string">&quot;&quot;</span>)
