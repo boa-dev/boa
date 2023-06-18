@@ -1,5 +1,5 @@
 use crate::{bytecompiler::ByteCompiler, vm::Opcode};
-use boa_ast::{operations::returns_value, statement::With};
+use boa_ast::statement::With;
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`With`] `boa_ast` node
@@ -8,16 +8,9 @@ impl ByteCompiler<'_, '_> {
         self.push_compile_environment(false);
         self.emit_opcode(Opcode::PushObjectEnvironment);
 
-        if !returns_value(with.statement()) {
-            self.emit_opcode(Opcode::PushUndefined);
-        }
-        self.compile_stmt(with.statement(), true);
+        self.compile_stmt(with.statement(), use_expr, true);
 
         self.pop_compile_environment();
         self.emit_opcode(Opcode::PopEnvironment);
-
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
-        }
     }
 }

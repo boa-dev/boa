@@ -14,7 +14,7 @@ mod with;
 
 impl ByteCompiler<'_, '_> {
     /// Compiles a [`Statement`] `boa_ast` node.
-    pub fn compile_stmt(&mut self, node: &Statement, use_expr: bool) {
+    pub fn compile_stmt(&mut self, node: &Statement, use_expr: bool, root_statement: bool) {
         match node {
             Statement::Var(var) => self.compile_var_decl(var),
             Statement::If(node) => self.compile_if(node, use_expr),
@@ -39,8 +39,20 @@ impl ByteCompiler<'_, '_> {
             Statement::Labelled(labelled) => {
                 self.compile_labelled(labelled, use_expr);
             }
-            Statement::Continue(node) => self.compile_continue(*node),
-            Statement::Break(node) => self.compile_break(*node),
+            Statement::Continue(node) => {
+                if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
+                    self.emit_opcode(Opcode::PushUndefined);
+                    self.emit_opcode(Opcode::SetReturnValue);
+                }
+                self.compile_continue(*node, use_expr);
+            }
+            Statement::Break(node) => {
+                if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
+                    self.emit_opcode(Opcode::PushUndefined);
+                    self.emit_opcode(Opcode::SetReturnValue);
+                }
+                self.compile_break(*node, use_expr);
+            }
             Statement::Throw(throw) => {
                 self.compile_expr(throw.target(), true);
                 self.emit(Opcode::Throw, &[]);
@@ -56,12 +68,18 @@ impl ByteCompiler<'_, '_> {
                         self.emit_opcode(Opcode::GeneratorNext);
                     }
                 } else {
-                    self.emit(Opcode::PushUndefined, &[]);
+                    self.emit_opcode(Opcode::PushUndefined);
                 }
-                self.emit(Opcode::Return, &[]);
+                self.emit_opcode(Opcode::SetReturnValue);
+                self.emit_opcode(Opcode::Return);
             }
             Statement::Try(t) => self.compile_try(t, use_expr),
-            Statement::Expression(expr) => self.compile_expr(expr, use_expr),
+            Statement::Expression(expr) => {
+                self.compile_expr(expr, use_expr);
+                if use_expr {
+                    self.emit_opcode(Opcode::SetReturnValue);
+                }
+            }
             Statement::With(with) => self.compile_with(with, use_expr),
             Statement::Empty => {}
         }

@@ -315,7 +315,6 @@ impl CodeBlock {
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
             | Opcode::JumpIfNullOrUndefined
-            | Opcode::CatchStart
             | Opcode::FinallyStart
             | Opcode::LabelledStart
             | Opcode::Case
@@ -339,7 +338,6 @@ impl CodeBlock {
             }
             Opcode::CopyDataProperties
             | Opcode::Break
-            | Opcode::BreakLabel
             | Opcode::Continue
             | Opcode::LoopStart
             | Opcode::IteratorLoopStart
@@ -449,7 +447,6 @@ impl CodeBlock {
                 format!("done: {done}")
             }
             Opcode::Pop
-            | Opcode::PopIfThrown
             | Opcode::Dup
             | Opcode::Swap
             | Opcode::PushZero
@@ -516,8 +513,6 @@ impl CodeBlock {
             | Opcode::ToBoolean
             | Opcode::Throw
             | Opcode::TryEnd
-            | Opcode::CatchEnd
-            | Opcode::CatchEnd2
             | Opcode::FinallyEnd
             | Opcode::This
             | Opcode::Super
@@ -525,7 +520,6 @@ impl CodeBlock {
             | Opcode::PopEnvironment
             | Opcode::LoopEnd
             | Opcode::LoopContinue
-            | Opcode::LoopUpdateReturnValue
             | Opcode::LabelledEnd
             | Opcode::CreateForInIterator
             | Opcode::GetIterator
@@ -548,8 +542,6 @@ impl CodeBlock {
             | Opcode::PushElisionToArray
             | Opcode::PushIteratorToArray
             | Opcode::PushNewArray
-            | Opcode::PopOnReturnAdd
-            | Opcode::PopOnReturnSub
             | Opcode::GeneratorYield
             | Opcode::AsyncGeneratorYield
             | Opcode::GeneratorNext
@@ -570,6 +562,8 @@ impl CodeBlock {
             | Opcode::SetNameByLocator
             | Opcode::PopPrivateEnvironment
             | Opcode::ImportCall
+            | Opcode::GetReturnValue
+            | Opcode::SetReturnValue
             | Opcode::Nop => String::new(),
             Opcode::Reserved1
             | Opcode::Reserved2
@@ -620,7 +614,13 @@ impl CodeBlock {
             | Opcode::Reserved47
             | Opcode::Reserved48
             | Opcode::Reserved49
-            | Opcode::Reserved50 => unreachable!("Reserved opcodes are unrechable"),
+            | Opcode::Reserved50
+            | Opcode::Reserved51
+            | Opcode::Reserved52
+            | Opcode::Reserved53
+            | Opcode::Reserved54
+            | Opcode::Reserved55
+            | Opcode::Reserved56 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

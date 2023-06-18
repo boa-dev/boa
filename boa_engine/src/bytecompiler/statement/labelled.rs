@@ -12,7 +12,7 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_labelled(&mut self, labelled: &Labelled, use_expr: bool) {
         let labelled_loc = self.next_opcode_location();
         let end_label = self.emit_opcode_with_operand(Opcode::LabelledStart);
-        self.push_labelled_control_info(labelled.label(), labelled_loc);
+        self.push_labelled_control_info(labelled.label(), labelled_loc, use_expr);
 
         match labelled.item() {
             LabelledItem::Statement(stmt) => match stmt {
@@ -31,7 +31,7 @@ impl ByteCompiler<'_, '_> {
                 Statement::DoWhileLoop(do_while_loop) => {
                     self.compile_do_while_loop(do_while_loop, Some(labelled.label()), use_expr);
                 }
-                stmt => self.compile_stmt(stmt, use_expr),
+                stmt => self.compile_stmt(stmt, use_expr, true),
             },
             LabelledItem::Function(f) => {
                 self.function_with_binding(f.into(), NodeKind::Declaration, false);

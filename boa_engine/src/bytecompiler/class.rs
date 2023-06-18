@@ -74,6 +74,7 @@ impl ByteCompiler<'_, '_> {
             compiler.pop_compile_environment();
         }
 
+        compiler.emit_opcode(Opcode::SetReturnValue);
         compiler.emit_opcode(Opcode::Return);
 
         let code = Gc::new(compiler.finish());
@@ -269,6 +270,8 @@ impl ByteCompiler<'_, '_> {
                     }
                     field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
+
+                    field_compiler.emit_opcode(Opcode::SetReturnValue);
                     field_compiler.emit_opcode(Opcode::Return);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
@@ -301,6 +304,8 @@ impl ByteCompiler<'_, '_> {
                     }
                     field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
+
+                    field_compiler.emit_opcode(Opcode::SetReturnValue);
                     field_compiler.emit_opcode(Opcode::Return);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
@@ -343,6 +348,8 @@ impl ByteCompiler<'_, '_> {
                     }
                     field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
+
+                    field_compiler.emit_opcode(Opcode::SetReturnValue);
                     field_compiler.emit_opcode(Opcode::Return);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;

@@ -1,6 +1,6 @@
 use boa_ast::{
     declaration::Binding,
-    operations::{bound_names, returns_value},
+    operations::bound_names,
     statement::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
         DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop,
@@ -56,7 +56,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        self.push_empty_loop_jump_control();
+        self.push_empty_loop_jump_control(use_expr);
         let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let initial_jump = self.jump();
         let start_address = self.next_opcode_location();
@@ -96,11 +96,7 @@ impl ByteCompiler<'_, '_> {
         }
         let exit = self.jump_if_false();
 
-        if !returns_value(for_loop.body()) {
-            self.emit_opcode(Opcode::PushUndefined);
-        }
-        self.compile_stmt(for_loop.body(), true);
-        self.emit_opcode(Opcode::LoopUpdateReturnValue);
+        self.compile_stmt(for_loop.body(), use_expr, true);
 
         self.emit(Opcode::Jump, &[start_address]);
 
@@ -108,10 +104,6 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(loop_exit);
         self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
-
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
-        }
 
         if let Some(env_labels) = env_labels {
             let env_index = self.pop_compile_environment();
@@ -165,7 +157,7 @@ impl ByteCompiler<'_, '_> {
         let (loop_start, exit_label) =
             self.emit_opcode_with_two_operands(Opcode::IteratorLoopStart);
         let start_address = self.next_opcode_location();
-        self.push_loop_control_info_for_of_in_loop(label, start_address);
+        self.push_loop_control_info_for_of_in_loop(label, start_address, use_expr);
         self.emit_opcode(Opcode::LoopContinue);
         self.patch_jump_with_target(loop_start, start_address);
 
@@ -230,11 +222,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        if !returns_value(for_in_loop.body()) {
-            self.emit_opcode(Opcode::PushUndefined);
-        }
-        self.compile_stmt(for_in_loop.body(), true);
-        self.emit_opcode(Opcode::LoopUpdateReturnValue);
+        self.compile_stmt(for_in_loop.body(), use_expr, true);
 
         if let Some(iteration_environment) = iteration_environment {
             let env_index = self.pop_compile_environment();
@@ -255,10 +243,6 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(early_exit);
         self.emit_opcode(Opcode::PushUndefined);
         self.patch_jump(skip_early_exit);
-
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
-        }
     }
 
     pub(crate) fn compile_for_of_loop(
@@ -297,9 +281,9 @@ impl ByteCompiler<'_, '_> {
         let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::IteratorLoopStart);
         let start_address = self.next_opcode_location();
         if for_of_loop.r#await() {
-            self.push_loop_control_info_for_await_of_loop(label, start_address);
+            self.push_loop_control_info_for_await_of_loop(label, start_address, use_expr);
         } else {
-            self.push_loop_control_info_for_of_in_loop(label, start_address);
+            self.push_loop_control_info_for_of_in_loop(label, start_address, use_expr);
         }
         self.emit_opcode(Opcode::LoopContinue);
         self.patch_jump_with_target(loop_start, start_address);
@@ -386,11 +370,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        if !returns_value(for_of_loop.body()) {
-            self.emit_opcode(Opcode::PushUndefined);
-        }
-        self.compile_stmt(for_of_loop.body(), true);
-        self.emit_opcode(Opcode::LoopUpdateReturnValue);
+        self.compile_stmt(for_of_loop.body(), use_expr, true);
 
         if let Some(iteration_environment) = iteration_environment {
             let env_index = self.pop_compile_environment();
@@ -406,10 +386,6 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::LoopEnd);
 
         self.iterator_close(for_of_loop.r#await());
-
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
-        }
     }
 
     pub(crate) fn compile_while_loop(
@@ -421,17 +397,13 @@ impl ByteCompiler<'_, '_> {
         let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let start_address = self.next_opcode_location();
         self.emit_opcode(Opcode::LoopContinue);
-        self.push_loop_control_info(label, start_address);
+        self.push_loop_control_info(label, start_address, use_expr);
         self.patch_jump_with_target(loop_start, start_address);
 
         self.compile_expr(while_loop.condition(), true);
         let exit = self.jump_if_false();
 
-        if !returns_value(while_loop.body()) {
-            self.emit_opcode(Opcode::PushUndefined);
-        }
-        self.compile_stmt(while_loop.body(), true);
-        self.emit_opcode(Opcode::LoopUpdateReturnValue);
+        self.compile_stmt(while_loop.body(), use_expr, true);
 
         self.emit(Opcode::Jump, &[start_address]);
 
@@ -439,9 +411,6 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(loop_exit);
         self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
-        }
     }
 
     pub(crate) fn compile_do_while_loop(
@@ -456,7 +425,7 @@ impl ByteCompiler<'_, '_> {
         let start_address = self.next_opcode_location();
 
         self.patch_jump_with_target(loop_start, start_address);
-        self.push_loop_control_info(label, start_address);
+        self.push_loop_control_info(label, start_address, use_expr);
 
         let condition_label_address = self.next_opcode_location();
         self.emit_opcode(Opcode::LoopContinue);
@@ -465,11 +434,7 @@ impl ByteCompiler<'_, '_> {
 
         self.patch_jump(initial_label);
 
-        if !returns_value(do_while_loop.body()) {
-            self.emit_opcode(Opcode::PushUndefined);
-        }
-        self.compile_stmt(do_while_loop.body(), true);
-        self.emit_opcode(Opcode::LoopUpdateReturnValue);
+        self.compile_stmt(do_while_loop.body(), use_expr, true);
 
         self.emit(Opcode::Jump, &[condition_label_address]);
         self.patch_jump(exit);
@@ -477,8 +442,5 @@ impl ByteCompiler<'_, '_> {
 
         self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
-        }
     }
 }

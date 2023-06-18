@@ -183,13 +183,6 @@ generate_impl! {
         /// Stack: value **=>**
         Pop = 0,
 
-        /// Pop the top value from the stack if the last try block has thrown a value.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=>**
-        PopIfThrown,
-
         /// Push a copy of the top value on the stack.
         ///
         /// Operands:
@@ -1152,27 +1145,6 @@ generate_impl! {
         /// Stack: **=>**
         TryEnd,
 
-        /// Start of a catch block.
-        ///
-        /// Operands: finally_address: `u32`
-        ///
-        /// Stack: **=>**
-        CatchStart,
-
-        /// End of a catch block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>**
-        CatchEnd,
-
-        /// End of a catch block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>**
-        CatchEnd2,
-
         /// Start of a finally block.
         ///
         /// Operands:
@@ -1193,13 +1165,6 @@ generate_impl! {
         ///
         /// Stack: loop_return_value **=>**
         Break,
-
-        /// Jumps to a label target location and pops the environments involved.
-        ///
-        /// Operands: Jump Address: u32, Target address: u32
-        ///
-        /// Stack: **=>**
-        BreakLabel,
 
         /// Sets the `AbruptCompletionRecord` for a delayed continue
         ///
@@ -1370,6 +1335,20 @@ generate_impl! {
         /// Stack: **=>**
         Return,
 
+        /// Get return value of a function.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>** value
+        GetReturnValue,
+
+        /// Set return value of a function.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=>**
+        SetReturnValue,
+
         /// Push a declarative environment.
         ///
         /// Operands: compile_environments_index: `u32`
@@ -1420,13 +1399,6 @@ generate_impl! {
         ///
         /// Stack: **=>** value
         LoopEnd,
-
-        /// Update the return value of a loop.
-        ///
-        /// Operands:
-        ///
-        /// Stack: loop_return_value **=>**
-        LoopUpdateReturnValue,
 
         /// Push labelled start marker.
         ///
@@ -1589,20 +1561,6 @@ generate_impl! {
         ///
         /// Stack: `argument_1` .. `argument_n` **=>**
         RestParameterPop,
-
-        /// Add one to the pop on return count.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>**
-        PopOnReturnAdd,
-
-        /// Subtract one from the pop on return count.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>**
-        PopOnReturnSub,
 
         /// Yields from the current generator execution.
         ///
@@ -1826,6 +1784,18 @@ generate_impl! {
         Reserved49 => Reserved,
         /// Reserved [`Opcode`].
         Reserved50 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved51 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved52 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved53 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved54 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved55 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved56 => Reserved,
     }
 }
 

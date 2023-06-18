@@ -10,6 +10,7 @@ use crate::{
     environments::BindingLocator,
     object::JsObject,
     vm::CodeBlock,
+    JsValue,
 };
 use boa_gc::{Finalize, Gc, Trace};
 use thin_vec::ThinVec;
@@ -27,9 +28,9 @@ pub struct CallFrame {
     pub(crate) abrupt_completion: Option<AbruptCompletionRecord>,
     #[unsafe_ignore_trace]
     pub(crate) r#yield: bool,
-    pub(crate) pop_on_return: u32,
     // Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop'ed.
+    #[unsafe_ignore_trace]
     pub(crate) env_stack: Vec<EnvStackEntry>,
     pub(crate) argument_count: u32,
     #[unsafe_ignore_trace]
@@ -45,6 +46,11 @@ pub struct CallFrame {
 
     // The stack of bindings being updated.
     pub(crate) binding_stack: Vec<BindingLocator>,
+
+    /// The value that is returned from the function.
+    //
+    // TODO(HalidOdat): Remove this and put into the stack, maybe before frame pointer.
+    pub(crate) return_value: JsValue,
 }
 
 /// ---- `CallFrame` public API ----
@@ -65,7 +71,6 @@ impl CallFrame {
             code_block,
             pc: 0,
             fp: 0,
-            pop_on_return: 0,
             env_stack: Vec::from([EnvStackEntry::new(0, max_length)]),
             abrupt_completion: None,
             r#yield: false,
@@ -75,6 +80,7 @@ impl CallFrame {
             async_generator: None,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
+            return_value: JsValue::undefined(),
         }
     }
 

@@ -107,9 +107,7 @@ impl Operation for LoopEnd {
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
 
-            if let Some(value) = env_entry.loop_env_value() {
-                context.vm.push(value.clone());
-
+            if env_entry.is_loop_env() {
                 break;
             }
         }
@@ -117,30 +115,6 @@ impl Operation for LoopEnd {
         let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
         context.vm.environments.truncate(env_truncation_len);
 
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `LoopUpdateReturnValue` implements the Opcode Operation for `Opcode::LoopUpdateReturnValue`
-///
-/// Operation:
-///  - Update the return value of a loop.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct LoopUpdateReturnValue;
-
-impl Operation for LoopUpdateReturnValue {
-    const NAME: &'static str = "LoopUpdateReturnValue";
-    const INSTRUCTION: &'static str = "INST - LoopUpdateReturnValue";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        context
-            .vm
-            .frame_mut()
-            .env_stack
-            .last_mut()
-            .expect("loop environment must be present")
-            .set_loop_return_value(value);
         Ok(CompletionType::Normal)
     }
 }

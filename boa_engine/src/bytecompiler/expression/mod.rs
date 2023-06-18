@@ -98,7 +98,6 @@ impl ByteCompiler<'_, '_> {
             Expression::Conditional(op) => self.compile_conditional(op, use_expr),
             Expression::ArrayLiteral(array) => {
                 self.emit_opcode(Opcode::PushNewArray);
-                self.emit_opcode(Opcode::PopOnReturnAdd);
 
                 for element in array.as_ref() {
                     if let Some(element) = element {
@@ -114,7 +113,6 @@ impl ByteCompiler<'_, '_> {
                     }
                 }
 
-                self.emit_opcode(Opcode::PopOnReturnSub);
                 if !use_expr {
                     self.emit(Opcode::Pop, &[]);
                 }
@@ -194,6 +192,8 @@ impl ByteCompiler<'_, '_> {
                         self.emit_opcode(Opcode::Await);
                     }
                     self.close_active_iterators();
+
+                    self.emit_opcode(Opcode::SetReturnValue);
                     self.emit_opcode(Opcode::GeneratorResumeReturn);
 
                     self.patch_jump(throw_method_undefined);

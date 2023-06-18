@@ -157,7 +157,6 @@ impl FunctionCompiler {
             .filter(|last| **last == Opcode::Return as u8)
             .is_none()
         {
-            compiler.emit_opcode(Opcode::PushUndefined);
             compiler.emit_opcode(Opcode::Return);
         }
 

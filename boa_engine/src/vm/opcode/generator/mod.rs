@@ -13,6 +13,8 @@ use crate::{
 
 pub(crate) use yield_stm::*;
 
+use super::SetReturnValue;
+
 /// `GeneratorNext` implements the Opcode Operation for `Opcode::GeneratorNext`
 ///
 /// Operation:
@@ -28,7 +30,10 @@ impl Operation for GeneratorNext {
         match context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal => Ok(CompletionType::Normal),
             GeneratorResumeKind::Throw => Err(JsError::from_opaque(context.vm.pop())),
-            GeneratorResumeKind::Return => Return::execute(context),
+            GeneratorResumeKind::Return => {
+                SetReturnValue::execute(context)?;
+                Return::execute(context)
+            }
         }
     }
 }

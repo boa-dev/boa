@@ -3,18 +3,11 @@ use boa_ast::statement::Continue;
 
 impl ByteCompiler<'_, '_> {
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn compile_continue(&mut self, node: Continue) {
+    pub(crate) fn compile_continue(&mut self, node: Continue, _use_expr: bool) {
         if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
             let in_finally = info.in_finally();
             let in_finally_or_has_finally = in_finally || info.has_finally();
-            let in_catch_no_finally = !info.has_finally() && info.in_catch();
 
-            if in_finally {
-                self.emit_opcode(Opcode::PopIfThrown);
-            }
-            if in_finally || in_catch_no_finally {
-                self.emit_opcode(Opcode::CatchEnd2);
-            }
             // 1. Handle if node has a label.
             if let Some(node_label) = node.label() {
                 let items = self.jump_info.iter().rev().filter(|info| info.is_loop());

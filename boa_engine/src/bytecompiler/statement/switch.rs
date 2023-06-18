@@ -1,5 +1,5 @@
 use crate::{bytecompiler::ByteCompiler, vm::Opcode};
-use boa_ast::{operations::returns_value, statement::Switch};
+use boa_ast::statement::Switch;
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Switch`] `boa_ast` node
@@ -14,7 +14,7 @@ impl ByteCompiler<'_, '_> {
         let (start_label, end_label) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
 
         let start_address = self.next_opcode_location();
-        self.push_switch_control_info(None, start_address);
+        self.push_switch_control_info(None, start_address, use_expr);
         self.patch_jump_with_target(start_label, start_address);
 
         let mut labels = Vec::with_capacity(switch.cases().len());
@@ -43,10 +43,8 @@ impl ByteCompiler<'_, '_> {
                 label
             };
             self.patch_jump(label);
-            self.compile_statement_list(case.body(), true, true);
-            if returns_value(case) {
-                self.emit_opcode(Opcode::LoopUpdateReturnValue);
-            }
+
+            self.compile_statement_list(case.body(), use_expr, true);
         }
 
         if !default_label_set {
@@ -56,9 +54,6 @@ impl ByteCompiler<'_, '_> {
         self.pop_switch_control_info();
         self.patch_jump(end_label);
         self.emit_opcode(Opcode::LoopEnd);
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
-        }
 
         let env_index = self.pop_compile_environment();
         self.patch_jump_with_target(push_env, env_index);
