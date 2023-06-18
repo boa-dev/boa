@@ -59,6 +59,7 @@ impl Operation for SetPropertyByValue {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let key = context.vm.pop();
+        let receiver = context.vm.pop();
         let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
@@ -137,12 +138,12 @@ impl Operation for SetPropertyByValue {
         }
 
         // Slow path:
-        object.set(
-            key,
-            value.clone(),
-            context.vm.frame().code_block.strict(),
-            context,
-        )?;
+        let succeeded = object.__set__(key.clone(), value.clone(), receiver, context)?;
+        if !succeeded && context.vm.frame().code_block.strict() {
+            return Err(JsNativeError::typ()
+                .with_message(format!("cannot set non-writable property: {key}"))
+                .into());
+        }
         context.vm.stack.push(value);
         Ok(CompletionType::Normal)
     }

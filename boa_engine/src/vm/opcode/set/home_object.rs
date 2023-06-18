@@ -26,6 +26,37 @@ impl Operation for SetHomeObject {
                 .as_function_mut()
                 .expect("must be function object");
             function_mut.set_home_object(home_object.clone());
+        }
+
+        context.vm.push(home);
+        context.vm.push(function);
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `SetHomeObjectClass` implements the Opcode Operation for `Opcode::SetHomeObjectClass`
+///
+/// Operation:
+///  - Set home object internal slot of a function object.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct SetHomeObjectClass;
+
+impl Operation for SetHomeObjectClass {
+    const NAME: &'static str = "SetHomeObjectClass";
+    const INSTRUCTION: &'static str = "INST - SetHomeObjectClass";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let function = context.vm.pop();
+        let home = context.vm.pop();
+
+        {
+            let function_object = function.as_object().expect("must be object");
+            let home_object = home.as_object().expect("must be object");
+            let mut function_object_mut = function_object.borrow_mut();
+            let function_mut = function_object_mut
+                .as_function_mut()
+                .expect("must be function object");
+            function_mut.set_home_object(home_object.clone());
             function_mut.set_class_object(home_object.clone());
         }
 

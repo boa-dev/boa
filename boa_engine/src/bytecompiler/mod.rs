@@ -571,12 +571,14 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     PropertyAccessField::Const(name) => {
                         let index = self.get_or_insert_name((*name).into());
                         self.compile_expr(access.target(), true);
+                        self.emit_opcode(Opcode::Dup);
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), true);
+                        self.emit_opcode(Opcode::Dup);
                         self.compile_expr(expr, true);
-                        self.emit(Opcode::GetPropertyByValue, &[]);
+                        self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 },
                 PropertyAccess::Private(access) => {
@@ -588,10 +590,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     PropertyAccessField::Const(field) => {
                         let index = self.get_or_insert_name((*field).into());
                         self.emit_opcode(Opcode::Super);
+                        self.emit_opcode(Opcode::This);
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.emit_opcode(Opcode::Super);
+                        self.emit_opcode(Opcode::This);
                         self.compile_expr(expr, true);
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
@@ -670,11 +674,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), true);
+                        self.emit_opcode(Opcode::Dup);
                         self.compile_expr(expr, true);
-                        expr_fn(self, 2);
-                        self.emit(Opcode::SetPropertyByValue, &[]);
+                        expr_fn(self, 3);
+                        self.emit_opcode(Opcode::SetPropertyByValue);
                         if !use_expr {
-                            self.emit(Opcode::Pop, &[]);
+                            self.emit_opcode(Opcode::Pop);
                         }
                     }
                 },
@@ -699,12 +704,13 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                         }
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.emit(Opcode::Super, &[]);
+                        self.emit_opcode(Opcode::Super);
+                        self.emit_opcode(Opcode::This);
                         self.compile_expr(expr, true);
-                        expr_fn(self, 0);
-                        self.emit(Opcode::SetPropertyByValue, &[]);
+                        expr_fn(self, 1);
+                        self.emit_opcode(Opcode::SetPropertyByValue);
                         if !use_expr {
-                            self.emit(Opcode::Pop, &[]);
+                            self.emit_opcode(Opcode::Pop);
                         }
                     }
                 },
@@ -805,6 +811,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             PropertyAccess::Simple(access) => {
                 self.compile_expr(access.target(), true);
                 self.emit_opcode(Opcode::Dup);
+                self.emit_opcode(Opcode::Dup);
                 match access.field() {
                     PropertyAccessField::Const(field) => {
                         let index = self.get_or_insert_name((*field).into());
@@ -825,6 +832,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             PropertyAccess::Super(access) => {
                 self.emit_opcode(Opcode::This);
                 self.emit_opcode(Opcode::Super);
+                self.emit_opcode(Opcode::This);
                 match access.field() {
                     PropertyAccessField::Const(field) => {
                         let index = self.get_or_insert_name((*field).into());
@@ -910,6 +918,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         match kind {
             OptionalOperationKind::SimplePropertyAccess { field } => {
                 self.emit_opcode(Opcode::Dup);
+                self.emit_opcode(Opcode::Dup);
                 match field {
                     PropertyAccessField::Const(name) => {
                         let index = self.get_or_insert_name((*name).into());
@@ -917,7 +926,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(expr, true);
-                        self.emit(Opcode::GetPropertyByValue, &[]);
+                        self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
                 self.emit_opcode(Opcode::RotateLeft);

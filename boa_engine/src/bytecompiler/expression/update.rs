@@ -65,6 +65,7 @@ impl ByteCompiler<'_, '_> {
                         self.compile_expr(access.target(), true);
                         self.emit_opcode(Opcode::Dup);
                         self.emit_opcode(Opcode::Dup);
+                        self.emit_opcode(Opcode::Dup);
 
                         self.emit(Opcode::GetPropertyByName, &[index]);
                         self.emit_opcode(opcode);
@@ -81,13 +82,15 @@ impl ByteCompiler<'_, '_> {
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), true);
                         self.emit_opcode(Opcode::Dup);
+                        self.emit_opcode(Opcode::Dup);
+                        self.emit_opcode(Opcode::Dup);
                         self.compile_expr(expr, true);
 
                         self.emit_opcode(Opcode::GetPropertyByValuePush);
                         self.emit_opcode(opcode);
                         if post {
                             self.emit_opcode(Opcode::RotateRight);
-                            self.emit_u8(4);
+                            self.emit_u8(5);
                         }
 
                         self.emit_opcode(Opcode::SetPropertyByValue);
@@ -120,6 +123,7 @@ impl ByteCompiler<'_, '_> {
                         self.emit_opcode(Opcode::Dup);
                         self.emit_opcode(Opcode::This);
                         self.emit_opcode(Opcode::Swap);
+                        self.emit_opcode(Opcode::This);
 
                         self.emit(Opcode::GetPropertyByName, &[index]);
                         self.emit_opcode(opcode);
@@ -136,6 +140,7 @@ impl ByteCompiler<'_, '_> {
                     PropertyAccessField::Expr(expr) => {
                         self.emit_opcode(Opcode::Super);
                         self.emit_opcode(Opcode::Dup);
+                        self.emit_opcode(Opcode::This);
                         self.compile_expr(expr, true);
 
                         self.emit_opcode(Opcode::GetPropertyByValuePush);
@@ -144,6 +149,10 @@ impl ByteCompiler<'_, '_> {
                             self.emit_opcode(Opcode::RotateRight);
                             self.emit_u8(2);
                         }
+
+                        self.emit_opcode(Opcode::This);
+                        self.emit_opcode(Opcode::RotateRight);
+                        self.emit_u8(2);
 
                         self.emit_opcode(Opcode::SetPropertyByValue);
                         if post {

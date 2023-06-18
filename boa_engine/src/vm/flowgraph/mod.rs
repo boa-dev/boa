@@ -534,6 +534,7 @@ impl CodeBlock {
                 | Opcode::PushClassPrototype
                 | Opcode::SetClassPrototype
                 | Opcode::SetHomeObject
+                | Opcode::SetHomeObjectClass
                 | Opcode::Add
                 | Opcode::Sub
                 | Opcode::Div
@@ -708,8 +709,7 @@ impl CodeBlock {
                 | Opcode::Reserved47
                 | Opcode::Reserved48
                 | Opcode::Reserved49
-                | Opcode::Reserved50
-                | Opcode::Reserved51 => unreachable!("Reserved opcodes are unrechable"),
+                | Opcode::Reserved50 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

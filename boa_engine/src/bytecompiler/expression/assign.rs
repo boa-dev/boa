@@ -100,6 +100,7 @@ impl ByteCompiler<'_, '_> {
                             self.compile_expr(access.target(), true);
                             self.emit_opcode(Opcode::Dup);
                             self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::Dup);
 
                             self.emit(Opcode::GetPropertyByName, &[index]);
                             if short_circuit {
@@ -119,11 +120,13 @@ impl ByteCompiler<'_, '_> {
                         PropertyAccessField::Expr(expr) => {
                             self.compile_expr(access.target(), true);
                             self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::Dup);
                             self.compile_expr(expr, true);
 
                             self.emit_opcode(Opcode::GetPropertyByValuePush);
                             if short_circuit {
-                                pop_count = 2;
+                                pop_count = 3;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
                                 self.compile_expr(assign.rhs(), true);
                             } else {
@@ -164,6 +167,7 @@ impl ByteCompiler<'_, '_> {
                             self.emit_opcode(Opcode::Dup);
                             self.emit_opcode(Opcode::This);
                             self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::This);
 
                             self.emit(Opcode::GetPropertyByName, &[index]);
                             if short_circuit {
@@ -183,6 +187,7 @@ impl ByteCompiler<'_, '_> {
                         PropertyAccessField::Expr(expr) => {
                             self.emit_opcode(Opcode::Super);
                             self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::This);
                             self.compile_expr(expr, true);
 
                             self.emit_opcode(Opcode::GetPropertyByValuePush);
@@ -195,7 +200,11 @@ impl ByteCompiler<'_, '_> {
                                 self.emit_opcode(opcode);
                             }
 
-                            self.emit(Opcode::SetPropertyByValue, &[]);
+                            self.emit_opcode(Opcode::This);
+                            self.emit_opcode(Opcode::RotateRight);
+                            self.emit_u8(2);
+
+                            self.emit_opcode(Opcode::SetPropertyByValue);
                             if !use_expr {
                                 self.emit_opcode(Opcode::Pop);
                             }
