@@ -286,7 +286,7 @@ impl Collector {
         let unreachables = Self::mark_heap(&gc.strong_start, &gc.weak_start, &gc.weak_map_start);
 
         // Only finalize if there are any unreachable nodes.
-        if !unreachables.strong.is_empty() || unreachables.weak.is_empty() {
+        if !unreachables.strong.is_empty() || !unreachables.weak.is_empty() {
             // Finalize all the unreachable nodes.
             // SAFETY: All passed pointers are valid, since we won't deallocate until `Self::sweep`.
             unsafe { Self::finalize(unreachables) };
@@ -367,12 +367,17 @@ impl Collector {
 
         // === Weak mark phase ===
         //
+        //
         // 1. Get the naive list of ephemerons that are supposedly dead or their key is dead and
         // trace all the ephemerons that have roots and their keys are live. Also remove from
         // this list the ephemerons that are marked but their value is dead.
         while let Some(eph) = weak.get() {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let eph_ref = unsafe { eph.as_ref() };
+            let header = eph_ref.header();
+            if header.roots() > 0 {
+                header.mark();
+            }
             // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
             if unsafe { !eph_ref.trace() } {
                 pending_ephemerons.push(eph);
