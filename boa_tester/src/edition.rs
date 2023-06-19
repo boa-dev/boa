@@ -9,15 +9,9 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::read::{MetaData, TestFlag};
 
-// TODO: Open PR in https://github.com/tc39/test262 to add "exp-operator" and "Array.prototype.includes"
-// features.
 /// Minimum edition required by a specific feature in the `test262` repository.
 static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // Proposed language features
-
-    // Hashbang Grammar
-    // https://github.com/tc39/proposal-hashbang
-    "hashbang" => SpecEdition::ESNext,
 
     // Intl.Locale Info
     // https://github.com/tc39/proposal-intl-locale-info
@@ -35,10 +29,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-regexp-legacy-features
     "legacy-regexp"  => SpecEdition::ESNext,
 
-    // Atomics.waitAsync
-    // https://github.com/tc39/proposal-atomics-wait-async
-    "Atomics.waitAsync"  => SpecEdition::ESNext,
-
     // Import Assertions
     // https://github.com/tc39/proposal-import-assertions/
     "import-assertions"  => SpecEdition::ESNext,
@@ -46,10 +36,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // JSON modules
     // https://github.com/tc39/proposal-json-modules
     "json-modules"  => SpecEdition::ESNext,
-
-    // JSON.parse with source
-    // https://github.com/tc39/proposal-json-parse-with-source
-    "json-parse-with-source" => SpecEdition::ESNext,
 
     // Resizable Arraybuffer
     // https://github.com/tc39/proposal-resizablearraybuffer
@@ -67,10 +53,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-realms
     "ShadowRealm" => SpecEdition::ESNext,
 
-    // Array.prototype.findLast & Array.prototype.findLastIndex
-    // https://github.com/tc39/proposal-array-find-from-last
-    "array-find-from-last" => SpecEdition::ESNext,
-
     // Array.prototype.group & Array.prototype.groupToMap
     // https://github.com/tc39/proposal-array-grouping
     "array-grouping" => SpecEdition::ESNext,
@@ -78,10 +60,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // Intl.DurationFormat
     // https://github.com/tc39/proposal-intl-duration-format
     "Intl.DurationFormat" => SpecEdition::ESNext,
-
-    // RegExp set notation + properties of strings
-    // https://github.com/tc39/proposal-regexp-set-notation
-    "regexp-v-flag" => SpecEdition::ESNext,
 
     // Decorators
     // https://github.com/tc39/proposal-decorators
@@ -91,27 +69,26 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-duplicate-named-capturing-groups
     "regexp-duplicate-named-groups" => SpecEdition::ESNext,
 
-    // Array.prototype.toReversed, Array.prototype.toSorted, Array.prototype.toSpliced,
-    // Array.prototype.with and the equivalent TypedArray methods.
-    // https://github.com/tc39/proposal-change-array-by-copy/
-    "change-array-by-copy" => SpecEdition::ESNext,
-
     // https://tc39.es/proposal-array-from-async/
     "Array.fromAsync" => SpecEdition::ESNext,
 
-    // Well-formed Unicode strings
-    // https://github.com/tc39/proposal-is-usv-string
-    "String.prototype.isWellFormed" => SpecEdition::ESNext,
-    "String.prototype.toWellFormed" => SpecEdition::ESNext,
+    // JSON.parse with source
+    // https://github.com/tc39/proposal-json-parse-with-source
+    "json-parse-with-source" => SpecEdition::ESNext,
 
-    // https://github.com/tc39/proposal-intl-enumeration
-    "Intl-enumeration" => SpecEdition::ESNext,
+    // Iterator Helpers
+    // https://github.com/tc39/proposal-iterator-helpers
+    "iterator-helpers" => SpecEdition::ESNext,
 
     // Part of the next ES14 edition
-
-    "Intl.DateTimeFormat-extend-timezonename" => SpecEdition::ESNext,
-    "Intl.DisplayNames-v2" => SpecEdition::ESNext,
-    "Intl.Segmenter" => SpecEdition::ESNext,
+    "Atomics.waitAsync"  => SpecEdition::ESNext,
+    "array-find-from-last" => SpecEdition::ESNext,
+    "change-array-by-copy" => SpecEdition::ESNext,
+    "hashbang" => SpecEdition::ESNext,
+    "Intl-enumeration" => SpecEdition::ESNext,
+    "regexp-v-flag" => SpecEdition::ESNext,
+    "String.prototype.isWellFormed" => SpecEdition::ESNext,
+    "String.prototype.toWellFormed" => SpecEdition::ESNext,
     "symbols-as-weakmap-keys" => SpecEdition::ESNext,
 
     // Standard language features
@@ -174,13 +151,16 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "intl-normative-optional" => SpecEdition::ES8,
     "Intl.DateTimeFormat-datetimestyle" => SpecEdition::ES12,
     "Intl.DateTimeFormat-dayPeriod" => SpecEdition::ES8,
+    "Intl.DateTimeFormat-extend-timezonename" => SpecEdition::ES13,
     "Intl.DateTimeFormat-formatRange" => SpecEdition::ES12,
     "Intl.DateTimeFormat-fractionalSecondDigits" => SpecEdition::ES12,
     "Intl.DisplayNames" => SpecEdition::ES12,
+    "Intl.DisplayNames-v2" => SpecEdition::ES13,
     "Intl.ListFormat" => SpecEdition::ES12,
     "Intl.Locale" => SpecEdition::ES12,
     "Intl.NumberFormat-unified" => SpecEdition::ES11,
     "Intl.RelativeTimeFormat" => SpecEdition::ES11,
+    "Intl.Segmenter" => SpecEdition::ES13,
     "json-superset" => SpecEdition::ES10,
     "let" => SpecEdition::ES6,
     "logical-assignment-operators" => SpecEdition::ES12,
