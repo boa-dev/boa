@@ -9,7 +9,6 @@ features = [
     "IsHTMLDDA",
     "Atomics",
     "change-array-by-copy",
-    "regexp-v-flag",
     "String.prototype.isWellFormed",
     "String.prototype.toWellFormed",
     "symbols-as-weakmap-keys",
