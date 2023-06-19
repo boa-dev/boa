@@ -27,7 +27,7 @@ rayon = "1.7.0"
 toml = "0.7.4"
 color-eyre = "0.6.2"
 phf = { version = "0.11.1", features = ["macros"] }
-comfy-table = "7.0.0"
+comfy-table = "7.0.1"
 serde_repr = "0.1.12"
 
 [features]
