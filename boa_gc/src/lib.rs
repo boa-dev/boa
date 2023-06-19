@@ -341,7 +341,7 @@ impl Collector {
         while let Some(node) = strong.get() {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let node_ref = unsafe { node.as_ref() };
-            if node_ref.header.roots() > 0 {
+            if node_ref.header.roots() != 0 {
                 // SAFETY: the reference to node must be valid as it is rooted. Passing
                 // invalid references can result in Undefined Behavior
                 unsafe {
@@ -375,14 +375,14 @@ impl Collector {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let eph_ref = unsafe { eph.as_ref() };
             let header = eph_ref.header();
-            if header.roots() > 0 {
+            if header.roots() != 0 {
                 header.mark();
             }
             // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
             if unsafe { !eph_ref.trace() } {
                 pending_ephemerons.push(eph);
             }
-            weak = &eph_ref.header().next;
+            weak = &header.next;
         }
 
         // 2. Trace all the weak pointers in the live weak maps to make sure they do not get swept.
