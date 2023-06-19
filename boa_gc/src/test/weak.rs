@@ -65,19 +65,19 @@ fn eph_allocation_chains() {
             let weak = WeakGc::new(&cloned_gc);
             let wrap = Gc::new(weak);
 
-            assert_eq!(*wrap.upgrade().expect("weak is live"), "foo");
+            assert_eq!(wrap.upgrade().as_deref().map(String::as_str), Some("foo"));
 
             let eph = Ephemeron::new(&wrap, 3);
 
             drop(cloned_gc);
             force_collect();
-            assert!(wrap.upgrade().is_some());
-            assert_eq!(eph.value().expect("weak is still live"), 3);
+            assert_eq!(wrap.upgrade().as_deref().map(String::as_str), Some("foo"));
+            assert_eq!(eph.value(), Some(3));
 
             drop(gc_value);
             force_collect();
             assert!(wrap.upgrade().is_none());
-            assert!(eph.value().is_some());
+            assert_eq!(eph.value(), Some(3));
 
             drop(wrap);
             force_collect();
@@ -95,7 +95,7 @@ fn eph_basic_alloc_dump_test() {
         let eph = Ephemeron::new(&gc_value, 4);
         let _fourth = Gc::new("tail");
 
-        assert_eq!(eph.value().expect("must be live"), 4);
+        assert_eq!(eph.value(), Some(4));
     });
 }
 
