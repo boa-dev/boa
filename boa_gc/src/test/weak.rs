@@ -71,11 +71,13 @@ fn eph_allocation_chains() {
 
             drop(cloned_gc);
             force_collect();
+            assert!(wrap.upgrade().is_some());
             assert_eq!(eph.value().expect("weak is still live"), 3);
 
             drop(gc_value);
             force_collect();
             assert!(wrap.upgrade().is_none());
+            assert!(eph.value().is_some());
 
             drop(wrap);
             force_collect();
