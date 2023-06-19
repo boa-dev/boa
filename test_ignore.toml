@@ -2,7 +2,8 @@
 flags = []
 
 features = [
-    # Unimplemented features:
+    ### Unimplemented features:
+
     "SharedArrayBuffer",
     "FinalizationRegistry",
     "IsHTMLDDA",
@@ -68,11 +69,11 @@ features = [
     # https://github.com/tc39/proposal-iterator-helpers
     "iterator-helpers",
 
-    # Non-standard
+    ### Non-standard
     "caller",
 
-    # RegExp tests that check individual codepoints.
-    # They are not useful considering the cpu time they waste.
+    ### RegExp tests that check individual codepoints.
+    ### They are not useful considering the cpu time they waste.
     "regexp-unicode-property-escapes",
 ]
 
