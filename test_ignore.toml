@@ -2,36 +2,71 @@
 flags = []
 
 features = [
-    # Non-implemented features:
-    "json-modules",
+    # Unimplemented features:
     "SharedArrayBuffer",
-    "resizable-arraybuffer",
-    "Temporal",
-    "ShadowRealm",
     "FinalizationRegistry",
-    "Atomics",
-    "decorators",
-    "array-grouping",
     "IsHTMLDDA",
-    "legacy-regexp",
+    "Atomics",
+    "change-array-by-copy",
+    "regexp-v-flag",
+    "String.prototype.isWellFormed",
+    "String.prototype.toWellFormed",
     "symbols-as-weakmap-keys",
-
-    # Non-implemented Intl features
     "intl-normative-optional",
-    "Intl.DurationFormat",
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
+    "Intl-enumeration",
 
-    # Stage 3 proposals
+
+    ### Pending proposals
 
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
-    # https://github.com/tc39/proposal-intl-enumeration
-    "Intl-enumeration",
-    # https://github.com/tc39/proposal-array-from-async
-    "Array.fromAsync",
+
+    # https://github.com/tc39/proposal-intl-numberformat-v3
+    "Intl.NumberFormat-v3",
+
+    # https://github.com/tc39/proposal-regexp-legacy-features
+    "legacy-regexp",
+
     # https://github.com/tc39/proposal-import-attributes
     "import-assertions",
+
+    # https://github.com/tc39/proposal-json-modules
+    "json-modules",
+
+    # https://github.com/tc39/proposal-resizablearraybuffer
+    "resizable-arraybuffer",
+
+    # https://github.com/tc39/proposal-arraybuffer-transfer
+    "arraybuffer-transfer",
+
+    # https://github.com/tc39/proposal-temporal
+    "Temporal",
+
+    # https://github.com/tc39/proposal-realms
+    "ShadowRealm",
+
+    # https://github.com/tc39/proposal-array-grouping
+    "array-grouping",
+
+    # https://github.com/tc39/proposal-intl-duration-format
+    "Intl.DurationFormat",
+
+    # https://github.com/tc39/proposal-decorators
+    "decorators",
+
+    # https://github.com/tc39/proposal-duplicate-named-capturing-groups
+    "regexp-duplicate-named-groups",
+
+    # https://github.com/tc39/proposal-array-from-async
+    "Array.fromAsync",
+
+    # https://github.com/tc39/proposal-json-parse-with-source
+    "json-parse-with-source",
+
+    # https://github.com/tc39/proposal-iterator-helpers
+    "iterator-helpers",
 
     # Non-standard
     "caller",
