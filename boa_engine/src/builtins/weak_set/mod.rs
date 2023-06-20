@@ -151,7 +151,7 @@ impl WeakSet {
 
         // 3. If Type(value) is not Object, throw a TypeError exception.
         let value = args.get_or_undefined(0);
-        let Some(value) = args.get_or_undefined(0).as_object() else {
+        let Some(value) = value.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message(format!(
                     "WeakSet.add: expected target argument of type `object`, got target of type `{}`",

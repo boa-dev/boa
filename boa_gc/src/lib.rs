@@ -198,7 +198,7 @@ impl Allocator {
         })
     }
 
-    fn alloc_ephemeron<K: Trace + ?Sized, V: Trace>(
+    fn alloc_ephemeron<K: Trace, V: Trace>(
         value: EphemeronBox<K, V>,
     ) -> NonNull<EphemeronBox<K, V>> {
         let _timer = Profiler::global().start_event("New EphemeronBox", "BoaAlloc");

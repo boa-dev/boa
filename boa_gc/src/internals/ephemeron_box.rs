@@ -1,6 +1,6 @@
 use crate::{trace::Trace, Gc, GcBox};
 use std::{
-    cell::Cell,
+    cell::{Cell, UnsafeCell},
     ptr::{self, NonNull},
 };
 
@@ -89,41 +89,28 @@ impl core::fmt::Debug for EphemeronBoxHeader {
 }
 
 /// The inner allocation of an [`Ephemeron`][crate::Ephemeron] pointer.
-pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + 'static> {
+pub(crate) struct EphemeronBox<K: Trace + 'static, V: Trace + 'static> {
     pub(crate) header: EphemeronBoxHeader,
-    data: Cell<Option<NonNull<Data<K, V>>>>,
+    data: UnsafeCell<Option<Data<K, V>>>,
 }
 
-impl<K: Trace + ?Sized + 'static, V: Trace + 'static> Drop for EphemeronBox<K, V> {
-    fn drop(&mut self) {
-        if let Some(data) = self.data.take() {
-            // SAFETY: `data` comes from an `into_raw` call, so this pointer is safe to pass to
-            // `from_raw`.
-            drop(unsafe { Box::from_raw(data.as_ptr()) });
-        }
-    }
-}
-
-struct Data<K: Trace + ?Sized + 'static, V: Trace + 'static> {
+struct Data<K: Trace + 'static, V: Trace + 'static> {
     key: NonNull<GcBox<K>>,
     value: V,
 }
 
-impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
+impl<K: Trace, V: Trace> EphemeronBox<K, V> {
     pub(crate) fn new(key: &Gc<K>, value: V) -> Self {
-        let data = Box::into_raw(Box::new(Data {
-            key: key.inner_ptr(),
-            value,
-        }));
-        // SAFETY: `Box::into_raw` must always return a non-null pointer.
-        let data = unsafe { NonNull::new_unchecked(data) };
         Self {
             header: EphemeronBoxHeader::new(),
-            data: Cell::new(Some(data)),
+            data: UnsafeCell::new(Some(Data {
+                key: key.inner_ptr(),
+                value,
+            })),
         }
     }
 
-    /// Returns `true` if the two references refer to the same `GcBox`.
+    /// Returns `true` if the two references refer to the same `EphemeronBox`.
     pub(crate) fn ptr_eq(this: &Self, other: &Self) -> bool {
         // Use .header to ignore fat pointer vtables, to work around
         // https://github.com/rust-lang/rust/issues/46139
@@ -137,8 +124,10 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     /// The garbage collector must not run between the call to this function and the eventual
     /// drop of the returned reference, since that could free the inner value.
     pub(crate) unsafe fn value(&self) -> Option<&V> {
-        // SAFETY: the garbage collector ensures `ptr` is valid as long as `data` is `Some`.
-        unsafe { self.data.get().map(|ptr| &ptr.as_ref().value) }
+        // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
+        // finalization.
+        let data = unsafe { &*self.data.get() };
+        data.as_ref().map(|data| &data.value)
     }
 
     /// Returns a reference to the ephemeron's key or None.
@@ -148,8 +137,12 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     /// The garbage collector must not run between the call to this function and the eventual
     /// drop of the returned reference, since that could free the inner value.
     pub(crate) unsafe fn key(&self) -> Option<&GcBox<K>> {
-        // SAFETY: the garbage collector ensures `ptr` is valid as long as `data` is `Some`.
-        unsafe { self.data.get().map(|ptr| ptr.as_ref().key.as_ref()) }
+        // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
+        // finalization.
+        unsafe {
+            let data = &*self.data.get();
+            data.as_ref().map(|data| data.key.as_ref())
+        }
     }
 
     /// Marks this `EphemeronBox` as live.
@@ -193,7 +186,7 @@ pub(crate) trait ErasedEphemeronBox {
     fn finalize_and_clear(&self);
 }
 
-impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
+impl<K: Trace, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
     fn header(&self) -> &EphemeronBoxHeader {
         &self.header
     }
@@ -203,12 +196,13 @@ impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
             return false;
         }
 
-        let Some(data) = self.data.get() else {
+        // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
+        // finalization.
+        let data = unsafe { &*self.data.get() };
+        let Some(data) = data.as_ref() else {
             return true;
         };
 
-        // SAFETY: `data` comes from a `Box`, so it is safe to dereference.
-        let data = unsafe { data.as_ref() };
         // SAFETY: `key` comes from a `Gc`, and the garbage collector only invalidates
         // `key` when it is unreachable, making `key` always valid.
         let key = unsafe { data.key.as_ref() };
@@ -225,20 +219,18 @@ impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
     }
 
     fn trace_non_roots(&self) {
-        let Some(data) = self.data.get() else {
-            return;
-        };
-        // SAFETY: `data` comes from a `Box`, so it is safe to dereference.
+        // SAFETY: Tracing always executes before collecting, meaning this cannot cause
+        // use after free.
         unsafe {
-            data.as_ref().value.trace_non_roots();
-        };
+            if let Some(value) = self.value() {
+                value.trace_non_roots()
+            }
+        }
     }
 
     fn finalize_and_clear(&self) {
-        if let Some(data) = self.data.take() {
-            // SAFETY: `data` comes from an `into_raw` call, so this pointer is safe to pass to
-            // `from_raw`.
-            let _contents = unsafe { Box::from_raw(data.as_ptr()) };
-        }
+        // SAFETY: the invariants of the garbage collector ensures this is only executed when
+        // there are no remaining references to the inner data.
+        unsafe { (&mut *self.data.get()).take() };
     }
 }

@@ -164,7 +164,7 @@ fn eph_self_referential() {
             *root.inner.inner.borrow_mut() = Some(eph.clone());
 
             assert!(eph.value().is_some());
-            Harness::assert_exact_bytes_allocated(72);
+            Harness::assert_exact_bytes_allocated(80);
         }
 
         *root.inner.inner.borrow_mut() = None;
@@ -210,7 +210,7 @@ fn eph_self_referential_chain() {
 
             assert!(eph_start.value().is_some());
             assert!(eph_chain2.value().is_some());
-            Harness::assert_exact_bytes_allocated(216);
+            Harness::assert_exact_bytes_allocated(232);
         }
 
         *root.borrow_mut() = None;
@@ -230,30 +230,63 @@ fn eph_finalizer() {
     #[derive(Clone, Trace)]
     struct S {
         #[unsafe_ignore_trace]
-        inner: Rc<Cell<bool>>,
+        inner: Rc<Cell<u8>>,
     }
 
     impl Finalize for S {
         fn finalize(&self) {
-            self.inner.set(true);
+            self.inner.set(self.inner.get() + 1);
         }
     }
 
     run_test(|| {
         let val = S {
-            inner: Rc::new(Cell::new(false)),
+            inner: Rc::new(Cell::new(0)),
+        };
+
+        let key = Gc::new(50u32);
+        let eph = Ephemeron::new(&key, val.clone());
+        assert!(eph.has_value());
+        // finalize hasn't been run
+        assert_eq!(val.inner.get(), 0);
+
+        drop(key);
+        force_collect();
+        assert!(!eph.has_value());
+        // finalize ran when collecting
+        assert_eq!(val.inner.get(), 1);
+    });
+}
+
+#[test]
+fn eph_gc_finalizer() {
+    #[derive(Clone, Trace)]
+    struct S {
+        #[unsafe_ignore_trace]
+        inner: Rc<Cell<u8>>,
+    }
+
+    impl Finalize for S {
+        fn finalize(&self) {
+            self.inner.set(self.inner.get() + 1);
+        }
+    }
+
+    run_test(|| {
+        let val = S {
+            inner: Rc::new(Cell::new(0)),
         };
 
         let key = Gc::new(50u32);
         let eph = Ephemeron::new(&key, Gc::new(val.clone()));
         assert!(eph.has_value());
         // finalize hasn't been run
-        assert!(!val.inner.get());
+        assert_eq!(val.inner.get(), 0);
 
         drop(key);
         force_collect();
         assert!(!eph.has_value());
         // finalize ran when collecting
-        assert!(val.inner.get());
+        assert_eq!(val.inner.get(), 1);
     });
 }
