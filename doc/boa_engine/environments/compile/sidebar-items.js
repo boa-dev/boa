@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["CompileTimeBinding","CompileTimeEnvironment"]};
+window.SIDEBAR_ITEMS = {"struct":["CompileTimeBinding","CompileTimeEnvironment"]};

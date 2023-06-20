@@ -300,9 +300,17 @@
 <a href="#300" id="300">300</a>
 <a href="#301" id="301">301</a>
 <a href="#302" id="302">302</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::environments::runtime::BindingLocator;
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, rc::Rc};
+
+<span class="kw">use </span><span class="kw">crate</span>::environments::runtime::BindingLocator;
 <span class="kw">use </span>boa_ast::expression::Identifier;
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
+<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
 
 <span class="kw">use </span>rustc_hash::FxHashMap;
 
@@ -322,13 +330,17 @@
 <span class="doccomment">/// A compile time environment maps bound identifiers to their binding positions.
 ///
 /// A compile time environment also indicates, if it is a function environment.
-</span><span class="attr">#[derive(Debug, Finalize, Trace)]
+</span><span class="attr">#[derive(Debug, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CompileTimeEnvironment {
-    outer: <span class="prelude-ty">Option</span>&lt;Gc&lt;GcRefCell&lt;<span class="self">Self</span>&gt;&gt;&gt;,
+    outer: <span class="prelude-ty">Option</span>&lt;Rc&lt;RefCell&lt;<span class="self">Self</span>&gt;&gt;&gt;,
     environment_index: u32,
-    <span class="attr">#[unsafe_ignore_trace]
-    </span>bindings: FxHashMap&lt;Identifier, CompileTimeBinding&gt;,
+    bindings: FxHashMap&lt;Identifier, CompileTimeBinding&gt;,
     function_scope: bool,
+}
+
+<span class="comment">// Safety: Nothing in this struct needs tracing, so this is safe.
+</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>CompileTimeEnvironment {
+    <span class="macro">empty_trace!</span>();
 }
 
 <span class="kw">impl </span>CompileTimeEnvironment {
@@ -343,7 +355,7 @@
     }
 
     <span class="doccomment">/// Creates a new compile time environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(parent: Gc&lt;GcRefCell&lt;<span class="self">Self</span>&gt;&gt;, function_scope: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(parent: Rc&lt;RefCell&lt;<span class="self">Self</span>&gt;&gt;, function_scope: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>index = parent.borrow().environment_index + <span class="number">1</span>;
         <span class="self">Self </span>{
             outer: <span class="prelude-val">Some</span>(parent),
@@ -593,7 +605,7 @@
     }
 
     <span class="doccomment">/// Gets the outer environment of this environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>outer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;GcRefCell&lt;<span class="self">Self</span>&gt;&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>outer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Rc&lt;RefCell&lt;<span class="self">Self</span>&gt;&gt;&gt; {
         <span class="self">self</span>.outer.clone()
     }
 

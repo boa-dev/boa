@@ -1523,6 +1523,16 @@
 <a href="#1523" id="1523">1523</a>
 <a href="#1524" id="1524">1524</a>
 <a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1545,10 +1555,15 @@
 };
 <span class="kw">use </span>bitflags::bitflags;
 <span class="kw">use </span>boa_ast::function::FormalParameterList;
-<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
+<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Gc, Trace};
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::{cell::Cell, collections::VecDeque, mem::size_of};
+<span class="kw">use </span>std::{
+    cell::{Cell, RefCell},
+    collections::VecDeque,
+    mem::size_of,
+    rc::Rc,
+};
 <span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
@@ -1654,7 +1669,12 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Box&lt;[Gc&lt;<span class="self">Self</span>&gt;]&gt;,
 
     <span class="doccomment">/// Compile time environments in this function.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Box&lt;[Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;]&gt;,
+    ///
+    </span><span class="comment">// Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
+    //
+    // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.
+    </span><span class="attr">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Box&lt;[Rc&lt;RefCell&lt;CompileTimeEnvironment&gt;&gt;]&gt;,
 }
 
 <span class="doccomment">/// ---- `CodeBlock` public API ----

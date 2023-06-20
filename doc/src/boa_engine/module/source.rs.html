@@ -1980,7 +1980,7 @@
 <a href="#1980" id="1980">1980</a>
 <a href="#1981" id="1981">1981</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
-    cell::Cell,
+    cell::{Cell, RefCell},
     collections::HashSet,
     hash::{BuildHasherDefault, Hash},
     rc::Rc,
@@ -3384,7 +3384,7 @@
         // 6. Set module.[[Environment]] to env.
         </span><span class="kw">let </span>global_env = realm.environment().clone();
         <span class="kw">let </span>global_compile_env = global_env.compile_env();
-        <span class="kw">let </span>module_compile_env = Gc::new(GcRefCell::new(CompileTimeEnvironment::new(
+        <span class="kw">let </span>module_compile_env = Rc::new(RefCell::new(CompileTimeEnvironment::new(
             global_compile_env,
             <span class="bool-val">true</span>,
         )));

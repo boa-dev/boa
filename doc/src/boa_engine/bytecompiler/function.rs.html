@@ -162,7 +162,11 @@
 <a href="#162" id="162">162</a>
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, rc::Rc};
+
+<span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     environments::CompileTimeEnvironment,
@@ -170,7 +174,7 @@
     Context,
 };
 <span class="kw">use </span>boa_ast::function::{FormalParameterList, FunctionBody};
-<span class="kw">use </span>boa_gc::{Gc, GcRefCell};
+<span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_interner::Sym;
 
 <span class="doccomment">/// `FunctionCompiler` is used to compile AST functions to bytecode.
@@ -252,7 +256,7 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         parameters: <span class="kw-2">&amp;</span>FormalParameterList,
         body: <span class="kw-2">&amp;</span>FunctionBody,
-        outer_env: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
+        outer_env: Rc&lt;RefCell&lt;CompileTimeEnvironment&gt;&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Gc&lt;CodeBlock&gt; {
         <span class="self">self</span>.strict = <span class="self">self</span>.strict || body.strict();

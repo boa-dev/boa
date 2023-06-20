@@ -780,14 +780,15 @@
 <a href="#780" id="780">780</a>
 <a href="#781" id="781">781</a>
 <a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, rc::Rc};
+
+<span class="kw">use crate</span>::{
     environments::CompileTimeEnvironment,
     object::{JsObject, PrivateName},
     Context, JsResult, JsString, JsSymbol, JsValue,
 };
 <span class="kw">use </span>boa_ast::expression::Identifier;
-<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
+<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Gc, Trace};
 <span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="kw">mod </span>declarative;
@@ -1003,7 +1004,7 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_lexical(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
+        compile_environment: Rc&lt;RefCell&lt;CompileTimeEnvironment&gt;&gt;,
     ) -&gt; u32 {
         <span class="kw">let </span>num_bindings = compile_environment.borrow().num_bindings();
 
@@ -1048,7 +1049,7 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
+        compile_environment: Rc&lt;RefCell&lt;CompileTimeEnvironment&gt;&gt;,
         function_slots: FunctionSlots,
     ) {
         <span class="kw">let </span>num_bindings = compile_environment.borrow().num_bindings();
@@ -1092,7 +1093,7 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_function_inherit(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
+        compile_environment: Rc&lt;RefCell&lt;CompileTimeEnvironment&gt;&gt;,
     ) {
         <span class="kw">let </span>num_bindings = compile_environment.borrow().num_bindings();
 
@@ -1144,10 +1145,7 @@
     ///
     /// Panics if no environment exists on the stack.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_module(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
-    ) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, compile_environment: Rc&lt;RefCell&lt;CompileTimeEnvironment&gt;&gt;) {
         <span class="kw">let </span>num_bindings = compile_environment.borrow().num_bindings();
         <span class="self">self</span>.stack.push(Environment::Declarative(Gc::new(
             DeclarativeEnvironment::new(
@@ -1184,7 +1182,7 @@
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_compile_environment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_compile_environment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rc&lt;RefCell&lt;CompileTimeEnvironment&gt;&gt; {
         <span class="self">self</span>.stack
             .iter()
             .filter_map(Environment::as_declarative)
