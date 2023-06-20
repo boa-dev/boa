@@ -1,10 +1,12 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     environments::CompileTimeEnvironment,
     object::{JsObject, PrivateName},
     Context, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_ast::expression::Identifier;
-use boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{empty_trace, Finalize, Gc, Trace};
 use rustc_hash::FxHashSet;
 
 mod declarative;
@@ -220,7 +222,7 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn push_lexical(
         &mut self,
-        compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
+        compile_environment: Rc<RefCell<CompileTimeEnvironment>>,
     ) -> u32 {
         let num_bindings = compile_environment.borrow().num_bindings();
 
@@ -265,7 +267,7 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn push_function(
         &mut self,
-        compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
+        compile_environment: Rc<RefCell<CompileTimeEnvironment>>,
         function_slots: FunctionSlots,
     ) {
         let num_bindings = compile_environment.borrow().num_bindings();
@@ -309,7 +311,7 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn push_function_inherit(
         &mut self,
-        compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
+        compile_environment: Rc<RefCell<CompileTimeEnvironment>>,
     ) {
         let num_bindings = compile_environment.borrow().num_bindings();
 
@@ -361,10 +363,7 @@ impl EnvironmentStack {
     ///
     /// Panics if no environment exists on the stack.
     #[track_caller]
-    pub(crate) fn push_module(
-        &mut self,
-        compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
-    ) {
+    pub(crate) fn push_module(&mut self, compile_environment: Rc<RefCell<CompileTimeEnvironment>>) {
         let num_bindings = compile_environment.borrow().num_bindings();
         self.stack.push(Environment::Declarative(Gc::new(
             DeclarativeEnvironment::new(
@@ -401,7 +400,7 @@ impl EnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-    pub(crate) fn current_compile_environment(&self) -> Gc<GcRefCell<CompileTimeEnvironment>> {
+    pub(crate) fn current_compile_environment(&self) -> Rc<RefCell<CompileTimeEnvironment>> {
         self.stack
             .iter()
             .filter_map(Environment::as_declarative)

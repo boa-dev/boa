@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
@@ -6,7 +8,7 @@ use crate::{
     Context,
 };
 use boa_ast::function::{FormalParameterList, FunctionBody};
-use boa_gc::{Gc, GcRefCell};
+use boa_gc::Gc;
 use boa_interner::Sym;
 
 /// `FunctionCompiler` is used to compile AST functions to bytecode.
@@ -88,7 +90,7 @@ impl FunctionCompiler {
         mut self,
         parameters: &FormalParameterList,
         body: &FunctionBody,
-        outer_env: Gc<GcRefCell<CompileTimeEnvironment>>,
+        outer_env: Rc<RefCell<CompileTimeEnvironment>>,
         context: &mut Context<'_>,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
