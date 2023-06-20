@@ -131,9 +131,25 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     }
 
     /// Returns a reference to the ephemeron's value or None.
-    pub(crate) fn value(&self) -> Option<&V> {
+    ///
+    /// # Safety
+    ///
+    /// The garbage collector must not run between the call to this function and the eventual
+    /// drop of the returned reference, since that could free the inner value.
+    pub(crate) unsafe fn value(&self) -> Option<&V> {
         // SAFETY: the garbage collector ensures `ptr` is valid as long as `data` is `Some`.
         unsafe { self.data.get().map(|ptr| &ptr.as_ref().value) }
+    }
+
+    /// Returns a reference to the ephemeron's key or None.
+    ///
+    /// # Safety
+    ///
+    /// The garbage collector must not run between the call to this function and the eventual
+    /// drop of the returned reference, since that could free the inner value.
+    pub(crate) unsafe fn key(&self) -> Option<&GcBox<K>> {
+        // SAFETY: the garbage collector ensures `ptr` is valid as long as `data` is `Some`.
+        unsafe { self.data.get().map(|ptr| ptr.as_ref().key.as_ref()) }
     }
 
     /// Marks this `EphemeronBox` as live.

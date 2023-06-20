@@ -19,3 +19,4 @@ boa_profiler.workspace = true
 boa_macros.workspace = true
 
 thin-vec = { version = "0.2.12", optional = true }
+hashbrown = { version = "0.14.0", features = ["raw"] }

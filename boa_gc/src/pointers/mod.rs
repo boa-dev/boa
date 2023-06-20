@@ -9,3 +9,5 @@ pub use ephemeron::Ephemeron;
 pub use gc::Gc;
 pub use weak::WeakGc;
 pub use weak_map::WeakMap;
+
+pub(crate) use weak_map::RawWeakMap;
