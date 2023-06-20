@@ -437,7 +437,7 @@ impl Collector {
         for node in unreachables.strong {
             // SAFETY: The caller must ensure all pointers inside `unreachables.strong` are valid.
             let node = unsafe { node.as_ref() };
-            Trace::run_finalizer(&node.value());
+            Trace::run_finalizer(node.value());
         }
         for node in unreachables.weak {
             // SAFETY: The caller must ensure all pointers inside `unreachables.weak` are valid.
