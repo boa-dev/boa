@@ -360,26 +360,6 @@
 <a href="#360" id="360">360</a>
 <a href="#361" id="361">361</a>
 <a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Edition detection utilities.
 //!
 //! This module contains the [`SpecEdition`] struct, which is used in the tester to
@@ -391,17 +371,11 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::read::{MetaData, TestFlag};
 
-<span class="comment">// TODO: Open PR in https://github.com/tc39/test262 to add &quot;exp-operator&quot; and &quot;Array.prototype.includes&quot;
-// features.
-</span><span class="doccomment">/// Minimum edition required by a specific feature in the `test262` repository.
+<span class="doccomment">/// Minimum edition required by a specific feature in the `test262` repository.
 </span><span class="kw">static </span>FEATURE_EDITION: phf::Map&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, SpecEdition&gt; = <span class="macro">phf::phf_map! </span>{
     <span class="comment">// Proposed language features
 
-    // Hashbang Grammar
-    // https://github.com/tc39/proposal-hashbang
-    </span><span class="string">&quot;hashbang&quot; </span>=&gt; SpecEdition::ESNext,
-
-    <span class="comment">// Intl.Locale Info
+    // Intl.Locale Info
     // https://github.com/tc39/proposal-intl-locale-info
     </span><span class="string">&quot;Intl.Locale-info&quot;  </span>=&gt; SpecEdition::ESNext,
 
@@ -417,10 +391,6 @@
     // https://github.com/tc39/proposal-regexp-legacy-features
     </span><span class="string">&quot;legacy-regexp&quot;  </span>=&gt; SpecEdition::ESNext,
 
-    <span class="comment">// Atomics.waitAsync
-    // https://github.com/tc39/proposal-atomics-wait-async
-    </span><span class="string">&quot;Atomics.waitAsync&quot;  </span>=&gt; SpecEdition::ESNext,
-
     <span class="comment">// Import Assertions
     // https://github.com/tc39/proposal-import-assertions/
     </span><span class="string">&quot;import-assertions&quot;  </span>=&gt; SpecEdition::ESNext,
@@ -428,10 +398,6 @@
     <span class="comment">// JSON modules
     // https://github.com/tc39/proposal-json-modules
     </span><span class="string">&quot;json-modules&quot;  </span>=&gt; SpecEdition::ESNext,
-
-    <span class="comment">// JSON.parse with source
-    // https://github.com/tc39/proposal-json-parse-with-source
-    </span><span class="string">&quot;json-parse-with-source&quot; </span>=&gt; SpecEdition::ESNext,
 
     <span class="comment">// Resizable Arraybuffer
     // https://github.com/tc39/proposal-resizablearraybuffer
@@ -449,10 +415,6 @@
     // https://github.com/tc39/proposal-realms
     </span><span class="string">&quot;ShadowRealm&quot; </span>=&gt; SpecEdition::ESNext,
 
-    <span class="comment">// Array.prototype.findLast &amp; Array.prototype.findLastIndex
-    // https://github.com/tc39/proposal-array-find-from-last
-    </span><span class="string">&quot;array-find-from-last&quot; </span>=&gt; SpecEdition::ESNext,
-
     <span class="comment">// Array.prototype.group &amp; Array.prototype.groupToMap
     // https://github.com/tc39/proposal-array-grouping
     </span><span class="string">&quot;array-grouping&quot; </span>=&gt; SpecEdition::ESNext,
@@ -460,10 +422,6 @@
     <span class="comment">// Intl.DurationFormat
     // https://github.com/tc39/proposal-intl-duration-format
     </span><span class="string">&quot;Intl.DurationFormat&quot; </span>=&gt; SpecEdition::ESNext,
-
-    <span class="comment">// RegExp set notation + properties of strings
-    // https://github.com/tc39/proposal-regexp-set-notation
-    </span><span class="string">&quot;regexp-v-flag&quot; </span>=&gt; SpecEdition::ESNext,
 
     <span class="comment">// Decorators
     // https://github.com/tc39/proposal-decorators
@@ -473,27 +431,26 @@
     // https://github.com/tc39/proposal-duplicate-named-capturing-groups
     </span><span class="string">&quot;regexp-duplicate-named-groups&quot; </span>=&gt; SpecEdition::ESNext,
 
-    <span class="comment">// Array.prototype.toReversed, Array.prototype.toSorted, Array.prototype.toSpliced,
-    // Array.prototype.with and the equivalent TypedArray methods.
-    // https://github.com/tc39/proposal-change-array-by-copy/
-    </span><span class="string">&quot;change-array-by-copy&quot; </span>=&gt; SpecEdition::ESNext,
-
     <span class="comment">// https://tc39.es/proposal-array-from-async/
     </span><span class="string">&quot;Array.fromAsync&quot; </span>=&gt; SpecEdition::ESNext,
 
-    <span class="comment">// Well-formed Unicode strings
-    // https://github.com/tc39/proposal-is-usv-string
-    </span><span class="string">&quot;String.prototype.isWellFormed&quot; </span>=&gt; SpecEdition::ESNext,
-    <span class="string">&quot;String.prototype.toWellFormed&quot; </span>=&gt; SpecEdition::ESNext,
+    <span class="comment">// JSON.parse with source
+    // https://github.com/tc39/proposal-json-parse-with-source
+    </span><span class="string">&quot;json-parse-with-source&quot; </span>=&gt; SpecEdition::ESNext,
 
-    <span class="comment">// https://github.com/tc39/proposal-intl-enumeration
-    </span><span class="string">&quot;Intl-enumeration&quot; </span>=&gt; SpecEdition::ESNext,
+    <span class="comment">// Iterator Helpers
+    // https://github.com/tc39/proposal-iterator-helpers
+    </span><span class="string">&quot;iterator-helpers&quot; </span>=&gt; SpecEdition::ESNext,
 
     <span class="comment">// Part of the next ES14 edition
-
-    </span><span class="string">&quot;Intl.DateTimeFormat-extend-timezonename&quot; </span>=&gt; SpecEdition::ESNext,
-    <span class="string">&quot;Intl.DisplayNames-v2&quot; </span>=&gt; SpecEdition::ESNext,
-    <span class="string">&quot;Intl.Segmenter&quot; </span>=&gt; SpecEdition::ESNext,
+    </span><span class="string">&quot;Atomics.waitAsync&quot;  </span>=&gt; SpecEdition::ESNext,
+    <span class="string">&quot;array-find-from-last&quot; </span>=&gt; SpecEdition::ESNext,
+    <span class="string">&quot;change-array-by-copy&quot; </span>=&gt; SpecEdition::ESNext,
+    <span class="string">&quot;hashbang&quot; </span>=&gt; SpecEdition::ESNext,
+    <span class="string">&quot;Intl-enumeration&quot; </span>=&gt; SpecEdition::ESNext,
+    <span class="string">&quot;regexp-v-flag&quot; </span>=&gt; SpecEdition::ESNext,
+    <span class="string">&quot;String.prototype.isWellFormed&quot; </span>=&gt; SpecEdition::ESNext,
+    <span class="string">&quot;String.prototype.toWellFormed&quot; </span>=&gt; SpecEdition::ESNext,
     <span class="string">&quot;symbols-as-weakmap-keys&quot; </span>=&gt; SpecEdition::ESNext,
 
     <span class="comment">// Standard language features
@@ -556,13 +513,16 @@
     <span class="string">&quot;intl-normative-optional&quot; </span>=&gt; SpecEdition::ES8,
     <span class="string">&quot;Intl.DateTimeFormat-datetimestyle&quot; </span>=&gt; SpecEdition::ES12,
     <span class="string">&quot;Intl.DateTimeFormat-dayPeriod&quot; </span>=&gt; SpecEdition::ES8,
+    <span class="string">&quot;Intl.DateTimeFormat-extend-timezonename&quot; </span>=&gt; SpecEdition::ES13,
     <span class="string">&quot;Intl.DateTimeFormat-formatRange&quot; </span>=&gt; SpecEdition::ES12,
     <span class="string">&quot;Intl.DateTimeFormat-fractionalSecondDigits&quot; </span>=&gt; SpecEdition::ES12,
     <span class="string">&quot;Intl.DisplayNames&quot; </span>=&gt; SpecEdition::ES12,
+    <span class="string">&quot;Intl.DisplayNames-v2&quot; </span>=&gt; SpecEdition::ES13,
     <span class="string">&quot;Intl.ListFormat&quot; </span>=&gt; SpecEdition::ES12,
     <span class="string">&quot;Intl.Locale&quot; </span>=&gt; SpecEdition::ES12,
     <span class="string">&quot;Intl.NumberFormat-unified&quot; </span>=&gt; SpecEdition::ES11,
     <span class="string">&quot;Intl.RelativeTimeFormat&quot; </span>=&gt; SpecEdition::ES11,
+    <span class="string">&quot;Intl.Segmenter&quot; </span>=&gt; SpecEdition::ES13,
     <span class="string">&quot;json-superset&quot; </span>=&gt; SpecEdition::ES10,
     <span class="string">&quot;let&quot; </span>=&gt; SpecEdition::ES6,
     <span class="string">&quot;logical-assignment-operators&quot; </span>=&gt; SpecEdition::ES12,
