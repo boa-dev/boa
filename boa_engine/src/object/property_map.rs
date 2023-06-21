@@ -231,6 +231,8 @@ impl crate::snapshot::Serialize for PropertyMap {
         &self,
         s: &mut crate::snapshot::SnapshotSerializer,
     ) -> Result<(), crate::snapshot::SnapshotError> {
+        // FIXME: indexed properties.
+        self.shape.serialize(s)?;
         self.storage.serialize(s)?;
         Ok(())
     }

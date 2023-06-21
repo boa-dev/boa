@@ -118,7 +118,40 @@ pub(crate) struct Inner {
 
 /// This represents a JavaScript symbol primitive.
 pub struct JsSymbol {
-    pub(crate) repr: Tagged<Inner>,
+    repr: Tagged<Inner>,
+}
+
+impl crate::snapshot::Serialize for JsSymbol {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        let addr = self.repr.addr();
+        s.reference_or(addr, |s| {
+            s.write_bool(self.repr.is_tagged())?;
+            if !self.repr.is_tagged() {
+                self.hash().serialize(s)?;
+                if let Some(desc) = self.description() {
+                    s.write_bool(true)?;
+                    desc.serialize(s)?;
+                } else {
+                    s.write_bool(false)?;
+                }
+            } else {
+                s.write_usize(addr)?;
+            }
+
+            Ok(())
+        })
+    }
+}
+
+impl crate::snapshot::Deserialize for JsSymbol {
+    fn deserialize(
+        _d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> crate::snapshot::SnapshotResult<Self> {
+        todo!()
+    }
 }
 
 // SAFETY: `JsSymbol` uses `Arc` to do the reference counting, making this type thread-safe.

@@ -582,6 +582,46 @@ pub enum PropertyKey {
     Index(u32),
 }
 
+impl crate::snapshot::Serialize for PropertyKey {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        match self {
+            PropertyKey::String(v) => {
+                s.write_u8(0)?;
+                v.serialize(s)?
+            }
+            PropertyKey::Symbol(v) => {
+                s.write_u8(1)?;
+                v.serialize(s)?
+            }
+            PropertyKey::Index(v) => {
+                s.write_u8(2)?;
+                v.serialize(s)?
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl crate::snapshot::Deserialize for PropertyKey {
+    fn deserialize(
+        d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> crate::snapshot::SnapshotResult<Self> {
+        let typ = u8::deserialize(d)?;
+        let result = match typ {
+            0 => Self::String(JsString::deserialize(d)?),
+            1 => Self::Symbol(JsSymbol::deserialize(d)?),
+            2 => Self::Index(u32::deserialize(d)?),
+            _ => unreachable!("corrupted snapshot!"),
+        };
+
+        Ok(result)
+    }
+}
+
 /// Utility function for parsing [`PropertyKey`].
 fn parse_u32_index<I, T>(mut input: I) -> Option<u32>
 where

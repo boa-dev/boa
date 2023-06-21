@@ -12,6 +12,25 @@ enum BindingAccessor {
     Index(u32),
 }
 
+impl crate::snapshot::Serialize for BindingAccessor {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        match self {
+            BindingAccessor::Identifier(i) => {
+                s.write_u8(b'I')?;
+                i.serialize(s)?;
+            }
+            BindingAccessor::Index(i) => {
+                s.write_u8(b'X')?;
+                i.serialize(s)?;
+            }
+        }
+        Ok(())
+    }
+}
+
 /// An indirect reference to a binding inside an environment.
 #[derive(Clone, Debug, Trace, Finalize)]
 struct IndirectBinding {
@@ -20,11 +39,41 @@ struct IndirectBinding {
     accessor: Cell<BindingAccessor>,
 }
 
+impl crate::snapshot::Serialize for IndirectBinding {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.module.serialize(s)?;
+        self.accessor.serialize(s)?;
+        Ok(())
+    }
+}
+
 /// The type of binding a [`ModuleEnvironment`] can contain.
 #[derive(Clone, Debug, Trace, Finalize)]
 enum BindingType {
     Direct(Option<JsValue>),
     Indirect(IndirectBinding),
+}
+
+impl crate::snapshot::Serialize for BindingType {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        match self {
+            BindingType::Direct(v) => {
+                s.write_u8(b'D')?;
+                v.serialize(s)?;
+            }
+            BindingType::Indirect(i) => {
+                s.write_u8(b'I')?;
+                i.serialize(s)?;
+            }
+        }
+        Ok(())
+    }
 }
 
 /// A [**Module Environment Record**][spec].
@@ -37,6 +86,16 @@ enum BindingType {
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct ModuleEnvironment {
     bindings: GcRefCell<Vec<BindingType>>,
+}
+
+impl crate::snapshot::Serialize for ModuleEnvironment {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.bindings.borrow().serialize(s)?;
+        Ok(())
+    }
 }
 
 impl ModuleEnvironment {

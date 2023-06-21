@@ -19,6 +19,19 @@ struct CompileTimeBinding {
     strict: bool,
 }
 
+impl crate::snapshot::Serialize for CompileTimeBinding {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.index.serialize(s)?;
+        self.mutable.serialize(s)?;
+        self.lex.serialize(s)?;
+        self.strict.serialize(s)?;
+        Ok(())
+    }
+}
+
 /// A compile time environment maps bound identifiers to their binding positions.
 ///
 /// A compile time environment also indicates, if it is a function environment.
@@ -28,6 +41,29 @@ pub(crate) struct CompileTimeEnvironment {
     environment_index: u32,
     bindings: FxHashMap<Identifier, CompileTimeBinding>,
     function_scope: bool,
+}
+
+impl crate::snapshot::Serialize for Identifier {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.sym().get().serialize(s)?;
+        Ok(())
+    }
+}
+
+impl crate::snapshot::Serialize for CompileTimeEnvironment {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.outer.serialize(s)?;
+        self.environment_index.serialize(s)?;
+        self.bindings.serialize(s)?;
+        self.function_scope.serialize(s)?;
+        Ok(())
+    }
 }
 
 // Safety: Nothing in this struct needs tracing, so this is safe.

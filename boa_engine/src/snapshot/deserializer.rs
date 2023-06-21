@@ -1,11 +1,15 @@
-use indexmap::IndexSet;
+use std::hash::Hash;
 
-use super::SnapshotError;
+use indexmap::IndexSet;
+use rustc_hash::FxHashMap;
+use thin_vec::ThinVec;
+
+use super::{SnapshotError, SnapshotResult};
 
 /// TODO: doc
 pub trait Deserialize: Sized {
     /// TODO: doc
-    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> Result<Self, SnapshotError>;
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self>;
 }
 
 /// TODO: doc
@@ -109,5 +113,203 @@ impl SnapshotDeserializer<'_> {
         // TODO: use .get() so we can handle the error.
         let bytes = &self.bytes[index..(index + count)];
         Ok(bytes)
+    }
+}
+
+impl Deserialize for bool {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_bool()
+    }
+}
+
+impl Deserialize for u8 {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_u8()
+    }
+}
+
+impl Deserialize for i8 {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_i8()
+    }
+}
+
+impl Deserialize for u16 {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_u16()
+    }
+}
+
+impl Deserialize for i16 {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_i16()
+    }
+}
+
+impl Deserialize for u32 {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_u32()
+    }
+}
+
+impl Deserialize for i32 {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_i32()
+    }
+}
+
+impl Deserialize for u64 {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_u64()
+    }
+}
+
+impl Deserialize for i64 {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_i64()
+    }
+}
+
+impl Deserialize for usize {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_usize()
+    }
+}
+
+impl Deserialize for isize {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_isize()
+    }
+}
+
+impl Deserialize for f32 {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_f32()
+    }
+}
+
+impl Deserialize for f64 {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        d.read_f64()
+    }
+}
+
+impl<T: Deserialize> Deserialize for Option<T> {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let is_some = bool::deserialize(d)?;
+        if is_some {
+            return Ok(Some(T::deserialize(d)?));
+        }
+
+        Ok(None)
+    }
+}
+
+impl<T: Deserialize, E: Deserialize> Deserialize for Result<T, E> {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let is_ok = bool::deserialize(d)?;
+        Ok(if is_ok {
+            Ok(T::deserialize(d)?)
+        } else {
+            Err(E::deserialize(d)?)
+        })
+    }
+}
+
+impl<T: Deserialize> Deserialize for Vec<T> {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let len = usize::deserialize(d)?;
+        let mut values = Vec::with_capacity(len);
+        for _ in 0..len {
+            let value = T::deserialize(d)?;
+            values.push(value);
+        }
+        Ok(values)
+    }
+}
+
+impl<T: Deserialize> Deserialize for ThinVec<T> {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let len = usize::deserialize(d)?;
+        let mut values = ThinVec::with_capacity(len);
+        for _ in 0..len {
+            let value = T::deserialize(d)?;
+            values.push(value);
+        }
+        Ok(values)
+    }
+}
+
+impl<T: Deserialize> Deserialize for Box<T> {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let value = T::deserialize(d)?;
+        Ok(Box::new(value))
+    }
+}
+
+impl Deserialize for Box<str> {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let len = usize::deserialize(d)?;
+        let bytes = d.read_bytes(len)?;
+        Ok(String::from_utf8(bytes.into()).unwrap().into_boxed_str())
+    }
+}
+
+impl Deserialize for () {
+    fn deserialize(_d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        // Deserialize nothing, zero size type.
+        Ok(())
+    }
+}
+
+impl<T1: Deserialize> Deserialize for (T1,) {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let v1 = T1::deserialize(d)?;
+        Ok((v1,))
+    }
+}
+
+impl<T1: Deserialize, T2: Deserialize> Deserialize for (T1, T2) {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let v1 = T1::deserialize(d)?;
+        let v2 = T2::deserialize(d)?;
+        Ok((v1, v2))
+    }
+}
+
+impl<T1: Deserialize, T2: Deserialize, T3: Deserialize> Deserialize for (T1, T2, T3) {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let v1 = T1::deserialize(d)?;
+        let v2 = T2::deserialize(d)?;
+        let v3 = T3::deserialize(d)?;
+        Ok((v1, v2, v3))
+    }
+}
+
+impl<T1: Deserialize, T2: Deserialize, T3: Deserialize, T4: Deserialize> Deserialize
+    for (T1, T2, T3, T4)
+{
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let v1 = T1::deserialize(d)?;
+        let v2 = T2::deserialize(d)?;
+        let v3 = T3::deserialize(d)?;
+        let v4 = T4::deserialize(d)?;
+        Ok((v1, v2, v3, v4))
+    }
+}
+
+impl<K: Deserialize + PartialEq + Eq + Hash, V: Deserialize> Deserialize for FxHashMap<K, V> {
+    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> SnapshotResult<Self> {
+        let len = usize::deserialize(d)?;
+
+        let mut result = Self::default();
+        for _ in 0..len {
+            let key = K::deserialize(d)?;
+            let value = V::deserialize(d)?;
+            let ret = result.insert(key, value);
+
+            assert!(ret.is_none());
+        }
+        Ok(result)
     }
 }

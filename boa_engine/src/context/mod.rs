@@ -1004,6 +1004,7 @@ impl crate::snapshot::Deserialize for Context<'_> {
     ) -> Result<Self, crate::snapshot::SnapshotError> {
         let strict = d.read_bool()?;
         let optimizer_options = OptimizerOptions::deserialize(d)?;
+        // let realm = Realm::deserialize(d)?;
         let mut context = Context::default();
 
         context.strict(strict);

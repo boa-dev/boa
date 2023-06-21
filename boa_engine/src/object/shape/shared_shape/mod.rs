@@ -49,6 +49,16 @@ bitflags! {
     }
 }
 
+impl crate::snapshot::Serialize for ShapeFlags {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.bits().serialize(s)?;
+        Ok(())
+    }
+}
+
 impl Default for ShapeFlags {
     fn default() -> Self {
         Self::empty()
@@ -113,10 +123,34 @@ struct Inner {
     flags: ShapeFlags,
 }
 
+impl crate::snapshot::Serialize for Inner {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.property_count.serialize(s)?;
+        self.prototype.serialize(s)?;
+        self.property_table.serialize(s)?;
+        self.previous.serialize(s)?;
+        self.transition_count.serialize(s)?;
+        self.flags.serialize(s)?;
+        Ok(())
+    }
+}
+
 /// Represents a shared object shape.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct SharedShape {
     inner: Gc<Inner>,
+}
+
+impl crate::snapshot::Serialize for SharedShape {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.inner.serialize(s)
+    }
 }
 
 impl SharedShape {

@@ -35,6 +35,17 @@ impl crate::snapshot::Serialize for Realm {
     }
 }
 
+impl crate::snapshot::Deserialize for Realm {
+    fn deserialize(
+        d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> Result<Self, crate::snapshot::SnapshotError> {
+        let inner = Inner::deserialize(d)?;
+        Ok(Realm {
+            inner: Gc::new(inner),
+        })
+    }
+}
+
 impl Eq for Realm {}
 
 impl PartialEq for Realm {
@@ -70,7 +81,21 @@ impl crate::snapshot::Serialize for Inner {
         s: &mut crate::snapshot::SnapshotSerializer,
     ) -> Result<(), crate::snapshot::SnapshotError> {
         self.intrinsics.serialize(s)?;
+        self.global_object.serialize(s)?;
+        self.global_this.serialize(s)?;
+        self.template_map.borrow().serialize(s)?;
         Ok(())
+    }
+}
+
+impl crate::snapshot::Deserialize for Inner {
+    fn deserialize(
+        _d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> Result<Self, crate::snapshot::SnapshotError> {
+        // let intrinsics = Intrinsics::deserialize(d)?;
+
+        // Ok(Inner::)
+        todo!()
     }
 }
 

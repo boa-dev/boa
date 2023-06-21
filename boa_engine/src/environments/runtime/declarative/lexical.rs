@@ -9,6 +9,15 @@ pub(crate) struct LexicalEnvironment {
     inner: PoisonableEnvironment,
 }
 
+impl crate::snapshot::Serialize for LexicalEnvironment {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.inner.serialize(s)
+    }
+}
+
 impl LexicalEnvironment {
     /// Creates a new `LexicalEnvironment`.
     pub(crate) fn new(bindings: u32, poisoned: bool, with: bool) -> Self {

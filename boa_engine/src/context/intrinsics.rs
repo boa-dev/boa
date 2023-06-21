@@ -32,6 +32,8 @@ impl crate::snapshot::Serialize for Intrinsics {
         s: &mut crate::snapshot::SnapshotSerializer,
     ) -> Result<(), crate::snapshot::SnapshotError> {
         self.constructors.serialize(s)?;
+        self.objects.serialize(s)?;
+        self.templates.serialize(s)?;
         Ok(())
     }
 }
@@ -896,6 +898,40 @@ pub struct IntrinsicObjects {
     segments_prototype: JsObject,
 }
 
+impl crate::snapshot::Serialize for IntrinsicObjects {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.reflect.serialize(s)?;
+        self.math.serialize(s)?;
+        self.json.serialize(s)?;
+        self.throw_type_error.serialize(s)?;
+        self.array_prototype_values.serialize(s)?;
+        self.iterator_prototypes.serialize(s)?;
+        self.generator.serialize(s)?;
+        self.async_generator.serialize(s)?;
+        self.eval.serialize(s)?;
+        self.uri_functions.serialize(s)?;
+        self.is_finite.serialize(s)?;
+        self.is_nan.serialize(s)?;
+        self.parse_float.serialize(s)?;
+        self.parse_int.serialize(s)?;
+        #[cfg(feature = "annex-b")]
+        {
+            self.escape.serialize(s)?;
+            self.unescape.serialize(s)?;
+        }
+        #[cfg(feature = "intl")]
+        {
+            self.intl.serialize(s)?;
+            self.segments_prototype.serialize(s)?;
+        }
+
+        Ok(())
+    }
+}
+
 impl Default for IntrinsicObjects {
     fn default() -> Self {
         Self {
@@ -1083,6 +1119,33 @@ pub(crate) struct ObjectTemplates {
     function_with_prototype_without_proto: ObjectTemplate,
 
     namespace: ObjectTemplate,
+}
+
+impl crate::snapshot::Serialize for ObjectTemplates {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.iterator_result.serialize(s)?;
+        self.ordinary_object.serialize(s)?;
+        self.array.serialize(s)?;
+        self.number.serialize(s)?;
+        self.string.serialize(s)?;
+        self.symbol.serialize(s)?;
+        self.bigint.serialize(s)?;
+        self.boolean.serialize(s)?;
+
+        self.unmapped_arguments.serialize(s)?;
+        self.mapped_arguments.serialize(s)?;
+        self.function_with_prototype.serialize(s)?;
+        self.function_prototype.serialize(s)?;
+        self.function.serialize(s)?;
+        self.async_function.serialize(s)?;
+        self.function_without_proto.serialize(s)?;
+        self.function_with_prototype_without_proto.serialize(s)?;
+        self.namespace.serialize(s)?;
+        Ok(())
+    }
 }
 
 impl ObjectTemplates {

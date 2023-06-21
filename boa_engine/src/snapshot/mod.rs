@@ -5,34 +5,16 @@
 
 mod deserializer;
 mod error;
+mod header;
 mod serializer;
 
 pub use deserializer::*;
 pub use error::*;
+pub use header::*;
 pub use serializer::*;
 
 use crate::Context;
 use indexmap::IndexSet;
-use std::fmt::Debug;
-
-/// TODO: doc
-#[derive(Debug, Clone, Copy)]
-pub struct Header {
-    signature: [u8; 4],
-    version: u32,
-    // checksum: u64,
-}
-
-impl Deserialize for Header {
-    fn deserialize(d: &mut SnapshotDeserializer<'_>) -> Result<Self, SnapshotError> {
-        let signature = d.read_bytes(4)?;
-        let signature = [signature[0], signature[1], signature[2], signature[3]];
-
-        let version = d.read_u32()?;
-
-        Ok(Self { signature, version })
-    }
-}
 
 /// TODO: doc
 pub struct Snapshot {

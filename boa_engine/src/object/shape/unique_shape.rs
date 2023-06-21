@@ -22,6 +22,17 @@ struct Inner {
     prototype: GcRefCell<JsPrototype>,
 }
 
+impl crate::snapshot::Serialize for Inner {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.property_table.borrow().serialize(s)?;
+        self.prototype.borrow().serialize(s)?;
+        Ok(())
+    }
+}
+
 /// Represents a [`Shape`] that is not shared with any other object.
 ///
 /// This is useful for objects that are inherently unique like,
@@ -31,6 +42,16 @@ struct Inner {
 #[derive(Default, Debug, Clone, Trace, Finalize)]
 pub(crate) struct UniqueShape {
     inner: Gc<Inner>,
+}
+
+impl crate::snapshot::Serialize for UniqueShape {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.inner.serialize(s)?;
+        Ok(())
+    }
 }
 
 impl UniqueShape {

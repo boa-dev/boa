@@ -49,6 +49,15 @@ pub struct JsError {
     inner: Repr,
 }
 
+impl crate::snapshot::Serialize for JsError {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.inner.serialize(s)
+    }
+}
+
 /// Internal representation of a [`JsError`].
 ///
 /// `JsError` is represented by an opaque enum because it restricts
@@ -63,6 +72,24 @@ pub struct JsError {
 enum Repr {
     Native(JsNativeError),
     Opaque(JsValue),
+}
+
+impl crate::snapshot::Serialize for Repr {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        match self {
+            Repr::Native(v) => {
+                b'N'.serialize(s)?;
+                v.serialize(s)?;
+            }
+            Repr::Opaque(v) => {
+                v.serialize(s)?;
+            }
+        }
+        Ok(())
+    }
 }
 
 /// The error type returned by the [`JsError::try_native`] method.
@@ -426,6 +453,19 @@ pub struct JsNativeError {
     #[source]
     cause: Option<Box<JsError>>,
     realm: Option<Realm>,
+}
+
+impl crate::snapshot::Serialize for JsNativeError {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.kind.serialize(s)?;
+        self.message.serialize(s)?;
+        self.cause.serialize(s)?;
+        self.realm.serialize(s)?;
+        Ok(())
+    }
 }
 
 impl std::fmt::Debug for JsNativeError {
@@ -951,6 +991,49 @@ pub enum JsNativeErrorKind {
 
     /// Error thrown when a runtime limit is exceeded. It's not a valid JS error variant.
     RuntimeLimit,
+}
+
+impl crate::snapshot::Serialize for JsNativeErrorKind {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        match self {
+            JsNativeErrorKind::Aggregate(errors) => {
+                b'0'.serialize(s)?;
+                errors.serialize(s)?;
+            }
+            JsNativeErrorKind::Error => {
+                b'1'.serialize(s)?;
+            }
+            JsNativeErrorKind::Eval => {
+                b'2'.serialize(s)?;
+            }
+            JsNativeErrorKind::Range => {
+                b'3'.serialize(s)?;
+            }
+            JsNativeErrorKind::Reference => {
+                b'4'.serialize(s)?;
+            }
+            JsNativeErrorKind::Syntax => {
+                b'5'.serialize(s)?;
+            }
+            JsNativeErrorKind::Type => {
+                b'6'.serialize(s)?;
+            }
+            JsNativeErrorKind::Uri => {
+                b'7'.serialize(s)?;
+            }
+            JsNativeErrorKind::RuntimeLimit => {
+                b'8'.serialize(s)?;
+            }
+            #[cfg(feature = "fuzz")]
+            JsNativeErrorKind::NoInstructionsRemain => {
+                b'9'.serialize(s)?;
+            }
+        }
+        Ok(())
+    }
 }
 
 impl PartialEq<ErrorKind> for JsNativeErrorKind {

@@ -23,3 +23,6 @@ impl From<std::io::Error> for SnapshotError {
         Self::Io(value)
     }
 }
+
+/// Type alias for [`Result`] return type snapshot operations.
+pub type SnapshotResult<T> = Result<T, SnapshotError>;

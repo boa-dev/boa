@@ -209,6 +209,36 @@ pub struct JsString {
     pub(crate) ptr: Tagged<RawJsString>,
 }
 
+impl crate::snapshot::Serialize for JsString {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        let addr = self.ptr.addr();
+        s.reference_or(addr, |s| {
+            s.write_bool(self.is_static())?;
+            if !self.is_static() {
+                s.write_usize(self.len())?;
+                for elem in self.as_slice() {
+                    s.write_u16(*elem)?;
+                }
+            } else {
+                s.write_usize(addr)?;
+            }
+
+            Ok(())
+        })
+    }
+}
+
+impl crate::snapshot::Deserialize for JsString {
+    fn deserialize(
+        _d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> crate::snapshot::SnapshotResult<Self> {
+        todo!()
+    }
+}
+
 // JsString should always be pointer sized.
 sa::assert_eq_size!(JsString, *const ());
 

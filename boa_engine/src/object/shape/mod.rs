@@ -58,10 +58,39 @@ enum Inner {
     Shared(SharedShape),
 }
 
+impl crate::snapshot::Serialize for Inner {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        match self {
+            Inner::Unique(shape) => {
+                b'U'.serialize(s)?;
+                shape.serialize(s)?;
+            }
+            Inner::Shared(shape) => {
+                b'S'.serialize(s)?;
+                shape.serialize(s)?;
+            }
+        }
+        Ok(())
+    }
+}
+
 /// Represents the shape of an object.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct Shape {
     inner: Inner,
+}
+
+impl crate::snapshot::Serialize for Shape {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.inner.serialize(s)?;
+        Ok(())
+    }
 }
 
 impl Default for Shape {

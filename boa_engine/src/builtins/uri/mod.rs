@@ -47,6 +47,27 @@ pub struct UriFunctions {
     encode_uri_component: JsFunction,
 }
 
+impl crate::snapshot::Serialize for UriFunctions {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.decode_uri.serialize(s)?;
+        self.decode_uri_component.serialize(s)?;
+        self.encode_uri.serialize(s)?;
+        self.encode_uri_component.serialize(s)?;
+        Ok(())
+    }
+}
+
+impl crate::snapshot::Deserialize for UriFunctions {
+    fn deserialize(
+        _d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> crate::snapshot::SnapshotResult<Self> {
+        todo!()
+    }
+}
+
 impl Default for UriFunctions {
     fn default() -> Self {
         Self {

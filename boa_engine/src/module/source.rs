@@ -93,6 +93,15 @@ enum Status {
     },
 }
 
+impl crate::snapshot::Serialize for Status {
+    fn serialize(
+        &self,
+        _s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        todo!()
+    }
+}
+
 // SAFETY: This must be synced with `Status` to mark any new data added that needs to be traced.
 // `Status` doesn't implement `Drop`, making this manual implementation safe.
 //
@@ -251,6 +260,15 @@ pub(crate) struct SourceTextModule {
     inner: Gc<Inner>,
 }
 
+impl crate::snapshot::Serialize for SourceTextModule {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.inner.serialize(s)
+    }
+}
+
 impl std::fmt::Debug for SourceTextModule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let limiter = RecursionLimiter::new(&*self.inner);
@@ -277,6 +295,15 @@ struct Inner {
     import_meta: GcRefCell<Option<JsObject>>,
     #[unsafe_ignore_trace]
     code: ModuleCode,
+}
+
+impl crate::snapshot::Serialize for Inner {
+    fn serialize(
+        &self,
+        _s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        todo!()
+    }
 }
 
 #[derive(Debug)]
