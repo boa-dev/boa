@@ -236,8 +236,8 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the new capacity exceeds [`isize::MAX`] bytes and [`abort`] the program
-    /// in case of allocation error. Use [`try_reserve`](RawWeakMap::try_reserve) instead
+    /// Panics if the new capacity exceeds [`isize::MAX`] bytes and [`abort`](std::process::abort)
+    /// the program in case of allocation error. Use [`try_reserve`](RawWeakMap::try_reserve) instead
     /// if you want to handle memory allocation failure.
     #[allow(unused)]
     pub(crate) fn reserve(&mut self, additional: usize) {
