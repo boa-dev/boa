@@ -992,6 +992,7 @@ impl crate::snapshot::Serialize for Context<'_> {
         s: &mut crate::snapshot::SnapshotSerializer,
     ) -> Result<(), crate::snapshot::SnapshotError> {
         s.write_bool(self.strict)?;
+        self.optimizer_options.serialize(s)?;
         self.realm.serialize(s)?;
         Ok(())
     }
@@ -1002,9 +1003,11 @@ impl crate::snapshot::Deserialize for Context<'_> {
         d: &mut crate::snapshot::SnapshotDeserializer<'_>,
     ) -> Result<Self, crate::snapshot::SnapshotError> {
         let strict = d.read_bool()?;
+        let optimizer_options = OptimizerOptions::deserialize(d)?;
         let mut context = Context::default();
 
         context.strict(strict);
+        context.set_optimizer_options(optimizer_options);
 
         Ok(context)
     }

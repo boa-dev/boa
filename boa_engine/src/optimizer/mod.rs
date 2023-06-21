@@ -4,7 +4,10 @@ pub(crate) mod pass;
 pub(crate) mod walker;
 
 use self::{pass::ConstantFolding, walker::Walker};
-use crate::Context;
+use crate::{
+    snapshot::{Deserialize, Serialize},
+    Context,
+};
 use bitflags::bitflags;
 use boa_ast::{visitor::VisitorMut, Expression, StatementList};
 use std::{fmt, ops::ControlFlow};
@@ -21,6 +24,26 @@ bitflags! {
 
         /// Apply all optimizations.
         const OPTIMIZE_ALL = Self::CONSTANT_FOLDING.bits();
+    }
+}
+
+impl Serialize for OptimizerOptions {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        s.write_u8(self.bits())?;
+        Ok(())
+    }
+}
+impl Deserialize for OptimizerOptions {
+    fn deserialize(
+        d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> Result<Self, crate::snapshot::SnapshotError> {
+        let bits = d.read_u8()?;
+
+        // TODO: handle error.
+        Ok(OptimizerOptions::from_bits(bits).unwrap())
     }
 }
 
