@@ -72,6 +72,7 @@ use boa_engine::{
     optimizer::OptimizerOptions,
     property::Attribute,
     script::Script,
+    snapshot::Snapshot,
     vm::flowgraph::{Direction, Graph},
     Context, JsError, JsNativeError, JsResult, Source,
 };
@@ -81,7 +82,13 @@ use colored::Colorize;
 use debug::init_boa_debug_object;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{
-    cell::RefCell, collections::VecDeque, eprintln, fs::read, fs::OpenOptions, io, path::PathBuf,
+    cell::RefCell,
+    collections::VecDeque,
+    eprintln,
+    fs::OpenOptions,
+    fs::{read, File},
+    io::{self, Read},
+    path::{Path, PathBuf},
     println,
 };
 
@@ -168,6 +175,9 @@ struct Opt {
     /// Root path from where the module resolver will try to load the modules.
     #[arg(long, short = 'r', default_value_os_t = PathBuf::from("."), requires = "mod")]
     root: PathBuf,
+
+    #[arg(long)]
+    snapshot: Option<PathBuf>,
 }
 
 impl Opt {
@@ -363,37 +373,60 @@ fn evaluate_files(
     Ok(())
 }
 
+fn get_file_as_byte_vec(filename: &Path) -> Vec<u8> {
+    let mut f = File::open(&filename).expect("no file found");
+    let metadata = std::fs::metadata(&filename).expect("unable to read metadata");
+    let mut buffer = vec![0; metadata.len() as usize];
+    f.read(&mut buffer).expect("buffer overflow");
+
+    buffer
+}
+
 fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
-    let queue: &dyn JobQueue = &Jobs::default();
     let loader = &SimpleModuleLoader::new(&args.root)
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+
+    let queue: &dyn JobQueue = &Jobs::default();
     let dyn_loader: &dyn ModuleLoader = loader;
-    let mut context = ContextBuilder::new()
-        .job_queue(queue)
-        .module_loader(dyn_loader)
-        .build()
-        .expect("cannot fail with default global object");
 
-    // Strict mode
-    context.strict(args.strict);
+    let mut context = if let Some(path) = &args.snapshot {
+        let bytes = get_file_as_byte_vec(&path);
 
-    // Add `console`.
-    add_runtime(&mut context);
+        let snapshot = Snapshot::new(bytes);
 
-    // Trace Output
-    context.set_trace(args.trace);
+        let deser_context = snapshot.deserialize().unwrap();
 
-    if args.debug_object {
-        init_boa_debug_object(&mut context);
-    }
+        deser_context
+    } else {
+        let mut context = ContextBuilder::new()
+            .job_queue(queue)
+            .module_loader(dyn_loader)
+            .build()
+            .expect("cannot fail with default global object");
 
-    // Configure optimizer options
-    let mut optimizer_options = OptimizerOptions::empty();
-    optimizer_options.set(OptimizerOptions::STATISTICS, args.optimizer_statistics);
-    optimizer_options.set(OptimizerOptions::OPTIMIZE_ALL, args.optimize);
-    context.set_optimizer_options(optimizer_options);
+        // Strict mode
+        context.strict(args.strict);
+
+        // Add `console`.
+        add_runtime(&mut context);
+
+        // Trace Output
+        context.set_trace(args.trace);
+
+        if args.debug_object {
+            init_boa_debug_object(&mut context);
+        }
+
+        // Configure optimizer options
+        let mut optimizer_options = OptimizerOptions::empty();
+        optimizer_options.set(OptimizerOptions::STATISTICS, args.optimizer_statistics);
+        optimizer_options.set(OptimizerOptions::OPTIMIZE_ALL, args.optimize);
+        context.set_optimizer_options(optimizer_options);
+
+        context
+    };
 
     if args.files.is_empty() {
         let config = Config::builder()

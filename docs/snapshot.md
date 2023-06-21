@@ -61,6 +61,6 @@ If it's a static string then it's elements comprise the index into the `STATIC_S
 
 ## JsValue Encoding
 
-type `: u8` (JsValue discriminant, Boolean, Null, etc) followed by the value if it exits.
+type `: u8` (JsValue discriminant, Boolean, Null, etc) followed by the value if it applied for the type (`Null` and `Undefined` does not have a value part).
 If following the `JsValue` is an `JsString`, `JsSymbol`, `JsBigInt`, `JsObject` then the
 following value will be an index into the appropriate tables.

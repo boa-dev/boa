@@ -996,3 +996,16 @@ impl crate::snapshot::Serialize for Context<'_> {
         Ok(())
     }
 }
+
+impl crate::snapshot::Deserialize for Context<'_> {
+    fn deserialize(
+        d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> Result<Self, crate::snapshot::SnapshotError> {
+        let strict = d.read_bool()?;
+        let mut context = Context::default();
+
+        context.strict(strict);
+
+        Ok(context)
+    }
+}
