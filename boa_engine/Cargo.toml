@@ -75,7 +75,7 @@ dashmap = "5.4.0"
 num_enum = "0.6.1"
 pollster = "0.3.0"
 thin-vec = "0.2.12"
-itertools = { version = "0.10.5", default-features = false }
+itertools = { version = "0.11.0", default-features = false }
 icu_normalizer = "1.2.0"
 
 # intl deps
