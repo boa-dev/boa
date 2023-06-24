@@ -2,7 +2,6 @@
 
 mod ephemeron;
 mod gc;
-mod rootable;
 mod weak;
 mod weak_map;
 

@@ -4,11 +4,6 @@ use std::{
     ptr::{self, NonNull},
 };
 
-// Age and Weak Flags
-const MARK_MASK: usize = 1 << (usize::BITS - 1);
-const ROOTS_MASK: usize = !MARK_MASK;
-const ROOTS_MAX: usize = ROOTS_MASK;
-
 /// The `EphemeronBoxHeader` contains the `EphemeronBoxHeader`'s current state for the `Collector`'s
 /// Mark/Sweep as well as a pointer to the next ephemeron in the heap.
 ///
@@ -19,7 +14,7 @@ const ROOTS_MAX: usize = ROOTS_MASK;
 /// The next node is set by the `Allocator` during initialization and by the
 /// `Collector` during the sweep phase.
 pub(crate) struct EphemeronBoxHeader {
-    roots: Cell<usize>,
+    marked: Cell<bool>,
     pub(crate) next: Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
 }
 
@@ -27,56 +22,30 @@ impl EphemeronBoxHeader {
     /// Creates a new `EphemeronBoxHeader` with a root of 1 and next set to None.
     pub(crate) fn new() -> Self {
         Self {
-            roots: Cell::new(1),
+            marked: Cell::new(false),
             next: Cell::new(None),
-        }
-    }
-
-    /// Returns the `EphemeronBoxHeader`'s current root count
-    pub(crate) fn roots(&self) -> usize {
-        self.roots.get() & ROOTS_MASK
-    }
-
-    /// Increments `EphemeronBoxHeader`'s root count.
-    pub(crate) fn inc_roots(&self) {
-        let roots = self.roots.get();
-
-        if (roots & ROOTS_MASK) < ROOTS_MAX {
-            self.roots.set(roots + 1);
-        } else {
-            // TODO: implement a better way to handle root overload.
-            panic!("roots counter overflow");
-        }
-    }
-
-    /// Decreases `EphemeronBoxHeader`'s current root count.
-    pub(crate) fn dec_roots(&self) {
-        // Underflow check as a stop gap for current issue when dropping.
-        if self.roots.get() > 0 {
-            self.roots.set(self.roots.get() - 1);
         }
     }
 
     /// Returns a bool for whether `EphemeronBoxHeader`'s mark bit is 1.
     pub(crate) fn is_marked(&self) -> bool {
-        self.roots.get() & MARK_MASK != 0
+        self.marked.get()
     }
 
     /// Sets `EphemeronBoxHeader`'s mark bit to 1.
     pub(crate) fn mark(&self) {
-        self.roots.set(self.roots.get() | MARK_MASK);
+        self.marked.set(true);
     }
 
     /// Sets `EphemeronBoxHeader`'s mark bit to 0.
     pub(crate) fn unmark(&self) {
-        self.roots.set(self.roots.get() & !MARK_MASK);
+        self.marked.set(false);
     }
 }
 
 impl core::fmt::Debug for EphemeronBoxHeader {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("EphemeronBoxHeader")
-            .field("roots", &self.roots())
             .field("marked", &self.is_marked())
             .finish()
     }
@@ -137,20 +106,6 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     pub(crate) unsafe fn mark(&self) {
         self.header.mark();
     }
-
-    /// Increases the root count on this `EphemeronBox`.
-    ///
-    /// Roots prevent the `EphemeronBox` from being destroyed by the garbage collector.
-    pub(crate) fn root(&self) {
-        self.header.inc_roots();
-    }
-
-    /// Decreases the root count on this `EphemeronBox`.
-    ///
-    /// Roots prevent the `EphemeronBox` from being destroyed by the garbage collector.
-    pub(crate) fn unroot(&self) {
-        self.header.dec_roots();
-    }
 }
 
 pub(crate) trait ErasedEphemeronBox {
@@ -162,6 +117,8 @@ pub(crate) trait ErasedEphemeronBox {
     /// considers ephemerons that are marked but don't have their value anymore as
     /// "successfully traced".
     unsafe fn trace(&self) -> bool;
+
+    fn trace_non_roots(&self);
 
     /// Runs the finalization logic of the `EphemeronBox`'s held value, if the key is still live,
     /// and clears its contents.
@@ -197,6 +154,15 @@ impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
         }
 
         is_key_marked
+    }
+
+    fn trace_non_roots(&self) {
+        let Some(data) = self.data.get() else {
+            return;
+        };
+        unsafe {
+            data.as_ref().value.trace_non_roots();
+        };
     }
 
     fn finalize_and_clear(&self) {

@@ -39,19 +39,8 @@ pub unsafe trait Trace: Finalize {
     /// See [`Trace`].
     unsafe fn trace(&self);
 
-    /// Increments the root-count of all contained `Gc`s.
-    ///
-    /// # Safety
-    ///
-    /// See [`Trace`].
-    unsafe fn root(&self);
-
-    /// Decrements the root-count of all contained `Gc`s.
-    ///
-    /// # Safety
-    ///
-    /// See [`Trace`].
-    unsafe fn unroot(&self);
+    /// Trace handles located in GC heap, and mark them as non root.
+    fn trace_non_roots(&self);
 
     /// Runs [`Finalize::finalize`] on this object and all
     /// contained subobjects.
@@ -67,9 +56,7 @@ macro_rules! empty_trace {
         #[inline]
         unsafe fn trace(&self) {}
         #[inline]
-        unsafe fn root(&self) {}
-        #[inline]
-        unsafe fn unroot(&self) {}
+        fn trace_non_roots(&self) {}
         #[inline]
         fn run_finalizer(&self) {
             $crate::Finalize::finalize(self)
@@ -101,23 +88,9 @@ macro_rules! custom_trace {
             $body
         }
         #[inline]
-        unsafe fn root(&self) {
+        fn trace_non_roots(&self) {
             fn mark<T: $crate::Trace + ?Sized>(it: &T) {
-                // SAFETY: The implementor must ensure that `root` is correctly implemented.
-                unsafe {
-                    $crate::Trace::root(it);
-                }
-            }
-            let $this = self;
-            $body
-        }
-        #[inline]
-        unsafe fn unroot(&self) {
-            fn mark<T: $crate::Trace + ?Sized>(it: &T) {
-                // SAFETY: The implementor must ensure that `unroot` is correctly implemented.
-                unsafe {
-                    $crate::Trace::unroot(it);
-                }
+                $crate::Trace::trace_non_roots(it);
             }
             let $this = self;
             $body
