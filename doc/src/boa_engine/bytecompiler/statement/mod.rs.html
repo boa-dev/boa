@@ -67,6 +67,24 @@
 <a href="#67" id="67">67</a>
 <a href="#68" id="68">68</a>
 <a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 
 <span class="kw">use </span>boa_ast::Statement;
@@ -83,7 +101,7 @@
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compiles a [`Statement`] `boa_ast` node.
-    </span><span class="kw">pub fn </span>compile_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>Statement, use_expr: bool) {
+    </span><span class="kw">pub fn </span>compile_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>Statement, use_expr: bool, root_statement: bool) {
         <span class="kw">match </span>node {
             Statement::Var(var) =&gt; <span class="self">self</span>.compile_var_decl(var),
             Statement::If(node) =&gt; <span class="self">self</span>.compile_if(node, use_expr),
@@ -108,8 +126,20 @@
             Statement::Labelled(labelled) =&gt; {
                 <span class="self">self</span>.compile_labelled(labelled, use_expr);
             }
-            Statement::Continue(node) =&gt; <span class="self">self</span>.compile_continue(<span class="kw-2">*</span>node),
-            Statement::Break(node) =&gt; <span class="self">self</span>.compile_break(<span class="kw-2">*</span>node),
+            Statement::Continue(node) =&gt; {
+                <span class="kw">if </span>root_statement &amp;&amp; (use_expr || <span class="self">self</span>.jump_control_info_has_use_expr()) {
+                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+                    <span class="self">self</span>.emit_opcode(Opcode::SetReturnValue);
+                }
+                <span class="self">self</span>.compile_continue(<span class="kw-2">*</span>node, use_expr);
+            }
+            Statement::Break(node) =&gt; {
+                <span class="kw">if </span>root_statement &amp;&amp; (use_expr || <span class="self">self</span>.jump_control_info_has_use_expr()) {
+                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+                    <span class="self">self</span>.emit_opcode(Opcode::SetReturnValue);
+                }
+                <span class="self">self</span>.compile_break(<span class="kw-2">*</span>node, use_expr);
+            }
             Statement::Throw(throw) =&gt; {
                 <span class="self">self</span>.compile_expr(throw.target(), <span class="bool-val">true</span>);
                 <span class="self">self</span>.emit(Opcode::Throw, <span class="kw-2">&amp;</span>[]);
@@ -125,12 +155,18 @@
                         <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
                     }
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.emit(Opcode::PushUndefined, <span class="kw-2">&amp;</span>[]);
+                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                 }
-                <span class="self">self</span>.emit(Opcode::Return, <span class="kw-2">&amp;</span>[]);
+                <span class="self">self</span>.emit_opcode(Opcode::SetReturnValue);
+                <span class="self">self</span>.emit_opcode(Opcode::Return);
             }
             Statement::Try(t) =&gt; <span class="self">self</span>.compile_try(t, use_expr),
-            Statement::Expression(expr) =&gt; <span class="self">self</span>.compile_expr(expr, use_expr),
+            Statement::Expression(expr) =&gt; {
+                <span class="self">self</span>.compile_expr(expr, use_expr);
+                <span class="kw">if </span>use_expr {
+                    <span class="self">self</span>.emit_opcode(Opcode::SetReturnValue);
+                }
+            }
             Statement::With(with) =&gt; <span class="self">self</span>.compile_with(with, use_expr),
             Statement::Empty =&gt; {}
         }

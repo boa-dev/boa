@@ -562,6 +562,13 @@
 <a href="#562" id="562">562</a>
 <a href="#563" id="563">563</a>
 <a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal};
 <span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, CodeBlockFlags, Opcode};
 <span class="kw">use </span>boa_ast::{
@@ -638,6 +645,7 @@
             compiler.pop_compile_environment();
         }
 
+        compiler.emit_opcode(Opcode::SetReturnValue);
         compiler.emit_opcode(Opcode::Return);
 
         <span class="kw">let </span>code = Gc::new(compiler.finish());
@@ -833,6 +841,8 @@
                     }
                     field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
+
+                    field_compiler.emit_opcode(Opcode::SetReturnValue);
                     field_compiler.emit_opcode(Opcode::Return);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
@@ -865,6 +875,8 @@
                     }
                     field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
+
+                    field_compiler.emit_opcode(Opcode::SetReturnValue);
                     field_compiler.emit_opcode(Opcode::Return);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
@@ -907,6 +919,8 @@
                     }
                     field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
+
+                    field_compiler.emit_opcode(Opcode::SetReturnValue);
                     field_compiler.emit_opcode(Opcode::Return);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;

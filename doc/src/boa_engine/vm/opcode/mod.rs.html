@@ -1810,36 +1810,6 @@
 <a href="#1810" id="1810">1810</a>
 <a href="#1811" id="1811">1811</a>
 <a href="#1812" id="1812">1812</a>
-<a href="#1813" id="1813">1813</a>
-<a href="#1814" id="1814">1814</a>
-<a href="#1815" id="1815">1815</a>
-<a href="#1816" id="1816">1816</a>
-<a href="#1817" id="1817">1817</a>
-<a href="#1818" id="1818">1818</a>
-<a href="#1819" id="1819">1819</a>
-<a href="#1820" id="1820">1820</a>
-<a href="#1821" id="1821">1821</a>
-<a href="#1822" id="1822">1822</a>
-<a href="#1823" id="1823">1823</a>
-<a href="#1824" id="1824">1824</a>
-<a href="#1825" id="1825">1825</a>
-<a href="#1826" id="1826">1826</a>
-<a href="#1827" id="1827">1827</a>
-<a href="#1828" id="1828">1828</a>
-<a href="#1829" id="1829">1829</a>
-<a href="#1830" id="1830">1830</a>
-<a href="#1831" id="1831">1831</a>
-<a href="#1832" id="1832">1832</a>
-<a href="#1833" id="1833">1833</a>
-<a href="#1834" id="1834">1834</a>
-<a href="#1835" id="1835">1835</a>
-<a href="#1836" id="1836">1836</a>
-<a href="#1837" id="1837">1837</a>
-<a href="#1838" id="1838">1838</a>
-<a href="#1839" id="1839">1839</a>
-<a href="#1840" id="1840">1840</a>
-<a href="#1841" id="1841">1841</a>
-<a href="#1842" id="1842">1842</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -2024,13 +1994,6 @@
         ///
         /// Stack: value **=&gt;**
         </span>Pop = <span class="number">0</span>,
-
-        <span class="doccomment">/// Pop the top value from the stack if the last try block has thrown a value.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;**
-        </span>PopIfThrown,
 
         <span class="doccomment">/// Push a copy of the top value on the stack.
         ///
@@ -2994,27 +2957,6 @@
         /// Stack: **=&gt;**
         </span>TryEnd,
 
-        <span class="doccomment">/// Start of a catch block.
-        ///
-        /// Operands: finally_address: `u32`
-        ///
-        /// Stack: **=&gt;**
-        </span>CatchStart,
-
-        <span class="doccomment">/// End of a catch block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>CatchEnd,
-
-        <span class="doccomment">/// End of a catch block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>CatchEnd2,
-
         <span class="doccomment">/// Start of a finally block.
         ///
         /// Operands:
@@ -3035,13 +2977,6 @@
         ///
         /// Stack: loop_return_value **=&gt;**
         </span>Break,
-
-        <span class="doccomment">/// Jumps to a label target location and pops the environments involved.
-        ///
-        /// Operands: Jump Address: u32, Target address: u32
-        ///
-        /// Stack: **=&gt;**
-        </span>BreakLabel,
 
         <span class="doccomment">/// Sets the `AbruptCompletionRecord` for a delayed continue
         ///
@@ -3212,6 +3147,20 @@
         /// Stack: **=&gt;**
         </span>Return,
 
+        <span class="doccomment">/// Get return value of a function.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** value
+        </span>GetReturnValue,
+
+        <span class="doccomment">/// Set return value of a function.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;**
+        </span>SetReturnValue,
+
         <span class="doccomment">/// Push a declarative environment.
         ///
         /// Operands: compile_environments_index: `u32`
@@ -3262,13 +3211,6 @@
         ///
         /// Stack: **=&gt;** value
         </span>LoopEnd,
-
-        <span class="doccomment">/// Update the return value of a loop.
-        ///
-        /// Operands:
-        ///
-        /// Stack: loop_return_value **=&gt;**
-        </span>LoopUpdateReturnValue,
 
         <span class="doccomment">/// Push labelled start marker.
         ///
@@ -3431,20 +3373,6 @@
         ///
         /// Stack: `argument_1` .. `argument_n` **=&gt;**
         </span>RestParameterPop,
-
-        <span class="doccomment">/// Add one to the pop on return count.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>PopOnReturnAdd,
-
-        <span class="doccomment">/// Subtract one from the pop on return count.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>PopOnReturnSub,
 
         <span class="doccomment">/// Yields from the current generator execution.
         ///
@@ -3668,6 +3596,18 @@
         </span>Reserved49 =&gt; Reserved,
         <span class="doccomment">/// Reserved [`Opcode`].
         </span>Reserved50 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved51 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved52 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved53 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved54 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved55 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved56 =&gt; Reserved,
     }
 }
 

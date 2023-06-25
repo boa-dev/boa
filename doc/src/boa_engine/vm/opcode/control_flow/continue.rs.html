@@ -65,19 +65,9 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
-    Context, JsResult, JsValue,
+    Context, JsResult,
 };
 
 <span class="doccomment">/// `Continue` implements the Opcode Operation for `Opcode::Continue`
@@ -98,25 +88,17 @@
         <span class="kw">let </span>jump_address = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>target_address = context.vm.read::&lt;u32&gt;();
 
-        <span class="kw">let </span>value = context.vm.stack.pop().unwrap_or(JsValue::undefined());
-
         <span class="comment">// 1. Iterate through Env stack looking for exit address.
         </span><span class="kw">let </span><span class="kw-2">mut </span>envs_to_pop = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>set_loop_result = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>found_target = <span class="bool-val">false</span>;
         <span class="kw">for </span>i <span class="kw">in </span>(<span class="number">0</span>..context.vm.frame().env_stack.len()).rev() {
-            <span class="kw">if </span>found_target &amp;&amp; set_loop_result {
+            <span class="kw">if </span>found_target {
                 <span class="kw">break</span>;
             }
 
             <span class="kw">let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame_mut().env_stack.get_mut(i) <span class="kw">else </span>{
                 <span class="kw">break</span>;
             };
-
-            <span class="kw">if </span>found_target {
-                set_loop_result = env_entry.set_loop_return_value(value.clone());
-                <span class="kw">continue</span>;
-            }
 
             <span class="comment">// We check two conditions here where continue actually jumps to a higher address.
             //   1. When we have reached a finally env that matches the jump address we are moving to.
@@ -125,7 +107,6 @@
                 || (jump_address == target_address &amp;&amp; jump_address == env_entry.start_address())
             {
                 found_target = <span class="bool-val">true</span>;
-                set_loop_result = env_entry.set_loop_return_value(value.clone());
                 <span class="kw">continue</span>;
             }
 
@@ -133,7 +114,6 @@
             <span class="comment">// The below check determines whether we have continued from inside of a finally block.
             </span><span class="kw">if </span>jump_address &gt; target_address &amp;&amp; jump_address == env_entry.exit_address() {
                 found_target = <span class="bool-val">true</span>;
-                set_loop_result = env_entry.set_loop_return_value(value.clone());
                 context.vm.frame_mut().env_stack.pop();
                 <span class="kw">continue</span>;
             }

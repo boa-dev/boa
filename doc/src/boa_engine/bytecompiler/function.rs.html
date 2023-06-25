@@ -163,7 +163,6 @@
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, rc::Rc};
 
 <span class="kw">use crate</span>::{
@@ -323,7 +322,6 @@
             .filter(|last| <span class="kw-2">**</span>last == Opcode::Return <span class="kw">as </span>u8)
             .is_none()
         {
-            compiler.emit_opcode(Opcode::PushUndefined);
             compiler.emit_opcode(Opcode::Return);
         }
 

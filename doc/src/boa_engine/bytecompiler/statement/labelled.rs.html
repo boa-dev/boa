@@ -58,7 +58,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_labelled(<span class="kw-2">&amp;mut </span><span class="self">self</span>, labelled: <span class="kw-2">&amp;</span>Labelled, use_expr: bool) {
         <span class="kw">let </span>labelled_loc = <span class="self">self</span>.next_opcode_location();
         <span class="kw">let </span>end_label = <span class="self">self</span>.emit_opcode_with_operand(Opcode::LabelledStart);
-        <span class="self">self</span>.push_labelled_control_info(labelled.label(), labelled_loc);
+        <span class="self">self</span>.push_labelled_control_info(labelled.label(), labelled_loc, use_expr);
 
         <span class="kw">match </span>labelled.item() {
             LabelledItem::Statement(stmt) =&gt; <span class="kw">match </span>stmt {
@@ -77,7 +77,7 @@
                 Statement::DoWhileLoop(do_while_loop) =&gt; {
                     <span class="self">self</span>.compile_do_while_loop(do_while_loop, <span class="prelude-val">Some</span>(labelled.label()), use_expr);
                 }
-                stmt =&gt; <span class="self">self</span>.compile_stmt(stmt, use_expr),
+                stmt =&gt; <span class="self">self</span>.compile_stmt(stmt, use_expr, <span class="bool-val">true</span>),
             },
             LabelledItem::Function(f) =&gt; {
                 <span class="self">self</span>.function_with_binding(f.into(), NodeKind::Declaration, <span class="bool-val">false</span>);

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Pop","PopEnvironment","PopIfThrown","PopOnReturnAdd","PopOnReturnSub"]};
+window.SIDEBAR_ITEMS = {"struct":["Pop","PopEnvironment"]};

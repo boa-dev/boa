@@ -64,6 +64,8 @@
 <a href="#64" id="64">64</a>
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{call_frame::EnvStackEntry, opcode::Operation, CompletionType},
     Context, JsResult,
@@ -93,11 +95,13 @@
             );
         }
 
+        <span class="kw">let </span>fp = context.vm.stack.len() <span class="kw">as </span>u32;
+
         context
             .vm
             .frame_mut()
             .env_stack
-            .push(EnvStackEntry::new(catch, finally).with_try_flag());
+            .push(EnvStackEntry::new(catch, finally).with_try_flag(fp));
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }

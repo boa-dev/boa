@@ -441,6 +441,32 @@
 <a href="#441" id="441">441</a>
 <a href="#442" id="442">442</a>
 <a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `JumpControlInfo` tracks relevant jump information used during compilation.
 //!
 //! Primarily, jump control tracks information related to the compilation of [iteration
@@ -475,11 +501,15 @@
         <span class="kw">const </span>SWITCH = <span class="number">0b0000_0010</span>;
         <span class="kw">const </span>TRY_BLOCK = <span class="number">0b0000_0100</span>;
         <span class="kw">const </span>LABELLED = <span class="number">0b0000_1000</span>;
-        <span class="kw">const </span>IN_CATCH = <span class="number">0b0001_0000</span>;
-        <span class="kw">const </span>IN_FINALLY = <span class="number">0b0010_0000</span>;
-        <span class="kw">const </span>HAS_FINALLY = <span class="number">0b0100_0000</span>;
-        <span class="kw">const </span>ITERATOR_LOOP = <span class="number">0b1000_0000</span>;
-        <span class="kw">const </span>FOR_AWAIT_OF_LOOP = <span class="number">0b1_0000_0000</span>;
+        <span class="kw">const </span>IN_FINALLY = <span class="number">0b0001_0000</span>;
+        <span class="kw">const </span>HAS_FINALLY = <span class="number">0b0010_0000</span>;
+        <span class="kw">const </span>ITERATOR_LOOP = <span class="number">0b0100_0000</span>;
+        <span class="kw">const </span>FOR_AWAIT_OF_LOOP = <span class="number">0b1000_0000</span>;
+
+        <span class="doccomment">/// Is the statement compiled with use_expr set to true.
+        ///
+        /// This bitflag is inherited if the previous [`JumpControlInfo`].
+        </span><span class="kw">const </span>USE_EXPR = <span class="number">0b0001_0000_0000</span>;
     }
 }
 
@@ -577,16 +607,16 @@
         <span class="self">self</span>.flags.contains(JumpControlInfoFlags::LABELLED)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>in_catch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.flags.contains(JumpControlInfoFlags::IN_CATCH)
-    }
-
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>in_finally(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags.contains(JumpControlInfoFlags::IN_FINALLY)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>has_finally(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags.contains(JumpControlInfoFlags::HAS_FINALLY)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>use_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.contains(JumpControlInfoFlags::USE_EXPR)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>iterator_loop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -609,11 +639,6 @@
     <span class="doccomment">/// Sets the `start_address` field of `JumpControlInfo`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_start_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start_address: u32) {
         <span class="self">self</span>.start_address = start_address;
-    }
-
-    <span class="doccomment">/// Sets the `in_catch` field of `JumpControlInfo`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_in_catch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) {
-        <span class="self">self</span>.flags.set(JumpControlInfoFlags::IN_CATCH, value);
     }
 
     <span class="doccomment">/// Set the `in_finally` field of `JumpControlInfo`.
@@ -641,9 +666,9 @@
     <span class="doccomment">/// Pushes a generic `JumpControlInfo` onto `ByteCompiler`
     ///
     /// Default `JumpControlInfoKind` is `JumpControlInfoKind::Loop`
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_empty_loop_jump_control(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.jump_info
-            .push(JumpControlInfo::default().with_loop_flag(<span class="bool-val">true</span>));
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_empty_loop_jump_control(<span class="kw-2">&amp;mut </span><span class="self">self</span>, use_expr: bool) {
+        <span class="kw">let </span>new_info = JumpControlInfo::default().with_loop_flag(<span class="bool-val">true</span>);
+        <span class="self">self</span>.push_contol_info(new_info, use_expr);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_jump_control_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>JumpControlInfo&gt; {
@@ -655,37 +680,43 @@
         info.set_start_address(start_address);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jump_control_in_finally(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) {
-        <span class="kw">if </span>!<span class="self">self</span>.jump_info.is_empty() {
-            <span class="kw">let </span>info = <span class="self">self
-                </span>.jump_info
-                .last_mut()
-                .expect(<span class="string">&quot;must have try control label&quot;</span>);
-            <span class="macro">assert!</span>(info.is_try_block());
-            info.set_in_finally(value);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_contol_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>info: JumpControlInfo, use_expr: bool) {
+        info.flags.set(JumpControlInfoFlags::USE_EXPR, use_expr);
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <span class="self">self</span>.jump_info.last() {
+            <span class="comment">// Inherits the `JumpControlInfoFlags::USE_EXPR` flag.
+            </span>info.flags |= last.flags &amp; JumpControlInfoFlags::USE_EXPR;
         }
+
+        <span class="self">self</span>.jump_info.push(info);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jump_control_in_catch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) {
-        <span class="kw">if </span>!<span class="self">self</span>.jump_info.is_empty() {
-            <span class="kw">let </span>info = <span class="self">self
-                </span>.jump_info
-                .last_mut()
-                .expect(<span class="string">&quot;must have try control label&quot;</span>);
-            <span class="macro">assert!</span>(info.is_try_block());
-            info.set_in_catch(value);
+    <span class="doccomment">/// Does the jump control info have the `use_expr` flag set to true.
+    ///
+    /// See [`JumpControlInfoFlags`].
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>jump_control_info_has_use_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <span class="self">self</span>.jump_info.last() {
+            <span class="kw">return </span>last.use_expr();
         }
-    }
+
+        <span class="bool-val">false
+    </span>}
 
     <span class="comment">// ---- Labelled Statement JumpControlInfo methods ---- //
 
     </span><span class="doccomment">/// Pushes a `LabelledStatement`&#39;s `JumpControlInfo` onto the `jump_info` stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_labelled_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Sym, start_address: u32) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_labelled_control_info(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        label: Sym,
+        start_address: u32,
+        use_expr: bool,
+    ) {
         <span class="kw">let </span>new_info = JumpControlInfo::default()
             .with_labelled_block_flag(<span class="bool-val">true</span>)
             .with_label(<span class="prelude-val">Some</span>(label))
             .with_start_address(start_address);
-        <span class="self">self</span>.jump_info.push(new_info);
+
+        <span class="self">self</span>.push_contol_info(new_info, use_expr);
     }
 
     <span class="doccomment">/// Pops and handles the info for a label&#39;s `JumpControlInfo`
@@ -710,12 +741,18 @@
     <span class="comment">// ---- `IterationStatement`&#39;s `JumpControlInfo` methods ---- //
 
     </span><span class="doccomment">/// Pushes an `WhileStatement`, `ForStatement` or `DoWhileStatement`&#39;s `JumpControlInfo` on to the `jump_info` stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_loop_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="prelude-ty">Option</span>&lt;Sym&gt;, start_address: u32) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_loop_control_info(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
+        start_address: u32,
+        use_expr: bool,
+    ) {
         <span class="kw">let </span>new_info = JumpControlInfo::default()
             .with_loop_flag(<span class="bool-val">true</span>)
             .with_label(label)
             .with_start_address(start_address);
-        <span class="self">self</span>.jump_info.push(new_info);
+
+        <span class="self">self</span>.push_contol_info(new_info, use_expr);
     }
 
     <span class="doccomment">/// Pushes a `ForInOfStatement`&#39;s `JumpControlInfo` on to the `jump_info` stack.
@@ -723,19 +760,22 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         start_address: u32,
+        use_expr: bool,
     ) {
         <span class="kw">let </span>new_info = JumpControlInfo::default()
             .with_loop_flag(<span class="bool-val">true</span>)
             .with_label(label)
             .with_start_address(start_address)
             .with_iterator_loop(<span class="bool-val">true</span>);
-        <span class="self">self</span>.jump_info.push(new_info);
+
+        <span class="self">self</span>.push_contol_info(new_info, use_expr);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_loop_control_info_for_await_of_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         start_address: u32,
+        use_expr: bool,
     ) {
         <span class="kw">let </span>new_info = JumpControlInfo::default()
             .with_loop_flag(<span class="bool-val">true</span>)
@@ -743,7 +783,8 @@
             .with_start_address(start_address)
             .with_iterator_loop(<span class="bool-val">true</span>)
             .with_for_await_of_loop(<span class="bool-val">true</span>);
-        <span class="self">self</span>.jump_info.push(new_info);
+
+        <span class="self">self</span>.push_contol_info(new_info, use_expr);
     }
 
     <span class="doccomment">/// Pops and handles the info for a loop control block&#39;s `JumpControlInfo`
@@ -770,12 +811,18 @@
     <span class="comment">// ---- `SwitchStatement` `JumpControlInfo` methods ---- //
 
     </span><span class="doccomment">/// Pushes a `SwitchStatement`&#39;s `JumpControlInfo` on to the `jump_info` stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_switch_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="prelude-ty">Option</span>&lt;Sym&gt;, start_address: u32) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_switch_control_info(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
+        start_address: u32,
+        use_expr: bool,
+    ) {
         <span class="kw">let </span>new_info = JumpControlInfo::default()
             .with_switch_flag(<span class="bool-val">true</span>)
             .with_label(label)
             .with_start_address(start_address);
-        <span class="self">self</span>.jump_info.push(new_info);
+
+        <span class="self">self</span>.push_contol_info(new_info, use_expr);
     }
 
     <span class="doccomment">/// Pops and handles the info for a switch block&#39;s `JumpControlInfo`
@@ -797,13 +844,18 @@
     <span class="comment">// ---- `TryStatement`&#39;s `JumpControlInfo` methods ---- //
 
     </span><span class="doccomment">/// Pushes a `TryStatement`&#39;s `JumpControlInfo` onto the `jump_info` stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_try_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, has_finally: bool, start_address: u32) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_try_control_info(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        has_finally: bool,
+        start_address: u32,
+        use_expr: bool,
+    ) {
         <span class="kw">let </span>new_info = JumpControlInfo::default()
             .with_try_block_flag(<span class="bool-val">true</span>)
             .with_start_address(start_address)
             .with_has_finally(has_finally);
 
-        <span class="self">self</span>.jump_info.push(new_info);
+        <span class="self">self</span>.push_contol_info(new_info, use_expr);
     }
 
     <span class="doccomment">/// Pops and handles the info for a try block&#39;s `JumpControlInfo`
@@ -849,12 +901,12 @@
     }
 
     <span class="doccomment">/// Pushes a `TryStatement`&#39;s Finally block `JumpControlInfo` onto the `jump_info` stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_init_finally_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_init_finally_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, use_expr: bool) {
         <span class="kw">let </span><span class="kw-2">mut </span>new_info = JumpControlInfo::default().with_try_block_flag(<span class="bool-val">true</span>);
 
         new_info.set_in_finally(<span class="bool-val">true</span>);
 
-        <span class="self">self</span>.jump_info.push(new_info);
+        <span class="self">self</span>.push_contol_info(new_info, use_expr);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_finally_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {

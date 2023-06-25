@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Return"]};
+window.SIDEBAR_ITEMS = {"struct":["GetReturnValue","Return","SetReturnValue"]};

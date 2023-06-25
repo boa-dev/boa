@@ -199,72 +199,31 @@
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Module for implementing a `CallFrame`&#39;s environment stacks
 
-</span><span class="kw">use </span><span class="kw">crate</span>::JsValue;
-<span class="kw">use </span>boa_gc::{Finalize, Trace};
-
-<span class="attr">#[derive(Clone, Debug, Finalize, Trace)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>EnvEntryKind {
     Global,
     Loop {
         <span class="doccomment">/// How many iterations a loop has done.
         </span>iteration_count: u64,
 
-        <span class="doccomment">/// The latest return value of the loop.
-        </span>value: JsValue,
-
         <span class="doccomment">/// The index of the currently active iterator.
         </span>iterator: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     },
-    Try,
-    Catch,
+    Try {
+        <span class="doccomment">/// The length of the value stack when the try block was entered.
+        ///
+        /// This is used to pop exact amount values from the stack
+        /// when a throw happens.
+        </span>fp: u32,
+    },
     Finally,
     Labelled,
 }
 
-<span class="kw">impl </span>PartialEq <span class="kw">for </span>EnvEntryKind {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
-            (<span class="self">self</span>, other),
-            (<span class="self">Self</span>::Global, <span class="self">Self</span>::Global)
-                | (<span class="self">Self</span>::Loop { .. }, <span class="self">Self</span>::Loop { .. })
-                | (<span class="self">Self</span>::Try, <span class="self">Self</span>::Try)
-                | (<span class="self">Self</span>::Catch, <span class="self">Self</span>::Catch)
-                | (<span class="self">Self</span>::Finally, <span class="self">Self</span>::Finally)
-                | (<span class="self">Self</span>::Labelled, <span class="self">Self</span>::Labelled)
-        )
-    }
-}
-
 <span class="doccomment">/// The `EnvStackEntry` tracks the environment count and relevant information for the current environment.
-</span><span class="attr">#[derive(Clone, Debug, Finalize, Trace)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EnvStackEntry {
     start: u32,
     exit: u32,
@@ -285,7 +244,7 @@
 
 <span class="doccomment">/// ---- `EnvStackEntry` creation methods ----
 </span><span class="kw">impl </span>EnvStackEntry {
-    <span class="doccomment">/// Creates a new `EnvStackEntry` with the supplied start addresses.
+    <span class="doccomment">/// Creates a new [`EnvStackEntry`] with the supplied start addresses.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(start_address: u32, exit_address: u32) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             start: start_address,
@@ -295,48 +254,44 @@
         }
     }
 
-    <span class="doccomment">/// Returns calling `EnvStackEntry` with `kind` field of `Try`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_try_flag(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.kind = EnvEntryKind::Try;
+    <span class="doccomment">/// Returns calling [`EnvStackEntry`] with `kind` field of [`EnvEntryKind::Try`].
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_try_flag(<span class="kw-2">mut </span><span class="self">self</span>, fp: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.kind = EnvEntryKind::Try { fp };
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Returns calling `EnvStackEntry` with `kind` field of `Loop`, loop iteration set to zero
+    <span class="doccomment">/// Returns calling [`EnvStackEntry`] with `kind` field of [`EnvEntryKind::Loop`], loop iteration set to zero
     /// and iterator index set to `iterator`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_iterator_loop_flag(<span class="kw-2">mut </span><span class="self">self</span>, iteration_count: u64, iterator: u32) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_iterator_loop_flag(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        iteration_count: u64,
+        iterator: u32,
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.kind = EnvEntryKind::Loop {
             iteration_count,
-            value: JsValue::undefined(),
             iterator: <span class="prelude-val">Some</span>(iterator),
         };
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Returns calling `EnvStackEntry` with `kind` field of `Loop`.
+    <span class="doccomment">/// Returns calling [`EnvStackEntry`] with `kind` field of [`EnvEntryKind::Loop`].
     /// And the loop iteration set to zero.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_loop_flag(<span class="kw-2">mut </span><span class="self">self</span>, iteration_count: u64) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_loop_flag(<span class="kw-2">mut </span><span class="self">self</span>, iteration_count: u64) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.kind = EnvEntryKind::Loop {
             iteration_count,
-            value: JsValue::undefined(),
             iterator: <span class="prelude-val">None</span>,
         };
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Returns calling `EnvStackEntry` with `kind` field of `Catch`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_catch_flag(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.kind = EnvEntryKind::Catch;
-        <span class="self">self
-    </span>}
-
-    <span class="doccomment">/// Returns calling `EnvStackEntry` with `kind` field of `Finally`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_finally_flag(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Returns calling [`EnvStackEntry`] with `kind` field of [`EnvEntryKind::Finally`].
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_finally_flag(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.kind = EnvEntryKind::Finally;
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Returns calling `EnvStackEntry` with `kind` field of `Labelled`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_labelled_flag(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Returns calling [`EnvStackEntry`] with `kind` field of [`EnvEntryKind::Labelled`].
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_labelled_flag(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.kind = EnvEntryKind::Labelled;
         <span class="self">self
     </span>}
@@ -359,8 +314,20 @@
         <span class="self">self</span>.exit
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_global_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.kind == EnvEntryKind::Global
+    <span class="doccomment">/// Returns the `fp` field of this [`EnvEntryKind::Try`].
+    ///
+    /// # Panics
+    ///
+    /// If this [`EnvStackEntry`] is **not** a [`EnvEntryKind::Try`].
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_env_frame_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="kw">if let </span>EnvEntryKind::Try { fp } = <span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            <span class="kw">return </span><span class="kw-2">*</span>fp;
+        }
+        <span class="macro">unreachable!</span>(<span class="string">&quot;trying to get frame pointer of a non-try environment&quot;</span>)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_global_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, EnvEntryKind::Global)
     }
 
     <span class="doccomment">/// Returns the loop iteration count if `EnvStackEntry` is a loop.
@@ -384,14 +351,6 @@
         }
     }
 
-    <span class="doccomment">/// Returns the loop return value if `EnvStackEntry` is a loop.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>loop_env_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
-        <span class="kw">if let </span>EnvEntryKind::Loop { value, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.kind {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(value);
-        }
-        <span class="prelude-val">None
-    </span>}
-
     <span class="doccomment">/// Returns the active iterator index if `EnvStackEntry` is an iterator loop.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
         <span class="kw">if let </span>EnvEntryKind::Loop { iterator, .. } = <span class="self">self</span>.kind {
@@ -401,22 +360,21 @@
     </span>}
 
     <span class="doccomment">/// Returns true if an `EnvStackEntry` is a try block
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_try_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.kind == EnvEntryKind::Try
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_try_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, EnvEntryKind::Try { .. })
     }
 
     <span class="doccomment">/// Returns true if an `EnvStackEntry` is a labelled block
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_labelled_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.kind == EnvEntryKind::Labelled
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_labelled_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, EnvEntryKind::Labelled)
     }
 
-    <span class="doccomment">/// Returns true if an `EnvStackEntry` is a catch block
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_catch_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.kind == EnvEntryKind::Catch
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_finally_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, EnvEntryKind::Finally)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_finally_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.kind == EnvEntryKind::Finally
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_loop_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, EnvEntryKind::Loop { .. })
     }
 
     <span class="doccomment">/// Returns the current environment number for this entry.
@@ -440,16 +398,6 @@
     <span class="doccomment">/// Decrements the `env_num` field for current `EnvEntryStack`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dec_env_num(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         (<span class="self">self</span>.env_num, <span class="kw">_</span>) = <span class="self">self</span>.env_num.overflowing_sub(<span class="number">1</span>);
-    }
-
-    <span class="doccomment">/// Set the loop return value for the current `EnvStackEntry`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_loop_return_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: JsValue) -&gt; bool {
-        <span class="kw">if let </span>EnvEntryKind::Loop { value: v, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
-            <span class="kw-2">*</span>v = value;
-            <span class="bool-val">true
-        </span>} <span class="kw">else </span>{
-            <span class="bool-val">false
-        </span>}
     }
 }
 </code></pre></div></section></main></body></html>

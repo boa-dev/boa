@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Break","BreakLabel"]};
+window.SIDEBAR_ITEMS = {"struct":["Break"]};

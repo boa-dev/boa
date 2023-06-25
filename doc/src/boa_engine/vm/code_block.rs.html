@@ -1850,7 +1850,6 @@
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
             | Opcode::JumpIfNullOrUndefined
-            | Opcode::CatchStart
             | Opcode::FinallyStart
             | Opcode::LabelledStart
             | Opcode::Case
@@ -1874,7 +1873,6 @@
             }
             Opcode::CopyDataProperties
             | Opcode::Break
-            | Opcode::BreakLabel
             | Opcode::Continue
             | Opcode::LoopStart
             | Opcode::IteratorLoopStart
@@ -1984,7 +1982,6 @@
                 <span class="macro">format!</span>(<span class="string">&quot;done: {done}&quot;</span>)
             }
             Opcode::Pop
-            | Opcode::PopIfThrown
             | Opcode::Dup
             | Opcode::Swap
             | Opcode::PushZero
@@ -2051,8 +2048,6 @@
             | Opcode::ToBoolean
             | Opcode::Throw
             | Opcode::TryEnd
-            | Opcode::CatchEnd
-            | Opcode::CatchEnd2
             | Opcode::FinallyEnd
             | Opcode::This
             | Opcode::Super
@@ -2060,7 +2055,6 @@
             | Opcode::PopEnvironment
             | Opcode::LoopEnd
             | Opcode::LoopContinue
-            | Opcode::LoopUpdateReturnValue
             | Opcode::LabelledEnd
             | Opcode::CreateForInIterator
             | Opcode::GetIterator
@@ -2083,8 +2077,6 @@
             | Opcode::PushElisionToArray
             | Opcode::PushIteratorToArray
             | Opcode::PushNewArray
-            | Opcode::PopOnReturnAdd
-            | Opcode::PopOnReturnSub
             | Opcode::GeneratorYield
             | Opcode::AsyncGeneratorYield
             | Opcode::GeneratorNext
@@ -2105,6 +2097,8 @@
             | Opcode::SetNameByLocator
             | Opcode::PopPrivateEnvironment
             | Opcode::ImportCall
+            | Opcode::GetReturnValue
+            | Opcode::SetReturnValue
             | Opcode::Nop =&gt; String::new(),
             Opcode::Reserved1
             | Opcode::Reserved2
@@ -2155,7 +2149,13 @@
             | Opcode::Reserved47
             | Opcode::Reserved48
             | Opcode::Reserved49
-            | Opcode::Reserved50 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Opcode::Reserved50
+            | Opcode::Reserved51
+            | Opcode::Reserved52
+            | Opcode::Reserved53
+            | Opcode::Reserved54
+            | Opcode::Reserved55
+            | Opcode::Reserved56 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }

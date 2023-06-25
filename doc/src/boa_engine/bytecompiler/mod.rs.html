@@ -1412,6 +1412,7 @@
 <a href="#1412" id="1412">1412</a>
 <a href="#1413" id="1413">1413</a>
 <a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2170,7 +2171,7 @@
 
     <span class="doccomment">/// Compile a [`StatementList`].
     </span><span class="kw">pub fn </span>compile_statement_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>, list: <span class="kw-2">&amp;</span>StatementList, use_expr: bool, block: bool) {
-        <span class="kw">if </span>use_expr {
+        <span class="kw">if </span>use_expr || <span class="self">self</span>.jump_control_info_has_use_expr() {
             <span class="kw">let </span><span class="kw-2">mut </span>has_returns_value = <span class="bool-val">false</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>use_expr_index = <span class="number">0</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>first_return_is_abrupt = <span class="bool-val">false</span>;
@@ -2195,6 +2196,7 @@
 
             <span class="kw">if </span>first_return_is_abrupt {
                 <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+                <span class="self">self</span>.emit_opcode(Opcode::SetReturnValue);
             }
 
             <span class="kw">for </span>(i, item) <span class="kw">in </span>list.statements().iter().enumerate() {
@@ -2469,7 +2471,7 @@
     </span><span class="kw">fn </span>compile_stmt_list_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <span class="kw-2">&amp;</span>StatementListItem, use_expr: bool, block: bool) {
         <span class="kw">match </span>item {
             StatementListItem::Statement(stmt) =&gt; {
-                <span class="self">self</span>.compile_stmt(stmt, use_expr);
+                <span class="self">self</span>.compile_stmt(stmt, use_expr, <span class="bool-val">false</span>);
             }
             StatementListItem::Declaration(decl) =&gt; <span class="self">self</span>.compile_decl(decl, block),
         }
