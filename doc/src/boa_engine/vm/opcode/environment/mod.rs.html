@@ -266,7 +266,6 @@
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
@@ -494,7 +493,6 @@
         <span class="kw">for _ in </span><span class="number">0</span>..argument_count {
             arguments.push(context.vm.pop());
         }
-        arguments.reverse();
 
         <span class="kw">let </span>this_env = context
             .vm
