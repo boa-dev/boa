@@ -225,7 +225,6 @@ impl Operation for SuperCallDerived {
         for _ in 0..argument_count {
             arguments.push(context.vm.pop());
         }
-        arguments.reverse();
 
         let this_env = context
             .vm

@@ -1254,7 +1254,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: argument_1, ... argument_n **=>**
+        /// Stack: argument_n, ... argument_1 **=>**
         SuperCallDerived,
 
         /// Dynamically import a module.
