@@ -286,7 +286,7 @@ impl Collector {
         let unreachables = Self::mark_heap(&gc.strong_start, &gc.weak_start, &gc.weak_map_start);
 
         // Only finalize if there are any unreachable nodes.
-        if !unreachables.strong.is_empty() || unreachables.weak.is_empty() {
+        if !unreachables.strong.is_empty() || !unreachables.weak.is_empty() {
             // Finalize all the unreachable nodes.
             // SAFETY: All passed pointers are valid, since we won't deallocate until `Self::sweep`.
             unsafe { Self::finalize(unreachables) };
@@ -341,7 +341,7 @@ impl Collector {
         while let Some(node) = strong.get() {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let node_ref = unsafe { node.as_ref() };
-            if node_ref.header.roots() > 0 {
+            if node_ref.header.roots() != 0 {
                 // SAFETY: the reference to node must be valid as it is rooted. Passing
                 // invalid references can result in Undefined Behavior
                 unsafe {
@@ -367,17 +367,22 @@ impl Collector {
 
         // === Weak mark phase ===
         //
+        //
         // 1. Get the naive list of ephemerons that are supposedly dead or their key is dead and
         // trace all the ephemerons that have roots and their keys are live. Also remove from
         // this list the ephemerons that are marked but their value is dead.
         while let Some(eph) = weak.get() {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let eph_ref = unsafe { eph.as_ref() };
+            let header = eph_ref.header();
+            if header.roots() != 0 {
+                header.mark();
+            }
             // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
             if unsafe { !eph_ref.trace() } {
                 pending_ephemerons.push(eph);
             }
-            weak = &eph_ref.header().next;
+            weak = &header.next;
         }
 
         // 2. Trace all the weak pointers in the live weak maps to make sure they do not get swept.
@@ -432,7 +437,7 @@ impl Collector {
         for node in unreachables.strong {
             // SAFETY: The caller must ensure all pointers inside `unreachables.strong` are valid.
             let node = unsafe { node.as_ref() };
-            Trace::run_finalizer(&node.value());
+            Trace::run_finalizer(node.value());
         }
         for node in unreachables.weak {
             // SAFETY: The caller must ensure all pointers inside `unreachables.weak` are valid.

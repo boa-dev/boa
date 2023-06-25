@@ -204,7 +204,7 @@ impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
             // SAFETY: `data` comes from an `into_raw` call, so this pointer is safe to pass to
             // `from_raw`.
             let contents = unsafe { Box::from_raw(data.as_ptr()) };
-            contents.value.finalize();
+            Trace::run_finalizer(&contents.value);
         }
     }
 }

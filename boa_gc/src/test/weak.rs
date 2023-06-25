@@ -1,3 +1,5 @@
+use std::{cell::Cell, rc::Rc};
+
 use super::run_test;
 use crate::{
     force_collect, test::Harness, Ephemeron, Finalize, Gc, GcBox, GcRefCell, Trace, WeakGc,
@@ -65,18 +67,22 @@ fn eph_allocation_chains() {
             let weak = WeakGc::new(&cloned_gc);
             let wrap = Gc::new(weak);
 
-            assert_eq!(*wrap.upgrade().expect("weak is live"), "foo");
+            assert_eq!(wrap.upgrade().as_deref().map(String::as_str), Some("foo"));
 
             let eph = Ephemeron::new(&wrap, 3);
 
             drop(cloned_gc);
             force_collect();
-
-            assert_eq!(eph.value().expect("weak is still live"), 3);
+            assert_eq!(wrap.upgrade().as_deref().map(String::as_str), Some("foo"));
+            assert_eq!(eph.value(), Some(3));
 
             drop(gc_value);
             force_collect();
+            assert!(wrap.upgrade().is_none());
+            assert_eq!(eph.value(), Some(3));
 
+            drop(wrap);
+            force_collect();
             assert!(eph.value().is_none());
         }
     });
@@ -91,7 +97,7 @@ fn eph_basic_alloc_dump_test() {
         let eph = Ephemeron::new(&gc_value, 4);
         let _fourth = Gc::new("tail");
 
-        assert_eq!(eph.value().expect("must be live"), 4);
+        assert_eq!(eph.value(), Some(4));
     });
 }
 
@@ -216,5 +222,38 @@ fn eph_self_referential_chain() {
         force_collect();
 
         Harness::assert_exact_bytes_allocated(root_size);
+    });
+}
+
+#[test]
+fn eph_finalizer() {
+    #[derive(Clone, Trace)]
+    struct S {
+        #[unsafe_ignore_trace]
+        inner: Rc<Cell<bool>>,
+    }
+
+    impl Finalize for S {
+        fn finalize(&self) {
+            self.inner.set(true);
+        }
+    }
+
+    run_test(|| {
+        let val = S {
+            inner: Rc::new(Cell::new(false)),
+        };
+
+        let key = Gc::new(50u32);
+        let eph = Ephemeron::new(&key, Gc::new(val.clone()));
+        assert!(eph.has_value());
+        // finalize hasn't been run
+        assert!(!val.inner.get());
+
+        drop(key);
+        force_collect();
+        assert!(!eph.has_value());
+        // finalize ran when collecting
+        assert!(val.inner.get());
     });
 }
