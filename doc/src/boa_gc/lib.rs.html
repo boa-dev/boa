@@ -549,6 +549,11 @@
 <a href="#549" id="549">549</a>
 <a href="#550" id="550">550</a>
 <a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_gc`** crate implements a garbage collector.
 //!
 //! # Crate Overview
@@ -837,7 +842,7 @@
         <span class="kw">let </span>unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.strong_start, <span class="kw-2">&amp;</span>gc.weak_start, <span class="kw-2">&amp;</span>gc.weak_map_start);
 
         <span class="comment">// Only finalize if there are any unreachable nodes.
-        </span><span class="kw">if </span>!unreachables.strong.is_empty() || unreachables.weak.is_empty() {
+        </span><span class="kw">if </span>!unreachables.strong.is_empty() || !unreachables.weak.is_empty() {
             <span class="comment">// Finalize all the unreachable nodes.
             // SAFETY: All passed pointers are valid, since we won&#39;t deallocate until `Self::sweep`.
             </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::finalize(unreachables) };
@@ -892,7 +897,7 @@
         </span><span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong.get() {
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
-            <span class="kw">if </span>node_ref.header.roots() &gt; <span class="number">0 </span>{
+            <span class="kw">if </span>node_ref.header.roots() != <span class="number">0 </span>{
                 <span class="comment">// SAFETY: the reference to node must be valid as it is rooted. Passing
                 // invalid references can result in Undefined Behavior
                 </span><span class="kw">unsafe </span>{
@@ -918,17 +923,22 @@
 
         <span class="comment">// === Weak mark phase ===
         //
+        //
         // 1. Get the naive list of ephemerons that are supposedly dead or their key is dead and
         // trace all the ephemerons that have roots and their keys are live. Also remove from
         // this list the ephemerons that are marked but their value is dead.
         </span><span class="kw">while let </span><span class="prelude-val">Some</span>(eph) = weak.get() {
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
+            <span class="kw">let </span>header = eph_ref.header();
+            <span class="kw">if </span>header.roots() != <span class="number">0 </span>{
+                header.mark();
+            }
             <span class="comment">// SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
             </span><span class="kw">if unsafe </span>{ !eph_ref.trace() } {
                 pending_ephemerons.push(eph);
             }
-            weak = <span class="kw-2">&amp;</span>eph_ref.header().next;
+            weak = <span class="kw-2">&amp;</span>header.next;
         }
 
         <span class="comment">// 2. Trace all the weak pointers in the live weak maps to make sure they do not get swept.
@@ -983,7 +993,7 @@
         <span class="kw">for </span>node <span class="kw">in </span>unreachables.strong {
             <span class="comment">// SAFETY: The caller must ensure all pointers inside `unreachables.strong` are valid.
             </span><span class="kw">let </span>node = <span class="kw">unsafe </span>{ node.as_ref() };
-            Trace::run_finalizer(<span class="kw-2">&amp;</span>node.value());
+            Trace::run_finalizer(node.value());
         }
         <span class="kw">for </span>node <span class="kw">in </span>unreachables.weak {
             <span class="comment">// SAFETY: The caller must ensure all pointers inside `unreachables.weak` are valid.
