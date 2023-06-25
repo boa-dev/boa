@@ -20,29 +20,6 @@ impl Operation for Pop {
     }
 }
 
-/// `PopIfThrown` implements the Opcode Operation for `Opcode::PopIfThrown`
-///
-/// Operation:
-///  - Pop the top value from the stack if the last try block has thrown a value.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct PopIfThrown;
-
-impl Operation for PopIfThrown {
-    const NAME: &'static str = "PopIfThrown";
-    const INSTRUCTION: &'static str = "INST - PopIfThrown";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let frame = context.vm.frame();
-        match frame.abrupt_completion {
-            Some(record) if record.is_throw() => {
-                context.vm.pop();
-            }
-            _ => {}
-        };
-        Ok(CompletionType::Normal)
-    }
-}
-
 /// `PopEnvironment` implements the Opcode Operation for `Opcode::PopEnvironment`
 ///
 /// Operation:
@@ -57,40 +34,6 @@ impl Operation for PopEnvironment {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         context.vm.environments.pop();
         context.vm.frame_mut().dec_frame_env_stack();
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `PopReturnAdd` implements the Opcode Operation for `Opcode::PopReturnAdd`
-///
-/// Operation:
-///  - Add one to the pop on return count.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct PopOnReturnAdd;
-
-impl Operation for PopOnReturnAdd {
-    const NAME: &'static str = "PopOnReturnAdd";
-    const INSTRUCTION: &'static str = "INST - PopOnReturnAdd";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        context.vm.frame_mut().pop_on_return += 1;
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `PopOnReturnSub` implements the Opcode Operation for `Opcode::PopOnReturnSub`
-///
-/// Operation:
-///  - Subtract one from the pop on return count.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct PopOnReturnSub;
-
-impl Operation for PopOnReturnSub {
-    const NAME: &'static str = "PopOnReturnSub";
-    const INSTRUCTION: &'static str = "INST - PopOnReturnSub";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        context.vm.frame_mut().pop_on_return -= 1;
         Ok(CompletionType::Normal)
     }
 }

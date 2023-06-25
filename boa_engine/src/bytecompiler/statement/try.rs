@@ -4,7 +4,7 @@ use crate::{
 };
 use boa_ast::{
     declaration::Binding,
-    operations::{bound_names, returns_value},
+    operations::bound_names,
     statement::{Catch, Finally, Try},
 };
 
@@ -16,17 +16,11 @@ impl ByteCompiler<'_, '_> {
 
         // If there is a finally block, initialize the finally control block prior to pushing the try block jump_control
         if t.finally().is_some() {
-            self.push_init_finally_control_info();
+            self.push_init_finally_control_info(use_expr);
         }
-        self.push_try_control_info(t.finally().is_some(), try_start);
+        self.push_try_control_info(t.finally().is_some(), try_start, use_expr);
 
-        self.compile_block(t.block(), true);
-        if !returns_value(t.block()) {
-            self.emit_opcode(Opcode::PushUndefined);
-        }
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
-        }
+        self.compile_block(t.block(), use_expr);
 
         self.emit_opcode(Opcode::TryEnd);
 
@@ -55,10 +49,7 @@ impl ByteCompiler<'_, '_> {
         }
     }
 
-    pub(crate) fn compile_catch_stmt(&mut self, catch: &Catch, finally: bool, use_expr: bool) {
-        self.set_jump_control_in_catch(true);
-        let catch_end = self.emit_opcode_with_operand(Opcode::CatchStart);
-
+    pub(crate) fn compile_catch_stmt(&mut self, catch: &Catch, _finally: bool, use_expr: bool) {
         self.push_compile_environment(false);
         let push_env = self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment);
 
@@ -79,33 +70,18 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::Pop);
         }
 
-        self.compile_block(catch.block(), true);
-        if !returns_value(catch.block()) {
-            self.emit_opcode(Opcode::PushUndefined);
-        }
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
-        }
+        self.compile_block(catch.block(), use_expr);
 
         let env_index = self.pop_compile_environment();
         self.patch_jump_with_target(push_env, env_index);
         self.emit_opcode(Opcode::PopEnvironment);
-
-        if finally {
-            self.emit_opcode(Opcode::CatchEnd);
-        } else {
-            self.emit_opcode(Opcode::CatchEnd2);
-        }
-
-        self.patch_jump(catch_end);
-        self.set_jump_control_in_finally(false);
     }
 
     pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally, finally_end_label: Label) {
+        // TODO: We could probably remove the Get/SetReturnValue if we check that there is no break/continues statements.
+        self.emit_opcode(Opcode::GetReturnValue);
         self.compile_block(finally.block(), true);
-        if returns_value(finally.block()) {
-            self.emit_opcode(Opcode::Pop);
-        }
+        self.emit_opcode(Opcode::SetReturnValue);
 
         self.pop_finally_control_info();
         self.patch_jump(finally_end_label);

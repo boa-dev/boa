@@ -32,11 +32,15 @@ bitflags! {
         const SWITCH = 0b0000_0010;
         const TRY_BLOCK = 0b0000_0100;
         const LABELLED = 0b0000_1000;
-        const IN_CATCH = 0b0001_0000;
-        const IN_FINALLY = 0b0010_0000;
-        const HAS_FINALLY = 0b0100_0000;
-        const ITERATOR_LOOP = 0b1000_0000;
-        const FOR_AWAIT_OF_LOOP = 0b1_0000_0000;
+        const IN_FINALLY = 0b0001_0000;
+        const HAS_FINALLY = 0b0010_0000;
+        const ITERATOR_LOOP = 0b0100_0000;
+        const FOR_AWAIT_OF_LOOP = 0b1000_0000;
+
+        /// Is the statement compiled with use_expr set to true.
+        ///
+        /// This bitflag is inherited if the previous [`JumpControlInfo`].
+        const USE_EXPR = 0b0001_0000_0000;
     }
 }
 
@@ -134,16 +138,16 @@ impl JumpControlInfo {
         self.flags.contains(JumpControlInfoFlags::LABELLED)
     }
 
-    pub(crate) const fn in_catch(&self) -> bool {
-        self.flags.contains(JumpControlInfoFlags::IN_CATCH)
-    }
-
     pub(crate) const fn in_finally(&self) -> bool {
         self.flags.contains(JumpControlInfoFlags::IN_FINALLY)
     }
 
     pub(crate) const fn has_finally(&self) -> bool {
         self.flags.contains(JumpControlInfoFlags::HAS_FINALLY)
+    }
+
+    pub(crate) const fn use_expr(&self) -> bool {
+        self.flags.contains(JumpControlInfoFlags::USE_EXPR)
     }
 
     pub(crate) const fn iterator_loop(&self) -> bool {
@@ -166,11 +170,6 @@ impl JumpControlInfo {
     /// Sets the `start_address` field of `JumpControlInfo`.
     pub(crate) fn set_start_address(&mut self, start_address: u32) {
         self.start_address = start_address;
-    }
-
-    /// Sets the `in_catch` field of `JumpControlInfo`.
-    pub(crate) fn set_in_catch(&mut self, value: bool) {
-        self.flags.set(JumpControlInfoFlags::IN_CATCH, value);
     }
 
     /// Set the `in_finally` field of `JumpControlInfo`.
@@ -198,9 +197,9 @@ impl ByteCompiler<'_, '_> {
     /// Pushes a generic `JumpControlInfo` onto `ByteCompiler`
     ///
     /// Default `JumpControlInfoKind` is `JumpControlInfoKind::Loop`
-    pub(crate) fn push_empty_loop_jump_control(&mut self) {
-        self.jump_info
-            .push(JumpControlInfo::default().with_loop_flag(true));
+    pub(crate) fn push_empty_loop_jump_control(&mut self, use_expr: bool) {
+        let new_info = JumpControlInfo::default().with_loop_flag(true);
+        self.push_contol_info(new_info, use_expr);
     }
 
     pub(crate) fn current_jump_control_mut(&mut self) -> Option<&mut JumpControlInfo> {
@@ -212,37 +211,43 @@ impl ByteCompiler<'_, '_> {
         info.set_start_address(start_address);
     }
 
-    pub(crate) fn set_jump_control_in_finally(&mut self, value: bool) {
-        if !self.jump_info.is_empty() {
-            let info = self
-                .jump_info
-                .last_mut()
-                .expect("must have try control label");
-            assert!(info.is_try_block());
-            info.set_in_finally(value);
+    pub(crate) fn push_contol_info(&mut self, mut info: JumpControlInfo, use_expr: bool) {
+        info.flags.set(JumpControlInfoFlags::USE_EXPR, use_expr);
+
+        if let Some(last) = self.jump_info.last() {
+            // Inherits the `JumpControlInfoFlags::USE_EXPR` flag.
+            info.flags |= last.flags & JumpControlInfoFlags::USE_EXPR;
         }
+
+        self.jump_info.push(info);
     }
 
-    pub(crate) fn set_jump_control_in_catch(&mut self, value: bool) {
-        if !self.jump_info.is_empty() {
-            let info = self
-                .jump_info
-                .last_mut()
-                .expect("must have try control label");
-            assert!(info.is_try_block());
-            info.set_in_catch(value);
+    /// Does the jump control info have the `use_expr` flag set to true.
+    ///
+    /// See [`JumpControlInfoFlags`].
+    pub(crate) fn jump_control_info_has_use_expr(&self) -> bool {
+        if let Some(last) = self.jump_info.last() {
+            return last.use_expr();
         }
+
+        false
     }
 
     // ---- Labelled Statement JumpControlInfo methods ---- //
 
     /// Pushes a `LabelledStatement`'s `JumpControlInfo` onto the `jump_info` stack.
-    pub(crate) fn push_labelled_control_info(&mut self, label: Sym, start_address: u32) {
+    pub(crate) fn push_labelled_control_info(
+        &mut self,
+        label: Sym,
+        start_address: u32,
+        use_expr: bool,
+    ) {
         let new_info = JumpControlInfo::default()
             .with_labelled_block_flag(true)
             .with_label(Some(label))
             .with_start_address(start_address);
-        self.jump_info.push(new_info);
+
+        self.push_contol_info(new_info, use_expr);
     }
 
     /// Pops and handles the info for a label's `JumpControlInfo`
@@ -267,12 +272,18 @@ impl ByteCompiler<'_, '_> {
     // ---- `IterationStatement`'s `JumpControlInfo` methods ---- //
 
     /// Pushes an `WhileStatement`, `ForStatement` or `DoWhileStatement`'s `JumpControlInfo` on to the `jump_info` stack.
-    pub(crate) fn push_loop_control_info(&mut self, label: Option<Sym>, start_address: u32) {
+    pub(crate) fn push_loop_control_info(
+        &mut self,
+        label: Option<Sym>,
+        start_address: u32,
+        use_expr: bool,
+    ) {
         let new_info = JumpControlInfo::default()
             .with_loop_flag(true)
             .with_label(label)
             .with_start_address(start_address);
-        self.jump_info.push(new_info);
+
+        self.push_contol_info(new_info, use_expr);
     }
 
     /// Pushes a `ForInOfStatement`'s `JumpControlInfo` on to the `jump_info` stack.
@@ -280,19 +291,22 @@ impl ByteCompiler<'_, '_> {
         &mut self,
         label: Option<Sym>,
         start_address: u32,
+        use_expr: bool,
     ) {
         let new_info = JumpControlInfo::default()
             .with_loop_flag(true)
             .with_label(label)
             .with_start_address(start_address)
             .with_iterator_loop(true);
-        self.jump_info.push(new_info);
+
+        self.push_contol_info(new_info, use_expr);
     }
 
     pub(crate) fn push_loop_control_info_for_await_of_loop(
         &mut self,
         label: Option<Sym>,
         start_address: u32,
+        use_expr: bool,
     ) {
         let new_info = JumpControlInfo::default()
             .with_loop_flag(true)
@@ -300,7 +314,8 @@ impl ByteCompiler<'_, '_> {
             .with_start_address(start_address)
             .with_iterator_loop(true)
             .with_for_await_of_loop(true);
-        self.jump_info.push(new_info);
+
+        self.push_contol_info(new_info, use_expr);
     }
 
     /// Pops and handles the info for a loop control block's `JumpControlInfo`
@@ -327,12 +342,18 @@ impl ByteCompiler<'_, '_> {
     // ---- `SwitchStatement` `JumpControlInfo` methods ---- //
 
     /// Pushes a `SwitchStatement`'s `JumpControlInfo` on to the `jump_info` stack.
-    pub(crate) fn push_switch_control_info(&mut self, label: Option<Sym>, start_address: u32) {
+    pub(crate) fn push_switch_control_info(
+        &mut self,
+        label: Option<Sym>,
+        start_address: u32,
+        use_expr: bool,
+    ) {
         let new_info = JumpControlInfo::default()
             .with_switch_flag(true)
             .with_label(label)
             .with_start_address(start_address);
-        self.jump_info.push(new_info);
+
+        self.push_contol_info(new_info, use_expr);
     }
 
     /// Pops and handles the info for a switch block's `JumpControlInfo`
@@ -354,13 +375,18 @@ impl ByteCompiler<'_, '_> {
     // ---- `TryStatement`'s `JumpControlInfo` methods ---- //
 
     /// Pushes a `TryStatement`'s `JumpControlInfo` onto the `jump_info` stack.
-    pub(crate) fn push_try_control_info(&mut self, has_finally: bool, start_address: u32) {
+    pub(crate) fn push_try_control_info(
+        &mut self,
+        has_finally: bool,
+        start_address: u32,
+        use_expr: bool,
+    ) {
         let new_info = JumpControlInfo::default()
             .with_try_block_flag(true)
             .with_start_address(start_address)
             .with_has_finally(has_finally);
 
-        self.jump_info.push(new_info);
+        self.push_contol_info(new_info, use_expr);
     }
 
     /// Pops and handles the info for a try block's `JumpControlInfo`
@@ -406,12 +432,12 @@ impl ByteCompiler<'_, '_> {
     }
 
     /// Pushes a `TryStatement`'s Finally block `JumpControlInfo` onto the `jump_info` stack.
-    pub(crate) fn push_init_finally_control_info(&mut self) {
+    pub(crate) fn push_init_finally_control_info(&mut self, use_expr: bool) {
         let mut new_info = JumpControlInfo::default().with_try_block_flag(true);
 
         new_info.set_in_finally(true);
 
-        self.jump_info.push(new_info);
+        self.push_contol_info(new_info, use_expr);
     }
 
     pub(crate) fn pop_finally_control_info(&mut self) {

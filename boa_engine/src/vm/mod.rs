@@ -359,23 +359,15 @@ impl Context<'_> {
             println!("\n");
         }
 
+        if execution_completion == CompletionType::Throw
+            || execution_completion == CompletionType::Return
+        {
+            self.vm.frame_mut().abrupt_completion = None;
+        }
+        self.vm.stack.truncate(self.vm.frame().fp as usize);
+
         // Determine the execution result
-        let execution_result = if execution_completion == CompletionType::Throw {
-            self.vm.frame_mut().abrupt_completion = None;
-            self.vm.stack.truncate(self.vm.frame().fp as usize);
-            JsValue::undefined()
-        } else if execution_completion == CompletionType::Return {
-            self.vm.frame_mut().abrupt_completion = None;
-            let result = self.vm.pop();
-            self.vm.stack.truncate(self.vm.frame().fp as usize);
-            result
-        } else if self.vm.stack.len() <= self.vm.frame().fp as usize {
-            JsValue::undefined()
-        } else {
-            let result = self.vm.pop();
-            self.vm.stack.truncate(self.vm.frame().fp as usize);
-            result
-        };
+        let execution_result = self.vm.frame_mut().return_value.clone();
 
         if let Some(promise) = promise_capability {
             match execution_completion {

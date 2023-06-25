@@ -29,8 +29,9 @@ impl Operation for Throw {
         let current_address = context.vm.frame().pc;
         let mut envs = context.vm.frame().env_stack.iter();
 
+        // Handle catch block
         if let Some(idx) =
-            envs.rposition(|env| env.is_try_env() && env.start_address() < env.exit_address())
+            envs.rposition(|env| env.is_try_env() && env.start_address() != env.exit_address())
         {
             let active_iterator = context.vm.frame().env_stack[..idx]
                 .iter()
@@ -51,6 +52,10 @@ impl Operation for Throw {
                 }
                 context.vm.err.take();
             }
+
+            let try_env = &context.vm.frame().env_stack[idx];
+            let try_env_frame_pointer = try_env.try_env_frame_pointer();
+            context.vm.stack.truncate(try_env_frame_pointer as usize);
 
             let catch_target = context.vm.frame().env_stack[idx].start_address();
 
@@ -90,11 +95,6 @@ impl Operation for Throw {
                 context.vm.frame_mut().pc = target_address;
             };
 
-            for _ in 0..context.vm.frame().pop_on_return {
-                context.vm.pop();
-            }
-
-            context.vm.frame_mut().pop_on_return = 0;
             let record = AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
             context.vm.frame_mut().abrupt_completion = Some(record);
             let err = error.to_opaque(context);
@@ -147,6 +147,7 @@ impl Operation for Throw {
                     .frame_mut()
                     .iterators
                     .split_off(active_iterator as usize + 1);
+
                 for iterator in inactive {
                     if !iterator.done() {
                         drop(iterator.close(Ok(JsValue::undefined()), context));
@@ -158,13 +159,8 @@ impl Operation for Throw {
             let env_truncation_len = context.vm.environments.len().saturating_sub(env_to_pop);
             context.vm.environments.truncate(env_truncation_len);
 
-            let previous_stack_size = context
-                .vm
-                .stack
-                .len()
-                .saturating_sub(context.vm.frame().pop_on_return as usize);
-            context.vm.stack.truncate(previous_stack_size);
-            context.vm.frame_mut().pop_on_return = 0;
+            // NOTE: There is could be leftover stack values, but this is fine,
+            // since we truncate to the call frams's frame pointer on return.
 
             context.vm.frame_mut().pc = address;
             let err = error.to_opaque(context);

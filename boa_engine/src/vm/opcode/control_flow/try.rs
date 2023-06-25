@@ -27,11 +27,13 @@ impl Operation for TryStart {
             );
         }
 
+        let fp = context.vm.stack.len() as u32;
+
         context
             .vm
             .frame_mut()
             .env_stack
-            .push(EnvStackEntry::new(catch, finally).with_try_flag());
+            .push(EnvStackEntry::new(catch, finally).with_try_flag(fp));
 
         Ok(CompletionType::Normal)
     }

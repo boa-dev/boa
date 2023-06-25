@@ -1,43 +1,28 @@
 //! Module for implementing a `CallFrame`'s environment stacks
 
-use crate::JsValue;
-use boa_gc::{Finalize, Trace};
-
-#[derive(Clone, Debug, Finalize, Trace)]
+#[derive(Clone, Debug)]
 pub(crate) enum EnvEntryKind {
     Global,
     Loop {
         /// How many iterations a loop has done.
         iteration_count: u64,
 
-        /// The latest return value of the loop.
-        value: JsValue,
-
         /// The index of the currently active iterator.
         iterator: Option<u32>,
     },
-    Try,
-    Catch,
+    Try {
+        /// The length of the value stack when the try block was entered.
+        ///
+        /// This is used to pop exact amount values from the stack
+        /// when a throw happens.
+        fp: u32,
+    },
     Finally,
     Labelled,
 }
 
-impl PartialEq for EnvEntryKind {
-    fn eq(&self, other: &Self) -> bool {
-        matches!(
-            (self, other),
-            (Self::Global, Self::Global)
-                | (Self::Loop { .. }, Self::Loop { .. })
-                | (Self::Try, Self::Try)
-                | (Self::Catch, Self::Catch)
-                | (Self::Finally, Self::Finally)
-                | (Self::Labelled, Self::Labelled)
-        )
-    }
-}
-
 /// The `EnvStackEntry` tracks the environment count and relevant information for the current environment.
-#[derive(Clone, Debug, Finalize, Trace)]
+#[derive(Clone, Debug)]
 pub(crate) struct EnvStackEntry {
     start: u32,
     exit: u32,
@@ -58,7 +43,7 @@ impl Default for EnvStackEntry {
 
 /// ---- `EnvStackEntry` creation methods ----
 impl EnvStackEntry {
-    /// Creates a new `EnvStackEntry` with the supplied start addresses.
+    /// Creates a new [`EnvStackEntry`] with the supplied start addresses.
     pub(crate) const fn new(start_address: u32, exit_address: u32) -> Self {
         Self {
             start: start_address,
@@ -68,48 +53,44 @@ impl EnvStackEntry {
         }
     }
 
-    /// Returns calling `EnvStackEntry` with `kind` field of `Try`.
-    pub(crate) fn with_try_flag(mut self) -> Self {
-        self.kind = EnvEntryKind::Try;
+    /// Returns calling [`EnvStackEntry`] with `kind` field of [`EnvEntryKind::Try`].
+    pub(crate) const fn with_try_flag(mut self, fp: u32) -> Self {
+        self.kind = EnvEntryKind::Try { fp };
         self
     }
 
-    /// Returns calling `EnvStackEntry` with `kind` field of `Loop`, loop iteration set to zero
+    /// Returns calling [`EnvStackEntry`] with `kind` field of [`EnvEntryKind::Loop`], loop iteration set to zero
     /// and iterator index set to `iterator`.
-    pub(crate) fn with_iterator_loop_flag(mut self, iteration_count: u64, iterator: u32) -> Self {
+    pub(crate) const fn with_iterator_loop_flag(
+        mut self,
+        iteration_count: u64,
+        iterator: u32,
+    ) -> Self {
         self.kind = EnvEntryKind::Loop {
             iteration_count,
-            value: JsValue::undefined(),
             iterator: Some(iterator),
         };
         self
     }
 
-    /// Returns calling `EnvStackEntry` with `kind` field of `Loop`.
+    /// Returns calling [`EnvStackEntry`] with `kind` field of [`EnvEntryKind::Loop`].
     /// And the loop iteration set to zero.
-    pub(crate) fn with_loop_flag(mut self, iteration_count: u64) -> Self {
+    pub(crate) const fn with_loop_flag(mut self, iteration_count: u64) -> Self {
         self.kind = EnvEntryKind::Loop {
             iteration_count,
-            value: JsValue::undefined(),
             iterator: None,
         };
         self
     }
 
-    /// Returns calling `EnvStackEntry` with `kind` field of `Catch`.
-    pub(crate) fn with_catch_flag(mut self) -> Self {
-        self.kind = EnvEntryKind::Catch;
-        self
-    }
-
-    /// Returns calling `EnvStackEntry` with `kind` field of `Finally`.
-    pub(crate) fn with_finally_flag(mut self) -> Self {
+    /// Returns calling [`EnvStackEntry`] with `kind` field of [`EnvEntryKind::Finally`].
+    pub(crate) const fn with_finally_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Finally;
         self
     }
 
-    /// Returns calling `EnvStackEntry` with `kind` field of `Labelled`.
-    pub(crate) fn with_labelled_flag(mut self) -> Self {
+    /// Returns calling [`EnvStackEntry`] with `kind` field of [`EnvEntryKind::Labelled`].
+    pub(crate) const fn with_labelled_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Labelled;
         self
     }
@@ -132,8 +113,20 @@ impl EnvStackEntry {
         self.exit
     }
 
-    pub(crate) fn is_global_env(&self) -> bool {
-        self.kind == EnvEntryKind::Global
+    /// Returns the `fp` field of this [`EnvEntryKind::Try`].
+    ///
+    /// # Panics
+    ///
+    /// If this [`EnvStackEntry`] is **not** a [`EnvEntryKind::Try`].
+    pub(crate) fn try_env_frame_pointer(&self) -> u32 {
+        if let EnvEntryKind::Try { fp } = &self.kind {
+            return *fp;
+        }
+        unreachable!("trying to get frame pointer of a non-try environment")
+    }
+
+    pub(crate) const fn is_global_env(&self) -> bool {
+        matches!(self.kind, EnvEntryKind::Global)
     }
 
     /// Returns the loop iteration count if `EnvStackEntry` is a loop.
@@ -157,14 +150,6 @@ impl EnvStackEntry {
         }
     }
 
-    /// Returns the loop return value if `EnvStackEntry` is a loop.
-    pub(crate) const fn loop_env_value(&self) -> Option<&JsValue> {
-        if let EnvEntryKind::Loop { value, .. } = &self.kind {
-            return Some(value);
-        }
-        None
-    }
-
     /// Returns the active iterator index if `EnvStackEntry` is an iterator loop.
     pub(crate) const fn iterator(&self) -> Option<u32> {
         if let EnvEntryKind::Loop { iterator, .. } = self.kind {
@@ -174,22 +159,21 @@ impl EnvStackEntry {
     }
 
     /// Returns true if an `EnvStackEntry` is a try block
-    pub(crate) fn is_try_env(&self) -> bool {
-        self.kind == EnvEntryKind::Try
+    pub(crate) const fn is_try_env(&self) -> bool {
+        matches!(self.kind, EnvEntryKind::Try { .. })
     }
 
     /// Returns true if an `EnvStackEntry` is a labelled block
-    pub(crate) fn is_labelled_env(&self) -> bool {
-        self.kind == EnvEntryKind::Labelled
+    pub(crate) const fn is_labelled_env(&self) -> bool {
+        matches!(self.kind, EnvEntryKind::Labelled)
     }
 
-    /// Returns true if an `EnvStackEntry` is a catch block
-    pub(crate) fn is_catch_env(&self) -> bool {
-        self.kind == EnvEntryKind::Catch
+    pub(crate) const fn is_finally_env(&self) -> bool {
+        matches!(self.kind, EnvEntryKind::Finally)
     }
 
-    pub(crate) fn is_finally_env(&self) -> bool {
-        self.kind == EnvEntryKind::Finally
+    pub(crate) const fn is_loop_env(&self) -> bool {
+        matches!(self.kind, EnvEntryKind::Loop { .. })
     }
 
     /// Returns the current environment number for this entry.
@@ -213,15 +197,5 @@ impl EnvStackEntry {
     /// Decrements the `env_num` field for current `EnvEntryStack`.
     pub(crate) fn dec_env_num(&mut self) {
         (self.env_num, _) = self.env_num.overflowing_sub(1);
-    }
-
-    /// Set the loop return value for the current `EnvStackEntry`.
-    pub(crate) fn set_loop_return_value(&mut self, value: JsValue) -> bool {
-        if let EnvEntryKind::Loop { value: v, .. } = &mut self.kind {
-            *v = value;
-            true
-        } else {
-            false
-        }
     }
 }
