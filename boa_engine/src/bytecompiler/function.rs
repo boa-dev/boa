@@ -4,7 +4,7 @@ use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     environments::CompileTimeEnvironment,
-    vm::{CodeBlock, CodeBlockFlags, Opcode},
+    vm::{CodeBlock, CodeBlockFlags},
     Context,
 };
 use boa_ast::function::{FormalParameterList, FunctionBody};
@@ -100,6 +100,7 @@ impl FunctionCompiler {
         let mut compiler = ByteCompiler::new(self.name, self.strict, false, outer_env, context);
         compiler.length = length;
         compiler.in_async_generator = self.generator && self.r#async;
+        compiler.in_generator = self.generator;
 
         if self.arrow {
             compiler.this_mode = ThisMode::Lexical;
@@ -150,15 +151,6 @@ impl FunctionCompiler {
         }
 
         compiler.params = parameters.clone();
-
-        if compiler
-            .bytecode
-            .last()
-            .filter(|last| **last == Opcode::Return as u8)
-            .is_none()
-        {
-            compiler.emit_opcode(Opcode::Return);
-        }
 
         Gc::new(compiler.finish())
     }

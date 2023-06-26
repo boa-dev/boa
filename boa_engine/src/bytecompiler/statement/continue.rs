@@ -1,118 +1,49 @@
-use crate::{bytecompiler::ByteCompiler, vm::Opcode};
+use crate::bytecompiler::{
+    jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind},
+    ByteCompiler,
+};
 use boa_ast::statement::Continue;
 
 impl ByteCompiler<'_, '_> {
     #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn compile_continue(&mut self, node: Continue, _use_expr: bool) {
-        if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
-            let in_finally = info.in_finally();
-            let in_finally_or_has_finally = in_finally || info.has_finally();
+        let actions = self.continue_jump_record_actions(node);
 
-            // 1. Handle if node has a label.
-            if let Some(node_label) = node.label() {
-                let items = self.jump_info.iter().rev().filter(|info| info.is_loop());
-                let mut iterator_closes = Vec::new();
+        JumpRecord::new(JumpRecordKind::Continue, actions)
+            .perform_actions(Self::DUMMY_ADDRESS, self);
+    }
 
-                for info in items {
-                    if info.label() == Some(node_label) {
-                        break;
-                    }
+    fn continue_jump_record_actions(&self, node: Continue) -> Vec<JumpRecordAction> {
+        let mut actions = Vec::default();
+        for (i, info) in self.jump_info.iter().enumerate().rev() {
+            let count = self.jump_info_open_environment_count(i);
+            actions.push(JumpRecordAction::PopEnvironments { count });
 
-                    if info.iterator_loop() {
-                        iterator_closes.push(info.for_await_of_loop());
-                    }
-                }
+            if info.is_try_block() && info.has_finally() && !info.in_finally() {
+                actions.push(JumpRecordAction::HandleFinally {
+                    index: info.jumps.len() as u32,
+                });
+                actions.push(JumpRecordAction::Transfter { index: i as u32 });
+            }
 
-                for r#async in iterator_closes {
-                    self.iterator_close(r#async);
-                }
-
-                let (cont_label, set_label) = self.emit_opcode_with_two_operands(Opcode::Continue);
-
-                let loops = self
-                    .jump_info
-                    .iter_mut()
-                    .rev()
-                    .filter(|info| info.is_loop());
-                let mut set_continue_as_break = false;
-                for info in loops {
-                    let found_label = info.label() == Some(node_label);
-                    if found_label && in_finally_or_has_finally {
-                        set_continue_as_break = true;
-                        info.push_try_continue_label(set_label);
-                        break;
-                    } else if found_label && !in_finally_or_has_finally {
-                        info.push_try_continue_label(cont_label);
-                        info.push_try_continue_label(set_label);
-                        break;
-                    }
-                }
-                if set_continue_as_break {
-                    self.jump_info
-                        .last_mut()
-                        .expect("no jump information found")
-                        .push_break_label(cont_label);
-                }
-            } else {
-                // TODO: Add has finally or in finally here
-                let (cont_label, set_label) = self.emit_opcode_with_two_operands(Opcode::Continue);
-                if in_finally_or_has_finally {
-                    self.jump_info
-                        .last_mut()
-                        .expect("Must exist and be a try block")
-                        .push_break_label(cont_label);
-                };
-                let mut items = self
-                    .jump_info
-                    .iter_mut()
-                    .rev()
-                    .filter(|info| info.is_loop());
-                let jump_info = items.next().expect("continue must be inside loop");
-                if !in_finally_or_has_finally {
-                    jump_info.push_try_continue_label(cont_label);
-                };
-                jump_info.push_try_continue_label(set_label);
-            };
-        } else if let Some(node_label) = node.label() {
-            let items = self.jump_info.iter().rev().filter(|info| info.is_loop());
-            let mut iterator_closes = Vec::new();
-            for info in items {
-                if info.label() == Some(node_label) {
+            if let Some(label) = node.label() {
+                if info.label() == Some(label) {
+                    actions.push(JumpRecordAction::Transfter { index: i as u32 });
                     break;
                 }
-
-                if info.iterator_loop() {
-                    iterator_closes.push(info.for_await_of_loop());
-                }
+            } else if info.is_loop() {
+                actions.push(JumpRecordAction::Transfter { index: i as u32 });
+                break;
             }
 
-            for r#async in iterator_closes {
-                self.iterator_close(r#async);
+            if info.iterator_loop() {
+                actions.push(JumpRecordAction::CloseIterator {
+                    r#async: info.for_await_of_loop(),
+                });
             }
-
-            let (cont_label, set_label) = self.emit_opcode_with_two_operands(Opcode::Continue);
-            let loops = self
-                .jump_info
-                .iter_mut()
-                .rev()
-                .filter(|info| info.is_loop());
-
-            for info in loops {
-                if info.label() == Some(node_label) {
-                    info.push_try_continue_label(cont_label);
-                    info.push_try_continue_label(set_label);
-                }
-            }
-        } else {
-            let (cont_label, set_label) = self.emit_opcode_with_two_operands(Opcode::Continue);
-            let mut items = self
-                .jump_info
-                .iter_mut()
-                .rev()
-                .filter(|info| info.is_loop());
-            let jump_info = items.next().expect("continue must be inside loop");
-            jump_info.push_try_continue_label(cont_label);
-            jump_info.push_try_continue_label(set_label);
         }
+
+        actions.reverse();
+        actions
     }
 }

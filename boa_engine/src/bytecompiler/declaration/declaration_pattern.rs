@@ -180,11 +180,36 @@ impl ByteCompiler<'_, '_> {
                 self.emit_opcode(Opcode::ValueNotNullOrUndefined);
                 self.emit_opcode(Opcode::GetIterator);
 
+                // TODO: maybe, refactor this to be more condensed.
+                let handler_index = self.push_handler();
                 for element in pattern.bindings() {
                     self.compile_array_pattern_element(element, def);
                 }
 
+                self.emit_opcode(Opcode::PushFalse);
+
+                let exit = self.jump();
+                self.patch_handler(handler_index);
+                self.emit_opcode(Opcode::Exception);
+                self.emit_opcode(Opcode::PushTrue);
+                self.patch_jump(exit);
+
+                let iterator_close_handler = self.push_handler();
                 self.iterator_close(false);
+
+                let exit = self.jump();
+                self.patch_handler(iterator_close_handler);
+                {
+                    let jump = self.jump_if_false();
+                    self.emit_opcode(Opcode::Throw);
+                    self.patch_jump(jump);
+                }
+                self.emit_opcode(Opcode::ReThrow);
+                self.patch_jump(exit);
+
+                let jump = self.jump_if_false();
+                self.emit_opcode(Opcode::Throw);
+                self.patch_jump(jump);
             }
         }
     }
@@ -198,15 +223,15 @@ impl ByteCompiler<'_, '_> {
         match element {
             // ArrayBindingPattern : [ Elision ]
             Elision => {
-                self.emit_opcode(Opcode::IteratorNext);
+                self.emit_opcode(Opcode::IteratorNextWithoutPop);
             }
             // SingleNameBinding : BindingIdentifier Initializer[opt]
             SingleName {
                 ident,
                 default_init,
             } => {
-                self.emit_opcode(Opcode::IteratorNext);
-                self.emit_opcode(Opcode::IteratorValue);
+                self.emit_opcode(Opcode::IteratorNextWithoutPop);
+                self.emit_opcode(Opcode::IteratorValueWithoutPop);
                 if let Some(init) = default_init {
                     let skip = self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                     self.compile_expr(init, true);
@@ -216,8 +241,8 @@ impl ByteCompiler<'_, '_> {
             }
             PropertyAccess { access } => {
                 self.access_set(Access::Property { access }, false, |compiler, _level| {
-                    compiler.emit_opcode(Opcode::IteratorNext);
-                    compiler.emit_opcode(Opcode::IteratorValue);
+                    compiler.emit_opcode(Opcode::IteratorNextWithoutPop);
+                    compiler.emit_opcode(Opcode::IteratorValueWithoutPop);
                 });
             }
             // BindingElement : BindingPattern Initializer[opt]
@@ -225,8 +250,8 @@ impl ByteCompiler<'_, '_> {
                 pattern,
                 default_init,
             } => {
-                self.emit_opcode(Opcode::IteratorNext);
-                self.emit_opcode(Opcode::IteratorValue);
+                self.emit_opcode(Opcode::IteratorNextWithoutPop);
+                self.emit_opcode(Opcode::IteratorValueWithoutPop);
 
                 if let Some(init) = default_init {
                     let skip = self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);

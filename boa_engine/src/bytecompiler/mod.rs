@@ -17,7 +17,7 @@ use crate::{
     builtins::function::ThisMode,
     environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
-    vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
+    vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Handler, Opcode},
     Context, JsBigInt, JsString, JsValue,
 };
 use boa_ast::{
@@ -41,6 +41,7 @@ use rustc_hash::FxHashMap;
 
 pub(crate) use function::FunctionCompiler;
 pub(crate) use jump_control::JumpControlInfo;
+use thin_vec::ThinVec;
 
 /// Describes how a node has been defined in the source code.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -246,13 +247,18 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// The environment that is currently active.
     pub(crate) current_environment: Rc<CompileTimeEnvironment>,
 
+    pub(crate) current_open_environments_count: u32,
+
     pub(crate) code_block_flags: CodeBlockFlags,
+
+    pub(crate) handlers: ThinVec<Handler>,
 
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
     in_async_generator: bool,
+    in_generator: bool,
     json_parse: bool,
 
     // TODO: remove when we separate scripts from the context
@@ -290,13 +296,16 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             compile_environments: Vec::default(),
+            current_open_environments_count: 0,
             code_block_flags,
+            handlers: ThinVec::default(),
 
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
             in_async_generator: false,
+            in_generator: false,
             json_parse,
             current_environment,
             context,
@@ -503,6 +512,24 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         self.emit_opcode_with_operand(Opcode::JumpIfNullOrUndefined)
     }
 
+    /// Push a jump table with `count` of entries.
+    ///
+    /// Returns the jump label entries and the default label.
+    fn jump_table(&mut self, count: u32) -> (Vec<Label>, Label) {
+        let index = self.next_opcode_location();
+        self.emit(Opcode::JumpTable, &[count, Self::DUMMY_ADDRESS]);
+        let default = Label { index: index + 4 };
+        let mut labels = Vec::with_capacity(count as usize);
+        for i in 0..count {
+            labels.push(Label {
+                index: index + 8 + 4 * i,
+            });
+            self.emit_u32(Self::DUMMY_ADDRESS);
+        }
+
+        (labels, default)
+    }
+
     /// Emit an opcode with a dummy operand.
     /// Return the `Label` of the operand.
     pub(crate) fn emit_opcode_with_operand(&mut self, opcode: Opcode) -> Label {
@@ -517,28 +544,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         let index = self.next_opcode_location();
         self.emit(opcode, &[Self::DUMMY_ADDRESS, Self::DUMMY_ADDRESS]);
         (Label { index }, Label { index: index + 4 })
-    }
-
-    /// Emit an opcode with three dummy operands.
-    /// Return the `Label`s of the three operands.
-    pub(crate) fn emit_opcode_with_three_operands(
-        &mut self,
-        opcode: Opcode,
-    ) -> (Label, Label, Label) {
-        let index = self.next_opcode_location();
-        self.emit(
-            opcode,
-            &[
-                Self::DUMMY_ADDRESS,
-                Self::DUMMY_ADDRESS,
-                Self::DUMMY_ADDRESS,
-            ],
-        );
-        (
-            Label { index },
-            Label { index: index + 4 },
-            Label { index: index + 8 },
-        )
     }
 
     pub(crate) fn patch_jump_with_target(&mut self, label: Label, target: u32) {
@@ -1386,13 +1391,17 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     #[inline]
     #[must_use]
     #[allow(clippy::missing_const_for_fn)]
-    pub fn finish(self) -> CodeBlock {
+    pub fn finish(mut self) -> CodeBlock {
+        // Push return at the end of the function compilation.
+        self.emit_opcode(Opcode::Return);
+
         let name = self
             .context
             .interner()
             .resolve_expect(self.function_name)
             .utf16()
             .into();
+
         CodeBlock {
             name,
             length: self.length,
@@ -1404,6 +1413,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             bindings: self.bindings.into_boxed_slice(),
             functions: self.functions.into_boxed_slice(),
             compile_environments: self.compile_environments.into_boxed_slice(),
+            handlers: self.handlers,
             flags: Cell::new(self.code_block_flags),
         }
     }

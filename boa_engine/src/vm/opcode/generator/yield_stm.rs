@@ -15,9 +15,8 @@ impl Operation for GeneratorYield {
     const NAME: &'static str = "GeneratorYield";
     const INSTRUCTION: &'static str = "INST - GeneratorYield";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        context.vm.frame_mut().r#yield = true;
-        Ok(CompletionType::Return)
+    fn execute(_context: &mut Context<'_>) -> JsResult<CompletionType> {
+        Ok(CompletionType::Yield)
     }
 }
 
@@ -75,7 +74,7 @@ impl Operation for AsyncGeneratorYield {
                 }
             };
 
-            context.vm.frame_mut().generator_resume_kind = resume_kind;
+            context.vm.push(resume_kind);
 
             Ok(CompletionType::Normal)
         } else {

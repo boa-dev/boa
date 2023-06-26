@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsResult, JsValue,
 };
 
 /// `Jump` implements the Opcode Operation for `Opcode::Jump`
@@ -83,7 +83,7 @@ impl Operation for JumpIfNotUndefined {
     }
 }
 
-/// `JumpIfUndefined` implements the Opcode Operation for `Opcode::JumpIfUndefined`
+/// `JumpIfNullOrUndefined` implements the Opcode Operation for `Opcode::JumpIfNullOrUndefined`
 ///
 /// Operation:
 ///  - Conditional jump to address.
@@ -103,5 +103,40 @@ impl Operation for JumpIfNullOrUndefined {
             context.vm.push(value);
         }
         Ok(CompletionType::Normal)
+    }
+}
+
+/// `JumpTable` implements the Opcode Operation for `Opcode::JumpTable`
+///
+/// Operation:
+///  - Conditional jump to address.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpTable;
+
+impl Operation for JumpTable {
+    const NAME: &'static str = "JumpTable";
+    const INSTRUCTION: &'static str = "INST - JumpTable";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let count = context.vm.read::<u32>();
+        let default = context.vm.read::<u32>();
+
+        let value = context.vm.pop();
+        if let JsValue::Integer(value) = &value {
+            let value = *value as u32;
+            let mut target = None;
+            for i in 0..count {
+                let address = context.vm.read::<u32>();
+                if i + 1 == value {
+                    target = Some(address);
+                }
+            }
+
+            context.vm.frame_mut().pc = target.unwrap_or(default);
+
+            return Ok(CompletionType::Normal);
+        }
+
+        unreachable!("expected positive integer, got {value:?}")
     }
 }

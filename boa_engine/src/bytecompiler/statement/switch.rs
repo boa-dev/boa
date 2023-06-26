@@ -11,11 +11,8 @@ impl ByteCompiler<'_, '_> {
 
         self.block_declaration_instantiation(switch);
 
-        let (start_label, end_label) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
-
         let start_address = self.next_opcode_location();
         self.push_switch_control_info(None, start_address, use_expr);
-        self.patch_jump_with_target(start_label, start_address);
 
         let mut labels = Vec::with_capacity(switch.cases().len());
         for case in switch.cases() {
@@ -52,8 +49,6 @@ impl ByteCompiler<'_, '_> {
         }
 
         self.pop_switch_control_info();
-        self.patch_jump(end_label);
-        self.emit_opcode(Opcode::LoopEnd);
 
         let env_index = self.pop_compile_environment();
         self.patch_jump_with_target(push_env, env_index);

@@ -1,10 +1,6 @@
 use crate::{
-    vm::{
-        call_frame::{AbruptCompletionRecord, EnvStackEntry},
-        opcode::Operation,
-        CompletionType,
-    },
-    Context, JsError, JsNativeError, JsResult, JsValue,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsError, JsNativeError, JsResult,
 };
 
 /// `Throw` implements the Opcode Operation for `Opcode::Throw`
@@ -19,165 +15,94 @@ impl Operation for Throw {
     const INSTRUCTION: &'static str = "INST - Throw";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let error = if let Some(err) = context.vm.err.take() {
-            err
-        } else {
-            JsError::from_opaque(context.vm.pop())
-        };
+        let error = JsError::from_opaque(context.vm.pop());
+        context.vm.pending_exception = Some(error);
 
-        // 1. Find the viable catch and finally blocks
-        let current_address = context.vm.frame().pc;
-        let mut envs = context.vm.frame().env_stack.iter();
+        // Note: -1 because we increment after fetching the opcode.
+        let pc = context.vm.frame().pc - 1;
+        if let Some(handler) = context.vm.frame().code_block().find_handler(pc).copied() {
+            let env_fp = context.vm.frame().env_fp;
 
-        // Handle catch block
-        if let Some(idx) =
-            envs.rposition(|env| env.is_try_env() && env.start_address() != env.exit_address())
-        {
-            let active_iterator = context.vm.frame().env_stack[..idx]
-                .iter()
-                .filter_map(EnvStackEntry::iterator)
-                .last();
+            let catch_address = handler.handler();
+            let env_fp = (env_fp + handler.env_fp) as usize;
+            // TODO: fp
+            // let fp = try_entry.fp() as usize;
 
-            // Close all iterators that are outside the catch context.
-            if let Some(active_iterator) = active_iterator {
-                let inactive = context
-                    .vm
-                    .frame_mut()
-                    .iterators
-                    .split_off(active_iterator as usize + 1);
-                for iterator in inactive {
-                    if !iterator.done() {
-                        drop(iterator.close(Ok(JsValue::undefined()), context));
-                    }
-                }
-                context.vm.err.take();
-            }
-
-            let try_env = &context.vm.frame().env_stack[idx];
-            let try_env_frame_pointer = try_env.try_env_frame_pointer();
-            context.vm.stack.truncate(try_env_frame_pointer as usize);
-
-            let catch_target = context.vm.frame().env_stack[idx].start_address();
-
-            let mut env_to_pop = 0;
-            let mut target_address = u32::MAX;
-            while context.vm.frame().env_stack.len() > 1 {
-                let env_entry = context
-                    .vm
-                    .frame_mut()
-                    .env_stack
-                    .last()
-                    .expect("EnvStackEntries must exist");
-
-                if env_entry.is_try_env() && env_entry.start_address() < env_entry.exit_address() {
-                    target_address = env_entry.start_address();
-                    env_to_pop += env_entry.env_num();
-                    context.vm.frame_mut().env_stack.pop();
-                    break;
-                } else if env_entry.is_finally_env() {
-                    if current_address > env_entry.start_address() {
-                        target_address = env_entry.exit_address();
-                    } else {
-                        target_address = env_entry.start_address();
-                    }
-                    break;
-                }
-                env_to_pop += env_entry.env_num();
-                context.vm.frame_mut().env_stack.pop();
-            }
-
-            let env_truncation_len = context.vm.environments.len().saturating_sub(env_to_pop);
-            context.vm.environments.truncate(env_truncation_len);
-
-            if target_address == catch_target {
-                context.vm.frame_mut().pc = catch_target;
-            } else {
-                context.vm.frame_mut().pc = target_address;
-            };
-
-            let record = AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
-            context.vm.frame_mut().abrupt_completion = Some(record);
-            let err = error.to_opaque(context);
-            context.vm.push(err);
+            context.vm.frame_mut().pc = catch_address;
+            context.vm.environments.truncate(env_fp);
+            // context.vm.stack.truncate(fp);
             return Ok(CompletionType::Normal);
         }
 
-        let mut env_to_pop = 0;
-        let mut target_address = None;
-        let mut env_stack_to_pop = 0;
-        for env_entry in context.vm.frame_mut().env_stack.iter_mut().rev() {
-            if env_entry.is_finally_env() {
-                if env_entry.start_address() < current_address {
-                    target_address = Some(env_entry.exit_address());
-                } else {
-                    target_address = Some(env_entry.start_address());
-                }
-                break;
-            };
-
-            env_to_pop += env_entry.env_num();
-            if env_entry.is_global_env() {
-                env_entry.clear_env_num();
-                break;
-            };
-
-            env_stack_to_pop += 1;
-        }
-
-        let record = AbruptCompletionRecord::new_throw();
-        context.vm.frame_mut().abrupt_completion = Some(record);
-
-        if let Some(address) = target_address {
-            for _ in 0..env_stack_to_pop {
-                context.vm.frame_mut().env_stack.pop();
-            }
-
-            let active_iterator = context
-                .vm
-                .frame()
-                .env_stack
-                .iter()
-                .filter_map(EnvStackEntry::iterator)
-                .last();
-
-            // Close all iterators that are outside the finally context.
-            if let Some(active_iterator) = active_iterator {
-                let inactive = context
-                    .vm
-                    .frame_mut()
-                    .iterators
-                    .split_off(active_iterator as usize + 1);
-
-                for iterator in inactive {
-                    if !iterator.done() {
-                        drop(iterator.close(Ok(JsValue::undefined()), context));
-                    }
-                }
-                context.vm.err.take();
-            }
-
-            let env_truncation_len = context.vm.environments.len().saturating_sub(env_to_pop);
-            context.vm.environments.truncate(env_truncation_len);
-
-            // NOTE: There is could be leftover stack values, but this is fine,
-            // since we truncate to the call frams's frame pointer on return.
-
-            context.vm.frame_mut().pc = address;
-            let err = error.to_opaque(context);
-            context.vm.push(err);
-            return Ok(CompletionType::Normal);
-        }
-
-        // Close all iterators that are still open.
-        for iterator in std::mem::take(&mut context.vm.frame_mut().iterators) {
-            if !iterator.done() {
-                drop(iterator.close(Ok(JsValue::undefined()), context));
-            }
-        }
-        context.vm.err.take();
-
-        context.vm.err = Some(error);
         Ok(CompletionType::Throw)
+    }
+}
+
+/// `ReThrow` implements the Opcode Operation for `Opcode::ReThrow`
+///
+/// Operation:
+///  - Rethrow the pending exception.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ReThrow;
+
+impl Operation for ReThrow {
+    const NAME: &'static str = "ReThrow";
+    const INSTRUCTION: &'static str = "INST - ReThrow";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        // Note: -1 because we increment after fetching the opcode.
+        let pc = context.vm.frame().pc.saturating_sub(1);
+        if let Some(handler) = context.vm.frame().code_block().find_handler(pc).copied() {
+            let env_fp = context.vm.frame().env_fp;
+
+            let catch_address = handler.handler();
+            let env_fp = (env_fp + handler.env_fp) as usize;
+            // TODO: fp
+            // let fp = try_entry.fp() as usize;
+
+            context.vm.frame_mut().pc = catch_address;
+            context.vm.environments.truncate(env_fp);
+            // context.vm.stack.truncate(fp);
+            return Ok(CompletionType::Normal);
+        }
+
+        // Note: If we are rethowing and there is no pending error,
+        //       this means that return was called on the generator.
+        //
+        // Note: If we reached this stage then we there is no handler to handle this,
+        //       so return (only for generators).
+        if context.vm.pending_exception.is_none() {
+            return Ok(CompletionType::Return);
+        }
+
+        Ok(CompletionType::Throw)
+    }
+}
+
+/// `Exception` implements the Opcode Operation for `Opcode::Exception`
+///
+/// Operation:
+///  - Get the thrown exception and push on the stack.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Exception;
+
+impl Operation for Exception {
+    const NAME: &'static str = "Exception";
+    const INSTRUCTION: &'static str = "INST - Exception";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        if let Some(error) = context.vm.pending_exception.take() {
+            let error = error.to_opaque(context);
+            context.vm.push(error);
+            return Ok(CompletionType::Normal);
+        }
+
+        // If there is no pending error, this means that `return()` was called
+        // on the generator, so we rethrow this (empty) error until there is no handler to handle it.
+        // This is done to run the finally code.
+        //
+        // This should be unreachable for regular functions.
+        ReThrow::execute(context)
     }
 }
 

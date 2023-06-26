@@ -33,7 +33,6 @@ impl Operation for PopEnvironment {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         context.vm.environments.pop();
-        context.vm.frame_mut().dec_frame_env_stack();
         Ok(CompletionType::Normal)
     }
 }

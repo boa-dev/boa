@@ -34,6 +34,35 @@ impl Operation for IteratorNext {
     }
 }
 
+/// `IteratorNextWithoutPop` implements the Opcode Operation for `Opcode::IteratorNextWithoutPop`
+///
+/// Operation:
+///  - Calls the `next` method of `iterator`, updating its record with the next value.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorNextWithoutPop;
+
+impl Operation for IteratorNextWithoutPop {
+    const NAME: &'static str = "IteratorNextWithoutPop";
+    const INSTRUCTION: &'static str = "INST - IteratorNextWithoutPop";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let mut iterator = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .expect("iterator stack should have at least an iterator");
+
+        let result = iterator.step(context);
+
+        context.vm.frame_mut().iterators.push(iterator);
+
+        result?;
+
+        Ok(CompletionType::Normal)
+    }
+}
+
 /// `IteratorFinishAsyncNext` implements the Opcode Operation for `Opcode::IteratorFinishAsyncNext`.
 ///
 /// Operation:
@@ -54,10 +83,11 @@ impl Operation for IteratorFinishAsyncNext {
             .pop()
             .expect("iterator on the call frame must exist");
 
-        if matches!(
-            context.vm.frame().generator_resume_kind,
-            GeneratorResumeKind::Throw
-        ) {
+        let generator_resume_kind = context.vm.pop().to_generator_resume_kind();
+
+        if matches!(generator_resume_kind, GeneratorResumeKind::Throw) {
+            context.vm.push(generator_resume_kind);
+
             // If after awaiting the `next` call the iterator returned an error, it can be considered
             // as poisoned, meaning we can remove it from the iterator stack to avoid calling
             // cleanup operations on it.
@@ -69,6 +99,8 @@ impl Operation for IteratorFinishAsyncNext {
         iterator.update_result(next_result, context)?;
 
         context.vm.frame_mut().iterators.push(iterator);
+
+        context.vm.push(generator_resume_kind);
         Ok(CompletionType::Normal)
     }
 }
@@ -124,6 +156,34 @@ impl Operation for IteratorValue {
         context.vm.push(value);
 
         context.vm.frame_mut().iterators.push(iterator);
+
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `IteratorValueWithoutPop` implements the Opcode Operation for `Opcode::IteratorValueWithoutPop`
+///
+/// Operation:
+///  - Gets the `value` property of the current iterator record.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorValueWithoutPop;
+
+impl Operation for IteratorValueWithoutPop {
+    const NAME: &'static str = "IteratorValueWithoutPop";
+    const INSTRUCTION: &'static str = "INST - IteratorValueWithoutPop";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let mut iterator = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .expect("iterator on the call frame must exist");
+
+        let value = iterator.value(context);
+        context.vm.frame_mut().iterators.push(iterator);
+
+        context.vm.push(value?);
 
         Ok(CompletionType::Normal)
     }

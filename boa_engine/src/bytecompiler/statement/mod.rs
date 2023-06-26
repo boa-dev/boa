@@ -2,6 +2,8 @@ use crate::{bytecompiler::ByteCompiler, vm::Opcode};
 
 use boa_ast::Statement;
 
+use super::jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind};
+
 mod block;
 mod r#break;
 mod r#continue;
@@ -71,7 +73,8 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::PushUndefined);
                 }
                 self.emit_opcode(Opcode::SetReturnValue);
-                self.emit_opcode(Opcode::Return);
+
+                self.r#return();
             }
             Statement::Try(t) => self.compile_try(t, use_expr),
             Statement::Expression(expr) => {
@@ -83,5 +86,35 @@ impl ByteCompiler<'_, '_> {
             Statement::With(with) => self.compile_with(with, use_expr),
             Statement::Empty => {}
         }
+    }
+
+    pub(crate) fn r#return(&mut self) {
+        let actions = self.return_jump_record_actions();
+
+        JumpRecord::new(JumpRecordKind::Return, actions).perform_actions(Self::DUMMY_ADDRESS, self);
+    }
+
+    fn return_jump_record_actions(&self) -> Vec<JumpRecordAction> {
+        let mut actions = Vec::default();
+        for (i, info) in self.jump_info.iter().enumerate().rev() {
+            let count = self.jump_info_open_environment_count(i);
+            actions.push(JumpRecordAction::PopEnvironments { count });
+
+            if info.is_try_block() && info.has_finally() && !info.in_finally() {
+                actions.push(JumpRecordAction::HandleFinally {
+                    index: info.jumps.len() as u32,
+                });
+                actions.push(JumpRecordAction::Transfter { index: i as u32 });
+            }
+
+            if info.iterator_loop() {
+                actions.push(JumpRecordAction::CloseIterator {
+                    r#async: info.for_await_of_loop(),
+                });
+            }
+        }
+
+        actions.reverse();
+        actions
     }
 }

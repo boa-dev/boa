@@ -1,7 +1,4 @@
-use crate::{
-    bytecompiler::{ByteCompiler, NodeKind},
-    vm::Opcode,
-};
+use crate::bytecompiler::{ByteCompiler, NodeKind};
 use boa_ast::{
     statement::{Labelled, LabelledItem},
     Statement,
@@ -11,7 +8,6 @@ impl ByteCompiler<'_, '_> {
     /// Compile a [`Labelled`] `boa_ast` node
     pub(crate) fn compile_labelled(&mut self, labelled: &Labelled, use_expr: bool) {
         let labelled_loc = self.next_opcode_location();
-        let end_label = self.emit_opcode_with_operand(Opcode::LabelledStart);
         self.push_labelled_control_info(labelled.label(), labelled_loc, use_expr);
 
         match labelled.item() {
@@ -38,9 +34,6 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        let labelled_end = self.next_opcode_location();
-        self.patch_jump_with_target(end_label, labelled_end);
         self.pop_labelled_control_info();
-        self.emit_opcode(Opcode::LabelledEnd);
     }
 }

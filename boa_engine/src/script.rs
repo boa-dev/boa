@@ -143,7 +143,10 @@ impl Script {
             .vm
             .active_runnable
             .replace(ActiveRunnable::Script(self.clone()));
-        context.vm.push_frame(CallFrame::new(codeblock));
+        let env_fp = context.vm.environments.len() as u32;
+        context
+            .vm
+            .push_frame(CallFrame::new(codeblock).with_env_fp(env_fp));
 
         // TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
 

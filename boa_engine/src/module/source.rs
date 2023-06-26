@@ -1729,7 +1729,8 @@ impl SourceTextModule {
             _ => unreachable!("`execute` should only be called for evaluating modules."),
         };
 
-        let mut callframe = CallFrame::new(codeblock);
+        let env_fp = environments.len() as u32;
+        let mut callframe = CallFrame::new(codeblock).with_env_fp(env_fp);
         callframe.promise_capability = capability;
 
         // 4. Set the ScriptOrModule of moduleContext to module.

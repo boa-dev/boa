@@ -87,6 +87,32 @@ unsafe impl Trace for CodeBlockFlags {
     empty_trace!();
 }
 
+/// This represents a range in the code that handles exception throws.
+///
+/// When a throw happens, we search for handler in the [`CodeBlock`] using
+/// the [`CodeBlock::find_handler()`] method.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Handler {
+    pub(crate) start: u32,
+    pub(crate) end: u32,
+
+    #[allow(unused)]
+    pub(crate) fp: u32,
+    pub(crate) env_fp: u32,
+}
+
+impl Handler {
+    /// Get the handler address.
+    pub(crate) const fn handler(&self) -> u32 {
+        self.end
+    }
+
+    /// Check if the provided `pc` is contained in the handler range.
+    pub(crate) const fn contains(&self, pc: u32) -> bool {
+        pc < self.end && pc >= self.start
+    }
+}
+
 /// The internal representation of a JavaScript function.
 ///
 /// A `CodeBlock` is generated for each function compiled by the
@@ -127,6 +153,10 @@ pub struct CodeBlock {
     /// Functions inside this function
     pub(crate) functions: Box<[Gc<Self>]>,
 
+    /// Exception [`Handler`]s.
+    #[unsafe_ignore_trace]
+    pub(crate) handlers: ThinVec<Handler>,
+
     /// Compile time environments in this function.
     ///
     // Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
@@ -154,6 +184,7 @@ impl CodeBlock {
             length,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
+            handlers: ThinVec::default(),
             compile_environments: Box::default(),
         }
     }
@@ -216,6 +247,14 @@ impl CodeBlock {
         self.flags
             .get()
             .contains(CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER)
+    }
+
+    /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
+    pub(crate) fn find_handler(&self, pc: u32) -> Option<&Handler> {
+        self.handlers
+            .iter()
+            .rev()
+            .find(|handler| handler.contains(pc))
     }
 }
 
@@ -309,8 +348,6 @@ impl CodeBlock {
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
             | Opcode::JumpIfNullOrUndefined
-            | Opcode::FinallyStart
-            | Opcode::LabelledStart
             | Opcode::Case
             | Opcode::Default
             | Opcode::LogicalAnd
@@ -331,11 +368,6 @@ impl CodeBlock {
                 format!("{operand}")
             }
             Opcode::CopyDataProperties
-            | Opcode::Break
-            | Opcode::Continue
-            | Opcode::LoopStart
-            | Opcode::IteratorLoopStart
-            | Opcode::TryStart
             | Opcode::GeneratorDelegateNext
             | Opcode::GeneratorDelegateResume => {
                 let operand1 = self.read::<u32>(*pc);
@@ -430,14 +462,32 @@ impl CodeBlock {
                 *pc += size_of::<u32>() * (count as usize + 1);
                 String::new()
             }
-            Opcode::GeneratorJumpOnResumeKind => {
-                let normal = self.read::<u32>(*pc);
+            Opcode::JumpTable => {
+                let count = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
-                let throw = self.read::<u32>(*pc);
+                let default = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
-                let r#return = self.read::<u32>(*pc);
+
+                let mut operands = format!("#{count}: Default: {default:4}");
+                for i in 1..=count {
+                    let address = self.read::<u32>(*pc);
+                    *pc += size_of::<u32>();
+
+                    operands += &format!(", {i}: {address}");
+                }
+                operands
+            }
+            Opcode::JumpIfNotResumeKind => {
+                let exit = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
-                format!("n: {normal}, t: {throw}, r: {return}")
+
+                let resume_kind = self.read::<u8>(*pc);
+                *pc += size_of::<u8>();
+
+                format!(
+                    "ResumeKind: {:?}, exit: {exit}",
+                    JsValue::new(resume_kind).to_generator_resume_kind()
+                )
             }
             Opcode::CreateIteratorResult => {
                 let done = self.read::<u8>(*pc) != 0;
@@ -510,22 +560,21 @@ impl CodeBlock {
             | Opcode::ToPropertyKey
             | Opcode::ToBoolean
             | Opcode::Throw
-            | Opcode::TryEnd
-            | Opcode::FinallyEnd
+            | Opcode::ReThrow
+            | Opcode::Exception
             | Opcode::This
             | Opcode::Super
             | Opcode::Return
             | Opcode::PopEnvironment
-            | Opcode::LoopEnd
             | Opcode::LoopContinue
-            | Opcode::LabelledEnd
             | Opcode::CreateForInIterator
             | Opcode::GetIterator
             | Opcode::GetAsyncIterator
-            | Opcode::GeneratorResumeReturn
             | Opcode::IteratorNext
+            | Opcode::IteratorNextWithoutPop
             | Opcode::IteratorFinishAsyncNext
             | Opcode::IteratorValue
+            | Opcode::IteratorValueWithoutPop
             | Opcode::IteratorResult
             | Opcode::IteratorDone
             | Opcode::IteratorToArray
@@ -543,7 +592,6 @@ impl CodeBlock {
             | Opcode::GeneratorYield
             | Opcode::AsyncGeneratorYield
             | Opcode::GeneratorNext
-            | Opcode::GeneratorSetReturn
             | Opcode::PushClassField
             | Opcode::SuperCallDerived
             | Opcode::Await
@@ -618,7 +666,15 @@ impl CodeBlock {
             | Opcode::Reserved53
             | Opcode::Reserved54
             | Opcode::Reserved55
-            | Opcode::Reserved56 => unreachable!("Reserved opcodes are unrechable"),
+            | Opcode::Reserved56
+            | Opcode::Reserved57
+            | Opcode::Reserved58
+            | Opcode::Reserved59
+            | Opcode::Reserved60
+            | Opcode::Reserved61
+            | Opcode::Reserved62
+            | Opcode::Reserved63
+            | Opcode::Reserved64 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
@@ -641,6 +697,18 @@ impl ToInternedString for CodeBlock {
         let mut pc = 0;
         let mut count = 0;
         while pc < self.bytecode.len() {
+            for (i, handler) in self.handlers.iter().enumerate().rev() {
+                if pc == handler.end as usize {
+                    f.push_str(&format!("#{i} Handler End\n\n",));
+                }
+            }
+
+            for (i, handler) in self.handlers.iter().enumerate().rev() {
+                if pc == handler.start as usize {
+                    f.push_str(&format!("\n#{i} Handler Start\n"));
+                }
+            }
+
             let opcode: Opcode = self.bytecode[pc].into();
             let opcode = opcode.as_str();
             let previous_pc = pc;
@@ -686,6 +754,22 @@ impl ToInternedString for CodeBlock {
                     "    {i:04}: name: '{}' (length: {})\n",
                     code.name().to_std_string_escaped(),
                     code.length
+                ));
+            }
+        }
+
+        f.push_str("\nHandlers:\n");
+        if self.handlers.is_empty() {
+            f.push_str("    <empty>\n");
+        } else {
+            for (i, handler) in self.handlers.iter().enumerate() {
+                f.push_str(&format!(
+                    "    {i:04}: Range: [{}, {}): Handler: {}, Stack FP {}, Env FP: {}\n",
+                    handler.start,
+                    handler.end,
+                    handler.handler(),
+                    handler.fp,
+                    handler.env_fp,
                 ));
             }
         }
@@ -1093,6 +1177,8 @@ impl JsObject {
             )
         };
 
+        let env_fp = context.vm.environments.len() as u32;
+
         let mut last_env = code.compile_environments.len() - 1;
 
         if let Some(class_object) = class_object {
@@ -1182,7 +1268,9 @@ impl JsObject {
 
         std::mem::swap(&mut context.vm.stack, &mut stack);
 
-        let mut frame = CallFrame::new(code).with_argument_count(argument_count as u32);
+        let mut frame = CallFrame::new(code)
+            .with_argument_count(argument_count as u32)
+            .with_env_fp(env_fp);
         frame.promise_capability = promise_capability.clone();
 
         std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
@@ -1458,9 +1546,11 @@ impl JsObject {
 
                 std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
 
-                context
-                    .vm
-                    .push_frame(CallFrame::new(code).with_argument_count(argument_count as u32));
+                context.vm.push_frame(
+                    CallFrame::new(code)
+                        .with_argument_count(argument_count as u32)
+                        .with_env_fp(environments_len as u32),
+                );
 
                 let record = context.run();
 
