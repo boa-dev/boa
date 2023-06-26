@@ -1,9 +1,9 @@
 [package]
 name = "boa_unicode"
-description = "Unicode support for the Boa JavaScript engine."
+description = "DEPRECATED. Use the icu_properties crate instead."
 keywords = ["javascript", "compiler", "lexer", "parser", "unicode"]
 categories = ["parsing", "no-std"]
-version.workspace = true
+version = "0.16.1"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
