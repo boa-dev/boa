@@ -23,7 +23,7 @@ clap = { version = "4.3.8", features = ["derive"] }
 serde_json = "1.0.97"
 colored = "2.0.0"
 regex = "1.8.4"
-phf = { version = "0.11.1", features = ["macros"] }
+phf = { version = "0.11.2", features = ["macros"] }
 pollster = "0.3.0"
 
 [features]
