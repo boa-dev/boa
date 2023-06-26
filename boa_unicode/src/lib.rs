@@ -10,8 +10,6 @@
 //!  - [Unicode® Standard Annex #31][uax31]
 //!
 //! [uax31]: http://unicode.org/reports/tr31
-//!
-#![doc = include_str!("../../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
