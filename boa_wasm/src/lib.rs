@@ -71,7 +71,7 @@ fn main() {
 /// Evaluate the given ECMAScript code.
 #[wasm_bindgen]
 pub fn evaluate(src: &str) -> Result<String, JsValue> {
-    // Setup executor
+    // Setup the executor
     Context::default()
         .eval(Source::from_bytes(src))
         .map_err(|e| JsValue::from(format!("Uncaught {e}")))
