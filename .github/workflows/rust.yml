@@ -22,10 +22,10 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-      - uses: actions-rs/install@v0.1
+      - name: Install cargo-tarpaulin
+        uses: baptiste0928/cargo-install@v2.1.0
         with:
           crate: cargo-tarpaulin
-          version: latest
       - uses: Swatinem/rust-cache@v2
         with:
           key: tarpaulin
