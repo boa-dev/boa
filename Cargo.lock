@@ -594,7 +594,7 @@ dependencies = [
 
 [[package]]
 name = "boa_unicode"
-version = "0.16.0"
+version = "0.16.1"
 dependencies = [
  "unicode-general-category",
 ]
