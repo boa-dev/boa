@@ -54,7 +54,7 @@ boa_ast.workspace = true
 boa_parser.workspace = true
 boa_icu_provider.workspace = true
 serde = { version = "1.0.164", features = ["derive", "rc"] }
-serde_json = "1.0.97"
+serde_json = "1.0.99"
 rand = "0.8.5"
 num-traits = "0.2.15"
 regress = "0.6.0"
