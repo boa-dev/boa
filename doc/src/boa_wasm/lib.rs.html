@@ -79,7 +79,7 @@
 <a href="#79" id="79">79</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An ECMAScript WASM implementation based on boa_engine.
 //!
-</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../ABOUT.md&quot;</span>)]
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../ABOUT.md&quot;</span>)]
 #![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
@@ -150,7 +150,7 @@
 <span class="doccomment">/// Evaluate the given ECMAScript code.
 </span><span class="attr">#[wasm_bindgen]
 </span><span class="kw">pub fn </span>evaluate(src: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, JsValue&gt; {
-    <span class="comment">// Setup executor
+    <span class="comment">// Setup the executor
     </span>Context::default()
         .eval(Source::from_bytes(src))
         .map_err(|e| JsValue::from(<span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)))
