@@ -69,3 +69,31 @@ jobs:
           publish_dir: ./dist
           destination_dir: playground
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  release-binaries:
+    name: Publish for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: boa
+            asset_name: boa-linux-amd64
+          - os: windows-latest
+            artifact_name: boa.exe
+            asset_name: boa-windows-amd64
+          - os: macos-latest
+            artifact_name: boa
+            asset_name: boa-macos-amd64
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --release --locked
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/${{ matrix.artifact_name }}
+        asset_name: ${{ matrix.asset_name }}
+        tag: ${{ github.ref }}
