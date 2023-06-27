@@ -3,7 +3,7 @@
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
 //! `boa` engine.
 //!
-#![doc = include_str!("../../ABOUT.md")]
+#![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"

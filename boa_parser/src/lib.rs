@@ -10,7 +10,7 @@
 //! [lex]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
 //! [grammar]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 //!
-#![doc = include_str!("../../ABOUT.md")]
+#![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
