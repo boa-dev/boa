@@ -195,6 +195,24 @@ fn catch_binding_finally() {
 }
 
 #[test]
+fn finally_with_loop_break() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            try {
+              30;
+            }
+            catch {
+            } finally {
+              while(true) {
+                break;
+              }
+            }
+        "#},
+        30,
+    )]);
+}
+
+#[test]
 fn single_case_switch() {
     run_test_actions([TestAction::assert_eq(
         indoc! {r#"

@@ -119,7 +119,7 @@ impl Operation for FinallyEnd {
                 let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
                 context.vm.environments.truncate(env_truncation_len);
             }
-            Some(record) if !record.is_throw_with_target() => {
+            Some(record) if record.is_throw() && !record.is_throw_with_target() => {
                 let current_stack = context
                     .vm
                     .frame_mut()
