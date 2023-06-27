@@ -267,7 +267,7 @@
                 <span class="kw">let </span>env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
                 context.vm.environments.truncate(env_truncation_len);
             }
-            <span class="prelude-val">Some</span>(record) <span class="kw">if </span>!record.is_throw_with_target() =&gt; {
+            <span class="prelude-val">Some</span>(record) <span class="kw">if </span>record.is_throw() &amp;&amp; !record.is_throw_with_target() =&gt; {
                 <span class="kw">let </span>current_stack = context
                     .vm
                     .frame_mut()
