@@ -37,10 +37,6 @@ updates:
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /boa_unicode/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
     directory: /boa_wasm/
     schedule:
       interval: daily

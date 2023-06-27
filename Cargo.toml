@@ -13,7 +13,6 @@ members = [
     "boa_profiler",
     "boa_runtime",
     "boa_tester",
-    "boa_unicode",
     "boa_wasm",
 ]
 
@@ -36,7 +35,6 @@ boa_macros = { version = "0.16.0", path = "boa_macros" }
 boa_parser = { version = "0.16.0", path = "boa_parser" }
 boa_profiler = { version = "0.16.0", path = "boa_profiler" }
 boa_runtime = { version = "0.16.0", path = "boa_runtime" }
-boa_unicode = { version = "0.16.0", path = "boa_unicode" }
 
 [workspace.metadata.workspaces]
 allow_branch = "main"

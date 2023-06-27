@@ -593,13 +593,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "boa_unicode"
-version = "0.16.1"
-dependencies = [
- "unicode-general-category",
-]
-
-[[package]]
 name = "boa_wasm"
 version = "0.16.0"
 dependencies = [
@@ -4409,12 +4402,6 @@ name = "unicode-bidi"
 version = "0.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92888ba5573ff080736b3648696b70cafad7d250551175acbaa4e0385b3e1460"
-
-[[package]]
-name = "unicode-general-category"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2281c8c1d221438e373249e065ca4989c4c36952c211ff21a0ee91c44a3869e7"
 
 [[package]]
 name = "unicode-ident"
