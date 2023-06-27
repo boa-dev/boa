@@ -32,7 +32,13 @@ jobs:
         run: |
           git config --global user.email "runner@gha.local"
           git config --global user.name "Github Action"
-          cargo workspaces publish --from-git --yes minor
+          cargo workspaces publish \
+            --from-git \
+            --yes \
+            --no-git-commit \
+            --no-git-push \
+            --no-individual-tags \
+            skip
 
   doc-publish:
     # needs: publish
