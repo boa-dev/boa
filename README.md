@@ -1,11 +1,13 @@
 # Boa
 
 <p align="center">
+  <a href="https://boajs.dev/">
     <img
       alt="Boa Logo"
       src="./assets/logo.svg"
       width="30%"
     />
+    </a>
 </p>
 
 This is an experimental Javascript lexer, parser and interpreter written in Rust.
