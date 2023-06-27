@@ -10,7 +10,6 @@ var sourcesIndex = JSON.parse('{\
 "boa_profiler":["",[],["lib.rs"]],\
 "boa_runtime":["",[["console",[],["mod.rs"]]],["lib.rs"]],\
 "boa_tester":["",[["exec",[],["js262.rs","mod.rs"]]],["edition.rs","main.rs","read.rs","results.rs"]],\
-"boa_unicode":["",[],["lib.rs","tables.rs"]],\
 "boa_wasm":["",[],["lib.rs"]]\
 }');
 createSourceSidebar();
