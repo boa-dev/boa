@@ -148,8 +148,7 @@ impl Script {
         // TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
 
         self.realm().resize_global_env();
-        let record = context.run();
-        context.vm.pop_frame();
+        let record = context.run2();
 
         context.vm.stack = stack;
         context.vm.active_function = active_function;
@@ -158,6 +157,6 @@ impl Script {
 
         context.clear_kept_objects();
 
-        record.consume()
+        record
     }
 }

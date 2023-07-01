@@ -1,5 +1,5 @@
 /// The opcodes of the vm.
-use crate::{vm::CompletionType, Context, JsResult};
+use crate::{vm::CompletionType, Context, JsObject, JsResult, JsValue};
 
 // Operation modules
 mod await_stm;
@@ -155,8 +155,25 @@ macro_rules! generate_impl {
             pub(super) fn execute(self, context: &mut Context<'_>) -> JsResult<CompletionType> {
                 Self::EXECUTE_FNS[self as usize](context)
             }
+
+            const EXECUTE2_FNS: [fn(&mut Context<'_>) -> JsResult<ExecutionResult>; Self::MAX] = [
+                $(<generate_impl!(name $Variant $(=> $mapping)?)>::execute2),*
+            ];
+
+            pub(super) fn execute2(self, context: &mut Context<'_>) -> JsResult<ExecutionResult> {
+                Self::EXECUTE2_FNS[self as usize](context)
+            }
         }
     };
+}
+
+pub(crate) enum ExecutionResult {
+    Completion(CompletionType),
+    Call {
+        f: JsObject,
+        this: JsValue,
+        args: Vec<JsValue>,
+    },
 }
 
 /// The `Operation` trait implements the execution code along with the
@@ -170,6 +187,10 @@ pub(crate) trait Operation {
     const INSTRUCTION: &'static str;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType>;
+
+    fn execute2(context: &mut Context<'_>) -> JsResult<ExecutionResult> {
+        Self::execute(context).map(ExecutionResult::Completion)
+    }
 }
 
 generate_impl! {
