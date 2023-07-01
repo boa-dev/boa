@@ -1040,7 +1040,8 @@ impl RegExp {
         // 30. If R contains any GroupName, then
         // 31. Else,
         // 33. For each integer i such that 1 ≤ i ≤ n, in ascending order, do
-        let (groups, group_names) = if named_groups.clone().len() > 0 {
+        #[allow(clippy::if_not_else)]
+        let (groups, group_names) = if !named_groups.clone().is_empty() {
             // a. Let groups be OrdinaryObjectCreate(null).
             let groups = JsObject::with_null_proto();
             let group_names = JsObject::with_null_proto();
