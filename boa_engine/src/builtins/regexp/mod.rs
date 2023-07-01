@@ -27,7 +27,7 @@ use crate::{
 };
 use boa_parser::lexer::regex::RegExpFlags;
 use boa_profiler::Profiler;
-use regress::{Flags, Regex};
+use regress::{Flags, Range, Regex};
 use std::str::FromStr;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
@@ -837,7 +837,7 @@ impl RegExp {
         Self::abstract_builtin_exec(this, &input, context)
     }
 
-    /// `22.2.5.2.2 RegExpBuiltinExec ( R, S )`
+    /// `22.2.7.2 RegExpBuiltinExec ( R, S )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -848,7 +848,6 @@ impl RegExp {
         input: &JsString,
         context: &mut Context<'_>,
     ) -> JsResult<Option<JsObject>> {
-        // 1. Assert: R is an initialized RegExp instance.
         let rx = {
             let obj = this.borrow();
             if let Some(rx) = obj.as_regexp() {
@@ -860,36 +859,41 @@ impl RegExp {
             }
         };
 
-        // 2. Assert: Type(S) is String.
-
-        // 3. Let length be the number of code units in S.
+        // 1. Let length be the length of S.
         let length = input.len() as u64;
 
-        // 4. Let lastIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
+        // 2. Let lastIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
         let mut last_index = this.get(utf16!("lastIndex"), context)?.to_length(context)?;
 
-        // 5. Let flags be R.[[OriginalFlags]].
+        // 3. Let flags be R.[[OriginalFlags]].
         let flags = &rx.original_flags;
 
-        // 6. If flags contains "g", let global be true; else let global be false.
+        // 4. If flags contains "g", let global be true; else let global be false.
         let global = flags.contains(&('g' as u16));
 
-        // 7. If flags contains "y", let sticky be true; else let sticky be false.
+        // 5. If flags contains "y", let sticky be true; else let sticky be false.
         let sticky = flags.contains(&('y' as u16));
 
-        // 8. If global is false and sticky is false, set lastIndex to 0.
+        // 6. If flags contains "d", let hasIndices be true; else let hasIndices be false.
+        let has_indices = flags.contains(&('d' as u16));
+
+        // 7. If global is false and sticky is false, set lastIndex to 0.
         if !global && !sticky {
             last_index = 0;
         }
 
-        // 9. Let matcher be R.[[RegExpMatcher]].
+        // 8. Let matcher be R.[[RegExpMatcher]].
         let matcher = &rx.matcher;
 
-        // 10. If flags contains "u", let fullUnicode be true; else let fullUnicode be false.
-        let unicode = flags.contains(&('u' as u16));
+        // 9. If flags contains "u" or flags contains "v", let fullUnicode be true; else let fullUnicode be false.
+        let full_unicode = flags.contains(&('u' as u16)) || flags.contains(&('v' as u16));
 
-        // 11. Let matchSucceeded be false.
-        // 12. Repeat, while matchSucceeded is false,
+        // TODO:
+        // 11. If fullUnicode is true, let input be StringToCodePoints(S). Otherwise, let input be a List whose elements are the code units that are the elements of S.
+        // 12. NOTE: Each element of input is considered to be a character.
+
+        // 10. Let matchSucceeded be false.
+        // 13. Repeat, while matchSucceeded is false,
         let lossy_input = input.to_std_string_escaped();
         let (match_value, last_byte_index) = loop {
             // a. If lastIndex > length, then
@@ -904,7 +908,7 @@ impl RegExp {
                 return Ok(None);
             }
 
-            // b. Let r be matcher(S, lastIndex).
+            // b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
             // Check if last_index is a valid utf8 index into input.
             // TODO: avoid converting to String
             let last_byte_index = match String::from_utf16(&input[..last_index as usize]) {
@@ -915,10 +919,11 @@ impl RegExp {
                         .into())
                 }
             };
+            // c. Let r be matcher(input, inputIndex).
             let r = matcher.find_from(&lossy_input, last_byte_index).next();
 
             match r {
-                // c. If r is failure, then
+                // d. If r is failure, then
                 None => {
                     // i. If sticky is true, then
                     if sticky {
@@ -930,11 +935,11 @@ impl RegExp {
                     }
 
                     // ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
-                    last_index = advance_string_index(input, last_index, unicode);
+                    last_index = advance_string_index(input, last_index, full_unicode);
                 }
 
                 Some(m) => {
-                    // c. If r is failure, then
+                    // d. If r is failure, then
                     #[allow(clippy::if_not_else)]
                     if m.start() != last_byte_index {
                         // i. If sticky is true, then
@@ -947,21 +952,21 @@ impl RegExp {
                         }
 
                         // ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
-                        last_index = advance_string_index(input, last_index, unicode);
-                    // d. Else,
+                        last_index = advance_string_index(input, last_index, full_unicode);
+                    // e. Else,
                     } else {
-                        //i. Assert: r is a State.
-                        //ii. Set matchSucceeded to true.
+                        // i. Assert: r is a State.
+                        // ii. Set matchSucceeded to true.
                         break (m, last_byte_index);
                     }
                 }
             }
         };
 
-        // 13. Let e be r's endIndex value.
+        // 14. Let e be r's endIndex value.
         let mut e = match_value.end();
 
-        // 14. If fullUnicode is true, then
+        // 15. If fullUnicode is true, set e to GetStringIndex(S, e).
         // TODO: disabled for now until we have UTF-16 support
         if false {
             // e is an index into the Input character list, derived from S, matched by matcher.
@@ -971,7 +976,7 @@ impl RegExp {
             e = input.get(..e).map_or_else(|| input.len(), <[u16]>::len);
         }
 
-        // 15. If global is true or sticky is true, then
+        // 16. If global is true or sticky is true, then
         if global || sticky {
             // a. Perform ? Set(R, "lastIndex", 𝔽(e), true).
             this.set(
@@ -982,41 +987,69 @@ impl RegExp {
             )?;
         }
 
-        // 16. Let n be the number of elements in r's captures List. (This is the same value as 22.2.2.1's NcapturingParens.)
+        // 17. Let n be the number of elements in r's captures List.
         let n = match_value.captures.len() as u64;
-        // 17. Assert: n < 23^2 - 1.
+        // 18. Assert: n = R.[[RegExpRecord]].[[CapturingGroupsCount]].
+        // 19. Assert: n < 232 - 1.
         debug_assert!(n < 23u64.pow(2) - 1);
 
-        // 18. Let A be ! ArrayCreate(n + 1).
-        // 19. Assert: The mathematical value of A's "length" property is n + 1.
+        // 20. Let A be ! ArrayCreate(n + 1).
+        // 21. Assert: The mathematical value of A's "length" property is n + 1.
         let a = Array::array_create(n + 1, None, context)?;
 
-        // 20. Perform ! CreateDataPropertyOrThrow(A, "index", 𝔽(lastIndex)).
+        // 22. Perform ! CreateDataPropertyOrThrow(A, "index", 𝔽(lastIndex)).
         a.create_data_property_or_throw(utf16!("index"), last_index, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
-        // 21. Perform ! CreateDataPropertyOrThrow(A, "input", S).
+        // 23. Perform ! CreateDataPropertyOrThrow(A, "input", S).
         a.create_data_property_or_throw(utf16!("input"), input.clone(), context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
-        // 22. Let matchedSubstr be the substring of S from lastIndex to e.
+        // 24. Let match be the Match Record { [[StartIndex]]: lastIndex, [[EndIndex]]: e }.
+        // Immediately convert it to an array according to 22.2.7.7 GetMatchIndexPair(S, match)
+        // 1. Assert: match.[[StartIndex]] ≤ match.[[EndIndex]] ≤ the length of S.
+        // 2. Return CreateArrayFromList(« 𝔽(match.[[StartIndex]]), 𝔽(match.[[EndIndex]]) »).
+        let match_record = Array::create_array_from_list(
+            [match_value.start().into(), match_value.end().into()],
+            context,
+        );
+
+        // 25. Let indices be a new empty List.
+        let indices = Array::array_create(n + 1, None, context)?;
+
+        // 27. Append match to indices.
+        indices
+            .create_data_property_or_throw(0, match_record, context)
+            .expect("this CreateDataPropertyOrThrow call must not fail");
+
+        // 28. Let matchedSubstr be GetMatchString(S, match).
         let matched_substr = js_string!(&lossy_input[last_byte_index..e]);
 
-        // 23. Perform ! CreateDataPropertyOrThrow(A, "0", matchedSubstr).
+        // 29. Perform ! CreateDataPropertyOrThrow(A, "0", matchedSubstr).
         a.create_data_property_or_throw(0, matched_substr, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
-        // 24. If R contains any GroupName, then
-        // 25. Else,
-        let named_groups = match_value.named_groups();
-        let groups = if named_groups.clone().count() > 0 {
-            // a. Let groups be ! OrdinaryObjectCreate(null).
-            let groups = JsObject::with_null_proto();
+        let mut named_groups = match_value
+            .named_groups()
+            .collect::<Vec<(&str, Option<Range>)>>();
+        // Strict mode requires groups to be created in a sorted order
+        named_groups.sort_by(|(name_x, _), (name_y, _)| name_x.cmp(name_y));
 
-            // Perform 27.f here
-            // f. If the ith capture of R was defined with a GroupName, then
-            // i. Let s be the CapturingGroupName of the corresponding RegExpIdentifierName.
+        // Combines:
+        // 26. Let groupNames be a new empty List.
+        // 30. If R contains any GroupName, then
+        // 31. Else,
+        // 33. For each integer i such that 1 ≤ i ≤ n, in ascending order, do
+        let (groups, group_names) = if named_groups.clone().len() > 0 {
+            // a. Let groups be OrdinaryObjectCreate(null).
+            let groups = JsObject::with_null_proto();
+            let group_names = JsObject::with_null_proto();
+
+
+            // e. If the ith capture of R was defined with a GroupName, then
+            // i. Let s be the CapturingGroupName of that GroupName.
             // ii. Perform ! CreateDataPropertyOrThrow(groups, s, capturedValue).
+            // iii. Append s to groupNames.
             for (name, range) in named_groups {
                 if let Some(range) = range {
                     // TODO: Full UTF-16 regex support
@@ -1025,15 +1058,50 @@ impl RegExp {
                     groups
                         .create_data_property_or_throw(name, value, context)
                         .expect("this CreateDataPropertyOrThrow call must not fail");
+
+                    // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
+                    // a. Let matchIndices be indices[i].
+                    // b. If matchIndices is not undefined, then
+                    // i. Let matchIndexPair be GetMatchIndexPair(S, matchIndices).
+                    // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
+                    group_names
+                        .create_data_property_or_throw(
+                            name,
+                            Array::create_array_from_list(
+                                [range.start.into(), range.end.into()],
+                                context,
+                            ),
+                            context,
+                        )
+                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                } else {
+                    groups
+                        .create_data_property_or_throw(name, JsValue::undefined(), context)
+                        .expect("this CreateDataPropertyOrThrow call must not fail");
+
+                    // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
+                    // c. Else,
+                    // i. Let matchIndexPair be undefined.
+                    // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
+                    group_names
+                        .create_data_property_or_throw(name, JsValue::undefined(), context)
+                        .expect("this CreateDataPropertyOrThrow call must not fail");
                 }
             }
-            groups.into()
+
+            (groups.into(), group_names.into())
         } else {
             // a. Let groups be undefined.
-            JsValue::undefined()
+            (JsValue::undefined(), JsValue::undefined())
         };
 
-        // 26. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
+        // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
+        // 8. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
+        indices
+            .create_data_property_or_throw(utf16!("groups"), group_names, context)
+            .expect("this CreateDataPropertyOrThrow call must not fail");
+
+        // 32. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
         a.create_data_property_or_throw(utf16!("groups"), groups, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
@@ -1046,16 +1114,42 @@ impl RegExp {
             // c. Else if fullUnicode is true, then
             // d. Else,
             // TODO: Full UTF-16 regex support
-            let captured_value = capture.map_or_else(JsValue::undefined, |range| {
+            let captured_value = capture.clone().map_or_else(JsValue::undefined, |range| {
                 js_string!(&lossy_input[range]).into()
             });
 
             // e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
-            a.create_data_property_or_throw(i, captured_value, context)
+            a.create_data_property_or_throw(i, captured_value.clone(), context)
+                .expect("this CreateDataPropertyOrThrow call must not fail");
+
+
+            // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
+            if has_indices {
+                // b. If matchIndices is not undefined, then
+                // i. Let matchIndexPair be GetMatchIndexPair(S, matchIndices).
+                // c. Else,
+                // i. Let matchIndexPair be undefined.
+                let indices_range = capture.map_or_else(JsValue::undefined, |range| {
+                    Array::create_array_from_list([range.start.into(), range.end.into()], context)
+                        .into()
+                });
+
+                // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
+                indices
+                    .create_data_property_or_throw(i, indices_range, context)
+                    .expect("this CreateDataPropertyOrThrow call must not fail");
+            }
+        }
+
+        // 34. If hasIndices is true, then
+        // a. Let indicesArray be MakeMatchIndicesIndexPairArray(S, indices, groupNames, hasGroups).
+        // b. Perform ! CreateDataPropertyOrThrow(A, "indices", indicesArray).
+        if has_indices {
+            a.create_data_property_or_throw(utf16!("indices"), indices, context)
                 .expect("this CreateDataPropertyOrThrow call must not fail");
         }
 
-        // 28. Return A.
+        // 35. Return A.
         Ok(Some(a))
     }
 
