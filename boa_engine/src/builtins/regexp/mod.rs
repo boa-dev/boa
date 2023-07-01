@@ -1045,7 +1045,6 @@ impl RegExp {
             let groups = JsObject::with_null_proto();
             let group_names = JsObject::with_null_proto();
 
-
             // e. If the ith capture of R was defined with a GroupName, then
             // i. Let s be the CapturingGroupName of that GroupName.
             // ii. Perform ! CreateDataPropertyOrThrow(groups, s, capturedValue).
@@ -1121,7 +1120,6 @@ impl RegExp {
             // e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
             a.create_data_property_or_throw(i, captured_value.clone(), context)
                 .expect("this CreateDataPropertyOrThrow call must not fail");
-
 
             // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
             if has_indices {
