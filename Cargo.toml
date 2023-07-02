@@ -18,7 +18,7 @@ members = [
 
 [workspace.package]
 edition = "2021"
-version = "0.16.0"
+version = "0.17.0"
 rust-version = "1.66"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
@@ -26,15 +26,15 @@ license = "Unlicense/MIT"
 description = "Boa is a Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language."
 
 [workspace.dependencies]
-boa_ast = { version = "0.16.0", path = "boa_ast" }
-boa_engine = { version = "0.16.0", path = "boa_engine" }
-boa_gc = { version = "0.16.0", path = "boa_gc" }
-boa_icu_provider = { version = "0.16.0", path = "boa_icu_provider" }
-boa_interner = { version = "0.16.0", path = "boa_interner" }
-boa_macros = { version = "0.16.0", path = "boa_macros" }
-boa_parser = { version = "0.16.0", path = "boa_parser" }
-boa_profiler = { version = "0.16.0", path = "boa_profiler" }
-boa_runtime = { version = "0.16.0", path = "boa_runtime" }
+boa_ast = { version = "0.17.0", path = "boa_ast" }
+boa_engine = { version = "0.17.0", path = "boa_engine" }
+boa_gc = { version = "0.17.0", path = "boa_gc" }
+boa_icu_provider = { version = "0.17.0", path = "boa_icu_provider" }
+boa_interner = { version = "0.17.0", path = "boa_interner" }
+boa_macros = { version = "0.17.0", path = "boa_macros" }
+boa_parser = { version = "0.17.0", path = "boa_parser" }
+boa_profiler = { version = "0.17.0", path = "boa_profiler" }
+boa_runtime = { version = "0.17.0", path = "boa_runtime" }
 
 [workspace.metadata.workspaces]
 allow_branch = "main"
