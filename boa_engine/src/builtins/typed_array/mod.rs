@@ -278,7 +278,7 @@ impl IntrinsicObject for TypedArray {
             )
             .property(
                 JsSymbol::iterator(),
-                values_function,
+                values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
@@ -336,7 +336,11 @@ impl IntrinsicObject for TypedArray {
             .method(Self::some, "some", 1)
             .method(Self::sort, "sort", 1)
             .method(Self::subarray, "subarray", 2)
-            .method(Self::values, "values", 0)
+            .property(
+                "values",
+                values_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             // 23.2.3.29 %TypedArray%.prototype.toString ( )
             // The initial value of the %TypedArray%.prototype.toString data property is the same
             // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
