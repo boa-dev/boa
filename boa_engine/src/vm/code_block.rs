@@ -21,7 +21,6 @@ use crate::{
 use bitflags::bitflags;
 use boa_ast::function::FormalParameterList;
 use boa_gc::{empty_trace, Finalize, Gc, Trace};
-use boa_interner::Sym;
 use boa_profiler::Profiler;
 use std::{
     cell::{Cell, RefCell},
@@ -102,7 +101,7 @@ unsafe impl Trace for CodeBlockFlags {
 pub struct CodeBlock {
     /// Name of this function
     #[unsafe_ignore_trace]
-    pub(crate) name: Sym,
+    pub(crate) name: JsString,
 
     #[unsafe_ignore_trace]
     pub(crate) flags: Cell<CodeBlockFlags>,
@@ -146,7 +145,7 @@ pub struct CodeBlock {
 impl CodeBlock {
     /// Creates a new `CodeBlock`.
     #[must_use]
-    pub fn new(name: Sym, length: u32, strict: bool) -> Self {
+    pub fn new(name: JsString, length: u32, strict: bool) -> Self {
         let mut flags = CodeBlockFlags::empty();
         flags.set(CodeBlockFlags::STRICT, strict);
         Self {
@@ -166,8 +165,8 @@ impl CodeBlock {
 
     /// Retrieves the name associated with this code block.
     #[must_use]
-    pub const fn name(&self) -> Sym {
-        self.name
+    pub const fn name(&self) -> &JsString {
+        &self.name
     }
 
     /// Check if the function is traced.
@@ -365,7 +364,9 @@ impl CodeBlock {
                 *pc += size_of::<u32>() + size_of::<u8>();
                 format!(
                     "{operand:04}: '{}' (length: {})",
-                    interner.resolve_expect(self.functions[operand as usize].name),
+                    self.functions[operand as usize]
+                        .name()
+                        .to_std_string_escaped(),
                     self.functions[operand as usize].length
                 )
             }
@@ -374,7 +375,9 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!(
                     "{operand:04}: '{}' (length: {})",
-                    interner.resolve_expect(self.functions[operand as usize].name),
+                    self.functions[operand as usize]
+                        .name()
+                        .to_std_string_escaped(),
                     self.functions[operand as usize].length
                 )
             }
@@ -628,8 +631,8 @@ impl CodeBlock {
 #[cfg(any(feature = "trace", feature = "flowgraph"))]
 impl ToInternedString for CodeBlock {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        let name = interner.resolve_expect(self.name);
-        let mut f = if self.name == Sym::MAIN {
+        let name = self.name();
+        let mut f = if name == "<main>" {
             String::new()
         } else {
             "\n".to_owned()
@@ -637,7 +640,7 @@ impl ToInternedString for CodeBlock {
 
         f.push_str(&format!(
             "{:-^70}\nLocation  Count   Opcode                     Operands\n\n",
-            format!("Compiled Output: '{name}'"),
+            format!("Compiled Output: '{}'", name.to_std_string_escaped()),
         ));
 
         let mut pc = 0;
@@ -686,7 +689,7 @@ impl ToInternedString for CodeBlock {
             for (i, code) in self.functions.iter().enumerate() {
                 f.push_str(&format!(
                     "    {i:04}: name: '{}' (length: {})\n",
-                    interner.resolve_expect(code.name),
+                    code.name().to_std_string_escaped(),
                     code.length
                 ));
             }
@@ -713,12 +716,7 @@ pub(crate) fn create_function_object(
 ) -> JsObject {
     let _timer = Profiler::global().start_event("create_function_object", "vm");
 
-    let name: JsValue = context
-        .interner()
-        .resolve_expect(code.name)
-        .into_common::<JsString>(false)
-        .into();
-
+    let name: JsValue = code.name().clone().into();
     let length: JsValue = code.length.into();
 
     let script_or_module = context.vm.active_runnable.clone();
@@ -798,12 +796,7 @@ pub(crate) fn create_function_object_fast(
 ) -> JsObject {
     let _timer = Profiler::global().start_event("create_function_object_fast", "vm");
 
-    let name: JsValue = context
-        .interner()
-        .resolve_expect(code.name)
-        .into_common::<JsString>(false)
-        .into();
-
+    let name: JsValue = code.name().clone().into();
     let length: JsValue = code.length.into();
 
     let script_or_module = context.vm.active_runnable.clone();
@@ -888,12 +881,7 @@ pub(crate) fn create_generator_function_object(
     };
 
     let name_property = PropertyDescriptor::builder()
-        .value(
-            context
-                .interner()
-                .resolve_expect(code.name)
-                .into_common::<JsString>(false),
-        )
+        .value(code.name().clone())
         .writable(false)
         .enumerable(false)
         .configurable(true)

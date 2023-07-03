@@ -1390,8 +1390,14 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     #[must_use]
     #[allow(clippy::missing_const_for_fn)]
     pub fn finish(self) -> CodeBlock {
+        let name = self
+            .context
+            .interner()
+            .resolve_expect(self.function_name)
+            .utf16()
+            .into();
         CodeBlock {
-            name: self.function_name,
+            name,
             length: self.length,
             this_mode: self.this_mode,
             params: self.params,
