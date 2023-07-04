@@ -176,7 +176,7 @@ impl CompileTimeEnvironment {
                 }
                 true
             } else {
-                return outer.create_mutable_binding(name, function_scope);
+                outer.create_mutable_binding(name, function_scope)
             }
         } else if function_scope {
             false

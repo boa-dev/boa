@@ -345,8 +345,6 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        drop(env);
-
         // Note: Not sure if the spec is wrong here or if our implementation just differs too much,
         //       but we need 3.a to be finished for all declarations before 3.b can be done.
 
