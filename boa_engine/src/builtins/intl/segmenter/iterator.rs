@@ -130,11 +130,17 @@ impl SegmentIterator {
             let mut segments = segmenter.native.segment(string);
             // the first elem is always 0.
             segments.next();
-            segments.next().map(|end| (start + end, segments.is_word_like()))
+            segments
+                .next()
+                .map(|end| (start + end, segments.is_word_like()))
         }) else {
             // 7. If endIndex is not finite, then
             //     a. Return CreateIterResultObject(undefined, true).
-            return Ok(create_iter_result_object(JsValue::undefined(), true, context));
+            return Ok(create_iter_result_object(
+                JsValue::undefined(),
+                true,
+                context,
+            ));
         };
         // 8. Set iterator.[[IteratedStringNextSegmentCodeUnitIndex]] to endIndex.
         iter.next_segment_index = end;

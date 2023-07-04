@@ -297,61 +297,71 @@ impl Date {
         context: &mut Context<'_>,
     ) -> JsResult<Option<NaiveDateTime>> {
         // 1. Let y be ? ToNumber(year).
-        let Some(mut year) = values.get_or_undefined(0).to_integer_or_nan(context)?.as_integer() else {
+        let Some(mut year) = values
+            .get_or_undefined(0)
+            .to_integer_or_nan(context)?
+            .as_integer()
+        else {
             return Ok(None);
         };
 
         // 2. If month is present, let m be ? ToNumber(month); else let m be +0𝔽.
         let Some(month) = values.get(1).map_or(Ok(Some(0)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })? else {
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })?
+        else {
             return Ok(None);
         };
 
         // 3. If date is present, let dt be ? ToNumber(date); else let dt be 1𝔽.
         let Some(date) = values.get(2).map_or(Ok(Some(1)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })? else {
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })?
+        else {
             return Ok(None);
         };
 
         // 4. If hours is present, let h be ? ToNumber(hours); else let h be +0𝔽.
         let Some(hour) = values.get(3).map_or(Ok(Some(0)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })? else {
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })?
+        else {
             return Ok(None);
         };
 
         // 5. If minutes is present, let min be ? ToNumber(minutes); else let min be +0𝔽.
         let Some(min) = values.get(4).map_or(Ok(Some(0)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })? else {
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })?
+        else {
             return Ok(None);
         };
 
         // 6. If seconds is present, let s be ? ToNumber(seconds); else let s be +0𝔽.
         let Some(sec) = values.get(5).map_or(Ok(Some(0)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })? else {
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })?
+        else {
             return Ok(None);
         };
 
         // 7. If ms is present, let milli be ? ToNumber(ms); else let milli be +0𝔽.
         let Some(ms) = values.get(6).map_or(Ok(Some(0)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })? else {
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })?
+        else {
             return Ok(None);
         };
 
@@ -1442,7 +1452,7 @@ impl Date {
         // 1. Let O be this Date object.
         let Some(t) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
             // 3. If tv is NaN, return "Invalid Date".
-            return Ok(js_string!("Invalid Date").into())
+            return Ok(js_string!("Invalid Date").into());
         };
 
         // 2. Let tv be ? thisTimeValue(O).

@@ -6,14 +6,14 @@ use boa_engine::{
 fn id(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
     let Some(value) = args.get(0) else {
         return Err(JsNativeError::typ()
-        .with_message("expected object argument")
-        .into());
+            .with_message("expected object argument")
+            .into());
     };
 
     let Some(object) = value.as_object() else {
         return Err(JsNativeError::typ()
-        .with_message(format!("expected object, got {}", value.type_of()))
-        .into());
+            .with_message(format!("expected object, got {}", value.type_of()))
+            .into());
     };
 
     let ptr: *const _ = object.as_ref();

@@ -344,7 +344,7 @@ impl<R> Lexer<R> {
     {
         loop {
             let Some(next) = self.next_no_skip(interner)? else {
-                return Ok(None)
+                return Ok(None);
             };
 
             if next.kind() != &TokenKind::Comment {

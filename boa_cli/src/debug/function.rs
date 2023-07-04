@@ -53,14 +53,14 @@ fn flowgraph_parse_direction_option(value: &JsValue) -> JsResult<Direction> {
 fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
     let Some(value) = args.get(0) else {
         return Err(JsNativeError::typ()
-        .with_message("expected function argument")
-        .into());
+            .with_message("expected function argument")
+            .into());
     };
 
     let Some(object) = value.as_object() else {
         return Err(JsNativeError::typ()
-        .with_message(format!("expected object, got {}", value.type_of()))
-        .into());
+            .with_message(format!("expected object, got {}", value.type_of()))
+            .into());
     };
 
     let mut format = FlowgraphFormat::Mermaid;
@@ -82,8 +82,8 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
 
     let Some(function) = object.as_function() else {
         return Err(JsNativeError::typ()
-        .with_message("expected function object")
-        .into());
+            .with_message("expected function object")
+            .into());
     };
 
     let code = function.codeblock().ok_or_else(|| {
@@ -103,20 +103,20 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
 fn bytecode(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
     let Some(value) = args.get(0) else {
         return Err(JsNativeError::typ()
-        .with_message("expected function argument")
-        .into());
+            .with_message("expected function argument")
+            .into());
     };
 
     let Some(object) = value.as_object() else {
         return Err(JsNativeError::typ()
-        .with_message(format!("expected object, got {}", value.type_of()))
-        .into());
+            .with_message(format!("expected object, got {}", value.type_of()))
+            .into());
     };
     let object = object.borrow();
     let Some(function) = object.as_function() else {
         return Err(JsNativeError::typ()
-        .with_message("expected function object")
-        .into());
+            .with_message("expected function object")
+            .into());
     };
     let code = function.codeblock().ok_or_else(|| {
         JsNativeError::typ().with_message("native functions do not have bytecode")
@@ -129,8 +129,8 @@ fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult
     let object = object.borrow();
     let Some(function) = object.as_function() else {
         return Err(JsNativeError::typ()
-        .with_message("expected function object")
-        .into());
+            .with_message("expected function object")
+            .into());
     };
     let code = function.codeblock().ok_or_else(|| {
         JsNativeError::typ().with_message("native functions do not have bytecode")
@@ -146,8 +146,8 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<J
 
     let Some(callable) = value.as_callable() else {
         return Err(JsNativeError::typ()
-        .with_message("expected callable object")
-        .into());
+            .with_message("expected callable object")
+            .into());
     };
 
     let arguments = args.get(2..).unwrap_or(&[]);
@@ -165,8 +165,8 @@ fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsV
 
     let Some(callable) = value.as_callable() else {
         return Err(JsNativeError::typ()
-        .with_message("expected callable object")
-        .into());
+            .with_message("expected callable object")
+            .into());
     };
 
     set_trace_flag_in_function_object(callable, traceable)?;

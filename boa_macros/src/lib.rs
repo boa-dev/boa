@@ -90,8 +90,10 @@ impl Parse for Static {
                     ));
                 }
                 let Expr::Lit(ExprLit {
-                    lit: Lit::Str(literal), ..
-                }) = literal else {
+                    lit: Lit::Str(literal),
+                    ..
+                }) = literal
+                else {
                     return Err(syn::Error::new_spanned(
                         literal,
                         "expected an UTF-8 string literal",

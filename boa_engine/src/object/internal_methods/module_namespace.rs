@@ -233,9 +233,11 @@ fn module_namespace_exotic_get(
         let Some(env) = target_module.environment() else {
             // 11. If targetEnv is empty, throw a ReferenceError exception.
             let import = context.interner().resolve_expect(export_name);
-            return Err(JsNativeError::reference().with_message(
-                format!("cannot get import `{import}` from an uninitialized module")
-            ).into());
+            return Err(JsNativeError::reference()
+                .with_message(format!(
+                    "cannot get import `{import}` from an uninitialized module"
+                ))
+                .into());
         };
 
         let locator = env

@@ -75,8 +75,9 @@ where
         let Some(start_position) = cursor
             .peek(0, interner)?
             .filter(|&tok| tok.kind() != &TokenKind::Punctuator(Punctuator::CloseParen))
-            .map(|tok| tok.span().start()) else {
-            return Ok( FormalParameterList::default());
+            .map(|tok| tok.span().start())
+        else {
+            return Ok(FormalParameterList::default());
         };
 
         let mut params = Vec::new();

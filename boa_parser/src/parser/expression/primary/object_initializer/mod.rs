@@ -227,7 +227,9 @@ where
                         return Err(Error::general("invalid super usage", position));
                     }
 
-                    let property::ClassElementName::PropertyName(property_name) = class_element_name else {
+                    let property::ClassElementName::PropertyName(property_name) =
+                        class_element_name
+                    else {
                         return Err(Error::general(
                             "private identifiers not allowed in object literal",
                             position,
@@ -242,7 +244,8 @@ where
                 let (class_element_name, method) =
                     AsyncMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-                let property::ClassElementName::PropertyName(property_name) = class_element_name else {
+                let property::ClassElementName::PropertyName(property_name) = class_element_name
+                else {
                     return Err(Error::general(
                         "private identifiers not allowed in object literal",
                         position,
