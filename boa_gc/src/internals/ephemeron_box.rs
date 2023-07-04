@@ -160,6 +160,7 @@ impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
         let Some(data) = self.data.get() else {
             return;
         };
+        // SAFETY: `data` comes from a `Box`, so it is safe to dereference.
         unsafe {
             data.as_ref().value.trace_non_roots();
         };

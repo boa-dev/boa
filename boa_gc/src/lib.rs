@@ -362,11 +362,11 @@ impl Collector {
         // If a handle is referenced by only the BoaGc handles vector, then remove from the vector.
         gc.handles.retain(|handle| {
             handle.is_non_root.set(0);
-            Rc::strong_count(&handle) > 1
+            Rc::strong_count(handle) > 1
         });
         gc.weak_handles.retain(|handle| {
             handle.is_non_root.set(0);
-            Rc::strong_count(&handle) > 1
+            Rc::strong_count(handle) > 1
         });
     }
 
@@ -375,6 +375,7 @@ impl Collector {
         // Then, we can find whether there is a reference from other places, and they are the roots.
         let mut strong = &gc.strong_start;
         while let Some(node) = strong.get() {
+            // SAFETY: node must be valid as this phase cannot drop any node.
             let node_ref = unsafe { node.as_ref() };
             node_ref.value().trace_non_roots();
             strong = &node_ref.header.next;
@@ -382,6 +383,7 @@ impl Collector {
 
         let mut weak = &gc.weak_start;
         while let Some(eph) = weak.get() {
+            // SAFETY: node must be valid as this phase cannot drop any node.
             let eph_ref = unsafe { eph.as_ref() };
             eph_ref.trace_non_roots();
             weak = &eph_ref.header().next;
@@ -390,14 +392,16 @@ impl Collector {
 
     fn mark_roots(gc: &mut BoaGc) {
         for handle in &gc.handles {
-            if handle.is_non_root.get() < Rc::strong_count(&handle) - 1 {
+            if handle.is_non_root.get() < Rc::strong_count(handle) - 1 {
+                // SAFETY: the gc heap object should be alive if a handle exists.
                 unsafe {
                     handle.data.as_ref().mark_and_trace();
                 }
             }
         }
         for handle in &gc.weak_handles {
-            if handle.is_non_root.get() < Rc::strong_count(&handle) - 1 {
+            if handle.is_non_root.get() < Rc::strong_count(handle) - 1 {
+                // SAFETY: the gc heap object should be alive if a handle exists.
                 unsafe {
                     handle.data.as_ref().header().mark();
                 }

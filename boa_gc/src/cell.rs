@@ -30,7 +30,7 @@ const WRITING: usize = !0;
 const UNUSED: usize = 0;
 
 /// The base borrowflag init is rooted, and has no outstanding borrows.
-const BORROWFLAG_INIT: BorrowFlag = BorrowFlag(0);
+const BORROWFLAG_INIT: BorrowFlag = BorrowFlag(UNUSED);
 
 impl BorrowFlag {
     /// Check the current `BorrowState` of `BorrowFlag`.
@@ -45,11 +45,6 @@ impl BorrowFlag {
     /// Set the `BorrowFlag`'s state to writing.
     const fn set_writing(self) -> Self {
         Self(self.0 | WRITING)
-    }
-
-    /// Remove the root flag on `BorrowFlag`
-    const fn set_unused(self) -> Self {
-        Self(UNUSED)
     }
 
     /// Increments the counter for a new borrow.
@@ -414,9 +409,7 @@ impl<T: Trace + ?Sized, U: ?Sized> DerefMut for GcRefMut<'_, T, U> {
 impl<T: ?Sized, U: ?Sized> Drop for GcRefMut<'_, T, U> {
     fn drop(&mut self) {
         debug_assert!(self.gc_cell.flags.get().borrowed() == BorrowState::Writing);
-        self.gc_cell
-            .flags
-            .set(self.gc_cell.flags.get().set_unused());
+        self.gc_cell.flags.set(BorrowFlag(UNUSED));
     }
 }
 
