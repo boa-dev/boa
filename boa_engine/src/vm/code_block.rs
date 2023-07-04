@@ -23,12 +23,7 @@ use boa_ast::function::FormalParameterList;
 use boa_gc::{empty_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
-use std::{
-    cell::{Cell, RefCell},
-    collections::VecDeque,
-    mem::size_of,
-    rc::Rc,
-};
+use std::{cell::Cell, collections::VecDeque, mem::size_of, rc::Rc};
 use thin_vec::ThinVec;
 
 #[cfg(any(feature = "trace", feature = "flowgraph"))]
@@ -139,7 +134,7 @@ pub struct CodeBlock {
     //
     // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.
     #[unsafe_ignore_trace]
-    pub(crate) compile_environments: Box<[Rc<RefCell<CompileTimeEnvironment>>]>,
+    pub(crate) compile_environments: Box<[Rc<CompileTimeEnvironment>]>,
 }
 
 /// ---- `CodeBlock` public API ----

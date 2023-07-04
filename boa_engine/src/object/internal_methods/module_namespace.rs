@@ -240,7 +240,6 @@ fn module_namespace_exotic_get(
 
         let locator = env
             .compile_env()
-            .borrow()
             .get_binding(name)
             .expect("checked before that the name was reachable");
 
