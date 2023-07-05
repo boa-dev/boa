@@ -36,21 +36,21 @@ jobs:
             --from-git \
             --yes \
             --no-git-commit \
-            --no-git-push \
-            --no-individual-tags \
             skip
 
   doc-publish:
-    # needs: publish
+    needs: publish
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        uses: baptiste0928/cargo-install@v2.1.0
+        with:
+          crate: wasm-pack
       - uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "20"
       - run: npm ci
       - name: Cache npm build
         uses: actions/cache@v3
@@ -72,6 +72,7 @@ jobs:
 
   release-binaries:
     name: Publish binaries
+    needs: publish
     strategy:
       fail-fast: false
       matrix:
@@ -82,16 +83,19 @@ jobs:
           rust: stable
           target: x86_64-unknown-linux-gnu
           asset_name: boa-linux-amd64
+          binary_name: boa
         - build: macos
           os: macos-latest
           rust: stable
           target: x86_64-apple-darwin
           asset_name: boa-macos-amd64
+          binary_name: boa
         - build: win-msvc
           os: windows-2019
           rust: stable
           target: x86_64-pc-windows-msvc
           asset_name: boa-windows-amd64
+          binary_name: boa.exe
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -101,6 +105,6 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/${{ matrix.target }}
+        file: target/release/${{ matrix.binary_name }}
         asset_name: ${{ matrix.asset_name }}
         tag: ${{ github.ref }}
