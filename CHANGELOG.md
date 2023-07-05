@@ -2,7 +2,7 @@
 
 ## What's Changed
 
-# [0.17.0 (2023-07-03)]()
+# [0.17.0 (2023-07-05)](https://github.com/boa-dev/boa/compare/v0.16...v0.17)
 
 ### Feature Enhancements
 
@@ -80,6 +80,13 @@
 - Implement `String.prototype.toLocaleUpper/LowerCase` by @jedel1043 in [#2822](https://github.com/boa-dev/boa/pull/2822)
 - Implement constant folding optimization by @HalidOdat in [#2679](https://github.com/boa-dev/boa/pull/2679)
 - Implement `Hidden classes` by @HalidOdat in [#2723](https://github.com/boa-dev/boa/pull/2723)
+- show object kind, name and address when using dbg! by @jasonwilliams in [#2960](https://github.com/boa-dev/boa/pull/2960)
+- Add convenience methods to `ModuleLoader` by @jedel1043 in [#3007](https://github.com/boa-dev/boa/pull/3007)
+- Allow `JobQueue` to concurrently run jobs by @jedel1043 in [#3036](https://github.com/boa-dev/boa/pull/3036)
+- Make `IntegerIndexed::byte_offset` public by @CryZe in [#3017](https://github.com/boa-dev/boa/pull/3017)
+- Allow awaiting `JsPromise` from Rust code by @jedel1043 in [#3011](https://github.com/boa-dev/boa/pull/3011)
+- Cache `cargo-tarpaulin` binary by @jedel1043 in [#3071](https://github.com/boa-dev/boa/pull/3071)
+- add link to the main logo by @jasonwilliams in [#3082](https://github.com/boa-dev/boa/pull/3082)
 
 ### Bug Fixes
 
@@ -178,6 +185,23 @@
 - Fix ES5 selector by @veera-sivaraja in [#2924](https://github.com/boa-dev/boa/pull/2924)
 - Labelled ByteCompiler Fix by @nekevss in [#2534](https://github.com/boa-dev/boa/pull/2534)
 - Fix verbose test display by @jedel1043 in [#2731](https://github.com/boa-dev/boa/pull/2731)
+- Fix WASM playground by @jedel1043 in [#2992](https://github.com/boa-dev/boa/pull/2992)
+- Correctly initialize functions inside modules by @jedel1043 in [#2993](https://github.com/boa-dev/boa/pull/2993)
+- Allow `true`, `false` and `null` in object patterns by @jedel1043 in [#2994](https://github.com/boa-dev/boa/pull/2994)
+- Fix panic in optional expressions with private identifiers by @raskad in [#2995](https://github.com/boa-dev/boa/pull/2995)
+- Fix prompt on windows by @ShaneEverittM in [#2986](https://github.com/boa-dev/boa/pull/2986)
+- Fix panic in constructor call by @raskad in [#3001](https://github.com/boa-dev/boa/pull/3001)
+- Unify async iterators and iterators compilation by @jedel1043 in [#2976](https://github.com/boa-dev/boa/pull/2976)
+- Correctly parse `yield import(..)` expressions by @jedel1043 in [#3006](https://github.com/boa-dev/boa/pull/3006)
+- Return the correct value during a labelled break by @raskad in [#2996](https://github.com/boa-dev/boa/pull/2996)
+- Fix panics on empty return values by @raskad in [#3018](https://github.com/boa-dev/boa/pull/3018)
+- Add early error for `await` in class static blocks by @raskad in [#3019](https://github.com/boa-dev/boa/pull/3019)
+- Fix class constructor return value by @raskad in [#3028](https://github.com/boa-dev/boa/pull/3028)
+- Fix super property access by @raskad in [#3026](https://github.com/boa-dev/boa/pull/3026)
+- Skip reversing arguments in SuperCallDerived by @dirkdev98 in [#3062](https://github.com/boa-dev/boa/pull/3062)
+- Mark header of rooted ephemerons when tracing by @jedel1043 in [#3049](https://github.com/boa-dev/boa/pull/3049)
+- Copy `ABOUT.md` file to all published crates by @jedel1043 in [#3074](https://github.com/boa-dev/boa/pull/3074)
+- Correctly handle finally..loop..break by @dirkdev98 in [#3073](https://github.com/boa-dev/boa/pull/3073)
 
 ### Internal Improvements
 
@@ -288,6 +312,8 @@
 - Fix rust 1.67 lints by @raskad in [#2567](https://github.com/boa-dev/boa/pull/2567)
 - Avoid unneeded bounds checks in bytecode address patching by @HalidOdat in [#2680](https://github.com/boa-dev/boa/pull/2680)
 - Rust 1.68 clippy fixes by @nekevss in [#2646](https://github.com/boa-dev/boa/pull/2646)
+- Fix rust 1.70 lints by @raskad in [#2990](https://github.com/boa-dev/boa/pull/2990)
+- Simplify/Refactor exception handling and last statement value by @HalidOdat in [#3053](https://github.com/boa-dev/boa/pull/3053)
 
 # [0.16.0 (2022-09-25)](https://github.com/boa-dev/boa/compare/v0.15...v0.16)
 
@@ -1297,7 +1323,7 @@ Tests have also been moved to their own files, we had a lot of tests in some mod
 
 Most of the work in this release has been on rewriting the parser. A big task taken on by [HalidOdat](https://github.com/HalidOdat), [Razican](https://github.com/Razican) and [myself](https://github.com/jasonwilliams).
 
-The majority of the old parser was 1 big function (called [`parse`](https://github.com/boa-dev/boa/blob/019033eff066e8c6ba9456139690eb214a0bf61d/boa/src/syntax/parser.rs#L353)) which had some pattern matching on each token coming in.\
+The majority of the old parser was 1 big function (called [`parse`](https://github.com/boa-dev/boa/blob/019033eff066e8c6ba9456139690eb214a0bf61d/boa/src/syntax/parser.rs#L353)) which had some pattern matching on each token coming in.
 The easy branches could generate expressions (which were basically AST Nodes), the more involved branches would recursively call into the same function, until eventually you had an expression generated.
 
 This only worked so far, eventually debugging parsing problems were difficult, also more bugs were being raised against the parser which couldn't be fixed.
@@ -1306,8 +1332,8 @@ We decided to break the parser into more of a state-machine. The initial decisio
 
 The new parser has functions to match the states of parsing in the spec. For example https://tc39.es/ecma262/#prod-VariableDeclaration has a matching function `read_variable_declaration`. This not only makes it better to maintain but easier for new contributors to get involed, as following the parsing logic of the spec is easier than before.
 
-Once finished some optimisations were added by [HalidOdat](https://github.com/HalidOdat) to use references to the tokens instead of cloning them each time we take them from the lexer.\
-This works because the tokens live just as long as the parser operations do, so we don't need to copy the tokens.\
+Once finished some optimisations were added by [HalidOdat](https://github.com/HalidOdat) to use references to the tokens instead of cloning them each time we take them from the lexer.
+This works because the tokens live just as long as the parser operations do, so we don't need to copy the tokens.
 What this brings is a huge performance boost, the parser is 67% faster than before!
 
 ![Parser Improvement](./docs/img/parser-graph.png)
