@@ -45,7 +45,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        uses: baptiste0928/cargo-install@v2.1.0
+        with:
+          crate: wasm-pack
       - uses: actions/setup-node@v3
         with:
           node-version: "20"
