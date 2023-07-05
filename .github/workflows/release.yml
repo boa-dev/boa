@@ -81,14 +81,17 @@ jobs:
           os: ubuntu-20.04
           rust: stable
           target: x86_64-unknown-linux-gnu
+          asset_name: boa-linux-amd64
         - build: macos
           os: macos-latest
           rust: stable
           target: x86_64-apple-darwin
+          asset_name: boa-macos-amd64
         - build: win-msvc
           os: windows-2019
           rust: stable
           target: x86_64-pc-windows-msvc
+          asset_name: boa-windows-amd64
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -99,5 +102,5 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: target/release/${{ matrix.target }}
-        asset_name: ${{ matrix.target }}
+        asset_name: ${{ matrix.asset_name }}
         tag: ${{ github.ref }}
