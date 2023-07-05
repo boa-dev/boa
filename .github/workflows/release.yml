@@ -36,7 +36,6 @@ jobs:
             --from-git \
             --yes \
             --no-git-commit \
-            --no-individual-tags \
             skip
 
   doc-publish:
