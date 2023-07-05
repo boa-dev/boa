@@ -7,12 +7,12 @@
     R: <a class="trait" href="https://doc.rust-lang.org/1.70.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>,</span></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.set_goal" class="method"><a class="srclink rightside" href="../../../../src/boa_parser/parser/cursor/buffered_lexer/mod.rs.html#73-76">source</a><h4 class="code-header">pub(super) fn <a href="#method.set_goal" class="fn">set_goal</a>(&amp;mut self, elm: <a class="enum" href="../../../lexer/enum.InputElement.html" title="enum boa_parser::lexer::InputElement">InputElement</a>)</h4></section></summary><div class="docblock"><p>Sets the goal symbol for the lexer.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.lex_regex" class="method"><a class="srclink rightside" href="../../../../src/boa_parser/parser/cursor/buffered_lexer/mod.rs.html#79-89">source</a><h4 class="code-header">pub(super) fn <a href="#method.lex_regex" class="fn">lex_regex</a>(
     &amp;mut self,
-    start: Position,
+    start: <a class="struct" href="../../../../boa_ast/position/struct.Position.html" title="struct boa_ast::position::Position">Position</a>,
     interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="struct" href="../../../lexer/token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>&gt;</h4></section></summary><div class="docblock"><p>Lexes the next tokens as a regex assuming that the starting ‘/’ has already been consumed.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.lex_template" class="method"><a class="srclink rightside" href="../../../../src/boa_parser/parser/cursor/buffered_lexer/mod.rs.html#93-101">source</a><h4 class="code-header">pub(super) fn <a href="#method.lex_template" class="fn">lex_template</a>(
     &amp;mut self,
-    start: Position,
+    start: <a class="struct" href="../../../../boa_ast/position/struct.Position.html" title="struct boa_ast::position::Position">Position</a>,
     interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="struct" href="../../../lexer/token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>&gt;</h4></section></summary><div class="docblock"><p>Lexes the next tokens as template middle or template tail assuming that the starting
 ‘}’ has already been consumed.</p>
