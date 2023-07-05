@@ -71,29 +71,33 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
   release-binaries:
-    name: Publish for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Publish binaries
     strategy:
+      fail-fast: false
       matrix:
+        build: [linux, macos, win-msvc]
         include:
-          - os: ubuntu-latest
-            artifact_name: boa
-            asset_name: boa-linux-amd64
-          - os: windows-latest
-            artifact_name: boa.exe
-            asset_name: boa-windows-amd64
-          - os: macos-latest
-            artifact_name: boa
-            asset_name: boa-macos-amd64
-
+        - build: linux
+          os: ubuntu-20.04
+          rust: stable
+          target: x86_64-unknown-linux-gnu
+        - build: macos
+          os: macos-latest
+          rust: stable
+          target: x86_64-apple-darwin
+        - build: win-msvc
+          os: windows-2019
+          rust: stable
+          target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --release --locked
+      run: cargo build --release --locked --bin boa
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/${{ matrix.artifact_name }}
-        asset_name: ${{ matrix.asset_name }}
+        file: target/release/${{ matrix.target }}
+        asset_name: ${{ matrix.target }}
         tag: ${{ github.ref }}
