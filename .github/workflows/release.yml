@@ -49,7 +49,7 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "20"
       - run: npm ci
       - name: Cache npm build
         uses: actions/cache@v3
