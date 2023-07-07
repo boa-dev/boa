@@ -20,6 +20,6 @@ boa_macros.workspace = true
 rustc-hash = "1.1.0"
 bitflags = "2.3.3"
 num-bigint = "0.4.3"
-serde = { version = "1.0.166", features = ["derive"], optional = true }
+serde = { version = "1.0.167", features = ["derive"], optional = true }
 arbitrary = { version = "1", features = ["derive"], optional = true }
 indexmap = "2.0.0"
