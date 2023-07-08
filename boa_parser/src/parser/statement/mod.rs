@@ -202,7 +202,7 @@ where
                 Ok(ast::Statement::Empty)
             }
             TokenKind::IdentifierName(_)
-            | TokenKind::Keyword((Keyword::Await | Keyword::Yield, false)) => {
+            | TokenKind::Keyword((Keyword::Await | Keyword::Yield, _)) => {
                 // Labelled Statement check
                 cursor.set_goal(InputElement::Div);
                 let tok = cursor.peek(1, interner)?;
