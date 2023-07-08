@@ -69,19 +69,19 @@ jobs:
           binary_name: boa.exe
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
-    - name: Install Rust toolchain
+      - uses: actions/checkout@v3
+      - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal
           override: true
-    - name: Build
-      run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/${{ matrix.target }}/release/${{ matrix.binary_name }}
-        asset_name: ${{ matrix.asset_name }}
-        tag: ${{ github.ref }}
+      - name: Build
+        run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/${{ matrix.target }}/release/${{ matrix.binary_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
