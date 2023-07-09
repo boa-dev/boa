@@ -1516,18 +1516,6 @@
 <a href="#1516" id="1516">1516</a>
 <a href="#1517" id="1517">1517</a>
 <a href="#1518" id="1518">1518</a>
-<a href="#1519" id="1519">1519</a>
-<a href="#1520" id="1520">1520</a>
-<a href="#1521" id="1521">1521</a>
-<a href="#1522" id="1522">1522</a>
-<a href="#1523" id="1523">1523</a>
-<a href="#1524" id="1524">1524</a>
-<a href="#1525" id="1525">1525</a>
-<a href="#1526" id="1526">1526</a>
-<a href="#1527" id="1527">1527</a>
-<a href="#1528" id="1528">1528</a>
-<a href="#1529" id="1529">1529</a>
-<a href="#1530" id="1530">1530</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1551,7 +1539,6 @@
 <span class="kw">use </span>bitflags::bitflags;
 <span class="kw">use </span>boa_ast::function::FormalParameterList;
 <span class="kw">use </span>boa_gc::{empty_trace, Finalize, Gc, Trace};
-<span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{cell::Cell, collections::VecDeque, mem::size_of, rc::Rc};
 <span class="kw">use </span>thin_vec::ThinVec;
@@ -1627,7 +1614,7 @@
 </span><span class="kw">pub struct </span>CodeBlock {
     <span class="doccomment">/// Name of this function
     </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) name: Sym,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) name: JsString,
 
     <span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) flags: Cell&lt;CodeBlockFlags&gt;,
@@ -1671,7 +1658,7 @@
 </span><span class="kw">impl </span>CodeBlock {
     <span class="doccomment">/// Creates a new `CodeBlock`.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>new(name: Sym, length: u32, strict: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(name: JsString, length: u32, strict: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>flags = CodeBlockFlags::empty();
         flags.set(CodeBlockFlags::STRICT, strict);
         <span class="self">Self </span>{
@@ -1691,8 +1678,8 @@
 
     <span class="doccomment">/// Retrieves the name associated with this code block.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub const fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
-        <span class="self">self</span>.name
+    </span><span class="kw">pub const fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsString {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.name
     }
 
     <span class="doccomment">/// Check if the function is traced.
@@ -1890,7 +1877,9 @@
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;() + size_of::&lt;u8&gt;();
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{operand:04}: &#39;{}&#39; (length: {})&quot;</span>,
-                    interner.resolve_expect(<span class="self">self</span>.functions[operand <span class="kw">as </span>usize].name),
+                    <span class="self">self</span>.functions[operand <span class="kw">as </span>usize]
+                        .name()
+                        .to_std_string_escaped(),
                     <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length
                 )
             }
@@ -1899,7 +1888,9 @@
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{operand:04}: &#39;{}&#39; (length: {})&quot;</span>,
-                    interner.resolve_expect(<span class="self">self</span>.functions[operand <span class="kw">as </span>usize].name),
+                    <span class="self">self</span>.functions[operand <span class="kw">as </span>usize]
+                        .name()
+                        .to_std_string_escaped(),
                     <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length
                 )
             }
@@ -2153,8 +2144,8 @@
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
 </span><span class="kw">impl </span>ToInternedString <span class="kw">for </span>CodeBlock {
     <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
-        <span class="kw">let </span>name = interner.resolve_expect(<span class="self">self</span>.name);
-        <span class="kw">let </span><span class="kw-2">mut </span>f = <span class="kw">if </span><span class="self">self</span>.name == Sym::MAIN {
+        <span class="kw">let </span>name = <span class="self">self</span>.name();
+        <span class="kw">let </span><span class="kw-2">mut </span>f = <span class="kw">if </span>name == <span class="string">&quot;&lt;main&gt;&quot; </span>{
             String::new()
         } <span class="kw">else </span>{
             <span class="string">&quot;\n&quot;</span>.to_owned()
@@ -2162,7 +2153,7 @@
 
         f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
             <span class="string">&quot;{:-^70}\nLocation  Count   Opcode                     Operands\n\n&quot;</span>,
-            <span class="macro">format!</span>(<span class="string">&quot;Compiled Output: &#39;{name}&#39;&quot;</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;Compiled Output: &#39;{}&#39;&quot;</span>, name.to_std_string_escaped()),
         ));
 
         <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="number">0</span>;
@@ -2211,7 +2202,7 @@
             <span class="kw">for </span>(i, code) <span class="kw">in </span><span class="self">self</span>.functions.iter().enumerate() {
                 f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                     <span class="string">&quot;    {i:04}: name: &#39;{}&#39; (length: {})\n&quot;</span>,
-                    interner.resolve_expect(code.name),
+                    code.name().to_std_string_escaped(),
                     code.length
                 ));
             }
@@ -2238,12 +2229,7 @@
 ) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_function_object&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
-    <span class="kw">let </span>name: JsValue = context
-        .interner()
-        .resolve_expect(code.name)
-        .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
-        .into();
-
+    <span class="kw">let </span>name: JsValue = code.name().clone().into();
     <span class="kw">let </span>length: JsValue = code.length.into();
 
     <span class="kw">let </span>script_or_module = context.vm.active_runnable.clone();
@@ -2323,12 +2309,7 @@
 ) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_function_object_fast&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
-    <span class="kw">let </span>name: JsValue = context
-        .interner()
-        .resolve_expect(code.name)
-        .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
-        .into();
-
+    <span class="kw">let </span>name: JsValue = code.name().clone().into();
     <span class="kw">let </span>length: JsValue = code.length.into();
 
     <span class="kw">let </span>script_or_module = context.vm.active_runnable.clone();
@@ -2413,12 +2394,7 @@
     };
 
     <span class="kw">let </span>name_property = PropertyDescriptor::builder()
-        .value(
-            context
-                .interner()
-                .resolve_expect(code.name)
-                .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>),
-        )
+        .value(code.name().clone())
         .writable(<span class="bool-val">false</span>)
         .enumerable(<span class="bool-val">false</span>)
         .configurable(<span class="bool-val">true</span>)

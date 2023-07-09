@@ -726,10 +726,12 @@
 <a href="#726" id="726">726</a>
 <a href="#727" id="727">727</a>
 <a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
-<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_interner::Interner;
+<span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>std::mem::size_of;
 
 <span class="kw">mod </span>color;
@@ -746,10 +748,10 @@
     <span class="doccomment">/// Output the [`CodeBlock`] VM instructions into a [`Graph`].
     </span><span class="kw">pub fn </span>to_graph(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, graph: <span class="kw-2">&amp;mut </span>SubGraph) {
         <span class="comment">// Have to remove any invalid graph chars like `&lt;` or `&gt;`.
-        </span><span class="kw">let </span>name = <span class="kw">if </span><span class="self">self</span>.name == Sym::MAIN {
+        </span><span class="kw">let </span>name = <span class="kw">if </span><span class="self">self</span>.name() == <span class="macro">utf16!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>) {
             <span class="string">&quot;__main__&quot;</span>.to_string()
         } <span class="kw">else </span>{
-            interner.resolve_expect(<span class="self">self</span>.name).to_string()
+            <span class="self">self</span>.name().to_std_string_escaped()
         };
 
         graph.set_label(name);
@@ -1134,9 +1136,9 @@
                 | Opcode::GetFunction
                 | Opcode::GetFunctionAsync =&gt; {
                     <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    <span class="kw">let </span>fn_name = interner
-                        .resolve_expect(<span class="self">self</span>.functions[operand <span class="kw">as </span>usize].name)
-                        .to_string();
+                    <span class="kw">let </span>fn_name = <span class="self">self</span>.functions[operand <span class="kw">as </span>usize]
+                        .name()
+                        .to_std_string_escaped();
                     pc += size_of::&lt;u32&gt;() + size_of::&lt;u8&gt;();
                     <span class="kw">let </span>label = <span class="macro">format!</span>(
                         <span class="string">&quot;{opcode_str} &#39;{fn_name}&#39; (length: {})&quot;</span>,
@@ -1147,9 +1149,9 @@
                 }
                 Opcode::GetGenerator | Opcode::GetGeneratorAsync =&gt; {
                     <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    <span class="kw">let </span>fn_name = interner
-                        .resolve_expect(<span class="self">self</span>.functions[operand <span class="kw">as </span>usize].name)
-                        .to_string();
+                    <span class="kw">let </span>fn_name = <span class="self">self</span>.functions[operand <span class="kw">as </span>usize]
+                        .name()
+                        .to_std_string_escaped();
                     <span class="kw">let </span>label = <span class="macro">format!</span>(
                         <span class="string">&quot;{opcode_str} &#39;{fn_name}&#39; (length: {})&quot;</span>,
                         <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length

@@ -1410,6 +1410,12 @@
 <a href="#1410" id="1410">1410</a>
 <a href="#1411" id="1411">1411</a>
 <a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2799,8 +2805,14 @@
     #[must_use]
     #[allow(clippy::missing_const_for_fn)]
     </span><span class="kw">pub fn </span>finish(<span class="self">self</span>) -&gt; CodeBlock {
+        <span class="kw">let </span>name = <span class="self">self
+            </span>.context
+            .interner()
+            .resolve_expect(<span class="self">self</span>.function_name)
+            .utf16()
+            .into();
         CodeBlock {
-            name: <span class="self">self</span>.function_name,
+            name,
             length: <span class="self">self</span>.length,
             this_mode: <span class="self">self</span>.this_mode,
             params: <span class="self">self</span>.params,
