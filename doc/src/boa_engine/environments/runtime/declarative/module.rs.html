@@ -117,7 +117,6 @@
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::Cell;
 
 <span class="kw">use </span>boa_ast::expression::Identifier;
@@ -185,7 +184,6 @@
                     BindingAccessor::Identifier(name) =&gt; {
                         <span class="kw">let </span>index = env
                             .compile_env()
-                            .borrow()
                             .get_binding(name)
                             .expect(<span class="string">&quot;linking must ensure the binding exists&quot;</span>);
 

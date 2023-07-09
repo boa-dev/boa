@@ -1192,8 +1192,6 @@
 <a href="#1192" id="1192">1192</a>
 <a href="#1193" id="1193">1193</a>
 <a href="#1194" id="1194">1194</a>
-<a href="#1195" id="1195">1195</a>
-<a href="#1196" id="1196">1196</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
     environments::BindingLocatorError,
@@ -1370,7 +1368,7 @@
                 //    would not produce any Early Errors for script, then
                 </span><span class="kw">if </span>!lex_names.contains(<span class="kw-2">&amp;</span>f) {
                     <span class="comment">// a. If env.HasLexicalDeclaration(F) is false, then
-                    </span><span class="kw">if </span>!<span class="self">self</span>.current_environment.borrow().has_lex_binding(f) {
+                    </span><span class="kw">if </span>!<span class="self">self</span>.current_environment.has_lex_binding(f) {
                         <span class="comment">// i. Let fnDefinable be ? env.CanDeclareGlobalVar(F).
                         </span><span class="kw">let </span>fn_definable = <span class="self">self</span>.context.can_declare_global_function(f)<span class="question-mark">?</span>;
 
@@ -1504,7 +1502,7 @@
     <span class="kw">where
         </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>env = <span class="self">self</span>.current_environment.borrow_mut();
+        <span class="kw">let </span>env = <span class="kw-2">&amp;</span><span class="self">self</span>.current_environment;
 
         <span class="comment">// 1. Let declarations be the LexicallyScopedDeclarations of code.
         </span><span class="kw">let </span>declarations = lexically_scoped_declarations(block);
@@ -1540,8 +1538,6 @@
                 }
             }
         }
-
-        drop(env);
 
         <span class="comment">// Note: Not sure if the spec is wrong here or if our implementation just differs too much,
         //       but we need 3.a to be finished for all declarations before 3.b can be done.
@@ -1728,7 +1724,7 @@
                     </span><span class="kw">let </span>fn_definable = <span class="kw">if </span>!binding_exists &amp;&amp; var_environment_is_global {
                         <span class="comment">// a. If varEnv.HasLexicalDeclaration(F) is false, then
                         // b. Else,
-                        </span><span class="kw">if </span><span class="self">self</span>.current_environment.borrow().has_lex_binding(f) {
+                        </span><span class="kw">if </span><span class="self">self</span>.current_environment.has_lex_binding(f) {
                             <span class="comment">// i. Let fnDefinable be false.
                             </span><span class="bool-val">false
                         </span>} <span class="kw">else </span>{

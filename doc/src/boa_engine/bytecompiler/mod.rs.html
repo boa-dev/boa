@@ -1410,9 +1410,6 @@
 <a href="#1410" id="1410">1410</a>
 <a href="#1411" id="1411">1411</a>
 <a href="#1412" id="1412">1412</a>
-<a href="#1413" id="1413">1413</a>
-<a href="#1414" id="1414">1414</a>
-<a href="#1415" id="1415">1415</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1426,10 +1423,7 @@
 <span class="kw">mod </span>statement;
 <span class="kw">mod </span>utils;
 
-<span class="kw">use </span>std::{
-    cell::{Cell, RefCell},
-    rc::Rc,
-};
+<span class="kw">use </span>std::{cell::Cell, rc::Rc};
 
 <span class="kw">use crate</span>::{
     builtins::function::ThisMode,
@@ -1659,10 +1653,10 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Vec&lt;Gc&lt;CodeBlock&gt;&gt;,
 
     <span class="doccomment">/// Compile time environments in this function.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Vec&lt;Rc&lt;RefCell&lt;CompileTimeEnvironment&gt;&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Vec&lt;Rc&lt;CompileTimeEnvironment&gt;&gt;,
 
     <span class="doccomment">/// The environment that is currently active.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) current_environment: Rc&lt;RefCell&lt;CompileTimeEnvironment&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) current_environment: Rc&lt;CompileTimeEnvironment&gt;,
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) code_block_flags: CodeBlockFlags,
 
@@ -1691,7 +1685,7 @@
         name: Sym,
         strict: bool,
         json_parse: bool,
-        current_environment: Rc&lt;RefCell&lt;CompileTimeEnvironment&gt;&gt;,
+        current_environment: Rc&lt;CompileTimeEnvironment&gt;,
         <span class="comment">// TODO: remove when we separate scripts from the context
         </span>context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
     ) -&gt; ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
@@ -2048,7 +2042,7 @@
             Access::Variable { name } =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                <span class="kw">let </span>lex = <span class="self">self</span>.current_environment.borrow().is_lex_binding(name);
+                <span class="kw">let </span>lex = <span class="self">self</span>.current_environment.is_lex_binding(name);
 
                 <span class="kw">if </span>!lex {
                     <span class="self">self</span>.emit(Opcode::GetLocator, <span class="kw-2">&amp;</span>[index]);

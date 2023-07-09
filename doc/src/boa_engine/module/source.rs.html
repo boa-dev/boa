@@ -1986,11 +1986,8 @@
 <a href="#1986" id="1986">1986</a>
 <a href="#1987" id="1987">1987</a>
 <a href="#1988" id="1988">1988</a>
-<a href="#1989" id="1989">1989</a>
-<a href="#1990" id="1990">1990</a>
-<a href="#1991" id="1991">1991</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
-    cell::{Cell, RefCell},
+    cell::Cell,
     collections::HashSet,
     hash::{BuildHasherDefault, Hash},
     rc::Rc,
@@ -3401,10 +3398,7 @@
         // 6. Set module.[[Environment]] to env.
         </span><span class="kw">let </span>global_env = realm.environment().clone();
         <span class="kw">let </span>global_compile_env = global_env.compile_env();
-        <span class="kw">let </span>module_compile_env = Rc::new(RefCell::new(CompileTimeEnvironment::new(
-            global_compile_env,
-            <span class="bool-val">true</span>,
-        )));
+        <span class="kw">let </span>module_compile_env = Rc::new(CompileTimeEnvironment::new(global_compile_env, <span class="bool-val">true</span>));
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler =
             ByteCompiler::new(Sym::MAIN, <span class="bool-val">true</span>, <span class="bool-val">false</span>, module_compile_env.clone(), context);

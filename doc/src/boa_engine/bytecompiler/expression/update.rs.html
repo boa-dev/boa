@@ -196,7 +196,7 @@
             Access::Variable { name } =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                <span class="kw">let </span>lex = <span class="self">self</span>.current_environment.borrow().is_lex_binding(name);
+                <span class="kw">let </span>lex = <span class="self">self</span>.current_environment.is_lex_binding(name);
 
                 <span class="kw">if </span>lex {
                     <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[index]);
