@@ -3071,6 +3071,11 @@
 <a href="#3071" id="3071">3071</a>
 <a href="#3072" id="3072">3072</a>
 <a href="#3073" id="3073">3073</a>
+<a href="#3074" id="3074">3074</a>
+<a href="#3075" id="3075">3075</a>
+<a href="#3076" id="3076">3076</a>
+<a href="#3077" id="3077">3077</a>
+<a href="#3078" id="3078">3078</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -6095,11 +6100,6 @@
 
     <span class="doccomment">/// `Array.prototype [ @@unscopables ]`
     ///
-    /// The initial value of the &#39;unscopables&#39; data property is an ordinary object
-    /// with the following boolean properties set to true:
-    /// &#39;at&#39;, &#39;copyWithin&#39;, &#39;entries&#39;, &#39;fill&#39;, &#39;find&#39;, &#39;findIndex&#39;, &#39;flat&#39;,
-    /// &#39;flatMap&#39;, &#39;includes&#39;, &#39;keys&#39;, &#39;values&#39;
-    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
@@ -6128,15 +6128,25 @@
             </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;find&quot;</span>), true_prop.clone());
             <span class="comment">// 7. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;findIndex&quot;, true).
             </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;findIndex&quot;</span>), true_prop.clone());
-            <span class="comment">// 8. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;flat&quot;, true).
+            <span class="comment">// 8. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;findLast&quot;, true).
+            </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;findLast&quot;</span>), true_prop.clone());
+            <span class="comment">// 9. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;findLastIndex&quot;, true).
+            </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;findLastIndex&quot;</span>), true_prop.clone());
+            <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;flat&quot;, true).
             </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;flat&quot;</span>), true_prop.clone());
-            <span class="comment">// 9. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;flatMap&quot;, true).
+            <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;flatMap&quot;, true).
             </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;flatMap&quot;</span>), true_prop.clone());
-            <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;includes&quot;, true).
+            <span class="comment">// 12. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;includes&quot;, true).
             </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;includes&quot;</span>), true_prop.clone());
-            <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;keys&quot;, true).
+            <span class="comment">// 13. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;keys&quot;, true).
             </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;keys&quot;</span>), true_prop.clone());
-            <span class="comment">// 12. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;values&quot;, true).
+            <span class="comment">// 14. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;toReversed&quot;, true).
+            </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;toReversed&quot;</span>), true_prop.clone());
+            <span class="comment">// 15. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;toSorted&quot;, true).
+            </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;toSorted&quot;</span>), true_prop.clone());
+            <span class="comment">// 16. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;toSpliced&quot;, true).
+            </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;toSpliced&quot;</span>), true_prop.clone());
+            <span class="comment">// 17. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;values&quot;, true).
             </span>obj.insert(<span class="macro">utf16!</span>(<span class="string">&quot;values&quot;</span>), true_prop);
         }
 
