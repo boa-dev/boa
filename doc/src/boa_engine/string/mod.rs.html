@@ -1054,6 +1054,8 @@
 <a href="#1054" id="1054">1054</a>
 <a href="#1055" id="1055">1055</a>
 <a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
 //!
 //! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
@@ -1376,7 +1378,9 @@
                     <span class="kw">let </span><span class="prelude-val">Some</span>(cp) = <span class="self">self</span>.codepoints.peek().and_then(|cp| <span class="kw">match </span>cp {
                         CodePoint::Unicode(c) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>c),
                         CodePoint::UnpairedSurrogate(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                    }) <span class="kw">else </span>{ <span class="kw">break</span>; };
+                    }) <span class="kw">else </span>{
+                        <span class="kw">break</span>;
+                    };
 
                     string.push(cp);
 

@@ -992,8 +992,8 @@
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(iterator
                 .close(
                     <span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;StringListFromIterable: can only format strings into a list&quot;</span>)
-                    .into()),
+                        .with_message(<span class="string">&quot;StringListFromIterable: can only format strings into a list&quot;</span>)
+                        .into()),
                     context,
                 )
                 .expect_err(<span class="string">&quot;Should return the provided error&quot;</span>));

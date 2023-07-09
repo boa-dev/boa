@@ -443,6 +443,8 @@
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Macros for the Boa JavaScript engine.
 //!
 </span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../ABOUT.md&quot;</span>)]
@@ -535,8 +537,10 @@
                     ));
                 }
                 <span class="kw">let </span>Expr::Lit(ExprLit {
-                    lit: Lit::Str(literal), ..
-                }) = literal <span class="kw">else </span>{
+                    lit: Lit::Str(literal),
+                    ..
+                }) = literal
+                <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new_spanned(
                         literal,
                         <span class="string">&quot;expected an UTF-8 string literal&quot;</span>,

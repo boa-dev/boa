@@ -312,6 +312,10 @@
 <a href="#312" id="312">312</a>
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **boa_runtime** crate contains an example runtime and basic runtime features and
 //! functionality for the `boa_engine` crate for runtime implementors.
 //!
@@ -552,12 +556,12 @@
                         <span class="prelude-val">Ok</span>(v) =&gt; v,
                     };
                     <span class="kw">let </span><span class="prelude-val">Some</span>(val) = val.as_boolean() <span class="kw">else </span>{
-                    <span class="macro">panic!</span>(
-                        <span class="string">&quot;{}\nTried to assert with the non-boolean value `{}`&quot;</span>,
-                        fmt_test(<span class="kw-2">&amp;</span>source, i),
-                        val.display()
-                    )
-                };
+                        <span class="macro">panic!</span>(
+                            <span class="string">&quot;{}\nTried to assert with the non-boolean value `{}`&quot;</span>,
+                            fmt_test(<span class="kw-2">&amp;</span>source, i),
+                            val.display()
+                        )
+                    };
                     <span class="macro">assert!</span>(val, <span class="string">&quot;{}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
                     i += <span class="number">1</span>;
                 }
@@ -587,8 +591,12 @@
                         <span class="prelude-val">Err</span>(e) =&gt; e,
                     };
                     <span class="kw">let </span><span class="prelude-val">Some</span>(err) = err.as_opaque() <span class="kw">else </span>{
-                    <span class="macro">panic!</span>(<span class="string">&quot;{}\nExpected opaque error, got native error `{}`&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i), err)
-                };
+                        <span class="macro">panic!</span>(
+                            <span class="string">&quot;{}\nExpected opaque error, got native error `{}`&quot;</span>,
+                            fmt_test(<span class="kw-2">&amp;</span>source, i),
+                            err
+                        )
+                    };
 
                     <span class="macro">assert_eq!</span>(err, <span class="kw-2">&amp;</span>expected, <span class="string">&quot;{}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
                     i += <span class="number">1</span>;

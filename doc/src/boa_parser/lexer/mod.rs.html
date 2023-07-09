@@ -744,7 +744,7 @@
     {
         <span class="kw">loop </span>{
             <span class="kw">let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.next_no_skip(interner)<span class="question-mark">? </span><span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             };
 
             <span class="kw">if </span>next.kind() != <span class="kw-2">&amp;</span>TokenKind::Comment {

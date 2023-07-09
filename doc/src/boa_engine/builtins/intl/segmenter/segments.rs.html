@@ -140,6 +140,7 @@
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>itertools::Itertools;
@@ -236,7 +237,8 @@
             </span>.as_integer()
             <span class="comment">// 7. If n &lt; 0 or n ≥ len, return undefined.
             </span>.filter(|i| (<span class="number">0</span>..len).contains(i))
-            .map(|n| n <span class="kw">as </span>usize) <span class="kw">else </span>{
+            .map(|n| n <span class="kw">as </span>usize)
+        <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
         };
 

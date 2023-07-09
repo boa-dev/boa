@@ -2288,6 +2288,15 @@
 <a href="#2288" id="2288">2288</a>
 <a href="#2289" id="2289">2289</a>
 <a href="#2290" id="2290">2290</a>
+<a href="#2291" id="2291">2291</a>
+<a href="#2292" id="2292">2292</a>
+<a href="#2293" id="2293">2293</a>
+<a href="#2294" id="2294">2294</a>
+<a href="#2295" id="2295">2295</a>
+<a href="#2296" id="2296">2296</a>
+<a href="#2297" id="2297">2297</a>
+<a href="#2298" id="2298">2298</a>
+<a href="#2299" id="2299">2299</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -3820,7 +3829,11 @@
 
         <span class="kw">let </span>on_finally = args.get_or_undefined(<span class="number">0</span>);
 
-        <span class="kw">let </span><span class="prelude-val">Some</span>(on_finally) = on_finally.as_object().cloned().and_then(JsFunction::from_object) <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(on_finally) = on_finally
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object)
+        <span class="kw">else </span>{
             <span class="comment">// 5. If IsCallable(onFinally) is false, then
             //    a. Let thenFinally be onFinally.
             //    b. Let catchFinally be onFinally.
@@ -4316,7 +4329,7 @@
                     // 5. If alreadyResolved.[[Value]] is true, return undefined.
                     // 6. Set alreadyResolved.[[Value]] to true.
                     </span><span class="kw">let </span><span class="prelude-val">Some</span>(promise) = captures.take() <span class="kw">else </span>{
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
                     };
 
                     <span class="kw">let </span>resolution = args.get_or_undefined(<span class="number">0</span>);
@@ -4359,7 +4372,11 @@
                     };
 
                     <span class="comment">// 12. If IsCallable(thenAction) is false, then
-                    </span><span class="kw">let </span><span class="prelude-val">Some</span>(then_action) = then_action.as_object().cloned().and_then(JsFunction::from_object) <span class="kw">else </span>{
+                    </span><span class="kw">let </span><span class="prelude-val">Some</span>(then_action) = then_action
+                        .as_object()
+                        .cloned()
+                        .and_then(JsFunction::from_object)
+                    <span class="kw">else </span>{
                         <span class="comment">// a. Perform FulfillPromise(promise, resolution).
                         </span>fulfill_promise(<span class="kw-2">&amp;</span>promise, resolution.clone(), context);
 
@@ -4368,14 +4385,15 @@
                     };
 
                     <span class="comment">// 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
-                    </span><span class="kw">let </span>then_job_callback = context.host_hooks().make_job_callback(then_action, context);
+                    </span><span class="kw">let </span>then_job_callback =
+                        context.host_hooks().make_job_callback(then_action, context);
 
                     <span class="comment">// 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
                     </span><span class="kw">let </span>job = new_promise_resolve_thenable_job(
                         promise.clone(),
                         resolution.clone(),
                         then_job_callback,
-                        context
+                        context,
                     );
 
                     <span class="comment">// 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).

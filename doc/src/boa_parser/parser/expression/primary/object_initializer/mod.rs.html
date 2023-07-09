@@ -1081,6 +1081,9 @@
 <a href="#1081" id="1081">1081</a>
 <a href="#1082" id="1082">1082</a>
 <a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.
 //!
 //! More information:
@@ -1310,7 +1313,9 @@
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid super usage&quot;</span>, position));
                     }
 
-                    <span class="kw">let </span>property::ClassElementName::PropertyName(property_name) = class_element_name <span class="kw">else </span>{
+                    <span class="kw">let </span>property::ClassElementName::PropertyName(property_name) =
+                        class_element_name
+                    <span class="kw">else </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                             <span class="string">&quot;private identifiers not allowed in object literal&quot;</span>,
                             position,
@@ -1325,7 +1330,8 @@
                 <span class="kw">let </span>(class_element_name, method) =
                     AsyncMethod::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>property::ClassElementName::PropertyName(property_name) = class_element_name <span class="kw">else </span>{
+                <span class="kw">let </span>property::ClassElementName::PropertyName(property_name) = class_element_name
+                <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                         <span class="string">&quot;private identifiers not allowed in object literal&quot;</span>,
                         position,

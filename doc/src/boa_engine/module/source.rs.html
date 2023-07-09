@@ -1979,6 +1979,16 @@
 <a href="#1979" id="1979">1979</a>
 <a href="#1980" id="1980">1980</a>
 <a href="#1981" id="1981">1981</a>
+<a href="#1982" id="1982">1982</a>
+<a href="#1983" id="1983">1983</a>
+<a href="#1984" id="1984">1984</a>
+<a href="#1985" id="1985">1985</a>
+<a href="#1986" id="1986">1986</a>
+<a href="#1987" id="1987">1987</a>
+<a href="#1988" id="1988">1988</a>
+<a href="#1989" id="1989">1989</a>
+<a href="#1990" id="1990">1990</a>
+<a href="#1991" id="1991">1991</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::{Cell, RefCell},
     collections::HashSet,
@@ -3132,7 +3142,10 @@
         </span><span class="kw">if </span>pending_async_dependencies &gt; <span class="number">0 </span>|| <span class="self">self</span>.inner.code.has_tla {
             <span class="comment">// a. Assert: module.[[AsyncEvaluation]] is false and was never previously set to true.
             </span>{
-                <span class="kw">let </span>Status::Evaluating { async_eval_index, .. } = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.status.borrow_mut() <span class="kw">else </span>{
+                <span class="kw">let </span>Status::Evaluating {
+                    async_eval_index, ..
+                } = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.status.borrow_mut()
+                <span class="kw">else </span>{
                     <span class="macro">unreachable!</span>(<span class="string">&quot;self should still be in the evaluating state&quot;</span>)
                 };
 
@@ -3307,7 +3320,11 @@
                     <span class="comment">// i. Assert: m.[[Status]] is evaluating-async.
                     // ii. Assert: m.[[EvaluationError]] is empty.
                     // iii. Assert: m.[[AsyncEvaluation]] is true.
-                    </span><span class="kw">let </span>Status::EvaluatingAsync { pending_async_dependencies, .. } = <span class="kw-2">&amp;mut *</span>m.inner.status.borrow_mut() <span class="kw">else </span>{
+                    </span><span class="kw">let </span>Status::EvaluatingAsync {
+                        pending_async_dependencies,
+                        ..
+                    } = <span class="kw-2">&amp;mut *</span>m.inner.status.borrow_mut()
+                    <span class="kw">else </span>{
                         <span class="macro">unreachable!</span>(<span class="string">&quot;i. Assert: m.[[Status]] is evaluating-async.&quot;</span>);
                     };
                     <span class="comment">// iv. Assert: m.[[PendingAsyncDependencies]] &gt; 0.
@@ -3823,7 +3840,10 @@
 
     <span class="comment">// 10. Let sortedExecList be a List whose elements are the elements of execList, in the order in which they had their [[AsyncEvaluation]] fields set to true in InnerModuleEvaluation.
     </span>ancestors.sort_by_cached_key(|m| {
-        <span class="kw">let </span>Status::EvaluatingAsync { async_eval_index, .. } = <span class="kw-2">&amp;*</span>m.inner.status.borrow() <span class="kw">else </span>{
+        <span class="kw">let </span>Status::EvaluatingAsync {
+            async_eval_index, ..
+        } = <span class="kw-2">&amp;*</span>m.inner.status.borrow()
+        <span class="kw">else </span>{
             <span class="macro">unreachable!</span>(<span class="string">&quot;GatherAvailableAncestors: i. Assert: m.[[Status]] is evaluating-async.&quot;</span>);
         };
 

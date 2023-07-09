@@ -514,6 +514,20 @@
 <a href="#514" id="514">514</a>
 <a href="#515" id="515">515</a>
 <a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Set` object.
 //!
 //! The ECMAScript `Set` class is a global object that is used in the construction of sets; which
@@ -857,7 +871,10 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(lock) = this
+            .as_object()
+            .and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone())))
+        <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Method Set.prototype.entries called on incompatible receiver&quot;</span>)
                 .into());
@@ -888,7 +905,10 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(lock) = this
+            .as_object()
+            .and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone())))
+        <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Method Set.prototype.forEach called on incompatible receiver&quot;</span>)
                 .into());
@@ -897,7 +917,9 @@
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(callback_fn) = args.get_or_undefined(<span class="number">0</span>).as_callable() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Method Set.prototype.forEach called with non-callable callback function&quot;</span>)
+                .with_message(
+                    <span class="string">&quot;Method Set.prototype.forEach called with non-callable callback function&quot;</span>,
+                )
                 .into());
         };
 
@@ -909,7 +931,10 @@
         <span class="comment">// 7. Repeat, while index &lt; numEntries,
         </span><span class="kw">while </span>index &lt; <span class="self">Self</span>::get_size_full(this)<span class="question-mark">? </span>{
             <span class="comment">// a. Let e be entries[index].
-            </span><span class="kw">let </span><span class="prelude-val">Some</span>(e) = this.as_object().and_then(|o| o.borrow().as_set().map(|s| s.get_index(index).cloned())) <span class="kw">else </span>{
+            </span><span class="kw">let </span><span class="prelude-val">Some</span>(e) = this
+                .as_object()
+                .and_then(|o| o.borrow().as_set().map(|s| s.get_index(index).cloned()))
+            <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="string">&quot;Method Set.prototype.forEach called on incompatible receiver&quot;</span>)
                     .into());
@@ -990,7 +1015,10 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(lock) = this
+            .as_object()
+            .and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone())))
+        <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Method Set.prototype.values called on incompatible receiver&quot;</span>)
                 .into());

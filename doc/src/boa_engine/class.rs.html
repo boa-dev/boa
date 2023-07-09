@@ -297,6 +297,7 @@
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
@@ -430,7 +431,8 @@
                 .into());
         };
 
-        <span class="kw">let </span>JsValue::Object(<span class="kw-2">ref </span>class_prototype) = class_constructor.get(PROTOTYPE, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="kw">let </span>JsValue::Object(<span class="kw-2">ref </span>class_prototype) = class_constructor.get(PROTOTYPE, context)<span class="question-mark">?
+        </span><span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;invalid default prototype for native class `{}`&quot;</span>,

@@ -151,6 +151,12 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_segmenter::{
@@ -283,11 +289,17 @@
             <span class="kw">let </span><span class="kw-2">mut </span>segments = segmenter.native.segment(string);
             <span class="comment">// the first elem is always 0.
             </span>segments.next();
-            segments.next().map(|end| (start + end, segments.is_word_like()))
+            segments
+                .next()
+                .map(|end| (start + end, segments.is_word_like()))
         }) <span class="kw">else </span>{
             <span class="comment">// 7. If endIndex is not finite, then
             //     a. Return CreateIterResultObject(undefined, true).
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(create_iter_result_object(JsValue::undefined(), <span class="bool-val">true</span>, context));
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(create_iter_result_object(
+                JsValue::undefined(),
+                <span class="bool-val">true</span>,
+                context,
+            ));
         };
         <span class="comment">// 8. Set iterator.[[IteratedStringNextSegmentCodeUnitIndex]] to endIndex.
         </span>iter.next_segment_index = end;

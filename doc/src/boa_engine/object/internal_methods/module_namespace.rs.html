@@ -328,6 +328,8 @@
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
 <a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashSet;
 
 <span class="kw">use crate</span>::{
@@ -563,9 +565,11 @@
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(env) = target_module.environment() <span class="kw">else </span>{
             <span class="comment">// 11. If targetEnv is empty, throw a ReferenceError exception.
             </span><span class="kw">let </span>import = context.interner().resolve_expect(export_name);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference().with_message(
-                <span class="macro">format!</span>(<span class="string">&quot;cannot get import `{import}` from an uninitialized module&quot;</span>)
-            ).into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
+                .with_message(<span class="macro">format!</span>(
+                    <span class="string">&quot;cannot get import `{import}` from an uninitialized module&quot;
+                </span>))
+                .into());
         };
 
         <span class="kw">let </span>locator = env

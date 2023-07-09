@@ -1520,6 +1520,16 @@
 <a href="#1520" id="1520">1520</a>
 <a href="#1521" id="1521">1521</a>
 <a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Date` object.
 //!
 //! More information:
@@ -1819,61 +1829,71 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;NaiveDateTime&gt;&gt; {
         <span class="comment">// 1. Let y be ? ToNumber(year).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>year) = values.get_or_undefined(<span class="number">0</span>).to_integer_or_nan(context)<span class="question-mark">?</span>.as_integer() <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>year) = values
+            .get_or_undefined(<span class="number">0</span>)
+            .to_integer_or_nan(context)<span class="question-mark">?
+            </span>.as_integer()
+        <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         };
 
         <span class="comment">// 2. If month is present, let m be ? ToNumber(month); else let m be +0𝔽.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(month) = values.get(<span class="number">1</span>).map_or(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="number">0</span>)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })<span class="question-mark">? </span><span class="kw">else </span>{
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })<span class="question-mark">?
+        </span><span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         };
 
         <span class="comment">// 3. If date is present, let dt be ? ToNumber(date); else let dt be 1𝔽.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(date) = values.get(<span class="number">2</span>).map_or(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="number">1</span>)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })<span class="question-mark">? </span><span class="kw">else </span>{
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })<span class="question-mark">?
+        </span><span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         };
 
         <span class="comment">// 4. If hours is present, let h be ? ToNumber(hours); else let h be +0𝔽.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(hour) = values.get(<span class="number">3</span>).map_or(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="number">0</span>)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })<span class="question-mark">? </span><span class="kw">else </span>{
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })<span class="question-mark">?
+        </span><span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         };
 
         <span class="comment">// 5. If minutes is present, let min be ? ToNumber(minutes); else let min be +0𝔽.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(min) = values.get(<span class="number">4</span>).map_or(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="number">0</span>)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })<span class="question-mark">? </span><span class="kw">else </span>{
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })<span class="question-mark">?
+        </span><span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         };
 
         <span class="comment">// 6. If seconds is present, let s be ? ToNumber(seconds); else let s be +0𝔽.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(sec) = values.get(<span class="number">5</span>).map_or(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="number">0</span>)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })<span class="question-mark">? </span><span class="kw">else </span>{
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })<span class="question-mark">?
+        </span><span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         };
 
         <span class="comment">// 7. If ms is present, let milli be ? ToNumber(ms); else let milli be +0𝔽.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(ms) = values.get(<span class="number">6</span>).map_or(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="number">0</span>)), |value| {
             value
-            .to_integer_or_nan(context)
-            .map(IntegerOrNan::as_integer)
-        })<span class="question-mark">? </span><span class="kw">else </span>{
+                .to_integer_or_nan(context)
+                .map(IntegerOrNan::as_integer)
+        })<span class="question-mark">?
+        </span><span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         };
 
@@ -2964,7 +2984,7 @@
         <span class="comment">// 1. Let O be this Date object.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(t) = this_time_value(this)<span class="question-mark">?</span>.and_then(NaiveDateTime::from_timestamp_millis) <span class="kw">else </span>{
             <span class="comment">// 3. If tv is NaN, return &quot;Invalid Date&quot;.
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;Invalid Date&quot;</span>).into())
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;Invalid Date&quot;</span>).into());
         };
 
         <span class="comment">// 2. Let tv be ? thisTimeValue(O).

@@ -481,6 +481,7 @@
 <a href="#481" id="481">481</a>
 <a href="#482" id="482">482</a>
 <a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Function definition parsing.
 //!
 //! More information:
@@ -558,8 +559,9 @@
         <span class="kw">let </span><span class="prelude-val">Some</span>(start_position) = cursor
             .peek(<span class="number">0</span>, interner)<span class="question-mark">?
             </span>.filter(|<span class="kw-2">&amp;</span>tok| tok.kind() != <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen))
-            .map(|tok| tok.span().start()) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>( FormalParameterList::default());
+            .map(|tok| tok.span().start())
+        <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(FormalParameterList::default());
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>params = Vec::new();
