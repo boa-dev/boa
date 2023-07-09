@@ -84,11 +84,13 @@ Options:
   -a, --dump-ast [<FORMAT>]           Dump the AST to stdout with the given format [possible values: debug, json, json-pretty]
   -t, --trace                         Dump the AST to stdout with the given format
       --vi                            Use vi mode in the REPL
-  -O, --optimize
-      --optimizer-statistics
+  -O, --optimize                      
+      --optimizer-statistics          
       --flowgraph [<FORMAT>]          Generate instruction flowgraph. Default is Graphviz [possible values: graphviz, mermaid]
       --flowgraph-direction <FORMAT>  Specifies the direction of the flowgraph. Default is top-top-bottom [possible values: top-to-bottom, bottom-to-top, left-to-right, right-to-left]
       --debug-object                  Inject debugging object `$boa`
+  -m, --module                        Treats the input files as modules
+  -r, --root <ROOT>                   Root path from where the module resolver will try to load the modules [default: .]
   -h, --help                          Print help (see more with '--help')
   -V, --version                       Print version
 ```
