@@ -1799,6 +1799,99 @@
 <a href="#1799" id="1799">1799</a>
 <a href="#1800" id="1800">1800</a>
 <a href="#1801" id="1801">1801</a>
+<a href="#1802" id="1802">1802</a>
+<a href="#1803" id="1803">1803</a>
+<a href="#1804" id="1804">1804</a>
+<a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
+<a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
+<a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
+<a href="#1817" id="1817">1817</a>
+<a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
+<a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
+<a href="#1880" id="1880">1880</a>
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
+<a href="#1885" id="1885">1885</a>
+<a href="#1886" id="1886">1886</a>
+<a href="#1887" id="1887">1887</a>
+<a href="#1888" id="1888">1888</a>
+<a href="#1889" id="1889">1889</a>
+<a href="#1890" id="1890">1890</a>
+<a href="#1891" id="1891">1891</a>
+<a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1828,7 +1921,7 @@
 };
 <span class="kw">use </span>boa_parser::lexer::regex::RegExpFlags;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>regress::{Flags, Regex};
+<span class="kw">use </span>regress::{Flags, Range, Regex};
 <span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
@@ -2638,7 +2731,7 @@
         </span><span class="self">Self</span>::abstract_builtin_exec(this, <span class="kw-2">&amp;</span>input, context)
     }
 
-    <span class="doccomment">/// `22.2.5.2.2 RegExpBuiltinExec ( R, S )`
+    <span class="doccomment">/// `22.2.7.2 RegExpBuiltinExec ( R, S )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -2649,8 +2742,7 @@
         input: <span class="kw-2">&amp;</span>JsString,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt; {
-        <span class="comment">// 1. Assert: R is an initialized RegExp instance.
-        </span><span class="kw">let </span>rx = {
+        <span class="kw">let </span>rx = {
             <span class="kw">let </span>obj = this.borrow();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(rx) = obj.as_regexp() {
                 rx.clone()
@@ -2661,36 +2753,41 @@
             }
         };
 
-        <span class="comment">// 2. Assert: Type(S) is String.
-
-        // 3. Let length be the number of code units in S.
+        <span class="comment">// 1. Let length be the length of S.
         </span><span class="kw">let </span>length = input.len() <span class="kw">as </span>u64;
 
-        <span class="comment">// 4. Let lastIndex be ℝ(? ToLength(? Get(R, &quot;lastIndex&quot;))).
+        <span class="comment">// 2. Let lastIndex be ℝ(? ToLength(? Get(R, &quot;lastIndex&quot;))).
         </span><span class="kw">let </span><span class="kw-2">mut </span>last_index = this.get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 5. Let flags be R.[[OriginalFlags]].
+        <span class="comment">// 3. Let flags be R.[[OriginalFlags]].
         </span><span class="kw">let </span>flags = <span class="kw-2">&amp;</span>rx.original_flags;
 
-        <span class="comment">// 6. If flags contains &quot;g&quot;, let global be true; else let global be false.
+        <span class="comment">// 4. If flags contains &quot;g&quot;, let global be true; else let global be false.
         </span><span class="kw">let </span>global = flags.contains(<span class="kw-2">&amp;</span>(<span class="string">&#39;g&#39; </span><span class="kw">as </span>u16));
 
-        <span class="comment">// 7. If flags contains &quot;y&quot;, let sticky be true; else let sticky be false.
+        <span class="comment">// 5. If flags contains &quot;y&quot;, let sticky be true; else let sticky be false.
         </span><span class="kw">let </span>sticky = flags.contains(<span class="kw-2">&amp;</span>(<span class="string">&#39;y&#39; </span><span class="kw">as </span>u16));
 
-        <span class="comment">// 8. If global is false and sticky is false, set lastIndex to 0.
+        <span class="comment">// 6. If flags contains &quot;d&quot;, let hasIndices be true; else let hasIndices be false.
+        </span><span class="kw">let </span>has_indices = flags.contains(<span class="kw-2">&amp;</span>(<span class="string">&#39;d&#39; </span><span class="kw">as </span>u16));
+
+        <span class="comment">// 7. If global is false and sticky is false, set lastIndex to 0.
         </span><span class="kw">if </span>!global &amp;&amp; !sticky {
             last_index = <span class="number">0</span>;
         }
 
-        <span class="comment">// 9. Let matcher be R.[[RegExpMatcher]].
+        <span class="comment">// 8. Let matcher be R.[[RegExpMatcher]].
         </span><span class="kw">let </span>matcher = <span class="kw-2">&amp;</span>rx.matcher;
 
-        <span class="comment">// 10. If flags contains &quot;u&quot;, let fullUnicode be true; else let fullUnicode be false.
-        </span><span class="kw">let </span>unicode = flags.contains(<span class="kw-2">&amp;</span>(<span class="string">&#39;u&#39; </span><span class="kw">as </span>u16));
+        <span class="comment">// 9. If flags contains &quot;u&quot; or flags contains &quot;v&quot;, let fullUnicode be true; else let fullUnicode be false.
+        </span><span class="kw">let </span>full_unicode = flags.contains(<span class="kw-2">&amp;</span>(<span class="string">&#39;u&#39; </span><span class="kw">as </span>u16)) || flags.contains(<span class="kw-2">&amp;</span>(<span class="string">&#39;v&#39; </span><span class="kw">as </span>u16));
 
-        <span class="comment">// 11. Let matchSucceeded be false.
-        // 12. Repeat, while matchSucceeded is false,
+        <span class="comment">// TODO:
+        // 11. If fullUnicode is true, let input be StringToCodePoints(S). Otherwise, let input be a List whose elements are the code units that are the elements of S.
+        // 12. NOTE: Each element of input is considered to be a character.
+
+        // 10. Let matchSucceeded be false.
+        // 13. Repeat, while matchSucceeded is false,
         </span><span class="kw">let </span>lossy_input = input.to_std_string_escaped();
         <span class="kw">let </span>(match_value, last_byte_index) = <span class="kw">loop </span>{
             <span class="comment">// a. If lastIndex &gt; length, then
@@ -2705,7 +2802,7 @@
                 </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
 
-            <span class="comment">// b. Let r be matcher(S, lastIndex).
+            <span class="comment">// b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
             // Check if last_index is a valid utf8 index into input.
             // TODO: avoid converting to String
             </span><span class="kw">let </span>last_byte_index = <span class="kw">match </span>String::from_utf16(<span class="kw-2">&amp;</span>input[..last_index <span class="kw">as </span>usize]) {
@@ -2716,10 +2813,11 @@
                         .into())
                 }
             };
-            <span class="kw">let </span>r = matcher.find_from(<span class="kw-2">&amp;</span>lossy_input, last_byte_index).next();
+            <span class="comment">// c. Let r be matcher(input, inputIndex).
+            </span><span class="kw">let </span>r = matcher.find_from(<span class="kw-2">&amp;</span>lossy_input, last_byte_index).next();
 
             <span class="kw">match </span>r {
-                <span class="comment">// c. If r is failure, then
+                <span class="comment">// d. If r is failure, then
                 </span><span class="prelude-val">None </span>=&gt; {
                     <span class="comment">// i. If sticky is true, then
                     </span><span class="kw">if </span>sticky {
@@ -2731,11 +2829,11 @@
                     }
 
                     <span class="comment">// ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
-                    </span>last_index = advance_string_index(input, last_index, unicode);
+                    </span>last_index = advance_string_index(input, last_index, full_unicode);
                 }
 
                 <span class="prelude-val">Some</span>(m) =&gt; {
-                    <span class="comment">// c. If r is failure, then
+                    <span class="comment">// d. If r is failure, then
                     </span><span class="attr">#[allow(clippy::if_not_else)]
                     </span><span class="kw">if </span>m.start() != last_byte_index {
                         <span class="comment">// i. If sticky is true, then
@@ -2748,21 +2846,21 @@
                         }
 
                         <span class="comment">// ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
-                        </span>last_index = advance_string_index(input, last_index, unicode);
-                    <span class="comment">// d. Else,
+                        </span>last_index = advance_string_index(input, last_index, full_unicode);
+                    <span class="comment">// e. Else,
                     </span>} <span class="kw">else </span>{
-                        <span class="comment">//i. Assert: r is a State.
-                        //ii. Set matchSucceeded to true.
+                        <span class="comment">// i. Assert: r is a State.
+                        // ii. Set matchSucceeded to true.
                         </span><span class="kw">break </span>(m, last_byte_index);
                     }
                 }
             }
         };
 
-        <span class="comment">// 13. Let e be r&#39;s endIndex value.
+        <span class="comment">// 14. Let e be r&#39;s endIndex value.
         </span><span class="kw">let </span><span class="kw-2">mut </span>e = match_value.end();
 
-        <span class="comment">// 14. If fullUnicode is true, then
+        <span class="comment">// 15. If fullUnicode is true, set e to GetStringIndex(S, e).
         // TODO: disabled for now until we have UTF-16 support
         </span><span class="kw">if </span><span class="bool-val">false </span>{
             <span class="comment">// e is an index into the Input character list, derived from S, matched by matcher.
@@ -2772,7 +2870,7 @@
             </span>e = input.get(..e).map_or_else(|| input.len(), &lt;[u16]&gt;::len);
         }
 
-        <span class="comment">// 15. If global is true or sticky is true, then
+        <span class="comment">// 16. If global is true or sticky is true, then
         </span><span class="kw">if </span>global || sticky {
             <span class="comment">// a. Perform ? Set(R, &quot;lastIndex&quot;, 𝔽(e), true).
             </span>this.set(
@@ -2783,41 +2881,69 @@
             )<span class="question-mark">?</span>;
         }
 
-        <span class="comment">// 16. Let n be the number of elements in r&#39;s captures List. (This is the same value as 22.2.2.1&#39;s NcapturingParens.)
+        <span class="comment">// 17. Let n be the number of elements in r&#39;s captures List.
         </span><span class="kw">let </span>n = match_value.captures.len() <span class="kw">as </span>u64;
-        <span class="comment">// 17. Assert: n &lt; 23^2 - 1.
+        <span class="comment">// 18. Assert: n = R.[[RegExpRecord]].[[CapturingGroupsCount]].
+        // 19. Assert: n &lt; 232 - 1.
         </span><span class="macro">debug_assert!</span>(n &lt; <span class="number">23u64</span>.pow(<span class="number">2</span>) - <span class="number">1</span>);
 
-        <span class="comment">// 18. Let A be ! ArrayCreate(n + 1).
-        // 19. Assert: The mathematical value of A&#39;s &quot;length&quot; property is n + 1.
+        <span class="comment">// 20. Let A be ! ArrayCreate(n + 1).
+        // 21. Assert: The mathematical value of A&#39;s &quot;length&quot; property is n + 1.
         </span><span class="kw">let </span>a = Array::array_create(n + <span class="number">1</span>, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 20. Perform ! CreateDataPropertyOrThrow(A, &quot;index&quot;, 𝔽(lastIndex)).
+        <span class="comment">// 22. Perform ! CreateDataPropertyOrThrow(A, &quot;index&quot;, 𝔽(lastIndex)).
         </span>a.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;index&quot;</span>), last_index, context)
             .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
-        <span class="comment">// 21. Perform ! CreateDataPropertyOrThrow(A, &quot;input&quot;, S).
+        <span class="comment">// 23. Perform ! CreateDataPropertyOrThrow(A, &quot;input&quot;, S).
         </span>a.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;input&quot;</span>), input.clone(), context)
             .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
-        <span class="comment">// 22. Let matchedSubstr be the substring of S from lastIndex to e.
+        <span class="comment">// 24. Let match be the Match Record { [[StartIndex]]: lastIndex, [[EndIndex]]: e }.
+        // Immediately convert it to an array according to 22.2.7.7 GetMatchIndexPair(S, match)
+        // 1. Assert: match.[[StartIndex]] ≤ match.[[EndIndex]] ≤ the length of S.
+        // 2. Return CreateArrayFromList(« 𝔽(match.[[StartIndex]]), 𝔽(match.[[EndIndex]]) »).
+        </span><span class="kw">let </span>match_record = Array::create_array_from_list(
+            [match_value.start().into(), match_value.end().into()],
+            context,
+        );
+
+        <span class="comment">// 25. Let indices be a new empty List.
+        </span><span class="kw">let </span>indices = Array::array_create(n + <span class="number">1</span>, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 27. Append match to indices.
+        </span>indices
+            .create_data_property_or_throw(<span class="number">0</span>, match_record, context)
+            .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+
+        <span class="comment">// 28. Let matchedSubstr be GetMatchString(S, match).
         </span><span class="kw">let </span>matched_substr = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>lossy_input[last_byte_index..e]);
 
-        <span class="comment">// 23. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, matchedSubstr).
+        <span class="comment">// 29. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, matchedSubstr).
         </span>a.create_data_property_or_throw(<span class="number">0</span>, matched_substr, context)
             .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
-        <span class="comment">// 24. If R contains any GroupName, then
-        // 25. Else,
-        </span><span class="kw">let </span>named_groups = match_value.named_groups();
-        <span class="kw">let </span>groups = <span class="kw">if </span>named_groups.clone().count() &gt; <span class="number">0 </span>{
-            <span class="comment">// a. Let groups be ! OrdinaryObjectCreate(null).
-            </span><span class="kw">let </span>groups = JsObject::with_null_proto();
+        <span class="kw">let </span><span class="kw-2">mut </span>named_groups = match_value
+            .named_groups()
+            .collect::&lt;Vec&lt;(<span class="kw-2">&amp;</span>str, <span class="prelude-ty">Option</span>&lt;Range&gt;)&gt;&gt;();
+        <span class="comment">// Strict mode requires groups to be created in a sorted order
+        </span>named_groups.sort_by(|(name_x, <span class="kw">_</span>), (name_y, <span class="kw">_</span>)| name_x.cmp(name_y));
 
-            <span class="comment">// Perform 27.f here
-            // f. If the ith capture of R was defined with a GroupName, then
-            // i. Let s be the CapturingGroupName of the corresponding RegExpIdentifierName.
+        <span class="comment">// Combines:
+        // 26. Let groupNames be a new empty List.
+        // 30. If R contains any GroupName, then
+        // 31. Else,
+        // 33. For each integer i such that 1 ≤ i ≤ n, in ascending order, do
+        </span><span class="attr">#[allow(clippy::if_not_else)]
+        </span><span class="kw">let </span>(groups, group_names) = <span class="kw">if </span>!named_groups.clone().is_empty() {
+            <span class="comment">// a. Let groups be OrdinaryObjectCreate(null).
+            </span><span class="kw">let </span>groups = JsObject::with_null_proto();
+            <span class="kw">let </span>group_names = JsObject::with_null_proto();
+
+            <span class="comment">// e. If the ith capture of R was defined with a GroupName, then
+            // i. Let s be the CapturingGroupName of that GroupName.
             // ii. Perform ! CreateDataPropertyOrThrow(groups, s, capturedValue).
+            // iii. Append s to groupNames.
             </span><span class="kw">for </span>(name, range) <span class="kw">in </span>named_groups {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(range) = range {
                     <span class="comment">// TODO: Full UTF-16 regex support
@@ -2826,15 +2952,50 @@
                     groups
                         .create_data_property_or_throw(name, value, context)
                         .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+
+                    <span class="comment">// 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
+                    // a. Let matchIndices be indices[i].
+                    // b. If matchIndices is not undefined, then
+                    // i. Let matchIndexPair be GetMatchIndexPair(S, matchIndices).
+                    // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
+                    </span>group_names
+                        .create_data_property_or_throw(
+                            name,
+                            Array::create_array_from_list(
+                                [range.start.into(), range.end.into()],
+                                context,
+                            ),
+                            context,
+                        )
+                        .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+                } <span class="kw">else </span>{
+                    groups
+                        .create_data_property_or_throw(name, JsValue::undefined(), context)
+                        .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+
+                    <span class="comment">// 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
+                    // c. Else,
+                    // i. Let matchIndexPair be undefined.
+                    // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
+                    </span>group_names
+                        .create_data_property_or_throw(name, JsValue::undefined(), context)
+                        .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
                 }
             }
-            groups.into()
+
+            (groups.into(), group_names.into())
         } <span class="kw">else </span>{
             <span class="comment">// a. Let groups be undefined.
-            </span>JsValue::undefined()
+            </span>(JsValue::undefined(), JsValue::undefined())
         };
 
-        <span class="comment">// 26. Perform ! CreateDataPropertyOrThrow(A, &quot;groups&quot;, groups).
+        <span class="comment">// 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
+        // 8. Perform ! CreateDataPropertyOrThrow(A, &quot;groups&quot;, groups).
+        </span>indices
+            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;groups&quot;</span>), group_names, context)
+            .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+
+        <span class="comment">// 32. Perform ! CreateDataPropertyOrThrow(A, &quot;groups&quot;, groups).
         </span>a.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;groups&quot;</span>), groups, context)
             .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
@@ -2847,16 +3008,41 @@
             // c. Else if fullUnicode is true, then
             // d. Else,
             // TODO: Full UTF-16 regex support
-            </span><span class="kw">let </span>captured_value = capture.map_or_else(JsValue::undefined, |range| {
+            </span><span class="kw">let </span>captured_value = capture.clone().map_or_else(JsValue::undefined, |range| {
                 <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>lossy_input[range]).into()
             });
 
             <span class="comment">// e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
-            </span>a.create_data_property_or_throw(i, captured_value, context)
+            </span>a.create_data_property_or_throw(i, captured_value.clone(), context)
+                .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+
+            <span class="comment">// 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
+            </span><span class="kw">if </span>has_indices {
+                <span class="comment">// b. If matchIndices is not undefined, then
+                // i. Let matchIndexPair be GetMatchIndexPair(S, matchIndices).
+                // c. Else,
+                // i. Let matchIndexPair be undefined.
+                </span><span class="kw">let </span>indices_range = capture.map_or_else(JsValue::undefined, |range| {
+                    Array::create_array_from_list([range.start.into(), range.end.into()], context)
+                        .into()
+                });
+
+                <span class="comment">// d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
+                </span>indices
+                    .create_data_property_or_throw(i, indices_range, context)
+                    .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+            }
+        }
+
+        <span class="comment">// 34. If hasIndices is true, then
+        // a. Let indicesArray be MakeMatchIndicesIndexPairArray(S, indices, groupNames, hasGroups).
+        // b. Perform ! CreateDataPropertyOrThrow(A, &quot;indices&quot;, indicesArray).
+        </span><span class="kw">if </span>has_indices {
+            a.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;indices&quot;</span>), indices, context)
                 .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
         }
 
-        <span class="comment">// 28. Return A.
+        <span class="comment">// 35. Return A.
         </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(a))
     }
 
