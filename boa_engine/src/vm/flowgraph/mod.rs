@@ -1,7 +1,8 @@
 //! This module is responsible for generating the vm instruction flowgraph.
 
 use crate::vm::{CodeBlock, Opcode};
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
+use boa_macros::utf16;
 use std::mem::size_of;
 
 mod color;
@@ -18,10 +19,10 @@ impl CodeBlock {
     /// Output the [`CodeBlock`] VM instructions into a [`Graph`].
     pub fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
         // Have to remove any invalid graph chars like `<` or `>`.
-        let name = if self.name == Sym::MAIN {
+        let name = if self.name() == utf16!("<main>") {
             "__main__".to_string()
         } else {
-            interner.resolve_expect(self.name).to_string()
+            self.name().to_std_string_escaped()
         };
 
         graph.set_label(name);
@@ -406,9 +407,9 @@ impl CodeBlock {
                 | Opcode::GetFunction
                 | Opcode::GetFunctionAsync => {
                     let operand = self.read::<u32>(pc);
-                    let fn_name = interner
-                        .resolve_expect(self.functions[operand as usize].name)
-                        .to_string();
+                    let fn_name = self.functions[operand as usize]
+                        .name()
+                        .to_std_string_escaped();
                     pc += size_of::<u32>() + size_of::<u8>();
                     let label = format!(
                         "{opcode_str} '{fn_name}' (length: {})",
@@ -419,9 +420,9 @@ impl CodeBlock {
                 }
                 Opcode::GetGenerator | Opcode::GetGeneratorAsync => {
                     let operand = self.read::<u32>(pc);
-                    let fn_name = interner
-                        .resolve_expect(self.functions[operand as usize].name)
-                        .to_string();
+                    let fn_name = self.functions[operand as usize]
+                        .name()
+                        .to_std_string_escaped();
                     let label = format!(
                         "{opcode_str} '{fn_name}' (length: {})",
                         self.functions[operand as usize].length

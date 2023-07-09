@@ -360,7 +360,7 @@ impl Console {
                 .map(|frame| frame.code_block().name())
                 .collect::<Vec<_>>()
                 .into_iter()
-                .map(|s| context.interner().resolve_expect(s).to_string())
+                .map(JsString::to_std_string_escaped)
                 .collect::<Vec<_>>()
                 .join("\n");
             logger(LogMessage::Log(stack_trace_dump), console);
