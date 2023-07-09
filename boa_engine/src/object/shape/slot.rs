@@ -66,7 +66,7 @@ impl Slot {
             return Self {
                 index: 0,
                 attributes: new_attributes,
-            }
+            };
         };
 
         Self {

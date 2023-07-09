@@ -341,7 +341,10 @@ impl Set {
         _: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let Some(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) else {
+        let Some(lock) = this
+            .as_object()
+            .and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone())))
+        else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.entries called on incompatible receiver")
                 .into());
@@ -372,7 +375,10 @@ impl Set {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let Some(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) else {
+        let Some(lock) = this
+            .as_object()
+            .and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone())))
+        else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.forEach called on incompatible receiver")
                 .into());
@@ -381,7 +387,9 @@ impl Set {
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let Some(callback_fn) = args.get_or_undefined(0).as_callable() else {
             return Err(JsNativeError::typ()
-                .with_message("Method Set.prototype.forEach called with non-callable callback function")
+                .with_message(
+                    "Method Set.prototype.forEach called with non-callable callback function",
+                )
                 .into());
         };
 
@@ -393,7 +401,10 @@ impl Set {
         // 7. Repeat, while index < numEntries,
         while index < Self::get_size_full(this)? {
             // a. Let e be entries[index].
-            let Some(e) = this.as_object().and_then(|o| o.borrow().as_set().map(|s| s.get_index(index).cloned())) else {
+            let Some(e) = this
+                .as_object()
+                .and_then(|o| o.borrow().as_set().map(|s| s.get_index(index).cloned()))
+            else {
                 return Err(JsNativeError::typ()
                     .with_message("Method Set.prototype.forEach called on incompatible receiver")
                     .into());
@@ -474,7 +485,10 @@ impl Set {
         _: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let Some(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) else {
+        let Some(lock) = this
+            .as_object()
+            .and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone())))
+        else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.values called on incompatible receiver")
                 .into());

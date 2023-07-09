@@ -8,8 +8,11 @@ fn get_object(args: &[JsValue], position: usize) -> JsResult<&JsObject> {
 
     let Some(object) = value.as_object() else {
         return Err(JsNativeError::typ()
-        .with_message(format!("expected object in argument position {position}, got {}", value.type_of()))
-        .into());
+            .with_message(format!(
+                "expected object in argument position {position}, got {}",
+                value.type_of()
+            ))
+            .into());
     };
 
     Ok(object)

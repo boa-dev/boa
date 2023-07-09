@@ -176,7 +176,7 @@ fn unescape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
 
                 Some((n1 << 4) + n2)
             }
-            _ => None
+            _ => None,
         })() else {
             vec.push(u16::from(b'%'));
             continue;

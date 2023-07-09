@@ -186,8 +186,8 @@ impl Test {
                 edition: self.edition,
                 strict,
                 result: TestOutcomeResult::Failed,
-                result_text: Box::from("Could not read test file.")
-            }
+                result_text: Box::from("Could not read test file."),
+            };
         };
         if self.ignored {
             if verbose > 1 {

@@ -426,7 +426,11 @@ fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context:
                     Err(e) => e,
                 };
                 let Some(err) = err.as_opaque() else {
-                    panic!("{}\nExpected opaque error, got native error `{}`", fmt_test(&source, i), err)
+                    panic!(
+                        "{}\nExpected opaque error, got native error `{}`",
+                        fmt_test(&source, i),
+                        err
+                    )
                 };
 
                 assert_eq!(err, &expected, "{}", fmt_test(&source, i));

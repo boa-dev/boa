@@ -23,9 +23,9 @@ fn get_recursion(_: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsRes
 fn set_recursion(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_length(context)?;
     let Ok(value) = value.try_into() else {
-        return Err(
-            JsNativeError::range().with_message(format!("Argument {value} greater than usize::MAX")).into()
-        );
+        return Err(JsNativeError::range()
+            .with_message(format!("Argument {value} greater than usize::MAX"))
+            .into());
     };
     context.runtime_limits_mut().set_recursion_limit(value);
     Ok(JsValue::undefined())

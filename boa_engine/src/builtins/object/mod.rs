@@ -527,7 +527,7 @@ impl Object {
         context: &mut Context<'_>,
     ) -> JsValue {
         // 1. If Desc is undefined, return undefined.
-        let Some(desc)= desc else {
+        let Some(desc) = desc else {
             return JsValue::undefined();
         };
 

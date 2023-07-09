@@ -131,7 +131,8 @@ impl<T: Class> ClassConstructor for T {
                 .into());
         };
 
-        let JsValue::Object(ref class_prototype) = class_constructor.get(PROTOTYPE, context)? else {
+        let JsValue::Object(ref class_prototype) = class_constructor.get(PROTOTYPE, context)?
+        else {
             return Err(JsNativeError::typ()
                 .with_message(format!(
                     "invalid default prototype for native class `{}`",
