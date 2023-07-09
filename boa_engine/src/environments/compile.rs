@@ -24,9 +24,9 @@ struct CompileTimeBinding {
 /// A compile time environment also indicates, if it is a function environment.
 #[derive(Debug, Finalize)]
 pub(crate) struct CompileTimeEnvironment {
-    outer: Option<Rc<RefCell<Self>>>,
+    outer: Option<Rc<Self>>,
     environment_index: u32,
-    bindings: FxHashMap<Identifier, CompileTimeBinding>,
+    bindings: RefCell<FxHashMap<Identifier, CompileTimeBinding>>,
     function_scope: bool,
 }
 
@@ -41,18 +41,18 @@ impl CompileTimeEnvironment {
         Self {
             outer: None,
             environment_index: 0,
-            bindings: FxHashMap::default(),
+            bindings: RefCell::default(),
             function_scope: true,
         }
     }
 
     /// Creates a new compile time environment.
-    pub(crate) fn new(parent: Rc<RefCell<Self>>, function_scope: bool) -> Self {
-        let index = parent.borrow().environment_index + 1;
+    pub(crate) fn new(parent: Rc<Self>, function_scope: bool) -> Self {
+        let index = parent.environment_index + 1;
         Self {
             outer: Some(parent),
             environment_index: index,
-            bindings: FxHashMap::default(),
+            bindings: RefCell::default(),
             function_scope,
         }
     }
@@ -60,6 +60,7 @@ impl CompileTimeEnvironment {
     /// Check if environment has a lexical binding with the given name.
     pub(crate) fn has_lex_binding(&self, name: Identifier) -> bool {
         self.bindings
+            .borrow()
             .get(&name)
             .map_or(false, |binding| binding.lex)
     }
@@ -67,15 +68,15 @@ impl CompileTimeEnvironment {
     #[cfg(feature = "annex-b")]
     /// Check if the environment has a binding with the given name.
     pub(crate) fn has_binding(&self, name: Identifier) -> bool {
-        self.bindings.contains_key(&name)
+        self.bindings.borrow().contains_key(&name)
     }
 
     /// Checks if `name` is a lexical binding.
     pub(crate) fn is_lex_binding(&self, name: Identifier) -> bool {
-        if let Some(binding) = self.bindings.get(&name) {
+        if let Some(binding) = self.bindings.borrow().get(&name) {
             binding.lex
         } else if let Some(outer) = &self.outer {
-            outer.borrow().is_lex_binding(name)
+            outer.is_lex_binding(name)
         } else {
             false
         }
@@ -83,7 +84,7 @@ impl CompileTimeEnvironment {
 
     /// Returns the number of bindings in this environment.
     pub(crate) fn num_bindings(&self) -> u32 {
-        self.bindings.len() as u32
+        self.bindings.borrow().len() as u32
     }
 
     /// Check if the environment is a function environment.
@@ -94,16 +95,17 @@ impl CompileTimeEnvironment {
     /// Get the locator for a binding name.
     pub(crate) fn get_binding(&self, name: Identifier) -> Option<BindingLocator> {
         self.bindings
+            .borrow()
             .get(&name)
             .map(|binding| BindingLocator::declarative(name, self.environment_index, binding.index))
     }
 
     /// Get the locator for a binding name in this and all outer environments.
     pub(crate) fn get_binding_recursive(&self, name: Identifier) -> BindingLocator {
-        if let Some(binding) = self.bindings.get(&name) {
+        if let Some(binding) = self.bindings.borrow().get(&name) {
             BindingLocator::declarative(name, self.environment_index, binding.index)
         } else if let Some(outer) = &self.outer {
-            outer.borrow().get_binding_recursive(name)
+            outer.get_binding_recursive(name)
         } else {
             BindingLocator::global(name)
         }
@@ -111,10 +113,10 @@ impl CompileTimeEnvironment {
 
     /// Check if a binding name exists in this and all outer environments.
     pub(crate) fn has_binding_recursive(&self, name: Identifier) -> bool {
-        if self.bindings.contains_key(&name) {
+        if self.bindings.borrow().contains_key(&name) {
             true
         } else if let Some(outer) = &self.outer {
-            outer.borrow().has_binding_recursive(name)
+            outer.has_binding_recursive(name)
         } else {
             false
         }
@@ -123,7 +125,7 @@ impl CompileTimeEnvironment {
     /// Check if a binding name exists in a environment.
     /// If strict is `false` check until a function scope is reached.
     pub(crate) fn has_binding_eval(&self, name: Identifier, strict: bool) -> bool {
-        let exists = self.bindings.contains_key(&name);
+        let exists = self.bindings.borrow().contains_key(&name);
         if exists || strict {
             return exists;
         }
@@ -131,7 +133,7 @@ impl CompileTimeEnvironment {
             return false;
         }
         if let Some(outer) = &self.outer {
-            outer.borrow().has_binding_eval(name, false)
+            outer.has_binding_eval(name, false)
         } else {
             false
         }
@@ -144,11 +146,11 @@ impl CompileTimeEnvironment {
         if self.function_scope {
             return false;
         }
-        if self.bindings.contains_key(&name) {
+        if self.bindings.borrow().contains_key(&name) {
             return true;
         }
         if let Some(outer) = &self.outer {
-            outer.borrow().has_binding_until_var(name)
+            outer.has_binding_until_var(name)
         } else {
             false
         }
@@ -157,16 +159,12 @@ impl CompileTimeEnvironment {
     /// Create a mutable binding.
     ///
     /// If the binding is a function scope binding and this is a declarative environment, try the outer environment.
-    pub(crate) fn create_mutable_binding(
-        &mut self,
-        name: Identifier,
-        function_scope: bool,
-    ) -> bool {
+    pub(crate) fn create_mutable_binding(&self, name: Identifier, function_scope: bool) -> bool {
         if let Some(outer) = &self.outer {
             if !function_scope || self.function_scope {
-                if !self.bindings.contains_key(&name) {
-                    let binding_index = self.bindings.len() as u32;
-                    self.bindings.insert(
+                if !self.bindings.borrow().contains_key(&name) {
+                    let binding_index = self.bindings.borrow().len() as u32;
+                    self.bindings.borrow_mut().insert(
                         name,
                         CompileTimeBinding {
                             index: binding_index,
@@ -178,16 +176,14 @@ impl CompileTimeEnvironment {
                 }
                 true
             } else {
-                return outer
-                    .borrow_mut()
-                    .create_mutable_binding(name, function_scope);
+                outer.create_mutable_binding(name, function_scope)
             }
         } else if function_scope {
             false
         } else {
-            if !self.bindings.contains_key(&name) {
-                let binding_index = self.bindings.len() as u32;
-                self.bindings.insert(
+            if !self.bindings.borrow().contains_key(&name) {
+                let binding_index = self.bindings.borrow().len() as u32;
+                self.bindings.borrow_mut().insert(
                     name,
                     CompileTimeBinding {
                         index: binding_index,
@@ -202,9 +198,9 @@ impl CompileTimeEnvironment {
     }
 
     /// Crate an immutable binding.
-    pub(crate) fn create_immutable_binding(&mut self, name: Identifier, strict: bool) {
-        let binding_index = self.bindings.len() as u32;
-        self.bindings.insert(
+    pub(crate) fn create_immutable_binding(&self, name: Identifier, strict: bool) {
+        let binding_index = self.bindings.borrow().len() as u32;
+        self.bindings.borrow_mut().insert(
             name,
             CompileTimeBinding {
                 index: binding_index,
@@ -223,19 +219,13 @@ impl CompileTimeEnvironment {
     ) -> BindingLocator {
         if let Some(outer) = &self.outer {
             if function_scope && !self.function_scope {
-                return outer
-                    .borrow()
-                    .initialize_mutable_binding(name, function_scope);
+                return outer.initialize_mutable_binding(name, function_scope);
             }
-            self.bindings.get(&name).map_or_else(
-                || {
-                    outer
-                        .borrow()
-                        .initialize_mutable_binding(name, function_scope)
-                },
+            self.bindings.borrow().get(&name).map_or_else(
+                || outer.initialize_mutable_binding(name, function_scope),
                 |binding| BindingLocator::declarative(name, self.environment_index, binding.index),
             )
-        } else if let Some(binding) = self.bindings.get(&name) {
+        } else if let Some(binding) = self.bindings.borrow().get(&name) {
             BindingLocator::declarative(name, self.environment_index, binding.index)
         } else {
             BindingLocator::global(name)
@@ -248,7 +238,8 @@ impl CompileTimeEnvironment {
     ///
     /// Panics if the binding is not in the current environment.
     pub(crate) fn initialize_immutable_binding(&self, name: Identifier) -> BindingLocator {
-        let binding = self.bindings.get(&name).expect("binding must exist");
+        let bindings = self.bindings.borrow();
+        let binding = bindings.get(&name).expect("binding must exist");
         BindingLocator::declarative(name, self.environment_index, binding.index)
     }
 
@@ -257,7 +248,7 @@ impl CompileTimeEnvironment {
         &self,
         name: Identifier,
     ) -> Result<BindingLocator, BindingLocatorError> {
-        Ok(match self.bindings.get(&name) {
+        Ok(match self.bindings.borrow().get(&name) {
             Some(binding) if binding.mutable => {
                 BindingLocator::declarative(name, self.environment_index, binding.index)
             }
@@ -265,7 +256,7 @@ impl CompileTimeEnvironment {
             Some(_) => return Err(BindingLocatorError::Silent),
             None => self.outer.as_ref().map_or_else(
                 || Ok(BindingLocator::global(name)),
-                |outer| outer.borrow().set_mutable_binding_recursive(name),
+                |outer| outer.set_mutable_binding_recursive(name),
             )?,
         })
     }
@@ -279,11 +270,11 @@ impl CompileTimeEnvironment {
         if !self.is_function() {
             return self.outer.as_ref().map_or_else(
                 || Ok(BindingLocator::global(name)),
-                |outer| outer.borrow().set_mutable_binding_var_recursive(name),
+                |outer| outer.set_mutable_binding_var_recursive(name),
             );
         }
 
-        Ok(match self.bindings.get(&name) {
+        Ok(match self.bindings.borrow().get(&name) {
             Some(binding) if binding.mutable => {
                 BindingLocator::declarative(name, self.environment_index, binding.index)
             }
@@ -291,13 +282,13 @@ impl CompileTimeEnvironment {
             Some(_) => return Err(BindingLocatorError::Silent),
             None => self.outer.as_ref().map_or_else(
                 || Ok(BindingLocator::global(name)),
-                |outer| outer.borrow().set_mutable_binding_var_recursive(name),
+                |outer| outer.set_mutable_binding_var_recursive(name),
             )?,
         })
     }
 
     /// Gets the outer environment of this environment.
-    pub(crate) fn outer(&self) -> Option<Rc<RefCell<Self>>> {
+    pub(crate) fn outer(&self) -> Option<Rc<Self>> {
         self.outer.clone()
     }
 

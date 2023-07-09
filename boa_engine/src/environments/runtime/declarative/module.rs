@@ -65,7 +65,6 @@ impl ModuleEnvironment {
                     BindingAccessor::Identifier(name) => {
                         let index = env
                             .compile_env()
-                            .borrow()
                             .get_binding(name)
                             .expect("linking must ensure the binding exists");
 

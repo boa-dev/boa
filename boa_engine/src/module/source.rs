@@ -1,5 +1,5 @@
 use std::{
-    cell::{Cell, RefCell},
+    cell::Cell,
     collections::HashSet,
     hash::{BuildHasherDefault, Hash},
     rc::Rc,
@@ -1410,10 +1410,7 @@ impl SourceTextModule {
         // 6. Set module.[[Environment]] to env.
         let global_env = realm.environment().clone();
         let global_compile_env = global_env.compile_env();
-        let module_compile_env = Rc::new(RefCell::new(CompileTimeEnvironment::new(
-            global_compile_env,
-            true,
-        )));
+        let module_compile_env = Rc::new(CompileTimeEnvironment::new(global_compile_env, true));
 
         let mut compiler =
             ByteCompiler::new(Sym::MAIN, true, false, module_compile_env.clone(), context);

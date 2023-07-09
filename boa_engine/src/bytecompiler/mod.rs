@@ -11,10 +11,7 @@ mod module;
 mod statement;
 mod utils;
 
-use std::{
-    cell::{Cell, RefCell},
-    rc::Rc,
-};
+use std::{cell::Cell, rc::Rc};
 
 use crate::{
     builtins::function::ThisMode,
@@ -244,10 +241,10 @@ pub struct ByteCompiler<'ctx, 'host> {
     pub(crate) functions: Vec<Gc<CodeBlock>>,
 
     /// Compile time environments in this function.
-    pub(crate) compile_environments: Vec<Rc<RefCell<CompileTimeEnvironment>>>,
+    pub(crate) compile_environments: Vec<Rc<CompileTimeEnvironment>>,
 
     /// The environment that is currently active.
-    pub(crate) current_environment: Rc<RefCell<CompileTimeEnvironment>>,
+    pub(crate) current_environment: Rc<CompileTimeEnvironment>,
 
     pub(crate) code_block_flags: CodeBlockFlags,
 
@@ -276,7 +273,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         name: Sym,
         strict: bool,
         json_parse: bool,
-        current_environment: Rc<RefCell<CompileTimeEnvironment>>,
+        current_environment: Rc<CompileTimeEnvironment>,
         // TODO: remove when we separate scripts from the context
         context: &'ctx mut Context<'host>,
     ) -> ByteCompiler<'ctx, 'host> {
@@ -633,7 +630,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             Access::Variable { name } => {
                 let binding = self.get_binding_value(name);
                 let index = self.get_or_insert_binding(binding);
-                let lex = self.current_environment.borrow().is_lex_binding(name);
+                let lex = self.current_environment.is_lex_binding(name);
 
                 if !lex {
                     self.emit(Opcode::GetLocator, &[index]);

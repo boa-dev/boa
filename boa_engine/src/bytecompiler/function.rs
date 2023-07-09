@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use crate::{
     builtins::function::ThisMode,
@@ -90,7 +90,7 @@ impl FunctionCompiler {
         mut self,
         parameters: &FormalParameterList,
         body: &FunctionBody,
-        outer_env: Rc<RefCell<CompileTimeEnvironment>>,
+        outer_env: Rc<CompileTimeEnvironment>,
         context: &mut Context<'_>,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
