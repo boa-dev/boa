@@ -4,8 +4,10 @@ use boa_ast::{
     Expression, StatementList,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
-use std::fmt::{Debug, Formatter};
-use std::ops::ControlFlow;
+use std::{
+    fmt::{Debug, Formatter},
+    ops::ControlFlow,
+};
 
 /// Context for performing fuzzing. This structure contains both the generated AST as well as the
 /// context used to resolve the symbols therein.
