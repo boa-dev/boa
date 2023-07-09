@@ -3022,11 +3022,6 @@ impl Array {
 
     /// `Array.prototype [ @@unscopables ]`
     ///
-    /// The initial value of the 'unscopables' data property is an ordinary object
-    /// with the following boolean properties set to true:
-    /// 'at', 'copyWithin', 'entries', 'fill', 'find', 'findIndex', 'flat',
-    /// 'flatMap', 'includes', 'keys', 'values'
-    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
@@ -3055,15 +3050,25 @@ impl Array {
             obj.insert(utf16!("find"), true_prop.clone());
             // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
             obj.insert(utf16!("findIndex"), true_prop.clone());
-            // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
+            // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "findLast", true).
+            obj.insert(utf16!("findLast"), true_prop.clone());
+            // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "findLastIndex", true).
+            obj.insert(utf16!("findLastIndex"), true_prop.clone());
+            // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
             obj.insert(utf16!("flat"), true_prop.clone());
-            // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
+            // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
             obj.insert(utf16!("flatMap"), true_prop.clone());
-            // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
+            // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
             obj.insert(utf16!("includes"), true_prop.clone());
-            // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
+            // 13. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
             obj.insert(utf16!("keys"), true_prop.clone());
-            // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
+            // 14. Perform ! CreateDataPropertyOrThrow(unscopableList, "toReversed", true).
+            obj.insert(utf16!("toReversed"), true_prop.clone());
+            // 15. Perform ! CreateDataPropertyOrThrow(unscopableList, "toSorted", true).
+            obj.insert(utf16!("toSorted"), true_prop.clone());
+            // 16. Perform ! CreateDataPropertyOrThrow(unscopableList, "toSpliced", true).
+            obj.insert(utf16!("toSpliced"), true_prop.clone());
+            // 17. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
             obj.insert(utf16!("values"), true_prop);
         }
 
