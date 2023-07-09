@@ -40,6 +40,10 @@ updates:
     directory: /boa_wasm/
     schedule:
       interval: daily
+  - package-ecosystem: cargo
+    directory: /fuzz/
+    schedule:
+      interval: daily
   - package-ecosystem: gitsubmodule
     directory: /
     schedule:

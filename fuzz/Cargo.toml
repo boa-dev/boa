@@ -8,9 +8,9 @@ edition = "2021"
 cargo-fuzz = true
 
 [dependencies]
-libfuzzer-sys = "0.4"
+libfuzzer-sys = "0.4.6"
 
-arbitrary = "1"
+arbitrary = "1.3.0"
 boa_ast = { path = "../boa_ast", features = ["arbitrary"] }
 boa_engine = { path = "../boa_engine", features = ["fuzz"] }
 boa_interner = { path = "../boa_interner", features = ["arbitrary"] }
