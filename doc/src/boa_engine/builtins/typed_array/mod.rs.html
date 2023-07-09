@@ -3575,6 +3575,10 @@
 <a href="#3575" id="3575">3575</a>
 <a href="#3576" id="3576">3576</a>
 <a href="#3577" id="3577">3577</a>
+<a href="#3578" id="3578">3578</a>
+<a href="#3579" id="3579">3579</a>
+<a href="#3580" id="3580">3580</a>
+<a href="#3581" id="3581">3581</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
@@ -3855,7 +3859,7 @@
             )
             .property(
                 JsSymbol::iterator(),
-                values_function,
+                values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
@@ -3913,7 +3917,11 @@
             .method(<span class="self">Self</span>::some, <span class="string">&quot;some&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::sort, <span class="string">&quot;sort&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::subarray, <span class="string">&quot;subarray&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::values, <span class="string">&quot;values&quot;</span>, <span class="number">0</span>)
+            .property(
+                <span class="string">&quot;values&quot;</span>,
+                values_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             <span class="comment">// 23.2.3.29 %TypedArray%.prototype.toString ( )
             // The initial value of the %TypedArray%.prototype.toString data property is the same
             // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
