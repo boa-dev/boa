@@ -1187,7 +1187,7 @@
                 <span class="prelude-val">Ok</span>(ast::Statement::Empty)
             }
             TokenKind::IdentifierName(<span class="kw">_</span>)
-            | TokenKind::Keyword((Keyword::Await | Keyword::Yield, <span class="bool-val">false</span>)) =&gt; {
+            | TokenKind::Keyword((Keyword::Await | Keyword::Yield, <span class="kw">_</span>)) =&gt; {
                 <span class="comment">// Labelled Statement check
                 </span>cursor.set_goal(InputElement::Div);
                 <span class="kw">let </span>tok = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>;
