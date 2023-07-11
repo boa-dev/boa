@@ -321,6 +321,8 @@ impl IntrinsicObject for TypedArray {
             .method(Self::filter, "filter", 1)
             .method(Self::find, "find", 1)
             .method(Self::find_index, "findIndex", 1)
+            .method(Self::find_last, "findLast", 1)
+            .method(Self::find_last_index, "findLastIndex", 1)
             .method(Self::foreach, "forEach", 1)
             .method(Self::includes, "includes", 1)
             .method(Self::index_of, "indexOf", 1)
@@ -1225,7 +1227,111 @@ impl TypedArray {
         Ok(index)
     }
 
-    /// `23.2.3.13 %TypedArray%.prototype.forEach ( callbackfn [ , thisArg ] )`
+    /// `23.2.3.13 %TypedArray%.prototype.findLast ( predicate [ , thisArg ] )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.findlast
+    pub(crate) fn find_last(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? ValidateTypedArray(O).
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
+        let obj_borrow = obj.borrow();
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
+        if o.is_detached() {
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
+        }
+
+        // 3. Let len be O.[[ArrayLength]].
+        let len = o.array_length();
+
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("TypedArray.prototype.findLast: predicate is not callable")
+        })?;
+        let this_arg = args.get_or_undefined(1);
+
+        // 4. Let findRec be ? FindViaPredicate(O, len, descending, predicate, thisArg).
+        let find_rec = find_via_predicate(
+            obj,
+            len,
+            Direction::Descending,
+            predicate,
+            this_arg,
+            context,
+        );
+
+        // 5. Return findRec.[[Value]].
+        match find_rec {
+            Ok((_, value)) => Ok(value),
+            Err(err) => Err(err),
+        }
+    }
+
+    /// `23.2.3.14 %TypedArray%.prototype.findLastIndex ( predicate [ , thisArg ] )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.findlastindex
+    pub(crate) fn find_last_index(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? ValidateTypedArray(O).
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
+        let obj_borrow = obj.borrow();
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
+        if o.is_detached() {
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
+        }
+
+        // 3. Let len be O.[[ArrayLength]].
+        let len = o.array_length();
+
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("TypedArray.prototype.findLastIndex: predicate is not callable")
+        })?;
+        let this_arg = args.get_or_undefined(1);
+
+        // 4. Let findRec be ? FindViaPredicate(O, len, descending, predicate, thisArg).
+        let find_rec = find_via_predicate(
+            obj,
+            len,
+            Direction::Descending,
+            predicate,
+            this_arg,
+            context,
+        );
+
+        // 5. Return findRec.[[Index]].
+        match find_rec {
+            Ok((index, _)) => Ok(index),
+            Err(err) => Err(err),
+        }
+    }
+
+    /// `23.2.3.15 %TypedArray%.prototype.forEach ( callbackfn [ , thisArg ] )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
