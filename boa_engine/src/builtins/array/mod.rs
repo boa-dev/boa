@@ -3042,7 +3042,9 @@ pub(crate) fn find_via_predicate(
 ) -> JsResult<(JsValue, JsValue)> {
     // 1. If IsCallable(predicate) is false, throw a TypeError exception.
     if !predicate.is_callable() {
-        return Err(JsNativeError::typ().with_message("predicate is not callable" ).into());
+        return Err(JsNativeError::typ()
+            .with_message("predicate is not callable")
+            .into());
     }
 
     let indices = match direction {
@@ -3074,7 +3076,7 @@ pub(crate) fn find_via_predicate(
 
         if test_result {
             // e. If ToBoolean(testResult) is true, return the Record { [[Index]]: 𝔽(k), [[Value]]: kValue }.
-            return Ok((JsValue::new(k), k_value))
+            return Ok((JsValue::new(k), k_value));
         }
     }
 

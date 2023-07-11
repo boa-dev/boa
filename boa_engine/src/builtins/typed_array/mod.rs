@@ -14,7 +14,7 @@
 
 use crate::{
     builtins::{
-        array::ArrayIterator,
+        array::{find_via_predicate, ArrayIterator, Direction},
         array_buffer::{ArrayBuffer, SharedMemoryOrder},
         iterable::iterable_to_list,
         typed_array::integer_indexed_object::{ContentType, IntegerIndexed},
@@ -34,7 +34,6 @@ use crate::{
 use boa_profiler::Profiler;
 use num_traits::{Signed, Zero};
 use std::cmp::Ordering;
-use crate::builtins::array;
 
 pub mod integer_indexed_object;
 
@@ -1162,13 +1161,14 @@ impl TypedArray {
         let len = o.array_length();
 
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message("TypedArray.prototype.find: predicate is not callable")
+            JsNativeError::typ()
+                .with_message("TypedArray.prototype.find: predicate is not callable")
         })?;
         let this_arg = args.get_or_undefined(1);
 
-
         // 4. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
-        let find_rec = array::find_via_predicate(obj, len, array::Direction::Ascending, predicate, this_arg, context);
+        let find_rec =
+            find_via_predicate(obj, len, Direction::Ascending, predicate, this_arg, context);
 
         // 5. Return findRec.[[Value]].
         match find_rec {
@@ -1207,12 +1207,14 @@ impl TypedArray {
         let len = o.array_length();
 
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message("TypedArray.prototype.findIndex: predicate is not callable")
+            JsNativeError::typ()
+                .with_message("TypedArray.prototype.findIndex: predicate is not callable")
         })?;
         let this_arg = args.get_or_undefined(1);
 
         // 4. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
-        let find_rec = array::find_via_predicate(obj, len, array::Direction::Ascending, predicate, this_arg, context);
+        let find_rec =
+            find_via_predicate(obj, len, Direction::Ascending, predicate, this_arg, context);
 
         // 5. Return findRec.[[Index]].
         match find_rec {
