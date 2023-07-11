@@ -65,7 +65,7 @@ then go to `http://localhost:8080`.
 
 - Clone this repo.
 - Run `cargo build`
-- Run with `cargo run -- test.js` where `test.js` is an existing JS file with any JS valid code. The file has to be in the root directory.
+- Run with `cargo run -- test.js` in the project root directory where `test.js` is a path to an existing JS file with any JS valid code.
 - If any JS doesn't work then it's a bug. Please raise an [issue](https://github.com/boa-dev/boa/issues/)!
 
 ### Example
