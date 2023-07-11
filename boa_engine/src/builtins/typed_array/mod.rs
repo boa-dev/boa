@@ -34,6 +34,7 @@ use crate::{
 use boa_profiler::Profiler;
 use num_traits::{Signed, Zero};
 use std::cmp::Ordering;
+use crate::builtins::array;
 
 pub mod integer_indexed_object;
 
@@ -320,7 +321,7 @@ impl IntrinsicObject for TypedArray {
             .method(Self::fill, "fill", 1)
             .method(Self::filter, "filter", 1)
             .method(Self::find, "find", 1)
-            .method(Self::findindex, "findIndex", 1)
+            .method(Self::find_index, "findIndex", 1)
             .method(Self::foreach, "forEach", 1)
             .method(Self::includes, "includes", 1)
             .method(Self::index_of, "indexOf", 1)
@@ -1160,41 +1161,20 @@ impl TypedArray {
         // 3. Let len be O.[[ArrayLength]].
         let len = o.array_length();
 
-        // 4. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = match args.get_or_undefined(0).as_object() {
-            Some(obj) if obj.is_callable() => obj,
-            _ => {
-                return Err(JsNativeError::typ()
-                    .with_message(
-                        "TypedArray.prototype.find called with non-callable predicate function",
-                    )
-                    .into())
-            }
-        };
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("TypedArray.prototype.find: predicate is not callable")
+        })?;
+        let this_arg = args.get_or_undefined(1);
 
-        // 5. Let k be 0.
-        // 6. Repeat, while k < len,
-        for k in 0..len {
-            // a. Let Pk be ! ToString(𝔽(k)).
-            // b. Let kValue be ! Get(O, Pk).
-            let k_value = obj.get(k, context).expect("Get cannot fail here");
 
-            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            // d. If testResult is true, return kValue.
-            if predicate
-                .call(
-                    args.get_or_undefined(1),
-                    &[k_value.clone(), k.into(), this.clone()],
-                    context,
-                )?
-                .to_boolean()
-            {
-                return Ok(k_value);
-            }
+        // 4. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
+        let find_rec = array::find_via_predicate(obj, len, array::Direction::Ascending, predicate, this_arg, context);
+
+        // 5. Return findRec.[[Value]].
+        match find_rec {
+            Ok((_, value)) => Ok(value),
+            Err(err) => Err(err),
         }
-
-        // 7. Return undefined.
-        Ok(JsValue::undefined())
     }
 
     /// `23.2.3.12 %TypedArray%.prototype.findIndex ( predicate [ , thisArg ] )`
@@ -1203,7 +1183,7 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.findindex
-    pub(crate) fn findindex(
+    pub(crate) fn find_index(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -1226,39 +1206,19 @@ impl TypedArray {
         // 3. Let len be O.[[ArrayLength]].
         let len = o.array_length();
 
-        // 4. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = match args.get_or_undefined(0).as_object() {
-            Some(obj) if obj.is_callable() => obj,
-            _ => return Err(JsNativeError::typ()
-                .with_message(
-                    "TypedArray.prototype.findindex called with non-callable predicate function",
-                )
-                .into()),
-        };
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("TypedArray.prototype.findIndex: predicate is not callable")
+        })?;
+        let this_arg = args.get_or_undefined(1);
 
-        // 5. Let k be 0.
-        // 6. Repeat, while k < len,
-        for k in 0..len {
-            // a. Let Pk be ! ToString(𝔽(k)).
-            // b. Let kValue be ! Get(O, Pk).
-            let k_value = obj.get(k, context).expect("Get cannot fail here");
+        // 4. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
+        let find_rec = array::find_via_predicate(obj, len, array::Direction::Ascending, predicate, this_arg, context);
 
-            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            // d. If testResult is true, return 𝔽(k).
-            if predicate
-                .call(
-                    args.get_or_undefined(1),
-                    &[k_value.clone(), k.into(), this.clone()],
-                    context,
-                )?
-                .to_boolean()
-            {
-                return Ok(k.into());
-            }
+        // 5. Return findRec.[[Index]].
+        match find_rec {
+            Ok((index, _)) => Ok(index),
+            Err(err) => Err(err),
         }
-
-        // 7. Return -1𝔽.
-        Ok((-1).into())
     }
 
     /// `23.2.3.13 %TypedArray%.prototype.forEach ( callbackfn [ , thisArg ] )`

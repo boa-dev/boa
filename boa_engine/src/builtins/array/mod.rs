@@ -36,6 +36,13 @@ pub(crate) use array_iterator::ArrayIterator;
 #[cfg(test)]
 mod tests;
 
+/// Direction for `find_via_predicate`
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub(crate) enum Direction {
+    Ascending,
+    Descending,
+}
+
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Array;
@@ -1519,38 +1526,20 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
 
-        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
             JsNativeError::typ().with_message("Array.prototype.find: predicate is not callable")
         })?;
-
         let this_arg = args.get_or_undefined(1);
 
-        // 4. Let k be 0.
-        let mut k = 0;
-        // 5. Repeat, while k < len,
-        while k < len {
-            // a. Let Pk be ! ToString(𝔽(k)).
-            let pk = k;
-            // b. Let kValue be ? Get(O, Pk).
-            let k_value = o.get(pk, context)?;
-            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            let test_result = predicate
-                .call(
-                    this_arg,
-                    &[k_value.clone(), k.into(), o.clone().into()],
-                    context,
-                )?
-                .to_boolean();
-            // d. If testResult is true, return kValue.
-            if test_result {
-                return Ok(k_value);
-            }
-            // e. Set k to k + 1.
-            k += 1;
+        // 3. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
+        let find_rec =
+            find_via_predicate(&o, len, Direction::Ascending, predicate, this_arg, context);
+
+        // 4. Return findRec.[[Value]].
+        match find_rec {
+            Ok((_, value)) => Ok(value),
+            Err(err) => Err(err),
         }
-        // 6. Return undefined.
-        Ok(JsValue::undefined())
     }
 
     /// `Array.prototype.findIndex( predicate [ , thisArg ] )`
@@ -1576,35 +1565,21 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
 
-        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("Array.prototype.findIndex: predicate is not callable")
         })?;
-
         let this_arg = args.get_or_undefined(1);
 
-        // 4. Let k be 0.
-        let mut k = 0;
-        // 5. Repeat, while k < len,
-        while k < len {
-            // a. Let Pk be ! ToString(𝔽(k)).
-            let pk = k;
-            // b. Let kValue be ? Get(O, Pk).
-            let k_value = o.get(pk, context)?;
-            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            let test_result = predicate
-                .call(this_arg, &[k_value, k.into(), o.clone().into()], context)?
-                .to_boolean();
-            // d. If testResult is true, return 𝔽(k).
-            if test_result {
-                return Ok(JsValue::new(k));
-            }
-            // e. Set k to k + 1.
-            k += 1;
+        // 3. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
+        let find_rec =
+            find_via_predicate(&o, len, Direction::Ascending, predicate, this_arg, context);
+
+        // 4. Return findRec.[[Index]].
+        match find_rec {
+            Ok((index, _)) => Ok(index),
+            Err(err) => Err(err),
         }
-        // 6. Return -1𝔽.
-        Ok(JsValue::new(-1))
     }
 
     /// `Array.prototype.findLast( predicate, [thisArg] )`
@@ -1628,35 +1603,20 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
 
-        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
             JsNativeError::typ().with_message("Array.prototype.findLast: predicate is not callable")
         })?;
-
         let this_arg = args.get_or_undefined(1);
 
-        // 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)
-        // 5. Repeat, while k >= 0, (implementation differs slightly from spec because k is unsigned)
-        for k in (0..len).rev() {
-            // a. Let Pk be ! ToString(𝔽(k)).
-            // b. Let kValue be ? Get(O, Pk).
-            let k_value = o.get(k, context)?;
-            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            let test_result = predicate
-                .call(
-                    this_arg,
-                    &[k_value.clone(), k.into(), this.clone()],
-                    context,
-                )?
-                .to_boolean();
-            // d. If testResult is true, return kValue.
-            if test_result {
-                return Ok(k_value);
-            }
-            // e. Set k to k - 1.
+        // 3. Let findRec be ? FindViaPredicate(O, len, descending, predicate, thisArg).
+        let find_rec =
+            find_via_predicate(&o, len, Direction::Descending, predicate, this_arg, context);
+
+        // 4. Return findRec.[[Value]].
+        match find_rec {
+            Ok((_, value)) => Ok(value),
+            Err(err) => Err(err),
         }
-        // 6. Return undefined.
-        Ok(JsValue::undefined())
     }
 
     /// `Array.prototype.findLastIndex( predicate [ , thisArg ] )`
@@ -1680,32 +1640,21 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
 
-        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("Array.prototype.findLastIndex: predicate is not callable")
         })?;
-
         let this_arg = args.get_or_undefined(1);
 
-        // 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)
-        // 5. Repeat, while k >= 0, (implementation differs slightly from spec because k is unsigned)
-        for k in (0..len).rev() {
-            // a. Let Pk be ! ToString(𝔽(k)).
-            // b. Let kValue be ? Get(O, Pk).
-            let k_value = o.get(k, context)?;
-            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            let test_result = predicate
-                .call(this_arg, &[k_value, k.into(), this.clone()], context)?
-                .to_boolean();
-            // d. If testResult is true, return 𝔽(k).
-            if test_result {
-                return Ok(JsValue::new(k));
-            }
-            // e. Set k to k - 1.
+        // 3. Let findRec be ? FindViaPredicate(O, len, descending, predicate, thisArg).
+        let find_rec =
+            find_via_predicate(&o, len, Direction::Descending, predicate, this_arg, context);
+
+        // 4. Return findRec.[[Index]].
+        match find_rec {
+            Ok((index, _)) => Ok(index),
+            Err(err) => Err(err),
         }
-        // 6. Return -1𝔽.
-        Ok(JsValue::new(-1))
     }
 
     /// `Array.prototype.flat( [depth] )`
@@ -3075,4 +3024,60 @@ impl Array {
         // 13. Return unscopableList.
         unscopable_list
     }
+}
+
+/// `FindViaPredicate ( O, len, direction, predicate, thisArg )`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-findviapredicate
+pub(crate) fn find_via_predicate(
+    o: &JsObject,
+    len: u64,
+    direction: Direction,
+    predicate: &JsObject,
+    this_arg: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<(JsValue, JsValue)> {
+    // 1. If IsCallable(predicate) is false, throw a TypeError exception.
+    if !predicate.is_callable() {
+        return Err(JsNativeError::typ().with_message("predicate is not callable" ).into());
+    }
+
+    let indices = match direction {
+        // 2. If direction is ascending, then
+        // a. Let indices be a List of the integers in the interval from 0 (inclusive) to len (exclusive), in ascending order.
+        Direction::Ascending => itertools::Either::Left(0..len),
+        // 3. Else,
+        // a. Let indices be a List of the integers in the interval from 0 (inclusive) to len (exclusive), in descending order.
+        Direction::Descending => itertools::Either::Right((0..len).rev()),
+    };
+
+    // 4. For each integer k of indices, do
+    for k in indices {
+        // a. Let Pk be ! ToString(𝔽(k)).
+        let pk = k;
+
+        // b. NOTE: If O is a TypedArray, the following invocation of Get will return a normal completion.
+        // c. Let kValue be ? Get(O, Pk).
+        let k_value = o.get(pk, context)?;
+
+        // d. Let testResult be ? Call(predicate, thisArg, « kValue, 𝔽(k), O »).
+        let test_result = predicate
+            .call(
+                this_arg,
+                &[k_value.clone(), k.into(), o.clone().into()],
+                context,
+            )?
+            .to_boolean();
+
+        if test_result {
+            // e. If ToBoolean(testResult) is true, return the Record { [[Index]]: 𝔽(k), [[Value]]: kValue }.
+            return Ok((JsValue::new(k), k_value))
+        }
+    }
+
+    // 5. Return the Record { [[Index]]: -1𝔽, [[Value]]: undefined }
+    Ok((JsValue::new(-1), JsValue::undefined()))
 }
