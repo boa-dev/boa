@@ -1526,20 +1526,22 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
 
-        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message("Array.prototype.find: predicate is not callable")
-        })?;
+        let predicate = args.get_or_undefined(0);
         let this_arg = args.get_or_undefined(1);
 
         // 3. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
-        let find_rec =
-            find_via_predicate(&o, len, Direction::Ascending, predicate, this_arg, context);
+        let (_, value) = find_via_predicate(
+            &o,
+            len,
+            Direction::Ascending,
+            predicate,
+            this_arg,
+            context,
+            "Array.prototype.find",
+        )?;
 
         // 4. Return findRec.[[Value]].
-        match find_rec {
-            Ok((_, value)) => Ok(value),
-            Err(err) => Err(err),
-        }
+        Ok(value)
     }
 
     /// `Array.prototype.findIndex( predicate [ , thisArg ] )`
@@ -1565,21 +1567,22 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
 
-        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("Array.prototype.findIndex: predicate is not callable")
-        })?;
+        let predicate = args.get_or_undefined(0);
         let this_arg = args.get_or_undefined(1);
 
         // 3. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
-        let find_rec =
-            find_via_predicate(&o, len, Direction::Ascending, predicate, this_arg, context);
+        let (index, _) = find_via_predicate(
+            &o,
+            len,
+            Direction::Ascending,
+            predicate,
+            this_arg,
+            context,
+            "Array.prototype.findIndex",
+        )?;
 
         // 4. Return findRec.[[Index]].
-        match find_rec {
-            Ok((index, _)) => Ok(index),
-            Err(err) => Err(err),
-        }
+        Ok(index)
     }
 
     /// `Array.prototype.findLast( predicate, [thisArg] )`
@@ -1603,20 +1606,22 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
 
-        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message("Array.prototype.findLast: predicate is not callable")
-        })?;
+        let predicate = args.get_or_undefined(0);
         let this_arg = args.get_or_undefined(1);
 
         // 3. Let findRec be ? FindViaPredicate(O, len, descending, predicate, thisArg).
-        let find_rec =
-            find_via_predicate(&o, len, Direction::Descending, predicate, this_arg, context);
+        let (_, value) = find_via_predicate(
+            &o,
+            len,
+            Direction::Descending,
+            predicate,
+            this_arg,
+            context,
+            "Array.prototype.findLast",
+        )?;
 
         // 4. Return findRec.[[Value]].
-        match find_rec {
-            Ok((_, value)) => Ok(value),
-            Err(err) => Err(err),
-        }
+        Ok(value)
     }
 
     /// `Array.prototype.findLastIndex( predicate [ , thisArg ] )`
@@ -1640,21 +1645,22 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
 
-        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("Array.prototype.findLastIndex: predicate is not callable")
-        })?;
+        let predicate = args.get_or_undefined(0);
         let this_arg = args.get_or_undefined(1);
 
         // 3. Let findRec be ? FindViaPredicate(O, len, descending, predicate, thisArg).
-        let find_rec =
-            find_via_predicate(&o, len, Direction::Descending, predicate, this_arg, context);
+        let (index, _) = find_via_predicate(
+            &o,
+            len,
+            Direction::Descending,
+            predicate,
+            this_arg,
+            context,
+            "Array.prototype.findLastIndex",
+        )?;
 
         // 4. Return findRec.[[Index]].
-        match find_rec {
-            Ok((index, _)) => Ok(index),
-            Err(err) => Err(err),
-        }
+        Ok(index)
     }
 
     /// `Array.prototype.flat( [depth] )`
@@ -3036,16 +3042,15 @@ pub(crate) fn find_via_predicate(
     o: &JsObject,
     len: u64,
     direction: Direction,
-    predicate: &JsObject,
+    predicate: &JsValue,
     this_arg: &JsValue,
     context: &mut Context<'_>,
+    caller_name: &str,
 ) -> JsResult<(JsValue, JsValue)> {
     // 1. If IsCallable(predicate) is false, throw a TypeError exception.
-    if !predicate.is_callable() {
-        return Err(JsNativeError::typ()
-            .with_message("predicate is not callable")
-            .into());
-    }
+    let predicate = predicate.as_callable().ok_or_else(|| {
+        JsNativeError::typ().with_message(format!("{caller_name}: predicate is not callable"))
+    })?;
 
     let indices = match direction {
         // 2. If direction is ascending, then

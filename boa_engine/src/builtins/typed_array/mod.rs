@@ -1160,21 +1160,22 @@ impl TypedArray {
         // 3. Let len be O.[[ArrayLength]].
         let len = o.array_length();
 
-        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("TypedArray.prototype.find: predicate is not callable")
-        })?;
+        let predicate = args.get_or_undefined(0);
         let this_arg = args.get_or_undefined(1);
 
         // 4. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
-        let find_rec =
-            find_via_predicate(obj, len, Direction::Ascending, predicate, this_arg, context);
+        let (_, value) = find_via_predicate(
+            obj,
+            len,
+            Direction::Ascending,
+            predicate,
+            this_arg,
+            context,
+            "TypedArray.prototype.find",
+        )?;
 
         // 5. Return findRec.[[Value]].
-        match find_rec {
-            Ok((_, value)) => Ok(value),
-            Err(err) => Err(err),
-        }
+        Ok(value)
     }
 
     /// `23.2.3.12 %TypedArray%.prototype.findIndex ( predicate [ , thisArg ] )`
@@ -1206,21 +1207,22 @@ impl TypedArray {
         // 3. Let len be O.[[ArrayLength]].
         let len = o.array_length();
 
-        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("TypedArray.prototype.findIndex: predicate is not callable")
-        })?;
+        let predicate = args.get_or_undefined(0);
         let this_arg = args.get_or_undefined(1);
 
         // 4. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
-        let find_rec =
-            find_via_predicate(obj, len, Direction::Ascending, predicate, this_arg, context);
+        let (index, _) = find_via_predicate(
+            obj,
+            len,
+            Direction::Ascending,
+            predicate,
+            this_arg,
+            context,
+            "TypedArray.prototype.findIndex",
+        )?;
 
         // 5. Return findRec.[[Index]].
-        match find_rec {
-            Ok((index, _)) => Ok(index),
-            Err(err) => Err(err),
-        }
+        Ok(index)
     }
 
     /// `23.2.3.13 %TypedArray%.prototype.forEach ( callbackfn [ , thisArg ] )`
