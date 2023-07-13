@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["MapKey"],"fn":["mark"],"struct":["MapLock","OrderedMap"]};
+window.SIDEBAR_ITEMS = {"enum":["MapKey"],"struct":["MapLock","OrderedMap"]};

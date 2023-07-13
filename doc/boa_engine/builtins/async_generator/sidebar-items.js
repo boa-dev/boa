@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["AsyncGeneratorState"],"fn":["mark"],"struct":["AsyncGenerator","AsyncGeneratorRequest"]};
+window.SIDEBAR_ITEMS = {"enum":["AsyncGeneratorState"],"struct":["AsyncGenerator","AsyncGeneratorRequest"]};

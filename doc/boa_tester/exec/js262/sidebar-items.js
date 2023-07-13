@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["create_realm","detach_array_buffer","eval_script","gc","register_js262","type_err"]};
+window.SIDEBAR_ITEMS = {"fn":["create_realm","detach_array_buffer","eval_script","gc","register_js262"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["Inner","UniqueShape"]};
+window.SIDEBAR_ITEMS = {"struct":["Inner","UniqueShape"]};

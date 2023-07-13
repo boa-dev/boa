@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_PrivatePropertyAccess","RECURSIVE_COUNT_PropertyAccess","RECURSIVE_COUNT_PropertyAccessField","RECURSIVE_COUNT_SimplePropertyAccess","RECURSIVE_COUNT_SuperPropertyAccess"],"enum":["PropertyAccess","PropertyAccessField"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["PrivatePropertyAccess","SimplePropertyAccess","SuperPropertyAccess"]};
+window.SIDEBAR_ITEMS = {"enum":["PropertyAccess","PropertyAccessField"],"struct":["PrivatePropertyAccess","SimplePropertyAccess","SuperPropertyAccess"]};

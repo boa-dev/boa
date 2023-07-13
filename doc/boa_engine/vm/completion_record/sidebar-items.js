@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["CompletionRecord"],"fn":["mark"]};
+window.SIDEBAR_ITEMS = {"enum":["CompletionRecord"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["GlobalEnvironment"]};
+window.SIDEBAR_ITEMS = {"struct":["GlobalEnvironment"]};

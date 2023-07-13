@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Update","RECURSIVE_COUNT_UpdateTarget"],"enum":["UpdateOp","UpdateTarget"],"fn":["__getit","__init"],"mod":["op"],"static":["__KEY"],"struct":["Update"]};
+window.SIDEBAR_ITEMS = {"enum":["UpdateOp","UpdateTarget"],"mod":["op"],"struct":["Update"]};

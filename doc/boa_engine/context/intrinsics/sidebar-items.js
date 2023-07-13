@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["IntrinsicObjects","Intrinsics","ObjectTemplates","StandardConstructor","StandardConstructors"]};
+window.SIDEBAR_ITEMS = {"struct":["IntrinsicObjects","Intrinsics","ObjectTemplates","StandardConstructor","StandardConstructors"]};

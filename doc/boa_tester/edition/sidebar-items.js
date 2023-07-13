@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["SpecEdition"],"static":["FEATURE_EDITION"],"struct":["discriminant"]};
+window.SIDEBAR_ITEMS = {"enum":["SpecEdition"],"static":["FEATURE_EDITION"]};

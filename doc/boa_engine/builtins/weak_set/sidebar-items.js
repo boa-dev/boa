@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["WeakSet"]};
+window.SIDEBAR_ITEMS = {"struct":["WeakSet"]};

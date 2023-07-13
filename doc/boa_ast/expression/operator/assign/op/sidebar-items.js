@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_AssignOp"],"enum":["AssignOp"],"fn":["__getit","__init"],"static":["__KEY"]};
+window.SIDEBAR_ITEMS = {"enum":["AssignOp"]};

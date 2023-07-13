@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsArray"]};
+window.SIDEBAR_ITEMS = {"struct":["JsArray"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["GOLDEN_RATIO_CONJUGATE"],"enum":["Color"]};
+window.SIDEBAR_ITEMS = {"enum":["Color"]};

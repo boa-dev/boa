@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Break"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Break"]};
+window.SIDEBAR_ITEMS = {"struct":["Break"]};

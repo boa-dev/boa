@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_With"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["With"]};
+window.SIDEBAR_ITEMS = {"struct":["With"]};

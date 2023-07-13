@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["parse_regex_flags"],"struct":["InternalBitFlags","RegExpFlags","RegexLiteral"]};
+window.SIDEBAR_ITEMS = {"fn":["parse_regex_flags"],"struct":["RegExpFlags","RegexLiteral"]};

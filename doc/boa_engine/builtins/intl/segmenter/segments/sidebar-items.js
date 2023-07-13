@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["Segments"]};
+window.SIDEBAR_ITEMS = {"struct":["Segments"]};

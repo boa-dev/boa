@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ContentType"],"fn":["mark"],"struct":["IntegerIndexed"]};
+window.SIDEBAR_ITEMS = {"enum":["ContentType"],"struct":["IntegerIndexed"]};

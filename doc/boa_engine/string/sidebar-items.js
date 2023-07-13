@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["DATA_OFFSET"],"enum":["CodePoint"],"fn":["alloc_overflow"],"macro":["utf16"],"mod":["common"],"struct":["JsString","RawJsString","WideStringDecoderIterator"],"trait":["ToStringEscaped","Utf16Trim"]};
+window.SIDEBAR_ITEMS = {"constant":["DATA_OFFSET"],"enum":["CodePoint"],"fn":["alloc_overflow"],"macro":["utf16"],"mod":["common"],"struct":["JsString","RawJsString"],"trait":["ToStringEscaped","Utf16Trim"]};

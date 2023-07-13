@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Binary","RECURSIVE_COUNT_BinaryInPrivate"],"enum":["ArithmeticOp","BinaryOp","BitwiseOp","LogicalOp","RelationalOp"],"fn":["__getit","__init"],"mod":["op"],"static":["__KEY"],"struct":["Binary","BinaryInPrivate"]};
+window.SIDEBAR_ITEMS = {"enum":["ArithmeticOp","BinaryOp","BitwiseOp","LogicalOp","RelationalOp"],"mod":["op"],"struct":["Binary","BinaryInPrivate"]};

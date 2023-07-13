@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsSet"]};
+window.SIDEBAR_ITEMS = {"struct":["JsSet"]};

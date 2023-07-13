@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["OrderedSet","SetLock"]};
+window.SIDEBAR_ITEMS = {"struct":["OrderedSet","SetLock"]};

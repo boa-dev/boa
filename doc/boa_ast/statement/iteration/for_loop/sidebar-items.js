@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_ForLoop","RECURSIVE_COUNT_ForLoopInitializer","RECURSIVE_COUNT_InnerForLoop"],"enum":["ForLoopInitializer"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["ForLoop","InnerForLoop"]};
+window.SIDEBAR_ITEMS = {"enum":["ForLoopInitializer"],"struct":["ForLoop","InnerForLoop"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["avoid_lints","mark"],"macro":["fn_finalize_trace_group","fn_finalize_trace_one","simple_empty_finalize_trace","tuple_finalize_trace","type_arg_tuple_based_finalize_trace_impls"],"trait":["Finalize","Trace"]};
+window.SIDEBAR_ITEMS = {"macro":["fn_finalize_trace_group","fn_finalize_trace_one","simple_empty_finalize_trace","tuple_finalize_trace","type_arg_tuple_based_finalize_trace_impls"],"trait":["Finalize","Trace"]};

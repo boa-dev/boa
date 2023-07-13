@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_StatementListItem"],"enum":["StatementListItem"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["StatementList"]};
+window.SIDEBAR_ITEMS = {"enum":["StatementListItem"],"struct":["StatementList"]};

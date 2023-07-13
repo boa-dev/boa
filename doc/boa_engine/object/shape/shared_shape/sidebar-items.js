@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["CONFIGURE_PROPERTY_TRANSITION_TYPE","INSERT_PROPERTY_TRANSITION_TYPE","PROTOTYPE_TRANSITION_TYPE","RESEREVED_TRANSITION_TYPE"],"fn":["mark"],"mod":["forward_transition","template"],"struct":["Inner","InternalBitFlags","ShapeFlags","SharedShape","TransitionKey"]};
+window.SIDEBAR_ITEMS = {"constant":["CONFIGURE_PROPERTY_TRANSITION_TYPE","INSERT_PROPERTY_TRANSITION_TYPE","PROTOTYPE_TRANSITION_TYPE","RESEREVED_TRANSITION_TYPE"],"mod":["forward_transition","template"],"struct":["Inner","ShapeFlags","SharedShape","TransitionKey"]};

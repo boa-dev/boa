@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsProxy","JsProxyBuilder","JsRevocableProxy","NativeFunction"]};
+window.SIDEBAR_ITEMS = {"struct":["JsProxy","JsProxyBuilder","JsRevocableProxy"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Optional","RECURSIVE_COUNT_OptionalOperation","RECURSIVE_COUNT_OptionalOperationKind"],"enum":["OptionalOperationKind"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Optional","OptionalOperation"]};
+window.SIDEBAR_ITEMS = {"enum":["OptionalOperationKind"],"struct":["Optional","OptionalOperation"]};

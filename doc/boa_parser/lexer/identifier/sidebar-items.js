@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"static":["ID_CONTINUE","ID_START","PROPERTY_SETS"],"struct":["Identifier","PropertySets"]};
+window.SIDEBAR_ITEMS = {"static":["PROPERTY_SETS"],"struct":["Identifier","PropertySets"]};

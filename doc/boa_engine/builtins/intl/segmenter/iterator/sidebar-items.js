@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["NativeSegmentIterator"],"fn":["mark"],"struct":["SegmentIterator"]};
+window.SIDEBAR_ITEMS = {"enum":["NativeSegmentIterator"],"struct":["SegmentIterator"]};

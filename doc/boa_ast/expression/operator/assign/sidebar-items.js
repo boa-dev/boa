@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Assign","RECURSIVE_COUNT_AssignTarget"],"enum":["AssignOp","AssignTarget"],"fn":["__getit","__init"],"mod":["op"],"static":["__KEY"],"struct":["Assign"]};
+window.SIDEBAR_ITEMS = {"enum":["AssignOp","AssignTarget"],"mod":["op"],"struct":["Assign"]};

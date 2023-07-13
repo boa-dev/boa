@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsGenerator"]};
+window.SIDEBAR_ITEMS = {"struct":["JsGenerator"]};

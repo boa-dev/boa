@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["IteratorHint"],"fn":["create_iter_result_object","iterable_to_list","mark"],"macro":["if_abrupt_close_iterator"],"mod":["async_from_sync_iterator"],"struct":["AsyncIterator","Iterator","IteratorPrototypes","IteratorRecord","IteratorResult"]};
+window.SIDEBAR_ITEMS = {"enum":["IteratorHint"],"fn":["create_iter_result_object","iterable_to_list"],"macro":["if_abrupt_close_iterator"],"mod":["async_from_sync_iterator"],"struct":["AsyncIterator","Iterator","IteratorPrototypes","IteratorRecord","IteratorResult"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_UnaryOp"],"enum":["UnaryOp"],"fn":["__getit","__init"],"static":["__KEY"]};
+window.SIDEBAR_ITEMS = {"enum":["UnaryOp"]};

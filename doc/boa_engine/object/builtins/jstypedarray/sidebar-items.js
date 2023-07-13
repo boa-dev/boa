@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"macro":["JsTypedArrayType"],"struct":["JsFloat32Array","JsFloat64Array","JsInt16Array","JsInt32Array","JsInt8Array","JsTypedArray","JsUint16Array","JsUint32Array","JsUint8Array"]};
+window.SIDEBAR_ITEMS = {"macro":["JsTypedArrayType"],"struct":["JsFloat32Array","JsFloat64Array","JsInt16Array","JsInt32Array","JsInt8Array","JsTypedArray","JsUint16Array","JsUint32Array","JsUint8Array"]};

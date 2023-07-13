@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Literal"],"enum":["Literal","TemplateElement"],"fn":["__getit","__init"],"mod":["array","object","template"],"static":["__KEY"],"struct":["ArrayLiteral","ObjectLiteral","TemplateLiteral"]};
+window.SIDEBAR_ITEMS = {"enum":["Literal","TemplateElement"],"mod":["array","object","template"],"struct":["ArrayLiteral","ObjectLiteral","TemplateLiteral"]};

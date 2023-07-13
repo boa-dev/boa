@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_WhileLoop"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["WhileLoop"]};
+window.SIDEBAR_ITEMS = {"struct":["WhileLoop"]};

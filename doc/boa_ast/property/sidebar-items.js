@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_MethodDefinition","RECURSIVE_COUNT_PropertyDefinition","RECURSIVE_COUNT_PropertyName"],"enum":["ClassElementName","MethodDefinition","PropertyDefinition","PropertyName"],"fn":["__getit","__init"],"static":["__KEY"]};
+window.SIDEBAR_ITEMS = {"enum":["ClassElementName","MethodDefinition","PropertyDefinition","PropertyName"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Attribute","InternalBitFlags"]};
+window.SIDEBAR_ITEMS = {"struct":["Attribute"]};

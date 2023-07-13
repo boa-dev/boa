@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_ArrayPattern","RECURSIVE_COUNT_ArrayPatternElement","RECURSIVE_COUNT_ObjectPattern","RECURSIVE_COUNT_ObjectPatternElement","RECURSIVE_COUNT_Pattern"],"enum":["ArrayPatternElement","ObjectPatternElement","Pattern"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["ArrayPattern","ObjectPattern"]};
+window.SIDEBAR_ITEMS = {"enum":["ArrayPatternElement","ObjectPatternElement","Pattern"],"struct":["ArrayPattern","ObjectPattern"]};

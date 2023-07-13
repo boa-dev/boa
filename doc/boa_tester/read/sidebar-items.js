@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ErrorType","TestFlag"],"fn":["read_harness","read_harness_file","read_metadata","read_suite","read_test"],"static":["META_REGEX"],"struct":["MetaData","Negative"]};
+window.SIDEBAR_ITEMS = {"enum":["ErrorType","TestFlag"],"fn":["read_harness","read_metadata","read_suite","read_test"],"struct":["MetaData","Negative"]};

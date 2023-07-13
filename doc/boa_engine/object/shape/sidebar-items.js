@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ChangeTransitionAction","Inner"],"fn":["mark"],"mod":["property_table","root_shape","shared_shape","slot","unique_shape"],"struct":["ChangeTransition","RootShape","Shape","SharedShape"]};
+window.SIDEBAR_ITEMS = {"enum":["ChangeTransitionAction","Inner"],"mod":["property_table","root_shape","shared_shape","slot","unique_shape"],"struct":["ChangeTransition","RootShape","Shape","SharedShape"]};

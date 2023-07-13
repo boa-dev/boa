@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["GeneratorState"],"fn":["mark"],"struct":["Generator","GeneratorContext"]};
+window.SIDEBAR_ITEMS = {"enum":["GeneratorState"],"struct":["Generator","GeneratorContext"]};

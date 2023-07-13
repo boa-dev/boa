@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsDataView"]};
+window.SIDEBAR_ITEMS = {"struct":["JsDataView"]};

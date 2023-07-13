@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Binding","RECURSIVE_COUNT_LexicalDeclaration","RECURSIVE_COUNT_VarDeclaration","RECURSIVE_COUNT_Variable","RECURSIVE_COUNT_VariableList"],"enum":["Binding","LexicalDeclaration"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["TryFromVariableListError","VarDeclaration","Variable","VariableList"]};
+window.SIDEBAR_ITEMS = {"enum":["Binding","LexicalDeclaration"],"struct":["TryFromVariableListError","VarDeclaration","Variable","VariableList"]};

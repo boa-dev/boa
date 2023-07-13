@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["RootShape"]};
+window.SIDEBAR_ITEMS = {"struct":["RootShape"]};

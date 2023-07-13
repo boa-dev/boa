@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["EnvStackAction"],"struct":["Eval","Flags","InternalBitFlags"]};
+window.SIDEBAR_ITEMS = {"struct":["Eval"]};

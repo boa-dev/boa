@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_AsyncArrowFunction"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["AsyncArrowFunction"]};
+window.SIDEBAR_ITEMS = {"struct":["AsyncArrowFunction"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["DateTimeReqs"],"fn":["mark","to_date_time_options"],"struct":["DateTimeFormat"]};
+window.SIDEBAR_ITEMS = {"enum":["DateTimeReqs"],"fn":["to_date_time_options"],"struct":["DateTimeFormat"]};

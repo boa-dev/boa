@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ClassFieldDefinition","ConstructorKind","FunctionKind","ThisMode"],"fn":["mark","set_function_name"],"mod":["arguments"],"struct":["BoundFunction","BuiltInFunctionObject","Function"]};
+window.SIDEBAR_ITEMS = {"enum":["ClassFieldDefinition","ConstructorKind","FunctionKind","ThisMode"],"fn":["set_function_name"],"mod":["arguments"],"struct":["BoundFunction","BuiltInFunctionObject","Function"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Generator"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Generator"]};
+window.SIDEBAR_ITEMS = {"struct":["Generator"]};

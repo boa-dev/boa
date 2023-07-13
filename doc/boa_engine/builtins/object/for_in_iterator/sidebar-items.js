@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["ForInIterator"]};
+window.SIDEBAR_ITEMS = {"struct":["ForInIterator"]};

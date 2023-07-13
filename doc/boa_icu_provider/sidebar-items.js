@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["buffer","minimal"],"mod":["baked"],"static":["PROVIDER"]};
+window.SIDEBAR_ITEMS = {"fn":["buffer","minimal"],"mod":["baked"]};

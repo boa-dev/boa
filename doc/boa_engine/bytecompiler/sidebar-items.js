@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["U32_SIZE"],"enum":["Access","CallKind","Callable","FunctionKind","Literal","NodeKind"],"mod":["class","declaration","declarations","env","expression","function","jump_control","module","statement","utils"],"struct":["ByteCompiler","FunctionSpec","Label"]};
+window.SIDEBAR_ITEMS = {"enum":["Access","Callable","FunctionKind","Literal","NodeKind"],"mod":["class","declaration","declarations","env","expression","function","jump_control","module","statement","utils"],"struct":["ByteCompiler","FunctionSpec","Label"]};

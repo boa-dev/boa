@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsMapIterator"]};
+window.SIDEBAR_ITEMS = {"struct":["JsMapIterator"]};

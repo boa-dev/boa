@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["LexicalEnvironment"]};
+window.SIDEBAR_ITEMS = {"struct":["LexicalEnvironment"]};

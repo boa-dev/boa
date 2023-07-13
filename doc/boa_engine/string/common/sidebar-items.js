@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RAW_STATICS","RAW_STATICS_CACHE"],"fn":["__getit","__init","const_eq"],"macro":["well_known_statics"],"static":["MAX_STATIC_LENGTH","__KEY"],"struct":["StaticJsStrings"]};
+window.SIDEBAR_ITEMS = {"constant":["RAW_STATICS","RAW_STATICS_CACHE"],"macro":["well_known_statics"],"static":["MAX_STATIC_LENGTH"],"struct":["StaticJsStrings"]};

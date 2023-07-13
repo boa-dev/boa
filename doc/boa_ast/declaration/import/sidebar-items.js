@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_ImportKind","RECURSIVE_COUNT_ImportSpecifier"],"enum":["ImportKind","ImportName"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["ImportDeclaration","ImportEntry","ImportSpecifier"]};
+window.SIDEBAR_ITEMS = {"enum":["ImportKind","ImportName"],"struct":["ImportDeclaration","ImportEntry","ImportSpecifier"]};

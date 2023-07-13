@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["decode","decode_hex_byte","decode_uri","decode_uri_component","encode","encode_uri","encode_uri_component","mark"],"mod":["consts"],"struct":["DecodeUri","DecodeUriComponent","EncodeUri","EncodeUriComponent","UriFunctions"]};
+window.SIDEBAR_ITEMS = {"fn":["decode","decode_hex_byte","decode_uri","decode_uri_component","encode","encode_uri","encode_uri_component"],"mod":["consts"],"struct":["DecodeUri","DecodeUriComponent","EncodeUri","EncodeUriComponent","UriFunctions"]};

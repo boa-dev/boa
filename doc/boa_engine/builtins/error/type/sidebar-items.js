@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["throw_type_error"],"struct":["ThrowTypeError","TypeError"]};
+window.SIDEBAR_ITEMS = {"struct":["ThrowTypeError","TypeError"]};
