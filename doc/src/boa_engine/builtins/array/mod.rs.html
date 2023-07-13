@@ -3076,6 +3076,18 @@
 <a href="#3076" id="3076">3076</a>
 <a href="#3077" id="3077">3077</a>
 <a href="#3078" id="3078">3078</a>
+<a href="#3079" id="3079">3079</a>
+<a href="#3080" id="3080">3080</a>
+<a href="#3081" id="3081">3081</a>
+<a href="#3082" id="3082">3082</a>
+<a href="#3083" id="3083">3083</a>
+<a href="#3084" id="3084">3084</a>
+<a href="#3085" id="3085">3085</a>
+<a href="#3086" id="3086">3086</a>
+<a href="#3087" id="3087">3087</a>
+<a href="#3088" id="3088">3088</a>
+<a href="#3089" id="3089">3089</a>
+<a href="#3090" id="3090">3090</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3113,6 +3125,13 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>array_iterator::ArrayIterator;
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
+
+<span class="doccomment">/// Direction for `find_via_predicate`
+</span><span class="attr">#[derive(Clone, Copy, Eq, PartialEq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Direction {
+    Ascending,
+    Descending,
+}
 
 <span class="doccomment">/// JavaScript `Array` built-in implementation.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
@@ -4597,38 +4616,22 @@
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).
         </span><span class="kw">let </span>len = o.length_of_array_like(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        </span><span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>).as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;Array.prototype.find: predicate is not callable&quot;</span>)
-        })<span class="question-mark">?</span>;
-
+        <span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">1</span>);
 
-        <span class="comment">// 4. Let k be 0.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>k = <span class="number">0</span>;
-        <span class="comment">// 5. Repeat, while k &lt; len,
-        </span><span class="kw">while </span>k &lt; len {
-            <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
-            </span><span class="kw">let </span>pk = k;
-            <span class="comment">// b. Let kValue be ? Get(O, Pk).
-            </span><span class="kw">let </span>k_value = o.get(pk, context)<span class="question-mark">?</span>;
-            <span class="comment">// c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            </span><span class="kw">let </span>test_result = predicate
-                .call(
-                    this_arg,
-                    <span class="kw-2">&amp;</span>[k_value.clone(), k.into(), o.clone().into()],
-                    context,
-                )<span class="question-mark">?
-                </span>.to_boolean();
-            <span class="comment">// d. If testResult is true, return kValue.
-            </span><span class="kw">if </span>test_result {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(k_value);
-            }
-            <span class="comment">// e. Set k to k + 1.
-            </span>k += <span class="number">1</span>;
-        }
-        <span class="comment">// 6. Return undefined.
-        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+        <span class="comment">// 3. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
+        </span><span class="kw">let </span>(<span class="kw">_</span>, value) = find_via_predicate(
+            <span class="kw-2">&amp;</span>o,
+            len,
+            Direction::Ascending,
+            predicate,
+            this_arg,
+            context,
+            <span class="string">&quot;Array.prototype.find&quot;</span>,
+        )<span class="question-mark">?</span>;
+
+        <span class="comment">// 4. Return findRec.[[Value]].
+        </span><span class="prelude-val">Ok</span>(value)
     }
 
     <span class="doccomment">/// `Array.prototype.findIndex( predicate [ , thisArg ] )`
@@ -4654,35 +4657,22 @@
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).
         </span><span class="kw">let </span>len = o.length_of_array_like(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        </span><span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>).as_callable().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;Array.prototype.findIndex: predicate is not callable&quot;</span>)
-        })<span class="question-mark">?</span>;
-
+        <span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">1</span>);
 
-        <span class="comment">// 4. Let k be 0.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>k = <span class="number">0</span>;
-        <span class="comment">// 5. Repeat, while k &lt; len,
-        </span><span class="kw">while </span>k &lt; len {
-            <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
-            </span><span class="kw">let </span>pk = k;
-            <span class="comment">// b. Let kValue be ? Get(O, Pk).
-            </span><span class="kw">let </span>k_value = o.get(pk, context)<span class="question-mark">?</span>;
-            <span class="comment">// c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            </span><span class="kw">let </span>test_result = predicate
-                .call(this_arg, <span class="kw-2">&amp;</span>[k_value, k.into(), o.clone().into()], context)<span class="question-mark">?
-                </span>.to_boolean();
-            <span class="comment">// d. If testResult is true, return 𝔽(k).
-            </span><span class="kw">if </span>test_result {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(k));
-            }
-            <span class="comment">// e. Set k to k + 1.
-            </span>k += <span class="number">1</span>;
-        }
-        <span class="comment">// 6. Return -1𝔽.
-        </span><span class="prelude-val">Ok</span>(JsValue::new(-<span class="number">1</span>))
+        <span class="comment">// 3. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
+        </span><span class="kw">let </span>(index, <span class="kw">_</span>) = find_via_predicate(
+            <span class="kw-2">&amp;</span>o,
+            len,
+            Direction::Ascending,
+            predicate,
+            this_arg,
+            context,
+            <span class="string">&quot;Array.prototype.findIndex&quot;</span>,
+        )<span class="question-mark">?</span>;
+
+        <span class="comment">// 4. Return findRec.[[Index]].
+        </span><span class="prelude-val">Ok</span>(index)
     }
 
     <span class="doccomment">/// `Array.prototype.findLast( predicate, [thisArg] )`
@@ -4706,35 +4696,22 @@
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).
         </span><span class="kw">let </span>len = o.length_of_array_like(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        </span><span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>).as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;Array.prototype.findLast: predicate is not callable&quot;</span>)
-        })<span class="question-mark">?</span>;
-
+        <span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">1</span>);
 
-        <span class="comment">// 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)
-        // 5. Repeat, while k &gt;= 0, (implementation differs slightly from spec because k is unsigned)
-        </span><span class="kw">for </span>k <span class="kw">in </span>(<span class="number">0</span>..len).rev() {
-            <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
-            // b. Let kValue be ? Get(O, Pk).
-            </span><span class="kw">let </span>k_value = o.get(k, context)<span class="question-mark">?</span>;
-            <span class="comment">// c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            </span><span class="kw">let </span>test_result = predicate
-                .call(
-                    this_arg,
-                    <span class="kw-2">&amp;</span>[k_value.clone(), k.into(), this.clone()],
-                    context,
-                )<span class="question-mark">?
-                </span>.to_boolean();
-            <span class="comment">// d. If testResult is true, return kValue.
-            </span><span class="kw">if </span>test_result {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(k_value);
-            }
-            <span class="comment">// e. Set k to k - 1.
-        </span>}
-        <span class="comment">// 6. Return undefined.
-        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+        <span class="comment">// 3. Let findRec be ? FindViaPredicate(O, len, descending, predicate, thisArg).
+        </span><span class="kw">let </span>(<span class="kw">_</span>, value) = find_via_predicate(
+            <span class="kw-2">&amp;</span>o,
+            len,
+            Direction::Descending,
+            predicate,
+            this_arg,
+            context,
+            <span class="string">&quot;Array.prototype.findLast&quot;</span>,
+        )<span class="question-mark">?</span>;
+
+        <span class="comment">// 4. Return findRec.[[Value]].
+        </span><span class="prelude-val">Ok</span>(value)
     }
 
     <span class="doccomment">/// `Array.prototype.findLastIndex( predicate [ , thisArg ] )`
@@ -4758,32 +4735,22 @@
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).
         </span><span class="kw">let </span>len = o.length_of_array_like(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        </span><span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>).as_callable().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;Array.prototype.findLastIndex: predicate is not callable&quot;</span>)
-        })<span class="question-mark">?</span>;
-
+        <span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">1</span>);
 
-        <span class="comment">// 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)
-        // 5. Repeat, while k &gt;= 0, (implementation differs slightly from spec because k is unsigned)
-        </span><span class="kw">for </span>k <span class="kw">in </span>(<span class="number">0</span>..len).rev() {
-            <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
-            // b. Let kValue be ? Get(O, Pk).
-            </span><span class="kw">let </span>k_value = o.get(k, context)<span class="question-mark">?</span>;
-            <span class="comment">// c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            </span><span class="kw">let </span>test_result = predicate
-                .call(this_arg, <span class="kw-2">&amp;</span>[k_value, k.into(), this.clone()], context)<span class="question-mark">?
-                </span>.to_boolean();
-            <span class="comment">// d. If testResult is true, return 𝔽(k).
-            </span><span class="kw">if </span>test_result {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(k));
-            }
-            <span class="comment">// e. Set k to k - 1.
-        </span>}
-        <span class="comment">// 6. Return -1𝔽.
-        </span><span class="prelude-val">Ok</span>(JsValue::new(-<span class="number">1</span>))
+        <span class="comment">// 3. Let findRec be ? FindViaPredicate(O, len, descending, predicate, thisArg).
+        </span><span class="kw">let </span>(index, <span class="kw">_</span>) = find_via_predicate(
+            <span class="kw-2">&amp;</span>o,
+            len,
+            Direction::Descending,
+            predicate,
+            this_arg,
+            context,
+            <span class="string">&quot;Array.prototype.findLastIndex&quot;</span>,
+        )<span class="question-mark">?</span>;
+
+        <span class="comment">// 4. Return findRec.[[Index]].
+        </span><span class="prelude-val">Ok</span>(index)
     }
 
     <span class="doccomment">/// `Array.prototype.flat( [depth] )`
@@ -6153,5 +6120,62 @@
         <span class="comment">// 13. Return unscopableList.
         </span>unscopable_list
     }
+}
+
+<span class="doccomment">/// `FindViaPredicate ( O, len, direction, predicate, thisArg )`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-findviapredicate
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_via_predicate(
+    o: <span class="kw-2">&amp;</span>JsObject,
+    len: u64,
+    direction: Direction,
+    predicate: <span class="kw-2">&amp;</span>JsValue,
+    this_arg: <span class="kw-2">&amp;</span>JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    caller_name: <span class="kw-2">&amp;</span>str,
+) -&gt; JsResult&lt;(JsValue, JsValue)&gt; {
+    <span class="comment">// 1. If IsCallable(predicate) is false, throw a TypeError exception.
+    </span><span class="kw">let </span>predicate = predicate.as_callable().ok_or_else(|| {
+        JsNativeError::typ().with_message(<span class="macro">format!</span>(<span class="string">&quot;{caller_name}: predicate is not callable&quot;</span>))
+    })<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>indices = <span class="kw">match </span>direction {
+        <span class="comment">// 2. If direction is ascending, then
+        // a. Let indices be a List of the integers in the interval from 0 (inclusive) to len (exclusive), in ascending order.
+        </span>Direction::Ascending =&gt; itertools::Either::Left(<span class="number">0</span>..len),
+        <span class="comment">// 3. Else,
+        // a. Let indices be a List of the integers in the interval from 0 (inclusive) to len (exclusive), in descending order.
+        </span>Direction::Descending =&gt; itertools::Either::Right((<span class="number">0</span>..len).rev()),
+    };
+
+    <span class="comment">// 4. For each integer k of indices, do
+    </span><span class="kw">for </span>k <span class="kw">in </span>indices {
+        <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
+        </span><span class="kw">let </span>pk = k;
+
+        <span class="comment">// b. NOTE: If O is a TypedArray, the following invocation of Get will return a normal completion.
+        // c. Let kValue be ? Get(O, Pk).
+        </span><span class="kw">let </span>k_value = o.get(pk, context)<span class="question-mark">?</span>;
+
+        <span class="comment">// d. Let testResult be ? Call(predicate, thisArg, « kValue, 𝔽(k), O »).
+        </span><span class="kw">let </span>test_result = predicate
+            .call(
+                this_arg,
+                <span class="kw-2">&amp;</span>[k_value.clone(), k.into(), o.clone().into()],
+                context,
+            )<span class="question-mark">?
+            </span>.to_boolean();
+
+        <span class="kw">if </span>test_result {
+            <span class="comment">// e. If ToBoolean(testResult) is true, return the Record { [[Index]]: 𝔽(k), [[Value]]: kValue }.
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>((JsValue::new(k), k_value));
+        }
+    }
+
+    <span class="comment">// 5. Return the Record { [[Index]]: -1𝔽, [[Value]]: undefined }
+    </span><span class="prelude-val">Ok</span>((JsValue::new(-<span class="number">1</span>), JsValue::undefined()))
 }
 </code></pre></div></section></main></body></html>

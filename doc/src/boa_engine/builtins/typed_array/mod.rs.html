@@ -3543,42 +3543,6 @@
 <a href="#3543" id="3543">3543</a>
 <a href="#3544" id="3544">3544</a>
 <a href="#3545" id="3545">3545</a>
-<a href="#3546" id="3546">3546</a>
-<a href="#3547" id="3547">3547</a>
-<a href="#3548" id="3548">3548</a>
-<a href="#3549" id="3549">3549</a>
-<a href="#3550" id="3550">3550</a>
-<a href="#3551" id="3551">3551</a>
-<a href="#3552" id="3552">3552</a>
-<a href="#3553" id="3553">3553</a>
-<a href="#3554" id="3554">3554</a>
-<a href="#3555" id="3555">3555</a>
-<a href="#3556" id="3556">3556</a>
-<a href="#3557" id="3557">3557</a>
-<a href="#3558" id="3558">3558</a>
-<a href="#3559" id="3559">3559</a>
-<a href="#3560" id="3560">3560</a>
-<a href="#3561" id="3561">3561</a>
-<a href="#3562" id="3562">3562</a>
-<a href="#3563" id="3563">3563</a>
-<a href="#3564" id="3564">3564</a>
-<a href="#3565" id="3565">3565</a>
-<a href="#3566" id="3566">3566</a>
-<a href="#3567" id="3567">3567</a>
-<a href="#3568" id="3568">3568</a>
-<a href="#3569" id="3569">3569</a>
-<a href="#3570" id="3570">3570</a>
-<a href="#3571" id="3571">3571</a>
-<a href="#3572" id="3572">3572</a>
-<a href="#3573" id="3573">3573</a>
-<a href="#3574" id="3574">3574</a>
-<a href="#3575" id="3575">3575</a>
-<a href="#3576" id="3576">3576</a>
-<a href="#3577" id="3577">3577</a>
-<a href="#3578" id="3578">3578</a>
-<a href="#3579" id="3579">3579</a>
-<a href="#3580" id="3580">3580</a>
-<a href="#3581" id="3581">3581</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
@@ -3595,7 +3559,7 @@
 
 </span><span class="kw">use crate</span>::{
     builtins::{
-        array::ArrayIterator,
+        array::{find_via_predicate, ArrayIterator, Direction},
         array_buffer::{ArrayBuffer, SharedMemoryOrder},
         iterable::iterable_to_list,
         typed_array::integer_indexed_object::{ContentType, IntegerIndexed},
@@ -3901,7 +3865,7 @@
             .method(<span class="self">Self</span>::fill, <span class="string">&quot;fill&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::filter, <span class="string">&quot;filter&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::find, <span class="string">&quot;find&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::findindex, <span class="string">&quot;findIndex&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find_index, <span class="string">&quot;findIndex&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::foreach, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::includes, <span class="string">&quot;includes&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::index_of, <span class="string">&quot;indexOf&quot;</span>, <span class="number">1</span>)
@@ -4741,41 +4705,22 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        <span class="comment">// 4. If IsCallable(predicate) is false, throw a TypeError exception.
-        </span><span class="kw">let </span>predicate = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>).as_object() {
-            <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_callable() =&gt; obj,
-            <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(
-                        <span class="string">&quot;TypedArray.prototype.find called with non-callable predicate function&quot;</span>,
-                    )
-                    .into())
-            }
-        };
+        <span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">1</span>);
 
-        <span class="comment">// 5. Let k be 0.
-        // 6. Repeat, while k &lt; len,
-        </span><span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..len {
-            <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
-            // b. Let kValue be ! Get(O, Pk).
-            </span><span class="kw">let </span>k_value = obj.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+        <span class="comment">// 4. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
+        </span><span class="kw">let </span>(<span class="kw">_</span>, value) = find_via_predicate(
+            obj,
+            len,
+            Direction::Ascending,
+            predicate,
+            this_arg,
+            context,
+            <span class="string">&quot;TypedArray.prototype.find&quot;</span>,
+        )<span class="question-mark">?</span>;
 
-            <span class="comment">// c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            // d. If testResult is true, return kValue.
-            </span><span class="kw">if </span>predicate
-                .call(
-                    args.get_or_undefined(<span class="number">1</span>),
-                    <span class="kw-2">&amp;</span>[k_value.clone(), k.into(), this.clone()],
-                    context,
-                )<span class="question-mark">?
-                </span>.to_boolean()
-            {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(k_value);
-            }
-        }
-
-        <span class="comment">// 7. Return undefined.
-        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+        <span class="comment">// 5. Return findRec.[[Value]].
+        </span><span class="prelude-val">Ok</span>(value)
     }
 
     <span class="doccomment">/// `23.2.3.12 %TypedArray%.prototype.findIndex ( predicate [ , thisArg ] )`
@@ -4784,7 +4729,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.findindex
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>findindex(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_index(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -4807,39 +4752,22 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        <span class="comment">// 4. If IsCallable(predicate) is false, throw a TypeError exception.
-        </span><span class="kw">let </span>predicate = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>).as_object() {
-            <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_callable() =&gt; obj,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(
-                    <span class="string">&quot;TypedArray.prototype.findindex called with non-callable predicate function&quot;</span>,
-                )
-                .into()),
-        };
+        <span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">1</span>);
 
-        <span class="comment">// 5. Let k be 0.
-        // 6. Repeat, while k &lt; len,
-        </span><span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..len {
-            <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
-            // b. Let kValue be ! Get(O, Pk).
-            </span><span class="kw">let </span>k_value = obj.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+        <span class="comment">// 4. Let findRec be ? FindViaPredicate(O, len, ascending, predicate, thisArg).
+        </span><span class="kw">let </span>(index, <span class="kw">_</span>) = find_via_predicate(
+            obj,
+            len,
+            Direction::Ascending,
+            predicate,
+            this_arg,
+            context,
+            <span class="string">&quot;TypedArray.prototype.findIndex&quot;</span>,
+        )<span class="question-mark">?</span>;
 
-            <span class="comment">// c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
-            // d. If testResult is true, return 𝔽(k).
-            </span><span class="kw">if </span>predicate
-                .call(
-                    args.get_or_undefined(<span class="number">1</span>),
-                    <span class="kw-2">&amp;</span>[k_value.clone(), k.into(), this.clone()],
-                    context,
-                )<span class="question-mark">?
-                </span>.to_boolean()
-            {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(k.into());
-            }
-        }
-
-        <span class="comment">// 7. Return -1𝔽.
-        </span><span class="prelude-val">Ok</span>((-<span class="number">1</span>).into())
+        <span class="comment">// 5. Return findRec.[[Index]].
+        </span><span class="prelude-val">Ok</span>(index)
     }
 
     <span class="doccomment">/// `23.2.3.13 %TypedArray%.prototype.forEach ( callbackfn [ , thisArg ] )`

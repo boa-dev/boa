@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["array_iterator"],"struct":["Array"]};
+window.SIDEBAR_ITEMS = {"enum":["Direction"],"fn":["find_via_predicate"],"mod":["array_iterator"],"struct":["Array"]};
