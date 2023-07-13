@@ -68,10 +68,7 @@ impl JsDataView {
                     .into());
             }
 
-            let view_byte_length = if let Some(..) = byte_length {
-                // Get the provided length
-                let provided_length = byte_length.expect("byte_length must be a u64");
-
+            let view_byte_length = if let Some(provided_length) = byte_length {
                 // Check that the provided length and offset does not exceed the bounds of the ArrayBuffer
                 if provided_offset + provided_length > array_buffer_length {
                     return Err(JsNativeError::range()
