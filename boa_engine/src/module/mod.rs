@@ -641,7 +641,7 @@ impl Module {
     ///
     /// assert_eq!(promise.state().unwrap(), PromiseState::Fulfilled(JsValue::undefined()));
     /// ```
-    #[allow(clippy::drop_copy)]
+    #[allow(dropping_copy_types)]
     #[inline]
     pub fn load_link_evaluate(&self, context: &mut Context<'_>) -> JsResult<JsPromise> {
         let main_timer = Profiler::global().start_event("Module evaluation", "Main");
