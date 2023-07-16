@@ -1014,18 +1014,6 @@ impl From<i64> for Numeric {
         Self::BigInt(value.into())
     }
 }
-impl From<i128> for Numeric {
-    #[inline]
-    fn from(value: i128) -> Self {
-        Self::BigInt(value.into())
-    }
-}
-impl From<u128> for Numeric {
-    #[inline]
-    fn from(value: u128) -> Self {
-        Self::BigInt(value.into())
-    }
-}
 
 impl From<i32> for Numeric {
     #[inline]
