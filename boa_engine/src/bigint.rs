@@ -389,7 +389,22 @@ impl From<u64> for JsBigInt {
         }
     }
 }
-
+impl From<i128> for JsBigInt {
+    #[inline]
+    fn from(value: i128) -> Self {
+        Self {
+            inner: Rc::new(RawBigInt::from(value)),
+        }
+    }
+}
+impl From<u128> for JsBigInt {
+    #[inline]
+    fn from(value: u128) -> Self {
+        Self {
+            inner: Rc::new(RawBigInt::from(value)),
+        }
+    }
+}
 impl From<isize> for JsBigInt {
     #[inline]
     fn from(value: isize) -> Self {
