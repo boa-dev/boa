@@ -105,6 +105,12 @@ cargo run --release --bin boa_tester -- run -vv -d -s test/language/types/number
 We have specific documentation for development, updated on each commit to the `main` branch, with all the private
 methods visible here: <https://boajs.dev/boa/doc/>
 
+## Performance
+
+You can get help inspecting performance by looking at:
+- [Profiling Boa](./docs/profiling.md)
+- [Profiling Boa With Windows Performance Analyzer](./docs/profiling_with_wpa.md)
+
 ## Communication
 
 We have a Discord server, feel free to ask questions here:
