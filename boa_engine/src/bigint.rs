@@ -397,6 +397,7 @@ impl From<i128> for JsBigInt {
         }
     }
 }
+
 impl From<u128> for JsBigInt {
     #[inline]
     fn from(value: u128) -> Self {
