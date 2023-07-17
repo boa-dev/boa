@@ -463,6 +463,24 @@
 <a href="#463" id="463">463</a>
 <a href="#464" id="464">464</a>
 <a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s bigint primitive type.
 
 </span><span class="kw">use crate</span>::{builtins::Number, error::JsNativeError, JsResult};
@@ -849,6 +867,24 @@
 <span class="kw">impl </span>From&lt;u64&gt; <span class="kw">for </span>JsBigInt {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(value: u64) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;i128&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(value: i128) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;u128&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(value: u128) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: Rc::new(RawBigInt::from(value)),
         }
