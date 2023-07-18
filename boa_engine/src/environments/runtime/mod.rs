@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use crate::{
     environments::CompileTimeEnvironment,
@@ -89,7 +89,7 @@ impl EnvironmentStack {
             .rev()
         {
             if let DeclarativeEnvironmentKind::Function(fun) = &env.kind() {
-                let compile_bindings_number = env.compile_env().borrow().num_bindings() as usize;
+                let compile_bindings_number = env.compile_env().num_bindings() as usize;
                 let mut bindings = fun.poisonable_environment().bindings().borrow_mut();
 
                 if compile_bindings_number > bindings.len() {
@@ -115,7 +115,6 @@ impl EnvironmentStack {
             .rev()
         {
             let compile = env.compile_env();
-            let compile = compile.borrow();
             for name in names {
                 if compile.has_lex_binding(*name) {
                     return Some(*name);
@@ -137,7 +136,6 @@ impl EnvironmentStack {
             .filter_map(Environment::as_declarative)
         {
             let compile = env.compile_env();
-            let compile = compile.borrow();
             if compile.is_function() {
                 return compile.outer().is_none();
             }
@@ -220,11 +218,8 @@ impl EnvironmentStack {
     ///
     /// Panics if no environment exists on the stack.
     #[track_caller]
-    pub(crate) fn push_lexical(
-        &mut self,
-        compile_environment: Rc<RefCell<CompileTimeEnvironment>>,
-    ) -> u32 {
-        let num_bindings = compile_environment.borrow().num_bindings();
+    pub(crate) fn push_lexical(&mut self, compile_environment: Rc<CompileTimeEnvironment>) -> u32 {
+        let num_bindings = compile_environment.num_bindings();
 
         let (poisoned, with) = {
             let with = self
@@ -267,10 +262,10 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn push_function(
         &mut self,
-        compile_environment: Rc<RefCell<CompileTimeEnvironment>>,
+        compile_environment: Rc<CompileTimeEnvironment>,
         function_slots: FunctionSlots,
     ) {
-        let num_bindings = compile_environment.borrow().num_bindings();
+        let num_bindings = compile_environment.num_bindings();
 
         let (poisoned, with) = {
             let with = self
@@ -311,12 +306,12 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn push_function_inherit(
         &mut self,
-        compile_environment: Rc<RefCell<CompileTimeEnvironment>>,
+        compile_environment: Rc<CompileTimeEnvironment>,
     ) {
-        let num_bindings = compile_environment.borrow().num_bindings();
+        let num_bindings = compile_environment.num_bindings();
 
         debug_assert!(
-            self.stack.len() as u32 == compile_environment.borrow().environment_index(),
+            self.stack.len() as u32 == compile_environment.environment_index(),
             "tried to push an invalid compile environment"
         );
 
@@ -363,8 +358,8 @@ impl EnvironmentStack {
     ///
     /// Panics if no environment exists on the stack.
     #[track_caller]
-    pub(crate) fn push_module(&mut self, compile_environment: Rc<RefCell<CompileTimeEnvironment>>) {
-        let num_bindings = compile_environment.borrow().num_bindings();
+    pub(crate) fn push_module(&mut self, compile_environment: Rc<CompileTimeEnvironment>) {
+        let num_bindings = compile_environment.num_bindings();
         self.stack.push(Environment::Declarative(Gc::new(
             DeclarativeEnvironment::new(
                 DeclarativeEnvironmentKind::Module(ModuleEnvironment::new(num_bindings)),
@@ -400,7 +395,7 @@ impl EnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-    pub(crate) fn current_compile_environment(&self) -> Rc<RefCell<CompileTimeEnvironment>> {
+    pub(crate) fn current_compile_environment(&self) -> Rc<CompileTimeEnvironment> {
         self.stack
             .iter()
             .filter_map(Environment::as_declarative)
@@ -419,7 +414,7 @@ impl EnvironmentStack {
             .filter_map(Environment::as_declarative)
         {
             env.poison();
-            if env.compile_env().borrow().is_function() {
+            if env.compile_env().is_function() {
                 return;
             }
         }
@@ -607,7 +602,6 @@ impl Context<'_> {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
                         let compile = env.compile_env();
-                        let compile = compile.borrow();
                         if compile.is_function() {
                             if let Some(b) = compile.get_binding(locator.name) {
                                 locator.environment_index = b.environment_index;

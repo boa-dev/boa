@@ -19,7 +19,7 @@ const editor = monaco.editor.create(
     minimap: {
       enabled: false,
     },
-  }
+  },
 );
 
 // Fix size of Monaco Editor when window resize

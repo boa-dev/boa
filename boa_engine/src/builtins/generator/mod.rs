@@ -252,19 +252,15 @@ impl Generator {
     ) -> JsResult<JsValue> {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let Some(generator_obj) = gen.as_object() else {
-            return Err(
-                JsNativeError::typ()
-                    .with_message("Generator method called on non generator")
-                    .into()
-            );
+            return Err(JsNativeError::typ()
+                .with_message("Generator method called on non generator")
+                .into());
         };
         let mut generator_obj_mut = generator_obj.borrow_mut();
         let Some(generator) = generator_obj_mut.as_generator_mut() else {
-            return Err(
-                JsNativeError::typ()
-                    .with_message("generator resumed on non generator object")
-                    .into()
-            );
+            return Err(JsNativeError::typ()
+                .with_message("generator resumed on non generator object")
+                .into());
         };
 
         // 4. Let genContext be generator.[[GeneratorContext]].
@@ -340,19 +336,15 @@ impl Generator {
     ) -> JsResult<JsValue> {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let Some(generator_obj) = gen.as_object() else {
-            return Err(
-                JsNativeError::typ()
-                    .with_message("Generator method called on non generator")
-                    .into()
-            );
+            return Err(JsNativeError::typ()
+                .with_message("Generator method called on non generator")
+                .into());
         };
         let mut generator_obj_mut = generator_obj.borrow_mut();
         let Some(generator) = generator_obj_mut.as_generator_mut() else {
-            return Err(
-                JsNativeError::typ()
-                    .with_message("generator resumed on non generator object")
-                    .into()
-            );
+            return Err(JsNativeError::typ()
+                .with_message("generator resumed on non generator object")
+                .into());
         };
 
         // 4. Assert: state is suspendedYield.

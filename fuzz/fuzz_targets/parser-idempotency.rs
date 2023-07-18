@@ -5,10 +5,8 @@ mod common;
 use crate::common::FuzzData;
 use boa_interner::ToInternedString;
 use boa_parser::{Parser, Source};
-use libfuzzer_sys::fuzz_target;
-use libfuzzer_sys::Corpus;
-use std::error::Error;
-use std::io::Cursor;
+use libfuzzer_sys::{fuzz_target, Corpus};
+use std::{error::Error, io::Cursor};
 
 /// Fuzzer test harness. This function accepts the arbitrary AST and performs the fuzzing operation.
 ///

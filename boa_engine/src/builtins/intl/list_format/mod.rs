@@ -488,8 +488,8 @@ fn string_list_from_iterable(
             return Err(iterator
                 .close(
                     Err(JsNativeError::typ()
-                    .with_message("StringListFromIterable: can only format strings into a list")
-                    .into()),
+                        .with_message("StringListFromIterable: can only format strings into a list")
+                        .into()),
                     context,
                 )
                 .expect_err("Should return the provided error"));

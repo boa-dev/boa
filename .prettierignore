@@ -1,5 +1,6 @@
 # Ignore artifacts:
 *.rs
+*.yml
 target
 node_modules
 boa_engine/benches/bench_scripts/mini_js.js

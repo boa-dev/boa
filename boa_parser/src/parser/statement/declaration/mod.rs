@@ -133,7 +133,7 @@ where
                 tok.to_string(interner),
                 tok.span(),
                 self.context,
-            ))
+            ));
         };
 
         Ok((*from).into())

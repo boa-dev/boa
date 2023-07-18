@@ -238,12 +238,12 @@ pub(crate) mod test {
                         Ok(v) => v,
                     };
                     let Some(val) = val.as_boolean() else {
-                    panic!(
-                        "{}\nTried to assert with the non-boolean value `{}`",
-                        fmt_test(&source, i),
-                        val.display()
-                    )
-                };
+                        panic!(
+                            "{}\nTried to assert with the non-boolean value `{}`",
+                            fmt_test(&source, i),
+                            val.display()
+                        )
+                    };
                     assert!(val, "{}", fmt_test(&source, i));
                     i += 1;
                 }
@@ -273,8 +273,12 @@ pub(crate) mod test {
                         Err(e) => e,
                     };
                     let Some(err) = err.as_opaque() else {
-                    panic!("{}\nExpected opaque error, got native error `{}`", fmt_test(&source, i), err)
-                };
+                        panic!(
+                            "{}\nExpected opaque error, got native error `{}`",
+                            fmt_test(&source, i),
+                            err
+                        )
+                    };
 
                     assert_eq!(err, &expected, "{}", fmt_test(&source, i));
                     i += 1;

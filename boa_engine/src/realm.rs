@@ -106,7 +106,7 @@ impl Realm {
 
     /// Resizes the number of bindings on the global environment.
     pub(crate) fn resize_global_env(&self) {
-        let binding_number = self.environment().compile_env().borrow().num_bindings();
+        let binding_number = self.environment().compile_env().num_bindings();
         let env = self
             .environment()
             .kind()

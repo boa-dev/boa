@@ -94,7 +94,8 @@ impl Segments {
             .as_integer()
             // 7. If n < 0 or n ≥ len, return undefined.
             .filter(|i| (0..len).contains(i))
-            .map(|n| n as usize) else {
+            .map(|n| n as usize)
+        else {
             return Ok(JsValue::undefined());
         };
 

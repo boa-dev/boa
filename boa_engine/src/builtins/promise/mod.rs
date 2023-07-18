@@ -1530,7 +1530,11 @@ impl Promise {
 
         let on_finally = args.get_or_undefined(0);
 
-        let Some(on_finally) = on_finally.as_object().cloned().and_then(JsFunction::from_object) else {
+        let Some(on_finally) = on_finally
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object)
+        else {
             // 5. If IsCallable(onFinally) is false, then
             //    a. Let thenFinally be onFinally.
             //    b. Let catchFinally be onFinally.
@@ -2026,7 +2030,7 @@ impl Promise {
                     // 5. If alreadyResolved.[[Value]] is true, return undefined.
                     // 6. Set alreadyResolved.[[Value]] to true.
                     let Some(promise) = captures.take() else {
-                        return Ok(JsValue::undefined())
+                        return Ok(JsValue::undefined());
                     };
 
                     let resolution = args.get_or_undefined(0);
@@ -2069,7 +2073,11 @@ impl Promise {
                     };
 
                     // 12. If IsCallable(thenAction) is false, then
-                    let Some(then_action) = then_action.as_object().cloned().and_then(JsFunction::from_object) else {
+                    let Some(then_action) = then_action
+                        .as_object()
+                        .cloned()
+                        .and_then(JsFunction::from_object)
+                    else {
                         // a. Perform FulfillPromise(promise, resolution).
                         fulfill_promise(&promise, resolution.clone(), context);
 
@@ -2078,14 +2086,15 @@ impl Promise {
                     };
 
                     // 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
-                    let then_job_callback = context.host_hooks().make_job_callback(then_action, context);
+                    let then_job_callback =
+                        context.host_hooks().make_job_callback(then_action, context);
 
                     // 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
                     let job = new_promise_resolve_thenable_job(
                         promise.clone(),
                         resolution.clone(),
                         then_job_callback,
-                        context
+                        context,
                     );
 
                     // 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).

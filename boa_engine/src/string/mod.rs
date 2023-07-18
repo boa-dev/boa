@@ -320,7 +320,9 @@ impl JsString {
                     let Some(cp) = self.codepoints.peek().and_then(|cp| match cp {
                         CodePoint::Unicode(c) => Some(*c),
                         CodePoint::UnpairedSurrogate(_) => None,
-                    }) else { break; };
+                    }) else {
+                        break;
+                    };
 
                     string.push(cp);
 

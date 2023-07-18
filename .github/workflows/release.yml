@@ -4,53 +4,24 @@ on:
     types: [published]
 
 jobs:
-  publish:
-    name: publish
+  doc-publish:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal
           override: true
-
-      - name: Install cargo-workspaces
-        uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-workspaces
-
-      - name: Release
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          PATCH: ${{ github.run_number }}
-        shell: bash
-        run: |
-          git config --global user.email "runner@gha.local"
-          git config --global user.name "Github Action"
-          cargo workspaces publish \
-            --from-git \
-            --yes \
-            --no-git-commit \
-            --no-git-push \
-            --no-individual-tags \
-            skip
-
-  doc-publish:
-    # needs: publish
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
       - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        uses: baptiste0928/cargo-install@v2.1.0
+        with:
+          crate: wasm-pack
       - uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "20"
       - run: npm ci
       - name: Cache npm build
         uses: actions/cache@v3
@@ -62,6 +33,7 @@ jobs:
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
+      - run: wasm-pack build ./boa_wasm
       - run: npm run build:prod
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
@@ -69,3 +41,47 @@ jobs:
           publish_dir: ./dist
           destination_dir: playground
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  release-binaries:
+    name: Publish binaries
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [linux, macos, win-msvc]
+        include:
+        - build: linux
+          os: ubuntu-20.04
+          rust: stable
+          target: x86_64-unknown-linux-gnu
+          asset_name: boa-linux-amd64
+          binary_name: boa
+        - build: macos
+          os: macos-latest
+          rust: stable
+          target: x86_64-apple-darwin
+          asset_name: boa-macos-amd64
+          binary_name: boa
+        - build: win-msvc
+          os: windows-2019
+          rust: stable
+          target: x86_64-pc-windows-msvc
+          asset_name: boa-windows-amd64
+          binary_name: boa.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - name: Build
+        run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/${{ matrix.target }}/release/${{ matrix.binary_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}

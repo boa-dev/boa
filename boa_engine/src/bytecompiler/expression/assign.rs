@@ -57,7 +57,7 @@ impl ByteCompiler<'_, '_> {
                 Access::Variable { name } => {
                     let binding = self.get_binding_value(name);
                     let index = self.get_or_insert_binding(binding);
-                    let lex = self.current_environment.borrow().is_lex_binding(name);
+                    let lex = self.current_environment.is_lex_binding(name);
 
                     if lex {
                         self.emit(Opcode::GetName, &[index]);

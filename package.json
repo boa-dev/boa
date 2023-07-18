@@ -6,7 +6,7 @@
     "build:prod": "webpack --mode=production"
   },
   "devDependencies": {
-    "@playwright/test": "^1.35.1",
+    "@playwright/test": "^1.36.1",
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",
     "bootstrap": "^5.3.0",
     "clean-webpack-plugin": "^4.0.0",
@@ -14,16 +14,16 @@
     "css-loader": "^6.8.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.3",
-    "monaco-editor-webpack-plugin": "^7.0.1",
-    "prettier": "^2.8.8",
+    "monaco-editor-webpack-plugin": "^7.1.0",
+    "prettier": "^3.0.0",
     "style-loader": "^3.3.3",
     "terser-webpack-plugin": "^5.3.9",
-    "webpack": "^5.88.1",
+    "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
     "mime-types": "^2.1.35",
-    "monaco-editor": "^0.39.0"
+    "monaco-editor": "^0.40.0"
   }
 }

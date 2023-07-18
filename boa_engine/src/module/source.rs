@@ -1,5 +1,5 @@
 use std::{
-    cell::{Cell, RefCell},
+    cell::Cell,
     collections::HashSet,
     hash::{BuildHasherDefault, Hash},
     rc::Rc,
@@ -1151,7 +1151,10 @@ impl SourceTextModule {
         if pending_async_dependencies > 0 || self.inner.code.has_tla {
             // a. Assert: module.[[AsyncEvaluation]] is false and was never previously set to true.
             {
-                let Status::Evaluating { async_eval_index, .. } = &mut *self.inner.status.borrow_mut() else {
+                let Status::Evaluating {
+                    async_eval_index, ..
+                } = &mut *self.inner.status.borrow_mut()
+                else {
                     unreachable!("self should still be in the evaluating state")
                 };
 
@@ -1326,7 +1329,11 @@ impl SourceTextModule {
                     // i. Assert: m.[[Status]] is evaluating-async.
                     // ii. Assert: m.[[EvaluationError]] is empty.
                     // iii. Assert: m.[[AsyncEvaluation]] is true.
-                    let Status::EvaluatingAsync { pending_async_dependencies, .. } = &mut *m.inner.status.borrow_mut() else {
+                    let Status::EvaluatingAsync {
+                        pending_async_dependencies,
+                        ..
+                    } = &mut *m.inner.status.borrow_mut()
+                    else {
                         unreachable!("i. Assert: m.[[Status]] is evaluating-async.");
                     };
                     // iv. Assert: m.[[PendingAsyncDependencies]] > 0.
@@ -1403,10 +1410,7 @@ impl SourceTextModule {
         // 6. Set module.[[Environment]] to env.
         let global_env = realm.environment().clone();
         let global_compile_env = global_env.compile_env();
-        let module_compile_env = Rc::new(RefCell::new(CompileTimeEnvironment::new(
-            global_compile_env,
-            true,
-        )));
+        let module_compile_env = Rc::new(CompileTimeEnvironment::new(global_compile_env, true));
 
         let mut compiler =
             ByteCompiler::new(Sym::MAIN, true, false, module_compile_env.clone(), context);
@@ -1842,7 +1846,10 @@ fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut Con
 
     // 10. Let sortedExecList be a List whose elements are the elements of execList, in the order in which they had their [[AsyncEvaluation]] fields set to true in InnerModuleEvaluation.
     ancestors.sort_by_cached_key(|m| {
-        let Status::EvaluatingAsync { async_eval_index, .. } = &*m.inner.status.borrow() else {
+        let Status::EvaluatingAsync {
+            async_eval_index, ..
+        } = &*m.inner.status.borrow()
+        else {
             unreachable!("GatherAvailableAncestors: i. Assert: m.[[Status]] is evaluating-async.");
         };
 

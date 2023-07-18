@@ -53,8 +53,8 @@ boa_macros.workspace = true
 boa_ast.workspace = true
 boa_parser.workspace = true
 boa_icu_provider.workspace = true
-serde = { version = "1.0.164", features = ["derive", "rc"] }
-serde_json = "1.0.99"
+serde = { version = "1.0.171", features = ["derive", "rc"] }
+serde_json = "1.0.103"
 rand = "0.8.5"
 num-traits = "0.2.15"
 regress = "0.6.0"
@@ -70,8 +70,8 @@ once_cell = "1.18.0"
 tap = "1.0.1"
 sptr = "0.3.2"
 static_assertions = "1.1.0"
-thiserror = "1.0.40"
-dashmap = "5.4.0"
+thiserror = "1.0.43"
+dashmap = "5.5.0"
 num_enum = "0.6.1"
 pollster = "0.3.0"
 thin-vec = "0.2.12"
@@ -81,7 +81,7 @@ icu_normalizer = "1.2.0"
 # intl deps
 icu_locid_transform = { version = "1.2.1", features = ["std", "serde"], optional = true }
 icu_locid = { version = "1.2.0", features = ["serde"], optional = true }
-icu_datetime = { version = "1.2.0", features = ["serde", "experimental"], optional = true }
+icu_datetime = { version = "1.2.1", features = ["serde", "experimental"], optional = true }
 icu_calendar = { version = "1.2.0", optional = true }
 icu_collator = { version = "1.2.0", features = ["serde"], optional = true }
 icu_plurals = { version = "1.2.0", features = ["serde"], optional = true }
@@ -95,9 +95,9 @@ zerofrom = { version = "0.1.2", optional = true }
 sys-locale = { version = "0.3.0", optional = true }
 
 [dev-dependencies]
-criterion = "0.4.0"
+criterion = "0.5.1"
 float-cmp = "0.9.0"
-indoc = "2.0.1"
+indoc = "2.0.3"
 textwrap = "0.16.0"
 futures-lite = "1.13.0"
 

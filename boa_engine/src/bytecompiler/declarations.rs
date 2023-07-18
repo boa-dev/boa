@@ -174,7 +174,7 @@ impl ByteCompiler<'_, '_> {
                 //    would not produce any Early Errors for script, then
                 if !lex_names.contains(&f) {
                     // a. If env.HasLexicalDeclaration(F) is false, then
-                    if !self.current_environment.borrow().has_lex_binding(f) {
+                    if !self.current_environment.has_lex_binding(f) {
                         // i. Let fnDefinable be ? env.CanDeclareGlobalVar(F).
                         let fn_definable = self.context.can_declare_global_function(f)?;
 
@@ -308,7 +308,7 @@ impl ByteCompiler<'_, '_> {
     where
         &'a N: Into<NodeRef<'a>>,
     {
-        let mut env = self.current_environment.borrow_mut();
+        let env = &self.current_environment;
 
         // 1. Let declarations be the LexicallyScopedDeclarations of code.
         let declarations = lexically_scoped_declarations(block);
@@ -344,8 +344,6 @@ impl ByteCompiler<'_, '_> {
                 }
             }
         }
-
-        drop(env);
 
         // Note: Not sure if the spec is wrong here or if our implementation just differs too much,
         //       but we need 3.a to be finished for all declarations before 3.b can be done.
@@ -532,7 +530,7 @@ impl ByteCompiler<'_, '_> {
                     let fn_definable = if !binding_exists && var_environment_is_global {
                         // a. If varEnv.HasLexicalDeclaration(F) is false, then
                         // b. Else,
-                        if self.current_environment.borrow().has_lex_binding(f) {
+                        if self.current_environment.has_lex_binding(f) {
                             // i. Let fnDefinable be false.
                             false
                         } else {
