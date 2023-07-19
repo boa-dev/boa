@@ -27,7 +27,7 @@ Windows Performance Analyzer is analzying everything on your system (which is us
 However we only care about the boa process, so we should filter out everything else. We can do this by right clicking boa.exe and filtering down to just this.
 ![filter](./img/filter_to_boa.png)
 
-Once you've done this navigate to the CPU Usage (Sampled) tab underneath and click the first symbol on the far right, it should be called `Display Graph and Table`.
+Once completed, navigate to the `CPU Usage (Sampled)` section underneath and click the `Display Graph and Table` header icon, which is the first symbol in the upper right hand corner.
 
 Then on the dropdown (same tab) select `Flame By Process, Stack`. If followed correctly you should have something which looks like this:
 
