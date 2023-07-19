@@ -15,6 +15,8 @@ use std::{
 /// `Collector` during the sweep phase.
 pub(crate) struct EphemeronBoxHeader {
     marked: Cell<bool>,
+    ref_count: Cell<u32>,
+    non_root_count: Cell<u32>,
     pub(crate) next: Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
 }
 
@@ -23,6 +25,8 @@ impl EphemeronBoxHeader {
     pub(crate) fn new() -> Self {
         Self {
             marked: Cell::new(false),
+            ref_count: Cell::new(1),
+            non_root_count: Cell::new(0),
             next: Cell::new(None),
         }
     }
@@ -47,6 +51,8 @@ impl core::fmt::Debug for EphemeronBoxHeader {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("EphemeronBoxHeader")
             .field("marked", &self.is_marked())
+            .field("ref_count", &self.ref_count.get())
+            .field("non_root_count", &self.non_root_count.get())
             .finish()
     }
 }
@@ -106,6 +112,23 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     pub(crate) unsafe fn mark(&self) {
         self.header.mark();
     }
+
+    #[inline]
+    pub(crate) fn inc_ref_count(&self) {
+        self.header.ref_count.set(self.header.ref_count.get() + 1);
+    }
+
+    #[inline]
+    pub(crate) fn dec_ref_count(&self) {
+        self.header.ref_count.set(self.header.ref_count.get() - 1);
+    }
+
+    #[inline]
+    pub(crate) fn inc_non_root_count(&self) {
+        self.header
+            .non_root_count
+            .set(self.header.non_root_count.get() + 1);
+    }
 }
 
 pub(crate) trait ErasedEphemeronBox {
@@ -119,6 +142,12 @@ pub(crate) trait ErasedEphemeronBox {
     unsafe fn trace(&self) -> bool;
 
     fn trace_non_roots(&self);
+
+    fn get_ref_count(&self) -> u32;
+
+    fn get_non_root_count(&self) -> u32;
+
+    fn reset_non_root_count(&self);
 
     /// Runs the finalization logic of the `EphemeronBox`'s held value, if the key is still live,
     /// and clears its contents.
@@ -166,12 +195,26 @@ impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
         };
     }
 
+    #[inline]
+    fn get_ref_count(&self) -> u32 {
+        self.header.ref_count.get()
+    }
+
+    #[inline]
+    fn get_non_root_count(&self) -> u32 {
+        self.header.non_root_count.get()
+    }
+
+    #[inline]
+    fn reset_non_root_count(&self) {
+        self.header.non_root_count.set(0);
+    }
+
     fn finalize_and_clear(&self) {
         if let Some(data) = self.data.take() {
             // SAFETY: `data` comes from an `into_raw` call, so this pointer is safe to pass to
             // `from_raw`.
-            let contents = unsafe { Box::from_raw(data.as_ptr()) };
-            Trace::run_finalizer(&contents.value);
+            let _contents = unsafe { Box::from_raw(data.as_ptr()) };
         }
     }
 }

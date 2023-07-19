@@ -69,7 +69,7 @@ where
 /// to use. All other closures can also be stored in a `NativeFunction`, albeit by using an `unsafe`
 /// API, but note that passing closures implicitly capturing traceable types could cause
 /// **Undefined Behaviour**.
-#[derive(Clone)]
+#[derive(Clone, Finalize)]
 pub struct NativeFunction {
     inner: Inner,
 }
@@ -78,14 +78,6 @@ pub struct NativeFunction {
 enum Inner {
     PointerFn(NativeFunctionPointer),
     Closure(Gc<dyn TraceableClosure>),
-}
-
-impl Finalize for NativeFunction {
-    fn finalize(&self) {
-        if let Inner::Closure(c) = &self.inner {
-            c.finalize();
-        }
-    }
 }
 
 // Manual implementation because deriving `Trace` triggers the `single_use_lifetimes` lint.
@@ -262,14 +254,16 @@ impl NativeFunction {
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
-        let (ptr, handle) = Gc::into_raw(Gc::new(Closure {
+        let ptr = Gc::into_raw(Gc::new(Closure {
             f: closure,
             captures,
         }));
         // SAFETY: The pointer returned by `into_raw` is only used to coerce to a trait object,
         // meaning this is safe.
-        Self {
-            inner: Inner::Closure(Gc::from_raw(ptr, handle)),
+        unsafe {
+            Self {
+                inner: Inner::Closure(Gc::from_raw(ptr)),
+            }
         }
     }
 

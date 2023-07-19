@@ -15,6 +15,8 @@ use std::{
 /// `Collector` during the sweep phase.
 pub(crate) struct GcBoxHeader {
     marked: Cell<bool>,
+    ref_count: Cell<u32>,
+    non_root_count: Cell<u32>,
     pub(crate) next: Cell<Option<NonNull<GcBox<dyn Trace>>>>,
 }
 
@@ -23,6 +25,8 @@ impl GcBoxHeader {
     pub(crate) fn new() -> Self {
         Self {
             marked: Cell::new(false),
+            ref_count: Cell::new(1),
+            non_root_count: Cell::new(0),
             next: Cell::new(None),
         }
     }
@@ -47,6 +51,8 @@ impl fmt::Debug for GcBoxHeader {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("GcBoxHeader")
             .field("marked", &self.is_marked())
+            .field("ref_count", &self.ref_count.get())
+            .field("non_root_count", &self.non_root_count.get())
             .finish()
     }
 }
@@ -98,5 +104,36 @@ impl<T: Trace + ?Sized> GcBox<T> {
     /// Returns `true` if the header is marked.
     pub(crate) fn is_marked(&self) -> bool {
         self.header.is_marked()
+    }
+
+    #[inline]
+    pub(crate) fn get_ref_count(&self) -> u32 {
+        self.header.ref_count.get()
+    }
+
+    #[inline]
+    pub(crate) fn inc_ref_count(&self) {
+        self.header.ref_count.set(self.header.ref_count.get() + 1);
+    }
+
+    #[inline]
+    pub(crate) fn dec_ref_count(&self) {
+        self.header.ref_count.set(self.header.ref_count.get() - 1);
+    }
+
+    #[inline]
+    pub(crate) fn get_non_root_count(&self) -> u32 {
+        self.header.non_root_count.get()
+    }
+
+    #[inline]
+    pub(crate) fn inc_non_root_count(&self) {
+        self.header
+            .non_root_count
+            .set(self.header.non_root_count.get() + 1);
+    }
+
+    pub(crate) fn reset_non_root_count(&self) {
+        self.header.non_root_count.set(0);
     }
 }
