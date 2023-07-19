@@ -1,6 +1,6 @@
 # Profiling Boa With Windows Performance Analyzer
 
-Windows have a performance analyzing tool that creates graphs and data tables of Event Tracing for Windows (ETW) events. You can analyze your whole system but also individual binaries too.
+Windows has a performance analyzing tool that creates graphs and data tables of Event Tracing for Windows (ETW) events. You can analyze your whole system but also individual binaries too.
 This can be used for performance tracing with Rust programs like Boa.
 
 For this to work you will need to have your code running in native windows and not WSL.
