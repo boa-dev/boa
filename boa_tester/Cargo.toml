@@ -14,7 +14,7 @@ rust-version.workspace = true
 [dependencies]
 boa_engine.workspace = true
 boa_gc.workspace = true
-clap = { version = "4.3.15", features = ["derive"] }
+clap = { version = "4.3.16", features = ["derive"] }
 serde = { version = "1.0.171", features = ["derive"] }
 serde_yaml = "0.9.24"
 serde_json = "1.0.103"
