@@ -9,7 +9,8 @@ For this to work you will need to have your code running in native windows and n
 - Then install Windows Performance Toolkit, you can grab it from [here](https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install)
 - [Optional] - Follow [Improved Symbol Setup](#improved-symbol-setup) to improve symbol loading. So that its ready once you open up WPA. This points WPA to your pdb files inside your target directory so you can see the function names instead of just addresses.
 - Open up `UI for ETW`, click on the `Start Tracing` button and then run Boa in dev mode (hopefully a script long enough for it to record something meaningful).
-- When the program has finished click `Save Trace Buffers`, then on your trace below you can right click it and open with WPA
+- When the program has finished running, click `Save Trace Buffers` to create the trace.
+- Right click on the your newly created trace and open it with WPA
 
 You should have something like this:
 ![WPA](./img/opening_wpa.png)
