@@ -36,7 +36,7 @@ impl<T: Trace> Gc<T> {
 
     /// Consumes the `Gc`, returning a wrapped raw pointer.
     ///
-    // To avoid a memory leak, the pointer must be converted back to a `Gc` using [`Gc::from_raw`].
+    /// To avoid a memory leak, the pointer must be converted back to a `Gc` using [`Gc::from_raw`].
     #[must_use]
     pub fn into_raw(this: Self) -> NonNull<GcBox<T>> {
         let ptr = this.inner_ptr();

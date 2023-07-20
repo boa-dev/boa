@@ -23,7 +23,7 @@ impl<K: Trace + ?Sized, V: Trace + Clone> Ephemeron<K, V> {
     /// Gets the stored value of this `Ephemeron`, or `None` if the key was already garbage collected.
     ///
     /// This needs to return a clone of the value because holding a reference to it between
-    // garbage collection passes could drop the underlying allocation, causing an Use After Free.
+    /// garbage collection passes could drop the underlying allocation, causing an Use After Free.
     #[must_use]
     pub fn value(&self) -> Option<V> {
         // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
