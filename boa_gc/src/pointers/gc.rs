@@ -36,7 +36,8 @@ impl<T: Trace> Gc<T> {
 
     /// Consumes the `Gc`, returning a wrapped raw pointer.
     ///
-    /// To avoid a memory leak, the pointer must be converted back to a `Gc` using [`Gc::from_raw`].
+    // To avoid a memory leak, the pointer must be converted back to a `Gc` using [`Gc::from_raw`].
+    #[must_use]
     pub fn into_raw(this: Self) -> NonNull<GcBox<T>> {
         let ptr = this.inner_ptr();
         std::mem::forget(this);
@@ -46,6 +47,7 @@ impl<T: Trace> Gc<T> {
 
 impl<T: Trace + ?Sized> Gc<T> {
     /// Returns `true` if the two `Gc`s point to the same allocation.
+    #[must_use]
     pub fn ptr_eq(this: &Self, other: &Self) -> bool {
         GcBox::ptr_eq(this.inner(), other.inner())
     }
@@ -60,7 +62,7 @@ impl<T: Trace + ?Sized> Gc<T> {
     /// This function is unsafe because improper use may lead to memory corruption, double-free,
     /// or misbehaviour of the garbage collector.
     #[must_use]
-    pub unsafe fn from_raw(inner_ptr: NonNull<GcBox<T>>) -> Self {
+    pub const unsafe fn from_raw(inner_ptr: NonNull<GcBox<T>>) -> Self {
         Self {
             inner_ptr,
             marker: PhantomData,

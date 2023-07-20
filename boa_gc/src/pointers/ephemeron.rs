@@ -23,7 +23,8 @@ impl<K: Trace + ?Sized, V: Trace + Clone> Ephemeron<K, V> {
     /// Gets the stored value of this `Ephemeron`, or `None` if the key was already garbage collected.
     ///
     /// This needs to return a clone of the value because holding a reference to it between
-    /// garbage collection passes could drop the underlying allocation, causing an Use After Free.
+    // garbage collection passes could drop the underlying allocation, causing an Use After Free.
+    #[must_use]
     pub fn value(&self) -> Option<V> {
         // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
         // `inner_ptr`.
@@ -31,6 +32,7 @@ impl<K: Trace + ?Sized, V: Trace + Clone> Ephemeron<K, V> {
     }
 
     /// Checks if the [`Ephemeron`] has a value.
+    #[must_use]
     pub fn has_value(&self) -> bool {
         // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
         // `inner_ptr`.
@@ -46,6 +48,7 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     }
 
     /// Returns `true` if the two `Ephemeron`s point to the same allocation.
+    #[must_use]
     pub fn ptr_eq(this: &Self, other: &Self) -> bool {
         EphemeronBox::ptr_eq(this.inner(), other.inner())
     }
@@ -67,7 +70,7 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     /// This function is unsafe because improper use may lead to memory corruption, double-free,
     /// or misbehaviour of the garbage collector.
     #[must_use]
-    unsafe fn from_raw(inner_ptr: NonNull<EphemeronBox<K, V>>) -> Self {
+    const unsafe fn from_raw(inner_ptr: NonNull<EphemeronBox<K, V>>) -> Self {
         Self { inner_ptr }
     }
 }

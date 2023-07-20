@@ -13,6 +13,7 @@ pub struct WeakGc<T: Trace + ?Sized + 'static> {
 
 impl<T: Trace> WeakGc<T> {
     /// Creates a new weak pointer for a garbage collected value.
+    #[must_use]
     pub fn new(value: &Gc<T>) -> Self {
         Self {
             inner: Ephemeron::new(value, value.clone()),
@@ -20,11 +21,13 @@ impl<T: Trace> WeakGc<T> {
     }
 
     /// Upgrade returns a `Gc` pointer for the internal value if valid, or None if the value was already garbage collected.
+    #[must_use]
     pub fn upgrade(&self) -> Option<Gc<T>> {
         self.inner.value()
     }
 
     /// Check if the [`WeakGc`] can be upgraded.
+    #[must_use]
     pub fn is_upgradable(&self) -> bool {
         self.inner.has_value()
     }

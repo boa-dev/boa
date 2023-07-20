@@ -1064,19 +1064,21 @@ impl Array {
             // d. Let lowerExists be ? HasProperty(O, lowerP).
             let lower_exists = o.has_property(lower, context)?;
             // e. If lowerExists is true, then
-            let mut lower_value = JsValue::undefined();
-            if lower_exists {
+            let lower_value = if lower_exists {
                 // i. Let lowerValue be ? Get(O, lowerP).
-                lower_value = o.get(lower, context)?;
-            }
+                o.get(lower, context)?
+            } else {
+                JsValue::undefined()
+            };
             // f. Let upperExists be ? HasProperty(O, upperP).
             let upper_exists = o.has_property(upper, context)?;
             // g. If upperExists is true, then
-            let mut upper_value = JsValue::undefined();
-            if upper_exists {
+            let upper_value = if upper_exists {
                 // i. Let upperValue be ? Get(O, upperP).
-                upper_value = o.get(upper, context)?;
-            }
+                o.get(upper, context)?
+            } else {
+                JsValue::undefined()
+            };
             match (lower_exists, upper_exists) {
                 // h. If lowerExists is true and upperExists is true, then
                 (true, true) => {

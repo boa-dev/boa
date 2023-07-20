@@ -28,12 +28,14 @@ impl<K: Trace, V: Trace + Clone> WeakMap<K, V> {
     }
 
     /// Returns `true` if the map contains a value for the specified key.
+    #[must_use]
     #[inline]
     pub fn contains_key(&self, key: &Gc<K>) -> bool {
         self.inner.borrow().contains_key(&WeakGc::new(key))
     }
 
     /// Returns a reference to the value corresponding to the key.
+    #[must_use]
     #[inline]
     pub fn get(&self, key: &Gc<K>) -> Option<V> {
         self.inner.borrow().get(&WeakGc::new(key)).cloned()
