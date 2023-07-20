@@ -398,7 +398,7 @@ impl Collector {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let eph_ref = unsafe { eph.as_ref() };
             let header = eph_ref.header();
-            if eph_ref.get_non_root_count() < eph_ref.get_ref_count() {
+            if header.get_non_root_count() < header.get_ref_count() {
                 header.mark();
             }
             // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
@@ -506,7 +506,7 @@ impl Collector {
             let header = eph_ref.header();
             if header.is_marked() {
                 header.unmark();
-                eph_ref.reset_non_root_count();
+                header.reset_non_root_count();
                 weak = &header.next;
             } else {
                 // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.

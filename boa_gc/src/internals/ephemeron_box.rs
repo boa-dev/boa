@@ -45,6 +45,21 @@ impl EphemeronBoxHeader {
     pub(crate) fn unmark(&self) {
         self.marked.set(false);
     }
+
+    /// Returns a reference count.
+    pub(crate) fn get_ref_count(&self) -> u32 {
+        self.ref_count.get()
+    }
+
+    /// Returns a count for non-roots.
+    pub(crate) fn get_non_root_count(&self) -> u32 {
+        self.non_root_count.get()
+    }
+
+    /// Reset `non_root_count` to zero.
+    pub(crate) fn reset_non_root_count(&self) {
+        self.non_root_count.set(0);
+    }
 }
 
 impl core::fmt::Debug for EphemeronBoxHeader {
@@ -143,12 +158,6 @@ pub(crate) trait ErasedEphemeronBox {
 
     fn trace_non_roots(&self);
 
-    fn get_ref_count(&self) -> u32;
-
-    fn get_non_root_count(&self) -> u32;
-
-    fn reset_non_root_count(&self);
-
     /// Runs the finalization logic of the `EphemeronBox`'s held value, if the key is still live,
     /// and clears its contents.
     fn finalize_and_clear(&self);
@@ -193,21 +202,6 @@ impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
         unsafe {
             data.as_ref().value.trace_non_roots();
         };
-    }
-
-    #[inline]
-    fn get_ref_count(&self) -> u32 {
-        self.header.ref_count.get()
-    }
-
-    #[inline]
-    fn get_non_root_count(&self) -> u32 {
-        self.header.non_root_count.get()
-    }
-
-    #[inline]
-    fn reset_non_root_count(&self) {
-        self.header.non_root_count.set(0);
     }
 
     fn finalize_and_clear(&self) {
