@@ -31,6 +31,7 @@ impl EphemeronBoxHeader {
             next: Cell::new(None),
         }
     }
+
     /// Returns the `EphemeronBoxHeader`'s current ref count
     pub(crate) fn get_ref_count(&self) -> u32 {
         self.ref_count.get()
