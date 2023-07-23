@@ -17,12 +17,13 @@ Outputs:
 
 ```text
 ----------------------Compiled Output: '<main>'-----------------------
-Location  Count   Opcode                     Operands
+Location  Count    Handler    Opcode                     Operands
 
-000001    0000    PushOne
-000006    0001    DefInitLet                 0000: 'a'
-000008    0002    PushInt8                   2
-000013    0003    DefInitLet                 0001: 'b'
+000000    0000      none      PushOne
+000001    0001      none      PutLexicalValue            0000: 'a'
+000006    0002      none      PushInt8                   2
+000008    0003      none      PutLexicalValue            0001: 'b'
+000013    0004      none      Return
 
 Literals:
     <empty>
@@ -34,14 +35,18 @@ Bindings:
 Functions:
     <empty>
 
+Handlers:
+    <empty>
 
------------------------------------------- VM Start ------------------------------------------
+
+----------------------------------------- Call Frame -----------------------------------------
 Time          Opcode                     Operands                   Top Of Stack
 
-386μs         PushOne                                               1
-6μs           DefInitLet                 0000: 'a'                  <empty>
-1μs           PushInt8                   2                          2
-2μs           DefInitLet                 0001: 'b'                  <empty>
+6μs           PushOne                                               1
+7μs           PutLexicalValue            0000: 'a'                  <empty>
+0μs           PushInt8                   2                          2
+1μs           PutLexicalValue            0001: 'b'                  <empty>
+0μs           Return                                                <empty>
 
 Stack:
     <empty>
@@ -56,11 +61,13 @@ The above output contains the following information:
   - `Compiled Output`: The bytecode.
     - `Location`: Location of the instruction (instructions are not the same size).
     - `Count`: Instruction count.
+    - `Handler`: Exception handler, if the instruction throws an exception, which handler is responsible for that instruction and where it would jump. Additionally `>` denotes the beggining of a handler and `<` the end.
     - `Opcode`: Opcode name.
     - `Operands`: The operands of the opcode.
   - `Literals`: The literals used by the bytecode (like strings).
   - `Bindings`: Binding names used by the bytecode.
   - `Functions`: Function names use by the bytecode.
+  - `Handlers`: Exception handlers use by the bytecode, it contains how many values should be on the stack and evironments (relative to `CallFrame`'s frame pointers).
 - The code being executed (marked by `Vm Start` or `Call Frame`).
   - `Time`: The amount of time that instruction took to execute.
   - `Opcode`: Opcode name.

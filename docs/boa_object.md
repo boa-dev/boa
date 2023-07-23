@@ -30,26 +30,29 @@ This function returns the compiled bytecode of a function as a string,
 >> $boa.function.bytecode(add)
 "
 ------------------------Compiled Output: 'add'------------------------
-Location  Count   Opcode                     Operands
+Location  Count    Handler    Opcode                     Operands
 
-000000    0000    DefInitArg                 0000: 'a'
-000005    0001    DefInitArg                 0001: 'b'
-000010    0002    RestParameterPop
-000011    0003    GetName                    0000: 'a'
-000016    0004    GetName                    0001: 'b'
-000021    0005    Add
-000022    0006    Return
-000023    0007    PushUndefined
-000024    0008    Return
+000000    0000      none      PutLexicalValue            0000: 'x'
+000005    0001      none      PutLexicalValue            0001: 'y'
+000010    0002      none      RestParameterPop
+000011    0003      none      GetName                    0000: 'x'
+000016    0004      none      GetName                    0001: 'y'
+000021    0005      none      Add
+000022    0006      none      SetReturnValue
+000023    0007      none      Return
+000024    0008      none      Return
 
 Literals:
     <empty>
 
 Bindings:
-    0000: a
-    0001: b
+    0000: x
+    0001: y
 
 Functions:
+    <empty>
+
+Handlers:
     <empty>
 "
 >>
