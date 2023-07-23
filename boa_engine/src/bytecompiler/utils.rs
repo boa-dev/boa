@@ -93,8 +93,7 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::AsyncGeneratorYield);
 
         // Stack: resume_kind, received
-        let non_return_resume = self.emit_opcode_with_operand(Opcode::JumpIfNotResumeKind);
-        self.emit_u8(GeneratorResumeKind::Return as u8);
+        let non_return_resume = self.jump_if_not_resume_kind(GeneratorResumeKind::Return);
 
         // Stack: resume_kind(Return), received
         self.emit_opcode(Opcode::Pop);
@@ -103,8 +102,7 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::Await);
 
         // Stack: resume_kind, received
-        let non_normal_resume = self.emit_opcode_with_operand(Opcode::JumpIfNotResumeKind);
-        self.emit_u8(GeneratorResumeKind::Normal as u8);
+        let non_normal_resume = self.jump_if_not_resume_kind(GeneratorResumeKind::Normal);
 
         // Stack: resume_kind(Normal), received
         self.emit_opcode(Opcode::Pop);
@@ -114,6 +112,8 @@ impl ByteCompiler<'_, '_> {
 
         // Stack: resume_kind(Return) received
         self.patch_jump(non_normal_resume);
+
+        // Stack: resume_kind, received
         self.patch_jump(non_return_resume);
 
         // Stack: resume_kind, received

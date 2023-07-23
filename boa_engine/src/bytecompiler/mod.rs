@@ -17,7 +17,7 @@ use crate::{
     builtins::function::ThisMode,
     environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
-    vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Handler, Opcode},
+    vm::{BindingOpcode, CodeBlock, CodeBlockFlags, GeneratorResumeKind, Handler, Opcode},
     Context, JsBigInt, JsString, JsValue,
 };
 use boa_ast::{
@@ -510,6 +510,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
     fn jump_if_null_or_undefined(&mut self) -> Label {
         self.emit_opcode_with_operand(Opcode::JumpIfNullOrUndefined)
+    }
+
+    fn jump_if_not_resume_kind(&mut self, resume_kind: GeneratorResumeKind) -> Label {
+        let label = self.emit_opcode_with_operand(Opcode::JumpIfNotResumeKind);
+        self.emit_u8(resume_kind as u8);
+        label
     }
 
     /// Push a jump table with `count` of entries.
