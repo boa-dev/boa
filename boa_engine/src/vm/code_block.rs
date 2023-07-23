@@ -250,11 +250,13 @@ impl CodeBlock {
     }
 
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
-    pub(crate) fn find_handler(&self, pc: u32) -> Option<&Handler> {
+    #[inline]
+    pub(crate) fn find_handler(&self, pc: u32) -> Option<(usize, &Handler)> {
         self.handlers
             .iter()
+            .enumerate()
             .rev()
-            .find(|handler| handler.contains(pc))
+            .find(|(_, handler)| handler.contains(pc))
     }
 }
 
@@ -690,31 +692,36 @@ impl ToInternedString for CodeBlock {
         };
 
         f.push_str(&format!(
-            "{:-^70}\nLocation  Count   Opcode                     Operands\n\n",
+            "{:-^70}\nLocation  Count    Handler    Opcode                     Operands\n\n",
             format!("Compiled Output: '{}'", name.to_std_string_escaped()),
         ));
 
         let mut pc = 0;
         let mut count = 0;
         while pc < self.bytecode.len() {
-            for (i, handler) in self.handlers.iter().enumerate().rev() {
-                if pc == handler.end as usize {
-                    f.push_str(&format!("#{i} Handler End\n\n",));
-                }
-            }
+            let instruction_start_pc = pc;
 
-            for (i, handler) in self.handlers.iter().enumerate().rev() {
-                if pc == handler.start as usize {
-                    f.push_str(&format!("\n#{i} Handler Start\n"));
-                }
-            }
-
-            let opcode: Opcode = self.bytecode[pc].into();
+            let opcode: Opcode = self.bytecode[instruction_start_pc].into();
             let opcode = opcode.as_str();
             let previous_pc = pc;
             let operands = self.instruction_operands(&mut pc, interner);
+
+            let handler = if let Some((i, handler)) = self.find_handler(instruction_start_pc as u32)
+            {
+                let border_char = if instruction_start_pc as u32 == handler.start {
+                    '>'
+                } else if pc as u32 == handler.end {
+                    '<'
+                } else {
+                    ' '
+                };
+                format!("{border_char}{i:2}: {:04}", handler.handler())
+            } else {
+                "   none  ".to_string()
+            };
+
             f.push_str(&format!(
-                "{previous_pc:06}    {count:04}    {opcode:<27}{operands}\n",
+                "{previous_pc:06}    {count:04}   {handler}    {opcode:<27}{operands}\n",
             ));
             count += 1;
         }

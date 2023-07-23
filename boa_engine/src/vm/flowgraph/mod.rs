@@ -367,23 +367,23 @@ impl CodeBlock {
                     pc += size_of::<u32>();
 
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    if let Some(handler) = self.find_handler(previous_pc as u32) {
+                    if let Some((i, handler)) = self.find_handler(previous_pc as u32) {
                         graph.add_edge(
                             previous_pc,
                             handler.handler() as usize,
-                            Some("CAUGHT".into()),
+                            Some(format!("Handler {i:2}: CAUGHT").into()),
                             Color::None,
                             EdgeStyle::Line,
                         );
                     }
                 }
                 Opcode::Throw | Opcode::ReThrow => {
-                    if let Some(handler) = self.find_handler(previous_pc as u32) {
+                    if let Some((i, handler)) = self.find_handler(previous_pc as u32) {
                         graph.add_node(previous_pc, NodeShape::Record, label.into(), Color::None);
                         graph.add_edge(
                             previous_pc,
                             handler.handler() as usize,
-                            Some("CAUGHT".into()),
+                            Some(format!("Handler {i:2}: CAUGHT").into()),
                             Color::None,
                             EdgeStyle::Line,
                         );

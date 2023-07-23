@@ -20,7 +20,7 @@ impl Operation for Throw {
 
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc - 1;
-        if let Some(handler) = context.vm.frame().code_block().find_handler(pc).copied() {
+        if let Some((_, handler)) = context.vm.frame().code_block().find_handler(pc) {
             let env_fp = context.vm.frame().env_fp;
 
             let catch_address = handler.handler();
@@ -52,7 +52,7 @@ impl Operation for ReThrow {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc.saturating_sub(1);
-        if let Some(handler) = context.vm.frame().code_block().find_handler(pc).copied() {
+        if let Some((_, handler)) = context.vm.frame().code_block().find_handler(pc) {
             let env_fp = context.vm.frame().env_fp;
 
             let catch_address = handler.handler();
