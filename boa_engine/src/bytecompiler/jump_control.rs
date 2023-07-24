@@ -54,9 +54,9 @@ pub(crate) enum JumpRecordAction {
     ///
     /// Both `continue` and `break` must go through the finally, but the `continue` goes to the beginning of the loop,
     /// but the `break` goes to the end of the loop, this is solved by having a jump table (See [`Opcode::JumpTable`])
-    /// at the end of finally (It is constructed in [`ByteCompiler::pop_try_control_info()`]).
+    /// at the end of finally (It is constructed in [`ByteCompiler::pop_try_with_finally_control_info()`]).
     HandleFinally {
-        /// Jump table index
+        /// Jump table index.
         index: u32,
     },
 }
