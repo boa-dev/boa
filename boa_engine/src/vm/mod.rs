@@ -260,11 +260,6 @@ impl Context<'_> {
         let promise_capability = self.vm.frame().promise_capability.clone();
 
         let execution_completion = loop {
-            // 1. Exit the execution loop if program counter ever is equal to or exceeds the amount of instructions
-            if self.vm.frame().code_block.bytecode.len() <= self.vm.frame().pc as usize {
-                break CompletionType::Normal;
-            }
-
             #[cfg(feature = "fuzz")]
             {
                 if self.instructions_remaining == 0 {
