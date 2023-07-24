@@ -65,7 +65,7 @@ impl ByteCompiler<'_, '_> {
             Statement::Return(ret) => {
                 if let Some(expr) = ret.target() {
                     self.compile_expr(expr, true);
-                    if self.in_async_generator {
+                    if self.in_async_generator() {
                         self.emit_opcode(Opcode::Await);
                         self.emit_opcode(Opcode::GeneratorNext);
                     }

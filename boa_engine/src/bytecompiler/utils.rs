@@ -50,7 +50,7 @@ impl ByteCompiler<'_, '_> {
         let start = self.next_opcode_location();
         self.emit_opcode(Opcode::IteratorStackEmpty);
         let empty = self.jump_if_true();
-        self.iterator_close(self.in_async_generator);
+        self.iterator_close(self.in_async_generator());
         self.emit(Opcode::Jump, &[start]);
         self.patch_jump(empty);
     }
@@ -65,7 +65,7 @@ impl ByteCompiler<'_, '_> {
     /// [yield]: https://tc39.es/ecma262/#sec-yield
     pub(super) fn r#yield(&mut self) {
         // 1. Let generatorKind be GetGeneratorKind().
-        if self.in_async_generator {
+        if self.in_async() {
             // 2. If generatorKind is async, return ? AsyncGeneratorYield(? Await(value)).
             self.emit_opcode(Opcode::Await);
             self.emit_opcode(Opcode::GeneratorNext);

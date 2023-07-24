@@ -99,7 +99,7 @@ impl FunctionCompiler {
 
         let mut compiler = ByteCompiler::new(self.name, self.strict, false, outer_env, context);
         compiler.length = length;
-        compiler.in_async_generator = self.generator && self.r#async;
+        compiler.in_async = self.r#async;
         compiler.in_generator = self.generator;
 
         if self.arrow {

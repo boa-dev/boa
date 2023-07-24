@@ -247,17 +247,14 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// The environment that is currently active.
     pub(crate) current_environment: Rc<CompileTimeEnvironment>,
 
-    pub(crate) current_open_environments_count: u32,
-
-    pub(crate) code_block_flags: CodeBlockFlags,
-
-    pub(crate) handlers: ThinVec<Handler>,
-
+    current_open_environments_count: u32,
+    code_block_flags: CodeBlockFlags,
+    handlers: ThinVec<Handler>,
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
-    in_async_generator: bool,
+    in_async: bool,
     in_generator: bool,
     json_parse: bool,
 
@@ -304,7 +301,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
-            in_async_generator: false,
+            in_async: false,
             in_generator: false,
             json_parse,
             current_environment,
@@ -317,6 +314,18 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
     pub(crate) const fn strict(&self) -> bool {
         self.code_block_flags.contains(CodeBlockFlags::STRICT)
+    }
+
+    pub(crate) const fn in_async(&self) -> bool {
+        self.in_async
+    }
+
+    pub(crate) const fn in_generator(&self) -> bool {
+        self.in_generator
+    }
+
+    pub(crate) const fn in_async_generator(&self) -> bool {
+        self.in_async() && self.in_generator()
     }
 
     pub(crate) fn interner(&self) -> &Interner {

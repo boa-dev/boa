@@ -163,7 +163,7 @@ impl ByteCompiler<'_, '_> {
                 // stack: value
 
                 if r#yield.delegate() {
-                    if self.in_async_generator {
+                    if self.in_async() {
                         self.emit_opcode(Opcode::GetAsyncIterator);
                     } else {
                         self.emit_opcode(Opcode::GetIterator);
@@ -180,14 +180,14 @@ impl ByteCompiler<'_, '_> {
                     let (throw_method_undefined, return_method_undefined) =
                         self.emit_opcode_with_two_operands(Opcode::GeneratorDelegateNext);
 
-                    if self.in_async_generator {
+                    if self.in_async() {
                         self.emit_opcode(Opcode::Pop);
                         self.emit_opcode(Opcode::Await);
                     }
 
                     let (return_gen, exit) =
                         self.emit_opcode_with_two_operands(Opcode::GeneratorDelegateResume);
-                    if self.in_async_generator {
+                    if self.in_async() {
                         self.emit_opcode(Opcode::IteratorValue);
                         self.async_generator_yield();
                     } else {
@@ -198,7 +198,7 @@ impl ByteCompiler<'_, '_> {
 
                     self.patch_jump(return_gen);
                     self.patch_jump(return_method_undefined);
-                    if self.in_async_generator {
+                    if self.in_async() {
                         self.emit_opcode(Opcode::Await);
                         self.emit_opcode(Opcode::Pop);
                     }
@@ -208,7 +208,7 @@ impl ByteCompiler<'_, '_> {
                     self.r#return();
 
                     self.patch_jump(throw_method_undefined);
-                    self.iterator_close(self.in_async_generator);
+                    self.iterator_close(self.in_async());
                     self.emit_opcode(Opcode::Throw);
 
                     self.patch_jump(exit);
