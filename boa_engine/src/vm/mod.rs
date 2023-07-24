@@ -157,6 +157,30 @@ impl Vm {
     pub(crate) fn pop_frame(&mut self) -> Option<CallFrame> {
         self.frames.pop()
     }
+
+    /// Handles an exception thrown at position `pc`.
+    ///
+    /// Returns `true` if the exception was handled, `false` otherwise.
+    #[inline]
+    pub(crate) fn handle_exception_at(&mut self, pc: u32) -> bool {
+        let frame = self.frame_mut();
+        let Some((_, handler)) = frame.code_block().find_handler(pc) else {
+            return false;
+        };
+
+        let catch_address = handler.handler();
+        let environment_sp = frame.env_fp + handler.environment_count;
+        // TODO: fp
+        // let fp = frame.fp + handler.stack_count;
+
+        // Go to handler location.
+        frame.pc = catch_address;
+
+        self.environments.truncate(environment_sp as usize);
+        // self.stack.truncate(fp as usize);
+
+        true
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -245,7 +269,7 @@ impl Context<'_> {
             {
                 if self.instructions_remaining == 0 {
                     let err = JsError::from_native(JsNativeError::no_instructions_remain());
-                    self.vm.err = Some(err);
+                    self.vm.pending_exception = Some(err);
                     break CompletionType::Throw;
                 }
                 self.instructions_remaining -= 1;
@@ -313,7 +337,7 @@ impl Context<'_> {
                             // If we hit the execution step limit, bubble up the error to the
                             // (Rust) caller instead of trying to handle as an exception.
                             if native_error.is_no_instructions_remain() {
-                                self.vm.err = Some(err);
+                                self.vm.pending_exception = Some(err);
                                 break CompletionType::Throw;
                             }
                         }

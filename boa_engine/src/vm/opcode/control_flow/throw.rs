@@ -20,17 +20,7 @@ impl Operation for Throw {
 
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc - 1;
-        if let Some((_, handler)) = context.vm.frame().code_block().find_handler(pc) {
-            let env_fp = context.vm.frame().env_fp;
-
-            let catch_address = handler.handler();
-            let env_fp = (env_fp + handler.env_fp) as usize;
-            // TODO: fp
-            // let fp = try_entry.fp() as usize;
-
-            context.vm.frame_mut().pc = catch_address;
-            context.vm.environments.truncate(env_fp);
-            // context.vm.stack.truncate(fp);
+        if context.vm.handle_exception_at(pc) {
             return Ok(CompletionType::Normal);
         }
 
@@ -52,17 +42,7 @@ impl Operation for ReThrow {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc.saturating_sub(1);
-        if let Some((_, handler)) = context.vm.frame().code_block().find_handler(pc) {
-            let env_fp = context.vm.frame().env_fp;
-
-            let catch_address = handler.handler();
-            let env_fp = (env_fp + handler.env_fp) as usize;
-            // TODO: fp
-            // let fp = try_entry.fp() as usize;
-
-            context.vm.frame_mut().pc = catch_address;
-            context.vm.environments.truncate(env_fp);
-            // context.vm.stack.truncate(fp);
+        if context.vm.handle_exception_at(pc) {
             return Ok(CompletionType::Normal);
         }
 

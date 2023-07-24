@@ -91,14 +91,17 @@ unsafe impl Trace for CodeBlockFlags {
 ///
 /// When a throw happens, we search for handler in the [`CodeBlock`] using
 /// the [`CodeBlock::find_handler()`] method.
+///
+/// If any exception happens and gets cought by this handler, the `pc` will be set to `end` of the
+/// [`Handler`] and remove any environments or stack values that where pushed after the handler.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Handler {
     pub(crate) start: u32,
     pub(crate) end: u32,
 
     #[allow(unused)]
-    pub(crate) fp: u32,
-    pub(crate) env_fp: u32,
+    pub(crate) stack_count: u32,
+    pub(crate) environment_count: u32,
 }
 
 impl Handler {
@@ -771,12 +774,12 @@ impl ToInternedString for CodeBlock {
         } else {
             for (i, handler) in self.handlers.iter().enumerate() {
                 f.push_str(&format!(
-                    "    {i:04}: Range: [{}, {}): Handler: {}, Stack FP {}, Env FP: {}\n",
+                    "    {i:04}: Range: [{:04}, {:04}): Handler: {:04}, Stack: {:02}, Environment: {:02}\n",
                     handler.start,
                     handler.end,
                     handler.handler(),
-                    handler.fp,
-                    handler.env_fp,
+                    handler.stack_count,
+                    handler.environment_count,
                 ));
             }
         }

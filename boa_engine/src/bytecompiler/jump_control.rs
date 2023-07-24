@@ -316,17 +316,21 @@ impl ByteCompiler<'_, '_> {
         self.jump_info.push(info);
     }
 
+    /// Pushes an exception [`Handler`].
+    ///
+    /// Must be patched with [`Self::patch_handler()`].
+    #[must_use]
     pub(crate) fn push_handler(&mut self) -> u32 {
         let handler_index = self.handlers.len() as u32;
         let start_address = self.next_opcode_location();
 
         // FIXME(HalidOdat): figure out value stack fp value.
-        let env_fp = self.current_open_environments_count;
+        let environment_count = self.current_open_environments_count;
         self.handlers.push(Handler {
             start: start_address,
             end: Self::DUMMY_ADDRESS,
-            fp: 0,
-            env_fp,
+            stack_count: 0,
+            environment_count,
         });
 
         handler_index
