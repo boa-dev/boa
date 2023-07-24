@@ -100,7 +100,7 @@ impl ByteCompiler<'_, '_> {
             let count = self.jump_info_open_environment_count(i);
             actions.push(JumpRecordAction::PopEnvironments { count });
 
-            if info.is_try_block() && info.has_finally() && !info.in_finally() {
+            if info.is_try_with_finally_block() && !info.in_finally() {
                 actions.push(JumpRecordAction::HandleFinally {
                     index: info.jumps.len() as u32,
                 });

@@ -13,13 +13,14 @@ impl ByteCompiler<'_, '_> {
     ///
     ///
     pub(crate) fn compile_try(&mut self, t: &Try, use_expr: bool) {
-        // stack:
-
-        let try_start = self.next_opcode_location();
-
         let has_catch = t.catch().is_some();
         let has_finally = t.finally().is_some();
-        self.push_try_control_info(has_finally, try_start, use_expr);
+
+        // stack:
+        if has_finally {
+            self.push_try_with_finally_control_info(use_expr);
+        }
+
         let try_handler = self.push_handler();
 
         // Compile try block
@@ -99,7 +100,9 @@ impl ByteCompiler<'_, '_> {
             self.compile_finally_stmt(finally, has_catch);
         }
 
-        self.pop_try_control_info(finally_start);
+        if has_finally {
+            self.pop_try_with_finally_control_info(finally_start);
+        }
     }
 
     pub(crate) fn compile_catch_stmt(&mut self, catch: &Catch, _has_finally: bool, use_expr: bool) {

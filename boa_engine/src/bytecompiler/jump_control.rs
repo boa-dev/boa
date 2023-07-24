@@ -140,20 +140,26 @@ pub(crate) struct JumpControlInfo {
 bitflags! {
     /// A bitflag that contains the type flags and relevant booleans for `JumpControlInfo`.
     #[derive(Debug, Clone, Copy)]
-    pub(crate) struct JumpControlInfoFlags: u16 {
+    pub(crate) struct JumpControlInfoFlags: u8 {
         const LOOP = 0b0000_0001;
         const SWITCH = 0b0000_0010;
-        const TRY_BLOCK = 0b0000_0100;
-        const HAS_FINALLY = 0b0000_1000;
-        const IN_FINALLY = 0b0001_0000;
-        const LABELLED = 0b0010_0000;
-        const ITERATOR_LOOP = 0b0100_0000;
-        const FOR_AWAIT_OF_LOOP = 0b1000_0000;
+
+        /// A try statement with a finally block.
+        ///
+        /// We emit special instructions to handle [`JumpRecord`]s in [`ByteCompiler::pop_try_with_finally_control_info()`].
+        const TRY_WITH_FINALLY = 0b0000_0100;
+
+        /// Are we in the finally block of the try statement?
+        const IN_FINALLY = 0b0000_1000;
+
+        const LABELLED = 0b0001_0000;
+        const ITERATOR_LOOP = 0b0010_0000;
+        const FOR_AWAIT_OF_LOOP = 0b0100_0000;
 
         /// Is the statement compiled with use_expr set to true.
         ///
         /// This bitflag is inherited if the previous [`JumpControlInfo`].
-        const USE_EXPR = 0b0001_0000_0000;
+        const USE_EXPR = 0b1000_0000;
     }
 }
 
@@ -168,7 +174,7 @@ impl JumpControlInfo {
     fn new(current_open_environments_count: u32) -> Self {
         Self {
             label: None,
-            start_address: u32::MAX,
+            start_address: ByteCompiler::DUMMY_ADDRESS,
             flags: JumpControlInfoFlags::default(),
             jumps: Vec::new(),
             current_open_environments_count,
@@ -195,18 +201,14 @@ impl JumpControlInfo {
         self
     }
 
-    pub(crate) fn with_try_block_flag(mut self, value: bool) -> Self {
-        self.flags.set(JumpControlInfoFlags::TRY_BLOCK, value);
+    pub(crate) fn with_try_with_finally_flag(mut self, value: bool) -> Self {
+        self.flags
+            .set(JumpControlInfoFlags::TRY_WITH_FINALLY, value);
         self
     }
 
     pub(crate) fn with_labelled_block_flag(mut self, value: bool) -> Self {
         self.flags.set(JumpControlInfoFlags::LABELLED, value);
-        self
-    }
-
-    pub(crate) fn with_has_finally(mut self, value: bool) -> Self {
-        self.flags.set(JumpControlInfoFlags::HAS_FINALLY, value);
         self
     }
 
@@ -240,16 +242,12 @@ impl JumpControlInfo {
         self.flags.contains(JumpControlInfoFlags::SWITCH)
     }
 
-    pub(crate) const fn is_try_block(&self) -> bool {
-        self.flags.contains(JumpControlInfoFlags::TRY_BLOCK)
+    pub(crate) const fn is_try_with_finally_block(&self) -> bool {
+        self.flags.contains(JumpControlInfoFlags::TRY_WITH_FINALLY)
     }
 
     pub(crate) const fn is_labelled(&self) -> bool {
         self.flags.contains(JumpControlInfoFlags::LABELLED)
-    }
-
-    pub(crate) const fn has_finally(&self) -> bool {
-        self.flags.contains(JumpControlInfoFlags::HAS_FINALLY)
     }
 
     pub(crate) const fn in_finally(&self) -> bool {
@@ -494,58 +492,42 @@ impl ByteCompiler<'_, '_> {
     // ---- `TryStatement`'s `JumpControlInfo` methods ---- //
 
     /// Pushes a `TryStatement`'s `JumpControlInfo` onto the `jump_info` stack.
-    pub(crate) fn push_try_control_info(
-        &mut self,
-        has_finally: bool,
-        start_address: u32,
-        use_expr: bool,
-    ) {
+    pub(crate) fn push_try_with_finally_control_info(&mut self, use_expr: bool) {
         let new_info = JumpControlInfo::new(self.current_open_environments_count)
-            .with_try_block_flag(true)
-            .with_start_address(start_address)
-            .with_has_finally(has_finally);
+            .with_try_with_finally_flag(true);
 
         self.push_contol_info(new_info, use_expr);
     }
 
-    /// Pops and handles the info for a try block's `JumpControlInfo`
+    /// Pops and handles the info for a try statement with a finally block.
     ///
     /// # Panic
-    ///  - Will panic if `jump_info` is empty.
     ///  - Will panic if popped `JumpControlInfo` is not for a try block.
-    pub(crate) fn pop_try_control_info(&mut self, try_end: u32) {
+    pub(crate) fn pop_try_with_finally_control_info(&mut self, finally_start: u32) {
         assert!(!self.jump_info.is_empty());
         let info = self.jump_info.pop().expect("no jump information found");
 
-        assert!(info.is_try_block());
+        assert!(info.is_try_with_finally_block());
 
-        // Handle breaks. If there is a finally, breaks should go to the finally
-        if info.has_finally() {
-            if info.jumps.is_empty() {
-                return;
-            }
-
-            for JumpRecord { label, .. } in &info.jumps {
-                self.patch_jump_with_target(*label, try_end);
-            }
-
-            let (jumps, default) = self.jump_table(info.jumps.len() as u32);
-
-            // Handle breaks/continue/returns in a finally block
-            for (i, label) in jumps.iter().enumerate() {
-                self.patch_jump(*label);
-
-                let jump_record = info.jumps[i].clone();
-                jump_record.perform_actions(label.index, self);
-            }
-
-            self.patch_jump(default);
-        } else {
-            for jump in info.jumps {
-                // NOTE: There shouldn't be any breaks or continues attched on a try block without finally
-                assert_eq!(jump.kind, JumpRecordKind::Return);
-            }
+        if info.jumps.is_empty() {
+            return;
         }
+
+        for JumpRecord { label, .. } in &info.jumps {
+            self.patch_jump_with_target(*label, finally_start);
+        }
+
+        let (jumps, default) = self.jump_table(info.jumps.len() as u32);
+
+        // Handle breaks/continue/returns in a finally block
+        for (i, label) in jumps.iter().enumerate() {
+            self.patch_jump(*label);
+
+            let jump_record = info.jumps[i].clone();
+            jump_record.perform_actions(label.index, self);
+        }
+
+        self.patch_jump(default);
     }
 
     pub(crate) fn jump_info_open_environment_count(&self, index: usize) -> u32 {
