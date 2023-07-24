@@ -135,8 +135,6 @@ pub(crate) struct JumpControlInfo {
     pub(crate) flags: JumpControlInfoFlags,
     pub(crate) jumps: Vec<JumpRecord>,
     current_open_environments_count: u32,
-
-    handler_index: Option<u32>,
 }
 
 bitflags! {
@@ -174,7 +172,6 @@ impl JumpControlInfo {
             flags: JumpControlInfoFlags::default(),
             jumps: Vec::new(),
             current_open_environments_count,
-            handler_index: None,
         }
     }
 
@@ -309,10 +306,6 @@ impl ByteCompiler<'_, '_> {
             info.flags |= last.flags & JumpControlInfoFlags::USE_EXPR;
         }
 
-        if info.is_try_block() {
-            info.handler_index = Some(self.push_handler());
-        }
-
         self.jump_info.push(info);
     }
 
@@ -351,20 +344,6 @@ impl ByteCompiler<'_, '_> {
         );
 
         self.handlers[handler_index].end = handler_address;
-    }
-
-    pub(crate) fn patch_try_jump_control_info_handler(&mut self) {
-        let info = self
-            .jump_info
-            .last_mut()
-            .expect("There should be a try jump info");
-        assert!(info.is_try_block());
-
-        let handler_index = info
-            .handler_index
-            .expect("try jump info must have handler index");
-
-        self.patch_handler(handler_index);
     }
 
     /// Does the jump control info have the `use_expr` flag set to true.

@@ -20,6 +20,7 @@ impl ByteCompiler<'_, '_> {
         let has_catch = t.catch().is_some();
         let has_finally = t.finally().is_some();
         self.push_try_control_info(has_finally, try_start, use_expr);
+        let try_handler = self.push_handler();
 
         // Compile try block
         self.compile_block(t.block(), use_expr);
@@ -33,7 +34,7 @@ impl ByteCompiler<'_, '_> {
 
         let finally = self.jump();
 
-        self.patch_try_jump_control_info_handler();
+        self.patch_handler(try_handler);
 
         // If it has a finally but no catch and we are in a generator, then we still need it
         // to handle `return()` call on generators.
@@ -87,11 +88,8 @@ impl ByteCompiler<'_, '_> {
 
         self.patch_jump(finally);
 
+        let finally_start = self.next_opcode_location();
         if let Some(finally) = t.finally() {
-            // Pop and push control loops post FinallyStart, as FinallyStart resets flow control variables.
-            // Handle finally header operations
-            let finally_start = self.next_opcode_location();
-
             self.jump_info
                 .last_mut()
                 .expect("there should be a try block")
@@ -99,12 +97,9 @@ impl ByteCompiler<'_, '_> {
 
             // Compile finally statement body
             self.compile_finally_stmt(finally, has_catch);
-
-            self.pop_try_control_info(finally_start);
-        } else {
-            let try_end = self.next_opcode_location();
-            self.pop_try_control_info(try_end);
         }
+
+        self.pop_try_control_info(finally_start);
     }
 
     pub(crate) fn compile_catch_stmt(&mut self, catch: &Catch, _has_finally: bool, use_expr: bool) {
