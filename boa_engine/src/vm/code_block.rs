@@ -3,12 +3,7 @@
 //! This module is for the `CodeBlock` which implements a function representation in the VM
 
 use crate::{
-    builtins::{
-        async_generator::{AsyncGenerator, AsyncGeneratorState},
-        function::{arguments::Arguments, ConstructorKind, Function, FunctionKind, ThisMode},
-        generator::{Generator, GeneratorContext, GeneratorState},
-        promise::PromiseCapability,
-    },
+    builtins::function::{arguments::Arguments, ConstructorKind, Function, FunctionKind, ThisMode},
     context::intrinsics::StandardConstructors,
     environments::{BindingLocator, CompileTimeEnvironment, FunctionSlots, ThisBindingStatus},
     error::JsNativeError,
@@ -22,7 +17,7 @@ use bitflags::bitflags;
 use boa_ast::function::FormalParameterList;
 use boa_gc::{empty_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use std::{cell::Cell, collections::VecDeque, mem::size_of, rc::Rc};
+use std::{cell::Cell, mem::size_of, rc::Rc};
 use thin_vec::ThinVec;
 
 #[cfg(any(feature = "trace", feature = "flowgraph"))]
@@ -325,6 +320,11 @@ impl CodeBlock {
                 *pc += size_of::<u8>();
                 result
             }
+            Opcode::Generator => {
+                let result = self.read::<u8>(*pc);
+                *pc += size_of::<u8>();
+                format!("async: {}", result != 0)
+            }
             Opcode::PushInt8 => {
                 let result = self.read::<i8>(*pc).to_string();
                 *pc += size_of::<i8>();
@@ -570,6 +570,9 @@ impl CodeBlock {
             | Opcode::This
             | Opcode::Super
             | Opcode::Return
+            | Opcode::AsyncGeneratorClose
+            | Opcode::CreatePromiseCapability
+            | Opcode::CompletePromiseCapability
             | Opcode::PopEnvironment
             | Opcode::IncrementLoopIteration
             | Opcode::CreateForInIterator
@@ -674,11 +677,7 @@ impl CodeBlock {
             | Opcode::Reserved56
             | Opcode::Reserved57
             | Opcode::Reserved58
-            | Opcode::Reserved59
-            | Opcode::Reserved60
-            | Opcode::Reserved61
-            | Opcode::Reserved62
-            | Opcode::Reserved63 => unreachable!("Reserved opcodes are unrechable"),
+            | Opcode::Reserved59 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
@@ -1072,7 +1071,7 @@ impl JsObject {
         context.enter_realm(realm);
         context.vm.active_function = Some(active_function);
 
-        let (code, mut environments, class_object, mut script_or_module, async_, gen) =
+        let (code, mut environments, class_object, mut script_or_module) =
             match function_object.kind() {
                 FunctionKind::Native {
                     function,
@@ -1108,26 +1107,23 @@ impl JsObject {
                         environments.clone(),
                         class_object.clone(),
                         script_or_module.clone(),
-                        false,
-                        false,
                     )
                 }
                 FunctionKind::Async {
                     code,
                     environments,
                     class_object,
-
                     script_or_module,
                     ..
-                } => (
-                    code.clone(),
-                    environments.clone(),
-                    class_object.clone(),
-                    script_or_module.clone(),
-                    true,
-                    false,
-                ),
-                FunctionKind::Generator {
+                }
+                | FunctionKind::Generator {
+                    code,
+                    environments,
+                    class_object,
+                    script_or_module,
+                    ..
+                }
+                | FunctionKind::AsyncGenerator {
                     code,
                     environments,
                     class_object,
@@ -1138,35 +1134,10 @@ impl JsObject {
                     environments.clone(),
                     class_object.clone(),
                     script_or_module.clone(),
-                    false,
-                    true,
-                ),
-                FunctionKind::AsyncGenerator {
-                    code,
-                    environments,
-                    class_object,
-
-                    script_or_module,
-                    ..
-                } => (
-                    code.clone(),
-                    environments.clone(),
-                    class_object.clone(),
-                    script_or_module.clone(),
-                    true,
-                    true,
                 ),
             };
 
         drop(object);
-
-        let promise_capability = (async_ && !gen).then(|| {
-            PromiseCapability::new(
-                &context.intrinsics().constructors().promise().constructor(),
-                context,
-            )
-            .expect("cannot  fail per spec")
-        });
 
         std::mem::swap(&mut environments, &mut context.vm.environments);
 
@@ -1277,10 +1248,9 @@ impl JsObject {
 
         std::mem::swap(&mut context.vm.stack, &mut stack);
 
-        let mut frame = CallFrame::new(code)
+        let frame = CallFrame::new(code)
             .with_argument_count(argument_count as u32)
             .with_env_fp(env_fp);
-        frame.promise_capability = promise_capability.clone();
 
         std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
 
@@ -1291,78 +1261,12 @@ impl JsObject {
             .consume()
             .map_err(|err| err.inject_realm(context.realm().clone()));
 
-        let call_frame = context.vm.pop_frame().expect("frame must exist");
+        context.vm.pop_frame().expect("frame must exist");
         std::mem::swap(&mut environments, &mut context.vm.environments);
         std::mem::swap(&mut context.vm.stack, &mut stack);
         std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
 
-        if let Some(promise_capability) = promise_capability {
-            Ok(promise_capability.promise().clone().into())
-        } else if gen {
-            result?;
-            let proto = this_function_object
-                .get(PROTOTYPE, context)
-                .expect("generator must have a prototype property")
-                .as_object()
-                .map_or_else(
-                    || {
-                        if async_ {
-                            context.intrinsics().objects().async_generator()
-                        } else {
-                            context.intrinsics().objects().generator()
-                        }
-                    },
-                    Clone::clone,
-                );
-
-            let data = if async_ {
-                ObjectData::async_generator(AsyncGenerator {
-                    state: AsyncGeneratorState::SuspendedStart,
-                    context: Some(GeneratorContext::new(
-                        environments,
-                        stack,
-                        context.vm.active_function.clone(),
-                        call_frame,
-                        context.realm().clone(),
-                    )),
-                    queue: VecDeque::new(),
-                })
-            } else {
-                ObjectData::generator(Generator {
-                    state: GeneratorState::SuspendedStart {
-                        context: GeneratorContext::new(
-                            environments,
-                            stack,
-                            context.vm.active_function.clone(),
-                            call_frame,
-                            context.realm().clone(),
-                        ),
-                    },
-                })
-            };
-
-            let generator =
-                Self::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data);
-
-            if async_ {
-                let gen_clone = generator.clone();
-                let mut generator_mut = generator.borrow_mut();
-                let gen = generator_mut
-                    .as_async_generator_mut()
-                    .expect("must be object here");
-                let gen_context = gen.context.as_mut().expect("must exist");
-                // TODO: try to move this to the context itself.
-                gen_context
-                    .call_frame
-                    .as_mut()
-                    .expect("should have a call frame initialized")
-                    .async_generator = Some(gen_clone);
-            }
-
-            Ok(generator.into())
-        } else {
-            result
-        }
+        result
     }
 
     pub(crate) fn construct_internal(

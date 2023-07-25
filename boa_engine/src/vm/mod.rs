@@ -7,11 +7,10 @@
 #[cfg(feature = "fuzz")]
 use crate::JsNativeError;
 use crate::{
-    builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     environments::{DeclarativeEnvironment, EnvironmentStack},
     script::Script,
     vm::code_block::Readable,
-    Context, JsError, JsObject, JsResult, JsValue, Module,
+    Context, JsError, JsNativeErrorKind, JsObject, JsResult, JsValue, Module,
 };
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
@@ -150,7 +149,9 @@ impl Vm {
         self.frames.last_mut().expect("no frame found")
     }
 
-    pub(crate) fn push_frame(&mut self, frame: CallFrame) {
+    pub(crate) fn push_frame(&mut self, mut frame: CallFrame) {
+        let current_stack_length = self.stack.len();
+        frame.set_frame_pointer(current_stack_length as u32);
         self.frames.push(frame);
     }
 
@@ -190,6 +191,93 @@ pub(crate) enum CompletionType {
     Yield,
 }
 
+#[cfg(feature = "trace")]
+impl Context<'_> {
+    const COLUMN_WIDTH: usize = 26;
+    const TIME_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH / 2;
+    const OPCODE_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
+    const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
+    const NUMBER_OF_COLUMNS: usize = 4;
+
+    fn trace_call_frame(&self) {
+        let msg = if self.vm.frames.last().is_some() {
+            format!(
+                " Call Frame -- {} ",
+                self.vm.frame().code_block().name().to_std_string_escaped()
+            )
+        } else {
+            " VM Start ".to_string()
+        };
+
+        println!(
+            "{}",
+            self.vm
+                .frame()
+                .code_block
+                .to_interned_string(self.interner())
+        );
+        println!(
+            "{msg:-^width$}",
+            width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
+        );
+        println!(
+            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
+            "Time",
+            "Opcode",
+            "Operands",
+            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
+            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
+            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
+        );
+    }
+
+    fn trace_execute_instruction(&mut self) -> JsResult<CompletionType> {
+        let mut pc = self.vm.frame().pc as usize;
+        let opcode: Opcode = self.vm.frame().code_block.read::<u8>(pc).into();
+        let operands = self
+            .vm
+            .frame()
+            .code_block
+            .instruction_operands(&mut pc, self.interner());
+
+        let instant = Instant::now();
+        let result = self.execute_instruction();
+
+        let duration = instant.elapsed();
+
+        let stack = {
+            let mut stack = String::from("[ ");
+            for (i, value) in self.vm.stack.iter().rev().enumerate() {
+                match value {
+                    value if value.is_callable() => stack.push_str("[function]"),
+                    value if value.is_object() => stack.push_str("[object]"),
+                    value => stack.push_str(&value.display().to_string()),
+                }
+
+                if i + 1 != self.vm.stack.len() {
+                    stack.push(',');
+                }
+
+                stack.push(' ');
+            }
+
+            stack.push(']');
+            stack
+        };
+
+        println!(
+            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
+            format!("{}μs", duration.as_micros()),
+            opcode.as_str(),
+            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
+            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
+            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
+        );
+
+        result
+    }
+}
+
 impl Context<'_> {
     fn execute_instruction(&mut self) -> JsResult<CompletionType> {
         let opcode: Opcode = {
@@ -198,7 +286,7 @@ impl Context<'_> {
             let frame = self.vm.frame_mut();
 
             let pc = frame.pc;
-            let opcode = Opcode::from(frame.code_block.bytecode[pc as usize]);
+            let opcode = frame.code_block.bytecode[pc as usize].into();
             frame.pc += 1;
             opcode
         };
@@ -209,115 +297,53 @@ impl Context<'_> {
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
-        #[cfg(feature = "trace")]
-        const COLUMN_WIDTH: usize = 26;
-        #[cfg(feature = "trace")]
-        const TIME_COLUMN_WIDTH: usize = COLUMN_WIDTH / 2;
-        #[cfg(feature = "trace")]
-        const OPCODE_COLUMN_WIDTH: usize = COLUMN_WIDTH;
-        #[cfg(feature = "trace")]
-        const OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
-        #[cfg(feature = "trace")]
-        const NUMBER_OF_COLUMNS: usize = 4;
-
         let _timer = Profiler::global().start_event("run", "vm");
 
         #[cfg(feature = "trace")]
         if self.vm.trace {
-            let msg = if self.vm.frames.last().is_some() {
-                " Call Frame "
-            } else {
-                " VM Start "
-            };
-
-            println!(
-                "{}\n",
-                self.vm
-                    .frame()
-                    .code_block
-                    .to_interned_string(self.interner())
-            );
-            println!(
-                "{msg:-^width$}",
-                width = COLUMN_WIDTH * NUMBER_OF_COLUMNS - 10
-            );
-            println!(
-                "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Top Of Stack\n",
-                "Time",
-                "Opcode",
-                "Operands",
-            );
+            self.trace_call_frame();
         }
 
-        let current_stack_length = self.vm.stack.len();
-        self.vm
-            .frame_mut()
-            .set_frame_pointer(current_stack_length as u32);
-
-        // If the current executing function is an async function we have to resolve/reject it's promise at the end.
-        // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let promise_capability = self.vm.frame().promise_capability.clone();
-
-        let execution_completion = loop {
+        let mut result = Ok(CompletionType::Normal);
+        loop {
             #[cfg(feature = "fuzz")]
             {
                 if self.instructions_remaining == 0 {
                     let err = JsError::from_native(JsNativeError::no_instructions_remain());
-                    self.vm.pending_exception = Some(err);
-                    break CompletionType::Throw;
+                    return CompletionRecord::Throw(err);
                 }
                 self.instructions_remaining -= 1;
             }
 
-            // 1. Run the next instruction.
-            #[cfg(feature = "trace")]
-            let result = if self.vm.trace || self.vm.frame().code_block.traceable() {
-                let mut pc = self.vm.frame().pc as usize;
-                let opcode: Opcode = self
-                    .vm
-                    .frame()
-                    .code_block
-                    .read::<u8>(pc)
-                    .try_into()
-                    .expect("invalid opcode");
-                let operands = self
-                    .vm
-                    .frame()
-                    .code_block
-                    .instruction_operands(&mut pc, self.interner());
-
-                let instant = Instant::now();
-                let result = self.execute_instruction();
-
-                let duration = instant.elapsed();
-                println!(
-                    "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {}",
-                    format!("{}μs", duration.as_micros()),
-                    opcode.as_str(),
-                    match self.vm.stack.last() {
-                        Some(value) if value.is_callable() => "[function]".to_string(),
-                        Some(value) if value.is_object() => "[object]".to_string(),
-                        Some(value) => value.display().to_string(),
-                        None => "<empty>".to_string(),
-                    },
-                );
-
-                result
-            } else {
-                self.execute_instruction()
-            };
-
-            #[cfg(not(feature = "trace"))]
-            let result = self.execute_instruction();
-
-            // 2. Evaluate the result of executing the instruction.
             match result {
-                Ok(CompletionType::Normal) => {}
+                Ok(CompletionType::Normal) => {
+                    #[cfg(feature = "trace")]
+                    {
+                        result = if self.vm.trace || self.vm.frame().code_block.traceable() {
+                            self.trace_execute_instruction()
+                        } else {
+                            self.execute_instruction()
+                        };
+                    }
+
+                    #[cfg(not(feature = "trace"))]
+                    {
+                        result = self.execute_instruction();
+                    }
+                }
                 Ok(CompletionType::Return) => {
-                    break CompletionType::Return;
+                    self.vm.stack.truncate(self.vm.frame().fp as usize);
+                    let execution_result = self.vm.frame_mut().return_value.clone();
+                    return CompletionRecord::Normal(execution_result);
                 }
                 Ok(CompletionType::Throw) => {
-                    break CompletionType::Throw;
+                    self.vm.stack.truncate(self.vm.frame().fp as usize);
+                    return CompletionRecord::Throw(
+                        self.vm
+                            .pending_exception
+                            .take()
+                            .expect("Err must exist for a CompletionType::Throw"),
+                    );
                 }
                 // Early return immediately.
                 Ok(CompletionType::Yield) => {
@@ -325,144 +351,26 @@ impl Context<'_> {
                     return CompletionRecord::Return(result);
                 }
                 Err(err) => {
-                    #[cfg(feature = "fuzz")]
-                    {
-                        if let Some(native_error) = err.as_native() {
-                            // If we hit the execution step limit, bubble up the error to the
-                            // (Rust) caller instead of trying to handle as an exception.
-                            if native_error.is_no_instructions_remain() {
-                                self.vm.pending_exception = Some(err);
-                                break CompletionType::Throw;
-                            }
-                        }
-                    }
-
                     if let Some(native_error) = err.as_native() {
                         // If we hit the execution step limit, bubble up the error to the
                         // (Rust) caller instead of trying to handle as an exception.
-                        if native_error.is_runtime_limit() {
-                            self.vm.pending_exception = Some(err);
-                            break CompletionType::Throw;
+                        match native_error.kind {
+                            #[cfg(feature = "fuzz")]
+                            JsNativeErrorKind::NoInstructionsRemain => {
+                                return CompletionRecord::Throw(err);
+                            }
+                            JsNativeErrorKind::RuntimeLimit => {
+                                return CompletionRecord::Throw(err);
+                            }
+                            _ => {}
                         }
                     }
 
                     self.vm.pending_exception = Some(err);
 
-                    let evaluation = Opcode::ReThrow
-                        .execute(self)
-                        .expect("Opcode::Throw cannot return Err");
-
-                    if evaluation == CompletionType::Normal {
-                        continue;
-                    }
-
-                    break CompletionType::Throw;
+                    result = Opcode::ReThrow.execute(self);
                 }
             }
-        };
-
-        #[cfg(feature = "trace")]
-        if self.vm.trace {
-            println!("\nStack:");
-            if self.vm.stack.is_empty() {
-                println!("    <empty>");
-            } else {
-                for (i, value) in self.vm.stack.iter().enumerate() {
-                    println!(
-                        "{i:04}{:<width$} {}",
-                        "",
-                        if value.is_callable() {
-                            "[function]".to_string()
-                        } else if value.is_object() {
-                            "[object]".to_string()
-                        } else {
-                            value.display().to_string()
-                        },
-                        width = COLUMN_WIDTH / 2 - 4,
-                    );
-                }
-            }
-            println!("\n");
         }
-
-        self.vm.stack.truncate(self.vm.frame().fp as usize);
-
-        // Determine the execution result
-        let execution_result = self.vm.frame_mut().return_value.clone();
-
-        if let Some(promise) = promise_capability {
-            match execution_completion {
-                CompletionType::Normal => {
-                    promise
-                        .resolve()
-                        .call(&JsValue::undefined(), &[], self)
-                        .expect("cannot fail per spec");
-                }
-                CompletionType::Return => {
-                    promise
-                        .resolve()
-                        .call(&JsValue::undefined(), &[execution_result.clone()], self)
-                        .expect("cannot fail per spec");
-                }
-                CompletionType::Throw => {
-                    let err = self
-                        .vm
-                        .pending_exception
-                        .take()
-                        .expect("Take must exist on a Throw");
-                    promise
-                        .reject()
-                        .call(&JsValue::undefined(), &[err.to_opaque(self)], self)
-                        .expect("cannot fail per spec");
-                    self.vm.pending_exception = Some(err);
-                }
-                CompletionType::Yield => unreachable!("this is handled before"),
-            }
-        } else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
-            // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-            let mut generator_object_mut = generator_object.borrow_mut();
-            let generator = generator_object_mut
-                .as_async_generator_mut()
-                .expect("must be async generator");
-
-            generator.state = AsyncGeneratorState::Completed;
-            generator.context = None;
-
-            let next = generator
-                .queue
-                .pop_front()
-                .expect("must have item in queue");
-            drop(generator_object_mut);
-
-            if execution_completion == CompletionType::Throw {
-                AsyncGenerator::complete_step(
-                    &next,
-                    Err(self
-                        .vm
-                        .pending_exception
-                        .take()
-                        .expect("err must exist on a Completion::Throw")),
-                    true,
-                    None,
-                    self,
-                );
-            } else {
-                AsyncGenerator::complete_step(&next, Ok(execution_result), true, None, self);
-            }
-            AsyncGenerator::drain_queue(&generator_object, self);
-
-            return CompletionRecord::Normal(JsValue::undefined());
-        }
-
-        // Any valid return statement is re-evaluated as a normal completion vs. return (yield).
-        if execution_completion == CompletionType::Throw {
-            return CompletionRecord::Throw(
-                self.vm
-                    .pending_exception
-                    .take()
-                    .expect("Err must exist for a CompletionType::Throw"),
-            );
-        }
-        CompletionRecord::Normal(execution_result)
     }
 }
