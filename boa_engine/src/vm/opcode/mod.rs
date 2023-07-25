@@ -1368,12 +1368,14 @@ generate_impl! {
         /// Stack: **=>**
         PopEnvironment,
 
-        /// Clean up environments when a loop continues.
+        /// Increment loop itearation count.
+        ///
+        /// Used for limiting the loop iteration.
         ///
         /// Operands:
         ///
         /// Stack: **=>**
-        LoopContinue,
+        IncrementLoopIteration,
 
         /// Creates the ForInIterator of an object.
         ///

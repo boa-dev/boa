@@ -4,16 +4,16 @@ use crate::{
     Context, JsResult,
 };
 
-/// `LoopContinue` implements the Opcode Operation for `Opcode::LoopContinue`.
+/// `IncrementLoopIteration` implements the Opcode Operation for `Opcode::IncrementLoopIteration`.
 ///
 /// Operation:
-///  - Pushes a clean environment onto the frame's `EnvEntryStack`.
+///  - Increment loop itearation count.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct LoopContinue;
+pub(crate) struct IncrementLoopIteration;
 
-impl Operation for LoopContinue {
-    const NAME: &'static str = "LoopContinue";
-    const INSTRUCTION: &'static str = "INST - LoopContinue";
+impl Operation for IncrementLoopIteration {
+    const NAME: &'static str = "IncrementLoopIteration";
+    const INSTRUCTION: &'static str = "INST - IncrementLoopIteration";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let previous_iteration_count = context.vm.frame_mut().loop_iteration_count;

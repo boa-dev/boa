@@ -492,7 +492,7 @@ impl CodeBlock {
                 | Opcode::ToBoolean
                 | Opcode::This
                 | Opcode::Super
-                | Opcode::LoopContinue
+                | Opcode::IncrementLoopIteration
                 | Opcode::CreateForInIterator
                 | Opcode::GetIterator
                 | Opcode::GetAsyncIterator

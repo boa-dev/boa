@@ -571,7 +571,7 @@ impl CodeBlock {
             | Opcode::Super
             | Opcode::Return
             | Opcode::PopEnvironment
-            | Opcode::LoopContinue
+            | Opcode::IncrementLoopIteration
             | Opcode::CreateForInIterator
             | Opcode::GetIterator
             | Opcode::GetAsyncIterator

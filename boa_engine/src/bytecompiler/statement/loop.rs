@@ -79,7 +79,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        self.emit_opcode(Opcode::LoopContinue);
+        self.emit_opcode(Opcode::IncrementLoopIteration);
 
         if let Some(final_expr) = for_loop.final_expr() {
             self.compile_expr(final_expr, false);
@@ -154,7 +154,7 @@ impl ByteCompiler<'_, '_> {
 
         let start_address = self.next_opcode_location();
         self.push_loop_control_info_for_of_in_loop(label, start_address, use_expr);
-        self.emit_opcode(Opcode::LoopContinue);
+        self.emit_opcode(Opcode::IncrementLoopIteration);
 
         self.emit_opcode(Opcode::IteratorNext);
         self.emit_opcode(Opcode::IteratorDone);
@@ -277,7 +277,7 @@ impl ByteCompiler<'_, '_> {
         } else {
             self.push_loop_control_info_for_of_in_loop(label, start_address, use_expr);
         }
-        self.emit_opcode(Opcode::LoopContinue);
+        self.emit_opcode(Opcode::IncrementLoopIteration);
 
         self.emit_opcode(Opcode::IteratorNext);
         if for_of_loop.r#await() {
@@ -409,7 +409,7 @@ impl ByteCompiler<'_, '_> {
         use_expr: bool,
     ) {
         let start_address = self.next_opcode_location();
-        self.emit_opcode(Opcode::LoopContinue);
+        self.emit_opcode(Opcode::IncrementLoopIteration);
         self.push_loop_control_info(label, start_address, use_expr);
 
         self.compile_expr(while_loop.condition(), true);
@@ -436,7 +436,7 @@ impl ByteCompiler<'_, '_> {
         self.push_loop_control_info(label, start_address, use_expr);
 
         let condition_label_address = self.next_opcode_location();
-        self.emit_opcode(Opcode::LoopContinue);
+        self.emit_opcode(Opcode::IncrementLoopIteration);
         self.compile_expr(do_while_loop.cond(), true);
         let exit = self.jump_if_false();
 
