@@ -104,7 +104,7 @@ impl ByteCompiler<'_, '_> {
                 actions.push(JumpRecordAction::HandleFinally {
                     index: info.jumps.len() as u32,
                 });
-                actions.push(JumpRecordAction::Transfter { index: i as u32 });
+                actions.push(JumpRecordAction::Transfer { index: i as u32 });
             }
 
             if info.iterator_loop() {

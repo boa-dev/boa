@@ -22,16 +22,16 @@ impl ByteCompiler<'_, '_> {
                 actions.push(JumpRecordAction::HandleFinally {
                     index: info.jumps.len() as u32,
                 });
-                actions.push(JumpRecordAction::Transfter { index: i as u32 });
+                actions.push(JumpRecordAction::Transfer { index: i as u32 });
             }
 
             if let Some(label) = node.label() {
                 if info.label() == Some(label) {
-                    actions.push(JumpRecordAction::Transfter { index: i as u32 });
+                    actions.push(JumpRecordAction::Transfer { index: i as u32 });
                     break;
                 }
             } else if info.is_loop() || info.is_switch() {
-                actions.push(JumpRecordAction::Transfter { index: i as u32 });
+                actions.push(JumpRecordAction::Transfer { index: i as u32 });
                 break;
             }
         }

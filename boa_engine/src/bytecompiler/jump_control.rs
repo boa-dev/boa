@@ -19,8 +19,8 @@ use boa_interner::Sym;
 /// An actions to be performed for the local control flow.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum JumpRecordAction {
-    /// Places a [`Opcode::Jump`], transfters to a specified [`JumpControlInfo`] to be handled when it gets poped.
-    Transfter {
+    /// Places a [`Opcode::Jump`], transfers to a specified [`JumpControlInfo`] to be handled when it gets poped.
+    Transfer {
         /// [`JumpControlInfo`] index to be transfered.
         index: u32,
     },
@@ -94,7 +94,7 @@ impl JumpRecord {
     ) {
         while let Some(action) = self.actions.pop() {
             match action {
-                JumpRecordAction::Transfter { index } => {
+                JumpRecordAction::Transfer { index } => {
                     self.label = compiler.jump();
                     compiler.jump_info[index as usize].jumps.push(self);
 
