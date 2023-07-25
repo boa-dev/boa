@@ -248,6 +248,7 @@ pub struct ByteCompiler<'ctx, 'host> {
     pub(crate) current_environment: Rc<CompileTimeEnvironment>,
 
     current_open_environments_count: u32,
+    current_stack_value_count: u32,
     code_block_flags: CodeBlockFlags,
     handlers: ThinVec<Handler>,
     literals_map: FxHashMap<Literal, u32>,
@@ -294,6 +295,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             params: FormalParameterList::default(),
             compile_environments: Vec::default(),
             current_open_environments_count: 0,
+            current_stack_value_count: 0,
             code_block_flags,
             handlers: ThinVec::default(),
 

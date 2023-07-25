@@ -373,12 +373,14 @@ impl ByteCompiler<'_, '_> {
 
             self.emit_opcode(Opcode::Exception);
 
+            self.current_stack_value_count += 1;
             // NOTE: Capture throw of the iterator close and ignore it.
             {
                 let handler_index = self.push_handler();
                 self.iterator_close(for_of_loop.r#await());
                 self.patch_handler(handler_index);
             }
+            self.current_stack_value_count -= 1;
 
             self.emit_opcode(Opcode::Throw);
             self.patch_jump(exit);

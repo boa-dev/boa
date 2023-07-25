@@ -194,11 +194,14 @@ impl ByteCompiler<'_, '_> {
                 self.emit_opcode(Opcode::PushTrue);
                 self.patch_jump(exit);
 
+                self.current_stack_value_count += 2;
+
                 let iterator_close_handler = self.push_handler();
                 self.iterator_close(false);
 
                 let exit = self.jump();
                 self.patch_handler(iterator_close_handler);
+                self.current_stack_value_count -= 2;
                 {
                     let jump = self.jump_if_false();
                     self.emit_opcode(Opcode::Throw);

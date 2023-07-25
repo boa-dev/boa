@@ -320,7 +320,7 @@ impl ByteCompiler<'_, '_> {
         self.handlers.push(Handler {
             start: start_address,
             end: Self::DUMMY_ADDRESS,
-            stack_count: 0,
+            stack_count: self.current_stack_value_count,
             environment_count,
         });
 

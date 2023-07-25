@@ -38,6 +38,7 @@ impl ByteCompiler<'_, '_> {
         // If it has a finally but no catch and we are in a generator, then we still need it
         // to handle `return()` call on generators.
         let catch_handler = if has_finally && (self.in_generator() || has_catch) {
+            self.current_stack_value_count += 2;
             Some(self.push_handler())
         } else {
             None
@@ -70,6 +71,7 @@ impl ByteCompiler<'_, '_> {
             let exit = self.jump();
 
             if let Some(catch_handler) = catch_handler {
+                self.current_stack_value_count -= 2;
                 self.patch_handler(catch_handler);
             }
 
@@ -94,8 +96,10 @@ impl ByteCompiler<'_, '_> {
                 .expect("there should be a try block")
                 .flags |= JumpControlInfoFlags::IN_FINALLY;
 
+            self.current_stack_value_count += 2;
             // Compile finally statement body
             self.compile_finally_stmt(finally, has_catch);
+            self.current_stack_value_count -= 2;
         }
 
         if has_finally {
@@ -135,9 +139,11 @@ impl ByteCompiler<'_, '_> {
 
     pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally, has_catch: bool) {
         // TODO: We could probably remove the Get/SetReturnValue if we check that there is no break/continues statements.
+        self.current_stack_value_count += 1;
         self.emit_opcode(Opcode::GetReturnValue);
         self.compile_block(finally.block(), true);
         self.emit_opcode(Opcode::SetReturnValue);
+        self.current_stack_value_count -= 1;
 
         // Rethrow error if error happend!
         let do_not_throw_exit = self.jump_if_false();
