@@ -1743,7 +1743,6 @@ impl SourceTextModule {
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 7. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
         std::mem::swap(&mut context.vm.environments, &mut environments);
-        let stack = std::mem::take(&mut context.vm.stack);
         // 2. Set the Function of moduleContext to null.
         let function = context.vm.active_function.take();
         // 3. Set the Realm of moduleContext to module.[[Realm]].
@@ -1763,7 +1762,6 @@ impl SourceTextModule {
         let result = context.run();
 
         std::mem::swap(&mut context.vm.environments, &mut environments);
-        context.vm.stack = stack;
         context.vm.active_function = function;
         context.vm.active_runnable = active_runnable;
         context.swap_realm(&mut realm);

@@ -21,7 +21,7 @@ use boa_interner::Sym;
 pub(crate) enum JumpRecordAction {
     /// Places a [`Opcode::Jump`], transfers to a specified [`JumpControlInfo`] to be handled when it gets poped.
     Transfer {
-        /// [`JumpControlInfo`] index to be transfered.
+        /// [`JumpControlInfo`] index to be transferred.
         index: u32,
     },
 
@@ -31,7 +31,7 @@ pub(crate) enum JumpRecordAction {
     /// Closes the an iterator.
     CloseIterator { r#async: bool },
 
-    /// Handles finally which needs to be done if we are in the try or catch section of a try statement that
+    /// Handles finally, this needs to be done if we are in the try or catch section of a try statement that
     /// has a finally block.
     ///
     /// It places push integer value [`Opcode`] as well as [`Opcode::PushFalse`], which means don't [`ReThrow`](Opcode::ReThrow).
@@ -53,7 +53,7 @@ pub(crate) enum JumpRecordAction {
     /// ```
     ///
     /// Both `continue` and `break` must go through the finally, but the `continue` goes to the beginning of the loop,
-    /// but the `break` goes to the end of the loop, this is solved by having a jump table (See [`Opcode::JumpTable`])
+    /// and the `break` goes to the end of the loop, this is solved by having a jump table (See [`Opcode::JumpTable`])
     /// at the end of finally (It is constructed in [`ByteCompiler::pop_try_with_finally_control_info()`]).
     HandleFinally {
         /// Jump table index.

@@ -138,7 +138,6 @@ impl Script {
 
         let old_realm = context.enter_realm(self.inner.realm.clone());
         let active_function = context.vm.active_function.take();
-        let stack = std::mem::take(&mut context.vm.stack);
         let old_active = context
             .vm
             .active_runnable
@@ -154,7 +153,6 @@ impl Script {
         let record = context.run();
         context.vm.pop_frame();
 
-        context.vm.stack = stack;
         context.vm.active_function = active_function;
         context.vm.active_runnable = old_active;
         context.enter_realm(old_realm);
