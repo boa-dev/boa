@@ -379,7 +379,7 @@ impl ArrayBuffer {
         self.array_buffer_data.is_none()
     }
 
-    /// `25.1.2.4 CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength, cloneConstructor )`
+    /// `25.1.2.4 CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -389,39 +389,51 @@ impl ArrayBuffer {
         &self,
         src_byte_offset: u64,
         src_length: u64,
-        clone_constructor: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
-        // 1. Let targetBuffer be ? AllocateArrayBuffer(cloneConstructor, srcLength).
-        let target_buffer = Self::allocate(clone_constructor, src_length, context)?;
+        // 1. Assert: IsDetachedBuffer(srcBuffer) is false.
+        debug_assert!(!self.is_detached_buffer());
 
-        // 2. If IsDetachedBuffer(srcBuffer) is true, throw a TypeError exception.
+        // 2. Let targetBuffer be ? AllocateArrayBuffer(%ArrayBuffer%, srcLength).
+        let target_buffer = Self::allocate(
+            &context
+                .realm()
+                .intrinsics()
+                .constructors()
+                .array_buffer()
+                .constructor()
+                .into(),
+            src_length,
+            context,
+        )?;
+
         // 3. Let srcBlock be srcBuffer.[[ArrayBufferData]].
-        let src_block = self.array_buffer_data.as_deref().ok_or_else(|| {
-            JsNativeError::syntax().with_message("Cannot clone detached array buffer")
-        })?;
+        let src_block = self
+            .array_buffer_data
+            .as_deref()
+            .expect("ArrayBuffer cannot be detached");
 
-        {
-            // 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].
-            let mut target_buffer_mut = target_buffer.borrow_mut();
-            let target_block = target_buffer_mut
-                .as_array_buffer_mut()
-                .expect("This must be an ArrayBuffer");
+        // 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].
+        let mut target_buffer_mut = target_buffer.borrow_mut();
+        let target_array_buffer = target_buffer_mut
+            .as_array_buffer_mut()
+            .expect("This must be an ArrayBuffer");
+        let target_block = target_array_buffer
+            .array_buffer_data
+            .as_mut()
+            .expect("ArrayBuffer cannot me detached here");
 
-            // 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).
-            copy_data_block_bytes(
-                target_block
-                    .array_buffer_data
-                    .as_mut()
-                    .expect("ArrayBuffer cannot me detached here"),
-                0,
-                src_block,
-                src_byte_offset as usize,
-                src_length as usize,
-            );
-        }
+        // 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).
+        copy_data_block_bytes(
+            target_block,
+            0,
+            src_block,
+            src_byte_offset as usize,
+            src_length as usize,
+        );
 
         // 6. Return targetBuffer.
+        drop(target_buffer_mut);
         Ok(target_buffer)
     }
 
