@@ -554,6 +554,31 @@
 <a href="#554" id="554">554</a>
 <a href="#555" id="555">555</a>
 <a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_gc`** crate implements a garbage collector.
 //!
 //! # Crate Overview
@@ -839,6 +864,9 @@
     </span><span class="kw">fn </span>collect(gc: <span class="kw-2">&amp;mut </span>BoaGc) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Full Collection&quot;</span>, <span class="string">&quot;gc&quot;</span>);
         gc.runtime.collections += <span class="number">1</span>;
+
+        <span class="self">Self</span>::trace_non_roots(gc);
+
         <span class="kw">let </span>unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.strong_start, <span class="kw-2">&amp;</span>gc.weak_start, <span class="kw-2">&amp;</span>gc.weak_map_start);
 
         <span class="comment">// Only finalize if there are any unreachable nodes.
@@ -880,6 +908,26 @@
         }
     }
 
+    <span class="kw">fn </span>trace_non_roots(gc: <span class="kw-2">&amp;mut </span>BoaGc) {
+        <span class="comment">// Count all the handles located in GC heap.
+        // Then, we can find whether there is a reference from other places, and they are the roots.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>strong = <span class="kw-2">&amp;</span>gc.strong_start;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong.get() {
+            <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
+            </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
+            node_ref.value().trace_non_roots();
+            strong = <span class="kw-2">&amp;</span>node_ref.header.next;
+        }
+
+        <span class="kw">let </span><span class="kw-2">mut </span>weak = <span class="kw-2">&amp;</span>gc.weak_start;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(eph) = weak.get() {
+            <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
+            </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
+            eph_ref.trace_non_roots();
+            weak = <span class="kw-2">&amp;</span>eph_ref.header().next;
+        }
+    }
+
     <span class="doccomment">/// Walk the heap and mark any nodes deemed reachable
     </span><span class="kw">fn </span>mark_heap(
         <span class="kw-2">mut </span>strong: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;&gt;,
@@ -887,6 +935,7 @@
         <span class="kw-2">mut </span>weak_map: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;ErasedWeakMapBoxPointer&gt;&gt;,
     ) -&gt; Unreachables {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Marking&quot;</span>, <span class="string">&quot;gc&quot;</span>);
+
         <span class="comment">// Walk the list, tracing and marking the nodes
         </span><span class="kw">let </span><span class="kw-2">mut </span>strong_dead = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>pending_ephemerons = Vec::new();
@@ -897,9 +946,8 @@
         </span><span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong.get() {
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
-            <span class="kw">if </span>node_ref.header.roots() != <span class="number">0 </span>{
-                <span class="comment">// SAFETY: the reference to node must be valid as it is rooted. Passing
-                // invalid references can result in Undefined Behavior
+            <span class="kw">if </span>node_ref.get_non_root_count() &lt; node_ref.get_ref_count() {
+                <span class="comment">// SAFETY: the gc heap object should be alive if there is a root.
                 </span><span class="kw">unsafe </span>{
                     node_ref.mark_and_trace();
                 }
@@ -931,7 +979,7 @@
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
             <span class="kw">let </span>header = eph_ref.header();
-            <span class="kw">if </span>header.roots() != <span class="number">0 </span>{
+            <span class="kw">if </span>header.get_non_root_count() &lt; header.get_ref_count() {
                 header.mark();
             }
             <span class="comment">// SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
@@ -1019,8 +1067,9 @@
         <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong.get() {
             <span class="comment">// SAFETY: The caller must ensure the validity of every node of `heap_start`.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
-            <span class="kw">if </span>node_ref.header.roots() &gt; <span class="number">0 </span>|| node_ref.is_marked() {
+            <span class="kw">if </span>node_ref.is_marked() {
                 node_ref.header.unmark();
+                node_ref.reset_non_root_count();
                 strong = <span class="kw-2">&amp;</span>node_ref.header.next;
             } <span class="kw">else </span>{
                 <span class="comment">// SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
@@ -1036,8 +1085,9 @@
             <span class="comment">// SAFETY: The caller must ensure the validity of every node of `heap_start`.
             </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
             <span class="kw">let </span>header = eph_ref.header();
-            <span class="kw">if </span>header.roots() &gt; <span class="number">0 </span>|| header.is_marked() {
+            <span class="kw">if </span>header.is_marked() {
                 header.unmark();
+                header.reset_non_root_count();
                 weak = <span class="kw-2">&amp;</span>header.next;
             } <span class="kw">else </span>{
                 <span class="comment">// SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.

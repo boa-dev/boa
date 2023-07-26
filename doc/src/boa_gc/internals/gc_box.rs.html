@@ -146,6 +146,22 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Trace;
 <span class="kw">use </span>std::{
     cell::Cell,
@@ -153,22 +169,21 @@
     ptr::{<span class="self">self</span>, NonNull},
 };
 
-<span class="comment">// Age and Weak Flags
-</span><span class="kw">const </span>MARK_MASK: usize = <span class="number">1 </span>&lt;&lt; (usize::BITS - <span class="number">1</span>);
-<span class="kw">const </span>ROOTS_MASK: usize = !MARK_MASK;
-<span class="kw">const </span>ROOTS_MAX: usize = ROOTS_MASK;
+<span class="kw">const </span>MARK_MASK: u32 = <span class="number">1 </span>&lt;&lt; (u32::BITS - <span class="number">1</span>);
+<span class="kw">const </span>NON_ROOTS_MASK: u32 = !MARK_MASK;
+<span class="kw">const </span>NON_ROOTS_MAX: u32 = NON_ROOTS_MASK;
 
 <span class="doccomment">/// The `GcBoxheader` contains the `GcBox`&#39;s current state for the `Collector`&#39;s
 /// Mark/Sweep as well as a pointer to the next node in the heap.
 ///
-/// These flags include:
-///  - Root Count
-///  - Mark Flag Bit
+/// `ref_count` is the number of Gc instances, and `non_root_count` is the number of
+/// Gc instances in the heap. `non_root_count` also includes Mark Flag bit.
 ///
 /// The next node is set by the `Allocator` during initialization and by the
 /// `Collector` during the sweep phase.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GcBoxHeader {
-    roots: Cell&lt;usize&gt;,
+    ref_count: Cell&lt;u32&gt;,
+    non_root_count: Cell&lt;u32&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) next: Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;&gt;,
 }
 
@@ -176,57 +191,59 @@
     <span class="doccomment">/// Creates a new `GcBoxHeader` with a root of 1 and next set to None.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            roots: Cell::new(<span class="number">1</span>),
+            ref_count: Cell::new(<span class="number">1</span>),
+            non_root_count: Cell::new(<span class="number">0</span>),
             next: Cell::new(<span class="prelude-val">None</span>),
         }
     }
 
-    <span class="doccomment">/// Returns the `GcBoxHeader`&#39;s current root count
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>roots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.roots.get() &amp; ROOTS_MASK
+    <span class="doccomment">/// Returns the `GcBoxHeader`&#39;s current non-roots count
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.non_root_count.get() &amp; NON_ROOTS_MASK
     }
 
-    <span class="doccomment">/// Increments `GcBoxHeader`&#39;s root count.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span>roots = <span class="self">self</span>.roots.get();
+    <span class="doccomment">/// Increments `GcBoxHeader`&#39;s non-roots count.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let </span>non_root_count = <span class="self">self</span>.non_root_count.get();
 
-        <span class="kw">if </span>(roots &amp; ROOTS_MASK) &lt; ROOTS_MAX {
-            <span class="self">self</span>.roots.set(roots + <span class="number">1</span>);
+        <span class="kw">if </span>(non_root_count &amp; NON_ROOTS_MASK) &lt; NON_ROOTS_MAX {
+            <span class="self">self</span>.non_root_count.set(non_root_count.wrapping_add(<span class="number">1</span>));
         } <span class="kw">else </span>{
             <span class="comment">// TODO: implement a better way to handle root overload.
-            </span><span class="macro">panic!</span>(<span class="string">&quot;roots counter overflow&quot;</span>);
+            </span><span class="macro">panic!</span>(<span class="string">&quot;non-roots counter overflow&quot;</span>);
         }
     }
 
-    <span class="doccomment">/// Decreases `GcBoxHeader`&#39;s current root count.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dec_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Underflow check as a stop gap for current issue when dropping.
-        </span><span class="kw">if </span><span class="self">self</span>.roots.get() &gt; <span class="number">0 </span>{
-            <span class="self">self</span>.roots.set(<span class="self">self</span>.roots.get() - <span class="number">1</span>);
-        }
+    <span class="doccomment">/// Decreases `GcBoxHeader`&#39;s current non-roots count.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.non_root_count
+            .set(<span class="self">self</span>.non_root_count.get() &amp; !NON_ROOTS_MASK);
     }
 
     <span class="doccomment">/// Returns a bool for whether `GcBoxHeader`&#39;s mark bit is 1.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_marked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.roots.get() &amp; MARK_MASK != <span class="number">0
+        <span class="self">self</span>.non_root_count.get() &amp; MARK_MASK != <span class="number">0
     </span>}
 
     <span class="doccomment">/// Sets `GcBoxHeader`&#39;s mark bit to 1.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>mark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.roots.set(<span class="self">self</span>.roots.get() | MARK_MASK);
+        <span class="self">self</span>.non_root_count
+            .set(<span class="self">self</span>.non_root_count.get() | MARK_MASK);
     }
 
     <span class="doccomment">/// Sets `GcBoxHeader`&#39;s mark bit to 0.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unmark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.roots.set(<span class="self">self</span>.roots.get() &amp; !MARK_MASK);
+        <span class="self">self</span>.non_root_count
+            .set(<span class="self">self</span>.non_root_count.get() &amp; !MARK_MASK);
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>GcBoxHeader {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_struct(<span class="string">&quot;GcBoxHeader&quot;</span>)
-            .field(<span class="string">&quot;roots&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.roots())
             .field(<span class="string">&quot;marked&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_marked())
+            .field(<span class="string">&quot;ref_count&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.ref_count.get())
+            .field(<span class="string">&quot;non_root_count&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_non_root_count())
             .finish()
     }
 }
@@ -270,20 +287,6 @@
         }
     }
 
-    <span class="doccomment">/// Increases the root count on this `GcBox`.
-    ///
-    /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.header.inc_roots();
-    }
-
-    <span class="doccomment">/// Decreases the root count on this `GcBox`.
-    ///
-    /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.header.dec_roots();
-    }
-
     <span class="doccomment">/// Returns a reference to the `GcBox`&#39;s value.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw-2">&amp;</span><span class="self">self</span>.value
@@ -292,6 +295,35 @@
     <span class="doccomment">/// Returns `true` if the header is marked.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_marked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.header.is_marked()
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.header.ref_count.get()
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.header.ref_count.set(<span class="self">self</span>.header.ref_count.get() + <span class="number">1</span>);
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dec_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.header.ref_count.set(<span class="self">self</span>.header.ref_count.get() - <span class="number">1</span>);
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.header.get_non_root_count()
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.header.inc_non_root_count();
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.header.reset_non_root_count();
     }
 }
 </code></pre></div></section></main></body></html>

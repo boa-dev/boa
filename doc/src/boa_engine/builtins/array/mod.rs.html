@@ -3088,6 +3088,8 @@
 <a href="#3088" id="3088">3088</a>
 <a href="#3089" id="3089">3089</a>
 <a href="#3090" id="3090">3090</a>
+<a href="#3091" id="3091">3091</a>
+<a href="#3092" id="3092">3092</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -4154,19 +4156,21 @@
             // d. Let lowerExists be ? HasProperty(O, lowerP).
             </span><span class="kw">let </span>lower_exists = o.has_property(lower, context)<span class="question-mark">?</span>;
             <span class="comment">// e. If lowerExists is true, then
-            </span><span class="kw">let </span><span class="kw-2">mut </span>lower_value = JsValue::undefined();
-            <span class="kw">if </span>lower_exists {
+            </span><span class="kw">let </span>lower_value = <span class="kw">if </span>lower_exists {
                 <span class="comment">// i. Let lowerValue be ? Get(O, lowerP).
-                </span>lower_value = o.get(lower, context)<span class="question-mark">?</span>;
-            }
+                </span>o.get(lower, context)<span class="question-mark">?
+            </span>} <span class="kw">else </span>{
+                JsValue::undefined()
+            };
             <span class="comment">// f. Let upperExists be ? HasProperty(O, upperP).
             </span><span class="kw">let </span>upper_exists = o.has_property(upper, context)<span class="question-mark">?</span>;
             <span class="comment">// g. If upperExists is true, then
-            </span><span class="kw">let </span><span class="kw-2">mut </span>upper_value = JsValue::undefined();
-            <span class="kw">if </span>upper_exists {
+            </span><span class="kw">let </span>upper_value = <span class="kw">if </span>upper_exists {
                 <span class="comment">// i. Let upperValue be ? Get(O, upperP).
-                </span>upper_value = o.get(upper, context)<span class="question-mark">?</span>;
-            }
+                </span>o.get(upper, context)<span class="question-mark">?
+            </span>} <span class="kw">else </span>{
+                JsValue::undefined()
+            };
             <span class="kw">match </span>(lower_exists, upper_exists) {
                 <span class="comment">// h. If lowerExists is true and upperExists is true, then
                 </span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; {

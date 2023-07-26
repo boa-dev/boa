@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["BORROWFLAG_INIT","ROOT","UNUSED","WRITING"],"enum":["BorrowState"],"struct":["BorrowError","BorrowFlag","BorrowMutError","GcRef","GcRefCell","GcRefMut"]};
+window.SIDEBAR_ITEMS = {"constant":["BORROWFLAG_INIT","UNUSED","WRITING"],"enum":["BorrowState"],"struct":["BorrowError","BorrowFlag","BorrowMutError","GcRef","GcRefCell","GcRefMut"]};

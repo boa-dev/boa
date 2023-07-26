@@ -500,68 +500,6 @@
 <a href="#500" id="500">500</a>
 <a href="#501" id="501">501</a>
 <a href="#502" id="502">502</a>
-<a href="#503" id="503">503</a>
-<a href="#504" id="504">504</a>
-<a href="#505" id="505">505</a>
-<a href="#506" id="506">506</a>
-<a href="#507" id="507">507</a>
-<a href="#508" id="508">508</a>
-<a href="#509" id="509">509</a>
-<a href="#510" id="510">510</a>
-<a href="#511" id="511">511</a>
-<a href="#512" id="512">512</a>
-<a href="#513" id="513">513</a>
-<a href="#514" id="514">514</a>
-<a href="#515" id="515">515</a>
-<a href="#516" id="516">516</a>
-<a href="#517" id="517">517</a>
-<a href="#518" id="518">518</a>
-<a href="#519" id="519">519</a>
-<a href="#520" id="520">520</a>
-<a href="#521" id="521">521</a>
-<a href="#522" id="522">522</a>
-<a href="#523" id="523">523</a>
-<a href="#524" id="524">524</a>
-<a href="#525" id="525">525</a>
-<a href="#526" id="526">526</a>
-<a href="#527" id="527">527</a>
-<a href="#528" id="528">528</a>
-<a href="#529" id="529">529</a>
-<a href="#530" id="530">530</a>
-<a href="#531" id="531">531</a>
-<a href="#532" id="532">532</a>
-<a href="#533" id="533">533</a>
-<a href="#534" id="534">534</a>
-<a href="#535" id="535">535</a>
-<a href="#536" id="536">536</a>
-<a href="#537" id="537">537</a>
-<a href="#538" id="538">538</a>
-<a href="#539" id="539">539</a>
-<a href="#540" id="540">540</a>
-<a href="#541" id="541">541</a>
-<a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a>
-<a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A garbage collected cell implementation
 
 </span><span class="kw">use </span><span class="kw">crate</span>::trace::{Finalize, Trace};
@@ -590,38 +528,25 @@
     Unused,
 }
 
-<span class="kw">const </span>ROOT: usize = <span class="number">1</span>;
-<span class="kw">const </span>WRITING: usize = !<span class="number">1</span>;
+<span class="kw">const </span>WRITING: usize = !<span class="number">0</span>;
 <span class="kw">const </span>UNUSED: usize = <span class="number">0</span>;
 
 <span class="doccomment">/// The base borrowflag init is rooted, and has no outstanding borrows.
-</span><span class="kw">const </span>BORROWFLAG_INIT: BorrowFlag = BorrowFlag(ROOT);
+</span><span class="kw">const </span>BORROWFLAG_INIT: BorrowFlag = BorrowFlag(UNUSED);
 
 <span class="kw">impl </span>BorrowFlag {
     <span class="doccomment">/// Check the current `BorrowState` of `BorrowFlag`.
     </span><span class="kw">const fn </span>borrowed(<span class="self">self</span>) -&gt; BorrowState {
-        <span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>&amp; !ROOT {
+        <span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>{
             UNUSED =&gt; BorrowState::Unused,
             WRITING =&gt; BorrowState::Writing,
             <span class="kw">_ </span>=&gt; BorrowState::Reading,
         }
     }
 
-    <span class="doccomment">/// Check whether the borrow bit is flagged.
-    </span><span class="kw">const fn </span>rooted(<span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.<span class="number">0 </span>&amp; ROOT &gt; <span class="number">0
-    </span>}
-
     <span class="doccomment">/// Set the `BorrowFlag`&#39;s state to writing.
     </span><span class="kw">const fn </span>set_writing(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="comment">// Set every bit other than the root bit, which is preserved
-        </span><span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>| WRITING)
-    }
-
-    <span class="doccomment">/// Remove the root flag on `BorrowFlag`
-    </span><span class="kw">const fn </span>set_unused(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="comment">// Clear every bit other than the root bit, which is preserved
-        </span><span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>&amp; ROOT)
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>| WRITING)
     }
 
     <span class="doccomment">/// Increments the counter for a new borrow.
@@ -631,12 +556,7 @@
     ///  - This method will panic after incrementing if the borrow count overflows.
     </span><span class="kw">fn </span>add_reading(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(<span class="self">self</span>.borrowed() != BorrowState::Writing);
-        <span class="comment">// Add 1 to the integer starting at the second binary digit. As our
-        // borrowstate is not writing, we know that overflow cannot happen, so
-        // this is equivalent to the following, more complicated, expression:
-        //
-        // BorrowFlag((self.0 &amp; ROOT) | (((self.0 &gt;&gt; 1) + 1) &lt;&lt; 1))
-        </span><span class="kw">let </span>flags = <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>+ <span class="number">0b10</span>);
+        <span class="kw">let </span>flags = <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>+ <span class="number">1</span>);
 
         <span class="comment">// This will fail if the borrow count overflows, which shouldn&#39;t happen,
         // but let&#39;s be safe
@@ -652,26 +572,13 @@
     ///  - This method will panic if the current `BorrowState` is not reading.
     </span><span class="kw">fn </span>sub_reading(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(<span class="self">self</span>.borrowed() == BorrowState::Reading);
-        <span class="comment">// Subtract 1 from the integer starting at the second binary digit. As
-        // our borrowstate is not writing or unused, we know that overflow or
-        // undeflow cannot happen, so this is equivalent to the following, more
-        // complicated, expression:
-        //
-        // BorrowFlag((self.0 &amp; ROOT) | (((self.0 &gt;&gt; 1) - 1) &lt;&lt; 1))
-        </span><span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>- <span class="number">0b10</span>)
-    }
-
-    <span class="doccomment">/// Set the root flag on the `BorrowFlag`.
-    </span><span class="kw">fn </span>set_rooted(<span class="self">self</span>, rooted: bool) -&gt; <span class="self">Self </span>{
-        <span class="comment">// Preserve the non-root bits
-        </span><span class="self">Self</span>((<span class="self">self</span>.<span class="number">0 </span>&amp; !ROOT) | (usize::from(rooted)))
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>- <span class="number">1</span>)
     }
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>BorrowFlag {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_struct(<span class="string">&quot;BorrowFlag&quot;</span>)
-            .field(<span class="string">&quot;Rooted&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.rooted())
             .field(<span class="string">&quot;State&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.borrowed())
             .finish()
     }
@@ -778,12 +685,6 @@
         <span class="comment">// SAFETY: This is safe as the value is rooted if it was not previously rooted,
         // so it cannot be dropped.
         </span><span class="kw">unsafe </span>{
-            <span class="comment">// Force the val_ref&#39;s contents to be rooted for the duration of the
-            // mutable borrow
-            </span><span class="kw">if </span>!<span class="self">self</span>.flags.get().rooted() {
-                (<span class="kw-2">*</span><span class="self">self</span>.cell.get()).root();
-            }
-
             <span class="prelude-val">Ok</span>(GcRefMut {
                 gc_cell: <span class="self">self</span>,
                 value: <span class="kw-2">&amp;mut *</span><span class="self">self</span>.cell.get(),
@@ -827,25 +728,11 @@
         }
     }
 
-    <span class="kw">unsafe fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">assert!</span>(!<span class="self">self</span>.flags.get().rooted(), <span class="string">&quot;Can&#39;t root a GcCell twice!&quot;</span>);
-        <span class="self">self</span>.flags.set(<span class="self">self</span>.flags.get().set_rooted(<span class="bool-val">true</span>));
-
+    <span class="kw">fn </span>trace_non_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match </span><span class="self">self</span>.flags.get().borrowed() {
             BorrowState::Writing =&gt; (),
             <span class="comment">// SAFETY: Please see GcCell&#39;s Trace impl Safety note.
-            </span><span class="kw">_ </span>=&gt; <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.cell.get()).root() },
-        }
-    }
-
-    <span class="kw">unsafe fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">assert!</span>(<span class="self">self</span>.flags.get().rooted(), <span class="string">&quot;Can&#39;t unroot a GcCell twice!&quot;</span>);
-        <span class="self">self</span>.flags.set(<span class="self">self</span>.flags.get().set_rooted(<span class="bool-val">false</span>));
-
-        <span class="kw">match </span><span class="self">self</span>.flags.get().borrowed() {
-            BorrowState::Writing =&gt; (),
-            <span class="comment">// SAFETY: Please see GcCell&#39;s Trace impl Safety note.
-            </span><span class="kw">_ </span>=&gt; <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.cell.get()).unroot() },
+            </span><span class="kw">_ </span>=&gt; <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.cell.get()).trace_non_roots() },
         }
     }
 
@@ -971,12 +858,12 @@
 }
 
 <span class="doccomment">/// A wrapper type for a mutably borrowed value from a `GcCell&lt;T&gt;`.
-</span><span class="kw">pub struct </span>GcRefMut&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, U: <span class="question-mark">?</span>Sized = T&gt; {
+</span><span class="kw">pub struct </span>GcRefMut&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, U: <span class="question-mark">?</span>Sized = T&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) gc_cell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GcRefCell&lt;T&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>U,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; GcRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; GcRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; {
     <span class="doccomment">/// Makes a new `GcCellRefMut` for a component of the borrowed data, e.g., an enum
     /// variant.
     ///
@@ -1021,21 +908,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.gc_cell.flags.get().borrowed() == BorrowState::Writing);
-        <span class="comment">// Restore the rooted state of the GcCell&#39;s contents to the state of the GcCell.
-        // During the lifetime of the GcCellRefMut, the GcCell&#39;s contents are rooted.
-        </span><span class="kw">if </span>!<span class="self">self</span>.gc_cell.flags.get().rooted() {
-            <span class="comment">// SAFETY: If `GcCell` is no longer rooted, then unroot it. This should be safe
-            // as the internal `GcBox` should be guaranteed to have at least 1 root.
-            </span><span class="kw">unsafe </span>{
-                (<span class="kw-2">*</span><span class="self">self</span>.gc_cell.cell.get()).unroot();
-            }
-        }
-        <span class="self">self</span>.gc_cell
-            .flags
-            .set(<span class="self">self</span>.gc_cell.flags.get().set_unused());
+        <span class="self">self</span>.gc_cell.flags.set(BorrowFlag(UNUSED));
     }
 }
 

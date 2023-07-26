@@ -208,28 +208,45 @@
 <a href="#208" id="208">208</a>
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{trace::Trace, Gc, GcBox};
 <span class="kw">use </span>std::{
     cell::Cell,
     ptr::{<span class="self">self</span>, NonNull},
 };
 
-<span class="comment">// Age and Weak Flags
-</span><span class="kw">const </span>MARK_MASK: usize = <span class="number">1 </span>&lt;&lt; (usize::BITS - <span class="number">1</span>);
-<span class="kw">const </span>ROOTS_MASK: usize = !MARK_MASK;
-<span class="kw">const </span>ROOTS_MAX: usize = ROOTS_MASK;
+<span class="kw">const </span>MARK_MASK: u32 = <span class="number">1 </span>&lt;&lt; (u32::BITS - <span class="number">1</span>);
+<span class="kw">const </span>NON_ROOTS_MASK: u32 = !MARK_MASK;
+<span class="kw">const </span>NON_ROOTS_MAX: u32 = NON_ROOTS_MASK;
 
 <span class="doccomment">/// The `EphemeronBoxHeader` contains the `EphemeronBoxHeader`&#39;s current state for the `Collector`&#39;s
 /// Mark/Sweep as well as a pointer to the next ephemeron in the heap.
 ///
-/// These flags include:
-///  - Root Count
-///  - Mark Flag Bit
+/// `ref_count` is the number of Gc instances, and `non_root_count` is the number of
+/// Gc instances in the heap. `non_root_count` also includes Mark Flag bit.
 ///
 /// The next node is set by the `Allocator` during initialization and by the
 /// `Collector` during the sweep phase.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EphemeronBoxHeader {
-    roots: Cell&lt;usize&gt;,
+    ref_count: Cell&lt;u32&gt;,
+    non_root_count: Cell&lt;u32&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) next: Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt;&gt;&gt;,
 }
 
@@ -237,57 +254,64 @@
     <span class="doccomment">/// Creates a new `EphemeronBoxHeader` with a root of 1 and next set to None.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            roots: Cell::new(<span class="number">1</span>),
+            ref_count: Cell::new(<span class="number">1</span>),
+            non_root_count: Cell::new(<span class="number">0</span>),
             next: Cell::new(<span class="prelude-val">None</span>),
         }
     }
 
-    <span class="doccomment">/// Returns the `EphemeronBoxHeader`&#39;s current root count
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>roots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.roots.get() &amp; ROOTS_MASK
+    <span class="doccomment">/// Returns the `EphemeronBoxHeader`&#39;s current ref count
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.ref_count.get()
     }
 
-    <span class="doccomment">/// Increments `EphemeronBoxHeader`&#39;s root count.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span>roots = <span class="self">self</span>.roots.get();
+    <span class="doccomment">/// Returns a count for non-roots.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.non_root_count.get() &amp; NON_ROOTS_MASK
+    }
 
-        <span class="kw">if </span>(roots &amp; ROOTS_MASK) &lt; ROOTS_MAX {
-            <span class="self">self</span>.roots.set(roots + <span class="number">1</span>);
+    <span class="doccomment">/// Increments `EphemeronBoxHeader`&#39;s non-roots count.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let </span>non_root_count = <span class="self">self</span>.non_root_count.get();
+
+        <span class="kw">if </span>(non_root_count &amp; NON_ROOTS_MASK) &lt; NON_ROOTS_MAX {
+            <span class="self">self</span>.non_root_count.set(non_root_count.wrapping_add(<span class="number">1</span>));
         } <span class="kw">else </span>{
             <span class="comment">// TODO: implement a better way to handle root overload.
-            </span><span class="macro">panic!</span>(<span class="string">&quot;roots counter overflow&quot;</span>);
+            </span><span class="macro">panic!</span>(<span class="string">&quot;non roots counter overflow&quot;</span>);
         }
     }
 
-    <span class="doccomment">/// Decreases `EphemeronBoxHeader`&#39;s current root count.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dec_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Underflow check as a stop gap for current issue when dropping.
-        </span><span class="kw">if </span><span class="self">self</span>.roots.get() &gt; <span class="number">0 </span>{
-            <span class="self">self</span>.roots.set(<span class="self">self</span>.roots.get() - <span class="number">1</span>);
-        }
+    <span class="doccomment">/// Reset non-roots count to zero.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.non_root_count
+            .set(<span class="self">self</span>.non_root_count.get() &amp; !NON_ROOTS_MASK);
     }
 
-    <span class="doccomment">/// Returns a bool for whether `EphemeronBoxHeader`&#39;s mark bit is 1.
+    <span class="doccomment">/// Returns a bool for whether `GcBoxHeader`&#39;s mark bit is 1.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_marked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.roots.get() &amp; MARK_MASK != <span class="number">0
+        <span class="self">self</span>.non_root_count.get() &amp; MARK_MASK != <span class="number">0
     </span>}
 
-    <span class="doccomment">/// Sets `EphemeronBoxHeader`&#39;s mark bit to 1.
+    <span class="doccomment">/// Sets `GcBoxHeader`&#39;s mark bit to 1.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>mark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.roots.set(<span class="self">self</span>.roots.get() | MARK_MASK);
+        <span class="self">self</span>.non_root_count
+            .set(<span class="self">self</span>.non_root_count.get() | MARK_MASK);
     }
 
-    <span class="doccomment">/// Sets `EphemeronBoxHeader`&#39;s mark bit to 0.
+    <span class="doccomment">/// Sets `GcBoxHeader`&#39;s mark bit to 0.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unmark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.roots.set(<span class="self">self</span>.roots.get() &amp; !MARK_MASK);
+        <span class="self">self</span>.non_root_count
+            .set(<span class="self">self</span>.non_root_count.get() &amp; !MARK_MASK);
     }
 }
 
 <span class="kw">impl </span>core::fmt::Debug <span class="kw">for </span>EphemeronBoxHeader {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
         f.debug_struct(<span class="string">&quot;EphemeronBoxHeader&quot;</span>)
-            .field(<span class="string">&quot;roots&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.roots())
             .field(<span class="string">&quot;marked&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_marked())
+            .field(<span class="string">&quot;ref_count&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_ref_count())
+            .field(<span class="string">&quot;non_root_count&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_non_root_count())
             .finish()
     }
 }
@@ -348,18 +372,19 @@
         <span class="self">self</span>.header.mark();
     }
 
-    <span class="doccomment">/// Increases the root count on this `EphemeronBox`.
-    ///
-    /// Roots prevent the `EphemeronBox` from being destroyed by the garbage collector.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.header.inc_roots();
+    <span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.header.ref_count.set(<span class="self">self</span>.header.ref_count.get() + <span class="number">1</span>);
     }
 
-    <span class="doccomment">/// Decreases the root count on this `EphemeronBox`.
-    ///
-    /// Roots prevent the `EphemeronBox` from being destroyed by the garbage collector.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.header.dec_roots();
+    <span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dec_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.header.ref_count.set(<span class="self">self</span>.header.ref_count.get() - <span class="number">1</span>);
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.header.inc_non_root_count();
     }
 }
 
@@ -372,6 +397,8 @@
     /// considers ephemerons that are marked but don&#39;t have their value anymore as
     /// &quot;successfully traced&quot;.
     </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
+
+    <span class="kw">fn </span>trace_non_roots(<span class="kw-2">&amp;</span><span class="self">self</span>);
 
     <span class="doccomment">/// Runs the finalization logic of the `EphemeronBox`&#39;s held value, if the key is still live,
     /// and clears its contents.
@@ -409,12 +436,21 @@
         is_key_marked
     }
 
+    <span class="kw">fn </span>trace_non_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(data) = <span class="self">self</span>.data.get() <span class="kw">else </span>{
+            <span class="kw">return</span>;
+        };
+        <span class="comment">// SAFETY: `data` comes from a `Box`, so it is safe to dereference.
+        </span><span class="kw">unsafe </span>{
+            data.as_ref().value.trace_non_roots();
+        };
+    }
+
     <span class="kw">fn </span>finalize_and_clear(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(data) = <span class="self">self</span>.data.take() {
             <span class="comment">// SAFETY: `data` comes from an `into_raw` call, so this pointer is safe to pass to
             // `from_raw`.
-            </span><span class="kw">let </span>contents = <span class="kw">unsafe </span>{ Box::from_raw(data.as_ptr()) };
-            Trace::run_finalizer(<span class="kw-2">&amp;</span>contents.value);
+            </span><span class="kw">let </span>_contents = <span class="kw">unsafe </span>{ Box::from_raw(data.as_ptr()) };
         }
     }
 }

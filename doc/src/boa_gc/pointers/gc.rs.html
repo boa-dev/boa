@@ -223,38 +223,6 @@
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
-<a href="#247" id="247">247</a>
-<a href="#248" id="248">248</a>
-<a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
-<a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a>
-<a href="#253" id="253">253</a>
-<a href="#254" id="254">254</a>
-<a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     finalizer_safe,
     internals::GcBox,
@@ -262,7 +230,6 @@
     Allocator,
 };
 <span class="kw">use </span>std::{
-    cell::Cell,
     cmp::Ordering,
     fmt::{<span class="self">self</span>, Debug, Display},
     hash::{Hash, Hasher},
@@ -272,11 +239,9 @@
     rc::Rc,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::rootable::Rootable;
-
 <span class="doccomment">/// A garbage-collected pointer type over an immutable value.
 </span><span class="kw">pub struct </span>Gc&lt;T: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner_ptr: Cell&lt;Rootable&lt;GcBox&lt;T&gt;&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner_ptr: NonNull&lt;GcBox&lt;T&gt;&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) marker: PhantomData&lt;Rc&lt;T&gt;&gt;,
 }
 
@@ -288,14 +253,8 @@
         // Note: Allocator can cause Collector to run
         </span><span class="kw">let </span>inner_ptr = Allocator::alloc_gc(GcBox::new(value));
 
-        <span class="comment">// SAFETY: inner_ptr was just allocated, so it must be a valid value that implements [`Trace`]
-        </span><span class="kw">unsafe </span>{ (<span class="kw-2">*</span>inner_ptr.as_ptr()).value().unroot() }
-
-        <span class="comment">// SAFETY: inner_ptr is 2-byte aligned.
-        </span><span class="kw">let </span>inner_ptr = <span class="kw">unsafe </span>{ Rootable::new_unchecked(inner_ptr) };
-
         <span class="self">Self </span>{
-            inner_ptr: Cell::new(inner_ptr.rooted()),
+            inner_ptr,
             marker: PhantomData,
         }
     }
@@ -303,6 +262,7 @@
     <span class="doccomment">/// Consumes the `Gc`, returning a wrapped raw pointer.
     ///
     /// To avoid a memory leak, the pointer must be converted back to a `Gc` using [`Gc::from_raw`].
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>into_raw(this: <span class="self">Self</span>) -&gt; NonNull&lt;GcBox&lt;T&gt;&gt; {
         <span class="kw">let </span>ptr = this.inner_ptr();
         std::mem::forget(this);
@@ -312,6 +272,7 @@
 
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Gc&lt;T&gt; {
     <span class="doccomment">/// Returns `true` if the two `Gc`s point to the same allocation.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>ptr_eq(this: <span class="kw-2">&amp;</span><span class="self">Self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         GcBox::ptr_eq(this.inner(), other.inner())
     }
@@ -326,33 +287,18 @@
     /// This function is unsafe because improper use may lead to memory corruption, double-free,
     /// or misbehaviour of the garbage collector.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub unsafe fn </span>from_raw(ptr: NonNull&lt;GcBox&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <span class="comment">// SAFETY: it is the caller&#39;s job to ensure the safety of this operation.
-        </span><span class="kw">unsafe </span>{
-            <span class="self">Self </span>{
-                inner_ptr: Cell::new(Rootable::new_unchecked(ptr).rooted()),
-                marker: PhantomData,
-            }
+    </span><span class="kw">pub const unsafe fn </span>from_raw(inner_ptr: NonNull&lt;GcBox&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner_ptr,
+            marker: PhantomData,
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Gc&lt;T&gt; {
-    <span class="kw">fn </span>is_rooted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.inner_ptr.get().is_rooted()
-    }
-
-    <span class="kw">fn </span>root_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.inner_ptr.set(<span class="self">self</span>.inner_ptr.get().rooted());
-    }
-
-    <span class="kw">fn </span>unroot_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.inner_ptr.set(<span class="self">self</span>.inner_ptr.get().unrooted());
-    }
-
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NonNull&lt;GcBox&lt;T&gt;&gt; {
-        <span class="macro">assert!</span>(finalizer_safe() || <span class="self">self</span>.is_rooted());
-        <span class="self">self</span>.inner_ptr.get().as_ptr()
+        <span class="macro">assert!</span>(finalizer_safe());
+        <span class="self">self</span>.inner_ptr
     }
 
     <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcBox&lt;T&gt; {
@@ -361,7 +307,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Finalize <span class="kw">for </span>Gc&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Finalize <span class="kw">for </span>Gc&lt;T&gt; {
+    <span class="kw">fn </span>finalize(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// SAFETY: inner_ptr should be alive when calling finalize.
+        // We don&#39;t call inner_ptr() to avoid overhead of calling finalizer_safe().
+        </span><span class="kw">unsafe </span>{
+            <span class="self">self</span>.inner_ptr.as_ref().dec_ref_count();
+        }
+    }
+}
 
 <span class="comment">// SAFETY: `Gc` maintains it&#39;s own rootedness and implements all methods of
 // Trace. It is not possible to root an already rooted `Gc` and vice versa.
@@ -373,22 +327,8 @@
         }
     }
 
-    <span class="kw">unsafe fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">assert!</span>(!<span class="self">self</span>.is_rooted(), <span class="string">&quot;Can&#39;t double-root a Gc&lt;T&gt;&quot;</span>);
-        <span class="comment">// Try to get inner before modifying our state. Inner may be
-        // inaccessible due to this method being invoked during the sweeping
-        // phase, and we don&#39;t want to modify our state before panicking.
-        </span><span class="self">self</span>.inner().root();
-        <span class="self">self</span>.root_ptr();
-    }
-
-    <span class="kw">unsafe fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">assert!</span>(<span class="self">self</span>.is_rooted(), <span class="string">&quot;Can&#39;t double-unroot a Gc&lt;T&gt;&quot;</span>);
-        <span class="comment">// Try to get inner before modifying our state. Inner may be
-        // inaccessible due to this method being invoked during the sweeping
-        // phase, and we don&#39;t want to modify our state before panicking.
-        </span><span class="self">self</span>.inner().unroot();
-        <span class="self">self</span>.unroot_ptr();
+    <span class="kw">fn </span>trace_non_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.inner().inc_non_root_count();
     }
 
     <span class="kw">fn </span>run_finalizer(<span class="kw-2">&amp;</span><span class="self">self</span>) {
@@ -399,10 +339,7 @@
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Clone <span class="kw">for </span>Gc&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>ptr = <span class="self">self</span>.inner_ptr();
-        <span class="comment">// SAFETY: since a `Gc` is always valid, its `inner_ptr` must also be always a valid pointer.
-        </span><span class="kw">unsafe </span>{
-            ptr.as_ref().root();
-        }
+        <span class="self">self</span>.inner().inc_ref_count();
         <span class="comment">// SAFETY: though `ptr` doesn&#39;t come from a `into_raw` call, it essentially does the same,
         // but it skips the call to `std::mem::forget` since we have a reference instead of an owned
         // value.
@@ -420,9 +357,8 @@
 
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>Gc&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="comment">// If this pointer was a root, we should unroot it.
-        </span><span class="kw">if </span><span class="self">self</span>.is_rooted() {
-            <span class="self">self</span>.inner().unroot();
+        <span class="kw">if </span>finalizer_safe() {
+            Finalize::finalize(<span class="self">self</span>);
         }
     }
 }

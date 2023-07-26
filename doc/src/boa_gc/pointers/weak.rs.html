@@ -64,6 +64,9 @@
 <a href="#64" id="64">64</a>
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{Ephemeron, Finalize, Gc, Trace};
 <span class="kw">use </span>std::hash::{Hash, Hasher};
 
@@ -79,6 +82,7 @@
 
 <span class="kw">impl</span>&lt;T: Trace&gt; WeakGc&lt;T&gt; {
     <span class="doccomment">/// Creates a new weak pointer for a garbage collected value.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new(value: <span class="kw-2">&amp;</span>Gc&lt;T&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: Ephemeron::new(value, value.clone()),
@@ -86,11 +90,13 @@
     }
 
     <span class="doccomment">/// Upgrade returns a `Gc` pointer for the internal value if valid, or None if the value was already garbage collected.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;T&gt;&gt; {
         <span class="self">self</span>.inner.value()
     }
 
     <span class="doccomment">/// Check if the [`WeakGc`] can be upgraded.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>is_upgradable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.inner.has_value()
     }
