@@ -5,7 +5,6 @@ use crate::{
     Allocator,
 };
 use std::{
-    cell::Cell,
     cmp::Ordering,
     fmt::{self, Debug, Display},
     hash::{Hash, Hasher},
@@ -15,11 +14,9 @@ use std::{
     rc::Rc,
 };
 
-use super::rootable::Rootable;
-
 /// A garbage-collected pointer type over an immutable value.
 pub struct Gc<T: Trace + ?Sized + 'static> {
-    pub(crate) inner_ptr: Cell<Rootable<GcBox<T>>>,
+    pub(crate) inner_ptr: NonNull<GcBox<T>>,
     pub(crate) marker: PhantomData<Rc<T>>,
 }
 
@@ -31,14 +28,8 @@ impl<T: Trace> Gc<T> {
         // Note: Allocator can cause Collector to run
         let inner_ptr = Allocator::alloc_gc(GcBox::new(value));
 
-        // SAFETY: inner_ptr was just allocated, so it must be a valid value that implements [`Trace`]
-        unsafe { (*inner_ptr.as_ptr()).value().unroot() }
-
-        // SAFETY: inner_ptr is 2-byte aligned.
-        let inner_ptr = unsafe { Rootable::new_unchecked(inner_ptr) };
-
         Self {
-            inner_ptr: Cell::new(inner_ptr.rooted()),
+            inner_ptr,
             marker: PhantomData,
         }
     }
@@ -46,6 +37,7 @@ impl<T: Trace> Gc<T> {
     /// Consumes the `Gc`, returning a wrapped raw pointer.
     ///
     /// To avoid a memory leak, the pointer must be converted back to a `Gc` using [`Gc::from_raw`].
+    #[must_use]
     pub fn into_raw(this: Self) -> NonNull<GcBox<T>> {
         let ptr = this.inner_ptr();
         std::mem::forget(this);
@@ -55,6 +47,7 @@ impl<T: Trace> Gc<T> {
 
 impl<T: Trace + ?Sized> Gc<T> {
     /// Returns `true` if the two `Gc`s point to the same allocation.
+    #[must_use]
     pub fn ptr_eq(this: &Self, other: &Self) -> bool {
         GcBox::ptr_eq(this.inner(), other.inner())
     }
@@ -69,33 +62,18 @@ impl<T: Trace + ?Sized> Gc<T> {
     /// This function is unsafe because improper use may lead to memory corruption, double-free,
     /// or misbehaviour of the garbage collector.
     #[must_use]
-    pub unsafe fn from_raw(ptr: NonNull<GcBox<T>>) -> Self {
-        // SAFETY: it is the caller's job to ensure the safety of this operation.
-        unsafe {
-            Self {
-                inner_ptr: Cell::new(Rootable::new_unchecked(ptr).rooted()),
-                marker: PhantomData,
-            }
+    pub const unsafe fn from_raw(inner_ptr: NonNull<GcBox<T>>) -> Self {
+        Self {
+            inner_ptr,
+            marker: PhantomData,
         }
     }
 }
 
 impl<T: Trace + ?Sized> Gc<T> {
-    fn is_rooted(&self) -> bool {
-        self.inner_ptr.get().is_rooted()
-    }
-
-    fn root_ptr(&self) {
-        self.inner_ptr.set(self.inner_ptr.get().rooted());
-    }
-
-    fn unroot_ptr(&self) {
-        self.inner_ptr.set(self.inner_ptr.get().unrooted());
-    }
-
     pub(crate) fn inner_ptr(&self) -> NonNull<GcBox<T>> {
-        assert!(finalizer_safe() || self.is_rooted());
-        self.inner_ptr.get().as_ptr()
+        assert!(finalizer_safe());
+        self.inner_ptr
     }
 
     fn inner(&self) -> &GcBox<T> {
@@ -104,7 +82,15 @@ impl<T: Trace + ?Sized> Gc<T> {
     }
 }
 
-impl<T: Trace + ?Sized> Finalize for Gc<T> {}
+impl<T: Trace + ?Sized> Finalize for Gc<T> {
+    fn finalize(&self) {
+        // SAFETY: inner_ptr should be alive when calling finalize.
+        // We don't call inner_ptr() to avoid overhead of calling finalizer_safe().
+        unsafe {
+            self.inner_ptr.as_ref().dec_ref_count();
+        }
+    }
+}
 
 // SAFETY: `Gc` maintains it's own rootedness and implements all methods of
 // Trace. It is not possible to root an already rooted `Gc` and vice versa.
@@ -116,22 +102,8 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
         }
     }
 
-    unsafe fn root(&self) {
-        assert!(!self.is_rooted(), "Can't double-root a Gc<T>");
-        // Try to get inner before modifying our state. Inner may be
-        // inaccessible due to this method being invoked during the sweeping
-        // phase, and we don't want to modify our state before panicking.
-        self.inner().root();
-        self.root_ptr();
-    }
-
-    unsafe fn unroot(&self) {
-        assert!(self.is_rooted(), "Can't double-unroot a Gc<T>");
-        // Try to get inner before modifying our state. Inner may be
-        // inaccessible due to this method being invoked during the sweeping
-        // phase, and we don't want to modify our state before panicking.
-        self.inner().unroot();
-        self.unroot_ptr();
+    fn trace_non_roots(&self) {
+        self.inner().inc_non_root_count();
     }
 
     fn run_finalizer(&self) {
@@ -142,10 +114,7 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
 impl<T: Trace + ?Sized> Clone for Gc<T> {
     fn clone(&self) -> Self {
         let ptr = self.inner_ptr();
-        // SAFETY: since a `Gc` is always valid, its `inner_ptr` must also be always a valid pointer.
-        unsafe {
-            ptr.as_ref().root();
-        }
+        self.inner().inc_ref_count();
         // SAFETY: though `ptr` doesn't come from a `into_raw` call, it essentially does the same,
         // but it skips the call to `std::mem::forget` since we have a reference instead of an owned
         // value.
@@ -163,9 +132,8 @@ impl<T: Trace + ?Sized> Deref for Gc<T> {
 
 impl<T: Trace + ?Sized> Drop for Gc<T> {
     fn drop(&mut self) {
-        // If this pointer was a root, we should unroot it.
-        if self.is_rooted() {
-            self.inner().unroot();
+        if finalizer_safe() {
+            Finalize::finalize(self);
         }
     }
 }

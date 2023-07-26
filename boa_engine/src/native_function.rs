@@ -69,7 +69,7 @@ where
 /// to use. All other closures can also be stored in a `NativeFunction`, albeit by using an `unsafe`
 /// API, but note that passing closures implicitly capturing traceable types could cause
 /// **Undefined Behaviour**.
-#[derive(Clone)]
+#[derive(Clone, Finalize)]
 pub struct NativeFunction {
     inner: Inner,
 }
@@ -78,14 +78,6 @@ pub struct NativeFunction {
 enum Inner {
     PointerFn(NativeFunctionPointer),
     Closure(Gc<dyn TraceableClosure>),
-}
-
-impl Finalize for NativeFunction {
-    fn finalize(&self) {
-        if let Inner::Closure(c) = &self.inner {
-            c.finalize();
-        }
-    }
 }
 
 // Manual implementation because deriving `Trace` triggers the `single_use_lifetimes` lint.

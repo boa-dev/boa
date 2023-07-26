@@ -4,22 +4,21 @@ use std::{
     ptr::{self, NonNull},
 };
 
-// Age and Weak Flags
-const MARK_MASK: usize = 1 << (usize::BITS - 1);
-const ROOTS_MASK: usize = !MARK_MASK;
-const ROOTS_MAX: usize = ROOTS_MASK;
+const MARK_MASK: u32 = 1 << (u32::BITS - 1);
+const NON_ROOTS_MASK: u32 = !MARK_MASK;
+const NON_ROOTS_MAX: u32 = NON_ROOTS_MASK;
 
 /// The `EphemeronBoxHeader` contains the `EphemeronBoxHeader`'s current state for the `Collector`'s
 /// Mark/Sweep as well as a pointer to the next ephemeron in the heap.
 ///
-/// These flags include:
-///  - Root Count
-///  - Mark Flag Bit
+/// `ref_count` is the number of Gc instances, and `non_root_count` is the number of
+/// Gc instances in the heap. `non_root_count` also includes Mark Flag bit.
 ///
 /// The next node is set by the `Allocator` during initialization and by the
 /// `Collector` during the sweep phase.
 pub(crate) struct EphemeronBoxHeader {
-    roots: Cell<usize>,
+    ref_count: Cell<u32>,
+    non_root_count: Cell<u32>,
     pub(crate) next: Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
 }
 
@@ -27,57 +26,64 @@ impl EphemeronBoxHeader {
     /// Creates a new `EphemeronBoxHeader` with a root of 1 and next set to None.
     pub(crate) fn new() -> Self {
         Self {
-            roots: Cell::new(1),
+            ref_count: Cell::new(1),
+            non_root_count: Cell::new(0),
             next: Cell::new(None),
         }
     }
 
-    /// Returns the `EphemeronBoxHeader`'s current root count
-    pub(crate) fn roots(&self) -> usize {
-        self.roots.get() & ROOTS_MASK
+    /// Returns the `EphemeronBoxHeader`'s current ref count
+    pub(crate) fn get_ref_count(&self) -> u32 {
+        self.ref_count.get()
     }
 
-    /// Increments `EphemeronBoxHeader`'s root count.
-    pub(crate) fn inc_roots(&self) {
-        let roots = self.roots.get();
+    /// Returns a count for non-roots.
+    pub(crate) fn get_non_root_count(&self) -> u32 {
+        self.non_root_count.get() & NON_ROOTS_MASK
+    }
 
-        if (roots & ROOTS_MASK) < ROOTS_MAX {
-            self.roots.set(roots + 1);
+    /// Increments `EphemeronBoxHeader`'s non-roots count.
+    pub(crate) fn inc_non_root_count(&self) {
+        let non_root_count = self.non_root_count.get();
+
+        if (non_root_count & NON_ROOTS_MASK) < NON_ROOTS_MAX {
+            self.non_root_count.set(non_root_count.wrapping_add(1));
         } else {
             // TODO: implement a better way to handle root overload.
-            panic!("roots counter overflow");
+            panic!("non roots counter overflow");
         }
     }
 
-    /// Decreases `EphemeronBoxHeader`'s current root count.
-    pub(crate) fn dec_roots(&self) {
-        // Underflow check as a stop gap for current issue when dropping.
-        if self.roots.get() > 0 {
-            self.roots.set(self.roots.get() - 1);
-        }
+    /// Reset non-roots count to zero.
+    pub(crate) fn reset_non_root_count(&self) {
+        self.non_root_count
+            .set(self.non_root_count.get() & !NON_ROOTS_MASK);
     }
 
-    /// Returns a bool for whether `EphemeronBoxHeader`'s mark bit is 1.
+    /// Returns a bool for whether `GcBoxHeader`'s mark bit is 1.
     pub(crate) fn is_marked(&self) -> bool {
-        self.roots.get() & MARK_MASK != 0
+        self.non_root_count.get() & MARK_MASK != 0
     }
 
-    /// Sets `EphemeronBoxHeader`'s mark bit to 1.
+    /// Sets `GcBoxHeader`'s mark bit to 1.
     pub(crate) fn mark(&self) {
-        self.roots.set(self.roots.get() | MARK_MASK);
+        self.non_root_count
+            .set(self.non_root_count.get() | MARK_MASK);
     }
 
-    /// Sets `EphemeronBoxHeader`'s mark bit to 0.
+    /// Sets `GcBoxHeader`'s mark bit to 0.
     pub(crate) fn unmark(&self) {
-        self.roots.set(self.roots.get() & !MARK_MASK);
+        self.non_root_count
+            .set(self.non_root_count.get() & !MARK_MASK);
     }
 }
 
 impl core::fmt::Debug for EphemeronBoxHeader {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("EphemeronBoxHeader")
-            .field("roots", &self.roots())
             .field("marked", &self.is_marked())
+            .field("ref_count", &self.get_ref_count())
+            .field("non_root_count", &self.get_non_root_count())
             .finish()
     }
 }
@@ -138,18 +144,19 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
         self.header.mark();
     }
 
-    /// Increases the root count on this `EphemeronBox`.
-    ///
-    /// Roots prevent the `EphemeronBox` from being destroyed by the garbage collector.
-    pub(crate) fn root(&self) {
-        self.header.inc_roots();
+    #[inline]
+    pub(crate) fn inc_ref_count(&self) {
+        self.header.ref_count.set(self.header.ref_count.get() + 1);
     }
 
-    /// Decreases the root count on this `EphemeronBox`.
-    ///
-    /// Roots prevent the `EphemeronBox` from being destroyed by the garbage collector.
-    pub(crate) fn unroot(&self) {
-        self.header.dec_roots();
+    #[inline]
+    pub(crate) fn dec_ref_count(&self) {
+        self.header.ref_count.set(self.header.ref_count.get() - 1);
+    }
+
+    #[inline]
+    pub(crate) fn inc_non_root_count(&self) {
+        self.header.inc_non_root_count();
     }
 }
 
@@ -162,6 +169,8 @@ pub(crate) trait ErasedEphemeronBox {
     /// considers ephemerons that are marked but don't have their value anymore as
     /// "successfully traced".
     unsafe fn trace(&self) -> bool;
+
+    fn trace_non_roots(&self);
 
     /// Runs the finalization logic of the `EphemeronBox`'s held value, if the key is still live,
     /// and clears its contents.
@@ -199,12 +208,21 @@ impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
         is_key_marked
     }
 
+    fn trace_non_roots(&self) {
+        let Some(data) = self.data.get() else {
+            return;
+        };
+        // SAFETY: `data` comes from a `Box`, so it is safe to dereference.
+        unsafe {
+            data.as_ref().value.trace_non_roots();
+        };
+    }
+
     fn finalize_and_clear(&self) {
         if let Some(data) = self.data.take() {
             // SAFETY: `data` comes from an `into_raw` call, so this pointer is safe to pass to
             // `from_raw`.
-            let contents = unsafe { Box::from_raw(data.as_ptr()) };
-            Trace::run_finalizer(&contents.value);
+            let _contents = unsafe { Box::from_raw(data.as_ptr()) };
         }
     }
 }

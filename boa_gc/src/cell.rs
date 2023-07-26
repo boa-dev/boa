@@ -26,38 +26,25 @@ enum BorrowState {
     Unused,
 }
 
-const ROOT: usize = 1;
-const WRITING: usize = !1;
+const WRITING: usize = !0;
 const UNUSED: usize = 0;
 
 /// The base borrowflag init is rooted, and has no outstanding borrows.
-const BORROWFLAG_INIT: BorrowFlag = BorrowFlag(ROOT);
+const BORROWFLAG_INIT: BorrowFlag = BorrowFlag(UNUSED);
 
 impl BorrowFlag {
     /// Check the current `BorrowState` of `BorrowFlag`.
     const fn borrowed(self) -> BorrowState {
-        match self.0 & !ROOT {
+        match self.0 {
             UNUSED => BorrowState::Unused,
             WRITING => BorrowState::Writing,
             _ => BorrowState::Reading,
         }
     }
 
-    /// Check whether the borrow bit is flagged.
-    const fn rooted(self) -> bool {
-        self.0 & ROOT > 0
-    }
-
     /// Set the `BorrowFlag`'s state to writing.
     const fn set_writing(self) -> Self {
-        // Set every bit other than the root bit, which is preserved
         Self(self.0 | WRITING)
-    }
-
-    /// Remove the root flag on `BorrowFlag`
-    const fn set_unused(self) -> Self {
-        // Clear every bit other than the root bit, which is preserved
-        Self(self.0 & ROOT)
     }
 
     /// Increments the counter for a new borrow.
@@ -67,12 +54,7 @@ impl BorrowFlag {
     ///  - This method will panic after incrementing if the borrow count overflows.
     fn add_reading(self) -> Self {
         assert!(self.borrowed() != BorrowState::Writing);
-        // Add 1 to the integer starting at the second binary digit. As our
-        // borrowstate is not writing, we know that overflow cannot happen, so
-        // this is equivalent to the following, more complicated, expression:
-        //
-        // BorrowFlag((self.0 & ROOT) | (((self.0 >> 1) + 1) << 1))
-        let flags = Self(self.0 + 0b10);
+        let flags = Self(self.0 + 1);
 
         // This will fail if the borrow count overflows, which shouldn't happen,
         // but let's be safe
@@ -88,26 +70,13 @@ impl BorrowFlag {
     ///  - This method will panic if the current `BorrowState` is not reading.
     fn sub_reading(self) -> Self {
         assert!(self.borrowed() == BorrowState::Reading);
-        // Subtract 1 from the integer starting at the second binary digit. As
-        // our borrowstate is not writing or unused, we know that overflow or
-        // undeflow cannot happen, so this is equivalent to the following, more
-        // complicated, expression:
-        //
-        // BorrowFlag((self.0 & ROOT) | (((self.0 >> 1) - 1) << 1))
-        Self(self.0 - 0b10)
-    }
-
-    /// Set the root flag on the `BorrowFlag`.
-    fn set_rooted(self, rooted: bool) -> Self {
-        // Preserve the non-root bits
-        Self((self.0 & !ROOT) | (usize::from(rooted)))
+        Self(self.0 - 1)
     }
 }
 
 impl Debug for BorrowFlag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("BorrowFlag")
-            .field("Rooted", &self.rooted())
             .field("State", &self.borrowed())
             .finish()
     }
@@ -214,12 +183,6 @@ impl<T: Trace + ?Sized> GcRefCell<T> {
         // SAFETY: This is safe as the value is rooted if it was not previously rooted,
         // so it cannot be dropped.
         unsafe {
-            // Force the val_ref's contents to be rooted for the duration of the
-            // mutable borrow
-            if !self.flags.get().rooted() {
-                (*self.cell.get()).root();
-            }
-
             Ok(GcRefMut {
                 gc_cell: self,
                 value: &mut *self.cell.get(),
@@ -263,25 +226,11 @@ unsafe impl<T: Trace + ?Sized> Trace for GcRefCell<T> {
         }
     }
 
-    unsafe fn root(&self) {
-        assert!(!self.flags.get().rooted(), "Can't root a GcCell twice!");
-        self.flags.set(self.flags.get().set_rooted(true));
-
+    fn trace_non_roots(&self) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
             // SAFETY: Please see GcCell's Trace impl Safety note.
-            _ => unsafe { (*self.cell.get()).root() },
-        }
-    }
-
-    unsafe fn unroot(&self) {
-        assert!(self.flags.get().rooted(), "Can't unroot a GcCell twice!");
-        self.flags.set(self.flags.get().set_rooted(false));
-
-        match self.flags.get().borrowed() {
-            BorrowState::Writing => (),
-            // SAFETY: Please see GcCell's Trace impl Safety note.
-            _ => unsafe { (*self.cell.get()).unroot() },
+            _ => unsafe { (*self.cell.get()).trace_non_roots() },
         }
     }
 
@@ -407,12 +356,12 @@ impl<T: ?Sized + Display> Display for GcRef<'_, T> {
 }
 
 /// A wrapper type for a mutably borrowed value from a `GcCell<T>`.
-pub struct GcRefMut<'a, T: Trace + ?Sized + 'static, U: ?Sized = T> {
+pub struct GcRefMut<'a, T: ?Sized + 'static, U: ?Sized = T> {
     pub(crate) gc_cell: &'a GcRefCell<T>,
     pub(crate) value: &'a mut U,
 }
 
-impl<'a, T: Trace + ?Sized, U: ?Sized> GcRefMut<'a, T, U> {
+impl<'a, T: ?Sized, U: ?Sized> GcRefMut<'a, T, U> {
     /// Makes a new `GcCellRefMut` for a component of the borrowed data, e.g., an enum
     /// variant.
     ///
@@ -457,21 +406,10 @@ impl<T: Trace + ?Sized, U: ?Sized> DerefMut for GcRefMut<'_, T, U> {
     }
 }
 
-impl<T: Trace + ?Sized, U: ?Sized> Drop for GcRefMut<'_, T, U> {
+impl<T: ?Sized, U: ?Sized> Drop for GcRefMut<'_, T, U> {
     fn drop(&mut self) {
         debug_assert!(self.gc_cell.flags.get().borrowed() == BorrowState::Writing);
-        // Restore the rooted state of the GcCell's contents to the state of the GcCell.
-        // During the lifetime of the GcCellRefMut, the GcCell's contents are rooted.
-        if !self.gc_cell.flags.get().rooted() {
-            // SAFETY: If `GcCell` is no longer rooted, then unroot it. This should be safe
-            // as the internal `GcBox` should be guaranteed to have at least 1 root.
-            unsafe {
-                (*self.gc_cell.cell.get()).unroot();
-            }
-        }
-        self.gc_cell
-            .flags
-            .set(self.gc_cell.flags.get().set_unused());
+        self.gc_cell.flags.set(BorrowFlag(UNUSED));
     }
 }
 

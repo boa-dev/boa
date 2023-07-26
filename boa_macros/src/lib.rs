@@ -251,21 +251,11 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
                 match *self { #trace_body }
             }
             #[inline]
-            unsafe fn root(&self) {
+            fn trace_non_roots(&self) {
                 #[allow(dead_code)]
                 fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
                     unsafe {
-                        ::boa_gc::Trace::root(it);
-                    }
-                }
-                match *self { #trace_body }
-            }
-            #[inline]
-            unsafe fn unroot(&self) {
-                #[allow(dead_code)]
-                fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
-                    unsafe {
-                        ::boa_gc::Trace::unroot(it);
+                        ::boa_gc::Trace::trace_non_roots(it);
                     }
                 }
                 match *self { #trace_body }

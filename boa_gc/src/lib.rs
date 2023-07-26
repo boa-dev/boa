@@ -283,6 +283,9 @@ impl Collector {
     fn collect(gc: &mut BoaGc) {
         let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
+
+        Self::trace_non_roots(gc);
+
         let unreachables = Self::mark_heap(&gc.strong_start, &gc.weak_start, &gc.weak_map_start);
 
         // Only finalize if there are any unreachable nodes.
@@ -324,6 +327,26 @@ impl Collector {
         }
     }
 
+    fn trace_non_roots(gc: &mut BoaGc) {
+        // Count all the handles located in GC heap.
+        // Then, we can find whether there is a reference from other places, and they are the roots.
+        let mut strong = &gc.strong_start;
+        while let Some(node) = strong.get() {
+            // SAFETY: node must be valid as this phase cannot drop any node.
+            let node_ref = unsafe { node.as_ref() };
+            node_ref.value().trace_non_roots();
+            strong = &node_ref.header.next;
+        }
+
+        let mut weak = &gc.weak_start;
+        while let Some(eph) = weak.get() {
+            // SAFETY: node must be valid as this phase cannot drop any node.
+            let eph_ref = unsafe { eph.as_ref() };
+            eph_ref.trace_non_roots();
+            weak = &eph_ref.header().next;
+        }
+    }
+
     /// Walk the heap and mark any nodes deemed reachable
     fn mark_heap(
         mut strong: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
@@ -331,6 +354,7 @@ impl Collector {
         mut weak_map: &Cell<Option<ErasedWeakMapBoxPointer>>,
     ) -> Unreachables {
         let _timer = Profiler::global().start_event("Gc Marking", "gc");
+
         // Walk the list, tracing and marking the nodes
         let mut strong_dead = Vec::new();
         let mut pending_ephemerons = Vec::new();
@@ -341,9 +365,8 @@ impl Collector {
         while let Some(node) = strong.get() {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let node_ref = unsafe { node.as_ref() };
-            if node_ref.header.roots() != 0 {
-                // SAFETY: the reference to node must be valid as it is rooted. Passing
-                // invalid references can result in Undefined Behavior
+            if node_ref.get_non_root_count() < node_ref.get_ref_count() {
+                // SAFETY: the gc heap object should be alive if there is a root.
                 unsafe {
                     node_ref.mark_and_trace();
                 }
@@ -375,7 +398,7 @@ impl Collector {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let eph_ref = unsafe { eph.as_ref() };
             let header = eph_ref.header();
-            if header.roots() != 0 {
+            if header.get_non_root_count() < header.get_ref_count() {
                 header.mark();
             }
             // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
@@ -463,8 +486,9 @@ impl Collector {
         while let Some(node) = strong.get() {
             // SAFETY: The caller must ensure the validity of every node of `heap_start`.
             let node_ref = unsafe { node.as_ref() };
-            if node_ref.header.roots() > 0 || node_ref.is_marked() {
+            if node_ref.is_marked() {
                 node_ref.header.unmark();
+                node_ref.reset_non_root_count();
                 strong = &node_ref.header.next;
             } else {
                 // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
@@ -480,8 +504,9 @@ impl Collector {
             // SAFETY: The caller must ensure the validity of every node of `heap_start`.
             let eph_ref = unsafe { eph.as_ref() };
             let header = eph_ref.header();
-            if header.roots() > 0 || header.is_marked() {
+            if header.is_marked() {
                 header.unmark();
+                header.reset_non_root_count();
                 weak = &header.next;
             } else {
                 // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
