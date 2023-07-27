@@ -28,7 +28,7 @@ toml = "0.7.6"
 color-eyre = "0.6.2"
 phf = { version = "0.11.2", features = ["macros"] }
 comfy-table = "7.0.1"
-serde_repr = "0.1.15"
+serde_repr = "0.1.16"
 
 [features]
 default = ["boa_engine/intl", "boa_engine/annex-b"]
