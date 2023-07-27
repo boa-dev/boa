@@ -33,8 +33,8 @@ impl Operation for GetName {
     const INSTRUCTION: &'static str = "INST - GetName";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
     }
 
     fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
@@ -43,8 +43,93 @@ impl Operation for GetName {
     }
 
     fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
+/// `GetGlobalName` implements the Opcode Operation for `Opcode::GetGlobalName`
+///
+/// Operation:
+///  - TODO: doc
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GetGlobalName;
+
+impl GetGlobalName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let key = context.vm.frame().code_block().names[index].clone();
+        let global = context.global_object();
+        if !global.has_property(key.clone(), context)? {
+            return Err(JsNativeError::reference()
+                .with_message(format!("{} is not defined", key.to_std_string_escaped()))
+                .into());
+        }
+
+        let value = global.get(key, context)?;
+        context.vm.push(value);
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for GetGlobalName {
+    const NAME: &'static str = "GetGlobalName";
+    const INSTRUCTION: &'static str = "INST - GetGlobalName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
+/// `GetGlobalNameOrUndefined` implements the Opcode Operation for `Opcode::GetGlobalNameOrUndefined`
+///
+/// Operation:
+///  - TODO: doc
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GetGlobalNameOrUndefined;
+
+impl GetGlobalNameOrUndefined {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let key = context.vm.frame().code_block().names[index].clone();
+        let global = context.global_object();
+        if !global.has_property(key.clone(), context)? {
+            context.vm.push(JsValue::undefined());
+            return Ok(CompletionType::Normal);
+        }
+
+        let value = global.get(key, context)?;
+        context.vm.push(value);
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for GetGlobalNameOrUndefined {
+    const NAME: &'static str = "GetGlobalNameOrUndefined";
+    const INSTRUCTION: &'static str = "INST - GetGlobalNameOrUndefined";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 

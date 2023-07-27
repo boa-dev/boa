@@ -24,7 +24,7 @@ impl ByteCompiler<'_, '_> {
                     PropertyName::Literal(name) => {
                         self.compile_expr(expr, true);
                         let index = self.get_or_insert_name((*name).into());
-                        if *name == Sym::__PROTO__ && !self.json_parse {
+                        if *name == Sym::__PROTO__ && !self.json_parse() {
                             self.emit_opcode(Opcode::SetPrototype);
                         } else {
                             self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, index);

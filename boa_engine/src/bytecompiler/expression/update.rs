@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Operand},
+    bytecompiler::{Access, ByteCompiler, EnvironmentAccess, Operand},
     environments::BindingLocatorError,
     vm::Opcode,
 };
@@ -24,14 +24,26 @@ impl ByteCompiler<'_, '_> {
         match Access::from_update_target(update.target()) {
             Access::Variable { name } => {
                 let binding = self.get_binding_value(name);
-                let index = self.get_or_insert_binding(binding);
                 let lex = self.current_environment.is_lex_binding(name);
 
-                if lex {
-                    self.emit_with_varying_operand(Opcode::GetName, index);
-                } else {
-                    self.emit_with_varying_operand(Opcode::GetNameAndLocator, index);
-                }
+                let is_fast = match self.get_or_insert_binding(binding) {
+                    EnvironmentAccess::Fast { index } => {
+                        self.emit_with_varying_operand(Opcode::GetLocal, index);
+                        true
+                    }
+                    EnvironmentAccess::Global { index } => {
+                        self.emit_with_varying_operand(Opcode::GetGlobalName, index);
+                        true
+                    }
+                    EnvironmentAccess::Slow { index } => {
+                        if lex {
+                            self.emit_with_varying_operand(Opcode::GetName, index);
+                        } else {
+                            self.emit_with_varying_operand(Opcode::GetNameAndLocator, index);
+                        }
+                        false
+                    }
+                };
 
                 self.emit_opcode(opcode);
                 if post {
@@ -40,12 +52,14 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::Dup);
                 }
 
-                if lex {
+                if lex || is_fast {
                     match self.set_mutable_binding(name) {
-                        Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
-                            self.emit_with_varying_operand(Opcode::SetName, index);
-                        }
+                        Ok(binding) => self.get_or_insert_binding(binding).emit(
+                            Opcode::SetLocal,
+                            Opcode::SetGlobalName,
+                            Opcode::SetName,
+                            self,
+                        ),
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
                             self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);

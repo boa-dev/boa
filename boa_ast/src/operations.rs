@@ -2156,3 +2156,63 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
         ControlFlow::Continue(())
     }
 }
+
+/// Returns `true` if the given statement can optimize local variables.
+#[must_use]
+pub fn can_optimize_local_variables<'a, N>(node: &'a N) -> bool
+where
+    &'a N: Into<NodeRef<'a>>,
+{
+    CanOptimizeLocalVariables.visit(node.into()).is_continue()
+}
+
+/// The [`Visitor`] used for [`returns_value`].
+#[derive(Debug)]
+struct CanOptimizeLocalVariables;
+
+impl<'ast> Visitor<'ast> for CanOptimizeLocalVariables {
+    type BreakTy = ();
+
+    fn visit_with(&mut self, _node: &'ast crate::statement::With) -> ControlFlow<Self::BreakTy> {
+        ControlFlow::Break(())
+    }
+
+    fn visit_call(&mut self, node: &'ast crate::expression::Call) -> ControlFlow<Self::BreakTy> {
+        if let Expression::Identifier(identifier) = node.function() {
+            if identifier.sym() == Sym::EVAL {
+                return ControlFlow::Break(());
+            }
+        }
+
+        try_break!(node.function().visit_with(self));
+
+        for arg in node.args() {
+            try_break!(arg.visit_with(self));
+        }
+
+        ControlFlow::Continue(())
+    }
+
+    fn visit_function(&mut self, _node: &'ast Function) -> ControlFlow<Self::BreakTy> {
+        ControlFlow::Break(())
+    }
+
+    fn visit_arrow_function(&mut self, _node: &'ast ArrowFunction) -> ControlFlow<Self::BreakTy> {
+        ControlFlow::Break(())
+    }
+
+    fn visit_async_function(&mut self, _node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
+        ControlFlow::Break(())
+    }
+
+    fn visit_async_arrow_function(
+        &mut self,
+        _node: &'ast AsyncArrowFunction,
+    ) -> ControlFlow<Self::BreakTy> {
+        ControlFlow::Break(())
+    }
+
+    fn visit_class(&mut self, _node: &'ast Class) -> ControlFlow<Self::BreakTy> {
+        ControlFlow::Break(())
+    }
+}

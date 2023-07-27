@@ -260,7 +260,9 @@ impl CodeBlock {
                 | Instruction::GetNameAndLocator { .. }
                 | Instruction::GetNameOrUndefined { .. }
                 | Instruction::SetName { .. }
-                | Instruction::DeleteName { .. } => {
+                | Instruction::DeleteName { .. }
+                | Instruction::GetLocal { .. }
+                | Instruction::SetLocal { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -287,7 +289,11 @@ impl CodeBlock {
                 | Instruction::PushClassPrivateSetter { .. }
                 | Instruction::PushClassPrivateMethod { .. }
                 | Instruction::InPrivate { .. }
-                | Instruction::ThrowMutateImmutable { .. } => {
+                | Instruction::ThrowMutateImmutable { .. }
+                | Instruction::GetGlobalName { .. }
+                | Instruction::SetGlobalName { .. }
+                | Instruction::GetGlobalNameOrUndefined { .. }
+                | Instruction::DeleteGlobalName { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -516,13 +522,7 @@ impl CodeBlock {
                 | Instruction::Reserved49
                 | Instruction::Reserved50
                 | Instruction::Reserved51
-                | Instruction::Reserved52
-                | Instruction::Reserved53
-                | Instruction::Reserved54
-                | Instruction::Reserved55
-                | Instruction::Reserved56
-                | Instruction::Reserved57
-                | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved52 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

@@ -29,8 +29,8 @@ impl Operation for ThrowMutateImmutable {
     const INSTRUCTION: &'static str = "INST - ThrowMutateImmutable";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
     }
 
     fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
@@ -39,8 +39,59 @@ impl Operation for ThrowMutateImmutable {
     }
 
     fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
+/// `SetGlobalName` implements the Opcode Operation for `Opcode::SetGlobalName`
+///
+/// Operation:
+///  - Set global name.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct SetGlobalName;
+
+impl SetGlobalName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let value = context.vm.pop();
+
+        let strict = context.vm.frame().code_block.strict();
+        let key = context.vm.frame().code_block().names[index].clone();
+
+        let global = context.global_object();
+        let has_property = global.has_property(key.clone(), context)?;
+        if !has_property && strict {
+            return Err(JsNativeError::reference()
+                .with_message(format!(
+                    "cannot assign to uninitialized global property `{}`",
+                    key.to_std_string_escaped()
+                ))
+                .into());
+        }
+
+        global.set(key, value, strict, context)?;
+
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for SetGlobalName {
+    const NAME: &'static str = "SetGlobalName";
+    const INSTRUCTION: &'static str = "INST - SetGlobalName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 

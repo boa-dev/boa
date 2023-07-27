@@ -28,8 +28,12 @@ impl ByteCompiler<'_, '_> {
                 match unary.target().flatten() {
                     Expression::Identifier(identifier) => {
                         let binding = self.get_binding_value(*identifier);
-                        let index = self.get_or_insert_binding(binding);
-                        self.emit_with_varying_operand(Opcode::GetNameOrUndefined, index);
+                        self.get_or_insert_binding(binding).emit(
+                            Opcode::GetLocal,
+                            Opcode::GetGlobalNameOrUndefined,
+                            Opcode::GetNameOrUndefined,
+                            self,
+                        );
                     }
                     expr => self.compile_expr(expr, true),
                 }

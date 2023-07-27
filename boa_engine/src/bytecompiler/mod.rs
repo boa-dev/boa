@@ -23,6 +23,7 @@ use crate::{
     },
     Context, JsBigInt, JsString, JsValue,
 };
+use bitflags::bitflags;
 use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
     expression::{
@@ -229,6 +230,58 @@ pub(crate) enum Operand {
     Varying(u32),
 }
 
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum EnvironmentAccess {
+    Fast { index: u32 },
+    Global { index: u32 },
+    Slow { index: u32 },
+}
+
+impl EnvironmentAccess {
+    pub(crate) fn emit<L, G, S>(
+        self,
+        local: L,
+        global: G,
+        slow: S,
+        compiler: &mut ByteCompiler<'_, '_>,
+    ) where
+        L: Into<Option<Opcode>>,
+        G: Into<Option<Opcode>>,
+        S: Into<Option<Opcode>>,
+    {
+        let local = local.into();
+        let global = global.into();
+        let slow = slow.into();
+
+        match self {
+            Self::Fast { index } if local.is_some() => {
+                compiler
+                    .emit_with_varying_operand(local.expect("there should be an opcode"), index);
+            }
+            Self::Global { index } if global.is_some() => compiler
+                .emit_with_varying_operand(global.expect("there should be an opcode"), index),
+            Self::Slow { index } if slow.is_some() => {
+                compiler.emit_with_varying_operand(slow.expect("there should be an opcode"), index);
+            }
+            _ => {}
+        }
+    }
+}
+
+bitflags! {
+    /// Flags for [`ByteCompiler`].
+    #[derive(Clone, Copy, Debug)]
+    pub(crate) struct ByteCompilerFlags: u8 {
+        const ASYNC = 0b0000_0001;
+        const GENERATOR = 0b0000_0010;
+        const HAS_WITH_STATEMENT = 0b0000_0100;
+        const IN_WITH_STATEMENT = 0b0000_1000;
+        const IN_EVAL = 0b0001_0000;
+        const HAS_EVAL = 0b0010_0000;
+        const JSON_PARSE = 0b0100_0000;
+    }
+}
+
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
@@ -272,16 +325,19 @@ pub struct ByteCompiler<'ctx, 'host> {
     handlers: ThinVec<Handler>,
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
-    bindings_map: FxHashMap<BindingLocator, u32>,
+    bindings_map: FxHashMap<BindingLocator, EnvironmentAccess>,
     jump_info: Vec<JumpControlInfo>,
-    pub(crate) in_async: bool,
-    in_generator: bool,
+
+    pub(crate) flags: ByteCompilerFlags,
+    can_optimize_local_variables: bool,
+    #[allow(dead_code)]
+    fast_local_variable_count: u32,
+    function_environment_index: Option<u32>,
 
     /// Used to handle exception throws that escape the async function types.
     ///
     /// Async functions and async generator functions, need to be closed and resolved.
     pub(crate) async_handler: Option<u32>,
-    json_parse: bool,
 
     // TODO: remove when we separate scripts from the context
     context: &'ctx mut Context<'host>,
@@ -307,6 +363,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     ) -> ByteCompiler<'ctx, 'host> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
+
+        let mut flags = ByteCompilerFlags::empty();
+        flags.set(ByteCompilerFlags::JSON_PARSE, json_parse);
         Self {
             function_name: name,
             length: 0,
@@ -328,12 +387,14 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
-            in_async: false,
-            in_generator: false,
+            can_optimize_local_variables: false,
+            fast_local_variable_count: 0,
+            function_environment_index: None,
             async_handler: None,
-            json_parse,
             current_environment,
             context,
+
+            flags,
 
             #[cfg(feature = "annex-b")]
             annex_b_function_names: Vec::new(),
@@ -344,16 +405,20 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         self.code_block_flags.contains(CodeBlockFlags::STRICT)
     }
 
-    pub(crate) const fn in_async(&self) -> bool {
-        self.in_async
+    pub(crate) const fn is_async(&self) -> bool {
+        self.flags.contains(ByteCompilerFlags::ASYNC)
     }
 
-    pub(crate) const fn in_generator(&self) -> bool {
-        self.in_generator
+    pub(crate) const fn is_generator(&self) -> bool {
+        self.flags.contains(ByteCompilerFlags::GENERATOR)
     }
 
-    pub(crate) const fn in_async_generator(&self) -> bool {
-        self.in_async() && self.in_generator()
+    pub(crate) const fn is_async_generator(&self) -> bool {
+        self.is_async() && self.is_generator()
+    }
+
+    pub(crate) const fn json_parse(&self) -> bool {
+        self.flags.contains(ByteCompilerFlags::JSON_PARSE)
     }
 
     pub(crate) fn interner(&self) -> &Interner {
@@ -394,31 +459,55 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     #[inline]
-    pub(crate) fn get_or_insert_binding(&mut self, binding: BindingLocator) -> u32 {
+    pub(crate) fn get_or_insert_binding(&mut self, binding: BindingLocator) -> EnvironmentAccess {
         if let Some(index) = self.bindings_map.get(&binding) {
             return *index;
         }
 
+        if let Some(function_environment_index) = self.function_environment_index {
+            if !binding.is_global()
+                && self.can_optimize_local_variables
+                && function_environment_index <= binding.environment_index()
+            {
+                let index = self.fast_local_variable_count;
+                self.fast_local_variable_count += 1;
+
+                println!("Fast binding {binding:?} at {index}");
+
+                self.bindings_map
+                    .insert(binding, EnvironmentAccess::Fast { index });
+                return EnvironmentAccess::Fast { index };
+            }
+
+            if binding.is_global() && !binding.is_lex() && self.can_optimize_local_variables {
+                let index = self.get_or_insert_name(binding.name());
+                return EnvironmentAccess::Global { index };
+            }
+        }
+
         let index = self.bindings.len() as u32;
         self.bindings.push(binding);
-        self.bindings_map.insert(binding, index);
-        index
+        self.bindings_map
+            .insert(binding, EnvironmentAccess::Slow { index });
+        EnvironmentAccess::Slow { index }
     }
 
     fn emit_binding(&mut self, opcode: BindingOpcode, name: Identifier) {
         match opcode {
             BindingOpcode::Var => {
                 let binding = self.initialize_mutable_binding(name, true);
-                let index = self.get_or_insert_binding(binding);
-                self.emit_with_varying_operand(Opcode::DefVar, index);
+                self.get_or_insert_binding(binding)
+                    .emit(None, None, Opcode::DefVar, self);
             }
             BindingOpcode::InitVar => {
                 if self.has_binding(name) {
                     match self.set_mutable_binding(name) {
-                        Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
-                            self.emit_with_varying_operand(Opcode::DefInitVar, index);
-                        }
+                        Ok(binding) => self.get_or_insert_binding(binding).emit(
+                            Opcode::SetLocal,
+                            Opcode::SetGlobalName,
+                            Opcode::DefInitVar,
+                            self,
+                        ),
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
                             self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
@@ -429,25 +518,39 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     }
                 } else {
                     let binding = self.initialize_mutable_binding(name, true);
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                    self.get_or_insert_binding(binding).emit(
+                        Opcode::SetLocal,
+                        Opcode::SetGlobalName,
+                        Opcode::DefInitVar,
+                        self,
+                    );
                 };
             }
             BindingOpcode::InitLet => {
                 let binding = self.initialize_mutable_binding(name, false);
-                let index = self.get_or_insert_binding(binding);
-                self.emit_with_varying_operand(Opcode::PutLexicalValue, index);
+                self.get_or_insert_binding(binding).emit(
+                    Opcode::SetLocal,
+                    Opcode::SetGlobalName,
+                    Opcode::PutLexicalValue,
+                    self,
+                );
             }
             BindingOpcode::InitConst => {
                 let binding = self.initialize_immutable_binding(name);
-                let index = self.get_or_insert_binding(binding);
-                self.emit_with_varying_operand(Opcode::PutLexicalValue, index);
+                self.get_or_insert_binding(binding).emit(
+                    Opcode::SetLocal,
+                    Opcode::SetGlobalName,
+                    Opcode::PutLexicalValue,
+                    self,
+                );
             }
             BindingOpcode::SetName => match self.set_mutable_binding(name) {
-                Ok(binding) => {
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_with_varying_operand(Opcode::SetName, index);
-                }
+                Ok(binding) => self.get_or_insert_binding(binding).emit(
+                    Opcode::SetLocal,
+                    Opcode::SetGlobalName,
+                    Opcode::SetName,
+                    self,
+                ),
                 Err(BindingLocatorError::MutateImmutable) => {
                     let index = self.get_or_insert_name(name);
                     self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
@@ -699,8 +802,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         match access {
             Access::Variable { name } => {
                 let binding = self.get_binding_value(name);
-                let index = self.get_or_insert_binding(binding);
-                self.emit_with_varying_operand(Opcode::GetName, index);
+                self.get_or_insert_binding(binding).emit(
+                    Opcode::GetLocal,
+                    Opcode::GetGlobalName,
+                    Opcode::GetName,
+                    self,
+                );
             }
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
@@ -764,24 +871,32 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         match access {
             Access::Variable { name } => {
                 let binding = self.get_binding_value(name);
-                let index = self.get_or_insert_binding(binding);
                 let lex = self.current_environment.is_lex_binding(name);
 
-                if !lex {
-                    self.emit_with_varying_operand(Opcode::GetLocator, index);
-                }
+                let is_fast = match self.get_or_insert_binding(binding) {
+                    EnvironmentAccess::Fast { index: _ }
+                    | EnvironmentAccess::Global { index: _ } => true,
+                    EnvironmentAccess::Slow { index } => {
+                        if !lex {
+                            self.emit_with_varying_operand(Opcode::GetLocator, index);
+                        }
+                        false
+                    }
+                };
 
                 expr_fn(self, 0);
                 if use_expr {
                     self.emit(Opcode::Dup, &[]);
                 }
 
-                if lex {
+                if lex || is_fast {
                     match self.set_mutable_binding(name) {
-                        Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
-                            self.emit_with_varying_operand(Opcode::SetName, index);
-                        }
+                        Ok(binding) => self.get_or_insert_binding(binding).emit(
+                            Opcode::SetLocal,
+                            Opcode::SetGlobalName,
+                            Opcode::SetName,
+                            self,
+                        ),
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
                             self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
@@ -877,8 +992,15 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             },
             Access::Variable { name } => {
                 let binding = self.get_binding_value(name);
-                let index = self.get_or_insert_binding(binding);
-                self.emit_with_varying_operand(Opcode::DeleteName, index);
+                match self.get_or_insert_binding(binding) {
+                    EnvironmentAccess::Fast { index: _ } => self.emit_opcode(Opcode::PushFalse),
+                    EnvironmentAccess::Global { index } => {
+                        self.emit_with_varying_operand(Opcode::DeleteGlobalName, index);
+                    }
+                    EnvironmentAccess::Slow { index } => {
+                        self.emit_with_varying_operand(Opcode::DeleteName, index);
+                    }
+                }
             }
             Access::This => {
                 self.emit_opcode(Opcode::PushTrue);
@@ -1192,14 +1314,20 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     .expect("function declaration must have name");
                 if self.annex_b_function_names.contains(&name) {
                     let binding = self.get_binding_value(name);
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_with_varying_operand(Opcode::GetName, index);
+                    self.get_or_insert_binding(binding).emit(
+                        Opcode::GetLocal,
+                        Opcode::GetGlobalName,
+                        Opcode::GetName,
+                        self,
+                    );
 
                     match self.set_mutable_binding_var(name) {
-                        Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
-                            self.emit_with_varying_operand(Opcode::SetName, index);
-                        }
+                        Ok(binding) => self.get_or_insert_binding(binding).emit(
+                            Opcode::SetLocal,
+                            Opcode::SetGlobalName,
+                            Opcode::SetName,
+                            self,
+                        ),
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
                             self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
@@ -1249,6 +1377,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .strict(self.strict())
             .arrow(arrow)
             .binding_identifier(binding_identifier)
+            .can_optimize(self.can_optimize_local_variables)
             .compile(
                 parameters,
                 body,
@@ -1533,6 +1662,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .utf16()
             .into();
 
+        if self.can_optimize_local_variables {
+            for handler in &mut self.handlers {
+                handler.stack_count += self.fast_local_variable_count;
+            }
+        }
+
         CodeBlock {
             name,
             length: self.length,
@@ -1546,6 +1681,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             compile_environments: self.compile_environments.into_boxed_slice(),
             handlers: self.handlers,
             flags: Cell::new(self.code_block_flags),
+            local_variable_count: self.fast_local_variable_count,
         }
     }
 

@@ -474,6 +474,7 @@ pub(crate) struct BindingLocator {
     environment_index: u32,
     binding_index: u32,
     global: bool,
+    lex: bool,
 }
 
 unsafe impl Trace for BindingLocator {
@@ -486,22 +487,25 @@ impl BindingLocator {
         name: Identifier,
         environment_index: u32,
         binding_index: u32,
+        lex: bool,
     ) -> Self {
         Self {
             name,
             environment_index,
             binding_index,
             global: false,
+            lex,
         }
     }
 
     /// Creates a binding locator that indicates that the binding is on the global object.
-    pub(super) const fn global(name: Identifier) -> Self {
+    pub(super) const fn global(name: Identifier, lex: bool) -> Self {
         Self {
             name,
             environment_index: 0,
             binding_index: 0,
             global: true,
+            lex,
         }
     }
 
@@ -513,6 +517,11 @@ impl BindingLocator {
     /// Returns if the binding is located on the global object.
     pub(crate) const fn is_global(&self) -> bool {
         self.global
+    }
+
+    /// Returns if the binding is a lexical binding.
+    pub(crate) const fn is_lex(&self) -> bool {
+        self.lex
     }
 
     /// Returns the environment index of the binding.

@@ -22,7 +22,7 @@ use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use crate::{
     builtins::{promise::PromiseCapability, Promise},
-    bytecompiler::{ByteCompiler, FunctionSpec},
+    bytecompiler::{ByteCompiler, ByteCompilerFlags, FunctionSpec},
     environments::{BindingLocator, CompileTimeEnvironment, EnvironmentStack},
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
@@ -1415,7 +1415,7 @@ impl SourceTextModule {
         let mut compiler =
             ByteCompiler::new(Sym::MAIN, true, false, module_compile_env.clone(), context);
 
-        compiler.in_async = true;
+        compiler.flags |= ByteCompilerFlags::ASYNC;
         compiler.async_handler = Some(compiler.push_handler());
 
         let mut imports = Vec::new();
@@ -1499,9 +1499,13 @@ impl SourceTextModule {
                         compiler.create_mutable_binding(name, false);
                         // 2. Perform ! env.InitializeBinding(dn, undefined).
                         let binding = compiler.initialize_mutable_binding(name, false);
-                        let index = compiler.get_or_insert_binding(binding);
                         compiler.emit_opcode(Opcode::PushUndefined);
-                        compiler.emit_with_varying_operand(Opcode::DefInitVar, index);
+                        compiler.get_or_insert_binding(binding).emit(
+                            Opcode::SetLocal,
+                            Opcode::SetGlobalName,
+                            Opcode::DefInitVar,
+                            &mut compiler,
+                        );
                         // 3. Append dn to declaredVarNames.
                         declared_var_names.push(name);
                     }

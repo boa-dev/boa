@@ -99,8 +99,8 @@ impl Operation for DeleteName {
     const INSTRUCTION: &'static str = "INST - DeleteName";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
     }
 
     fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
@@ -109,8 +109,45 @@ impl Operation for DeleteName {
     }
 
     fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
+/// `DeleteGlobalName` implements the Opcode Operation for `Opcode::DeleteGlobalName`
+///
+/// Operation:
+///  - Deletes a global property.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct DeleteGlobalName;
+
+impl DeleteGlobalName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let key = context.vm.frame().code_block().names[index].clone().into();
+        let deleted = context.global_object().__delete__(&key, context)?;
+
+        context.vm.push(deleted);
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for DeleteGlobalName {
+    const NAME: &'static str = "DeleteGlobalName";
+    const INSTRUCTION: &'static str = "INST - DeleteGlobalName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 
