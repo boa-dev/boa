@@ -845,6 +845,18 @@
 <a href="#845" id="845">845</a>
 <a href="#846" id="846">846</a>
 <a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `ArrayBuffer` object.
 //!
 //! More information:
@@ -1226,7 +1238,7 @@
         </span><span class="self">self</span>.array_buffer_data.is_none()
     }
 
-    <span class="doccomment">/// `25.1.2.4 CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength, cloneConstructor )`
+    <span class="doccomment">/// `25.1.2.4 CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1236,40 +1248,52 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         src_byte_offset: u64,
         src_length: u64,
-        clone_constructor: <span class="kw-2">&amp;</span>JsValue,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsObject&gt; {
-        <span class="comment">// 1. Let targetBuffer be ? AllocateArrayBuffer(cloneConstructor, srcLength).
-        </span><span class="kw">let </span>target_buffer = <span class="self">Self</span>::allocate(clone_constructor, src_length, context)<span class="question-mark">?</span>;
+        <span class="comment">// 1. Assert: IsDetachedBuffer(srcBuffer) is false.
+        </span><span class="macro">debug_assert!</span>(!<span class="self">self</span>.is_detached_buffer());
 
-        <span class="comment">// 2. If IsDetachedBuffer(srcBuffer) is true, throw a TypeError exception.
-        // 3. Let srcBlock be srcBuffer.[[ArrayBufferData]].
-        </span><span class="kw">let </span>src_block = <span class="self">self</span>.array_buffer_data.as_deref().ok_or_else(|| {
-            JsNativeError::syntax().with_message(<span class="string">&quot;Cannot clone detached array buffer&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let targetBuffer be ? AllocateArrayBuffer(%ArrayBuffer%, srcLength).
+        </span><span class="kw">let </span>target_buffer = <span class="self">Self</span>::allocate(
+            <span class="kw-2">&amp;</span>context
+                .realm()
+                .intrinsics()
+                .constructors()
+                .array_buffer()
+                .constructor()
+                .into(),
+            src_length,
+            context,
+        )<span class="question-mark">?</span>;
 
-        {
-            <span class="comment">// 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].
-            </span><span class="kw">let </span><span class="kw-2">mut </span>target_buffer_mut = target_buffer.borrow_mut();
-            <span class="kw">let </span>target_block = target_buffer_mut
-                .as_array_buffer_mut()
-                .expect(<span class="string">&quot;This must be an ArrayBuffer&quot;</span>);
+        <span class="comment">// 3. Let srcBlock be srcBuffer.[[ArrayBufferData]].
+        </span><span class="kw">let </span>src_block = <span class="self">self
+            </span>.array_buffer_data
+            .as_deref()
+            .expect(<span class="string">&quot;ArrayBuffer cannot be detached&quot;</span>);
 
-            <span class="comment">// 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).
-            </span>copy_data_block_bytes(
-                target_block
-                    .array_buffer_data
-                    .as_mut()
-                    .expect(<span class="string">&quot;ArrayBuffer cannot me detached here&quot;</span>),
-                <span class="number">0</span>,
-                src_block,
-                src_byte_offset <span class="kw">as </span>usize,
-                src_length <span class="kw">as </span>usize,
-            );
-        }
+        <span class="comment">// 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].
+        </span><span class="kw">let </span><span class="kw-2">mut </span>target_buffer_mut = target_buffer.borrow_mut();
+        <span class="kw">let </span>target_array_buffer = target_buffer_mut
+            .as_array_buffer_mut()
+            .expect(<span class="string">&quot;This must be an ArrayBuffer&quot;</span>);
+        <span class="kw">let </span>target_block = target_array_buffer
+            .array_buffer_data
+            .as_mut()
+            .expect(<span class="string">&quot;ArrayBuffer cannot me detached here&quot;</span>);
+
+        <span class="comment">// 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).
+        </span>copy_data_block_bytes(
+            target_block,
+            <span class="number">0</span>,
+            src_block,
+            src_byte_offset <span class="kw">as </span>usize,
+            src_length <span class="kw">as </span>usize,
+        );
 
         <span class="comment">// 6. Return targetBuffer.
-        </span><span class="prelude-val">Ok</span>(target_buffer)
+        </span>drop(target_buffer_mut);
+        <span class="prelude-val">Ok</span>(target_buffer)
     }
 
     <span class="doccomment">/// `25.1.2.6 IsUnclampedIntegerElementType ( type )`

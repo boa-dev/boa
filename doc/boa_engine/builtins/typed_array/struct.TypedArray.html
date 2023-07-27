@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The JavaScript `%TypedArray%` object."><title>TypedArray in boa_engine::builtins::typed_array - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0 (8ede3aae2 2023-07-12)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc struct"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2 class="location"><a href="#">TypedArray</a></h2><div class="sidebar-elems"><section><h3><a href="#implementations">Methods</a></h3><ul class="block"><li><a href="#method.allocate">allocate</a></li><li><a href="#method.allocate_buffer">allocate_buffer</a></li><li><a href="#method.at">at</a></li><li><a href="#method.buffer">buffer</a></li><li><a href="#method.byte_length">byte_length</a></li><li><a href="#method.byte_offset">byte_offset</a></li><li><a href="#method.copy_within">copy_within</a></li><li><a href="#method.create">create</a></li><li><a href="#method.entries">entries</a></li><li><a href="#method.every">every</a></li><li><a href="#method.fill">fill</a></li><li><a href="#method.filter">filter</a></li><li><a href="#method.find">find</a></li><li><a href="#method.find_index">find_index</a></li><li><a href="#method.find_last">find_last</a></li><li><a href="#method.find_last_index">find_last_index</a></li><li><a href="#method.foreach">foreach</a></li><li><a href="#method.from">from</a></li><li><a href="#method.get_species">get_species</a></li><li><a href="#method.includes">includes</a></li><li><a href="#method.index_of">index_of</a></li><li><a href="#method.initialize_from_array_buffer">initialize_from_array_buffer</a></li><li><a href="#method.initialize_from_array_like">initialize_from_array_like</a></li><li><a href="#method.initialize_from_list">initialize_from_list</a></li><li><a href="#method.initialize_from_typed_array">initialize_from_typed_array</a></li><li><a href="#method.join">join</a></li><li><a href="#method.keys">keys</a></li><li><a href="#method.last_index_of">last_index_of</a></li><li><a href="#method.length">length</a></li><li><a href="#method.map">map</a></li><li><a href="#method.of">of</a></li><li><a href="#method.reduce">reduce</a></li><li><a href="#method.reduceright">reduceright</a></li><li><a href="#method.reverse">reverse</a></li><li><a href="#method.set">set</a></li><li><a href="#method.set_typed_array_from_array_like">set_typed_array_from_array_like</a></li><li><a href="#method.set_typed_array_from_typed_array">set_typed_array_from_typed_array</a></li><li><a href="#method.slice">slice</a></li><li><a href="#method.some">some</a></li><li><a href="#method.sort">sort</a></li><li><a href="#method.species_create">species_create</a></li><li><a href="#method.subarray">subarray</a></li><li><a href="#method.to_string_tag">to_string_tag</a></li><li><a href="#method.values">values</a></li></ul><h3><a href="#trait-implementations">Trait Implementations</a></h3><ul class="block"><li><a href="#impl-BuiltInConstructor-for-TypedArray">BuiltInConstructor</a></li><li><a href="#impl-BuiltInObject-for-TypedArray">BuiltInObject</a></li><li><a href="#impl-Clone-for-TypedArray">Clone</a></li><li><a href="#impl-Copy-for-TypedArray">Copy</a></li><li><a href="#impl-Debug-for-TypedArray">Debug</a></li><li><a href="#impl-IntrinsicObject-for-TypedArray">IntrinsicObject</a></li></ul><h3><a href="#synthetic-implementations">Auto Trait Implementations</a></h3><ul class="block"><li><a href="#impl-RefUnwindSafe-for-TypedArray">RefUnwindSafe</a></li><li><a href="#impl-Send-for-TypedArray">Send</a></li><li><a href="#impl-Sync-for-TypedArray">Sync</a></li><li><a href="#impl-Unpin-for-TypedArray">Unpin</a></li><li><a href="#impl-UnwindSafe-for-TypedArray">UnwindSafe</a></li></ul><h3><a href="#blanket-implementations">Blanket Implementations</a></h3><ul class="block"><li><a href="#impl-Any-for-TypedArray">Any</a></li><li><a href="#impl-Borrow%3CT%3E-for-TypedArray">Borrow&lt;T&gt;</a></li><li><a href="#impl-BorrowMut%3CT%3E-for-TypedArray">BorrowMut&lt;T&gt;</a></li><li><a href="#impl-Conv-for-TypedArray">Conv</a></li><li><a href="#impl-ErasedDestructor-for-TypedArray">ErasedDestructor</a></li><li><a href="#impl-Filterable-for-TypedArray">Filterable</a></li><li><a href="#impl-From%3CT%3E-for-TypedArray">From&lt;T&gt;</a></li><li><a href="#impl-Into%3CU%3E-for-TypedArray">Into&lt;U&gt;</a></li><li><a href="#impl-MaybeSendSync-for-TypedArray">MaybeSendSync</a></li><li><a href="#impl-Pipe-for-TypedArray">Pipe</a></li><li><a href="#impl-Tap-for-TypedArray">Tap</a></li><li><a href="#impl-ToOwned-for-TypedArray">ToOwned</a></li><li><a href="#impl-TryConv-for-TypedArray">TryConv</a></li><li><a href="#impl-TryFrom%3CU%3E-for-TypedArray">TryFrom&lt;U&gt;</a></li><li><a href="#impl-TryInto%3CU%3E-for-TypedArray">TryInto&lt;U&gt;</a></li><li><a href="#impl-VZip%3CV%3E-for-TypedArray">VZip&lt;V&gt;</a></li></ul></section><h2><a href="index.html">In boa_engine::builtins::typed_array</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Struct <a href="../../index.html">boa_engine</a>::<wbr><a href="../index.html">builtins</a>::<wbr><a href="index.html">typed_array</a>::<wbr><a class="struct" href="#">TypedArray</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#239">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub(crate) struct TypedArray;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The JavaScript <code>%TypedArray%</code> object.</p>
 <p><a href="https://tc39.es/ecma262/#sec-%typedarray%-intrinsic-object">https://tc39.es/ecma262/#sec-%typedarray%-intrinsic-object</a></p>
-</div></details><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-TypedArray" class="impl"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#382-3555">source</a><a href="#impl-TypedArray" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.TypedArray.html" title="struct boa_engine::builtins::typed_array::TypedArray">TypedArray</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.from" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#389-491">source</a><h4 class="code-header">fn <a href="#method.from" class="fn">from</a>(
+</div></details><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-TypedArray" class="impl"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#382-3606">source</a><a href="#impl-TypedArray" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.TypedArray.html" title="struct boa_engine::builtins::typed_array::TypedArray">TypedArray</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.from" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#389-491">source</a><h4 class="code-header">fn <a href="#method.from" class="fn">from</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -27,7 +27,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%-@@species">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.at" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#547-593">source</a><h4 class="code-header">pub(crate) fn <a href="#method.at" class="fn">at</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.at" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#547-595">source</a><h4 class="code-header">pub(crate) fn <a href="#method.at" class="fn">at</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -36,7 +36,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.at">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.buffer" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#601-618">source</a><h4 class="code-header">fn <a href="#method.buffer" class="fn">buffer</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.buffer" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#603-620">source</a><h4 class="code-header">fn <a href="#method.buffer" class="fn">buffer</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     _: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -45,7 +45,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.buffer">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.byte_length" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#626-651">source</a><h4 class="code-header">pub(crate) fn <a href="#method.byte_length" class="fn">byte_length</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.byte_length" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#628-653">source</a><h4 class="code-header">pub(crate) fn <a href="#method.byte_length" class="fn">byte_length</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     _: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -54,7 +54,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.bytelength">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.byte_offset" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#659-684">source</a><h4 class="code-header">pub(crate) fn <a href="#method.byte_offset" class="fn">byte_offset</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.byte_offset" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#661-686">source</a><h4 class="code-header">pub(crate) fn <a href="#method.byte_offset" class="fn">byte_offset</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     _: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -63,7 +63,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.byteoffset">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.copy_within" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#692-861">source</a><h4 class="code-header">fn <a href="#method.copy_within" class="fn">copy_within</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.copy_within" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#694-863">source</a><h4 class="code-header">fn <a href="#method.copy_within" class="fn">copy_within</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -72,7 +72,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.copywithin">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.entries" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#869-891">source</a><h4 class="code-header">fn <a href="#method.entries" class="fn">entries</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.entries" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#871-893">source</a><h4 class="code-header">fn <a href="#method.entries" class="fn">entries</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -81,7 +81,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.entries">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.every" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#899-958">source</a><h4 class="code-header">pub(crate) fn <a href="#method.every" class="fn">every</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.every" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#901-962">source</a><h4 class="code-header">pub(crate) fn <a href="#method.every" class="fn">every</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -90,7 +90,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.every">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.fill" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#966-1046">source</a><h4 class="code-header">pub(crate) fn <a href="#method.fill" class="fn">fill</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.fill" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#970-1052">source</a><h4 class="code-header">pub(crate) fn <a href="#method.fill" class="fn">fill</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -99,7 +99,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.fill">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.filter" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1054-1134">source</a><h4 class="code-header">pub(crate) fn <a href="#method.filter" class="fn">filter</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.filter" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1060-1144">source</a><h4 class="code-header">pub(crate) fn <a href="#method.filter" class="fn">filter</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -108,7 +108,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.filter">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.find" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1142-1181">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find" class="fn">find</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.find" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1152-1193">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find" class="fn">find</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -117,7 +117,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.find">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.find_index" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1189-1228">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_index" class="fn">find_index</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.find_index" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1201-1242">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_index" class="fn">find_index</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -126,7 +126,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.findindex">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.find_last" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1236-1275">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_last" class="fn">find_last</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.find_last" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1250-1289">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_last" class="fn">find_last</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -135,7 +135,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.findlast">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.find_last_index" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1283-1322">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_last_index" class="fn">find_last_index</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.find_last_index" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1297-1336">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_last_index" class="fn">find_last_index</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -144,7 +144,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.findlastindex">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.foreach" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1330-1381">source</a><h4 class="code-header">pub(crate) fn <a href="#method.foreach" class="fn">foreach</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.foreach" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1344-1397">source</a><h4 class="code-header">pub(crate) fn <a href="#method.foreach" class="fn">foreach</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -153,7 +153,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.foreach">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.includes" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1389-1460">source</a><h4 class="code-header">pub(crate) fn <a href="#method.includes" class="fn">includes</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.includes" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1405-1478">source</a><h4 class="code-header">pub(crate) fn <a href="#method.includes" class="fn">includes</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -162,7 +162,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.includes">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.index_of" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1468-1548">source</a><h4 class="code-header">pub(crate) fn <a href="#method.index_of" class="fn">index_of</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.index_of" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1486-1568">source</a><h4 class="code-header">pub(crate) fn <a href="#method.index_of" class="fn">index_of</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -171,7 +171,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.indexof">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.join" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1556-1611">source</a><h4 class="code-header">pub(crate) fn <a href="#method.join" class="fn">join</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.join" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1576-1633">source</a><h4 class="code-header">pub(crate) fn <a href="#method.join" class="fn">join</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -180,7 +180,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.join">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.keys" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1619-1645">source</a><h4 class="code-header">pub(crate) fn <a href="#method.keys" class="fn">keys</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.keys" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1641-1667">source</a><h4 class="code-header">pub(crate) fn <a href="#method.keys" class="fn">keys</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -189,7 +189,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.keys">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.last_index_of" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1653-1725">source</a><h4 class="code-header">pub(crate) fn <a href="#method.last_index_of" class="fn">last_index_of</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.last_index_of" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1675-1749">source</a><h4 class="code-header">pub(crate) fn <a href="#method.last_index_of" class="fn">last_index_of</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -198,7 +198,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.lastindexof">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.length" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1733-1754">source</a><h4 class="code-header">pub(crate) fn <a href="#method.length" class="fn">length</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.length" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1757-1778">source</a><h4 class="code-header">pub(crate) fn <a href="#method.length" class="fn">length</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     _: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -207,7 +207,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.length">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.map" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1762-1820">source</a><h4 class="code-header">pub(crate) fn <a href="#method.map" class="fn">map</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.map" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1786-1848">source</a><h4 class="code-header">pub(crate) fn <a href="#method.map" class="fn">map</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -216,7 +216,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.map">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.reduce" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1828-1905">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reduce" class="fn">reduce</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.reduce" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1856-1935">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reduce" class="fn">reduce</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -225,7 +225,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.reduce">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.reduceright" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1913-1992">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reduceright" class="fn">reduceright</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.reduceright" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#1943-2024">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reduceright" class="fn">reduceright</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -234,7 +234,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.reduceright">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.reverse" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2001-2054">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reverse" class="fn">reverse</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.reverse" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2033-2088">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reverse" class="fn">reverse</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -243,7 +243,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.reverse">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.set" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2062-2113">source</a><h4 class="code-header">pub(crate) fn <a href="#method.set" class="fn">set</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.set" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2096-2147">source</a><h4 class="code-header">pub(crate) fn <a href="#method.set" class="fn">set</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -252,7 +252,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.set">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.set_typed_array_from_typed_array" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2121-2336">source</a><h4 class="code-header">fn <a href="#method.set_typed_array_from_typed_array" class="fn">set_typed_array_from_typed_array</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.set_typed_array_from_typed_array" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2155-2364">source</a><h4 class="code-header">fn <a href="#method.set_typed_array_from_typed_array" class="fn">set_typed_array_from_typed_array</a>(
     target: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     target_offset: <a class="enum" href="../../value/integer/enum.IntegerOrInfinity.html" title="enum boa_engine::value::integer::IntegerOrInfinity">IntegerOrInfinity</a>,
     source: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
@@ -262,7 +262,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-settypedarrayfromtypedarray">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.set_typed_array_from_array_like" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2344-2456">source</a><h4 class="code-header">fn <a href="#method.set_typed_array_from_array_like" class="fn">set_typed_array_from_array_like</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.set_typed_array_from_array_like" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2372-2490">source</a><h4 class="code-header">fn <a href="#method.set_typed_array_from_array_like" class="fn">set_typed_array_from_array_like</a>(
     target: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     target_offset: <a class="enum" href="../../value/integer/enum.IntegerOrInfinity.html" title="enum boa_engine::value::integer::IntegerOrInfinity">IntegerOrInfinity</a>,
     source: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
@@ -272,7 +272,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-settypedarrayfromarraylike">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.slice" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2464-2629">source</a><h4 class="code-header">pub(crate) fn <a href="#method.slice" class="fn">slice</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.slice" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2498-2674">source</a><h4 class="code-header">pub(crate) fn <a href="#method.slice" class="fn">slice</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -281,7 +281,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.slice">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.some" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2637-2695">source</a><h4 class="code-header">pub(crate) fn <a href="#method.some" class="fn">some</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.some" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2682-2742">source</a><h4 class="code-header">pub(crate) fn <a href="#method.some" class="fn">some</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -290,7 +290,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.some">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.sort" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2703-2909">source</a><h4 class="code-header">pub(crate) fn <a href="#method.sort" class="fn">sort</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.sort" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2750-2956">source</a><h4 class="code-header">pub(crate) fn <a href="#method.sort" class="fn">sort</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -299,7 +299,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.sort">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.subarray" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2917-2996">source</a><h4 class="code-header">pub(crate) fn <a href="#method.subarray" class="fn">subarray</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.subarray" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#2964-3043">source</a><h4 class="code-header">pub(crate) fn <a href="#method.subarray" class="fn">subarray</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -308,7 +308,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.subarray">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.values" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3006-3028">source</a><h4 class="code-header">fn <a href="#method.values" class="fn">values</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.values" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3053-3075">source</a><h4 class="code-header">fn <a href="#method.values" class="fn">values</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -317,7 +317,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.values">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.to_string_tag" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3037-3052">source</a><h4 class="code-header">fn <a href="#method.to_string_tag" class="fn">to_string_tag</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_string_tag" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3084-3099">source</a><h4 class="code-header">fn <a href="#method.to_string_tag" class="fn">to_string_tag</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     _: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -326,7 +326,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%.prototype-@@tostringtag">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.species_create" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3060-3104">source</a><h4 class="code-header">fn <a href="#method.species_create" class="fn">species_create</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.species_create" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3107-3151">source</a><h4 class="code-header">fn <a href="#method.species_create" class="fn">species_create</a>(
     exemplar: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     typed_array_name: <a class="enum" href="enum.TypedArrayKind.html" title="enum boa_engine::builtins::typed_array::TypedArrayKind">TypedArrayKind</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
@@ -336,7 +336,7 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#typedarray-species-create">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.create" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3112-3145">source</a><h4 class="code-header">fn <a href="#method.create" class="fn">create</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.create" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3159-3192">source</a><h4 class="code-header">fn <a href="#method.create" class="fn">create</a>(
     constructor: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -345,17 +345,17 @@
 <ul>
 <li><a href="https://tc39.es/ecma262/#typedarray-create">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.allocate_buffer" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3148-3186">source</a><h4 class="code-header">fn <a href="#method.allocate_buffer" class="fn">allocate_buffer</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.allocate_buffer" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3195-3233">source</a><h4 class="code-header">fn <a href="#method.allocate_buffer" class="fn">allocate_buffer</a>(
     indexed: &amp;mut <a class="struct" href="integer_indexed_object/struct.IntegerIndexed.html" title="struct boa_engine::builtins::typed_array::integer_indexed_object::IntegerIndexed">IntegerIndexed</a>,
     length: <a class="primitive" href="https://doc.rust-lang.org/1.71.0/std/primitive.u64.html">u64</a>,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.71.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-allocatetypedarraybuffer">https://tc39.es/ecma262/#sec-allocatetypedarraybuffer</a></p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_list" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3189-3217">source</a><h4 class="code-header">pub(crate) fn <a href="#method.initialize_from_list" class="fn">initialize_from_list</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_list" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3236-3264">source</a><h4 class="code-header">pub(crate) fn <a href="#method.initialize_from_list" class="fn">initialize_from_list</a>(
     o: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     values: <a class="struct" href="https://doc.rust-lang.org/1.71.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.71.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-initializetypedarrayfromlist">https://tc39.es/ecma262/#sec-initializetypedarrayfromlist</a></p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.allocate" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3229-3267">source</a><h4 class="code-header">fn <a href="#method.allocate" class="fn">allocate</a>&lt;P&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.allocate" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3276-3314">source</a><h4 class="code-header">fn <a href="#method.allocate" class="fn">allocate</a>&lt;P&gt;(
     constructor_name: <a class="enum" href="enum.TypedArrayKind.html" title="enum boa_engine::builtins::typed_array::TypedArrayKind">TypedArrayKind</a>,
     new_target: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     default_proto: P,
@@ -368,7 +368,7 @@ argument is passed, an <code>ArrayBuffer</code> of that length is also allocated
 new <code>TypedArray</code> instance. <code>AllocateTypedArray</code> provides common semantics that is used by
 <code>TypedArray</code>.</p>
 <p>For more information, check the <a href="https://tc39.es/ecma262/#sec-allocatetypedarray">spec</a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_typed_array" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3275-3416">source</a><h4 class="code-header">fn <a href="#method.initialize_from_typed_array" class="fn">initialize_from_typed_array</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_typed_array" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3322-3461">source</a><h4 class="code-header">fn <a href="#method.initialize_from_typed_array" class="fn">initialize_from_typed_array</a>(
     o: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     src_array: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -377,7 +377,7 @@ new <code>TypedArray</code> instance. <code>AllocateTypedArray</code> provides c
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-initializetypedarrayfromtypedarray">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_array_buffer" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3424-3519">source</a><h4 class="code-header">fn <a href="#method.initialize_from_array_buffer" class="fn">initialize_from_array_buffer</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_array_buffer" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3469-3570">source</a><h4 class="code-header">fn <a href="#method.initialize_from_array_buffer" class="fn">initialize_from_array_buffer</a>(
     o: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     buffer: <a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     byte_offset: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
@@ -388,7 +388,7 @@ new <code>TypedArray</code> instance. <code>AllocateTypedArray</code> provides c
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-initializetypedarrayfromarraybuffer">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_array_like" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3527-3554">source</a><h4 class="code-header">fn <a href="#method.initialize_from_array_like" class="fn">initialize_from_array_like</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_array_like" class="method"><a class="srclink rightside" href="../../../src/boa_engine/builtins/typed_array/mod.rs.html#3578-3605">source</a><h4 class="code-header">fn <a href="#method.initialize_from_array_like" class="fn">initialize_from_array_like</a>(
     o: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     array_like: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
