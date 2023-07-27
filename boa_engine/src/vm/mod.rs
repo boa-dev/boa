@@ -181,6 +181,16 @@ impl Vm {
 
         true
     }
+
+    pub(crate) fn get_return_value(&self) -> JsValue {
+        let fp = self.frame().fp;
+        self.stack[fp as usize].clone()
+    }
+
+    pub(crate) fn set_return_value(&mut self, value: JsValue) {
+        let fp = self.frame().fp;
+        self.stack[fp as usize] = value;
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -328,8 +338,8 @@ impl Context<'_> {
             match result {
                 Ok(CompletionType::Normal) => {}
                 Ok(CompletionType::Return) => {
+                    let execution_result = self.vm.get_return_value();
                     self.vm.stack.truncate(self.vm.frame().fp as usize);
-                    let execution_result = self.vm.frame_mut().return_value.clone();
                     return CompletionRecord::Normal(execution_result);
                 }
                 Ok(CompletionType::Throw) => {

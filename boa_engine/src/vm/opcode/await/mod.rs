@@ -189,14 +189,16 @@ impl Operation for CompletePromiseCapability {
                 .call(&JsValue::undefined(), &[error.to_opaque(context)], context)
                 .expect("cannot fail per spec");
         } else {
-            let return_value = context.vm.frame().return_value.clone();
+            let return_value = context.vm.get_return_value();
             promise_capability
                 .resolve()
                 .call(&JsValue::undefined(), &[return_value], context)
                 .expect("cannot fail per spec");
         };
 
-        context.vm.frame_mut().return_value = promise_capability.promise().clone().into();
+        context
+            .vm
+            .set_return_value(promise_capability.promise().clone().into());
 
         Ok(CompletionType::Normal)
     }

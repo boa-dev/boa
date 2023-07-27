@@ -1231,22 +1231,7 @@ impl JsObject {
         }
 
         let argument_count = args.len();
-
-        // Push function arguments to the stack.
-        let mut args = if code.params.as_ref().len() > args.len() {
-            let mut v = args.to_vec();
-            v.extend(vec![
-                JsValue::Undefined;
-                code.params.as_ref().len() - args.len()
-            ]);
-            v
-        } else {
-            args.to_vec()
-        };
-        args.reverse();
-        let mut stack = args;
-
-        std::mem::swap(&mut context.vm.stack, &mut stack);
+        let parameters_count = code.params.as_ref().len();
 
         let frame = CallFrame::new(code)
             .with_argument_count(argument_count as u32)
@@ -1256,6 +1241,15 @@ impl JsObject {
 
         context.vm.push_frame(frame);
 
+        // Push return value.
+        context.vm.push(JsValue::undefined());
+
+        // Push function arguments to the stack.
+        for _ in argument_count..parameters_count {
+            context.vm.push(JsValue::undefined());
+        }
+        context.vm.stack.extend(args.iter().rev().cloned());
+
         let result = context
             .run()
             .consume()
@@ -1263,7 +1257,6 @@ impl JsObject {
 
         context.vm.pop_frame().expect("frame must exist");
         std::mem::swap(&mut environments, &mut context.vm.environments);
-        std::mem::swap(&mut context.vm.stack, &mut stack);
         std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
 
         result
@@ -1438,22 +1431,7 @@ impl JsObject {
                 }
 
                 let argument_count = args.len();
-
-                // Push function arguments to the stack.
-                let args = if code.params.as_ref().len() > args.len() {
-                    let mut v = args.to_vec();
-                    v.extend(vec![
-                        JsValue::Undefined;
-                        code.params.as_ref().len() - args.len()
-                    ]);
-                    v
-                } else {
-                    args.to_vec()
-                };
-
-                for arg in args.iter().rev() {
-                    context.vm.push(arg.clone());
-                }
+                let parameters_count = code.params.as_ref().len();
 
                 let has_binding_identifier = code.has_binding_identifier();
 
@@ -1464,6 +1442,15 @@ impl JsObject {
                         .with_argument_count(argument_count as u32)
                         .with_env_fp(environments_len as u32),
                 );
+
+                // Push return value.
+                context.vm.push(JsValue::undefined());
+
+                // Push function arguments to the stack.
+                for _ in argument_count..parameters_count {
+                    context.vm.push(JsValue::undefined());
+                }
+                context.vm.stack.extend(args.iter().rev().cloned());
 
                 let record = context.run();
 

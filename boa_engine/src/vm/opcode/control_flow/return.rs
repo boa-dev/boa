@@ -31,7 +31,7 @@ impl Operation for GetReturnValue {
     const INSTRUCTION: &'static str = "INST - GetReturnValue";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let value = context.vm.frame().return_value.clone();
+        let value = context.vm.get_return_value();
         context.vm.push(value);
         Ok(CompletionType::Normal)
     }
@@ -50,7 +50,7 @@ impl Operation for SetReturnValue {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        context.vm.frame_mut().return_value = value;
+        context.vm.set_return_value(value);
         Ok(CompletionType::Normal)
     }
 }

@@ -16,7 +16,7 @@ use crate::{
         opcode::{Operation, ReThrow},
         CallFrame, CompletionType,
     },
-    Context, JsError, JsObject, JsResult,
+    Context, JsError, JsObject, JsResult, JsValue,
 };
 
 pub(crate) use yield_stm::*;
@@ -41,7 +41,14 @@ impl Operation for Generator {
         let pc = context.vm.frame().pc;
         let mut dummy_call_frame = CallFrame::new(code_block);
         dummy_call_frame.pc = pc;
-        let call_frame = std::mem::replace(context.vm.frame_mut(), dummy_call_frame);
+        let mut call_frame = std::mem::replace(context.vm.frame_mut(), dummy_call_frame);
+
+        let fp = call_frame.fp as usize;
+
+        let stack = context.vm.stack[fp..].to_vec();
+        context.vm.stack.truncate(fp);
+
+        call_frame.fp = 0;
 
         let this_function_object = context
             .vm
@@ -69,7 +76,6 @@ impl Operation for Generator {
             &mut context.vm.environments,
             EnvironmentStack::new(global_environement),
         );
-        let stack = std::mem::take(&mut context.vm.stack);
 
         let data = if r#async {
             ObjectData::async_generator(AsyncGenerator {
@@ -154,7 +160,8 @@ impl Operation for AsyncGeneratorClose {
             .expect("must have item in queue");
         drop(generator_object_mut);
 
-        let return_value = std::mem::take(&mut context.vm.frame_mut().return_value);
+        let return_value = context.vm.get_return_value();
+        context.vm.set_return_value(JsValue::undefined());
 
         if let Some(error) = context.vm.pending_exception.take() {
             AsyncGenerator::complete_step(&next, Err(error), true, None, context);

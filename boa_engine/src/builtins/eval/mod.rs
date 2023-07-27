@@ -258,6 +258,9 @@ impl Eval {
             .vm
             .push_frame(CallFrame::new(code_block).with_env_fp(env_fp));
         context.realm().resize_global_env();
+
+        // Push return value.
+        context.vm.push(JsValue::undefined());
         let record = context.run();
         context.vm.pop_frame();
 

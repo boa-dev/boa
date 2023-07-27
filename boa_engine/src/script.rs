@@ -150,6 +150,9 @@ impl Script {
 
         // TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
 
+        // Push return value.
+        context.vm.push(JsValue::undefined());
+
         self.realm().resize_global_env();
         let record = context.run();
         context.vm.pop_frame();

@@ -300,7 +300,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             params: FormalParameterList::default(),
             compile_environments: Vec::default(),
             current_open_environments_count: 0,
-            current_stack_value_count: 0,
+
+            // Note: We set it to one so we don't pop return value,
+            // which is allocated after frame pointer.
+            current_stack_value_count: 1,
             code_block_flags,
             handlers: ThinVec::default(),
 
