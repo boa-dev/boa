@@ -6,6 +6,7 @@ impl JsValue {
     ///
     /// This method is executed when doing strict equality comparisons with the `===` operator.
     /// For more information, check <https://tc39.es/ecma262/#sec-strict-equality-comparison>.
+    #[must_use]
     pub fn strict_equals(&self, other: &Self) -> bool {
         // 1. If Type(x) is different from Type(y), return false.
         if self.get_type() != other.get_type() {
@@ -131,6 +132,7 @@ impl JsValue {
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-samevalue
+    #[must_use]
     pub fn same_value(x: &Self, y: &Self) -> bool {
         // 1. If Type(x) is different from Type(y), return false.
         if x.get_type() != y.get_type() {
@@ -160,6 +162,7 @@ impl JsValue {
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-samevaluezero
+    #[must_use]
     pub fn same_value_zero(x: &Self, y: &Self) -> bool {
         if x.get_type() != y.get_type() {
             return false;

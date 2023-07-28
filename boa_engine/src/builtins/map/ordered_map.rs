@@ -191,6 +191,7 @@ impl<V> OrderedMap<V> {
     /// Return `true` if an equivalent to `key` exists in the map.
     ///
     /// Computes in **O(1)** time (average).
+    #[must_use]
     pub fn contains_key(&self, key: &JsValue) -> bool {
         self.map.contains_key(key)
     }

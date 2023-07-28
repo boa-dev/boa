@@ -383,6 +383,7 @@ impl Module {
 
     /// Gets the realm of this `Module`.
     #[inline]
+    #[must_use]
     pub fn realm(&self) -> &Realm {
         &self.inner.realm
     }

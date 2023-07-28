@@ -132,14 +132,17 @@ impl SharedShape {
         self.inner.property_count.saturating_sub(1)
     }
     /// Getter for the transition count field.
+    #[must_use]
     pub fn transition_count(&self) -> u16 {
         self.inner.transition_count
     }
     /// Getter for the previous field.
+    #[must_use]
     pub fn previous(&self) -> Option<&Self> {
         self.inner.previous.as_ref()
     }
     /// Get the prototype of the shape.
+    #[must_use]
     pub fn prototype(&self) -> JsPrototype {
         self.inner.prototype.clone()
     }
@@ -161,6 +164,7 @@ impl SharedShape {
         &self.inner.forward_transitions
     }
     /// Check if the shape has the given prototype.
+    #[must_use]
     pub fn has_prototype(&self, prototype: &JsObject) -> bool {
         self.inner
             .prototype

@@ -316,6 +316,7 @@ pub struct Function {
 
 impl Function {
     /// Returns the codeblock of the function, or `None` if the function is a [`NativeFunction`].
+    #[must_use]
     pub fn codeblock(&self) -> Option<&CodeBlock> {
         match &self.kind {
             FunctionKind::Native { .. } => None,
@@ -438,6 +439,7 @@ impl Function {
     }
 
     /// Gets the `Realm` from where this function originates.
+    #[must_use]
     pub const fn realm(&self) -> &Realm {
         &self.realm
     }
@@ -1128,16 +1130,19 @@ impl BoundFunction {
     }
 
     /// Get a reference to the bound function's this.
+    #[must_use]
     pub const fn this(&self) -> &JsValue {
         &self.this
     }
 
     /// Get a reference to the bound function's target function.
+    #[must_use]
     pub const fn target_function(&self) -> &JsObject {
         &self.target_function
     }
 
     /// Get a reference to the bound function's args.
+    #[must_use]
     pub fn args(&self) -> &[JsValue] {
         self.args.as_slice()
     }

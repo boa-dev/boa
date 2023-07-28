@@ -54,6 +54,7 @@ struct Inner {
 
 impl Script {
     /// Gets the realm of this script.
+    #[must_use]
     pub fn realm(&self) -> &Realm {
         &self.inner.realm
     }

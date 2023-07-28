@@ -40,12 +40,14 @@ impl Intrinsics {
 
     /// Return the cached intrinsic objects.
     #[inline]
+    #[must_use]
     pub const fn objects(&self) -> &IntrinsicObjects {
         &self.objects
     }
 
     /// Return the cached standard constructors.
     #[inline]
+    #[must_use]
     pub const fn constructors(&self) -> &StandardConstructors {
         &self.constructors
     }
@@ -84,6 +86,7 @@ impl StandardConstructor {
     ///
     /// This is the same as `Object.prototype`, `Array.prototype`, etc
     #[inline]
+    #[must_use]
     pub fn prototype(&self) -> JsObject {
         self.prototype.clone()
     }
@@ -92,6 +95,7 @@ impl StandardConstructor {
     ///
     /// This is the same as `Object`, `Array`, etc.
     #[inline]
+    #[must_use]
     pub fn constructor(&self) -> JsObject {
         self.constructor.clone().into()
     }
@@ -237,6 +241,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorfunction-constructor
     #[inline]
+    #[must_use]
     pub const fn async_generator_function(&self) -> &StandardConstructor {
         &self.async_generator_function
     }
@@ -248,6 +253,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object-constructor
     #[inline]
+    #[must_use]
     pub const fn object(&self) -> &StandardConstructor {
         &self.object
     }
@@ -259,6 +265,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-proxy-constructor
     #[inline]
+    #[must_use]
     pub const fn proxy(&self) -> &StandardConstructor {
         &self.proxy
     }
@@ -270,6 +277,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     #[inline]
+    #[must_use]
     pub const fn date(&self) -> &StandardConstructor {
         &self.date
     }
@@ -281,6 +289,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function-constructor
     #[inline]
+    #[must_use]
     pub const fn function(&self) -> &StandardConstructor {
         &self.function
     }
@@ -292,6 +301,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-async-function-constructor
     #[inline]
+    #[must_use]
     pub const fn async_function(&self) -> &StandardConstructor {
         &self.async_function
     }
@@ -303,6 +313,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generatorfunction-constructor
     #[inline]
+    #[must_use]
     pub const fn generator_function(&self) -> &StandardConstructor {
         &self.generator_function
     }
@@ -314,6 +325,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array-constructor
     #[inline]
+    #[must_use]
     pub const fn array(&self) -> &StandardConstructor {
         &self.array
     }
@@ -325,6 +337,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-constructor
     #[inline]
+    #[must_use]
     pub const fn bigint(&self) -> &StandardConstructor {
         &self.bigint
     }
@@ -336,6 +349,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number-constructor
     #[inline]
+    #[must_use]
     pub const fn number(&self) -> &StandardConstructor {
         &self.number
     }
@@ -347,6 +361,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-boolean-constructor
     #[inline]
+    #[must_use]
     pub const fn boolean(&self) -> &StandardConstructor {
         &self.boolean
     }
@@ -358,6 +373,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string-constructor
     #[inline]
+    #[must_use]
     pub const fn string(&self) -> &StandardConstructor {
         &self.string
     }
@@ -369,6 +385,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
     #[inline]
+    #[must_use]
     pub const fn regexp(&self) -> &StandardConstructor {
         &self.regexp
     }
@@ -380,6 +397,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol-constructor
     #[inline]
+    #[must_use]
     pub const fn symbol(&self) -> &StandardConstructor {
         &self.symbol
     }
@@ -391,6 +409,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-error-constructor
     #[inline]
+    #[must_use]
     pub const fn error(&self) -> &StandardConstructor {
         &self.error
     }
@@ -402,6 +421,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-referenceerror
     #[inline]
+    #[must_use]
     pub const fn reference_error(&self) -> &StandardConstructor {
         &self.reference_error
     }
@@ -413,6 +433,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror
     #[inline]
+    #[must_use]
     pub const fn type_error(&self) -> &StandardConstructor {
         &self.type_error
     }
@@ -424,6 +445,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-rangeerror
     #[inline]
+    #[must_use]
     pub const fn range_error(&self) -> &StandardConstructor {
         &self.range_error
     }
@@ -435,6 +457,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-syntaxerror
     #[inline]
+    #[must_use]
     pub const fn syntax_error(&self) -> &StandardConstructor {
         &self.syntax_error
     }
@@ -446,6 +469,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-evalerror
     #[inline]
+    #[must_use]
     pub const fn eval_error(&self) -> &StandardConstructor {
         &self.eval_error
     }
@@ -457,6 +481,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-urierror
     #[inline]
+    #[must_use]
     pub const fn uri_error(&self) -> &StandardConstructor {
         &self.uri_error
     }
@@ -468,6 +493,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-aggregate-error-constructor
     #[inline]
+    #[must_use]
     pub const fn aggregate_error(&self) -> &StandardConstructor {
         &self.aggregate_error
     }
@@ -479,6 +505,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map-constructor
     #[inline]
+    #[must_use]
     pub const fn map(&self) -> &StandardConstructor {
         &self.map
     }
@@ -490,6 +517,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-constructor
     #[inline]
+    #[must_use]
     pub const fn set(&self) -> &StandardConstructor {
         &self.set
     }
@@ -501,6 +529,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_array(&self) -> &StandardConstructor {
         &self.typed_array
     }
@@ -512,6 +541,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_int8_array(&self) -> &StandardConstructor {
         &self.typed_int8_array
     }
@@ -523,6 +553,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_uint8_array(&self) -> &StandardConstructor {
         &self.typed_uint8_array
     }
@@ -534,6 +565,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_uint8clamped_array(&self) -> &StandardConstructor {
         &self.typed_uint8clamped_array
     }
@@ -545,6 +577,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_int16_array(&self) -> &StandardConstructor {
         &self.typed_int16_array
     }
@@ -556,6 +589,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_uint16_array(&self) -> &StandardConstructor {
         &self.typed_uint16_array
     }
@@ -567,6 +601,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_uint32_array(&self) -> &StandardConstructor {
         &self.typed_uint32_array
     }
@@ -578,6 +613,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_int32_array(&self) -> &StandardConstructor {
         &self.typed_int32_array
     }
@@ -589,6 +625,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_bigint64_array(&self) -> &StandardConstructor {
         &self.typed_bigint64_array
     }
@@ -600,6 +637,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_biguint64_array(&self) -> &StandardConstructor {
         &self.typed_biguint64_array
     }
@@ -611,6 +649,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_float32_array(&self) -> &StandardConstructor {
         &self.typed_float32_array
     }
@@ -622,6 +661,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
+    #[must_use]
     pub const fn typed_float64_array(&self) -> &StandardConstructor {
         &self.typed_float64_array
     }
@@ -633,6 +673,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer-constructor
     #[inline]
+    #[must_use]
     pub const fn array_buffer(&self) -> &StandardConstructor {
         &self.array_buffer
     }
@@ -644,6 +685,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview-constructor
     #[inline]
+    #[must_use]
     pub const fn data_view(&self) -> &StandardConstructor {
         &self.data_view
     }
@@ -655,6 +697,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl-datetimeformat-constructor
     #[inline]
+    #[must_use]
     pub const fn date_time_format(&self) -> &StandardConstructor {
         &self.date_time_format
     }
@@ -666,6 +709,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise-constructor
     #[inline]
+    #[must_use]
     pub const fn promise(&self) -> &StandardConstructor {
         &self.promise
     }
@@ -677,6 +721,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weak-ref-constructor
     #[inline]
+    #[must_use]
     pub const fn weak_ref(&self) -> &StandardConstructor {
         &self.weak_ref
     }
@@ -688,6 +733,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakmap-constructor
     #[inline]
+    #[must_use]
     pub const fn weak_map(&self) -> &StandardConstructor {
         &self.weak_map
     }
@@ -699,6 +745,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakset-constructor
     #[inline]
+    #[must_use]
     pub const fn weak_set(&self) -> &StandardConstructor {
         &self.weak_set
     }
@@ -710,6 +757,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator
     #[inline]
+    #[must_use]
     #[cfg(feature = "intl")]
     pub const fn collator(&self) -> &StandardConstructor {
         &self.collator
@@ -722,6 +770,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat
     #[inline]
+    #[must_use]
     #[cfg(feature = "intl")]
     pub const fn list_format(&self) -> &StandardConstructor {
         &self.list_format
@@ -734,6 +783,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale
     #[inline]
+    #[must_use]
     #[cfg(feature = "intl")]
     pub const fn locale(&self) -> &StandardConstructor {
         &self.locale
@@ -746,6 +796,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.segmenter
     #[inline]
+    #[must_use]
     #[cfg(feature = "intl")]
     pub const fn segmenter(&self) -> &StandardConstructor {
         &self.segmenter
@@ -848,6 +899,7 @@ impl IntrinsicObjects {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%throwtypeerror%
     #[inline]
+    #[must_use]
     pub fn throw_type_error(&self) -> JsFunction {
         self.throw_type_error.clone()
     }
@@ -856,12 +908,14 @@ impl IntrinsicObjects {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     #[inline]
+    #[must_use]
     pub fn array_prototype_values(&self) -> JsFunction {
         self.array_prototype_values.clone()
     }
 
     /// Gets the cached iterator prototypes.
     #[inline]
+    #[must_use]
     pub const fn iterator_prototypes(&self) -> &IteratorPrototypes {
         &self.iterator_prototypes
     }
@@ -870,6 +924,7 @@ impl IntrinsicObjects {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generator-objects
     #[inline]
+    #[must_use]
     pub fn generator(&self) -> JsObject {
         self.generator.clone()
     }
@@ -878,6 +933,7 @@ impl IntrinsicObjects {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
     #[inline]
+    #[must_use]
     pub fn async_generator(&self) -> JsObject {
         self.async_generator.clone()
     }
@@ -885,11 +941,13 @@ impl IntrinsicObjects {
     /// Gets the [`%eval%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
+    #[must_use]
     pub fn eval(&self) -> JsFunction {
         self.eval.clone()
     }
 
     /// Gets the URI intrinsic functions.
+    #[must_use]
     pub const fn uri_functions(&self) -> &UriFunctions {
         &self.uri_functions
     }
@@ -897,6 +955,7 @@ impl IntrinsicObjects {
     /// Gets the [`%Reflect%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect
+    #[must_use]
     pub fn reflect(&self) -> JsObject {
         self.reflect.clone()
     }
@@ -904,6 +963,7 @@ impl IntrinsicObjects {
     /// Gets the [`%Math%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math
+    #[must_use]
     pub fn math(&self) -> JsObject {
         self.math.clone()
     }
@@ -911,6 +971,7 @@ impl IntrinsicObjects {
     /// Gets the [`%JSON%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json
+    #[must_use]
     pub fn json(&self) -> JsObject {
         self.json.clone()
     }
@@ -918,6 +979,7 @@ impl IntrinsicObjects {
     /// Gets the [`%isFinite%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
+    #[must_use]
     pub fn is_finite(&self) -> JsFunction {
         self.is_finite.clone()
     }
@@ -925,6 +987,7 @@ impl IntrinsicObjects {
     /// Gets the [`%isNaN%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
+    #[must_use]
     pub fn is_nan(&self) -> JsFunction {
         self.is_nan.clone()
     }
@@ -932,6 +995,7 @@ impl IntrinsicObjects {
     /// Gets the [`%parseFloat%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
+    #[must_use]
     pub fn parse_float(&self) -> JsFunction {
         self.parse_float.clone()
     }
@@ -939,6 +1003,7 @@ impl IntrinsicObjects {
     /// Gets the [`%parseInt%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
+    #[must_use]
     pub fn parse_int(&self) -> JsFunction {
         self.parse_int.clone()
     }
@@ -946,6 +1011,7 @@ impl IntrinsicObjects {
     /// Gets the [`%escape%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-escape-string
+    #[must_use]
     #[cfg(feature = "annex-b")]
     pub fn escape(&self) -> JsFunction {
         self.escape.clone()
@@ -954,6 +1020,7 @@ impl IntrinsicObjects {
     /// Gets the [`%unescape%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-unescape-string
+    #[must_use]
     #[cfg(feature = "annex-b")]
     pub fn unescape(&self) -> JsFunction {
         self.unescape.clone()
@@ -962,6 +1029,7 @@ impl IntrinsicObjects {
     /// Gets the [`%Intl%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma402/#intl-object
+    #[must_use]
     #[cfg(feature = "intl")]
     pub fn intl(&self) -> JsObject {
         self.intl.clone()
@@ -970,6 +1038,7 @@ impl IntrinsicObjects {
     /// Gets the [`%SegmentsPrototype%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-%segmentsprototype%-object
+    #[must_use]
     #[cfg(feature = "intl")]
     pub fn segments_prototype(&self) -> JsObject {
         self.segments_prototype.clone()

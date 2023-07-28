@@ -133,12 +133,14 @@ impl JsValue {
 
     /// Returns true if the value is an object.
     #[inline]
+    #[must_use]
     pub const fn is_object(&self) -> bool {
         matches!(self, Self::Object(_))
     }
 
     /// Returns the object if the value is object, otherwise `None`.
     #[inline]
+    #[must_use]
     pub const fn as_object(&self) -> Option<&JsObject> {
         match *self {
             Self::Object(ref o) => Some(o),
@@ -153,48 +155,56 @@ impl JsValue {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
+    #[must_use]
     pub fn is_callable(&self) -> bool {
         matches!(self, Self::Object(obj) if obj.is_callable())
     }
 
     /// Returns the callable value if the value is callable, otherwise `None`.
     #[inline]
+    #[must_use]
     pub fn as_callable(&self) -> Option<&JsObject> {
         self.as_object().filter(|obj| obj.is_callable())
     }
 
     /// Returns true if the value is a constructor object.
     #[inline]
+    #[must_use]
     pub fn is_constructor(&self) -> bool {
         matches!(self, Self::Object(obj) if obj.is_constructor())
     }
 
     /// Returns the constructor if the value is a constructor, otherwise `None`.
     #[inline]
+    #[must_use]
     pub fn as_constructor(&self) -> Option<&JsObject> {
         self.as_object().filter(|obj| obj.is_constructor())
     }
 
     /// Returns true if the value is a promise object.
     #[inline]
+    #[must_use]
     pub fn is_promise(&self) -> bool {
         matches!(self, Self::Object(obj) if obj.is_promise())
     }
 
     /// Returns the promise if the value is a promise, otherwise `None`.
     #[inline]
+    #[must_use]
     pub fn as_promise(&self) -> Option<&JsObject> {
         self.as_object().filter(|obj| obj.is_promise())
     }
 
     /// Returns true if the value is a symbol.
     #[inline]
+    #[must_use]
     pub const fn is_symbol(&self) -> bool {
         matches!(self, Self::Symbol(_))
     }
 
     /// Returns the symbol if the value is a symbol, otherwise `None`.
     #[inline]
+    #[must_use]
     pub fn as_symbol(&self) -> Option<JsSymbol> {
         match self {
             Self::Symbol(symbol) => Some(symbol.clone()),
@@ -204,29 +214,34 @@ impl JsValue {
 
     /// Returns true if the value is undefined.
     #[inline]
+    #[must_use]
     pub const fn is_undefined(&self) -> bool {
         matches!(self, Self::Undefined)
     }
 
     /// Returns true if the value is null.
     #[inline]
+    #[must_use]
     pub const fn is_null(&self) -> bool {
         matches!(self, Self::Null)
     }
 
     /// Returns true if the value is null or undefined.
     #[inline]
+    #[must_use]
     pub const fn is_null_or_undefined(&self) -> bool {
         matches!(self, Self::Null | Self::Undefined)
     }
 
     /// Returns true if the value is a 64-bit floating-point number.
     #[inline]
+    #[must_use]
     pub const fn is_double(&self) -> bool {
         matches!(self, Self::Rational(_))
     }
 
     /// Returns true if the value is integer.
+    #[must_use]
     #[allow(clippy::float_cmp)]
     pub fn is_integer(&self) -> bool {
         // If it can fit in a i32 and the truncated version is
@@ -242,12 +257,14 @@ impl JsValue {
 
     /// Returns true if the value is a number.
     #[inline]
+    #[must_use]
     pub const fn is_number(&self) -> bool {
         matches!(self, Self::Rational(_) | Self::Integer(_))
     }
 
     /// Returns the number if the value is a number, otherwise `None`.
     #[inline]
+    #[must_use]
     pub fn as_number(&self) -> Option<f64> {
         match *self {
             Self::Integer(integer) => Some(integer.into()),
@@ -258,12 +275,14 @@ impl JsValue {
 
     /// Returns true if the value is a string.
     #[inline]
+    #[must_use]
     pub const fn is_string(&self) -> bool {
         matches!(self, Self::String(_))
     }
 
     /// Returns the string if the value is a string, otherwise `None`.
     #[inline]
+    #[must_use]
     pub const fn as_string(&self) -> Option<&JsString> {
         match self {
             Self::String(ref string) => Some(string),
@@ -273,12 +292,14 @@ impl JsValue {
 
     /// Returns true if the value is a boolean.
     #[inline]
+    #[must_use]
     pub const fn is_boolean(&self) -> bool {
         matches!(self, Self::Boolean(_))
     }
 
     /// Returns the boolean if the value is a boolean, otherwise `None`.
     #[inline]
+    #[must_use]
     pub const fn as_boolean(&self) -> Option<bool> {
         match self {
             Self::Boolean(boolean) => Some(*boolean),
@@ -288,12 +309,14 @@ impl JsValue {
 
     /// Returns true if the value is a bigint.
     #[inline]
+    #[must_use]
     pub const fn is_bigint(&self) -> bool {
         matches!(self, Self::BigInt(_))
     }
 
     /// Returns an optional reference to a `BigInt` if the value is a `BigInt` primitive.
     #[inline]
+    #[must_use]
     pub const fn as_bigint(&self) -> Option<&JsBigInt> {
         match self {
             Self::BigInt(bigint) => Some(bigint),
@@ -307,6 +330,7 @@ impl JsValue {
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-toboolean
+    #[must_use]
     pub fn to_boolean(&self) -> bool {
         match *self {
             Self::Symbol(_) | Self::Object(_) => true,
@@ -430,6 +454,7 @@ impl JsValue {
     ///
     /// println!("{}", value.display());
     /// ```
+    #[must_use]
     #[inline]
     pub const fn display(&self) -> ValueDisplay<'_> {
         ValueDisplay {
@@ -929,6 +954,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
+    #[must_use]
     pub fn type_of(&self) -> &'static str {
         match *self {
             Self::Rational(_) | Self::Integer(_) => "number",
