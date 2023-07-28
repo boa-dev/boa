@@ -802,6 +802,25 @@
 <a href="#802" id="802">802</a>
 <a href="#803" id="803">803</a>
 <a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s Property Descriptor.
 //!
 //! The Property Descriptor type is used to explain the manipulation and reification of `Object`
@@ -895,6 +914,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isaccessordescriptor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_accessor_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, DescriptorKind::Accessor { .. })
     }
@@ -906,6 +926,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isdatadescriptor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_data_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, DescriptorKind::Data { .. })
     }
@@ -917,12 +938,14 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isgenericdescriptor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_generic_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, DescriptorKind::Generic)
     }
 
     <span class="doccomment">/// Returns if the property descriptor is empty.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.is_generic_descriptor() &amp;&amp; <span class="self">self</span>.enumerable.is_none() &amp;&amp; <span class="self">self</span>.configurable.is_none()
     }
@@ -930,6 +953,7 @@
     <span class="doccomment">/// Returns if the property descriptor is enumerable.
     /// Returns `None` if the `enumerable` field is not set.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>enumerable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
         <span class="self">self</span>.enumerable
     }
@@ -937,6 +961,7 @@
     <span class="doccomment">/// Returns if the property descriptor is configurable.
     /// Returns `None` if the `configurable` field is not set.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>configurable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
         <span class="self">self</span>.configurable
     }
@@ -944,6 +969,7 @@
     <span class="doccomment">/// Returns if the property descriptor is writable.
     /// Returns `None` if the `writable` field is not set or the property descriptor is not a data descriptor.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind {
             DescriptorKind::Data { writable, .. } =&gt; writable,
@@ -954,6 +980,7 @@
     <span class="doccomment">/// Returns the value of the property descriptor.
     /// Returns `None` if the value is not set or the property descriptor is not a data descriptor.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             DescriptorKind::Data { value, .. } =&gt; value.as_ref(),
@@ -964,6 +991,7 @@
     <span class="doccomment">/// Returns the getter of the property descriptor.
     /// Returns `None` if the getter is not set or the property descriptor is not an accessor descriptor.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             DescriptorKind::Accessor { get, .. } =&gt; get.as_ref(),
@@ -974,6 +1002,7 @@
     <span class="doccomment">/// Returns the setter of the property descriptor.
     /// Returns `None` if the setter is not set or the property descriptor is not an accessor descriptor.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             DescriptorKind::Accessor { set, .. } =&gt; set.as_ref(),
@@ -987,6 +1016,7 @@
     ///
     /// Panics if the `enumerable` field is not set.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>expect_enumerable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.enumerable
             .expect(<span class="string">&quot;[[enumerable]] field not in property descriptor&quot;</span>)
@@ -998,6 +1028,7 @@
     ///
     /// Panics if the `configurable` field is not set.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>expect_configurable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.configurable
             .expect(<span class="string">&quot;[[configurable]] field not in property descriptor&quot;</span>)
@@ -1009,6 +1040,7 @@
     ///
     /// Panics if the `writable` field is not set.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>expect_writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.writable()
             .expect(<span class="string">&quot;[[writable]] field not in property descriptor&quot;</span>)
@@ -1020,6 +1052,7 @@
     ///
     /// Panics if the `value` field is not set.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>expect_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
         <span class="self">self</span>.value()
             .expect(<span class="string">&quot;[[value]] field not in property descriptor&quot;</span>)
@@ -1031,6 +1064,7 @@
     ///
     /// Panics if the `getter` field is not set.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>expect_get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
         <span class="self">self</span>.get()
             .expect(<span class="string">&quot;[[get]] field not in property descriptor&quot;</span>)
@@ -1042,6 +1076,7 @@
     ///
     /// Panics if the `setter` field is not set.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>expect_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
         <span class="self">self</span>.set()
             .expect(<span class="string">&quot;[[set]] field not in property descriptor&quot;</span>)
@@ -1049,6 +1084,7 @@
 
     <span class="doccomment">/// Returns the kind of the property descriptor.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DescriptorKind {
         <span class="kw-2">&amp;</span><span class="self">self</span>.kind
     }
@@ -1350,12 +1386,14 @@
     </span>}
 
     <span class="doccomment">/// Returns a reference to the currently built [`PropertyDescriptor`].
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PropertyDescriptor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 
     <span class="doccomment">/// Consumes the builder and returns the [`PropertyDescriptor`].
-    </span><span class="attr">#[allow(clippy::missing_const_for_fn)]
+    </span><span class="attr">#[must_use]
+    #[allow(clippy::missing_const_for_fn)]
     </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; PropertyDescriptor {
         <span class="self">self</span>.inner
     }

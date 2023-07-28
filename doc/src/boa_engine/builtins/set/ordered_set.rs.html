@@ -187,6 +187,7 @@
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implements a set type that preserves insertion order.
 
 </span><span class="kw">use crate</span>::{builtins::map::ordered_map::MapKey, object::JsObject, JsValue};
@@ -311,6 +312,7 @@
     /// Return `true` if `value` is present in set, false otherwise.
     ///
     /// Computes in **O(n)** time (average).
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue) -&gt; bool {
         <span class="self">self</span>.inner.contains(value)
     }

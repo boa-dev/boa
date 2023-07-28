@@ -1079,6 +1079,32 @@
 <a href="#1079" id="1079">1079</a>
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1214,12 +1240,14 @@
 
     <span class="doccomment">/// Returns true if the value is an object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns the object if the value is object, otherwise `None`.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Object(<span class="kw-2">ref </span>o) =&gt; <span class="prelude-val">Some</span>(o),
@@ -1234,48 +1262,56 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>is_callable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is_callable())
     }
 
     <span class="doccomment">/// Returns the callable value if the value is callable, otherwise `None`.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>as_callable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="self">self</span>.as_object().filter(|obj| obj.is_callable())
     }
 
     <span class="doccomment">/// Returns true if the value is a constructor object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>is_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is_constructor())
     }
 
     <span class="doccomment">/// Returns the constructor if the value is a constructor, otherwise `None`.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>as_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="self">self</span>.as_object().filter(|obj| obj.is_constructor())
     }
 
     <span class="doccomment">/// Returns true if the value is a promise object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>is_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is_promise())
     }
 
     <span class="doccomment">/// Returns the promise if the value is a promise, otherwise `None`.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>as_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="self">self</span>.as_object().filter(|obj| obj.is_promise())
     }
 
     <span class="doccomment">/// Returns true if the value is a symbol.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Symbol(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns the symbol if the value is a symbol, otherwise `None`.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>as_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsSymbol&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Symbol(symbol) =&gt; <span class="prelude-val">Some</span>(symbol.clone()),
@@ -1285,30 +1321,35 @@
 
     <span class="doccomment">/// Returns true if the value is undefined.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Undefined)
     }
 
     <span class="doccomment">/// Returns true if the value is null.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_null(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Null)
     }
 
     <span class="doccomment">/// Returns true if the value is null or undefined.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_null_or_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Null | <span class="self">Self</span>::Undefined)
     }
 
     <span class="doccomment">/// Returns true if the value is a 64-bit floating-point number.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_double(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Rational(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns true if the value is integer.
-    </span><span class="attr">#[allow(clippy::float_cmp)]
+    </span><span class="attr">#[must_use]
+    #[allow(clippy::float_cmp)]
     </span><span class="kw">pub fn </span>is_integer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// If it can fit in a i32 and the truncated version is
         // equal to the original then it is an integer.
@@ -1323,12 +1364,14 @@
 
     <span class="doccomment">/// Returns true if the value is a number.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Rational(<span class="kw">_</span>) | <span class="self">Self</span>::Integer(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns the number if the value is a number, otherwise `None`.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>as_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Integer(integer) =&gt; <span class="prelude-val">Some</span>(integer.into()),
@@ -1339,12 +1382,14 @@
 
     <span class="doccomment">/// Returns true if the value is a string.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::String(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns the string if the value is a string, otherwise `None`.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>as_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsString&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; <span class="prelude-val">Some</span>(string),
@@ -1354,12 +1399,14 @@
 
     <span class="doccomment">/// Returns true if the value is a boolean.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Boolean(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns the boolean if the value is a boolean, otherwise `None`.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>as_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Boolean(boolean) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>boolean),
@@ -1369,12 +1416,14 @@
 
     <span class="doccomment">/// Returns true if the value is a bigint.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::BigInt(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns an optional reference to a `BigInt` if the value is a `BigInt` primitive.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>as_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsBigInt&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::BigInt(bigint) =&gt; <span class="prelude-val">Some</span>(bigint),
@@ -1388,6 +1437,7 @@
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-toboolean
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>to_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Symbol(<span class="kw">_</span>) | <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
@@ -1511,7 +1561,8 @@
     ///
     /// println!(&quot;{}&quot;, value.display());
     /// ```
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ValueDisplay&lt;<span class="lifetime">&#39;_</span>&gt; {
         ValueDisplay {
             value: <span class="self">self</span>,
@@ -2010,6 +2061,7 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>type_of(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Rational(<span class="kw">_</span>) | <span class="self">Self</span>::Integer(<span class="kw">_</span>) =&gt; <span class="string">&quot;number&quot;</span>,

@@ -192,6 +192,9 @@
 <a href="#192" id="192">192</a>
 <a href="#193" id="193">193</a>
 <a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
 <span class="kw">use crate</span>::{builtins::Number, Context};
 
@@ -200,6 +203,7 @@
     ///
     /// This method is executed when doing strict equality comparisons with the `===` operator.
     /// For more information, check &lt;https://tc39.es/ecma262/#sec-strict-equality-comparison&gt;.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>strict_equals(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="comment">// 1. If Type(x) is different from Type(y), return false.
         </span><span class="kw">if </span><span class="self">self</span>.get_type() != other.get_type() {
@@ -325,6 +329,7 @@
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-samevalue
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>same_value(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="comment">// 1. If Type(x) is different from Type(y), return false.
         </span><span class="kw">if </span>x.get_type() != y.get_type() {
@@ -354,6 +359,7 @@
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-samevaluezero
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>same_value_zero(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="kw">if </span>x.get_type() != y.get_type() {
             <span class="kw">return </span><span class="bool-val">false</span>;

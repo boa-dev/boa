@@ -985,6 +985,16 @@
 <a href="#985" id="985">985</a>
 <a href="#986" id="986">986</a>
 <a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1331,6 +1341,7 @@
 
     <span class="doccomment">/// Gets the string interner.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
         <span class="kw-2">&amp;</span><span class="self">self</span>.interner
     }
@@ -1343,18 +1354,21 @@
 
     <span class="doccomment">/// Returns the global object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.realm.global_object().clone()
     }
 
     <span class="doccomment">/// Returns the currently active intrinsic constructors and objects.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>intrinsics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Intrinsics {
         <span class="self">self</span>.realm.intrinsics()
     }
 
     <span class="doccomment">/// Returns the currently active realm.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>realm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Realm {
         <span class="kw-2">&amp;</span><span class="self">self</span>.realm
     }
@@ -1368,6 +1382,7 @@
 
     <span class="doccomment">/// Get optimizer options.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>optimizer_options(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; OptimizerOptions {
         <span class="self">self</span>.optimizer_options
     }
@@ -1439,29 +1454,34 @@
 
     <span class="doccomment">/// Get the [`RootShape`].
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>root_shape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RootShape {
         <span class="kw-2">&amp;</span><span class="self">self</span>.root_shape
     }
 
     <span class="doccomment">/// Gets the host hooks.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>host_hooks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>HostHooks&gt; {
         <span class="self">self</span>.host_hooks.clone()
     }
 
     <span class="doccomment">/// Gets the job queue.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>job_queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>JobQueue&gt; {
         <span class="self">self</span>.job_queue.clone()
     }
 
     <span class="doccomment">/// Gets the module loader.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>module_loader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>ModuleLoader&gt; {
         <span class="self">self</span>.module_loader.clone()
     }
 
     <span class="doccomment">/// Get the [`RuntimeLimits`].
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>runtime_limits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RuntimeLimits {
         <span class="self">self</span>.vm.runtime_limits
     }

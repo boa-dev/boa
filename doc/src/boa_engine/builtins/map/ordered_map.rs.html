@@ -232,6 +232,7 @@
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implements a map type that preserves insertion order.
 
 </span><span class="kw">use crate</span>::{object::JsObject, JsValue};
@@ -425,6 +426,7 @@
     <span class="doccomment">/// Return `true` if an equivalent to `key` exists in the map.
     ///
     /// Computes in **O(1)** time (average).
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>contains_key(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>JsValue) -&gt; bool {
         <span class="self">self</span>.map.contains_key(key)
     }

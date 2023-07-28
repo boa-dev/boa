@@ -1142,6 +1142,11 @@
 <a href="#1142" id="1142">1142</a>
 <a href="#1143" id="1143">1143</a>
 <a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1460,6 +1465,7 @@
 
 <span class="kw">impl </span>Function {
     <span class="doccomment">/// Returns the codeblock of the function, or `None` if the function is a [`NativeFunction`].
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>codeblock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CodeBlock&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             FunctionKind::Native { .. } =&gt; <span class="prelude-val">None</span>,
@@ -1582,6 +1588,7 @@
     }
 
     <span class="doccomment">/// Gets the `Realm` from where this function originates.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>realm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Realm {
         <span class="kw-2">&amp;</span><span class="self">self</span>.realm
     }
@@ -2272,16 +2279,19 @@
     }
 
     <span class="doccomment">/// Get a reference to the bound function&#39;s this.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>this(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
         <span class="kw-2">&amp;</span><span class="self">self</span>.this
     }
 
     <span class="doccomment">/// Get a reference to the bound function&#39;s target function.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>target_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
         <span class="kw-2">&amp;</span><span class="self">self</span>.target_function
     }
 
     <span class="doccomment">/// Get a reference to the bound function&#39;s args.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[JsValue] {
         <span class="self">self</span>.args.as_slice()
     }

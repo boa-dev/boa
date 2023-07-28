@@ -1306,6 +1306,75 @@
 <a href="#1306" id="1306">1306</a>
 <a href="#1307" id="1307">1307</a>
 <a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -1348,12 +1417,14 @@
 
     <span class="doccomment">/// Return the cached intrinsic objects.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>objects(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IntrinsicObjects {
         <span class="kw-2">&amp;</span><span class="self">self</span>.objects
     }
 
     <span class="doccomment">/// Return the cached standard constructors.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>constructors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructors {
         <span class="kw-2">&amp;</span><span class="self">self</span>.constructors
     }
@@ -1392,6 +1463,7 @@
     ///
     /// This is the same as `Object.prototype`, `Array.prototype`, etc
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.prototype.clone()
     }
@@ -1400,6 +1472,7 @@
     ///
     /// This is the same as `Object`, `Array`, etc.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.constructor.clone().into()
     }
@@ -1545,6 +1618,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorfunction-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>async_generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.async_generator_function
     }
@@ -1556,6 +1630,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.object
     }
@@ -1567,6 +1642,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-proxy-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>proxy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.proxy
     }
@@ -1578,6 +1654,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.date
     }
@@ -1589,6 +1666,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.function
     }
@@ -1600,6 +1678,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-async-function-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>async_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.async_function
     }
@@ -1611,6 +1690,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generatorfunction-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.generator_function
     }
@@ -1622,6 +1702,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.array
     }
@@ -1633,6 +1714,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.bigint
     }
@@ -1644,6 +1726,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.number
     }
@@ -1655,6 +1738,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-boolean-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.boolean
     }
@@ -1666,6 +1750,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.string
     }
@@ -1677,6 +1762,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.regexp
     }
@@ -1688,6 +1774,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.symbol
     }
@@ -1699,6 +1786,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-error-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.error
     }
@@ -1710,6 +1798,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-referenceerror
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>reference_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.reference_error
     }
@@ -1721,6 +1810,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>type_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.type_error
     }
@@ -1732,6 +1822,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-rangeerror
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>range_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.range_error
     }
@@ -1743,6 +1834,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-syntaxerror
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>syntax_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.syntax_error
     }
@@ -1754,6 +1846,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-evalerror
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>eval_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.eval_error
     }
@@ -1765,6 +1858,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-urierror
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>uri_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.uri_error
     }
@@ -1776,6 +1870,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-aggregate-error-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>aggregate_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.aggregate_error
     }
@@ -1787,6 +1882,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.map
     }
@@ -1798,6 +1894,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.set
     }
@@ -1809,6 +1906,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_array
     }
@@ -1820,6 +1918,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_int8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_int8_array
     }
@@ -1831,6 +1930,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_uint8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint8_array
     }
@@ -1842,6 +1942,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_uint8clamped_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint8clamped_array
     }
@@ -1853,6 +1954,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_int16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_int16_array
     }
@@ -1864,6 +1966,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_uint16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint16_array
     }
@@ -1875,6 +1978,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_uint32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint32_array
     }
@@ -1886,6 +1990,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_int32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_int32_array
     }
@@ -1897,6 +2002,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_bigint64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_bigint64_array
     }
@@ -1908,6 +2014,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_biguint64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_biguint64_array
     }
@@ -1919,6 +2026,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_float32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_float32_array
     }
@@ -1930,6 +2038,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>typed_float64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_float64_array
     }
@@ -1941,6 +2050,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.array_buffer
     }
@@ -1952,6 +2062,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>data_view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.data_view
     }
@@ -1963,6 +2074,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl-datetimeformat-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>date_time_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.date_time_format
     }
@@ -1974,6 +2086,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.promise
     }
@@ -1985,6 +2098,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weak-ref-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.weak_ref
     }
@@ -1996,6 +2110,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakmap-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>weak_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.weak_map
     }
@@ -2007,6 +2122,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakset-constructor
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>weak_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.weak_set
     }
@@ -2018,6 +2134,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator
     </span><span class="attr">#[inline]
+    #[must_use]
     #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span><span class="kw">pub const fn </span>collator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.collator
@@ -2030,6 +2147,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat
     </span><span class="attr">#[inline]
+    #[must_use]
     #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span><span class="kw">pub const fn </span>list_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.list_format
@@ -2042,6 +2160,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale
     </span><span class="attr">#[inline]
+    #[must_use]
     #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span><span class="kw">pub const fn </span>locale(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.locale
@@ -2054,6 +2173,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.segmenter
     </span><span class="attr">#[inline]
+    #[must_use]
     #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span><span class="kw">pub const fn </span>segmenter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.segmenter
@@ -2156,6 +2276,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%throwtypeerror%
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>throw_type_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.throw_type_error.clone()
     }
@@ -2164,12 +2285,14 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>array_prototype_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.array_prototype_values.clone()
     }
 
     <span class="doccomment">/// Gets the cached iterator prototypes.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>iterator_prototypes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IteratorPrototypes {
         <span class="kw-2">&amp;</span><span class="self">self</span>.iterator_prototypes
     }
@@ -2178,6 +2301,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generator-objects
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.generator.clone()
     }
@@ -2186,6 +2310,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.async_generator.clone()
     }
@@ -2193,11 +2318,13 @@
     <span class="doccomment">/// Gets the [`%eval%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>eval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.eval.clone()
     }
 
     <span class="doccomment">/// Gets the URI intrinsic functions.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>uri_functions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>UriFunctions {
         <span class="kw-2">&amp;</span><span class="self">self</span>.uri_functions
     }
@@ -2205,6 +2332,7 @@
     <span class="doccomment">/// Gets the [`%Reflect%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>reflect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.reflect.clone()
     }
@@ -2212,6 +2340,7 @@
     <span class="doccomment">/// Gets the [`%Math%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>math(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.math.clone()
     }
@@ -2219,6 +2348,7 @@
     <span class="doccomment">/// Gets the [`%JSON%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>json(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.json.clone()
     }
@@ -2226,6 +2356,7 @@
     <span class="doccomment">/// Gets the [`%isFinite%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>is_finite(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.is_finite.clone()
     }
@@ -2233,6 +2364,7 @@
     <span class="doccomment">/// Gets the [`%isNaN%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>is_nan(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.is_nan.clone()
     }
@@ -2240,6 +2372,7 @@
     <span class="doccomment">/// Gets the [`%parseFloat%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>parse_float(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.parse_float.clone()
     }
@@ -2247,6 +2380,7 @@
     <span class="doccomment">/// Gets the [`%parseInt%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>parse_int(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.parse_int.clone()
     }
@@ -2254,7 +2388,8 @@
     <span class="doccomment">/// Gets the [`%escape%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-escape-string
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+    </span><span class="attr">#[must_use]
+    #[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
     </span><span class="kw">pub fn </span>escape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.escape.clone()
     }
@@ -2262,7 +2397,8 @@
     <span class="doccomment">/// Gets the [`%unescape%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-unescape-string
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+    </span><span class="attr">#[must_use]
+    #[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
     </span><span class="kw">pub fn </span>unescape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.unescape.clone()
     }
@@ -2270,7 +2406,8 @@
     <span class="doccomment">/// Gets the [`%Intl%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma402/#intl-object
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="attr">#[must_use]
+    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span><span class="kw">pub fn </span>intl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.intl.clone()
     }
@@ -2278,7 +2415,8 @@
     <span class="doccomment">/// Gets the [`%SegmentsPrototype%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-%segmentsprototype%-object
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="attr">#[must_use]
+    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span><span class="kw">pub fn </span>segments_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.segments_prototype.clone()
     }

@@ -317,6 +317,9 @@
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s API to create and customize `ECMAScript` jobs and job queues.
 //!
 //! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
@@ -423,6 +426,7 @@
     }
 
     <span class="doccomment">/// Gets a reference to the execution realm of the job.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>realm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Realm&gt; {
         <span class="self">self</span>.realm.as_ref()
     }
@@ -486,11 +490,13 @@
     }
 
     <span class="doccomment">/// Gets the inner callback of the job.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>callback(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsFunction {
         <span class="kw-2">&amp;</span><span class="self">self</span>.callback
     }
 
     <span class="doccomment">/// Gets a reference to the host defined additional field as an `Any` trait object.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>host_defined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any {
         <span class="self">self</span>.host_defined.as_any()
     }

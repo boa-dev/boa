@@ -987,6 +987,19 @@
 <a href="#987" id="987">987</a>
 <a href="#988" id="988">988</a>
 <a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
 </span><span class="kw">use crate</span>::{
@@ -1138,6 +1151,7 @@
     ///
     /// assert!(error.as_opaque().is_some());
     /// ```
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>from_opaque(value: JsValue) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: Repr::Opaque(value),
@@ -1318,6 +1332,7 @@
     ///
     /// assert!(error.as_opaque().is_some());
     /// ```
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>as_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
         <span class="kw">match </span><span class="self">self</span>.inner {
             Repr::Native(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
@@ -1340,6 +1355,7 @@
     ///
     /// assert!(error.as_native().is_none());
     /// ```
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>as_native(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsNativeError&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             Repr::Native(e) =&gt; <span class="prelude-val">Some</span>(e),
@@ -1463,7 +1479,8 @@
     }
 
     <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Aggregate`].
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>is_aggregate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Aggregate(<span class="kw">_</span>))
     }
@@ -1485,7 +1502,8 @@
     }
 
     <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Error`].
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>is_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Error)
     }
@@ -1507,7 +1525,8 @@
     }
 
     <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Eval`].
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>is_eval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Eval)
     }
@@ -1529,7 +1548,8 @@
     }
 
     <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Range`].
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>is_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Range)
     }
@@ -1551,7 +1571,8 @@
     }
 
     <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Reference`].
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>is_reference(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Reference)
     }
@@ -1573,7 +1594,8 @@
     }
 
     <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Syntax`].
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>is_syntax(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Syntax)
     }
@@ -1595,7 +1617,8 @@
     }
 
     <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Type`].
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>is_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Type)
     }
@@ -1617,7 +1640,8 @@
     }
 
     <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Uri`].
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>is_uri(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Uri)
     }
@@ -1635,7 +1659,8 @@
     }
 
     <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::NoInstructionsRemain`].
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     #[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
     </span><span class="kw">pub const fn </span>is_no_instructions_remain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::NoInstructionsRemain)
@@ -1649,7 +1674,8 @@
     }
 
     <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::RuntimeLimit`].
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>is_runtime_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::RuntimeLimit)
     }

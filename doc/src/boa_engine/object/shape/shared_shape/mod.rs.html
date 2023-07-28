@@ -476,6 +476,10 @@
 <a href="#476" id="476">476</a>
 <a href="#477" id="477">477</a>
 <a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>forward_transition;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>template;
 
@@ -610,14 +614,17 @@
         <span class="self">self</span>.inner.property_count.saturating_sub(<span class="number">1</span>)
     }
     <span class="doccomment">/// Getter for the transition count field.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>transition_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u16 {
         <span class="self">self</span>.inner.transition_count
     }
     <span class="doccomment">/// Getter for the previous field.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>previous(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
         <span class="self">self</span>.inner.previous.as_ref()
     }
     <span class="doccomment">/// Get the prototype of the shape.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsPrototype {
         <span class="self">self</span>.inner.prototype.clone()
     }
@@ -639,6 +646,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.forward_transitions
     }
     <span class="doccomment">/// Check if the shape has the given prototype.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>has_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>, prototype: <span class="kw-2">&amp;</span>JsObject) -&gt; bool {
         <span class="self">self</span>.inner
             .prototype

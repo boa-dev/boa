@@ -220,6 +220,11 @@
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implements object shapes.
 
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>property_table;
@@ -302,12 +307,14 @@
 
     <span class="doccomment">/// Returns `true` if it&#39;s a shared shape, `false` otherwise.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_shared(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.inner, Inner::Shared(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns `true` if it&#39;s a unique shape, `false` otherwise.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>is_unique(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.inner, Inner::Unique(<span class="kw">_</span>))
     }
@@ -392,6 +399,7 @@
     }
 
     <span class="doccomment">/// Get the [`JsPrototype`] of the [`Shape`].
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsPrototype {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             Inner::Shared(shape) =&gt; shape.prototype(),
@@ -410,6 +418,7 @@
 
     <span class="doccomment">/// Returns the keys of the [`Shape`], in insertion order.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;PropertyKey&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             Inner::Shared(shape) =&gt; shape.keys(),
@@ -419,6 +428,7 @@
 
     <span class="doccomment">/// Return location in memory of the [`Shape`].
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>to_addr_usize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             Inner::Shared(shape) =&gt; shape.to_addr_usize(),

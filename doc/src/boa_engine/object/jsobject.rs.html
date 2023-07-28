@@ -1125,6 +1125,48 @@
 <a href="#1125" id="1125">1125</a>
 <a href="#1126" id="1126">1126</a>
 <a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -1283,6 +1325,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, Object&gt; {
         <span class="self">self</span>.try_borrow().expect(<span class="string">&quot;Object already mutably borrowed&quot;</span>)
@@ -1296,6 +1339,7 @@
     /// # Panics
     /// Panics if the object is currently borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">&#39;_</span>, Object, Object&gt; {
         <span class="self">self</span>.try_borrow_mut().expect(<span class="string">&quot;Object already borrowed&quot;</span>)
@@ -1327,7 +1371,8 @@
     }
 
     <span class="doccomment">/// Checks if the garbage collected memory is the same.
-    </span><span class="attr">#[inline]
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>equals(lhs: <span class="kw-2">&amp;</span><span class="self">Self</span>, rhs: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         std::ptr::eq(lhs.as_ref(), rhs.as_ref())
     }
@@ -1412,7 +1457,8 @@
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    </span><span class="attr">#[track_caller]
+    </span><span class="attr">#[must_use]
+    #[track_caller]
     </span><span class="kw">pub fn </span>is&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool
     <span class="kw">where
         </span>T: NativeObject,
@@ -1426,7 +1472,8 @@
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    </span><span class="attr">#[track_caller]
+    </span><span class="attr">#[must_use]
+    #[track_caller]
     </span><span class="kw">pub fn </span>downcast_ref&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt;
     <span class="kw">where
         </span>T: NativeObject,
@@ -1447,7 +1494,8 @@
     /// # Panics
     ///
     /// Panics if the object is currently borrowed.
-    </span><span class="attr">#[track_caller]
+    </span><span class="attr">#[must_use]
+    #[track_caller]
     </span><span class="kw">pub fn </span>downcast_mut&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, Object, T&gt;&gt;
     <span class="kw">where
         </span>T: NativeObject,
@@ -1469,6 +1517,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsPrototype {
         <span class="self">self</span>.borrow().prototype()
@@ -1490,12 +1539,14 @@
     /// Panics if the object is currently mutably borrowed
     </span><span class="attr">#[inline]
     #[track_caller]
+    #[allow(clippy::must_use_candidate)]
     </span><span class="kw">pub fn </span>set_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>, prototype: JsPrototype) -&gt; bool {
         <span class="self">self</span>.borrow_mut().set_prototype(prototype)
     }
 
     <span class="doccomment">/// Checks if it&#39;s an `Array` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         std::ptr::eq(<span class="self">self</span>.vtable(), <span class="kw-2">&amp;</span>ARRAY_EXOTIC_INTERNAL_METHODS)
@@ -1507,6 +1558,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_data_view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_data_view()
@@ -1518,6 +1570,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_array_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_array_iterator()
@@ -1529,6 +1582,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_array_buffer()
@@ -1540,6 +1594,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_map()
@@ -1551,6 +1606,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_map_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_map_iterator()
@@ -1562,6 +1618,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_set()
@@ -1573,6 +1630,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_set_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_set_iterator()
@@ -1584,6 +1642,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_string()
@@ -1595,6 +1654,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_function()
@@ -1606,6 +1666,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_generator()
@@ -1617,6 +1678,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_symbol()
@@ -1628,6 +1690,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_error()
@@ -1639,6 +1702,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_boolean()
@@ -1650,6 +1714,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_number()
@@ -1661,6 +1726,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_bigint()
@@ -1672,6 +1738,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_date()
@@ -1683,6 +1750,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_regexp()
@@ -1694,6 +1762,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_typed_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_typed_array()
@@ -1705,6 +1774,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_typed_uint8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_typed_uint8_array()
@@ -1716,6 +1786,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_typed_int8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_typed_int8_array()
@@ -1727,6 +1798,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_typed_uint16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_typed_uint16_array()
@@ -1738,6 +1810,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_typed_int16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_typed_int16_array()
@@ -1749,6 +1822,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_typed_uint32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_typed_uint32_array()
@@ -1760,6 +1834,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_typed_int32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_typed_int32_array()
@@ -1771,6 +1846,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_typed_float32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_typed_float32_array()
@@ -1782,6 +1858,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_typed_float64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_typed_float64_array()
@@ -1793,6 +1870,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_promise()
@@ -1804,6 +1882,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_ordinary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_ordinary()
@@ -1815,6 +1894,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_proxy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_proxy()
@@ -1826,6 +1906,7 @@
     ///
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_native_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().is_native_object()
@@ -2042,6 +2123,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_callable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.inner.vtable.__call__.is_some()
@@ -2054,12 +2136,14 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     </span><span class="attr">#[inline]
+    #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.inner.vtable.__construct__.is_some()
     }
 
     <span class="doccomment">/// Returns true if the `JsObject` is the global for a Realm
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.inner.object.borrow().kind, ObjectKind::Global)
     }

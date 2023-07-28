@@ -604,6 +604,17 @@
 <a href="#604" id="604">604</a>
 <a href="#605" id="605">605</a>
 <a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `IteratorRecord` and iterator prototype objects.
 
 </span><span class="kw">use crate</span>::{
@@ -683,60 +694,70 @@
 <span class="kw">impl </span>IteratorPrototypes {
     <span class="doccomment">/// Returns the `ArrayIteratorPrototype` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.array.clone()
     }
 
     <span class="doccomment">/// Returns the `IteratorPrototype` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.iterator.clone()
     }
 
     <span class="doccomment">/// Returns the `AsyncIteratorPrototype` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>async_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.async_iterator.clone()
     }
 
     <span class="doccomment">/// Returns the `AsyncFromSyncIteratorPrototype` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>async_from_sync_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.async_from_sync_iterator.clone()
     }
 
     <span class="doccomment">/// Returns the `SetIteratorPrototype` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.set.clone()
     }
 
     <span class="doccomment">/// Returns the `StringIteratorPrototype` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.string.clone()
     }
 
     <span class="doccomment">/// Returns the `RegExpStringIteratorPrototype` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>regexp_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.regexp_string.clone()
     }
 
     <span class="doccomment">/// Returns the `MapIteratorPrototype` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.map.clone()
     }
 
     <span class="doccomment">/// Returns the `ForInIteratorPrototype` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>for_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.for_in.clone()
     }
 
     <span class="doccomment">/// Returns the `%SegmentIteratorPrototype%` object.
     </span><span class="attr">#[inline]
+    #[must_use]
     #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span><span class="kw">pub fn </span>segment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.segment.clone()
@@ -984,6 +1005,7 @@
 <span class="kw">impl </span>IteratorRecord {
     <span class="doccomment">/// Creates a new `IteratorRecord` with the given iterator object, next method and `done` flag.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>new(iterator: JsObject, next_method: JsValue) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             iterator,

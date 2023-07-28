@@ -340,6 +340,7 @@
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 
 <span class="kw">use crate</span>::{
@@ -593,6 +594,7 @@
 
 <span class="kw">impl </span>JsValue {
     <span class="doccomment">/// A helper function for specifically printing object values
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>display_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, print_internals: bool) -&gt; String {
         <span class="comment">// A simple helper for getting the address of a value
         // TODO: Find a more general place for this, as it can be used in other situations as well

@@ -802,6 +802,7 @@
 <a href="#802" id="802">802</a>
 <a href="#803" id="803">803</a>
 <a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript&#39;s module system.
 //!
 //! This module contains the [`Module`] type, which represents an [**Abstract Module Record**][module],
@@ -1187,6 +1188,7 @@
 
     <span class="doccomment">/// Gets the realm of this `Module`.
     </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>realm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Realm {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.realm
     }
