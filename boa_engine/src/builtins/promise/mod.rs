@@ -51,6 +51,7 @@ unsafe impl Trace for PromiseState {
 impl PromiseState {
     /// Gets the inner `JsValue` of a fulfilled promise state, or returns `None` if
     /// the state is not `Fulfilled`.
+    #[must_use]
     pub const fn as_fulfilled(&self) -> Option<&JsValue> {
         match self {
             Self::Fulfilled(v) => Some(v),
@@ -60,6 +61,7 @@ impl PromiseState {
 
     /// Gets the inner `JsValue` of a rejected promise state, or returns `None` if
     /// the state is not `Rejected`.
+    #[must_use]
     pub const fn as_rejected(&self) -> Option<&JsValue> {
         match self {
             Self::Rejected(v) => Some(v),

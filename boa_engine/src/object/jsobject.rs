@@ -156,6 +156,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn borrow(&self) -> Ref<'_, Object> {
         self.try_borrow().expect("Object already mutably borrowed")
@@ -169,6 +170,7 @@ impl JsObject {
     /// # Panics
     /// Panics if the object is currently borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn borrow_mut(&self) -> RefMut<'_, Object, Object> {
         self.try_borrow_mut().expect("Object already borrowed")
@@ -200,6 +202,7 @@ impl JsObject {
     }
 
     /// Checks if the garbage collected memory is the same.
+    #[must_use]
     #[inline]
     pub fn equals(lhs: &Self, rhs: &Self) -> bool {
         std::ptr::eq(lhs.as_ref(), rhs.as_ref())
@@ -285,6 +288,7 @@ impl JsObject {
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
+    #[must_use]
     #[track_caller]
     pub fn is<T>(&self) -> bool
     where
@@ -299,6 +303,7 @@ impl JsObject {
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
+    #[must_use]
     #[track_caller]
     pub fn downcast_ref<T>(&self) -> Option<Ref<'_, T>>
     where
@@ -320,6 +325,7 @@ impl JsObject {
     /// # Panics
     ///
     /// Panics if the object is currently borrowed.
+    #[must_use]
     #[track_caller]
     pub fn downcast_mut<T>(&self) -> Option<RefMut<'_, Object, T>>
     where
@@ -342,6 +348,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn prototype(&self) -> JsPrototype {
         self.borrow().prototype()
@@ -363,12 +370,14 @@ impl JsObject {
     /// Panics if the object is currently mutably borrowed
     #[inline]
     #[track_caller]
+    #[allow(clippy::must_use_candidate)]
     pub fn set_prototype(&self, prototype: JsPrototype) -> bool {
         self.borrow_mut().set_prototype(prototype)
     }
 
     /// Checks if it's an `Array` object.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_array(&self) -> bool {
         std::ptr::eq(self.vtable(), &ARRAY_EXOTIC_INTERNAL_METHODS)
@@ -380,6 +389,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_data_view(&self) -> bool {
         self.borrow().is_data_view()
@@ -391,6 +401,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_array_iterator(&self) -> bool {
         self.borrow().is_array_iterator()
@@ -402,6 +413,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_array_buffer(&self) -> bool {
         self.borrow().is_array_buffer()
@@ -413,6 +425,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_map(&self) -> bool {
         self.borrow().is_map()
@@ -424,6 +437,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_map_iterator(&self) -> bool {
         self.borrow().is_map_iterator()
@@ -435,6 +449,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_set(&self) -> bool {
         self.borrow().is_set()
@@ -446,6 +461,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_set_iterator(&self) -> bool {
         self.borrow().is_set_iterator()
@@ -457,6 +473,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_string(&self) -> bool {
         self.borrow().is_string()
@@ -468,6 +485,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_function(&self) -> bool {
         self.borrow().is_function()
@@ -479,6 +497,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_generator(&self) -> bool {
         self.borrow().is_generator()
@@ -490,6 +509,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_symbol(&self) -> bool {
         self.borrow().is_symbol()
@@ -501,6 +521,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_error(&self) -> bool {
         self.borrow().is_error()
@@ -512,6 +533,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_boolean(&self) -> bool {
         self.borrow().is_boolean()
@@ -523,6 +545,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_number(&self) -> bool {
         self.borrow().is_number()
@@ -534,6 +557,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_bigint(&self) -> bool {
         self.borrow().is_bigint()
@@ -545,6 +569,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_date(&self) -> bool {
         self.borrow().is_date()
@@ -556,6 +581,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_regexp(&self) -> bool {
         self.borrow().is_regexp()
@@ -567,6 +593,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_typed_array(&self) -> bool {
         self.borrow().is_typed_array()
@@ -578,6 +605,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_typed_uint8_array(&self) -> bool {
         self.borrow().is_typed_uint8_array()
@@ -589,6 +617,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_typed_int8_array(&self) -> bool {
         self.borrow().is_typed_int8_array()
@@ -600,6 +629,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_typed_uint16_array(&self) -> bool {
         self.borrow().is_typed_uint16_array()
@@ -611,6 +641,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_typed_int16_array(&self) -> bool {
         self.borrow().is_typed_int16_array()
@@ -622,6 +653,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_typed_uint32_array(&self) -> bool {
         self.borrow().is_typed_uint32_array()
@@ -633,6 +665,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_typed_int32_array(&self) -> bool {
         self.borrow().is_typed_int32_array()
@@ -644,6 +677,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_typed_float32_array(&self) -> bool {
         self.borrow().is_typed_float32_array()
@@ -655,6 +689,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_typed_float64_array(&self) -> bool {
         self.borrow().is_typed_float64_array()
@@ -666,6 +701,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_promise(&self) -> bool {
         self.borrow().is_promise()
@@ -677,6 +713,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_ordinary(&self) -> bool {
         self.borrow().is_ordinary()
@@ -688,6 +725,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_proxy(&self) -> bool {
         self.borrow().is_proxy()
@@ -699,6 +737,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_native_object(&self) -> bool {
         self.borrow().is_native_object()
@@ -915,6 +954,7 @@ Cannot both specify accessors and a value or writable attribute",
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_callable(&self) -> bool {
         self.inner.vtable.__call__.is_some()
@@ -927,12 +967,14 @@ Cannot both specify accessors and a value or writable attribute",
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     #[inline]
+    #[must_use]
     #[track_caller]
     pub fn is_constructor(&self) -> bool {
         self.inner.vtable.__construct__.is_some()
     }
 
     /// Returns true if the `JsObject` is the global for a Realm
+    #[must_use]
     pub fn is_global(&self) -> bool {
         matches!(self.inner.object.borrow().kind, ObjectKind::Global)
     }

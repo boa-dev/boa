@@ -35,6 +35,7 @@ impl JsValue {
     /// <https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types>.
     ///
     /// Check [`JsValue::type_of`] if you need to call the `typeof` operator.
+    #[must_use]
     pub const fn get_type(&self) -> Type {
         match *self {
             Self::Rational(_) | Self::Integer(_) => Type::Number,

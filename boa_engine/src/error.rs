@@ -149,6 +149,7 @@ impl JsError {
     ///
     /// assert!(error.as_opaque().is_some());
     /// ```
+    #[must_use]
     pub const fn from_opaque(value: JsValue) -> Self {
         Self {
             inner: Repr::Opaque(value),
@@ -329,6 +330,7 @@ impl JsError {
     ///
     /// assert!(error.as_opaque().is_some());
     /// ```
+    #[must_use]
     pub const fn as_opaque(&self) -> Option<&JsValue> {
         match self.inner {
             Repr::Native(_) => None,
@@ -351,6 +353,7 @@ impl JsError {
     ///
     /// assert!(error.as_native().is_none());
     /// ```
+    #[must_use]
     pub const fn as_native(&self) -> Option<&JsNativeError> {
         match &self.inner {
             Repr::Native(e) => Some(e),
@@ -474,6 +477,7 @@ impl JsNativeError {
     }
 
     /// Check if it's a [`JsNativeErrorKind::Aggregate`].
+    #[must_use]
     #[inline]
     pub const fn is_aggregate(&self) -> bool {
         matches!(self.kind, JsNativeErrorKind::Aggregate(_))
@@ -496,6 +500,7 @@ impl JsNativeError {
     }
 
     /// Check if it's a [`JsNativeErrorKind::Error`].
+    #[must_use]
     #[inline]
     pub const fn is_error(&self) -> bool {
         matches!(self.kind, JsNativeErrorKind::Error)
@@ -518,6 +523,7 @@ impl JsNativeError {
     }
 
     /// Check if it's a [`JsNativeErrorKind::Eval`].
+    #[must_use]
     #[inline]
     pub const fn is_eval(&self) -> bool {
         matches!(self.kind, JsNativeErrorKind::Eval)
@@ -540,6 +546,7 @@ impl JsNativeError {
     }
 
     /// Check if it's a [`JsNativeErrorKind::Range`].
+    #[must_use]
     #[inline]
     pub const fn is_range(&self) -> bool {
         matches!(self.kind, JsNativeErrorKind::Range)
@@ -562,6 +569,7 @@ impl JsNativeError {
     }
 
     /// Check if it's a [`JsNativeErrorKind::Reference`].
+    #[must_use]
     #[inline]
     pub const fn is_reference(&self) -> bool {
         matches!(self.kind, JsNativeErrorKind::Reference)
@@ -584,6 +592,7 @@ impl JsNativeError {
     }
 
     /// Check if it's a [`JsNativeErrorKind::Syntax`].
+    #[must_use]
     #[inline]
     pub const fn is_syntax(&self) -> bool {
         matches!(self.kind, JsNativeErrorKind::Syntax)
@@ -606,6 +615,7 @@ impl JsNativeError {
     }
 
     /// Check if it's a [`JsNativeErrorKind::Type`].
+    #[must_use]
     #[inline]
     pub const fn is_type(&self) -> bool {
         matches!(self.kind, JsNativeErrorKind::Type)
@@ -628,6 +638,7 @@ impl JsNativeError {
     }
 
     /// Check if it's a [`JsNativeErrorKind::Uri`].
+    #[must_use]
     #[inline]
     pub const fn is_uri(&self) -> bool {
         matches!(self.kind, JsNativeErrorKind::Uri)
@@ -646,6 +657,7 @@ impl JsNativeError {
     }
 
     /// Check if it's a [`JsNativeErrorKind::NoInstructionsRemain`].
+    #[must_use]
     #[inline]
     #[cfg(feature = "fuzz")]
     pub const fn is_no_instructions_remain(&self) -> bool {
@@ -660,6 +672,7 @@ impl JsNativeError {
     }
 
     /// Check if it's a [`JsNativeErrorKind::RuntimeLimit`].
+    #[must_use]
     #[inline]
     pub const fn is_runtime_limit(&self) -> bool {
         matches!(self.kind, JsNativeErrorKind::RuntimeLimit)

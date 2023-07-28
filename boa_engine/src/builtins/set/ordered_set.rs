@@ -122,6 +122,7 @@ impl OrderedSet {
     /// Return `true` if `value` is present in set, false otherwise.
     ///
     /// Computes in **O(n)** time (average).
+    #[must_use]
     pub fn contains(&self, value: &JsValue) -> bool {
         self.inner.contains(value)
     }

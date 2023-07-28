@@ -104,6 +104,7 @@ impl NativeJob {
     }
 
     /// Gets a reference to the execution realm of the job.
+    #[must_use]
     pub const fn realm(&self) -> Option<&Realm> {
         self.realm.as_ref()
     }
@@ -167,11 +168,13 @@ impl JobCallback {
     }
 
     /// Gets the inner callback of the job.
+    #[must_use]
     pub const fn callback(&self) -> &JsFunction {
         &self.callback
     }
 
     /// Gets a reference to the host defined additional field as an `Any` trait object.
+    #[must_use]
     pub fn host_defined(&self) -> &dyn Any {
         self.host_defined.as_any()
     }

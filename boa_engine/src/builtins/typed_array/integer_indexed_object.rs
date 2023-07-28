@@ -66,6 +66,7 @@ impl IntegerIndexed {
     }
 
     /// Get the integer indexed object's byte offset.
+    #[must_use]
     pub const fn byte_offset(&self) -> u64 {
         self.byte_offset
     }
@@ -81,6 +82,7 @@ impl IntegerIndexed {
     }
 
     /// Get a reference to the integer indexed object's viewed array buffer.
+    #[must_use]
     pub const fn viewed_array_buffer(&self) -> Option<&JsObject> {
         self.viewed_array_buffer.as_ref()
     }
@@ -91,6 +93,7 @@ impl IntegerIndexed {
     }
 
     /// Get the integer indexed object's byte length.
+    #[must_use]
     pub const fn byte_length(&self) -> u64 {
         self.byte_length
     }
@@ -101,6 +104,7 @@ impl IntegerIndexed {
     }
 
     /// Get the integer indexed object's array length.
+    #[must_use]
     pub const fn array_length(&self) -> u64 {
         self.array_length
     }

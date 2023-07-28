@@ -344,6 +344,7 @@ impl<'host> Context<'host> {
 
     /// Gets the string interner.
     #[inline]
+    #[must_use]
     pub const fn interner(&self) -> &Interner {
         &self.interner
     }
@@ -356,18 +357,21 @@ impl<'host> Context<'host> {
 
     /// Returns the global object.
     #[inline]
+    #[must_use]
     pub fn global_object(&self) -> JsObject {
         self.realm.global_object().clone()
     }
 
     /// Returns the currently active intrinsic constructors and objects.
     #[inline]
+    #[must_use]
     pub fn intrinsics(&self) -> &Intrinsics {
         self.realm.intrinsics()
     }
 
     /// Returns the currently active realm.
     #[inline]
+    #[must_use]
     pub const fn realm(&self) -> &Realm {
         &self.realm
     }
@@ -381,6 +385,7 @@ impl<'host> Context<'host> {
 
     /// Get optimizer options.
     #[inline]
+    #[must_use]
     pub const fn optimizer_options(&self) -> OptimizerOptions {
         self.optimizer_options
     }
@@ -452,29 +457,34 @@ impl<'host> Context<'host> {
 
     /// Get the [`RootShape`].
     #[inline]
+    #[must_use]
     pub const fn root_shape(&self) -> &RootShape {
         &self.root_shape
     }
 
     /// Gets the host hooks.
     #[inline]
+    #[must_use]
     pub fn host_hooks(&self) -> MaybeShared<'host, dyn HostHooks> {
         self.host_hooks.clone()
     }
 
     /// Gets the job queue.
     #[inline]
+    #[must_use]
     pub fn job_queue(&self) -> MaybeShared<'host, dyn JobQueue> {
         self.job_queue.clone()
     }
 
     /// Gets the module loader.
+    #[must_use]
     pub fn module_loader(&self) -> MaybeShared<'host, dyn ModuleLoader> {
         self.module_loader.clone()
     }
 
     /// Get the [`RuntimeLimits`].
     #[inline]
+    #[must_use]
     pub const fn runtime_limits(&self) -> RuntimeLimits {
         self.vm.runtime_limits
     }

@@ -84,6 +84,7 @@ impl Realm {
     }
 
     /// Gets the intrinsics of this `Realm`.
+    #[must_use]
     pub fn intrinsics(&self) -> &Intrinsics {
         &self.inner.intrinsics
     }

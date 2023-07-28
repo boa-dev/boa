@@ -21,6 +21,7 @@ impl Default for RootShape {
 
 impl RootShape {
     /// Gets the inner [`SharedShape`].
+    #[must_use]
     pub const fn shape(&self) -> &SharedShape {
         &self.shape
     }

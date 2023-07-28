@@ -57,6 +57,7 @@ pub struct CallFrame {
 impl CallFrame {
     /// Retrieves the [`CodeBlock`] of this call frame.
     #[inline]
+    #[must_use]
     pub const fn code_block(&self) -> &Gc<CodeBlock> {
         &self.code_block
     }

@@ -77,60 +77,70 @@ pub struct IteratorPrototypes {
 impl IteratorPrototypes {
     /// Returns the `ArrayIteratorPrototype` object.
     #[inline]
+    #[must_use]
     pub fn array(&self) -> JsObject {
         self.array.clone()
     }
 
     /// Returns the `IteratorPrototype` object.
     #[inline]
+    #[must_use]
     pub fn iterator(&self) -> JsObject {
         self.iterator.clone()
     }
 
     /// Returns the `AsyncIteratorPrototype` object.
     #[inline]
+    #[must_use]
     pub fn async_iterator(&self) -> JsObject {
         self.async_iterator.clone()
     }
 
     /// Returns the `AsyncFromSyncIteratorPrototype` object.
     #[inline]
+    #[must_use]
     pub fn async_from_sync_iterator(&self) -> JsObject {
         self.async_from_sync_iterator.clone()
     }
 
     /// Returns the `SetIteratorPrototype` object.
     #[inline]
+    #[must_use]
     pub fn set(&self) -> JsObject {
         self.set.clone()
     }
 
     /// Returns the `StringIteratorPrototype` object.
     #[inline]
+    #[must_use]
     pub fn string(&self) -> JsObject {
         self.string.clone()
     }
 
     /// Returns the `RegExpStringIteratorPrototype` object.
     #[inline]
+    #[must_use]
     pub fn regexp_string(&self) -> JsObject {
         self.regexp_string.clone()
     }
 
     /// Returns the `MapIteratorPrototype` object.
     #[inline]
+    #[must_use]
     pub fn map(&self) -> JsObject {
         self.map.clone()
     }
 
     /// Returns the `ForInIteratorPrototype` object.
     #[inline]
+    #[must_use]
     pub fn for_in(&self) -> JsObject {
         self.for_in.clone()
     }
 
     /// Returns the `%SegmentIteratorPrototype%` object.
     #[inline]
+    #[must_use]
     #[cfg(feature = "intl")]
     pub fn segment(&self) -> JsObject {
         self.segment.clone()
@@ -378,6 +388,7 @@ pub struct IteratorRecord {
 impl IteratorRecord {
     /// Creates a new `IteratorRecord` with the given iterator object, next method and `done` flag.
     #[inline]
+    #[must_use]
     pub fn new(iterator: JsObject, next_method: JsValue) -> Self {
         Self {
             iterator,

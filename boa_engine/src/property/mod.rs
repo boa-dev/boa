@@ -91,6 +91,7 @@ impl PropertyDescriptor {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isaccessordescriptor
     #[inline]
+    #[must_use]
     pub const fn is_accessor_descriptor(&self) -> bool {
         matches!(self.kind, DescriptorKind::Accessor { .. })
     }
@@ -102,6 +103,7 @@ impl PropertyDescriptor {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isdatadescriptor
     #[inline]
+    #[must_use]
     pub const fn is_data_descriptor(&self) -> bool {
         matches!(self.kind, DescriptorKind::Data { .. })
     }
@@ -113,12 +115,14 @@ impl PropertyDescriptor {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isgenericdescriptor
     #[inline]
+    #[must_use]
     pub const fn is_generic_descriptor(&self) -> bool {
         matches!(self.kind, DescriptorKind::Generic)
     }
 
     /// Returns if the property descriptor is empty.
     #[inline]
+    #[must_use]
     pub const fn is_empty(&self) -> bool {
         self.is_generic_descriptor() && self.enumerable.is_none() && self.configurable.is_none()
     }
@@ -126,6 +130,7 @@ impl PropertyDescriptor {
     /// Returns if the property descriptor is enumerable.
     /// Returns `None` if the `enumerable` field is not set.
     #[inline]
+    #[must_use]
     pub const fn enumerable(&self) -> Option<bool> {
         self.enumerable
     }
@@ -133,6 +138,7 @@ impl PropertyDescriptor {
     /// Returns if the property descriptor is configurable.
     /// Returns `None` if the `configurable` field is not set.
     #[inline]
+    #[must_use]
     pub const fn configurable(&self) -> Option<bool> {
         self.configurable
     }
@@ -140,6 +146,7 @@ impl PropertyDescriptor {
     /// Returns if the property descriptor is writable.
     /// Returns `None` if the `writable` field is not set or the property descriptor is not a data descriptor.
     #[inline]
+    #[must_use]
     pub const fn writable(&self) -> Option<bool> {
         match self.kind {
             DescriptorKind::Data { writable, .. } => writable,
@@ -150,6 +157,7 @@ impl PropertyDescriptor {
     /// Returns the value of the property descriptor.
     /// Returns `None` if the value is not set or the property descriptor is not a data descriptor.
     #[inline]
+    #[must_use]
     pub const fn value(&self) -> Option<&JsValue> {
         match &self.kind {
             DescriptorKind::Data { value, .. } => value.as_ref(),
@@ -160,6 +168,7 @@ impl PropertyDescriptor {
     /// Returns the getter of the property descriptor.
     /// Returns `None` if the getter is not set or the property descriptor is not an accessor descriptor.
     #[inline]
+    #[must_use]
     pub const fn get(&self) -> Option<&JsValue> {
         match &self.kind {
             DescriptorKind::Accessor { get, .. } => get.as_ref(),
@@ -170,6 +179,7 @@ impl PropertyDescriptor {
     /// Returns the setter of the property descriptor.
     /// Returns `None` if the setter is not set or the property descriptor is not an accessor descriptor.
     #[inline]
+    #[must_use]
     pub const fn set(&self) -> Option<&JsValue> {
         match &self.kind {
             DescriptorKind::Accessor { set, .. } => set.as_ref(),
@@ -183,6 +193,7 @@ impl PropertyDescriptor {
     ///
     /// Panics if the `enumerable` field is not set.
     #[inline]
+    #[must_use]
     pub fn expect_enumerable(&self) -> bool {
         self.enumerable
             .expect("[[enumerable]] field not in property descriptor")
@@ -194,6 +205,7 @@ impl PropertyDescriptor {
     ///
     /// Panics if the `configurable` field is not set.
     #[inline]
+    #[must_use]
     pub fn expect_configurable(&self) -> bool {
         self.configurable
             .expect("[[configurable]] field not in property descriptor")
@@ -205,6 +217,7 @@ impl PropertyDescriptor {
     ///
     /// Panics if the `writable` field is not set.
     #[inline]
+    #[must_use]
     pub fn expect_writable(&self) -> bool {
         self.writable()
             .expect("[[writable]] field not in property descriptor")
@@ -216,6 +229,7 @@ impl PropertyDescriptor {
     ///
     /// Panics if the `value` field is not set.
     #[inline]
+    #[must_use]
     pub fn expect_value(&self) -> &JsValue {
         self.value()
             .expect("[[value]] field not in property descriptor")
@@ -227,6 +241,7 @@ impl PropertyDescriptor {
     ///
     /// Panics if the `getter` field is not set.
     #[inline]
+    #[must_use]
     pub fn expect_get(&self) -> &JsValue {
         self.get()
             .expect("[[get]] field not in property descriptor")
@@ -238,6 +253,7 @@ impl PropertyDescriptor {
     ///
     /// Panics if the `setter` field is not set.
     #[inline]
+    #[must_use]
     pub fn expect_set(&self) -> &JsValue {
         self.set()
             .expect("[[set]] field not in property descriptor")
@@ -245,6 +261,7 @@ impl PropertyDescriptor {
 
     /// Returns the kind of the property descriptor.
     #[inline]
+    #[must_use]
     pub const fn kind(&self) -> &DescriptorKind {
         &self.kind
     }
@@ -546,11 +563,13 @@ impl PropertyDescriptorBuilder {
     }
 
     /// Returns a reference to the currently built [`PropertyDescriptor`].
+    #[must_use]
     pub const fn inner(&self) -> &PropertyDescriptor {
         &self.inner
     }
 
     /// Consumes the builder and returns the [`PropertyDescriptor`].
+    #[must_use]
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> PropertyDescriptor {
         self.inner

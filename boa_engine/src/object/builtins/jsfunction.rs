@@ -44,6 +44,7 @@ impl JsFunction {
     ///
     /// This does not clone the fields of the function, it only does a shallow clone of the object.
     #[inline]
+    #[must_use]
     pub fn from_object(object: JsObject) -> Option<Self> {
         object
             .is_callable()

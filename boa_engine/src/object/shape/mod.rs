@@ -80,12 +80,14 @@ impl Shape {
 
     /// Returns `true` if it's a shared shape, `false` otherwise.
     #[inline]
+    #[must_use]
     pub const fn is_shared(&self) -> bool {
         matches!(self.inner, Inner::Shared(_))
     }
 
     /// Returns `true` if it's a unique shape, `false` otherwise.
     #[inline]
+    #[must_use]
     pub const fn is_unique(&self) -> bool {
         matches!(self.inner, Inner::Unique(_))
     }
@@ -170,6 +172,7 @@ impl Shape {
     }
 
     /// Get the [`JsPrototype`] of the [`Shape`].
+    #[must_use]
     pub fn prototype(&self) -> JsPrototype {
         match &self.inner {
             Inner::Shared(shape) => shape.prototype(),
@@ -188,6 +191,7 @@ impl Shape {
 
     /// Returns the keys of the [`Shape`], in insertion order.
     #[inline]
+    #[must_use]
     pub fn keys(&self) -> Vec<PropertyKey> {
         match &self.inner {
             Inner::Shared(shape) => shape.keys(),
@@ -197,6 +201,7 @@ impl Shape {
 
     /// Return location in memory of the [`Shape`].
     #[inline]
+    #[must_use]
     pub fn to_addr_usize(&self) -> usize {
         match &self.inner {
             Inner::Shared(shape) => shape.to_addr_usize(),
