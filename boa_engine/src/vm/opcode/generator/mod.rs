@@ -5,7 +5,7 @@ use crate::{
     string::utf16,
     vm::{
         call_frame::GeneratorResumeKind,
-        opcode::{control_flow::Return, Operation},
+        opcode::{Operation, ReThrow},
         CompletionType,
     },
     Context, JsError, JsResult,
@@ -27,75 +27,43 @@ impl Operation for GeneratorNext {
     const INSTRUCTION: &'static str = "INST - GeneratorNext";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        match context.vm.frame().generator_resume_kind {
+        let generator_resume_kind = context.vm.pop().to_generator_resume_kind();
+        match generator_resume_kind {
             GeneratorResumeKind::Normal => Ok(CompletionType::Normal),
             GeneratorResumeKind::Throw => Err(JsError::from_opaque(context.vm.pop())),
             GeneratorResumeKind::Return => {
+                assert!(context.vm.pending_exception.is_none());
+
                 SetReturnValue::execute(context)?;
-                Return::execute(context)
+                ReThrow::execute(context)
             }
         }
     }
 }
 
-/// `GeneratorJumpOnResumeKind` implements the Opcode Operation for
-/// `Opcode::GeneratorJumpOnResumeKind`
+/// `JumpIfNotResumeKind` implements the Opcode Operation for `Opcode::JumpIfNotResumeKind`
 ///
 /// Operation:
-///  - Jumps to the specified instruction if the current resume kind is `Return`.
+///  - Jumps to the specified address if the resume kind is not equal.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct GeneratorJumpOnResumeKind;
+pub(crate) struct JumpIfNotResumeKind;
 
-impl Operation for GeneratorJumpOnResumeKind {
-    const NAME: &'static str = "GeneratorJumpOnResumeKind";
-    const INSTRUCTION: &'static str = "INST - GeneratorJumpOnResumeKind";
+impl Operation for JumpIfNotResumeKind {
+    const NAME: &'static str = "JumpIfNotResumeKind";
+    const INSTRUCTION: &'static str = "INST - JumpIfNotResumeKind";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let normal = context.vm.read::<u32>();
-        let throw = context.vm.read::<u32>();
-        let r#return = context.vm.read::<u32>();
-        match context.vm.frame().generator_resume_kind {
-            GeneratorResumeKind::Normal => context.vm.frame_mut().pc = normal,
-            GeneratorResumeKind::Throw => context.vm.frame_mut().pc = throw,
-            GeneratorResumeKind::Return => context.vm.frame_mut().pc = r#return,
+        let exit = context.vm.read::<u32>();
+        let resume_kind = context.vm.read::<u8>();
+
+        let generator_resume_kind = context.vm.pop().to_generator_resume_kind();
+        context.vm.push(generator_resume_kind);
+
+        if generator_resume_kind as u8 != resume_kind {
+            context.vm.frame_mut().pc = exit;
         }
+
         Ok(CompletionType::Normal)
-    }
-}
-
-/// `GeneratorSetReturn` implements the Opcode Operation for `Opcode::GeneratorSetReturn`
-///
-/// Operation:
-///  - Sets the current generator resume kind to `Return`.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct GeneratorSetReturn;
-
-impl Operation for GeneratorSetReturn {
-    const NAME: &'static str = "GeneratorSetReturn";
-    const INSTRUCTION: &'static str = "INST - GeneratorSetReturn";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `GeneratorResumeReturn` implements the Opcode Operation for `Opcode::GeneratorResumeReturn`
-///
-/// Operation:
-///  - Resumes a generator with a return completion.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct GeneratorResumeReturn;
-
-impl Operation for GeneratorResumeReturn {
-    const NAME: &'static str = "GeneratorResumeReturn";
-    const INSTRUCTION: &'static str = "INST - GeneratorResumeReturn";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        if context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
-            return Err(JsError::from_opaque(context.vm.pop()));
-        }
-        Return::execute(context)
     }
 }
 
@@ -113,6 +81,8 @@ impl Operation for GeneratorDelegateNext {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let throw_method_undefined = context.vm.read::<u32>();
         let return_method_undefined = context.vm.read::<u32>();
+
+        let generator_resume_kind = context.vm.pop().to_generator_resume_kind();
         let received = context.vm.pop();
 
         // Preemptively popping removes the iterator from the iterator stack if any operation
@@ -124,7 +94,7 @@ impl Operation for GeneratorDelegateNext {
             .pop()
             .expect("iterator stack should have at least an iterator");
 
-        match std::mem::take(&mut context.vm.frame_mut().generator_resume_kind) {
+        match generator_resume_kind {
             GeneratorResumeKind::Normal => {
                 let result = iterator_record.next_method().call(
                     &iterator_record.iterator().clone().into(),
@@ -133,6 +103,7 @@ impl Operation for GeneratorDelegateNext {
                 )?;
                 context.vm.push(false);
                 context.vm.push(result);
+                context.vm.push(GeneratorResumeKind::Normal);
             }
             GeneratorResumeKind::Throw => {
                 let throw = iterator_record
@@ -146,6 +117,7 @@ impl Operation for GeneratorDelegateNext {
                     )?;
                     context.vm.push(false);
                     context.vm.push(result);
+                    context.vm.push(GeneratorResumeKind::Normal);
                 } else {
                     let error = JsNativeError::typ()
                         .with_message("iterator does not have a throw method")
@@ -166,6 +138,7 @@ impl Operation for GeneratorDelegateNext {
                     )?;
                     context.vm.push(true);
                     context.vm.push(result);
+                    context.vm.push(GeneratorResumeKind::Normal);
                 } else {
                     context.vm.push(received);
                     context.vm.frame_mut().pc = return_method_undefined;
@@ -205,10 +178,12 @@ impl Operation for GeneratorDelegateResume {
             .pop()
             .expect("iterator stack should have at least an iterator");
 
+        let generator_resume_kind = context.vm.pop().to_generator_resume_kind();
+
         let result = context.vm.pop();
         let is_return = context.vm.pop().to_boolean();
 
-        if context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
+        if generator_resume_kind == GeneratorResumeKind::Throw {
             return Err(JsError::from_opaque(result));
         }
 

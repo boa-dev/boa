@@ -1117,12 +1117,45 @@ generate_impl! {
         /// Stack: value **=>** value
         JumpIfNullOrUndefined,
 
-        /// Throw exception
+        /// Jump table that jumps depending on top value of the stack.
+        ///
+        /// This is used to handle special cases when we call `continue`, `break` or `return` in a try block,
+        /// that has finally block.
+        ///
+        /// Operands: count: `u32`, default: `u32`, address: `u32` * count
+        ///
+        /// Stack: value: [`i32`] **=>**
+        JumpTable,
+
+        /// Throw exception.
+        ///
+        /// This sets pending exception and searches for an exception handler.
         ///
         /// Operands:
         ///
         /// Stack: value **=>**
         Throw,
+
+        /// Rethrow thrown exception.
+        ///
+        /// This is also used to handle generator `return()` call, we throw an empty exception, by setting pending exception to [`None`],
+        /// propagating it and calling finally code until there is no exception handler left, in that case we consume the empty exception and return
+        /// from the generator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>**
+        ReThrow,
+
+        /// Get the thrown pending exception and push on the stack.
+        ///
+        /// If there is no pending exception, which can happend if we are handling `return()` call on generator,
+        /// then we rethrow the empty exception. See [`Opcode::ReThrow`].
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>** exception
+        Exception,
 
         /// Throw a new `TypeError` exception
         ///
@@ -1130,48 +1163,6 @@ generate_impl! {
         ///
         /// Stack: **=>**
         ThrowNewTypeError,
-
-        /// Start of a try block.
-        ///
-        /// Operands: next_address: `u32`, finally_address: `u32`
-        ///
-        /// Stack: **=>**
-        TryStart,
-
-        /// End of a try block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>**
-        TryEnd,
-
-        /// Start of a finally block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>**
-        FinallyStart,
-
-        /// End of a finally block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>**
-        FinallyEnd,
-
-        /// Jumps to a target location and pops the environments involved.
-        ///
-        /// Operands: Jump Address: u32, Target address: u32
-        ///
-        /// Stack: loop_return_value **=>**
-        Break,
-
-        /// Sets the `AbruptCompletionRecord` for a delayed continue
-        ///
-        /// Operands: Jump Address: u32, Target address: u32,
-        ///
-        /// Stack: loop_return_value **=>**
-        Continue,
 
         /// Pops value converts it to boolean and pushes it back.
         ///
@@ -1377,42 +1368,14 @@ generate_impl! {
         /// Stack: **=>**
         PopEnvironment,
 
-        /// Push loop start marker.
+        /// Increment loop itearation count.
         ///
-        /// Operands:
-        /// - start: `u32`
-        /// - exit: `u32`
-        ///
-        /// Stack: **=>**
-        LoopStart,
-
-        /// Clean up environments when a loop continues.
+        /// Used for limiting the loop iteration.
         ///
         /// Operands:
         ///
         /// Stack: **=>**
-        LoopContinue,
-
-        /// Clean up environments at the end of a loop and return it's value.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>** value
-        LoopEnd,
-
-        /// Push labelled start marker.
-        ///
-        /// Operands: Exit Address: u32,
-        ///
-        /// Stack: **=>**
-        LabelledStart,
-
-        /// Clean up environments at the end of a labelled block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>**
-        LabelledEnd,
+        IncrementLoopIteration,
 
         /// Creates the ForInIterator of an object.
         ///
@@ -1420,15 +1383,6 @@ generate_impl! {
         ///
         /// Iterator Stack: `iterator`
         CreateForInIterator,
-
-        /// Push iterator loop start marker.
-        ///
-        /// Operands:
-        /// - start: `u32`
-        /// - exit: `u32`
-        ///
-        /// Stack: **=>**
-        IteratorLoopStart,
 
         /// Gets the iterator of an object.
         ///
@@ -1455,6 +1409,13 @@ generate_impl! {
         /// Iterator Stack: `iterator` **=>** `iterator`
         IteratorNext,
 
+        /// Calls the `next` method of `iterator`, updating its record with the next value.
+        ///
+        /// Operands:
+        ///
+        /// Iterator Stack: `iterator` **=>** `iterator`
+        IteratorNextWithoutPop,
+
         /// Returns `true` if the current iterator is done, or `false` otherwise
         ///
         /// Stack: **=>** done
@@ -1467,19 +1428,26 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: `next_result` **=>**
+        /// Stack: `next_result`, `resume_kind` **=>** `resume_kind`
         ///
         /// Iterator Stack: iterator **=>** iterator
         IteratorFinishAsyncNext,
 
-        ///  - Gets the `value` property of the current iterator record.
+        /// Gets the `value` property of the current iterator record.
         ///
         /// Stack: **=>** `value`
         ///
         /// Iterator Stack: `iterator` **=>** `iterator`
         IteratorValue,
 
-        ///  - Gets the last iteration result of the current iterator record.
+        /// Gets the `value` property of the current iterator record.
+        ///
+        /// Stack: **=>** `value`
+        ///
+        /// Iterator Stack: `iterator` **=>** `iterator`
+        IteratorValueWithoutPop,
+
+        /// Gets the last iteration result of the current iterator record.
         ///
         /// Stack: **=>** `result`
         ///
@@ -1566,22 +1534,18 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: value **=>** received
+        /// Stack: **=>** resume_kind, received
         GeneratorYield,
 
         /// Resumes the current generator function.
         ///
+        /// If the `resume_kind` is `Throw`, then the value is poped and thrown, otherwise if `Return`
+        /// we pop the value, set it as the return value and throw and empty exception. See [`Opcode::ReThrow`].
+        ///
         /// Operands:
         ///
-        /// Stack: received **=>**
+        /// Stack: `resume_kind`, value **=>** value
         GeneratorNext,
-
-        /// Resumes a generator with a return completion.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>**
-        GeneratorResumeReturn,
 
         /// Yields from the current async generator execution.
         ///
@@ -1590,22 +1554,12 @@ generate_impl! {
         /// Stack: value **=>** received
         AsyncGeneratorYield,
 
-        /// Jumps to the specified instruction for each resume kind.
+        /// Jumps to the specified address if the resume kind is not equal.
         ///
-        /// Operands:
-        /// - normal: u32,
-        /// - throw: u32,
-        /// - return: u32,
+        /// Operands: `exit`: `u32`, `resume_kind`: `u8`.
         ///
-        /// Stack:
-        GeneratorJumpOnResumeKind,
-
-        /// Sets the current generator resume kind to `Return`.
-        ///
-        /// Operands:
-        ///
-        /// Stack:
-        GeneratorSetReturn,
+        /// Stack: `resume_kind` **=>** `resume_kind`
+        JumpIfNotResumeKind,
 
         /// Delegates the current async generator function to another iterator.
         ///
@@ -1796,6 +1750,22 @@ generate_impl! {
         Reserved55 => Reserved,
         /// Reserved [`Opcode`].
         Reserved56 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved57 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved58 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved59 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved60 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved61 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved62 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved63 => Reserved,
+        /// Reserved [`Opcode`].
+        Reserved64 => Reserved,
     }
 }
 

@@ -126,7 +126,6 @@ impl Operation for Await {
         );
 
         context.vm.push(JsValue::undefined());
-        context.vm.frame_mut().r#yield = true;
-        Ok(CompletionType::Return)
+        Ok(CompletionType::Yield)
     }
 }

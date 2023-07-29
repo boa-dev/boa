@@ -7,7 +7,7 @@ mod update;
 use super::{Access, Callable, NodeKind};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
-    vm::Opcode,
+    vm::{GeneratorResumeKind, Opcode},
 };
 use boa_ast::{
     expression::{
@@ -153,31 +153,41 @@ impl ByteCompiler<'_, '_> {
                 }
             }
             Expression::Yield(r#yield) => {
+                // stack:
                 if let Some(expr) = r#yield.target() {
                     self.compile_expr(expr, true);
                 } else {
                     self.emit_opcode(Opcode::PushUndefined);
                 }
 
+                // stack: value
+
                 if r#yield.delegate() {
-                    if self.in_async_generator {
+                    if self.in_async() {
                         self.emit_opcode(Opcode::GetAsyncIterator);
                     } else {
                         self.emit_opcode(Opcode::GetIterator);
                     }
 
+                    // stack:
                     self.emit_opcode(Opcode::PushUndefined);
+
+                    // stack: undefined
+                    self.emit_push_integer(GeneratorResumeKind::Normal as i32);
+
+                    // stack: resume_kind, undefined
                     let start_address = self.next_opcode_location();
                     let (throw_method_undefined, return_method_undefined) =
                         self.emit_opcode_with_two_operands(Opcode::GeneratorDelegateNext);
 
-                    if self.in_async_generator {
+                    if self.in_async() {
+                        self.emit_opcode(Opcode::Pop);
                         self.emit_opcode(Opcode::Await);
                     }
 
                     let (return_gen, exit) =
                         self.emit_opcode_with_two_operands(Opcode::GeneratorDelegateResume);
-                    if self.in_async_generator {
+                    if self.in_async() {
                         self.emit_opcode(Opcode::IteratorValue);
                         self.async_generator_yield();
                     } else {
@@ -188,16 +198,17 @@ impl ByteCompiler<'_, '_> {
 
                     self.patch_jump(return_gen);
                     self.patch_jump(return_method_undefined);
-                    if self.in_async_generator {
+                    if self.in_async() {
                         self.emit_opcode(Opcode::Await);
+                        self.emit_opcode(Opcode::Pop);
                     }
                     self.close_active_iterators();
 
                     self.emit_opcode(Opcode::SetReturnValue);
-                    self.emit_opcode(Opcode::GeneratorResumeReturn);
+                    self.r#return();
 
                     self.patch_jump(throw_method_undefined);
-                    self.iterator_close(self.in_async_generator);
+                    self.iterator_close(self.in_async());
                     self.emit_opcode(Opcode::Throw);
 
                     self.patch_jump(exit);

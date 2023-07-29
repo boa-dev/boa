@@ -108,10 +108,11 @@ impl GeneratorContext {
         context
             .vm
             .push_frame(self.call_frame.take().expect("should have a call frame"));
-        context.vm.frame_mut().generator_resume_kind = resume_kind;
+
         if let Some(value) = value {
             context.vm.push(value);
         }
+        context.vm.push(resume_kind);
 
         let result = context.run();
 

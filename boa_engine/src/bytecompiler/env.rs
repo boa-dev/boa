@@ -7,6 +7,7 @@ use boa_ast::expression::Identifier;
 impl ByteCompiler<'_, '_> {
     /// Push either a new declarative or function environment on the compile time environment stack.
     pub(crate) fn push_compile_environment(&mut self, function_scope: bool) {
+        self.current_open_environments_count += 1;
         self.current_environment = Rc::new(CompileTimeEnvironment::new(
             self.current_environment.clone(),
             function_scope,
@@ -16,6 +17,7 @@ impl ByteCompiler<'_, '_> {
     /// Pops the top compile time environment and returns its index in the compile time environments array.
     #[track_caller]
     pub(crate) fn pop_compile_environment(&mut self) -> u32 {
+        self.current_open_environments_count -= 1;
         let index = self.compile_environments.len() as u32;
         self.compile_environments
             .push(self.current_environment.clone());

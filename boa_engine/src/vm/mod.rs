@@ -40,7 +40,7 @@ pub(crate) use {
     call_frame::GeneratorResumeKind,
     code_block::{
         create_function_object, create_function_object_fast, create_generator_function_object,
-        CodeBlockFlags,
+        CodeBlockFlags, Handler,
     },
     completion_record::CompletionRecord,
     opcode::BindingOpcode,
@@ -54,13 +54,23 @@ mod tests;
 pub struct Vm {
     pub(crate) frames: Vec<CallFrame>,
     pub(crate) stack: Vec<JsValue>,
-    pub(crate) err: Option<JsError>,
+
+    /// When an error is thrown, the pending exception is set.
+    ///
+    /// If we throw an empty exception ([`None`]), this means that `return()` was called on a generator,
+    /// propagating though the exception handlers and executing the finally code (if any).
+    ///
+    /// See [`ReThrow`](crate::vm::Opcode::ReThrow) and [`ReThrow`](crate::vm::Opcode::Exception) opcodes.
+    ///
+    /// This is also used to eliminates [`crate::JsNativeError`] to opaque conversion if not needed.
+    pub(crate) pending_exception: Option<JsError>,
     pub(crate) environments: EnvironmentStack,
-    #[cfg(feature = "trace")]
-    pub(crate) trace: bool,
     pub(crate) runtime_limits: RuntimeLimits,
     pub(crate) active_function: Option<JsObject>,
     pub(crate) active_runnable: Option<ActiveRunnable>,
+
+    #[cfg(feature = "trace")]
+    pub(crate) trace: bool,
 }
 
 /// Active runnable in the current vm context.
@@ -86,12 +96,12 @@ impl Vm {
             frames: Vec::with_capacity(16),
             stack: Vec::with_capacity(1024),
             environments: EnvironmentStack::new(global),
-            err: None,
-            #[cfg(feature = "trace")]
-            trace: false,
+            pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
             active_function: None,
             active_runnable: None,
+            #[cfg(feature = "trace")]
+            trace: false,
         }
     }
 
@@ -147,6 +157,29 @@ impl Vm {
     pub(crate) fn pop_frame(&mut self) -> Option<CallFrame> {
         self.frames.pop()
     }
+
+    /// Handles an exception thrown at position `pc`.
+    ///
+    /// Returns `true` if the exception was handled, `false` otherwise.
+    #[inline]
+    pub(crate) fn handle_exception_at(&mut self, pc: u32) -> bool {
+        let frame = self.frame_mut();
+        let Some((_, handler)) = frame.code_block().find_handler(pc) else {
+            return false;
+        };
+
+        let catch_address = handler.handler();
+        let environment_sp = frame.env_fp + handler.environment_count;
+        let sp = frame.fp + handler.stack_count;
+
+        // Go to handler location.
+        frame.pc = catch_address;
+
+        self.environments.truncate(environment_sp as usize);
+        self.stack.truncate(sp as usize);
+
+        true
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -154,6 +187,7 @@ pub(crate) enum CompletionType {
     Normal,
     Return,
     Throw,
+    Yield,
 }
 
 impl Context<'_> {
@@ -225,16 +259,11 @@ impl Context<'_> {
         let promise_capability = self.vm.frame().promise_capability.clone();
 
         let execution_completion = loop {
-            // 1. Exit the execution loop if program counter ever is equal to or exceeds the amount of instructions
-            if self.vm.frame().code_block.bytecode.len() <= self.vm.frame().pc as usize {
-                break CompletionType::Normal;
-            }
-
             #[cfg(feature = "fuzz")]
             {
                 if self.instructions_remaining == 0 {
                     let err = JsError::from_native(JsNativeError::no_instructions_remain());
-                    self.vm.err = Some(err);
+                    self.vm.pending_exception = Some(err);
                     break CompletionType::Throw;
                 }
                 self.instructions_remaining -= 1;
@@ -290,6 +319,11 @@ impl Context<'_> {
                 Ok(CompletionType::Throw) => {
                     break CompletionType::Throw;
                 }
+                // Early return immediately.
+                Ok(CompletionType::Yield) => {
+                    let result = self.vm.pop();
+                    return CompletionRecord::Return(result);
+                }
                 Err(err) => {
                     #[cfg(feature = "fuzz")]
                     {
@@ -297,7 +331,7 @@ impl Context<'_> {
                             // If we hit the execution step limit, bubble up the error to the
                             // (Rust) caller instead of trying to handle as an exception.
                             if native_error.is_no_instructions_remain() {
-                                self.vm.err = Some(err);
+                                self.vm.pending_exception = Some(err);
                                 break CompletionType::Throw;
                             }
                         }
@@ -307,15 +341,14 @@ impl Context<'_> {
                         // If we hit the execution step limit, bubble up the error to the
                         // (Rust) caller instead of trying to handle as an exception.
                         if native_error.is_runtime_limit() {
-                            self.vm.err = Some(err);
+                            self.vm.pending_exception = Some(err);
                             break CompletionType::Throw;
                         }
                     }
 
-                    self.vm.err = Some(err);
+                    self.vm.pending_exception = Some(err);
 
-                    // If this frame has not evaluated the throw as an AbruptCompletion, then evaluate it
-                    let evaluation = Opcode::Throw
+                    let evaluation = Opcode::ReThrow
                         .execute(self)
                         .expect("Opcode::Throw cannot return Err");
 
@@ -327,13 +360,6 @@ impl Context<'_> {
                 }
             }
         };
-
-        // Early return immediately after loop.
-        if self.vm.frame().r#yield {
-            self.vm.frame_mut().r#yield = false;
-            let result = self.vm.pop();
-            return CompletionRecord::Return(result);
-        }
 
         #[cfg(feature = "trace")]
         if self.vm.trace {
@@ -359,11 +385,6 @@ impl Context<'_> {
             println!("\n");
         }
 
-        if execution_completion == CompletionType::Throw
-            || execution_completion == CompletionType::Return
-        {
-            self.vm.frame_mut().abrupt_completion = None;
-        }
         self.vm.stack.truncate(self.vm.frame().fp as usize);
 
         // Determine the execution result
@@ -384,13 +405,18 @@ impl Context<'_> {
                         .expect("cannot fail per spec");
                 }
                 CompletionType::Throw => {
-                    let err = self.vm.err.take().expect("Take must exist on a Throw");
+                    let err = self
+                        .vm
+                        .pending_exception
+                        .take()
+                        .expect("Take must exist on a Throw");
                     promise
                         .reject()
                         .call(&JsValue::undefined(), &[err.to_opaque(self)], self)
                         .expect("cannot fail per spec");
-                    self.vm.err = Some(err);
+                    self.vm.pending_exception = Some(err);
                 }
+                CompletionType::Yield => unreachable!("this is handled before"),
             }
         } else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
             // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
@@ -413,7 +439,7 @@ impl Context<'_> {
                     &next,
                     Err(self
                         .vm
-                        .err
+                        .pending_exception
                         .take()
                         .expect("err must exist on a Completion::Throw")),
                     true,
@@ -432,7 +458,7 @@ impl Context<'_> {
         if execution_completion == CompletionType::Throw {
             return CompletionRecord::Throw(
                 self.vm
-                    .err
+                    .pending_exception
                     .take()
                     .expect("Err must exist for a CompletionType::Throw"),
             );

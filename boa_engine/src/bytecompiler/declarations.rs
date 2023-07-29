@@ -1015,6 +1015,7 @@ impl ByteCompiler<'_, '_> {
             // Don't need to use `AsyncGeneratorYield` since
             // we just want to stop the execution of the generator.
             self.emit_opcode(Opcode::GeneratorYield);
+            self.emit_opcode(Opcode::Pop);
         }
 
         // 27. If hasParameterExpressions is false, then

@@ -22,7 +22,6 @@ impl Operation for PushDeclarativeEnvironment {
             [compile_environments_index as usize]
             .clone();
         context.vm.environments.push_lexical(compile_environment);
-        context.vm.frame_mut().inc_frame_env_stack();
         Ok(CompletionType::Normal)
     }
 }
@@ -67,7 +66,6 @@ impl Operation for PushObjectEnvironment {
         let object = object.to_object(context)?;
 
         context.vm.environments.push_object(object);
-        context.vm.frame_mut().inc_frame_env_stack();
         Ok(CompletionType::Normal)
     }
 }

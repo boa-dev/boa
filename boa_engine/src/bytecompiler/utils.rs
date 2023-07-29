@@ -1,4 +1,7 @@
-use crate::{js_string, vm::Opcode};
+use crate::{
+    js_string,
+    vm::{GeneratorResumeKind, Opcode},
+};
 
 use super::{ByteCompiler, Literal};
 
@@ -47,7 +50,7 @@ impl ByteCompiler<'_, '_> {
         let start = self.next_opcode_location();
         self.emit_opcode(Opcode::IteratorStackEmpty);
         let empty = self.jump_if_true();
-        self.iterator_close(self.in_async_generator);
+        self.iterator_close(self.in_async_generator());
         self.emit(Opcode::Jump, &[start]);
         self.patch_jump(empty);
     }
@@ -62,7 +65,7 @@ impl ByteCompiler<'_, '_> {
     /// [yield]: https://tc39.es/ecma262/#sec-yield
     pub(super) fn r#yield(&mut self) {
         // 1. Let generatorKind be GetGeneratorKind().
-        if self.in_async_generator {
+        if self.in_async() {
             // 2. If generatorKind is async, return ? AsyncGeneratorYield(? Await(value)).
             self.emit_opcode(Opcode::Await);
             self.emit_opcode(Opcode::GeneratorNext);
@@ -73,6 +76,7 @@ impl ByteCompiler<'_, '_> {
             self.emit_u8(u8::from(false));
             self.emit_opcode(Opcode::GeneratorYield);
         }
+
         self.emit_opcode(Opcode::GeneratorNext);
     }
 
@@ -85,22 +89,33 @@ impl ByteCompiler<'_, '_> {
     ///
     /// [async_yield]: https://tc39.es/ecma262/#sec-asyncgeneratoryield
     pub(super) fn async_generator_yield(&mut self) {
+        // Stack: value
         self.emit_opcode(Opcode::AsyncGeneratorYield);
-        let (normal, throw, r#return) =
-            self.emit_opcode_with_three_operands(Opcode::GeneratorJumpOnResumeKind);
-        {
-            self.patch_jump(r#return);
-            self.emit_opcode(Opcode::Await);
 
-            let (normal, throw, r#return) =
-                self.emit_opcode_with_three_operands(Opcode::GeneratorJumpOnResumeKind);
-            self.patch_jump(normal);
-            self.emit_opcode(Opcode::GeneratorSetReturn);
+        // Stack: resume_kind, received
+        let non_return_resume = self.jump_if_not_resume_kind(GeneratorResumeKind::Return);
 
-            self.patch_jump(throw);
-            self.patch_jump(r#return);
-        }
-        self.patch_jump(normal);
-        self.patch_jump(throw);
+        // Stack: resume_kind(Return), received
+        self.emit_opcode(Opcode::Pop);
+
+        // Stack: received
+        self.emit_opcode(Opcode::Await);
+
+        // Stack: resume_kind, received
+        let non_normal_resume = self.jump_if_not_resume_kind(GeneratorResumeKind::Normal);
+
+        // Stack: resume_kind(Normal), received
+        self.emit_opcode(Opcode::Pop);
+
+        // Stack: received
+        self.emit_push_integer(GeneratorResumeKind::Return as i32);
+
+        // Stack: resume_kind(Return) received
+        self.patch_jump(non_normal_resume);
+
+        // Stack: resume_kind, received
+        self.patch_jump(non_return_resume);
+
+        // Stack: resume_kind, received
     }
 }
