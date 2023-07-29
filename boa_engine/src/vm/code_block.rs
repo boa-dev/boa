@@ -99,7 +99,6 @@ pub(crate) struct Handler {
     pub(crate) start: u32,
     pub(crate) end: u32,
 
-    #[allow(unused)]
     pub(crate) stack_count: u32,
     pub(crate) environment_count: u32,
 }
