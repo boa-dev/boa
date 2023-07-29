@@ -190,8 +190,15 @@ impl ByteCompiler<'_, '_> {
 
                 let exit = self.jump();
                 self.patch_handler(handler_index);
+                let generator_return_handle = self.in_generator.then(|| self.push_handler());
                 self.emit_opcode(Opcode::Exception);
                 self.emit_opcode(Opcode::PushTrue);
+                if let Some(generator_return_handle) = generator_return_handle {
+                    let is_not_generator_exit = self.jump();
+                    self.patch_handler(generator_return_handle);
+                    self.emit_opcode(Opcode::PushFalse);
+                    self.patch_jump(is_not_generator_exit);
+                }
                 self.patch_jump(exit);
 
                 self.current_stack_value_count += 2;
