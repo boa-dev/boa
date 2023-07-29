@@ -86,6 +86,30 @@ impl Operation for Exception {
     }
 }
 
+/// `MaybeException` implements the Opcode Operation for `Opcode::MaybeException`
+///
+/// Operation:
+///  - Get the thrown pending exception if it's set and push `true`, otherwise push only `false`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct MaybeException;
+
+impl Operation for MaybeException {
+    const NAME: &'static str = "MaybeException";
+    const INSTRUCTION: &'static str = "INST - MaybeException";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        if let Some(error) = context.vm.pending_exception.take() {
+            let error = error.to_opaque(context);
+            context.vm.push(error);
+            context.vm.push(true);
+            return Ok(CompletionType::Normal);
+        }
+
+        context.vm.push(false);
+        Ok(CompletionType::Normal)
+    }
+}
+
 /// `ThrowNewTypeError` implements the Opcode Operation for `Opcode::ThrowNewTypeError`
 ///
 /// Operation:
