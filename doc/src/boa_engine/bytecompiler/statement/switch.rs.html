@@ -55,11 +55,6 @@
 <a href="#55" id="55">55</a>
 <a href="#56" id="56">56</a>
 <a href="#57" id="57">57</a>
-<a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a>
-<a href="#60" id="60">60</a>
-<a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 <span class="kw">use </span>boa_ast::statement::Switch;
 
@@ -73,11 +68,8 @@
 
         <span class="self">self</span>.block_declaration_instantiation(switch);
 
-        <span class="kw">let </span>(start_label, end_label) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::LoopStart);
-
         <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.push_switch_control_info(<span class="prelude-val">None</span>, start_address, use_expr);
-        <span class="self">self</span>.patch_jump_with_target(start_label, start_address);
 
         <span class="kw">let </span><span class="kw-2">mut </span>labels = Vec::with_capacity(switch.cases().len());
         <span class="kw">for </span>case <span class="kw">in </span>switch.cases() {
@@ -114,8 +106,6 @@
         }
 
         <span class="self">self</span>.pop_switch_control_info();
-        <span class="self">self</span>.patch_jump(end_label);
-        <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
 
         <span class="kw">let </span>env_index = <span class="self">self</span>.pop_compile_environment();
         <span class="self">self</span>.patch_jump_with_target(push_env, env_index);

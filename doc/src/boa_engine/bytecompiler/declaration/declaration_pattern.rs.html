@@ -254,6 +254,34 @@
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler, Literal},
     vm::{BindingOpcode, Opcode},
@@ -436,11 +464,39 @@
                 <span class="self">self</span>.emit_opcode(Opcode::ValueNotNullOrUndefined);
                 <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
 
+                <span class="comment">// TODO: maybe, refactor this to be more condensed.
+                </span><span class="kw">let </span>handler_index = <span class="self">self</span>.push_handler();
                 <span class="kw">for </span>element <span class="kw">in </span>pattern.bindings() {
                     <span class="self">self</span>.compile_array_pattern_element(element, def);
                 }
 
+                <span class="self">self</span>.emit_opcode(Opcode::PushFalse);
+
+                <span class="kw">let </span>exit = <span class="self">self</span>.jump();
+                <span class="self">self</span>.patch_handler(handler_index);
+                <span class="self">self</span>.emit_opcode(Opcode::Exception);
+                <span class="self">self</span>.emit_opcode(Opcode::PushTrue);
+                <span class="self">self</span>.patch_jump(exit);
+
+                <span class="self">self</span>.current_stack_value_count += <span class="number">2</span>;
+
+                <span class="kw">let </span>iterator_close_handler = <span class="self">self</span>.push_handler();
                 <span class="self">self</span>.iterator_close(<span class="bool-val">false</span>);
+
+                <span class="kw">let </span>exit = <span class="self">self</span>.jump();
+                <span class="self">self</span>.patch_handler(iterator_close_handler);
+                <span class="self">self</span>.current_stack_value_count -= <span class="number">2</span>;
+                {
+                    <span class="kw">let </span>jump = <span class="self">self</span>.jump_if_false();
+                    <span class="self">self</span>.emit_opcode(Opcode::Throw);
+                    <span class="self">self</span>.patch_jump(jump);
+                }
+                <span class="self">self</span>.emit_opcode(Opcode::ReThrow);
+                <span class="self">self</span>.patch_jump(exit);
+
+                <span class="kw">let </span>jump = <span class="self">self</span>.jump_if_false();
+                <span class="self">self</span>.emit_opcode(Opcode::Throw);
+                <span class="self">self</span>.patch_jump(jump);
             }
         }
     }
@@ -454,15 +510,15 @@
         <span class="kw">match </span>element {
             <span class="comment">// ArrayBindingPattern : [ Elision ]
             </span>Elision =&gt; {
-                <span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
+                <span class="self">self</span>.emit_opcode(Opcode::IteratorNextWithoutPop);
             }
             <span class="comment">// SingleNameBinding : BindingIdentifier Initializer[opt]
             </span>SingleName {
                 ident,
                 default_init,
             } =&gt; {
-                <span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
-                <span class="self">self</span>.emit_opcode(Opcode::IteratorValue);
+                <span class="self">self</span>.emit_opcode(Opcode::IteratorNextWithoutPop);
+                <span class="self">self</span>.emit_opcode(Opcode::IteratorValueWithoutPop);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = default_init {
                     <span class="kw">let </span>skip = <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                     <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
@@ -472,8 +528,8 @@
             }
             PropertyAccess { access } =&gt; {
                 <span class="self">self</span>.access_set(Access::Property { access }, <span class="bool-val">false</span>, |compiler, _level| {
-                    compiler.emit_opcode(Opcode::IteratorNext);
-                    compiler.emit_opcode(Opcode::IteratorValue);
+                    compiler.emit_opcode(Opcode::IteratorNextWithoutPop);
+                    compiler.emit_opcode(Opcode::IteratorValueWithoutPop);
                 });
             }
             <span class="comment">// BindingElement : BindingPattern Initializer[opt]
@@ -481,8 +537,8 @@
                 pattern,
                 default_init,
             } =&gt; {
-                <span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
-                <span class="self">self</span>.emit_opcode(Opcode::IteratorValue);
+                <span class="self">self</span>.emit_opcode(Opcode::IteratorNextWithoutPop);
+                <span class="self">self</span>.emit_opcode(Opcode::IteratorValueWithoutPop);
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = default_init {
                     <span class="kw">let </span>skip = <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);

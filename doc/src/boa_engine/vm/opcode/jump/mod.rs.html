@@ -105,9 +105,44 @@
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsResult, JsValue,
 };
 
 <span class="doccomment">/// `Jump` implements the Opcode Operation for `Opcode::Jump`
@@ -190,7 +225,7 @@
     }
 }
 
-<span class="doccomment">/// `JumpIfUndefined` implements the Opcode Operation for `Opcode::JumpIfUndefined`
+<span class="doccomment">/// `JumpIfNullOrUndefined` implements the Opcode Operation for `Opcode::JumpIfNullOrUndefined`
 ///
 /// Operation:
 ///  - Conditional jump to address.
@@ -210,6 +245,41 @@
             context.vm.push(value);
         }
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `JumpTable` implements the Opcode Operation for `Opcode::JumpTable`
+///
+/// Operation:
+///  - Conditional jump to address.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JumpTable;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>JumpTable {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JumpTable&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - JumpTable&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>count = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>default = context.vm.read::&lt;u32&gt;();
+
+        <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">if let </span>JsValue::Integer(value) = <span class="kw-2">&amp;</span>value {
+            <span class="kw">let </span>value = <span class="kw-2">*</span>value <span class="kw">as </span>u32;
+            <span class="kw">let </span><span class="kw-2">mut </span>target = <span class="prelude-val">None</span>;
+            <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..count {
+                <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
+                <span class="kw">if </span>i + <span class="number">1 </span>== value {
+                    target = <span class="prelude-val">Some</span>(address);
+                }
+            }
+
+            context.vm.frame_mut().pc = target.unwrap_or(default);
+
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+        }
+
+        <span class="macro">unreachable!</span>(<span class="string">&quot;expected positive integer, got {value:?}&quot;</span>)
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["IteratorLoopStart","LoopContinue","LoopEnd","LoopStart"]};
+window.SIDEBAR_ITEMS = {"struct":["IncrementLoopIteration"]};

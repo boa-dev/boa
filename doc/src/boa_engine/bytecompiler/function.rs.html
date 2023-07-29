@@ -155,21 +155,13 @@
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
 <a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     environments::CompileTimeEnvironment,
-    vm::{CodeBlock, CodeBlockFlags, Opcode},
+    vm::{CodeBlock, CodeBlockFlags},
     Context,
 };
 <span class="kw">use </span>boa_ast::function::{FormalParameterList, FunctionBody};
@@ -264,7 +256,8 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(<span class="self">self</span>.name, <span class="self">self</span>.strict, <span class="bool-val">false</span>, outer_env, context);
         compiler.length = length;
-        compiler.in_async_generator = <span class="self">self</span>.generator &amp;&amp; <span class="self">self</span>.r#async;
+        compiler.in_async = <span class="self">self</span>.r#async;
+        compiler.in_generator = <span class="self">self</span>.generator;
 
         <span class="kw">if </span><span class="self">self</span>.arrow {
             compiler.this_mode = ThisMode::Lexical;
@@ -315,15 +308,6 @@
         }
 
         compiler.params = parameters.clone();
-
-        <span class="kw">if </span>compiler
-            .bytecode
-            .last()
-            .filter(|last| <span class="kw-2">**</span>last == Opcode::Return <span class="kw">as </span>u8)
-            .is_none()
-        {
-            compiler.emit_opcode(Opcode::Return);
-        }
 
         Gc::new(compiler.finish())
     }

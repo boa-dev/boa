@@ -820,6 +820,9 @@
 <a href="#820" id="820">820</a>
 <a href="#821" id="821">821</a>
 <a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
@@ -950,7 +953,10 @@
             Gc::new(compiler.finish())
         };
 
-        context.vm.push_frame(CallFrame::new(code_block));
+        <span class="kw">let </span>env_fp = context.vm.environments.len() <span class="kw">as </span>u32;
+        context
+            .vm
+            .push_frame(CallFrame::new(code_block).with_env_fp(env_fp));
         context.realm().resize_global_env();
         <span class="kw">let </span>record = context.run();
         context.vm.pop_frame();

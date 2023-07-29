@@ -104,7 +104,25 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{js_string, vm::Opcode};
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    js_string,
+    vm::{GeneratorResumeKind, Opcode},
+};
 
 <span class="kw">use super</span>::{ByteCompiler, Literal};
 
@@ -153,7 +171,7 @@
         <span class="kw">let </span>start = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.emit_opcode(Opcode::IteratorStackEmpty);
         <span class="kw">let </span>empty = <span class="self">self</span>.jump_if_true();
-        <span class="self">self</span>.iterator_close(<span class="self">self</span>.in_async_generator);
+        <span class="self">self</span>.iterator_close(<span class="self">self</span>.in_async_generator());
         <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start]);
         <span class="self">self</span>.patch_jump(empty);
     }
@@ -168,7 +186,7 @@
     /// [yield]: https://tc39.es/ecma262/#sec-yield
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>r#yield(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// 1. Let generatorKind be GetGeneratorKind().
-        </span><span class="kw">if </span><span class="self">self</span>.in_async_generator {
+        </span><span class="kw">if </span><span class="self">self</span>.in_async() {
             <span class="comment">// 2. If generatorKind is async, return ? AsyncGeneratorYield(? Await(value)).
             </span><span class="self">self</span>.emit_opcode(Opcode::Await);
             <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
@@ -179,6 +197,7 @@
             <span class="self">self</span>.emit_u8(u8::from(<span class="bool-val">false</span>));
             <span class="self">self</span>.emit_opcode(Opcode::GeneratorYield);
         }
+
         <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
     }
 
@@ -191,23 +210,34 @@
     ///
     /// [async_yield]: https://tc39.es/ecma262/#sec-asyncgeneratoryield
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>async_generator_yield(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.emit_opcode(Opcode::AsyncGeneratorYield);
-        <span class="kw">let </span>(normal, throw, r#return) =
-            <span class="self">self</span>.emit_opcode_with_three_operands(Opcode::GeneratorJumpOnResumeKind);
-        {
-            <span class="self">self</span>.patch_jump(r#return);
-            <span class="self">self</span>.emit_opcode(Opcode::Await);
+        <span class="comment">// Stack: value
+        </span><span class="self">self</span>.emit_opcode(Opcode::AsyncGeneratorYield);
 
-            <span class="kw">let </span>(normal, throw, r#return) =
-                <span class="self">self</span>.emit_opcode_with_three_operands(Opcode::GeneratorJumpOnResumeKind);
-            <span class="self">self</span>.patch_jump(normal);
-            <span class="self">self</span>.emit_opcode(Opcode::GeneratorSetReturn);
+        <span class="comment">// Stack: resume_kind, received
+        </span><span class="kw">let </span>non_return_resume = <span class="self">self</span>.jump_if_not_resume_kind(GeneratorResumeKind::Return);
 
-            <span class="self">self</span>.patch_jump(throw);
-            <span class="self">self</span>.patch_jump(r#return);
-        }
-        <span class="self">self</span>.patch_jump(normal);
-        <span class="self">self</span>.patch_jump(throw);
-    }
+        <span class="comment">// Stack: resume_kind(Return), received
+        </span><span class="self">self</span>.emit_opcode(Opcode::Pop);
+
+        <span class="comment">// Stack: received
+        </span><span class="self">self</span>.emit_opcode(Opcode::Await);
+
+        <span class="comment">// Stack: resume_kind, received
+        </span><span class="kw">let </span>non_normal_resume = <span class="self">self</span>.jump_if_not_resume_kind(GeneratorResumeKind::Normal);
+
+        <span class="comment">// Stack: resume_kind(Normal), received
+        </span><span class="self">self</span>.emit_opcode(Opcode::Pop);
+
+        <span class="comment">// Stack: received
+        </span><span class="self">self</span>.emit_push_integer(GeneratorResumeKind::Return <span class="kw">as </span>i32);
+
+        <span class="comment">// Stack: resume_kind(Return) received
+        </span><span class="self">self</span>.patch_jump(non_normal_resume);
+
+        <span class="comment">// Stack: resume_kind, received
+        </span><span class="self">self</span>.patch_jump(non_return_resume);
+
+        <span class="comment">// Stack: resume_kind, received
+    </span>}
 }
 </code></pre></div></section></main></body></html>

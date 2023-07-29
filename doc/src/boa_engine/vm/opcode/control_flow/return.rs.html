@@ -54,40 +54,8 @@
 <a href="#54" id="54">54</a>
 <a href="#55" id="55">55</a>
 <a href="#56" id="56">56</a>
-<a href="#57" id="57">57</a>
-<a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a>
-<a href="#60" id="60">60</a>
-<a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
-<a href="#64" id="64">64</a>
-<a href="#65" id="65">65</a>
-<a href="#66" id="66">66</a>
-<a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -102,39 +70,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Return&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Return&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>current_address = context.vm.frame().pc;
-        <span class="kw">let </span><span class="kw-2">mut </span>env_to_pop = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>finally_address = <span class="prelude-val">None</span>;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame().env_stack.last() {
-            <span class="kw">if </span>env_entry.is_finally_env() {
-                <span class="kw">if </span>env_entry.start_address() &lt; current_address {
-                    finally_address = <span class="prelude-val">Some</span>(env_entry.exit_address());
-                } <span class="kw">else </span>{
-                    finally_address = <span class="prelude-val">Some</span>(env_entry.start_address());
-                }
-                <span class="kw">break</span>;
-            }
-
-            env_to_pop += env_entry.env_num();
-            <span class="kw">if </span>env_entry.is_global_env() {
-                <span class="kw">break</span>;
-            }
-
-            context.vm.frame_mut().env_stack.pop();
-        }
-
-        <span class="kw">let </span>env_truncation_len = context.vm.environments.len().saturating_sub(env_to_pop);
-        context.vm.environments.truncate(env_truncation_len);
-
-        <span class="kw">let </span>record = AbruptCompletionRecord::new_return();
-        context.vm.frame_mut().abrupt_completion = <span class="prelude-val">Some</span>(record);
-
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(finally) = finally_address {
-            context.vm.frame_mut().pc = finally;
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
-        }
-
+    <span class="kw">fn </span>execute(_context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="prelude-val">Ok</span>(CompletionType::Return)
     }
 }

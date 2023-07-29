@@ -203,31 +203,6 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
 </pre></div><pre class="rust"><code><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>yield_stm;
 
 <span class="kw">use crate</span>::{
@@ -235,7 +210,7 @@
     string::utf16,
     vm::{
         call_frame::GeneratorResumeKind,
-        opcode::{control_flow::Return, Operation},
+        opcode::{Operation, ReThrow},
         CompletionType,
     },
     Context, JsError, JsResult,
@@ -257,75 +232,43 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorNext&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">match </span>context.vm.frame().generator_resume_kind {
+        <span class="kw">let </span>generator_resume_kind = context.vm.pop().to_generator_resume_kind();
+        <span class="kw">match </span>generator_resume_kind {
             GeneratorResumeKind::Normal =&gt; <span class="prelude-val">Ok</span>(CompletionType::Normal),
             GeneratorResumeKind::Throw =&gt; <span class="prelude-val">Err</span>(JsError::from_opaque(context.vm.pop())),
             GeneratorResumeKind::Return =&gt; {
+                <span class="macro">assert!</span>(context.vm.pending_exception.is_none());
+
                 SetReturnValue::execute(context)<span class="question-mark">?</span>;
-                Return::execute(context)
+                ReThrow::execute(context)
             }
         }
     }
 }
 
-<span class="doccomment">/// `GeneratorJumpOnResumeKind` implements the Opcode Operation for
-/// `Opcode::GeneratorJumpOnResumeKind`
+<span class="doccomment">/// `JumpIfNotResumeKind` implements the Opcode Operation for `Opcode::JumpIfNotResumeKind`
 ///
 /// Operation:
-///  - Jumps to the specified instruction if the current resume kind is `Return`.
+///  - Jumps to the specified address if the resume kind is not equal.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GeneratorJumpOnResumeKind;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JumpIfNotResumeKind;
 
-<span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorJumpOnResumeKind {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorJumpOnResumeKind&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorJumpOnResumeKind&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>JumpIfNotResumeKind {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JumpIfNotResumeKind&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - JumpIfNotResumeKind&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>normal = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>throw = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>r#return = context.vm.read::&lt;u32&gt;();
-        <span class="kw">match </span>context.vm.frame().generator_resume_kind {
-            GeneratorResumeKind::Normal =&gt; context.vm.frame_mut().pc = normal,
-            GeneratorResumeKind::Throw =&gt; context.vm.frame_mut().pc = throw,
-            GeneratorResumeKind::Return =&gt; context.vm.frame_mut().pc = r#return,
+        <span class="kw">let </span>exit = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>resume_kind = context.vm.read::&lt;u8&gt;();
+
+        <span class="kw">let </span>generator_resume_kind = context.vm.pop().to_generator_resume_kind();
+        context.vm.push(generator_resume_kind);
+
+        <span class="kw">if </span>generator_resume_kind <span class="kw">as </span>u8 != resume_kind {
+            context.vm.frame_mut().pc = exit;
         }
+
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
-    }
-}
-
-<span class="doccomment">/// `GeneratorSetReturn` implements the Opcode Operation for `Opcode::GeneratorSetReturn`
-///
-/// Operation:
-///  - Sets the current generator resume kind to `Return`.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GeneratorSetReturn;
-
-<span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorSetReturn {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorSetReturn&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorSetReturn&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
-        <span class="prelude-val">Ok</span>(CompletionType::Normal)
-    }
-}
-
-<span class="doccomment">/// `GeneratorResumeReturn` implements the Opcode Operation for `Opcode::GeneratorResumeReturn`
-///
-/// Operation:
-///  - Resumes a generator with a return completion.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GeneratorResumeReturn;
-
-<span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorResumeReturn {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorResumeReturn&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorResumeReturn&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">if </span>context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsError::from_opaque(context.vm.pop()));
-        }
-        Return::execute(context)
     }
 }
 
@@ -343,6 +286,8 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>throw_method_undefined = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>return_method_undefined = context.vm.read::&lt;u32&gt;();
+
+        <span class="kw">let </span>generator_resume_kind = context.vm.pop().to_generator_resume_kind();
         <span class="kw">let </span>received = context.vm.pop();
 
         <span class="comment">// Preemptively popping removes the iterator from the iterator stack if any operation
@@ -354,7 +299,7 @@
             .pop()
             .expect(<span class="string">&quot;iterator stack should have at least an iterator&quot;</span>);
 
-        <span class="kw">match </span>std::mem::take(<span class="kw-2">&amp;mut </span>context.vm.frame_mut().generator_resume_kind) {
+        <span class="kw">match </span>generator_resume_kind {
             GeneratorResumeKind::Normal =&gt; {
                 <span class="kw">let </span>result = iterator_record.next_method().call(
                     <span class="kw-2">&amp;</span>iterator_record.iterator().clone().into(),
@@ -363,6 +308,7 @@
                 )<span class="question-mark">?</span>;
                 context.vm.push(<span class="bool-val">false</span>);
                 context.vm.push(result);
+                context.vm.push(GeneratorResumeKind::Normal);
             }
             GeneratorResumeKind::Throw =&gt; {
                 <span class="kw">let </span>throw = iterator_record
@@ -376,6 +322,7 @@
                     )<span class="question-mark">?</span>;
                     context.vm.push(<span class="bool-val">false</span>);
                     context.vm.push(result);
+                    context.vm.push(GeneratorResumeKind::Normal);
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>error = JsNativeError::typ()
                         .with_message(<span class="string">&quot;iterator does not have a throw method&quot;</span>)
@@ -396,6 +343,7 @@
                     )<span class="question-mark">?</span>;
                     context.vm.push(<span class="bool-val">true</span>);
                     context.vm.push(result);
+                    context.vm.push(GeneratorResumeKind::Normal);
                 } <span class="kw">else </span>{
                     context.vm.push(received);
                     context.vm.frame_mut().pc = return_method_undefined;
@@ -435,10 +383,12 @@
             .pop()
             .expect(<span class="string">&quot;iterator stack should have at least an iterator&quot;</span>);
 
+        <span class="kw">let </span>generator_resume_kind = context.vm.pop().to_generator_resume_kind();
+
         <span class="kw">let </span>result = context.vm.pop();
         <span class="kw">let </span>is_return = context.vm.pop().to_boolean();
 
-        <span class="kw">if </span>context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
+        <span class="kw">if </span>generator_resume_kind == GeneratorResumeKind::Throw {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsError::from_opaque(result));
         }
 

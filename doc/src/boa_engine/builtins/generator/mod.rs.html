@@ -418,6 +418,7 @@
 <a href="#418" id="418">418</a>
 <a href="#419" id="419">419</a>
 <a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Generator` object.
 //!
 //! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.
@@ -528,10 +529,11 @@
         context
             .vm
             .push_frame(<span class="self">self</span>.call_frame.take().expect(<span class="string">&quot;should have a call frame&quot;</span>));
-        context.vm.frame_mut().generator_resume_kind = resume_kind;
+
         <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = value {
             context.vm.push(value);
         }
+        context.vm.push(resume_kind);
 
         <span class="kw">let </span>result = context.run();
 

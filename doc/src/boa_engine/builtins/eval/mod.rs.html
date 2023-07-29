@@ -261,6 +261,9 @@
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -516,7 +519,10 @@
             context.vm.environments.extend_outer_function_environment();
         }
 
-        context.vm.push_frame(CallFrame::new(code_block));
+        <span class="kw">let </span>env_fp = context.vm.environments.len() <span class="kw">as </span>u32;
+        context
+            .vm
+            .push_frame(CallFrame::new(code_block).with_env_fp(env_fp));
         context.realm().resize_global_env();
         <span class="kw">let </span>record = context.run();
         context.vm.pop_frame();

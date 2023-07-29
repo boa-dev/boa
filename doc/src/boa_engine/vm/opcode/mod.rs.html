@@ -1780,36 +1780,6 @@
 <a href="#1780" id="1780">1780</a>
 <a href="#1781" id="1781">1781</a>
 <a href="#1782" id="1782">1782</a>
-<a href="#1783" id="1783">1783</a>
-<a href="#1784" id="1784">1784</a>
-<a href="#1785" id="1785">1785</a>
-<a href="#1786" id="1786">1786</a>
-<a href="#1787" id="1787">1787</a>
-<a href="#1788" id="1788">1788</a>
-<a href="#1789" id="1789">1789</a>
-<a href="#1790" id="1790">1790</a>
-<a href="#1791" id="1791">1791</a>
-<a href="#1792" id="1792">1792</a>
-<a href="#1793" id="1793">1793</a>
-<a href="#1794" id="1794">1794</a>
-<a href="#1795" id="1795">1795</a>
-<a href="#1796" id="1796">1796</a>
-<a href="#1797" id="1797">1797</a>
-<a href="#1798" id="1798">1798</a>
-<a href="#1799" id="1799">1799</a>
-<a href="#1800" id="1800">1800</a>
-<a href="#1801" id="1801">1801</a>
-<a href="#1802" id="1802">1802</a>
-<a href="#1803" id="1803">1803</a>
-<a href="#1804" id="1804">1804</a>
-<a href="#1805" id="1805">1805</a>
-<a href="#1806" id="1806">1806</a>
-<a href="#1807" id="1807">1807</a>
-<a href="#1808" id="1808">1808</a>
-<a href="#1809" id="1809">1809</a>
-<a href="#1810" id="1810">1810</a>
-<a href="#1811" id="1811">1811</a>
-<a href="#1812" id="1812">1812</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -2929,12 +2899,45 @@
         /// Stack: value **=&gt;** value
         </span>JumpIfNullOrUndefined,
 
-        <span class="doccomment">/// Throw exception
+        <span class="doccomment">/// Jump table that jumps depending on top value of the stack.
+        ///
+        /// This is used to handle special cases when we call `continue`, `break` or `return` in a try block,
+        /// that has finally block.
+        ///
+        /// Operands: count: `u32`, default: `u32`, address: `u32` * count
+        ///
+        /// Stack: value: [`i32`] **=&gt;**
+        </span>JumpTable,
+
+        <span class="doccomment">/// Throw exception.
+        ///
+        /// This sets pending exception and searches for an exception handler.
         ///
         /// Operands:
         ///
         /// Stack: value **=&gt;**
         </span>Throw,
+
+        <span class="doccomment">/// Rethrow thrown exception.
+        ///
+        /// This is also used to handle generator `return()` call, we throw an empty exception, by setting pending exception to [`None`],
+        /// propagating it and calling finally code until there is no exception handler left, in that case we consume the empty exception and return
+        /// from the generator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>ReThrow,
+
+        <span class="doccomment">/// Get the thrown pending exception and push on the stack.
+        ///
+        /// If there is no pending exception, which can happend if we are handling `return()` call on generator,
+        /// then we rethrow the empty exception. See [`Opcode::ReThrow`].
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** exception
+        </span>Exception,
 
         <span class="doccomment">/// Throw a new `TypeError` exception
         ///
@@ -2942,48 +2945,6 @@
         ///
         /// Stack: **=&gt;**
         </span>ThrowNewTypeError,
-
-        <span class="doccomment">/// Start of a try block.
-        ///
-        /// Operands: next_address: `u32`, finally_address: `u32`
-        ///
-        /// Stack: **=&gt;**
-        </span>TryStart,
-
-        <span class="doccomment">/// End of a try block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>TryEnd,
-
-        <span class="doccomment">/// Start of a finally block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>FinallyStart,
-
-        <span class="doccomment">/// End of a finally block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>FinallyEnd,
-
-        <span class="doccomment">/// Jumps to a target location and pops the environments involved.
-        ///
-        /// Operands: Jump Address: u32, Target address: u32
-        ///
-        /// Stack: loop_return_value **=&gt;**
-        </span>Break,
-
-        <span class="doccomment">/// Sets the `AbruptCompletionRecord` for a delayed continue
-        ///
-        /// Operands: Jump Address: u32, Target address: u32,
-        ///
-        /// Stack: loop_return_value **=&gt;**
-        </span>Continue,
 
         <span class="doccomment">/// Pops value converts it to boolean and pushes it back.
         ///
@@ -3189,42 +3150,14 @@
         /// Stack: **=&gt;**
         </span>PopEnvironment,
 
-        <span class="doccomment">/// Push loop start marker.
+        <span class="doccomment">/// Increment loop itearation count.
         ///
-        /// Operands:
-        /// - start: `u32`
-        /// - exit: `u32`
-        ///
-        /// Stack: **=&gt;**
-        </span>LoopStart,
-
-        <span class="doccomment">/// Clean up environments when a loop continues.
+        /// Used for limiting the loop iteration.
         ///
         /// Operands:
         ///
         /// Stack: **=&gt;**
-        </span>LoopContinue,
-
-        <span class="doccomment">/// Clean up environments at the end of a loop and return it&#39;s value.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** value
-        </span>LoopEnd,
-
-        <span class="doccomment">/// Push labelled start marker.
-        ///
-        /// Operands: Exit Address: u32,
-        ///
-        /// Stack: **=&gt;**
-        </span>LabelledStart,
-
-        <span class="doccomment">/// Clean up environments at the end of a labelled block.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>LabelledEnd,
+        </span>IncrementLoopIteration,
 
         <span class="doccomment">/// Creates the ForInIterator of an object.
         ///
@@ -3232,15 +3165,6 @@
         ///
         /// Iterator Stack: `iterator`
         </span>CreateForInIterator,
-
-        <span class="doccomment">/// Push iterator loop start marker.
-        ///
-        /// Operands:
-        /// - start: `u32`
-        /// - exit: `u32`
-        ///
-        /// Stack: **=&gt;**
-        </span>IteratorLoopStart,
 
         <span class="doccomment">/// Gets the iterator of an object.
         ///
@@ -3267,6 +3191,13 @@
         /// Iterator Stack: `iterator` **=&gt;** `iterator`
         </span>IteratorNext,
 
+        <span class="doccomment">/// Calls the `next` method of `iterator`, updating its record with the next value.
+        ///
+        /// Operands:
+        ///
+        /// Iterator Stack: `iterator` **=&gt;** `iterator`
+        </span>IteratorNextWithoutPop,
+
         <span class="doccomment">/// Returns `true` if the current iterator is done, or `false` otherwise
         ///
         /// Stack: **=&gt;** done
@@ -3279,19 +3210,26 @@
         ///
         /// Operands:
         ///
-        /// Stack: `next_result` **=&gt;**
+        /// Stack: `next_result`, `resume_kind` **=&gt;** `resume_kind`
         ///
         /// Iterator Stack: iterator **=&gt;** iterator
         </span>IteratorFinishAsyncNext,
 
-        <span class="doccomment">///  - Gets the `value` property of the current iterator record.
+        <span class="doccomment">/// Gets the `value` property of the current iterator record.
         ///
         /// Stack: **=&gt;** `value`
         ///
         /// Iterator Stack: `iterator` **=&gt;** `iterator`
         </span>IteratorValue,
 
-        <span class="doccomment">///  - Gets the last iteration result of the current iterator record.
+        <span class="doccomment">/// Gets the `value` property of the current iterator record.
+        ///
+        /// Stack: **=&gt;** `value`
+        ///
+        /// Iterator Stack: `iterator` **=&gt;** `iterator`
+        </span>IteratorValueWithoutPop,
+
+        <span class="doccomment">/// Gets the last iteration result of the current iterator record.
         ///
         /// Stack: **=&gt;** `result`
         ///
@@ -3378,22 +3316,18 @@
         ///
         /// Operands:
         ///
-        /// Stack: value **=&gt;** received
+        /// Stack: **=&gt;** resume_kind, received
         </span>GeneratorYield,
 
         <span class="doccomment">/// Resumes the current generator function.
         ///
+        /// If the `resume_kind` is `Throw`, then the value is poped and thrown, otherwise if `Return`
+        /// we pop the value, set it as the return value and throw and empty exception. See [`Opcode::ReThrow`].
+        ///
         /// Operands:
         ///
-        /// Stack: received **=&gt;**
+        /// Stack: `resume_kind`, value **=&gt;** value
         </span>GeneratorNext,
-
-        <span class="doccomment">/// Resumes a generator with a return completion.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>GeneratorResumeReturn,
 
         <span class="doccomment">/// Yields from the current async generator execution.
         ///
@@ -3402,22 +3336,12 @@
         /// Stack: value **=&gt;** received
         </span>AsyncGeneratorYield,
 
-        <span class="doccomment">/// Jumps to the specified instruction for each resume kind.
+        <span class="doccomment">/// Jumps to the specified address if the resume kind is not equal.
         ///
-        /// Operands:
-        /// - normal: u32,
-        /// - throw: u32,
-        /// - return: u32,
+        /// Operands: `exit`: `u32`, `resume_kind`: `u8`.
         ///
-        /// Stack:
-        </span>GeneratorJumpOnResumeKind,
-
-        <span class="doccomment">/// Sets the current generator resume kind to `Return`.
-        ///
-        /// Operands:
-        ///
-        /// Stack:
-        </span>GeneratorSetReturn,
+        /// Stack: `resume_kind` **=&gt;** `resume_kind`
+        </span>JumpIfNotResumeKind,
 
         <span class="doccomment">/// Delegates the current async generator function to another iterator.
         ///
@@ -3608,6 +3532,22 @@
         </span>Reserved55 =&gt; Reserved,
         <span class="doccomment">/// Reserved [`Opcode`].
         </span>Reserved56 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved57 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved58 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved59 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved60 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved61 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved62 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved63 =&gt; Reserved,
+        <span class="doccomment">/// Reserved [`Opcode`].
+        </span>Reserved64 =&gt; Reserved,
     }
 }
 

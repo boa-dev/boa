@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["GeneratorResumeKind"],"mod":["abrupt_record","env_stack"],"struct":["CallFrame"]};
+window.SIDEBAR_ITEMS = {"enum":["GeneratorResumeKind"],"struct":["CallFrame"]};

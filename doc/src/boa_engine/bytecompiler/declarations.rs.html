@@ -1192,6 +1192,7 @@
 <a href="#1192" id="1192">1192</a>
 <a href="#1193" id="1193">1193</a>
 <a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
     environments::BindingLocatorError,
@@ -2209,6 +2210,7 @@
             <span class="comment">// Don&#39;t need to use `AsyncGeneratorYield` since
             // we just want to stop the execution of the generator.
             </span><span class="self">self</span>.emit_opcode(Opcode::GeneratorYield);
+            <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
 
         <span class="comment">// 27. If hasParameterExpressions is false, then

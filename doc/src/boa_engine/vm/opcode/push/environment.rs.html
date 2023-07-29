@@ -126,8 +126,6 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::PrivateEnvironment,
     vm::{opcode::Operation, CompletionType},
@@ -152,7 +150,6 @@
             [compile_environments_index <span class="kw">as </span>usize]
             .clone();
         context.vm.environments.push_lexical(compile_environment);
-        context.vm.frame_mut().inc_frame_env_stack();
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -197,7 +194,6 @@
         <span class="kw">let </span>object = object.to_object(context)<span class="question-mark">?</span>;
 
         context.vm.environments.push_object(object);
-        context.vm.frame_mut().inc_frame_env_stack();
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

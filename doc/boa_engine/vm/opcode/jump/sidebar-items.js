@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Jump","JumpIfFalse","JumpIfNotUndefined","JumpIfNullOrUndefined","JumpIfTrue"]};
+window.SIDEBAR_ITEMS = {"struct":["Jump","JumpIfFalse","JumpIfNotUndefined","JumpIfNullOrUndefined","JumpIfTrue","JumpTable"]};

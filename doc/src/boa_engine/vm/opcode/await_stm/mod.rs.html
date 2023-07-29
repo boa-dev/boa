@@ -129,7 +129,6 @@
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 
 <span class="kw">use crate</span>::{
@@ -258,8 +257,7 @@
         );
 
         context.vm.push(JsValue::undefined());
-        context.vm.frame_mut().r#yield = <span class="bool-val">true</span>;
-        <span class="prelude-val">Ok</span>(CompletionType::Return)
+        <span class="prelude-val">Ok</span>(CompletionType::Yield)
     }
 }
 </code></pre></div></section></main></body></html>

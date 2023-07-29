@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Throw","ThrowNewTypeError"]};
+window.SIDEBAR_ITEMS = {"struct":["Exception","ReThrow","Throw","ThrowNewTypeError"]};

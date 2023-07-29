@@ -467,6 +467,78 @@
 <a href="#467" id="467">467</a>
 <a href="#468" id="468">468</a>
 <a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `JumpControlInfo` tracks relevant jump information used during compilation.
 //!
 //! Primarily, jump control tracks information related to the compilation of [iteration
@@ -478,38 +550,157 @@
 //! [try spec]: https://tc39.es/ecma262/#sec-try-statement
 //! [labelled spec]: https://tc39.es/ecma262/#sec-labelled-statements
 
-</span><span class="kw">use </span><span class="kw">crate</span>::bytecompiler::{ByteCompiler, Label};
+</span><span class="kw">use crate</span>::{
+    bytecompiler::{ByteCompiler, Label},
+    vm::{Handler, Opcode},
+};
 <span class="kw">use </span>bitflags::bitflags;
 <span class="kw">use </span>boa_interner::Sym;
+
+<span class="doccomment">/// An actions to be performed for the local control flow.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>JumpRecordAction {
+    <span class="doccomment">/// Places a [`Opcode::Jump`], transfers to a specified [`JumpControlInfo`] to be handled when it gets poped.
+    </span>Transfer {
+        <span class="doccomment">/// [`JumpControlInfo`] index to be transferred.
+        </span>index: u32,
+    },
+
+    <span class="doccomment">/// Places [`Opcode::PopEnvironment`] opcodes, `count` times.
+    </span>PopEnvironments { count: u32 },
+
+    <span class="doccomment">/// Closes the an iterator.
+    </span>CloseIterator { r#async: bool },
+
+    <span class="doccomment">/// Handles finally, this needs to be done if we are in the try or catch section of a try statement that
+    /// has a finally block.
+    ///
+    /// It places push integer value [`Opcode`] as well as [`Opcode::PushFalse`], which means don&#39;t [`ReThrow`](Opcode::ReThrow).
+    ///
+    /// The integer is an index used to jump. See [`Opcode::JumpTable`]. This is needed because the following code:
+    ///
+    /// ```JavaScript
+    /// do {
+    ///     try {
+    ///         if (cond) {
+    ///             continue;
+    ///         }
+    ///         
+    ///         break;
+    ///     } finally {
+    ///         // Must execute the finally, even if `continue` is executed or `break` is executed.
+    ///     }
+    /// } while (true)
+    /// ```
+    ///
+    /// Both `continue` and `break` must go through the finally, but the `continue` goes to the beginning of the loop,
+    /// and the `break` goes to the end of the loop, this is solved by having a jump table (See [`Opcode::JumpTable`])
+    /// at the end of finally (It is constructed in [`ByteCompiler::pop_try_with_finally_control_info()`]).
+    </span>HandleFinally {
+        <span class="doccomment">/// Jump table index.
+        </span>index: u32,
+    },
+}
+
+<span class="doccomment">/// Local Control flow type.
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>JumpRecordKind {
+    Break,
+    Continue,
+    Return,
+}
+
+<span class="doccomment">/// This represents a local control flow handling. See [`JumpRecordKind`] for types.
+</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JumpRecord {
+    kind: JumpRecordKind,
+    label: Label,
+    actions: Vec&lt;JumpRecordAction&gt;,
+}
+
+<span class="kw">impl </span>JumpRecord {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(kind: JumpRecordKind, actions: Vec&lt;JumpRecordAction&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind,
+            label: ByteCompiler::DUMMY_LABEL,
+            actions,
+        }
+    }
+
+    <span class="doccomment">/// Performs the [`JumpRecordAction`]s.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>perform_actions(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        start_address: u32,
+        compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    ) {
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(action) = <span class="self">self</span>.actions.pop() {
+            <span class="kw">match </span>action {
+                JumpRecordAction::Transfer { index } =&gt; {
+                    <span class="self">self</span>.label = compiler.jump();
+                    compiler.jump_info[index <span class="kw">as </span>usize].jumps.push(<span class="self">self</span>);
+
+                    <span class="comment">// Don&#39;t continue actions, let the delegate jump control info handle it!
+                    </span><span class="kw">return</span>;
+                }
+                JumpRecordAction::PopEnvironments { count } =&gt; {
+                    <span class="kw">for _ in </span><span class="number">0</span>..count {
+                        compiler.emit_opcode(Opcode::PopEnvironment);
+                    }
+                }
+                JumpRecordAction::HandleFinally { index: value } =&gt; {
+                    <span class="comment">// Note: +1 because 0 is reserved for default entry in jump table (for fallthrough).
+                    </span><span class="kw">let </span>index = value <span class="kw">as </span>i32 + <span class="number">1</span>;
+                    compiler.emit_push_integer(index);
+                    compiler.emit_opcode(Opcode::PushFalse);
+                }
+                JumpRecordAction::CloseIterator { r#async } =&gt; {
+                    compiler.iterator_close(r#async);
+                }
+            }
+        }
+
+        <span class="comment">// If there are no actions left, finalize the jump record.
+        </span><span class="kw">match </span><span class="self">self</span>.kind {
+            JumpRecordKind::Break =&gt; compiler.patch_jump(<span class="self">self</span>.label),
+            JumpRecordKind::Continue =&gt; compiler.patch_jump_with_target(<span class="self">self</span>.label, start_address),
+            JumpRecordKind::Return =&gt; compiler.emit_opcode(Opcode::Return),
+        }
+    }
+}
 
 <span class="doccomment">/// Boa&#39;s `ByteCompiler` jump information tracking struct.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JumpControlInfo {
     label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
     start_address: u32,
-    flags: JumpControlInfoFlags,
-    set_jumps: Vec&lt;Label&gt;,
-    breaks: Vec&lt;Label&gt;,
-    try_continues: Vec&lt;Label&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) flags: JumpControlInfoFlags,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) jumps: Vec&lt;JumpRecord&gt;,
+    current_open_environments_count: u32,
 }
 
 <span class="macro">bitflags! </span>{
     <span class="doccomment">/// A bitflag that contains the type flags and relevant booleans for `JumpControlInfo`.
     </span><span class="attr">#[derive(Debug, Clone, Copy)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JumpControlInfoFlags: u16 {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JumpControlInfoFlags: u8 {
         <span class="kw">const </span>LOOP = <span class="number">0b0000_0001</span>;
         <span class="kw">const </span>SWITCH = <span class="number">0b0000_0010</span>;
-        <span class="kw">const </span>TRY_BLOCK = <span class="number">0b0000_0100</span>;
-        <span class="kw">const </span>LABELLED = <span class="number">0b0000_1000</span>;
-        <span class="kw">const </span>IN_FINALLY = <span class="number">0b0001_0000</span>;
-        <span class="kw">const </span>HAS_FINALLY = <span class="number">0b0010_0000</span>;
-        <span class="kw">const </span>ITERATOR_LOOP = <span class="number">0b0100_0000</span>;
-        <span class="kw">const </span>FOR_AWAIT_OF_LOOP = <span class="number">0b1000_0000</span>;
+
+        <span class="doccomment">/// A try statement with a finally block.
+        ///
+        /// We emit special instructions to handle [`JumpRecord`]s in [`ByteCompiler::pop_try_with_finally_control_info()`].
+        </span><span class="kw">const </span>TRY_WITH_FINALLY = <span class="number">0b0000_0100</span>;
+
+        <span class="doccomment">/// Are we in the finally block of the try statement?
+        </span><span class="kw">const </span>IN_FINALLY = <span class="number">0b0000_1000</span>;
+
+        <span class="kw">const </span>LABELLED = <span class="number">0b0001_0000</span>;
+        <span class="kw">const </span>ITERATOR_LOOP = <span class="number">0b0010_0000</span>;
+        <span class="kw">const </span>FOR_AWAIT_OF_LOOP = <span class="number">0b0100_0000</span>;
 
         <span class="doccomment">/// Is the statement compiled with use_expr set to true.
         ///
         /// This bitflag is inherited if the previous [`JumpControlInfo`].
-        </span><span class="kw">const </span>USE_EXPR = <span class="number">0b0001_0000_0000</span>;
+        </span><span class="kw">const </span>USE_EXPR = <span class="number">0b1000_0000</span>;
     }
 }
 
@@ -519,21 +710,18 @@
     }
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>JumpControlInfo {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            label: <span class="prelude-val">None</span>,
-            start_address: u32::MAX,
-            flags: JumpControlInfoFlags::default(),
-            set_jumps: Vec::new(),
-            breaks: Vec::new(),
-            try_continues: Vec::new(),
-        }
-    }
-}
-
 <span class="doccomment">/// ---- `JumpControlInfo` Creation Methods ----
 </span><span class="kw">impl </span>JumpControlInfo {
+    <span class="kw">fn </span>new(current_open_environments_count: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            label: <span class="prelude-val">None</span>,
+            start_address: ByteCompiler::DUMMY_ADDRESS,
+            flags: JumpControlInfoFlags::default(),
+            jumps: Vec::new(),
+            current_open_environments_count,
+        }
+    }
+
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_label(<span class="kw-2">mut </span><span class="self">self</span>, label: <span class="prelude-ty">Option</span>&lt;Sym&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.label = label;
         <span class="self">self
@@ -554,18 +742,14 @@
         <span class="self">self
     </span>}
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_try_block_flag(<span class="kw-2">mut </span><span class="self">self</span>, value: bool) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.flags.set(JumpControlInfoFlags::TRY_BLOCK, value);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_try_with_finally_flag(<span class="kw-2">mut </span><span class="self">self</span>, value: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.flags
+            .set(JumpControlInfoFlags::TRY_WITH_FINALLY, value);
         <span class="self">self
     </span>}
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_labelled_block_flag(<span class="kw-2">mut </span><span class="self">self</span>, value: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.flags.set(JumpControlInfoFlags::LABELLED, value);
-        <span class="self">self
-    </span>}
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_has_finally(<span class="kw-2">mut </span><span class="self">self</span>, value: bool) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.flags.set(JumpControlInfoFlags::HAS_FINALLY, value);
         <span class="self">self
     </span>}
 
@@ -599,8 +783,8 @@
         <span class="self">self</span>.flags.contains(JumpControlInfoFlags::SWITCH)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_try_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.flags.contains(JumpControlInfoFlags::TRY_BLOCK)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_try_with_finally_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.contains(JumpControlInfoFlags::TRY_WITH_FINALLY)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_labelled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -609,10 +793,6 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>in_finally(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags.contains(JumpControlInfoFlags::IN_FINALLY)
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>has_finally(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.flags.contains(JumpControlInfoFlags::HAS_FINALLY)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>use_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -640,25 +820,6 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_start_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start_address: u32) {
         <span class="self">self</span>.start_address = start_address;
     }
-
-    <span class="doccomment">/// Set the `in_finally` field of `JumpControlInfo`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_in_finally(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) {
-        <span class="self">self</span>.flags.set(JumpControlInfoFlags::IN_FINALLY, value);
-    }
-
-    <span class="doccomment">/// Pushes a `Label` onto the `break` vector of `JumpControlInfo`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_break_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, break_label: Label) {
-        <span class="self">self</span>.breaks.push(break_label);
-    }
-
-    <span class="doccomment">/// Pushes a `Label` onto the `try_continues` vector of `JumpControlInfo`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_try_continue_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, try_continue_label: Label) {
-        <span class="self">self</span>.try_continues.push(try_continue_label);
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_set_jumps(<span class="kw-2">&amp;mut </span><span class="self">self</span>, set_jump_label: Label) {
-        <span class="self">self</span>.set_jumps.push(set_jump_label);
-    }
 }
 
 <span class="comment">// `JumpControlInfo` related methods that are implemented on `ByteCompiler`.
@@ -667,17 +828,13 @@
     ///
     /// Default `JumpControlInfoKind` is `JumpControlInfoKind::Loop`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_empty_loop_jump_control(<span class="kw-2">&amp;mut </span><span class="self">self</span>, use_expr: bool) {
-        <span class="kw">let </span>new_info = JumpControlInfo::default().with_loop_flag(<span class="bool-val">true</span>);
+        <span class="kw">let </span>new_info =
+            JumpControlInfo::new(<span class="self">self</span>.current_open_environments_count).with_loop_flag(<span class="bool-val">true</span>);
         <span class="self">self</span>.push_contol_info(new_info, use_expr);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_jump_control_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>JumpControlInfo&gt; {
         <span class="self">self</span>.jump_info.last_mut()
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jump_control_start_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start_address: u32) {
-        <span class="kw">let </span>info = <span class="self">self</span>.jump_info.last_mut().expect(<span class="string">&quot;jump_info must exist&quot;</span>);
-        info.set_start_address(start_address);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_contol_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>info: JumpControlInfo, use_expr: bool) {
@@ -689,6 +846,43 @@
         }
 
         <span class="self">self</span>.jump_info.push(info);
+    }
+
+    <span class="doccomment">/// Pushes an exception [`Handler`].
+    ///
+    /// Must be patched with [`Self::patch_handler()`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_handler(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
+        <span class="kw">let </span>handler_index = <span class="self">self</span>.handlers.len() <span class="kw">as </span>u32;
+        <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
+
+        <span class="comment">// FIXME(HalidOdat): figure out value stack fp value.
+        </span><span class="kw">let </span>environment_count = <span class="self">self</span>.current_open_environments_count;
+        <span class="self">self</span>.handlers.push(Handler {
+            start: start_address,
+            end: <span class="self">Self</span>::DUMMY_ADDRESS,
+            stack_count: <span class="self">self</span>.current_stack_value_count,
+            environment_count,
+        });
+
+        handler_index
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>patch_handler(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handler_index: u32) {
+        <span class="kw">let </span>handler_index = handler_index <span class="kw">as </span>usize;
+        <span class="kw">let </span>handler_address = <span class="self">self</span>.next_opcode_location();
+
+        <span class="macro">assert_eq!</span>(
+            <span class="self">self</span>.handlers[handler_index].end,
+            <span class="self">Self</span>::DUMMY_ADDRESS,
+            <span class="string">&quot;handler already set&quot;
+        </span>);
+        <span class="macro">assert!</span>(
+            handler_address &gt;= <span class="self">self</span>.handlers[handler_index].start,
+            <span class="string">&quot;handler end is before that start&quot;
+        </span>);
+
+        <span class="self">self</span>.handlers[handler_index].end = handler_address;
     }
 
     <span class="doccomment">/// Does the jump control info have the `use_expr` flag set to true.
@@ -711,7 +905,7 @@
         start_address: u32,
         use_expr: bool,
     ) {
-        <span class="kw">let </span>new_info = JumpControlInfo::default()
+        <span class="kw">let </span>new_info = JumpControlInfo::new(<span class="self">self</span>.current_open_environments_count)
             .with_labelled_block_flag(<span class="bool-val">true</span>)
             .with_label(<span class="prelude-val">Some</span>(label))
             .with_start_address(start_address);
@@ -729,13 +923,11 @@
         <span class="kw">let </span>info = <span class="self">self</span>.jump_info.pop().expect(<span class="string">&quot;no jump information found&quot;</span>);
 
         <span class="macro">assert!</span>(info.is_labelled());
+        <span class="macro">assert!</span>(info.label().is_some());
 
-        <span class="kw">for </span>label <span class="kw">in </span>info.breaks {
-            <span class="self">self</span>.patch_jump(label);
-        }
-
-        <span class="kw">for </span>label <span class="kw">in </span>info.try_continues {
-            <span class="self">self</span>.patch_jump_with_target(label, info.start_address);
+        <span class="kw">let </span>start_address = info.start_address();
+        <span class="kw">for </span>jump_record <span class="kw">in </span>info.jumps {
+            jump_record.perform_actions(start_address, <span class="self">self</span>);
         }
     }
     <span class="comment">// ---- `IterationStatement`&#39;s `JumpControlInfo` methods ---- //
@@ -747,7 +939,7 @@
         start_address: u32,
         use_expr: bool,
     ) {
-        <span class="kw">let </span>new_info = JumpControlInfo::default()
+        <span class="kw">let </span>new_info = JumpControlInfo::new(<span class="self">self</span>.current_open_environments_count)
             .with_loop_flag(<span class="bool-val">true</span>)
             .with_label(label)
             .with_start_address(start_address);
@@ -762,7 +954,7 @@
         start_address: u32,
         use_expr: bool,
     ) {
-        <span class="kw">let </span>new_info = JumpControlInfo::default()
+        <span class="kw">let </span>new_info = JumpControlInfo::new(<span class="self">self</span>.current_open_environments_count)
             .with_loop_flag(<span class="bool-val">true</span>)
             .with_label(label)
             .with_start_address(start_address)
@@ -777,7 +969,7 @@
         start_address: u32,
         use_expr: bool,
     ) {
-        <span class="kw">let </span>new_info = JumpControlInfo::default()
+        <span class="kw">let </span>new_info = JumpControlInfo::new(<span class="self">self</span>.current_open_environments_count)
             .with_loop_flag(<span class="bool-val">true</span>)
             .with_label(label)
             .with_start_address(start_address)
@@ -799,12 +991,8 @@
         <span class="macro">assert!</span>(info.is_loop());
 
         <span class="kw">let </span>start_address = info.start_address();
-        <span class="kw">for </span>label <span class="kw">in </span>info.try_continues {
-            <span class="self">self</span>.patch_jump_with_target(label, start_address);
-        }
-
-        <span class="kw">for </span>label <span class="kw">in </span>info.breaks {
-            <span class="self">self</span>.patch_jump(label);
+        <span class="kw">for </span>jump_record <span class="kw">in </span>info.jumps {
+            jump_record.perform_actions(start_address, <span class="self">self</span>);
         }
     }
 
@@ -817,7 +1005,7 @@
         start_address: u32,
         use_expr: bool,
     ) {
-        <span class="kw">let </span>new_info = JumpControlInfo::default()
+        <span class="kw">let </span>new_info = JumpControlInfo::new(<span class="self">self</span>.current_open_environments_count)
             .with_switch_flag(<span class="bool-val">true</span>)
             .with_label(label)
             .with_start_address(start_address);
@@ -836,104 +1024,60 @@
 
         <span class="macro">assert!</span>(info.is_switch());
 
-        <span class="kw">for </span>label <span class="kw">in </span>info.breaks {
-            <span class="self">self</span>.patch_jump(label);
+        <span class="kw">let </span>start_address = info.start_address();
+        <span class="kw">for </span>jump_record <span class="kw">in </span>info.jumps {
+            jump_record.perform_actions(start_address, <span class="self">self</span>);
         }
     }
 
     <span class="comment">// ---- `TryStatement`&#39;s `JumpControlInfo` methods ---- //
 
     </span><span class="doccomment">/// Pushes a `TryStatement`&#39;s `JumpControlInfo` onto the `jump_info` stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_try_control_info(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        has_finally: bool,
-        start_address: u32,
-        use_expr: bool,
-    ) {
-        <span class="kw">let </span>new_info = JumpControlInfo::default()
-            .with_try_block_flag(<span class="bool-val">true</span>)
-            .with_start_address(start_address)
-            .with_has_finally(has_finally);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_try_with_finally_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, use_expr: bool) {
+        <span class="kw">let </span>new_info = JumpControlInfo::new(<span class="self">self</span>.current_open_environments_count)
+            .with_try_with_finally_flag(<span class="bool-val">true</span>);
 
         <span class="self">self</span>.push_contol_info(new_info, use_expr);
     }
 
-    <span class="doccomment">/// Pops and handles the info for a try block&#39;s `JumpControlInfo`
+    <span class="doccomment">/// Pops and handles the info for a try statement with a finally block.
     ///
     /// # Panic
-    ///  - Will panic if `jump_info` is empty.
     ///  - Will panic if popped `JumpControlInfo` is not for a try block.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_try_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, try_end: u32) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_try_with_finally_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, finally_start: u32) {
         <span class="macro">assert!</span>(!<span class="self">self</span>.jump_info.is_empty());
-        <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self">self</span>.jump_info.pop().expect(<span class="string">&quot;no jump information found&quot;</span>);
+        <span class="kw">let </span>info = <span class="self">self</span>.jump_info.pop().expect(<span class="string">&quot;no jump information found&quot;</span>);
 
-        <span class="macro">assert!</span>(info.is_try_block());
+        <span class="macro">assert!</span>(info.is_try_with_finally_block());
 
-        <span class="comment">// Handle breaks. If there is a finally, breaks should go to the finally
-        </span><span class="kw">if </span>info.has_finally() {
-            <span class="kw">for </span>label <span class="kw">in </span>info.breaks {
-                <span class="self">self</span>.patch_jump_with_target(label, try_end);
-            }
-        } <span class="kw">else </span>{
-            <span class="comment">// When there is no finally, search for the break point.
-            </span><span class="kw">for </span>jump_info <span class="kw">in </span><span class="self">self</span>.jump_info.iter_mut().rev() {
-                <span class="kw">if </span>!jump_info.is_labelled() {
-                    jump_info.breaks.append(<span class="kw-2">&amp;mut </span>info.breaks);
-                    <span class="kw">break</span>;
-                }
-            }
+        <span class="kw">if </span>info.jumps.is_empty() {
+            <span class="kw">return</span>;
         }
 
-        <span class="comment">// Handle set_jumps
-        </span><span class="kw">for </span>label <span class="kw">in </span>info.set_jumps {
-            <span class="kw">for </span>jump_info <span class="kw">in </span><span class="self">self</span>.jump_info.iter_mut().rev() {
-                <span class="kw">if </span>jump_info.is_loop() || jump_info.is_switch() {
-                    jump_info.breaks.push(label);
-                    <span class="kw">break</span>;
-                }
-            }
+        <span class="kw">for </span>JumpRecord { label, .. } <span class="kw">in </span><span class="kw-2">&amp;</span>info.jumps {
+            <span class="self">self</span>.patch_jump_with_target(<span class="kw-2">*</span>label, finally_start);
         }
 
-        <span class="comment">// Pass continues down the stack.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(jump_info) = <span class="self">self</span>.jump_info.last_mut() {
-            jump_info.try_continues.append(<span class="kw-2">&amp;mut </span>info.try_continues);
+        <span class="kw">let </span>(jumps, default) = <span class="self">self</span>.jump_table(info.jumps.len() <span class="kw">as </span>u32);
+
+        <span class="comment">// Handle breaks/continue/returns in a finally block
+        </span><span class="kw">for </span>(i, label) <span class="kw">in </span>jumps.iter().enumerate() {
+            <span class="self">self</span>.patch_jump(<span class="kw-2">*</span>label);
+
+            <span class="kw">let </span>jump_record = info.jumps[i].clone();
+            jump_record.perform_actions(label.index, <span class="self">self</span>);
         }
+
+        <span class="self">self</span>.patch_jump(default);
     }
 
-    <span class="doccomment">/// Pushes a `TryStatement`&#39;s Finally block `JumpControlInfo` onto the `jump_info` stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_init_finally_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, use_expr: bool) {
-        <span class="kw">let </span><span class="kw-2">mut </span>new_info = JumpControlInfo::default().with_try_block_flag(<span class="bool-val">true</span>);
-
-        new_info.set_in_finally(<span class="bool-val">true</span>);
-
-        <span class="self">self</span>.push_contol_info(new_info, use_expr);
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_finally_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">assert!</span>(!<span class="self">self</span>.jump_info.is_empty());
-        <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self">self</span>.jump_info.pop().expect(<span class="string">&quot;no jump information found&quot;</span>);
-
-        <span class="macro">assert!</span>(info.in_finally());
-
-        <span class="comment">// Handle set_jumps
-        </span><span class="kw">for </span>label <span class="kw">in </span>info.set_jumps {
-            <span class="kw">for </span>jump_info <span class="kw">in </span><span class="self">self</span>.jump_info.iter_mut().rev() {
-                <span class="kw">if </span>jump_info.is_loop() || jump_info.is_switch() {
-                    jump_info.breaks.push(label);
-                    <span class="kw">break</span>;
-                }
-            }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>jump_info_open_environment_count(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; u32 {
+        <span class="kw">let </span>current = <span class="kw-2">&amp;</span><span class="self">self</span>.jump_info[index];
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.jump_info.get(index + <span class="number">1</span>) {
+            <span class="kw">return </span>next.current_open_environments_count - current.current_open_environments_count;
         }
 
-        <span class="comment">// Handle breaks in a finally block
-        </span><span class="kw">for </span>label <span class="kw">in </span>info.breaks {
-            <span class="self">self</span>.patch_jump(label);
-        }
-
-        <span class="comment">// Pass continues down the stack.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(jump_info) = <span class="self">self</span>.jump_info.last_mut() {
-            jump_info.try_continues.append(<span class="kw-2">&amp;mut </span>info.try_continues);
-        }
+        <span class="self">self</span>.current_open_environments_count - current.current_open_environments_count
     }
 }
 </code></pre></div></section></main></body></html>

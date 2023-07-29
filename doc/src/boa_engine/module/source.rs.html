@@ -1985,7 +1985,6 @@
 <a href="#1985" id="1985">1985</a>
 <a href="#1986" id="1986">1986</a>
 <a href="#1987" id="1987">1987</a>
-<a href="#1988" id="1988">1988</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -3717,7 +3716,8 @@
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;`execute` should only be called for evaluating modules.&quot;</span>),
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>callframe = CallFrame::new(codeblock);
+        <span class="kw">let </span>env_fp = environments.len() <span class="kw">as </span>u32;
+        <span class="kw">let </span><span class="kw-2">mut </span>callframe = CallFrame::new(codeblock).with_env_fp(env_fp);
         callframe.promise_capability = capability;
 
         <span class="comment">// 4. Set the ScriptOrModule of moduleContext to module.
@@ -3730,7 +3730,6 @@
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 7. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
         </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>environments);
-        <span class="kw">let </span>stack = std::mem::take(<span class="kw-2">&amp;mut </span>context.vm.stack);
         <span class="comment">// 2. Set the Function of moduleContext to null.
         </span><span class="kw">let </span>function = context.vm.active_function.take();
         <span class="comment">// 3. Set the Realm of moduleContext to module.[[Realm]].
@@ -3750,7 +3749,6 @@
         </span><span class="kw">let </span>result = context.run();
 
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>environments);
-        context.vm.stack = stack;
         context.vm.active_function = function;
         context.vm.active_runnable = active_runnable;
         context.swap_realm(<span class="kw-2">&amp;mut </span>realm);

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["JumpControlInfo","JumpControlInfoFlags"]};
+window.SIDEBAR_ITEMS = {"enum":["JumpRecordAction","JumpRecordKind"],"struct":["JumpControlInfo","JumpControlInfoFlags","JumpRecord"]};

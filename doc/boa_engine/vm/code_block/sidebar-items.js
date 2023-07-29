@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["create_function_object","create_function_object_fast","create_generator_function_object"],"struct":["CodeBlock","CodeBlockFlags"],"trait":["Readable"]};
+window.SIDEBAR_ITEMS = {"fn":["create_function_object","create_function_object_fast","create_generator_function_object"],"struct":["CodeBlock","CodeBlockFlags","Handler"],"trait":["Readable"]};

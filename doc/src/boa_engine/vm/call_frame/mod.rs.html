@@ -126,14 +126,13 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
 
-</span><span class="kw">mod </span>abrupt_record;
-<span class="kw">mod </span>env_stack;
-
-<span class="kw">use crate</span>::{
+</span><span class="kw">use crate</span>::{
     builtins::{iterable::IteratorRecord, promise::PromiseCapability},
     environments::BindingLocator,
     object::JsObject,
@@ -143,26 +142,16 @@
 <span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
 <span class="kw">use </span>thin_vec::ThinVec;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>abrupt_record::AbruptCompletionRecord;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>env_stack::EnvStackEntry;
-
 <span class="doccomment">/// A `CallFrame` holds the state of a function call.
 </span><span class="attr">#[derive(Clone, Debug, Finalize, Trace)]
 </span><span class="kw">pub struct </span>CallFrame {
     <span class="kw">pub</span>(<span class="kw">crate</span>) code_block: Gc&lt;CodeBlock&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) pc: u32,
     <span class="kw">pub</span>(<span class="kw">crate</span>) fp: u32,
-    <span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) abrupt_completion: <span class="prelude-ty">Option</span>&lt;AbruptCompletionRecord&gt;,
-    <span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) r#yield: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) env_fp: u32,
     <span class="comment">// Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop&#39;ed.
-    </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) env_stack: Vec&lt;EnvStackEntry&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) argument_count: u32,
-    <span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) generator_resume_kind: GeneratorResumeKind,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) argument_count: u32,
     <span class="kw">pub</span>(<span class="kw">crate</span>) promise_capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
 
     <span class="comment">// When an async generator is resumed, the generator object is needed
@@ -174,6 +163,9 @@
 
     <span class="comment">// The stack of bindings being updated.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) binding_stack: Vec&lt;BindingLocator&gt;,
+
+    <span class="doccomment">/// How many iterations a loop has done.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) loop_iteration_count: u64,
 
     <span class="doccomment">/// The value that is returned from the function.
     </span><span class="comment">//
@@ -195,20 +187,17 @@
 </span><span class="kw">impl </span>CallFrame {
     <span class="doccomment">/// Creates a new `CallFrame` with the provided `CodeBlock`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(code_block: Gc&lt;CodeBlock&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>max_length = code_block.bytecode.len() <span class="kw">as </span>u32;
         <span class="self">Self </span>{
             code_block,
             pc: <span class="number">0</span>,
             fp: <span class="number">0</span>,
-            env_stack: Vec::from([EnvStackEntry::new(<span class="number">0</span>, max_length)]),
-            abrupt_completion: <span class="prelude-val">None</span>,
-            r#yield: <span class="bool-val">false</span>,
+            env_fp: <span class="number">0</span>,
             argument_count: <span class="number">0</span>,
-            generator_resume_kind: GeneratorResumeKind::Normal,
             promise_capability: <span class="prelude-val">None</span>,
             async_generator: <span class="prelude-val">None</span>,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
+            loop_iteration_count: <span class="number">0</span>,
             return_value: JsValue::undefined(),
         }
     }
@@ -218,6 +207,12 @@
         <span class="self">self</span>.argument_count = count;
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Updates a `CallFrame`&#39;s `env_fp` field with the value provided.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_env_fp(<span class="kw-2">mut </span><span class="self">self</span>, env_fp: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.env_fp = env_fp;
+        <span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// ---- `CallFrame` stack methods ----
@@ -225,33 +220,42 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_frame_pointer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pointer: u32) {
         <span class="self">self</span>.fp = pointer;
     }
-
-    <span class="doccomment">/// Tracks that one environment has been pushed in the current loop block.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_frame_env_stack(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.env_stack
-            .last_mut()
-            .expect(<span class="string">&quot;environment stack entry must exist&quot;</span>)
-            .inc_env_num();
-    }
-
-    <span class="doccomment">/// Tracks that one environment has been pop&#39;ed in the current loop block.
-    ///
-    /// Note:
-    ///  - This will check if the env stack has reached 0 and should be popped.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dec_frame_env_stack(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.env_stack
-            .last_mut()
-            .expect(<span class="string">&quot;environment stack entry must exist&quot;</span>)
-            .dec_env_num();
-    }
 }
 
 <span class="doccomment">/// Indicates how a generator function that has been called/resumed should return.
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Default)]
+#[repr(u8)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>GeneratorResumeKind {
     <span class="attr">#[default]
-    </span>Normal,
+    </span>Normal = <span class="number">0</span>,
     Throw,
     Return,
+}
+
+<span class="kw">impl </span>From&lt;GeneratorResumeKind&gt; <span class="kw">for </span>JsValue {
+    <span class="kw">fn </span>from(value: GeneratorResumeKind) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(value <span class="kw">as </span>u8)
+    }
+}
+
+<span class="kw">impl </span>JsValue {
+    <span class="doccomment">/// Convert value to [`GeneratorResumeKind`].
+    ///
+    /// # Panics
+    ///
+    /// If not a integer type or not in the range `1..=2`.
+    </span><span class="attr">#[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_generator_resume_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GeneratorResumeKind {
+        <span class="kw">if let </span><span class="self">Self</span>::Integer(value) = <span class="self">self </span>{
+            <span class="kw">match </span><span class="kw-2">*</span>value {
+                <span class="number">0 </span>=&gt; <span class="kw">return </span>GeneratorResumeKind::Normal,
+                <span class="number">1 </span>=&gt; <span class="kw">return </span>GeneratorResumeKind::Throw,
+                <span class="number">2 </span>=&gt; <span class="kw">return </span>GeneratorResumeKind::Return,
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;generator kind must be a integer between 1..=2, got {value}&quot;</span>),
+            }
+        }
+
+        <span class="macro">unreachable!</span>(<span class="string">&quot;generator kind must be a integer type&quot;</span>)
+    }
 }
 </code></pre></div></section></main></body></html>
