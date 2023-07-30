@@ -66,6 +66,18 @@ impl IntrinsicObject for Array {
         .name("values")
         .build();
 
+        let to_string_function = BuiltInBuilder::callable_with_object(
+            realm,
+            realm
+                .intrinsics()
+                .objects()
+                .array_prototype_to_string()
+                .into(),
+            Self::to_string,
+        )
+        .name("toString")
+        .build();
+
         let unscopables_object = Self::unscopables_object();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -107,7 +119,11 @@ impl IntrinsicObject for Array {
             .method(Self::filter, "filter", 1)
             .method(Self::pop, "pop", 0)
             .method(Self::join, "join", 1)
-            .method(Self::to_string, "toString", 0)
+            .property(
+                utf16!("toString"),
+                to_string_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .method(Self::reverse, "reverse", 0)
             .method(Self::shift, "shift", 0)
             .method(Self::unshift, "unshift", 1)

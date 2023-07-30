@@ -821,6 +821,9 @@ pub struct IntrinsicObjects {
     /// [`%Array.prototype.values%`](https://tc39.es/ecma262/#sec-array.prototype.values)
     array_prototype_values: JsFunction,
 
+    /// [`%Array.prototype.toString%`](https://tc39.es/ecma262/#sec-array.prototype.tostring)
+    array_prototype_to_string: JsFunction,
+
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
@@ -873,6 +876,7 @@ impl Default for IntrinsicObjects {
             json: JsObject::default(),
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function(false),
+            array_prototype_to_string: JsFunction::empty_intrinsic_function(false),
             iterator_prototypes: IteratorPrototypes::default(),
             generator: JsObject::default(),
             async_generator: JsObject::default(),
@@ -904,13 +908,22 @@ impl IntrinsicObjects {
         self.throw_type_error.clone()
     }
 
-    /// Gets the [`%Array.prototype.values%`][spec] intrinsic object.
+    /// Gets the [`%Array.prototype.values%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     #[inline]
     #[must_use]
     pub fn array_prototype_values(&self) -> JsFunction {
         self.array_prototype_values.clone()
+    }
+
+    /// Gets the [`%Array.prototype.toString%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.tostring
+    #[inline]
+    #[must_use]
+    pub fn array_prototype_to_string(&self) -> JsFunction {
+        self.array_prototype_to_string.clone()
     }
 
     /// Gets the cached iterator prototypes.
