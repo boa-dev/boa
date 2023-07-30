@@ -123,6 +123,7 @@ impl IntrinsicObject for String {
             .method(Self::ends_with, "endsWith", 1)
             .method(Self::includes, "includes", 1)
             .method(Self::index_of, "indexOf", 1)
+            .method(Self::is_well_formed, "isWellFormed", 0)
             .method(Self::last_index_of, "lastIndexOf", 1)
             .method(Self::locale_compare, "localeCompare", 1)
             .method(Self::r#match, "match", 1)
@@ -132,6 +133,7 @@ impl IntrinsicObject for String {
             .method(Self::trim, "trim", 0)
             .method(Self::to_case::<false>, "toLowerCase", 0)
             .method(Self::to_case::<true>, "toUpperCase", 0)
+            .method(Self::to_well_formed, "toWellFormed", 0)
             .method(Self::to_locale_case::<false>, "toLocaleLowerCase", 0)
             .method(Self::to_locale_case::<true>, "toLocaleUpperCase", 0)
             .method(Self::substring, "substring", 2)
@@ -1289,6 +1291,34 @@ impl String {
             .into())
     }
 
+    /// `String.prototype.isWellFormed ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.iswellformed
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/isWellFormed
+    pub(crate) fn is_well_formed(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let o = this.require_object_coercible()?;
+
+        // 2. Let S be ? ToString(O).
+        let s = o.to_string(context)?;
+
+        // 3. Return IsStringWellFormedUnicode(S).
+        for code_point in s.code_points() {
+            if let CodePoint::UnpairedSurrogate(_) = code_point {
+                return Ok(false.into());
+            }
+        }
+        Ok(true.into())
+    }
+
     /// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`
     ///
     /// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence
@@ -1770,6 +1800,47 @@ impl String {
         {
             Self::to_case::<UPPER>(this, args, context)
         }
+    }
+
+    /// `String.prototype.toWellFormed ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.towellformed
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toWellFormed
+    pub(crate) fn to_well_formed(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let o = this.require_object_coercible()?;
+
+        // 2. Let S be ? ToString(O).
+        let s = o.to_string(context)?;
+
+        // 3. Let strLen be the length of S.
+        // 4. Let k be 0.
+        // 5. Let result be the empty String.
+        // 6. Repeat, while k < strLen,
+        // a. Let cp be CodePointAt(S, k).
+        // b. If cp.[[IsUnpairedSurrogate]] is true, then
+        // i. Set result to the string-concatenation of result and 0xFFFD (REPLACEMENT CHARACTER).
+        // c. Else,
+        // i. Set result to the string-concatenation of result and UTF16EncodeCodePoint(cp.[[CodePoint]]).
+        // d. Set k to k + cp.[[CodeUnitCount]].
+        let result = s
+            .code_points()
+            .map(|code_point| match code_point {
+                CodePoint::UnpairedSurrogate(_) => '\u{FFFD}',
+                CodePoint::Unicode(char) => char,
+            })
+            .collect::<std::string::String>();
+
+        // 7. Return result.
+        Ok(result.into())
     }
 
     /// `String.prototype.substring( indexStart[, indexEnd] )`
