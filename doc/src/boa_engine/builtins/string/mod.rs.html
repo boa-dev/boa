@@ -2753,6 +2753,77 @@
 <a href="#2753" id="2753">2753</a>
 <a href="#2754" id="2754">2754</a>
 <a href="#2755" id="2755">2755</a>
+<a href="#2756" id="2756">2756</a>
+<a href="#2757" id="2757">2757</a>
+<a href="#2758" id="2758">2758</a>
+<a href="#2759" id="2759">2759</a>
+<a href="#2760" id="2760">2760</a>
+<a href="#2761" id="2761">2761</a>
+<a href="#2762" id="2762">2762</a>
+<a href="#2763" id="2763">2763</a>
+<a href="#2764" id="2764">2764</a>
+<a href="#2765" id="2765">2765</a>
+<a href="#2766" id="2766">2766</a>
+<a href="#2767" id="2767">2767</a>
+<a href="#2768" id="2768">2768</a>
+<a href="#2769" id="2769">2769</a>
+<a href="#2770" id="2770">2770</a>
+<a href="#2771" id="2771">2771</a>
+<a href="#2772" id="2772">2772</a>
+<a href="#2773" id="2773">2773</a>
+<a href="#2774" id="2774">2774</a>
+<a href="#2775" id="2775">2775</a>
+<a href="#2776" id="2776">2776</a>
+<a href="#2777" id="2777">2777</a>
+<a href="#2778" id="2778">2778</a>
+<a href="#2779" id="2779">2779</a>
+<a href="#2780" id="2780">2780</a>
+<a href="#2781" id="2781">2781</a>
+<a href="#2782" id="2782">2782</a>
+<a href="#2783" id="2783">2783</a>
+<a href="#2784" id="2784">2784</a>
+<a href="#2785" id="2785">2785</a>
+<a href="#2786" id="2786">2786</a>
+<a href="#2787" id="2787">2787</a>
+<a href="#2788" id="2788">2788</a>
+<a href="#2789" id="2789">2789</a>
+<a href="#2790" id="2790">2790</a>
+<a href="#2791" id="2791">2791</a>
+<a href="#2792" id="2792">2792</a>
+<a href="#2793" id="2793">2793</a>
+<a href="#2794" id="2794">2794</a>
+<a href="#2795" id="2795">2795</a>
+<a href="#2796" id="2796">2796</a>
+<a href="#2797" id="2797">2797</a>
+<a href="#2798" id="2798">2798</a>
+<a href="#2799" id="2799">2799</a>
+<a href="#2800" id="2800">2800</a>
+<a href="#2801" id="2801">2801</a>
+<a href="#2802" id="2802">2802</a>
+<a href="#2803" id="2803">2803</a>
+<a href="#2804" id="2804">2804</a>
+<a href="#2805" id="2805">2805</a>
+<a href="#2806" id="2806">2806</a>
+<a href="#2807" id="2807">2807</a>
+<a href="#2808" id="2808">2808</a>
+<a href="#2809" id="2809">2809</a>
+<a href="#2810" id="2810">2810</a>
+<a href="#2811" id="2811">2811</a>
+<a href="#2812" id="2812">2812</a>
+<a href="#2813" id="2813">2813</a>
+<a href="#2814" id="2814">2814</a>
+<a href="#2815" id="2815">2815</a>
+<a href="#2816" id="2816">2816</a>
+<a href="#2817" id="2817">2817</a>
+<a href="#2818" id="2818">2818</a>
+<a href="#2819" id="2819">2819</a>
+<a href="#2820" id="2820">2820</a>
+<a href="#2821" id="2821">2821</a>
+<a href="#2822" id="2822">2822</a>
+<a href="#2823" id="2823">2823</a>
+<a href="#2824" id="2824">2824</a>
+<a href="#2825" id="2825">2825</a>
+<a href="#2826" id="2826">2826</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2878,6 +2949,7 @@
             .method(<span class="self">Self</span>::ends_with, <span class="string">&quot;endsWith&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::includes, <span class="string">&quot;includes&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::index_of, <span class="string">&quot;indexOf&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::is_well_formed, <span class="string">&quot;isWellFormed&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::last_index_of, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::locale_compare, <span class="string">&quot;localeCompare&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::r#match, <span class="string">&quot;match&quot;</span>, <span class="number">1</span>)
@@ -2887,6 +2959,7 @@
             .method(<span class="self">Self</span>::trim, <span class="string">&quot;trim&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;toLowerCase&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;toUpperCase&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_well_formed, <span class="string">&quot;toWellFormed&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_locale_case::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;toLocaleLowerCase&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_locale_case::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;toLocaleUpperCase&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::substring, <span class="string">&quot;substring&quot;</span>, <span class="number">2</span>)
@@ -4044,6 +4117,34 @@
             .into())
     }
 
+    <span class="doccomment">/// `String.prototype.isWellFormed ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.iswellformed
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/isWellFormed
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_well_formed(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).
+        </span><span class="kw">let </span>o = this.require_object_coercible()<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let S be ? ToString(O).
+        </span><span class="kw">let </span>s = o.to_string(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Return IsStringWellFormedUnicode(S).
+        </span><span class="kw">for </span>code_point <span class="kw">in </span>s.code_points() {
+            <span class="kw">if let </span>CodePoint::UnpairedSurrogate(<span class="kw">_</span>) = code_point {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>.into());
+            }
+        }
+        <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>.into())
+    }
+
     <span class="doccomment">/// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`
     ///
     /// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence
@@ -4525,6 +4626,47 @@
         </span>{
             <span class="self">Self</span>::to_case::&lt;UPPER&gt;(this, args, context)
         }
+    }
+
+    <span class="doccomment">/// `String.prototype.toWellFormed ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.towellformed
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toWellFormed
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_well_formed(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).
+        </span><span class="kw">let </span>o = this.require_object_coercible()<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let S be ? ToString(O).
+        </span><span class="kw">let </span>s = o.to_string(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Let strLen be the length of S.
+        // 4. Let k be 0.
+        // 5. Let result be the empty String.
+        // 6. Repeat, while k &lt; strLen,
+        // a. Let cp be CodePointAt(S, k).
+        // b. If cp.[[IsUnpairedSurrogate]] is true, then
+        // i. Set result to the string-concatenation of result and 0xFFFD (REPLACEMENT CHARACTER).
+        // c. Else,
+        // i. Set result to the string-concatenation of result and UTF16EncodeCodePoint(cp.[[CodePoint]]).
+        // d. Set k to k + cp.[[CodeUnitCount]].
+        </span><span class="kw">let </span>result = s
+            .code_points()
+            .map(|code_point| <span class="kw">match </span>code_point {
+                CodePoint::UnpairedSurrogate(<span class="kw">_</span>) =&gt; <span class="string">&#39;\u{FFFD}&#39;</span>,
+                CodePoint::Unicode(char) =&gt; char,
+            })
+            .collect::&lt;std::string::String&gt;();
+
+        <span class="comment">// 7. Return result.
+        </span><span class="prelude-val">Ok</span>(result.into())
     }
 
     <span class="doccomment">/// `String.prototype.substring( indexStart[, indexEnd] )`
