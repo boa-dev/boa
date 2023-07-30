@@ -278,10 +278,6 @@
 <a href="#278" id="278">278</a>
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler, Literal},
     vm::{BindingOpcode, Opcode},
@@ -464,21 +460,17 @@
                 <span class="self">self</span>.emit_opcode(Opcode::ValueNotNullOrUndefined);
                 <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
 
-                <span class="comment">// TODO: maybe, refactor this to be more condensed.
-                </span><span class="kw">let </span>handler_index = <span class="self">self</span>.push_handler();
+                <span class="kw">let </span>handler_index = <span class="self">self</span>.push_handler();
                 <span class="kw">for </span>element <span class="kw">in </span>pattern.bindings() {
                     <span class="self">self</span>.compile_array_pattern_element(element, def);
                 }
 
-                <span class="self">self</span>.emit_opcode(Opcode::PushFalse);
-
-                <span class="kw">let </span>exit = <span class="self">self</span>.jump();
                 <span class="self">self</span>.patch_handler(handler_index);
-                <span class="self">self</span>.emit_opcode(Opcode::Exception);
-                <span class="self">self</span>.emit_opcode(Opcode::PushTrue);
-                <span class="self">self</span>.patch_jump(exit);
+                <span class="self">self</span>.emit_opcode(Opcode::MaybeException);
 
-                <span class="self">self</span>.current_stack_value_count += <span class="number">2</span>;
+                <span class="comment">// stack: hasPending, exception?
+
+                </span><span class="self">self</span>.current_stack_value_count += <span class="number">2</span>;
 
                 <span class="kw">let </span>iterator_close_handler = <span class="self">self</span>.push_handler();
                 <span class="self">self</span>.iterator_close(<span class="bool-val">false</span>);

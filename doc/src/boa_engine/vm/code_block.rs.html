@@ -2183,6 +2183,7 @@
             | Opcode::Throw
             | Opcode::ReThrow
             | Opcode::Exception
+            | Opcode::MaybeException
             | Opcode::This
             | Opcode::Super
             | Opcode::Return
@@ -2294,8 +2295,7 @@
             | Opcode::Reserved60
             | Opcode::Reserved61
             | Opcode::Reserved62
-            | Opcode::Reserved63
-            | Opcode::Reserved64 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Opcode::Reserved63 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }
