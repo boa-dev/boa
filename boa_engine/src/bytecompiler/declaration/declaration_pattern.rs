@@ -180,19 +180,15 @@ impl ByteCompiler<'_, '_> {
                 self.emit_opcode(Opcode::ValueNotNullOrUndefined);
                 self.emit_opcode(Opcode::GetIterator);
 
-                // TODO: maybe, refactor this to be more condensed.
                 let handler_index = self.push_handler();
                 for element in pattern.bindings() {
                     self.compile_array_pattern_element(element, def);
                 }
 
-                self.emit_opcode(Opcode::PushFalse);
-
-                let exit = self.jump();
                 self.patch_handler(handler_index);
-                self.emit_opcode(Opcode::Exception);
-                self.emit_opcode(Opcode::PushTrue);
-                self.patch_jump(exit);
+                self.emit_opcode(Opcode::MaybeException);
+
+                // stack: hasPending, exception?
 
                 self.current_stack_value_count += 2;
 

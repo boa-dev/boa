@@ -537,6 +537,7 @@ impl CodeBlock {
                 | Opcode::GetReturnValue
                 | Opcode::SetReturnValue
                 | Opcode::Exception
+                | Opcode::MaybeException
                 | Opcode::Nop => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
@@ -606,8 +607,7 @@ impl CodeBlock {
                 | Opcode::Reserved60
                 | Opcode::Reserved61
                 | Opcode::Reserved62
-                | Opcode::Reserved63
-                | Opcode::Reserved64 => unreachable!("Reserved opcodes are unrechable"),
+                | Opcode::Reserved63 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

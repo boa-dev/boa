@@ -1147,7 +1147,7 @@ generate_impl! {
         /// Stack: **=>**
         ReThrow,
 
-        /// Get the thrown pending exception and push on the stack.
+        /// Get the thrown pending exception (if it's set) and push on the stack.
         ///
         /// If there is no pending exception, which can happend if we are handling `return()` call on generator,
         /// then we rethrow the empty exception. See [`Opcode::ReThrow`].
@@ -1156,6 +1156,13 @@ generate_impl! {
         ///
         /// Stack: **=>** exception
         Exception,
+
+        /// Get the thrown pending exception if it's set and push `true`, otherwise push only `false`.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>** (`true`, exception) or `false`
+        MaybeException,
 
         /// Throw a new `TypeError` exception
         ///
@@ -1764,8 +1771,6 @@ generate_impl! {
         Reserved62 => Reserved,
         /// Reserved [`Opcode`].
         Reserved63 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved64 => Reserved,
     }
 }
 

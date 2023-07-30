@@ -566,6 +566,7 @@ impl CodeBlock {
             | Opcode::Throw
             | Opcode::ReThrow
             | Opcode::Exception
+            | Opcode::MaybeException
             | Opcode::This
             | Opcode::Super
             | Opcode::Return
@@ -677,8 +678,7 @@ impl CodeBlock {
             | Opcode::Reserved60
             | Opcode::Reserved61
             | Opcode::Reserved62
-            | Opcode::Reserved63
-            | Opcode::Reserved64 => unreachable!("Reserved opcodes are unrechable"),
+            | Opcode::Reserved63 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
