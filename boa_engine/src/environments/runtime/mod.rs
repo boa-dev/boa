@@ -78,6 +78,18 @@ impl EnvironmentStack {
         self.stack[0] = Environment::Declarative(global);
     }
 
+    /// Gets the current global environment.
+    pub(crate) fn global(&self) -> Gc<DeclarativeEnvironment> {
+        let env = self.stack[0].clone();
+
+        match env {
+            Environment::Declarative(ref env) => env.clone(),
+            Environment::Object(_) => {
+                unreachable!("first environment should be the global environment")
+            }
+        }
+    }
+
     /// Extends the length of the next outer function environment to the number of compiled bindings.
     ///
     /// This is only useful when compiled bindings are added after the initial compilation (eval).

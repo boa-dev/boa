@@ -1,19 +1,171 @@
 pub(crate) mod yield_stm;
 
+use std::collections::VecDeque;
+
 use crate::{
+    builtins::{
+        async_generator::{AsyncGenerator, AsyncGeneratorState},
+        generator::{GeneratorContext, GeneratorState},
+    },
+    environments::EnvironmentStack,
     error::JsNativeError,
+    object::{ObjectData, PROTOTYPE},
     string::utf16,
     vm::{
         call_frame::GeneratorResumeKind,
         opcode::{Operation, ReThrow},
-        CompletionType,
+        CallFrame, CompletionType,
     },
-    Context, JsError, JsResult,
+    Context, JsError, JsObject, JsResult,
 };
 
 pub(crate) use yield_stm::*;
 
 use super::SetReturnValue;
+
+/// `Generator` implements the Opcode Operation for `Opcode::Generator`
+///
+/// Operation:
+///  - Creates the generator object and yields.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Generator;
+
+impl Operation for Generator {
+    const NAME: &'static str = "Generator";
+    const INSTRUCTION: &'static str = "INST - Generator";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let r#async = context.vm.read::<u8>() != 0;
+
+        let code_block = context.vm.frame().code_block().clone();
+        let pc = context.vm.frame().pc;
+        let mut dummy_call_frame = CallFrame::new(code_block);
+        dummy_call_frame.pc = pc;
+        let call_frame = std::mem::replace(context.vm.frame_mut(), dummy_call_frame);
+
+        let this_function_object = context
+            .vm
+            .active_function
+            .clone()
+            .expect("active function should be set to the generator");
+
+        let proto = this_function_object
+            .get(PROTOTYPE, context)
+            .expect("generator must have a prototype property")
+            .as_object()
+            .map_or_else(
+                || {
+                    if r#async {
+                        context.intrinsics().objects().async_generator()
+                    } else {
+                        context.intrinsics().objects().generator()
+                    }
+                },
+                Clone::clone,
+            );
+
+        let global_environement = context.vm.environments.global();
+        let environments = std::mem::replace(
+            &mut context.vm.environments,
+            EnvironmentStack::new(global_environement),
+        );
+        let stack = std::mem::take(&mut context.vm.stack);
+
+        let data = if r#async {
+            ObjectData::async_generator(AsyncGenerator {
+                state: AsyncGeneratorState::SuspendedStart,
+                context: Some(GeneratorContext::new(
+                    environments,
+                    stack,
+                    context.vm.active_function.clone(),
+                    call_frame,
+                    context.realm().clone(),
+                )),
+                queue: VecDeque::new(),
+            })
+        } else {
+            ObjectData::generator(crate::builtins::generator::Generator {
+                state: GeneratorState::SuspendedStart {
+                    context: GeneratorContext::new(
+                        environments,
+                        stack,
+                        context.vm.active_function.clone(),
+                        call_frame,
+                        context.realm().clone(),
+                    ),
+                },
+            })
+        };
+
+        let generator =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data);
+
+        if r#async {
+            let gen_clone = generator.clone();
+            let mut generator_mut = generator.borrow_mut();
+            let gen = generator_mut
+                .as_async_generator_mut()
+                .expect("must be object here");
+            let gen_context = gen.context.as_mut().expect("must exist");
+            // TODO: try to move this to the context itself.
+            gen_context
+                .call_frame
+                .as_mut()
+                .expect("should have a call frame initialized")
+                .async_generator = Some(gen_clone);
+        }
+
+        context.vm.push(generator);
+        Ok(CompletionType::Yield)
+    }
+}
+
+/// `AsyncGeneratorClose` implements the Opcode Operation for `Opcode::AsyncGeneratorClose`
+///
+/// Operation:
+///  - Close an async generator function.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct AsyncGeneratorClose;
+
+impl Operation for AsyncGeneratorClose {
+    const NAME: &'static str = "AsyncGeneratorClose";
+    const INSTRUCTION: &'static str = "INST - AsyncGeneratorClose";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+        let generator_object = context
+            .vm
+            .frame()
+            .async_generator
+            .clone()
+            .expect("There should be a object");
+
+        let mut generator_object_mut = generator_object.borrow_mut();
+        let generator = generator_object_mut
+            .as_async_generator_mut()
+            .expect("must be async generator");
+
+        generator.state = AsyncGeneratorState::Completed;
+        generator.context = None;
+
+        let next = generator
+            .queue
+            .pop_front()
+            .expect("must have item in queue");
+        drop(generator_object_mut);
+
+        let return_value = std::mem::take(&mut context.vm.frame_mut().return_value);
+
+        if let Some(error) = context.vm.pending_exception.take() {
+            AsyncGenerator::complete_step(&next, Err(error), true, None, context);
+        } else {
+            AsyncGenerator::complete_step(&next, Ok(return_value), true, None, context);
+        }
+        AsyncGenerator::drain_queue(&generator_object, context);
+
+        Ok(CompletionType::Normal)
+    }
+}
 
 /// `GeneratorNext` implements the Opcode Operation for `Opcode::GeneratorNext`
 ///

@@ -2,7 +2,7 @@
 use crate::{vm::CompletionType, Context, JsResult};
 
 // Operation modules
-mod await_stm;
+mod r#await;
 mod binary_ops;
 mod call;
 mod concat;
@@ -15,7 +15,6 @@ mod environment;
 mod generator;
 mod get;
 mod iteration;
-mod jump;
 mod meta;
 mod new;
 mod nop;
@@ -32,8 +31,6 @@ mod unary_ops;
 mod value;
 
 // Operation structs
-#[doc(inline)]
-pub(crate) use await_stm::*;
 #[doc(inline)]
 pub(crate) use binary_ops::*;
 #[doc(inline)]
@@ -59,8 +56,6 @@ pub(crate) use get::*;
 #[doc(inline)]
 pub(crate) use iteration::*;
 #[doc(inline)]
-pub(crate) use jump::*;
-#[doc(inline)]
 pub(crate) use meta::*;
 #[doc(inline)]
 pub(crate) use new::*;
@@ -70,6 +65,8 @@ pub(crate) use nop::*;
 pub(crate) use pop::*;
 #[doc(inline)]
 pub(crate) use push::*;
+#[doc(inline)]
+pub(crate) use r#await::*;
 #[doc(inline)]
 pub(crate) use require::*;
 #[doc(inline)]
@@ -1333,6 +1330,20 @@ generate_impl! {
         /// Stack: **=>**
         Return,
 
+        /// Close an async generator function.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>**
+        AsyncGeneratorClose,
+
+        /// Creates the generator object and yields.
+        ///
+        /// Operands: async: `u8`
+        ///
+        /// Stack: **=>** resume_kind
+        Generator,
+
         /// Get return value of a function.
         ///
         /// Operands:
@@ -1561,6 +1572,22 @@ generate_impl! {
         /// Stack: value **=>** received
         AsyncGeneratorYield,
 
+        /// Create a promise capacity for an async function, if not already set.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>**
+        CreatePromiseCapability,
+
+        /// Resolves or rejects the promise capability of an async function.
+        ///
+        /// If the pending exception is set, reject and rethrow the exception, otherwise resolve.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>**
+        CompletePromiseCapability,
+
         /// Jumps to the specified address if the resume kind is not equal.
         ///
         /// Operands: `exit`: `u32`, `resume_kind`: `u8`.
@@ -1763,14 +1790,6 @@ generate_impl! {
         Reserved58 => Reserved,
         /// Reserved [`Opcode`].
         Reserved59 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved60 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved61 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved62 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved63 => Reserved,
     }
 }
 

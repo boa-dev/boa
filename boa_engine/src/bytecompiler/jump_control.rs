@@ -122,7 +122,23 @@ impl JumpRecord {
         match self.kind {
             JumpRecordKind::Break => compiler.patch_jump(self.label),
             JumpRecordKind::Continue => compiler.patch_jump_with_target(self.label, start_address),
-            JumpRecordKind::Return => compiler.emit_opcode(Opcode::Return),
+            JumpRecordKind::Return => {
+                match (compiler.in_async(), compiler.in_generator()) {
+                    // Taken from:
+                    //  - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): https://tc39.es/ecma262/#sec-asyncgeneratorstart
+                    //
+                    // Note: If we are returning we have to close the async generator function.
+                    (true, true) => compiler.emit_opcode(Opcode::AsyncGeneratorClose),
+
+                    // Taken from:
+                    //  - 27.7.5.2 AsyncBlockStart ( promiseCapability, asyncBody, asyncContext ): <https://tc39.es/ecma262/#sec-asyncblockstart>
+                    //
+                    // Note: If there is promise capability resolve or reject it based on pending exception.
+                    (true, false) => compiler.emit_opcode(Opcode::CompletePromiseCapability),
+                    (_, _) => {}
+                }
+                compiler.emit_opcode(Opcode::Return);
+            }
         }
     }
 }

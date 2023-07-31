@@ -1414,6 +1414,10 @@ impl SourceTextModule {
 
         let mut compiler =
             ByteCompiler::new(Sym::MAIN, true, false, module_compile_env.clone(), context);
+
+        compiler.in_async = true;
+        compiler.async_handler = Some(compiler.push_handler());
+
         let mut imports = Vec::new();
 
         let (codeblock, functions) = {

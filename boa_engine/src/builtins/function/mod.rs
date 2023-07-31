@@ -775,6 +775,7 @@ impl BuiltInFunctionObject {
             let code = FunctionCompiler::new()
                 .name(Sym::ANONYMOUS)
                 .generator(true)
+                .r#async(r#async)
                 .compile(
                     &FormalParameterList::default(),
                     &FunctionBody::default(),
@@ -793,12 +794,15 @@ impl BuiltInFunctionObject {
 
             Ok(function_object)
         } else {
-            let code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
-                &FormalParameterList::default(),
-                &FunctionBody::default(),
-                context.realm().environment().compile_env(),
-                context,
-            );
+            let code = FunctionCompiler::new()
+                .r#async(r#async)
+                .name(Sym::ANONYMOUS)
+                .compile(
+                    &FormalParameterList::default(),
+                    &FunctionBody::default(),
+                    context.realm().environment().compile_env(),
+                    context,
+                );
 
             let environments = context.vm.environments.pop_to_global();
             let function_object =

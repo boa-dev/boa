@@ -4,7 +4,7 @@ use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     environments::CompileTimeEnvironment,
-    vm::{CodeBlock, CodeBlockFlags},
+    vm::{CodeBlock, CodeBlockFlags, Opcode},
     Context,
 };
 use boa_ast::function::{FormalParameterList, FunctionBody};
@@ -120,6 +120,31 @@ impl FunctionCompiler {
         // Function environment
         compiler.push_compile_environment(true);
 
+        // Taken from:
+        //  - 15.9.3 Runtime Semantics: EvaluateAsyncConciseBody: <https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncconcisebody>
+        //  - 15.8.4 Runtime Semantics: EvaluateAsyncFunctionBody: <https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncfunctionbody>
+        //
+        // Note: In `EvaluateAsyncGeneratorBody` unlike the async non-generator functions we don't handle exceptions thrown by
+        // `FunctionDeclarationInstantiation` (so they are propagated).
+        //
+        // See: 15.6.2 Runtime Semantics: EvaluateAsyncGeneratorBody: https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncgeneratorbody
+        if compiler.in_async() && !compiler.in_generator() {
+            // 1. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+            //
+            // Note: If the promise capability is already set, then we do nothing.
+            // This is a deviation from the spec, but it allows to set the promise capability by
+            // ExecuteAsyncModule ( module ): <https://tc39.es/ecma262/#sec-execute-async-module>
+            compiler.emit_opcode(Opcode::CreatePromiseCapability);
+
+            // 2. Let declResult be Completion(FunctionDeclarationInstantiation(functionObject, argumentsList)).
+            //
+            // Note: We push an exception handler so we catch exceptions that are thrown by the
+            // `FunctionDeclarationInstantiation` abstract function.
+            //
+            // Patched in `ByteCompiler::finish()`.
+            compiler.async_handler = Some(compiler.push_handler());
+        }
+
         let (env_label, additional_env) = compiler.function_declaration_instantiation(
             body,
             parameters,
@@ -127,6 +152,18 @@ impl FunctionCompiler {
             self.strict,
             self.generator,
         );
+
+        // Taken from:
+        // - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): <https://tc39.es/ecma262/#sec-asyncgeneratorstart>
+        //
+        // Note: We do handle exceptions thrown by generator body in `AsyncGeneratorStart`.
+        if compiler.in_generator() {
+            assert!(compiler.async_handler.is_none());
+            if compiler.in_async() {
+                // Patched in `ByteCompiler::finish()`.
+                compiler.async_handler = Some(compiler.push_handler());
+            }
+        }
 
         compiler.compile_statement_list(body.statements(), false, false);
 

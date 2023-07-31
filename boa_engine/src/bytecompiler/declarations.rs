@@ -1010,11 +1010,10 @@ impl ByteCompiler<'_, '_> {
         if !formals.has_rest_parameter() {
             self.emit_opcode(Opcode::RestParameterPop);
         }
+
         if generator {
-            self.emit_opcode(Opcode::PushUndefined);
-            // Don't need to use `AsyncGeneratorYield` since
-            // we just want to stop the execution of the generator.
-            self.emit_opcode(Opcode::GeneratorYield);
+            self.emit_opcode(Opcode::Generator);
+            self.emit_u8(self.in_async().into());
             self.emit_opcode(Opcode::Pop);
         }
 

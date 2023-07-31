@@ -255,8 +255,13 @@ pub struct ByteCompiler<'ctx, 'host> {
     names_map: FxHashMap<Identifier, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
-    in_async: bool,
+    pub(crate) in_async: bool,
     in_generator: bool,
+
+    /// Used to handle exception throws that escape the async function types.
+    ///
+    /// Async functions and async generator functions, need to be closed and resolved.
+    pub(crate) async_handler: Option<u32>,
     json_parse: bool,
 
     // TODO: remove when we separate scripts from the context
@@ -305,6 +310,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             jump_info: Vec::new(),
             in_async: false,
             in_generator: false,
+            async_handler: None,
             json_parse,
             current_environment,
             context,
@@ -1410,7 +1416,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     #[allow(clippy::missing_const_for_fn)]
     pub fn finish(mut self) -> CodeBlock {
         // Push return at the end of the function compilation.
-        self.emit_opcode(Opcode::Return);
+        if let Some(async_handler) = self.async_handler {
+            self.patch_handler(async_handler);
+        }
+        self.r#return();
 
         let name = self
             .context

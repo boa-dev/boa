@@ -125,7 +125,79 @@ impl Operation for Await {
             context,
         );
 
-        context.vm.push(JsValue::undefined());
+        if let Some(promise_capabality) = context.vm.frame().promise_capability.clone() {
+            context.vm.push(promise_capabality.promise().clone());
+        } else {
+            context.vm.push(JsValue::undefined());
+        }
         Ok(CompletionType::Yield)
+    }
+}
+
+/// `CreatePromiseCapability` implements the Opcode Operation for `Opcode::CreatePromiseCapability`
+///
+/// Operation:
+///  - Create a promise capacity for an async function, if not already set.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CreatePromiseCapability;
+
+impl Operation for CreatePromiseCapability {
+    const NAME: &'static str = "CreatePromiseCapability";
+    const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        if context.vm.frame().promise_capability.is_some() {
+            return Ok(CompletionType::Normal);
+        }
+
+        let promise_capability = crate::builtins::promise::PromiseCapability::new(
+            &context.intrinsics().constructors().promise().constructor(),
+            context,
+        )
+        .expect("cannot fail per spec");
+
+        context.vm.frame_mut().promise_capability = Some(promise_capability);
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `CompletePromiseCapability` implements the Opcode Operation for `Opcode::CompletePromiseCapability`
+///
+/// Operation:
+///  - Resolves or rejects the promise capability, depending if the pending exception is set.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CompletePromiseCapability;
+
+impl Operation for CompletePromiseCapability {
+    const NAME: &'static str = "CompletePromiseCapability";
+    const INSTRUCTION: &'static str = "INST - CompletePromiseCapability";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        // If the current executing function is an async function we have to resolve/reject it's promise at the end.
+        // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
+        let Some(promise_capability) = context.vm.frame_mut().promise_capability.take() else {
+            return if context.vm.pending_exception.is_some() {
+                Ok(CompletionType::Throw)
+            } else {
+                Ok(CompletionType::Normal)
+            };
+        };
+
+        if let Some(error) = context.vm.pending_exception.take() {
+            promise_capability
+                .reject()
+                .call(&JsValue::undefined(), &[error.to_opaque(context)], context)
+                .expect("cannot fail per spec");
+        } else {
+            let return_value = context.vm.frame().return_value.clone();
+            promise_capability
+                .resolve()
+                .call(&JsValue::undefined(), &[return_value], context)
+                .expect("cannot fail per spec");
+        };
+
+        context.vm.frame_mut().return_value = promise_capability.promise().clone().into();
+
+        Ok(CompletionType::Normal)
     }
 }
