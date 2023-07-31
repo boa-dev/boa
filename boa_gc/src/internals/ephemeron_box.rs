@@ -223,7 +223,7 @@ impl<K: Trace, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
         // use after free.
         unsafe {
             if let Some(value) = self.value() {
-                value.trace_non_roots()
+                value.trace_non_roots();
             }
         }
     }
@@ -231,6 +231,6 @@ impl<K: Trace, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
     fn finalize_and_clear(&self) {
         // SAFETY: the invariants of the garbage collector ensures this is only executed when
         // there are no remaining references to the inner data.
-        unsafe { (&mut *self.data.get()).take() };
+        unsafe { (*self.data.get()).take() };
     }
 }
