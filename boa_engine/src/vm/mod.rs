@@ -304,33 +304,29 @@ impl Context<'_> {
             self.trace_call_frame();
         }
 
-        let mut result = Ok(CompletionType::Normal);
         loop {
             #[cfg(feature = "fuzz")]
             {
                 if self.instructions_remaining == 0 {
-                    let err = JsError::from_native(JsNativeError::no_instructions_remain());
-                    return CompletionRecord::Throw(err);
+                    return CompletionRecord::Throw(JsError::from_native(
+                        JsNativeError::no_instructions_remain(),
+                    ));
                 }
                 self.instructions_remaining -= 1;
             }
 
-            match result {
-                Ok(CompletionType::Normal) => {
-                    #[cfg(feature = "trace")]
-                    {
-                        result = if self.vm.trace || self.vm.frame().code_block.traceable() {
-                            self.trace_execute_instruction()
-                        } else {
-                            self.execute_instruction()
-                        };
-                    }
+            #[cfg(feature = "trace")]
+            let result = if self.vm.trace || self.vm.frame().code_block.traceable() {
+                self.trace_execute_instruction()
+            } else {
+                self.execute_instruction()
+            };
 
-                    #[cfg(not(feature = "trace"))]
-                    {
-                        result = self.execute_instruction();
-                    }
-                }
+            #[cfg(not(feature = "trace"))]
+            let result = self.execute_instruction();
+
+            match result {
+                Ok(CompletionType::Normal) => {}
                 Ok(CompletionType::Return) => {
                     self.vm.stack.truncate(self.vm.frame().fp as usize);
                     let execution_result = self.vm.frame_mut().return_value.clone();
@@ -360,15 +356,22 @@ impl Context<'_> {
                                 return CompletionRecord::Throw(err);
                             }
                             JsNativeErrorKind::RuntimeLimit => {
+                                self.vm.stack.truncate(self.vm.frame().fp as usize);
                                 return CompletionRecord::Throw(err);
                             }
                             _ => {}
                         }
                     }
 
-                    self.vm.pending_exception = Some(err);
+                    // Note: -1 because we increment after fetching the opcode.
+                    let pc = self.vm.frame().pc.saturating_sub(1);
+                    if self.vm.handle_exception_at(pc) {
+                        self.vm.pending_exception = Some(err);
+                        continue;
+                    }
 
-                    result = Opcode::ReThrow.execute(self);
+                    self.vm.stack.truncate(self.vm.frame().fp as usize);
+                    return CompletionRecord::Throw(err);
                 }
             }
         }
