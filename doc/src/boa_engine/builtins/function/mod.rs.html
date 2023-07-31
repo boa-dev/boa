@@ -1147,6 +1147,10 @@
 <a href="#1147" id="1147">1147</a>
 <a href="#1148" id="1148">1148</a>
 <a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1924,6 +1928,7 @@
             <span class="kw">let </span>code = FunctionCompiler::new()
                 .name(Sym::ANONYMOUS)
                 .generator(<span class="bool-val">true</span>)
+                .r#async(r#async)
                 .compile(
                     <span class="kw-2">&amp;</span>FormalParameterList::default(),
                     <span class="kw-2">&amp;</span>FunctionBody::default(),
@@ -1942,12 +1947,15 @@
 
             <span class="prelude-val">Ok</span>(function_object)
         } <span class="kw">else </span>{
-            <span class="kw">let </span>code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
-                <span class="kw-2">&amp;</span>FormalParameterList::default(),
-                <span class="kw-2">&amp;</span>FunctionBody::default(),
-                context.realm().environment().compile_env(),
-                context,
-            );
+            <span class="kw">let </span>code = FunctionCompiler::new()
+                .r#async(r#async)
+                .name(Sym::ANONYMOUS)
+                .compile(
+                    <span class="kw-2">&amp;</span>FormalParameterList::default(),
+                    <span class="kw-2">&amp;</span>FunctionBody::default(),
+                    context.realm().environment().compile_env(),
+                    context,
+                );
 
             <span class="kw">let </span>environments = context.vm.environments.pop_to_global();
             <span class="kw">let </span>function_object =

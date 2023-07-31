@@ -774,6 +774,18 @@
 <a href="#774" id="774">774</a>
 <a href="#775" id="775">775</a>
 <a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
@@ -852,6 +864,18 @@
             DeclarativeEnvironmentKind::Global(<span class="kw">_</span>)
         ));
         <span class="self">self</span>.stack[<span class="number">0</span>] = Environment::Declarative(global);
+    }
+
+    <span class="doccomment">/// Gets the current global environment.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Gc&lt;DeclarativeEnvironment&gt; {
+        <span class="kw">let </span>env = <span class="self">self</span>.stack[<span class="number">0</span>].clone();
+
+        <span class="kw">match </span>env {
+            Environment::Declarative(<span class="kw-2">ref </span>env) =&gt; env.clone(),
+            Environment::Object(<span class="kw">_</span>) =&gt; {
+                <span class="macro">unreachable!</span>(<span class="string">&quot;first environment should be the global environment&quot;</span>)
+            }
+        }
     }
 
     <span class="doccomment">/// Extends the length of the next outer function environment to the number of compiled bindings.

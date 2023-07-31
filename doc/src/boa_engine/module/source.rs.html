@@ -1985,6 +1985,10 @@
 <a href="#1985" id="1985">1985</a>
 <a href="#1986" id="1986">1986</a>
 <a href="#1987" id="1987">1987</a>
+<a href="#1988" id="1988">1988</a>
+<a href="#1989" id="1989">1989</a>
+<a href="#1990" id="1990">1990</a>
+<a href="#1991" id="1991">1991</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -3401,6 +3405,10 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler =
             ByteCompiler::new(Sym::MAIN, <span class="bool-val">true</span>, <span class="bool-val">false</span>, module_compile_env.clone(), context);
+
+        compiler.in_async = <span class="bool-val">true</span>;
+        compiler.async_handler = <span class="prelude-val">Some</span>(compiler.push_handler());
+
         <span class="kw">let </span><span class="kw-2">mut </span>imports = Vec::new();
 
         <span class="kw">let </span>(codeblock, functions) = {

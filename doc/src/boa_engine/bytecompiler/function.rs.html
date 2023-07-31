@@ -155,13 +155,50 @@
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
 <a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     environments::CompileTimeEnvironment,
-    vm::{CodeBlock, CodeBlockFlags},
+    vm::{CodeBlock, CodeBlockFlags, Opcode},
     Context,
 };
 <span class="kw">use </span>boa_ast::function::{FormalParameterList, FunctionBody};
@@ -277,6 +314,31 @@
         <span class="comment">// Function environment
         </span>compiler.push_compile_environment(<span class="bool-val">true</span>);
 
+        <span class="comment">// Taken from:
+        //  - 15.9.3 Runtime Semantics: EvaluateAsyncConciseBody: &lt;https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncconcisebody&gt;
+        //  - 15.8.4 Runtime Semantics: EvaluateAsyncFunctionBody: &lt;https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncfunctionbody&gt;
+        //
+        // Note: In `EvaluateAsyncGeneratorBody` unlike the async non-generator functions we don&#39;t handle exceptions thrown by
+        // `FunctionDeclarationInstantiation` (so they are propagated).
+        //
+        // See: 15.6.2 Runtime Semantics: EvaluateAsyncGeneratorBody: https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncgeneratorbody
+        </span><span class="kw">if </span>compiler.in_async() &amp;&amp; !compiler.in_generator() {
+            <span class="comment">// 1. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+            //
+            // Note: If the promise capability is already set, then we do nothing.
+            // This is a deviation from the spec, but it allows to set the promise capability by
+            // ExecuteAsyncModule ( module ): &lt;https://tc39.es/ecma262/#sec-execute-async-module&gt;
+            </span>compiler.emit_opcode(Opcode::CreatePromiseCapability);
+
+            <span class="comment">// 2. Let declResult be Completion(FunctionDeclarationInstantiation(functionObject, argumentsList)).
+            //
+            // Note: We push an exception handler so we catch exceptions that are thrown by the
+            // `FunctionDeclarationInstantiation` abstract function.
+            //
+            // Patched in `ByteCompiler::finish()`.
+            </span>compiler.async_handler = <span class="prelude-val">Some</span>(compiler.push_handler());
+        }
+
         <span class="kw">let </span>(env_label, additional_env) = compiler.function_declaration_instantiation(
             body,
             parameters,
@@ -284,6 +346,18 @@
             <span class="self">self</span>.strict,
             <span class="self">self</span>.generator,
         );
+
+        <span class="comment">// Taken from:
+        // - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): &lt;https://tc39.es/ecma262/#sec-asyncgeneratorstart&gt;
+        //
+        // Note: We do handle exceptions thrown by generator body in `AsyncGeneratorStart`.
+        </span><span class="kw">if </span>compiler.in_generator() {
+            <span class="macro">assert!</span>(compiler.async_handler.is_none());
+            <span class="kw">if </span>compiler.in_async() {
+                <span class="comment">// Patched in `ByteCompiler::finish()`.
+                </span>compiler.async_handler = <span class="prelude-val">Some</span>(compiler.push_handler());
+            }
+        }
 
         compiler.compile_statement_list(body.statements(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 

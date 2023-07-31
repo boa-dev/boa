@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["return","throw"]};
+window.SIDEBAR_ITEMS = {"mod":["jump","return","throw"]};

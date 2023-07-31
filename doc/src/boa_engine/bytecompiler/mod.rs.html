@@ -1443,6 +1443,15 @@
 <a href="#1443" id="1443">1443</a>
 <a href="#1444" id="1444">1444</a>
 <a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1700,8 +1709,13 @@
     names_map: FxHashMap&lt;Identifier, u32&gt;,
     bindings_map: FxHashMap&lt;BindingLocator, u32&gt;,
     jump_info: Vec&lt;JumpControlInfo&gt;,
-    in_async: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) in_async: bool,
     in_generator: bool,
+
+    <span class="doccomment">/// Used to handle exception throws that escape the async function types.
+    ///
+    /// Async functions and async generator functions, need to be closed and resolved.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) async_handler: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     json_parse: bool,
 
     <span class="comment">// TODO: remove when we separate scripts from the context
@@ -1750,6 +1764,7 @@
             jump_info: Vec::new(),
             in_async: <span class="bool-val">false</span>,
             in_generator: <span class="bool-val">false</span>,
+            async_handler: <span class="prelude-val">None</span>,
             json_parse,
             current_environment,
             context,
@@ -2855,7 +2870,10 @@
     #[allow(clippy::missing_const_for_fn)]
     </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; CodeBlock {
         <span class="comment">// Push return at the end of the function compilation.
-        </span><span class="self">self</span>.emit_opcode(Opcode::Return);
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(async_handler) = <span class="self">self</span>.async_handler {
+            <span class="self">self</span>.patch_handler(async_handler);
+        }
+        <span class="self">self</span>.r#return();
 
         <span class="kw">let </span>name = <span class="self">self
             </span>.context

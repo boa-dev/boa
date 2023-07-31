@@ -1785,11 +1785,30 @@
 <a href="#1785" id="1785">1785</a>
 <a href="#1786" id="1786">1786</a>
 <a href="#1787" id="1787">1787</a>
+<a href="#1788" id="1788">1788</a>
+<a href="#1789" id="1789">1789</a>
+<a href="#1790" id="1790">1790</a>
+<a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
+<a href="#1795" id="1795">1795</a>
+<a href="#1796" id="1796">1796</a>
+<a href="#1797" id="1797">1797</a>
+<a href="#1798" id="1798">1798</a>
+<a href="#1799" id="1799">1799</a>
+<a href="#1800" id="1800">1800</a>
+<a href="#1801" id="1801">1801</a>
+<a href="#1802" id="1802">1802</a>
+<a href="#1803" id="1803">1803</a>
+<a href="#1804" id="1804">1804</a>
+<a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
 <span class="comment">// Operation modules
-</span><span class="kw">mod </span>await_stm;
+</span><span class="kw">mod </span>r#await;
 <span class="kw">mod </span>binary_ops;
 <span class="kw">mod </span>call;
 <span class="kw">mod </span>concat;
@@ -1802,7 +1821,6 @@
 <span class="kw">mod </span>generator;
 <span class="kw">mod </span>get;
 <span class="kw">mod </span>iteration;
-<span class="kw">mod </span>jump;
 <span class="kw">mod </span>meta;
 <span class="kw">mod </span>new;
 <span class="kw">mod </span>nop;
@@ -1820,8 +1838,6 @@
 
 <span class="comment">// Operation structs
 </span><span class="attr">#[doc(inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>await_stm::<span class="kw-2">*</span>;
-<span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>binary_ops::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>call::<span class="kw-2">*</span>;
@@ -1846,8 +1862,6 @@
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>iteration::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>jump::<span class="kw-2">*</span>;
-<span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>meta::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>new::<span class="kw-2">*</span>;
@@ -1857,6 +1871,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>pop::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>push::<span class="kw-2">*</span>;
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>r#await::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>require::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
@@ -3120,6 +3136,20 @@
         /// Stack: **=&gt;**
         </span>Return,
 
+        <span class="doccomment">/// Close an async generator function.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>AsyncGeneratorClose,
+
+        <span class="doccomment">/// Creates the generator object and yields.
+        ///
+        /// Operands: async: `u8`
+        ///
+        /// Stack: **=&gt;** resume_kind
+        </span>Generator,
+
         <span class="doccomment">/// Get return value of a function.
         ///
         /// Operands:
@@ -3348,6 +3378,22 @@
         /// Stack: value **=&gt;** received
         </span>AsyncGeneratorYield,
 
+        <span class="doccomment">/// Create a promise capacity for an async function, if not already set.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>CreatePromiseCapability,
+
+        <span class="doccomment">/// Resolves or rejects the promise capability of an async function.
+        ///
+        /// If the pending exception is set, reject and rethrow the exception, otherwise resolve.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>CompletePromiseCapability,
+
         <span class="doccomment">/// Jumps to the specified address if the resume kind is not equal.
         ///
         /// Operands: `exit`: `u32`, `resume_kind`: `u8`.
@@ -3550,14 +3596,6 @@
         </span>Reserved58 =&gt; Reserved,
         <span class="doccomment">/// Reserved [`Opcode`].
         </span>Reserved59 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved60 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved61 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved62 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved63 =&gt; Reserved,
     }
 }
 
