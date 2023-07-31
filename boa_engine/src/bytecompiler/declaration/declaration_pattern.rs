@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Literal},
+    bytecompiler::{Access, ByteCompiler, Literal, Operand},
     vm::{BindingOpcode, Opcode},
 };
 use boa_ast::{
@@ -40,7 +40,7 @@ impl ByteCompiler<'_, '_> {
                             match name {
                                 PropertyName::Literal(name) => {
                                     let index = self.get_or_insert_name((*name).into());
-                                    self.emit(Opcode::GetPropertyByName, &[index]);
+                                    self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
                                 }
                                 PropertyName::Computed(node) => {
                                     self.compile_expr(node, true);
@@ -80,7 +80,10 @@ impl ByteCompiler<'_, '_> {
 
                             self.emit(
                                 Opcode::CopyDataProperties,
-                                &[excluded_keys.len() as u32, additional_excluded_keys_count],
+                                &[
+                                    Operand::U32(excluded_keys.len() as u32),
+                                    Operand::U32(additional_excluded_keys_count),
+                                ],
                             );
                             self.emit_binding(def, *ident);
                         }
@@ -95,7 +98,10 @@ impl ByteCompiler<'_, '_> {
                                     self.interner().resolve_expect(key.sym()).into_common(false),
                                 ));
                             }
-                            self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32, 0]);
+                            self.emit(
+                                Opcode::CopyDataProperties,
+                                &[Operand::U32(excluded_keys.len() as u32), Operand::U32(0)],
+                            );
                             self.access_set(
                                 Access::Property { access },
                                 false,
@@ -112,7 +118,7 @@ impl ByteCompiler<'_, '_> {
                             match name {
                                 PropertyName::Literal(name) => {
                                     let index = self.get_or_insert_name((*name).into());
-                                    self.emit(Opcode::GetPropertyByName, &[index]);
+                                    self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
                                 }
                                 PropertyName::Computed(node) => {
                                     self.compile_expr(node, true);
@@ -152,7 +158,7 @@ impl ByteCompiler<'_, '_> {
                             match name {
                                 PropertyName::Literal(name) => {
                                     let index = self.get_or_insert_name((*name).into());
-                                    self.emit(Opcode::GetPropertyByName, &[index]);
+                                    self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
                                 }
                                 PropertyName::Computed(node) => {
                                     self.compile_expr(node, true);

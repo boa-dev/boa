@@ -3,7 +3,10 @@ use boa_ast::expression::operator::{
     Binary, BinaryInPrivate,
 };
 
-use crate::{bytecompiler::ByteCompiler, vm::Opcode};
+use crate::{
+    bytecompiler::{ByteCompiler, Operand},
+    vm::Opcode,
+};
 
 impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_binary(&mut self, binary: &Binary, use_expr: bool) {
@@ -21,7 +24,7 @@ impl ByteCompiler<'_, '_> {
                 }
 
                 if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
+                    self.emit_opcode(Opcode::Pop);
                 }
             }
             BinaryOp::Bitwise(op) => {
@@ -36,7 +39,7 @@ impl ByteCompiler<'_, '_> {
                 }
 
                 if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
+                    self.emit_opcode(Opcode::Pop);
                 }
             }
             BinaryOp::Relational(op) => {
@@ -57,7 +60,7 @@ impl ByteCompiler<'_, '_> {
                 }
 
                 if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
+                    self.emit_opcode(Opcode::Pop);
                 }
             }
             BinaryOp::Logical(op) => {
@@ -80,15 +83,15 @@ impl ByteCompiler<'_, '_> {
                 };
 
                 if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
+                    self.emit_opcode(Opcode::Pop);
                 }
             }
             BinaryOp::Comma => {
-                self.emit(Opcode::Pop, &[]);
+                self.emit_opcode(Opcode::Pop);
                 self.compile_expr(binary.rhs(), true);
 
                 if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
+                    self.emit_opcode(Opcode::Pop);
                 }
             }
         };
@@ -97,7 +100,7 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_binary_in_private(&mut self, binary: &BinaryInPrivate, use_expr: bool) {
         let index = self.get_or_insert_private_name(*binary.lhs());
         self.compile_expr(binary.rhs(), true);
-        self.emit(Opcode::InPrivate, &[index]);
+        self.emit(Opcode::InPrivate, &[Operand::U32(index)]);
 
         if !use_expr {
             self.emit_opcode(Opcode::Pop);

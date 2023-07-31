@@ -9,7 +9,7 @@ use boa_ast::{
 use boa_interner::Sym;
 
 use crate::{
-    bytecompiler::{Access, ByteCompiler},
+    bytecompiler::{Access, ByteCompiler, Operand},
     environments::BindingLocatorError,
     vm::{BindingOpcode, Opcode},
 };
@@ -69,13 +69,13 @@ impl ByteCompiler<'_, '_> {
 
         if let Some(let_binding_indices) = let_binding_indices {
             for index in &let_binding_indices {
-                self.emit(Opcode::GetName, &[*index]);
+                self.emit(Opcode::GetName, &[Operand::U32(*index)]);
             }
             self.emit_opcode(Opcode::PopEnvironment);
             iteration_env_labels =
                 Some(self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment));
             for index in let_binding_indices.iter().rev() {
-                self.emit(Opcode::PutLexicalValue, &[*index]);
+                self.emit(Opcode::PutLexicalValue, &[Operand::U32(*index)]);
             }
         }
 
@@ -96,7 +96,7 @@ impl ByteCompiler<'_, '_> {
 
         self.compile_stmt(for_loop.body(), use_expr, true);
 
-        self.emit(Opcode::Jump, &[start_address]);
+        self.emit(Opcode::Jump, &[Operand::U32(start_address)]);
 
         self.patch_jump(exit);
         self.pop_loop_control_info();
@@ -225,7 +225,7 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::PopEnvironment);
         }
 
-        self.emit(Opcode::Jump, &[start_address]);
+        self.emit(Opcode::Jump, &[Operand::U32(start_address)]);
 
         self.patch_jump(exit);
         self.pop_loop_control_info();
@@ -303,14 +303,14 @@ impl ByteCompiler<'_, '_> {
                 match self.set_mutable_binding(*ident) {
                     Ok(binding) => {
                         let index = self.get_or_insert_binding(binding);
-                        self.emit(Opcode::DefInitVar, &[index]);
+                        self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
                     }
                     Err(BindingLocatorError::MutateImmutable) => {
                         let index = self.get_or_insert_name(*ident);
-                        self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                        self.emit(Opcode::ThrowMutateImmutable, &[Operand::U32(index)]);
                     }
                     Err(BindingLocatorError::Silent) => {
-                        self.emit(Opcode::Pop, &[]);
+                        self.emit_opcode(Opcode::Pop);
                     }
                 }
             }
@@ -394,7 +394,7 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::PopEnvironment);
         }
 
-        self.emit(Opcode::Jump, &[start_address]);
+        self.emit(Opcode::Jump, &[Operand::U32(start_address)]);
 
         self.patch_jump(exit);
         self.pop_loop_control_info();
@@ -417,7 +417,7 @@ impl ByteCompiler<'_, '_> {
 
         self.compile_stmt(while_loop.body(), use_expr, true);
 
-        self.emit(Opcode::Jump, &[start_address]);
+        self.emit(Opcode::Jump, &[Operand::U32(start_address)]);
 
         self.patch_jump(exit);
         self.pop_loop_control_info();
@@ -444,7 +444,7 @@ impl ByteCompiler<'_, '_> {
 
         self.compile_stmt(do_while_loop.body(), use_expr, true);
 
-        self.emit(Opcode::Jump, &[condition_label_address]);
+        self.emit(Opcode::Jump, &[Operand::U32(condition_label_address)]);
         self.patch_jump(exit);
 
         self.pop_loop_control_info();

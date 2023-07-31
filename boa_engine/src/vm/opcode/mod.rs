@@ -1255,7 +1255,7 @@ generate_impl! {
 
         /// Get function from the pre-compiled inner functions.
         ///
-        /// Operands: address: `u32`, method: `u8`
+        /// Operands: address: `u32`, is_method: `u8`
         ///
         /// Stack: **=>** func
         GetFunction,

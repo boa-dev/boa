@@ -23,6 +23,8 @@ use boa_interner::Sym;
 #[cfg(feature = "annex-b")]
 use boa_ast::operations::annex_b_function_declarations_names;
 
+use super::Operand;
+
 impl ByteCompiler<'_, '_> {
     /// `GlobalDeclarationInstantiation ( script, env )`
     ///
@@ -570,7 +572,7 @@ impl ByteCompiler<'_, '_> {
                                     let binding = self.initialize_mutable_binding(f, true);
                                     let index = self.get_or_insert_binding(binding);
                                     self.emit_opcode(Opcode::PushUndefined);
-                                    self.emit(Opcode::DefInitVar, &[index]);
+                                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
                                 }
                             }
 
@@ -717,16 +719,19 @@ impl ByteCompiler<'_, '_> {
                 let index = self.functions.len() as u32;
                 self.functions.push(code);
                 if r#async && generator {
-                    self.emit(Opcode::GetGeneratorAsync, &[index]);
+                    self.emit(Opcode::GetGeneratorAsync, &[Operand::U32(index)]);
                 } else if generator {
-                    self.emit(Opcode::GetGenerator, &[index]);
+                    self.emit(Opcode::GetGenerator, &[Operand::U32(index)]);
                 } else if r#async {
-                    self.emit(Opcode::GetFunctionAsync, &[index]);
+                    self.emit(
+                        Opcode::GetFunctionAsync,
+                        &[Operand::U32(index), Operand::Bool(false)],
+                    );
                 } else {
-                    self.emit(Opcode::GetFunction, &[index]);
-                }
-                if !generator {
-                    self.emit_u8(0);
+                    self.emit(
+                        Opcode::GetFunction,
+                        &[Operand::U32(index), Operand::Bool(false)],
+                    );
                 }
 
                 // i. Let bindingExists be ! varEnv.HasBinding(fn).
@@ -739,14 +744,14 @@ impl ByteCompiler<'_, '_> {
                     match self.set_mutable_binding(name) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
-                            self.emit(Opcode::SetName, &[index]);
+                            self.emit(Opcode::SetName, &[Operand::U32(index)]);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
-                            self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                            self.emit(Opcode::ThrowMutateImmutable, &[Operand::U32(index)]);
                         }
                         Err(BindingLocatorError::Silent) => {
-                            self.emit(Opcode::Pop, &[]);
+                            self.emit_opcode(Opcode::Pop);
                         }
                     }
                 } else {
@@ -756,7 +761,7 @@ impl ByteCompiler<'_, '_> {
                     self.create_mutable_binding(name, !strict);
                     let binding = self.initialize_mutable_binding(name, !strict);
                     let index = self.get_or_insert_binding(binding);
-                    self.emit(Opcode::DefInitVar, &[index]);
+                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
                 }
             }
         }
@@ -782,7 +787,7 @@ impl ByteCompiler<'_, '_> {
                     let binding = self.initialize_mutable_binding(name, !strict);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit(Opcode::DefInitVar, &[index]);
+                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
                 }
             }
         }
@@ -1012,8 +1017,7 @@ impl ByteCompiler<'_, '_> {
         }
 
         if generator {
-            self.emit_opcode(Opcode::Generator);
-            self.emit_u8(self.in_async().into());
+            self.emit(Opcode::Generator, &[Operand::U8(self.in_async().into())]);
             self.emit_opcode(Opcode::Pop);
         }
 
@@ -1052,14 +1056,14 @@ impl ByteCompiler<'_, '_> {
                         // a. Let initialValue be ! env.GetBindingValue(n, false).
                         let binding = self.get_binding_value(n);
                         let index = self.get_or_insert_binding(binding);
-                        self.emit(Opcode::GetName, &[index]);
+                        self.emit(Opcode::GetName, &[Operand::U32(index)]);
                     }
 
                     // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
                     let binding = self.initialize_mutable_binding(n, true);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit(Opcode::DefInitVar, &[index]);
+                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
 
                     // 6. NOTE: A var with the same name as a formal parameter initially has
                     //          the same value as the corresponding initialized parameter.
@@ -1086,7 +1090,7 @@ impl ByteCompiler<'_, '_> {
                     let binding = self.initialize_mutable_binding(n, true);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit(Opcode::DefInitVar, &[index]);
+                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
                 }
             }
 
@@ -1118,7 +1122,7 @@ impl ByteCompiler<'_, '_> {
                         let binding = self.initialize_mutable_binding(f, true);
                         let index = self.get_or_insert_binding(binding);
                         self.emit_opcode(Opcode::PushUndefined);
-                        self.emit(Opcode::DefInitVar, &[index]);
+                        self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
 
                         // c. Append F to instantiatedVarNames.
                         instantiated_var_names.push(f);

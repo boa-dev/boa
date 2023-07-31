@@ -4,7 +4,7 @@ mod object_literal;
 mod unary;
 mod update;
 
-use super::{Access, Callable, NodeKind};
+use super::{Access, Callable, NodeKind, Operand};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
     vm::{GeneratorResumeKind, Opcode},
@@ -36,7 +36,7 @@ impl ByteCompiler<'_, '_> {
         }
 
         if !use_expr {
-            self.emit(Opcode::Pop, &[]);
+            self.emit_opcode(Opcode::Pop);
         }
     }
 
@@ -50,7 +50,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(exit);
 
         if !use_expr {
-            self.emit(Opcode::Pop, &[]);
+            self.emit_opcode(Opcode::Pop);
         };
     }
 
@@ -68,11 +68,11 @@ impl ByteCompiler<'_, '_> {
 
         self.emit(
             Opcode::ConcatToString,
-            &[template_literal.elements().len() as u32],
+            &[Operand::U32(template_literal.elements().len() as u32)],
         );
 
         if !use_expr {
-            self.emit(Opcode::Pop, &[]);
+            self.emit_opcode(Opcode::Pop);
         }
     }
 
@@ -114,7 +114,7 @@ impl ByteCompiler<'_, '_> {
                 }
 
                 if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
+                    self.emit_opcode(Opcode::Pop);
                 }
             }
             Expression::This => {
@@ -173,7 +173,7 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::PushUndefined);
 
                     // stack: undefined
-                    self.emit_push_integer(GeneratorResumeKind::Normal as i32);
+                    self.emit_resume_kind(GeneratorResumeKind::Normal);
 
                     // stack: resume_kind, undefined
                     let start_address = self.next_opcode_location();
@@ -194,7 +194,7 @@ impl ByteCompiler<'_, '_> {
                         self.emit_opcode(Opcode::IteratorResult);
                         self.emit_opcode(Opcode::GeneratorYield);
                     }
-                    self.emit(Opcode::Jump, &[start_address]);
+                    self.emit(Opcode::Jump, &[Operand::U32(start_address)]);
 
                     self.patch_jump(return_gen);
                     self.patch_jump(return_method_undefined);
@@ -229,7 +229,7 @@ impl ByteCompiler<'_, '_> {
                         match access.field() {
                             PropertyAccessField::Const(field) => {
                                 let index = self.get_or_insert_name((*field).into());
-                                self.emit(Opcode::GetPropertyByName, &[index]);
+                                self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
                             }
                             PropertyAccessField::Expr(field) => {
                                 self.compile_expr(field, true);
@@ -241,7 +241,7 @@ impl ByteCompiler<'_, '_> {
                         self.compile_expr(access.target(), true);
                         self.emit(Opcode::Dup, &[]);
                         let index = self.get_or_insert_private_name(access.field());
-                        self.emit(Opcode::GetPrivateField, &[index]);
+                        self.emit(Opcode::GetPrivateField, &[Operand::U32(index)]);
                     }
                     expr => {
                         self.compile_expr(expr, true);
@@ -269,7 +269,7 @@ impl ByteCompiler<'_, '_> {
                     ));
                 }
 
-                self.emit(Opcode::TemplateCreate, &[count]);
+                self.emit(Opcode::TemplateCreate, &[Operand::U32(count)]);
                 self.emit_u64(site);
 
                 self.patch_jump(jump_label);
@@ -278,7 +278,10 @@ impl ByteCompiler<'_, '_> {
                     self.compile_expr(expr, true);
                 }
 
-                self.emit(Opcode::Call, &[(template.exprs().len() + 1) as u32]);
+                self.emit(
+                    Opcode::Call,
+                    &[Operand::U32(template.exprs().len() as u32 + 1)],
+                );
             }
             Expression::Class(class) => self.class(class, true),
             Expression::SuperCall(super_call) => {
@@ -309,7 +312,10 @@ impl ByteCompiler<'_, '_> {
                 if contains_spread {
                     self.emit_opcode(Opcode::SuperCallSpread);
                 } else {
-                    self.emit(Opcode::SuperCall, &[super_call.arguments().len() as u32]);
+                    self.emit(
+                        Opcode::SuperCall,
+                        &[Operand::U32(super_call.arguments().len() as u32)],
+                    );
                 }
 
                 if !use_expr {
