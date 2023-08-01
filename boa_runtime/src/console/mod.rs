@@ -354,17 +354,17 @@ impl Console {
     ) -> JsResult<JsValue> {
         if !args.is_empty() {
             logger(LogMessage::Log(formatter(args, context)?), console);
-
-            let stack_trace_dump = context
-                .stack_trace()
-                .map(|frame| frame.code_block().name())
-                .collect::<Vec<_>>()
-                .into_iter()
-                .map(JsString::to_std_string_escaped)
-                .collect::<Vec<_>>()
-                .join("\n");
-            logger(LogMessage::Log(stack_trace_dump), console);
         }
+
+        let stack_trace_dump = context
+            .stack_trace()
+            .map(|frame| frame.code_block().name())
+            .collect::<Vec<_>>()
+            .into_iter()
+            .map(JsString::to_std_string_escaped)
+            .collect::<Vec<_>>()
+            .join("\n");
+        logger(LogMessage::Log(stack_trace_dump), console);
 
         Ok(JsValue::undefined())
     }
