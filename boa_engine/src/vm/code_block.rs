@@ -1241,9 +1241,6 @@ impl JsObject {
 
         context.vm.push_frame(frame);
 
-        // Push return value.
-        context.vm.push(JsValue::undefined());
-
         // Push function arguments to the stack.
         for _ in argument_count..parameters_count {
             context.vm.push(JsValue::undefined());
@@ -1442,9 +1439,6 @@ impl JsObject {
                         .with_argument_count(argument_count as u32)
                         .with_env_fp(environments_len as u32),
                 );
-
-                // Push return value.
-                context.vm.push(JsValue::undefined());
 
                 // Push function arguments to the stack.
                 for _ in argument_count..parameters_count {

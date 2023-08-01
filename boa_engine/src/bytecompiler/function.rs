@@ -136,6 +136,9 @@ impl FunctionCompiler {
             // ExecuteAsyncModule ( module ): <https://tc39.es/ecma262/#sec-execute-async-module>
             compiler.emit_opcode(Opcode::CreatePromiseCapability);
 
+            // Note: We set it to one so we don't pop return value when we return.
+            compiler.current_stack_value_count += 1;
+
             // 2. Let declResult be Completion(FunctionDeclarationInstantiation(functionObject, argumentsList)).
             //
             // Note: We push an exception handler so we catch exceptions that are thrown by the
@@ -159,6 +162,10 @@ impl FunctionCompiler {
         // Note: We do handle exceptions thrown by generator body in `AsyncGeneratorStart`.
         if compiler.in_generator() {
             assert!(compiler.async_handler.is_none());
+
+            // Note: We set it to one so we don't pop return value when we return.
+            compiler.current_stack_value_count += 1;
+
             if compiler.in_async() {
                 // Patched in `ByteCompiler::finish()`.
                 compiler.async_handler = Some(compiler.push_handler());

@@ -53,6 +53,7 @@ mod tests;
 pub struct Vm {
     pub(crate) frames: Vec<CallFrame>,
     pub(crate) stack: Vec<JsValue>,
+    pub(crate) return_value: JsValue,
 
     /// When an error is thrown, the pending exception is set.
     ///
@@ -94,6 +95,7 @@ impl Vm {
         Self {
             frames: Vec::with_capacity(16),
             stack: Vec::with_capacity(1024),
+            return_value: JsValue::undefined(),
             environments: EnvironmentStack::new(global),
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
@@ -183,13 +185,11 @@ impl Vm {
     }
 
     pub(crate) fn get_return_value(&self) -> JsValue {
-        let fp = self.frame().fp;
-        self.stack[fp as usize].clone()
+        self.return_value.clone()
     }
 
     pub(crate) fn set_return_value(&mut self, value: JsValue) {
-        let fp = self.frame().fp;
-        self.stack[fp as usize] = value;
+        self.return_value = value;
     }
 }
 
@@ -338,8 +338,8 @@ impl Context<'_> {
             match result {
                 Ok(CompletionType::Normal) => {}
                 Ok(CompletionType::Return) => {
-                    let execution_result = self.vm.get_return_value();
                     self.vm.stack.truncate(self.vm.frame().fp as usize);
+                    let execution_result = std::mem::take(&mut self.vm.return_value);
                     return CompletionRecord::Normal(execution_result);
                 }
                 Ok(CompletionType::Throw) => {

@@ -301,9 +301,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             compile_environments: Vec::default(),
             current_open_environments_count: 0,
 
-            // Note: We set it to one so we don't pop return value,
-            // which is allocated after frame pointer.
-            current_stack_value_count: 1,
+            current_stack_value_count: 0,
             code_block_flags,
             handlers: ThinVec::default(),
 
@@ -1422,7 +1420,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         if let Some(async_handler) = self.async_handler {
             self.patch_handler(async_handler);
         }
-        self.r#return();
+        self.r#return(false);
 
         let name = self
             .context

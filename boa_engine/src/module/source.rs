@@ -1763,9 +1763,6 @@ impl SourceTextModule {
         // 10. Else,
         //    a. Assert: capability is a PromiseCapability Record.
         //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
-
-        // Push return value.
-        context.vm.push(JsValue::undefined());
         let result = context.run();
 
         std::mem::swap(&mut context.vm.environments, &mut environments);
