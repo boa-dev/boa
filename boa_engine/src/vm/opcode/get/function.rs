@@ -10,17 +10,33 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetArrowFunction;
 
+impl GetArrowFunction {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let code = context.vm.frame().code_block.functions[index].clone();
+        let function = create_function_object_fast(code, false, true, false, context);
+        context.vm.push(function);
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for GetArrowFunction {
     const NAME: &'static str = "GetArrowFunction";
     const INSTRUCTION: &'static str = "INST - GetArrowFunction";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        context.vm.read::<u8>();
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_function_object_fast(code, false, true, false, context);
-        context.vm.push(function);
-        Ok(CompletionType::Normal)
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 
@@ -31,17 +47,33 @@ impl Operation for GetArrowFunction {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetAsyncArrowFunction;
 
+impl GetAsyncArrowFunction {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let code = context.vm.frame().code_block.functions[index].clone();
+        let function = create_function_object_fast(code, true, true, false, context);
+        context.vm.push(function);
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for GetAsyncArrowFunction {
     const NAME: &'static str = "GetAsyncArrowFunction";
     const INSTRUCTION: &'static str = "INST - GetAsyncArrowFunction";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        context.vm.read::<u8>();
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_function_object_fast(code, true, true, false, context);
-        context.vm.push(function);
-        Ok(CompletionType::Normal)
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 
@@ -52,17 +84,40 @@ impl Operation for GetAsyncArrowFunction {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetFunction;
 
+impl GetFunction {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        context: &mut Context<'_>,
+        index: usize,
+        method: bool,
+    ) -> JsResult<CompletionType> {
+        let code = context.vm.frame().code_block.functions[index].clone();
+        let function = create_function_object_fast(code, false, false, method, context);
+        context.vm.push(function);
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for GetFunction {
     const NAME: &'static str = "GetFunction";
     const INSTRUCTION: &'static str = "INST - GetFunction";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
+        let index = context.vm.read::<u8>() as usize;
         let method = context.vm.read::<u8>() != 0;
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_function_object_fast(code, false, false, method, context);
-        context.vm.push(function);
-        Ok(CompletionType::Normal)
+        Self::operation(context, index, method)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        let method = context.vm.read::<u8>() != 0;
+        Self::operation(context, index, method)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        let method = context.vm.read::<u8>() != 0;
+        Self::operation(context, index, method)
     }
 }
 
@@ -73,16 +128,39 @@ impl Operation for GetFunction {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetFunctionAsync;
 
+impl GetFunctionAsync {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        context: &mut Context<'_>,
+        index: usize,
+        method: bool,
+    ) -> JsResult<CompletionType> {
+        let code = context.vm.frame().code_block.functions[index].clone();
+        let function = create_function_object_fast(code, true, false, method, context);
+        context.vm.push(function);
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for GetFunctionAsync {
     const NAME: &'static str = "GetFunctionAsync";
     const INSTRUCTION: &'static str = "INST - GetFunctionAsync";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
+        let index = context.vm.read::<u8>() as usize;
         let method = context.vm.read::<u8>() != 0;
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_function_object_fast(code, true, false, method, context);
-        context.vm.push(function);
-        Ok(CompletionType::Normal)
+        Self::operation(context, index, method)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        let method = context.vm.read::<u8>() != 0;
+        Self::operation(context, index, method)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        let method = context.vm.read::<u8>() != 0;
+        Self::operation(context, index, method)
     }
 }

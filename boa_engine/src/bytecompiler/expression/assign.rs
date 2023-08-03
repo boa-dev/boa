@@ -60,9 +60,9 @@ impl ByteCompiler<'_, '_> {
                     let lex = self.current_environment.is_lex_binding(name);
 
                     if lex {
-                        self.emit(Opcode::GetName, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetName, index);
                     } else {
-                        self.emit(Opcode::GetNameAndLocator, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetNameAndLocator, index);
                     }
 
                     if short_circuit {
@@ -79,11 +79,11 @@ impl ByteCompiler<'_, '_> {
                         match self.set_mutable_binding(name) {
                             Ok(binding) => {
                                 let index = self.get_or_insert_binding(binding);
-                                self.emit(Opcode::SetName, &[Operand::U32(index)]);
+                                self.emit_with_varying_operand(Opcode::SetName, index);
                             }
                             Err(BindingLocatorError::MutateImmutable) => {
                                 let index = self.get_or_insert_name(name);
-                                self.emit(Opcode::ThrowMutateImmutable, &[Operand::U32(index)]);
+                                self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                             }
                             Err(BindingLocatorError::Silent) => {
                                 self.emit_opcode(Opcode::Pop);
@@ -102,7 +102,7 @@ impl ByteCompiler<'_, '_> {
                             self.emit_opcode(Opcode::Dup);
                             self.emit_opcode(Opcode::Dup);
 
-                            self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
                             if short_circuit {
                                 pop_count = 2;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
@@ -112,7 +112,7 @@ impl ByteCompiler<'_, '_> {
                                 self.emit_opcode(opcode);
                             }
 
-                            self.emit(Opcode::SetPropertyByName, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::SetPropertyByName, index);
                             if !use_expr {
                                 self.emit_opcode(Opcode::Pop);
                             }
@@ -145,7 +145,7 @@ impl ByteCompiler<'_, '_> {
                         self.compile_expr(access.target(), true);
                         self.emit_opcode(Opcode::Dup);
 
-                        self.emit(Opcode::GetPrivateField, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetPrivateField, index);
                         if short_circuit {
                             pop_count = 1;
                             early_exit = Some(self.emit_opcode_with_operand(opcode));
@@ -155,7 +155,7 @@ impl ByteCompiler<'_, '_> {
                             self.emit_opcode(opcode);
                         }
 
-                        self.emit(Opcode::SetPrivateField, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::SetPrivateField, index);
                         if !use_expr {
                             self.emit_opcode(Opcode::Pop);
                         }
@@ -169,7 +169,7 @@ impl ByteCompiler<'_, '_> {
                             self.emit_opcode(Opcode::Swap);
                             self.emit_opcode(Opcode::This);
 
-                            self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
                             if short_circuit {
                                 pop_count = 2;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
@@ -179,7 +179,7 @@ impl ByteCompiler<'_, '_> {
                                 self.emit_opcode(opcode);
                             }
 
-                            self.emit(Opcode::SetPropertyByName, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::SetPropertyByName, index);
                             if !use_expr {
                                 self.emit_opcode(Opcode::Pop);
                             }

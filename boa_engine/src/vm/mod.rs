@@ -36,7 +36,7 @@ pub use runtime_limits::RuntimeLimits;
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},
     code_block::CodeBlock,
-    opcode::{Instruction, InstructionIterator, Opcode},
+    opcode::{Instruction, InstructionIterator, Opcode, VaryingOperand, VaryingOperandKind},
 };
 
 pub(crate) use {
@@ -246,13 +246,16 @@ impl Context<'_> {
     }
 
     fn trace_execute_instruction(&mut self) -> JsResult<CompletionType> {
-        let mut pc = self.vm.frame().pc as usize;
-        let opcode: Opcode = self.vm.frame().code_block.read::<u8>(pc).into();
+        let bytecodes = &self.vm.frame().code_block.bytecode;
+        let pc = self.vm.frame().pc as usize;
+        let (_, varying_operand_kind, instruction) = InstructionIterator::with_pc(bytecodes, pc)
+            .next()
+            .expect("There should be an instruction left");
         let operands = self
             .vm
             .frame()
             .code_block
-            .instruction_operands(&mut pc, self.interner());
+            .instruction_operands(&instruction, self.interner());
 
         let instant = Instant::now();
         let result = self.execute_instruction();
@@ -279,10 +282,17 @@ impl Context<'_> {
             stack
         };
 
+        let varying_operand_kind = match varying_operand_kind {
+            VaryingOperandKind::Short => "",
+            VaryingOperandKind::Half => ".Half",
+            VaryingOperandKind::Wide => ".Wide",
+        };
+
         println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
+            "{:<TIME_COLUMN_WIDTH$} {}{:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
             format!("{}μs", duration.as_micros()),
-            opcode.as_str(),
+            instruction.opcode().as_str(),
+            varying_operand_kind,
             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
             OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
             OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,

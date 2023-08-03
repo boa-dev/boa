@@ -14,11 +14,8 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CallEval;
 
-impl Operation for CallEval {
-    const NAME: &'static str = "CallEval";
-    const INSTRUCTION: &'static str = "INST - CallEval";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+impl CallEval {
+    fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
         if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message(format!(
@@ -32,8 +29,7 @@ impl Operation for CallEval {
                 .with_message("Maximum call stack size exceeded")
                 .into());
         }
-        let argument_count = context.vm.read::<u32>();
-        let mut arguments = Vec::with_capacity(argument_count as usize);
+        let mut arguments = Vec::with_capacity(argument_count);
         for _ in 0..argument_count {
             arguments.push(context.vm.pop());
         }
@@ -72,6 +68,26 @@ impl Operation for CallEval {
             context.vm.push(result);
         }
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for CallEval {
+    const NAME: &'static str = "CallEval";
+    const INSTRUCTION: &'static str = "INST - CallEval";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u8>();
+        Self::operation(context, argument_count as usize)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u16>() as usize;
+        Self::operation(context, argument_count)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u32>();
+        Self::operation(context, argument_count as usize)
     }
 }
 
@@ -156,11 +172,8 @@ impl Operation for CallEvalSpread {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Call;
 
-impl Operation for Call {
-    const NAME: &'static str = "Call";
-    const INSTRUCTION: &'static str = "INST - Call";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+impl Call {
+    fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
         if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message(format!(
@@ -174,8 +187,7 @@ impl Operation for Call {
                 .with_message("Maximum call stack size exceeded")
                 .into());
         }
-        let argument_count = context.vm.read::<u32>();
-        let mut arguments = Vec::with_capacity(argument_count as usize);
+        let mut arguments = Vec::with_capacity(argument_count);
         for _ in 0..argument_count {
             arguments.push(context.vm.pop());
         }
@@ -197,6 +209,26 @@ impl Operation for Call {
 
         context.vm.push(result);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for Call {
+    const NAME: &'static str = "Call";
+    const INSTRUCTION: &'static str = "INST - Call";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u8>();
+        Self::operation(context, argument_count as usize)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u16>() as usize;
+        Self::operation(context, argument_count)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u32>();
+        Self::operation(context, argument_count as usize)
     }
 }
 

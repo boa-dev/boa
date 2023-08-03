@@ -11,11 +11,8 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct New;
 
-impl Operation for New {
-    const NAME: &'static str = "New";
-    const INSTRUCTION: &'static str = "INST - New";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+impl New {
+    fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
         if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message(format!(
@@ -29,8 +26,7 @@ impl Operation for New {
                 .with_message("Maximum call stack size exceeded")
                 .into());
         }
-        let argument_count = context.vm.read::<u32>();
-        let mut arguments = Vec::with_capacity(argument_count as usize);
+        let mut arguments = Vec::with_capacity(argument_count);
         for _ in 0..argument_count {
             arguments.push(context.vm.pop());
         }
@@ -48,6 +44,26 @@ impl Operation for New {
 
         context.vm.push(result);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for New {
+    const NAME: &'static str = "New";
+    const INSTRUCTION: &'static str = "INST - New";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u8>() as usize;
+        Self::operation(context, argument_count)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u16>() as usize;
+        Self::operation(context, argument_count)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u32>() as usize;
+        Self::operation(context, argument_count)
     }
 }
 

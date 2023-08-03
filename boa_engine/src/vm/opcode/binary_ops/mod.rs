@@ -105,13 +105,9 @@ impl Operation for In {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct InPrivate;
 
-impl Operation for InPrivate {
-    const NAME: &'static str = "InPrivate";
-    const INSTRUCTION: &'static str = "INST - InPrivate";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl InPrivate {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let rhs = context.vm.pop();
 
         let Some(rhs) = rhs.as_object() else {
@@ -135,6 +131,26 @@ impl Operation for InPrivate {
             context.vm.push(false);
         }
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for InPrivate {
+    const NAME: &'static str = "InPrivate";
+    const INSTRUCTION: &'static str = "INST - InPrivate";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 

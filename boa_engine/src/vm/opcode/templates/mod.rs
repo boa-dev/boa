@@ -38,14 +38,9 @@ impl Operation for TemplateLookup {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct TemplateCreate;
 
-impl Operation for TemplateCreate {
-    const NAME: &'static str = "TemplateCreate";
-    const INSTRUCTION: &'static str = "INST - TemplateCreate";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let count = context.vm.read::<u32>();
-        let site = context.vm.read::<u64>();
-
+impl TemplateCreate {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, count: u32, site: u64) -> JsResult<CompletionType> {
         let template =
             Array::array_create(count.into(), None, context).expect("cannot fail per spec");
         let raw_obj =
@@ -100,5 +95,28 @@ impl Operation for TemplateCreate {
 
         context.vm.push(template);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for TemplateCreate {
+    const NAME: &'static str = "TemplateCreate";
+    const INSTRUCTION: &'static str = "INST - TemplateCreate";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let count = u32::from(context.vm.read::<u8>());
+        let site = context.vm.read::<u64>();
+        Self::operation(context, count, site)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let count = u32::from(context.vm.read::<u16>());
+        let site = context.vm.read::<u64>();
+        Self::operation(context, count, site)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let count = context.vm.read::<u32>();
+        let site = context.vm.read::<u64>();
+        Self::operation(context, count, site)
     }
 }

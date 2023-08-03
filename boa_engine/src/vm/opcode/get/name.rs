@@ -11,13 +11,9 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetName;
 
-impl Operation for GetName {
-    const NAME: &'static str = "GetName";
-    const INSTRUCTION: &'static str = "INST - GetName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+impl GetName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let mut binding_locator = context.vm.frame().code_block.bindings[index];
         context.find_runtime_binding(&mut binding_locator)?;
         let value = context.get_binding(binding_locator)?.ok_or_else(|| {
             let name = context
@@ -32,6 +28,26 @@ impl Operation for GetName {
     }
 }
 
+impl Operation for GetName {
+    const NAME: &'static str = "GetName";
+    const INSTRUCTION: &'static str = "INST - GetName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>();
+        Self::operation(context, index as usize)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        Self::operation(context, index as usize)
+    }
+}
+
 /// `GetLocator` implements the Opcode Operation for `Opcode::GetLocator`
 ///
 /// Operation:
@@ -39,18 +55,34 @@ impl Operation for GetName {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetLocator;
 
-impl Operation for GetLocator {
-    const NAME: &'static str = "GetLocator";
-    const INSTRUCTION: &'static str = "INST - GetLocator";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+impl GetLocator {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let mut binding_locator = context.vm.frame().code_block.bindings[index];
         context.find_runtime_binding(&mut binding_locator)?;
 
         context.vm.frame_mut().binding_stack.push(binding_locator);
 
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for GetLocator {
+    const NAME: &'static str = "GetLocator";
+    const INSTRUCTION: &'static str = "INST - GetLocator";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>();
+        Self::operation(context, index as usize)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        Self::operation(context, index as usize)
     }
 }
 
@@ -62,13 +94,9 @@ impl Operation for GetLocator {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetNameAndLocator;
 
-impl Operation for GetNameAndLocator {
-    const NAME: &'static str = "GetNameAndLocator";
-    const INSTRUCTION: &'static str = "INST - GetNameAndLocator";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+impl GetNameAndLocator {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let mut binding_locator = context.vm.frame().code_block.bindings[index];
         context.find_runtime_binding(&mut binding_locator)?;
         let value = context.get_binding(binding_locator)?.ok_or_else(|| {
             let name = context
@@ -84,6 +112,26 @@ impl Operation for GetNameAndLocator {
     }
 }
 
+impl Operation for GetNameAndLocator {
+    const NAME: &'static str = "GetNameAndLocator";
+    const INSTRUCTION: &'static str = "INST - GetNameAndLocator";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>();
+        Self::operation(context, index as usize)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        Self::operation(context, index as usize)
+    }
+}
+
 /// `GetNameOrUndefined` implements the Opcode Operation for `Opcode::GetNameOrUndefined`
 ///
 /// Operation:
@@ -91,13 +139,9 @@ impl Operation for GetNameAndLocator {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetNameOrUndefined;
 
-impl Operation for GetNameOrUndefined {
-    const NAME: &'static str = "GetNameOrUndefined";
-    const INSTRUCTION: &'static str = "INST - GetNameOrUndefined";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+impl GetNameOrUndefined {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let mut binding_locator = context.vm.frame().code_block.bindings[index];
 
         let is_global = binding_locator.is_global();
 
@@ -119,5 +163,25 @@ impl Operation for GetNameOrUndefined {
 
         context.vm.push(value);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for GetNameOrUndefined {
+    const NAME: &'static str = "GetNameOrUndefined";
+    const INSTRUCTION: &'static str = "INST - GetNameOrUndefined";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>();
+        Self::operation(context, index as usize)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        Self::operation(context, index as usize)
     }
 }

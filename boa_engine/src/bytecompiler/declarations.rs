@@ -572,7 +572,7 @@ impl ByteCompiler<'_, '_> {
                                     let binding = self.initialize_mutable_binding(f, true);
                                     let index = self.get_or_insert_binding(binding);
                                     self.emit_opcode(Opcode::PushUndefined);
-                                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
+                                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
                                 }
                             }
 
@@ -719,18 +719,18 @@ impl ByteCompiler<'_, '_> {
                 let index = self.functions.len() as u32;
                 self.functions.push(code);
                 if r#async && generator {
-                    self.emit(Opcode::GetGeneratorAsync, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
                 } else if generator {
-                    self.emit(Opcode::GetGenerator, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::GetGenerator, index);
                 } else if r#async {
                     self.emit(
                         Opcode::GetFunctionAsync,
-                        &[Operand::U32(index), Operand::Bool(false)],
+                        &[Operand::Varying(index), Operand::Bool(false)],
                     );
                 } else {
                     self.emit(
                         Opcode::GetFunction,
-                        &[Operand::U32(index), Operand::Bool(false)],
+                        &[Operand::Varying(index), Operand::Bool(false)],
                     );
                 }
 
@@ -744,11 +744,11 @@ impl ByteCompiler<'_, '_> {
                     match self.set_mutable_binding(name) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
-                            self.emit(Opcode::SetName, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::SetName, index);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
-                            self.emit(Opcode::ThrowMutateImmutable, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
                         Err(BindingLocatorError::Silent) => {
                             self.emit_opcode(Opcode::Pop);
@@ -761,7 +761,7 @@ impl ByteCompiler<'_, '_> {
                     self.create_mutable_binding(name, !strict);
                     let binding = self.initialize_mutable_binding(name, !strict);
                     let index = self.get_or_insert_binding(binding);
-                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
                 }
             }
         }
@@ -787,7 +787,7 @@ impl ByteCompiler<'_, '_> {
                     let binding = self.initialize_mutable_binding(name, !strict);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
                 }
             }
         }
@@ -1056,14 +1056,14 @@ impl ByteCompiler<'_, '_> {
                         // a. Let initialValue be ! env.GetBindingValue(n, false).
                         let binding = self.get_binding_value(n);
                         let index = self.get_or_insert_binding(binding);
-                        self.emit(Opcode::GetName, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetName, index);
                     }
 
                     // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
                     let binding = self.initialize_mutable_binding(n, true);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
 
                     // 6. NOTE: A var with the same name as a formal parameter initially has
                     //          the same value as the corresponding initialized parameter.
@@ -1090,7 +1090,7 @@ impl ByteCompiler<'_, '_> {
                     let binding = self.initialize_mutable_binding(n, true);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
                 }
             }
 
@@ -1122,7 +1122,7 @@ impl ByteCompiler<'_, '_> {
                         let binding = self.initialize_mutable_binding(f, true);
                         let index = self.get_or_insert_binding(binding);
                         self.emit_opcode(Opcode::PushUndefined);
-                        self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::DefInitVar, index);
 
                         // c. Append F to instantiatedVarNames.
                         instantiated_var_names.push(f);

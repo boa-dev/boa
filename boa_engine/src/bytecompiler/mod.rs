@@ -17,7 +17,10 @@ use crate::{
     builtins::function::ThisMode,
     environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
-    vm::{BindingOpcode, CodeBlock, CodeBlockFlags, GeneratorResumeKind, Handler, Opcode},
+    vm::{
+        BindingOpcode, CodeBlock, CodeBlockFlags, GeneratorResumeKind, Handler, Opcode,
+        VaryingOperandKind,
+    },
     Context, JsBigInt, JsString, JsValue,
 };
 use boa_ast::{
@@ -223,6 +226,7 @@ pub(crate) enum Operand {
     U32(u32),
     I64(i64),
     U64(u64),
+    Varying(u32),
 }
 
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
@@ -406,18 +410,18 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             BindingOpcode::Var => {
                 let binding = self.initialize_mutable_binding(name, true);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::DefVar, &[Operand::U32(index)]);
+                self.emit_with_varying_operand(Opcode::DefVar, index);
             }
             BindingOpcode::InitVar => {
                 if self.has_binding(name) {
                     match self.set_mutable_binding(name) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
-                            self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::DefInitVar, index);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
-                            self.emit(Opcode::ThrowMutateImmutable, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
                         Err(BindingLocatorError::Silent) => {
                             self.emit_opcode(Opcode::Pop);
@@ -426,27 +430,27 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 } else {
                     let binding = self.initialize_mutable_binding(name, true);
                     let index = self.get_or_insert_binding(binding);
-                    self.emit(Opcode::DefInitVar, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
                 };
             }
             BindingOpcode::InitLet => {
                 let binding = self.initialize_mutable_binding(name, false);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::PutLexicalValue, &[Operand::U32(index)]);
+                self.emit_with_varying_operand(Opcode::PutLexicalValue, index);
             }
             BindingOpcode::InitConst => {
                 let binding = self.initialize_immutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::PutLexicalValue, &[Operand::U32(index)]);
+                self.emit_with_varying_operand(Opcode::PutLexicalValue, index);
             }
             BindingOpcode::SetName => match self.set_mutable_binding(name) {
                 Ok(binding) => {
                     let index = self.get_or_insert_binding(binding);
-                    self.emit(Opcode::SetName, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::SetName, index);
                 }
                 Err(BindingLocatorError::MutateImmutable) => {
                     let index = self.get_or_insert_name(name);
-                    self.emit(Opcode::ThrowMutateImmutable, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                 }
                 Err(BindingLocatorError::Silent) => {
                     self.emit_opcode(Opcode::Pop);
@@ -461,13 +465,49 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     pub(crate) fn emit(&mut self, opcode: Opcode, operands: &[Operand]) {
+        let mut varying_kind = VaryingOperandKind::Short;
+        for operand in operands {
+            if let Operand::Varying(operand) = *operand {
+                if u8::try_from(operand).is_ok() {
+                } else if u16::try_from(operand).is_ok() {
+                    varying_kind = VaryingOperandKind::Half;
+                } else {
+                    varying_kind = VaryingOperandKind::Wide;
+                    break;
+                }
+            }
+        }
+
+        match varying_kind {
+            VaryingOperandKind::Short => {}
+            VaryingOperandKind::Half => self.emit_opcode(Opcode::Half),
+            VaryingOperandKind::Wide => self.emit_opcode(Opcode::Wide),
+        }
         self.emit_opcode(opcode);
         for operand in operands {
-            self.emit_operand(*operand);
+            self.emit_operand(*operand, varying_kind);
         }
     }
 
-    pub(crate) fn emit_operand(&mut self, operand: Operand) {
+    /// Emits an opcode with one varying operand.
+    ///
+    /// Simpler version of [`ByteCompiler::emit()`].
+    pub(crate) fn emit_with_varying_operand(&mut self, opcode: Opcode, operand: u32) {
+        if let Ok(operand) = u8::try_from(operand) {
+            self.emit_opcode(opcode);
+            self.emit_u8(operand);
+        } else if let Ok(operand) = u16::try_from(operand) {
+            self.emit_opcode(Opcode::Half);
+            self.emit_opcode(opcode);
+            self.emit_u16(operand);
+        } else {
+            self.emit_opcode(Opcode::Wide);
+            self.emit_opcode(opcode);
+            self.emit_u32(operand);
+        }
+    }
+
+    pub(crate) fn emit_operand(&mut self, operand: Operand, varying_kind: VaryingOperandKind) {
         match operand {
             Operand::Bool(v) => self.emit_u8(v.into()),
             Operand::I8(v) => self.emit_i8(v),
@@ -478,6 +518,11 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             Operand::U32(v) => self.emit_u32(v),
             Operand::I64(v) => self.emit_i64(v),
             Operand::U64(v) => self.emit_u64(v),
+            Operand::Varying(v) => match varying_kind {
+                VaryingOperandKind::Short => self.emit_u8(v as u8),
+                VaryingOperandKind::Half => self.emit_u16(v as u16),
+                VaryingOperandKind::Wide => self.emit_u32(v),
+            },
         }
     }
 
@@ -533,7 +578,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
     fn emit_push_literal(&mut self, literal: Literal) {
         let index = self.get_or_insert_literal(literal);
-        self.emit(Opcode::PushLiteral, &[Operand::U32(index)]);
+        self.emit_with_varying_operand(Opcode::PushLiteral, index);
     }
 
     fn emit_push_rational(&mut self, value: f64) {
@@ -655,7 +700,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             Access::Variable { name } => {
                 let binding = self.get_binding_value(name);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::GetName, &[Operand::U32(index)]);
+                self.emit_with_varying_operand(Opcode::GetName, index);
             }
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
@@ -663,7 +708,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                         let index = self.get_or_insert_name((*name).into());
                         self.compile_expr(access.target(), true);
                         self.emit_opcode(Opcode::Dup);
-                        self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), true);
@@ -675,14 +720,14 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 PropertyAccess::Private(access) => {
                     let index = self.get_or_insert_private_name(access.field());
                     self.compile_expr(access.target(), true);
-                    self.emit(Opcode::GetPrivateField, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::GetPrivateField, index);
                 }
                 PropertyAccess::Super(access) => match access.field() {
                     PropertyAccessField::Const(field) => {
                         let index = self.get_or_insert_name((*field).into());
                         self.emit_opcode(Opcode::Super);
                         self.emit_opcode(Opcode::This);
-                        self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.emit_opcode(Opcode::Super);
@@ -723,7 +768,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 let lex = self.current_environment.is_lex_binding(name);
 
                 if !lex {
-                    self.emit(Opcode::GetLocator, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::GetLocator, index);
                 }
 
                 expr_fn(self, 0);
@@ -735,11 +780,11 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     match self.set_mutable_binding(name) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
-                            self.emit(Opcode::SetName, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::SetName, index);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
-                            self.emit(Opcode::ThrowMutateImmutable, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
                         Err(BindingLocatorError::Silent) => {
                             self.emit_opcode(Opcode::Pop);
@@ -757,7 +802,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                         expr_fn(self, 2);
                         let index = self.get_or_insert_name((*name).into());
 
-                        self.emit(Opcode::SetPropertyByName, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::SetPropertyByName, index);
                         if !use_expr {
                             self.emit_opcode(Opcode::Pop);
                         }
@@ -777,7 +822,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     self.compile_expr(access.target(), true);
                     expr_fn(self, 1);
                     let index = self.get_or_insert_private_name(access.field());
-                    self.emit(Opcode::SetPrivateField, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::SetPrivateField, index);
                     if !use_expr {
                         self.emit_opcode(Opcode::Pop);
                     }
@@ -788,7 +833,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                         self.emit_opcode(Opcode::This);
                         expr_fn(self, 1);
                         let index = self.get_or_insert_name((*name).into());
-                        self.emit(Opcode::SetPropertyByName, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::SetPropertyByName, index);
                         if !use_expr {
                             self.emit_opcode(Opcode::Pop);
                         }
@@ -816,7 +861,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     PropertyAccessField::Const(name) => {
                         let index = self.get_or_insert_name((*name).into());
                         self.compile_expr(access.target(), true);
-                        self.emit(Opcode::DeletePropertyByName, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::DeletePropertyByName, index);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), true);
@@ -833,7 +878,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             Access::Variable { name } => {
                 let binding = self.get_binding_value(name);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::DeleteName, &[Operand::U32(index)]);
+                self.emit_with_varying_operand(Opcode::DeleteName, index);
             }
             Access::This => {
                 self.emit_opcode(Opcode::PushTrue);
@@ -895,7 +940,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 match access.field() {
                     PropertyAccessField::Const(field) => {
                         let index = self.get_or_insert_name((*field).into());
-                        self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
                     }
                     PropertyAccessField::Expr(field) => {
                         self.compile_expr(field, true);
@@ -907,7 +952,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 self.compile_expr(access.target(), true);
                 self.emit_opcode(Opcode::Dup);
                 let index = self.get_or_insert_private_name(access.field());
-                self.emit(Opcode::GetPrivateField, &[Operand::U32(index)]);
+                self.emit_with_varying_operand(Opcode::GetPrivateField, index);
             }
             PropertyAccess::Super(access) => {
                 self.emit_opcode(Opcode::This);
@@ -916,7 +961,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 match access.field() {
                     PropertyAccessField::Const(field) => {
                         let index = self.get_or_insert_name((*field).into());
-                        self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(expr, true);
@@ -1002,7 +1047,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 match field {
                     PropertyAccessField::Const(name) => {
                         let index = self.get_or_insert_name((*name).into());
-                        self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(expr, true);
@@ -1015,7 +1060,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             OptionalOperationKind::PrivatePropertyAccess { field } => {
                 self.emit_opcode(Opcode::Dup);
                 let index = self.get_or_insert_private_name(*field);
-                self.emit(Opcode::GetPrivateField, &[Operand::U32(index)]);
+                self.emit_with_varying_operand(Opcode::GetPrivateField, index);
                 self.emit(Opcode::RotateLeft, &[Operand::U8(3)]);
                 self.emit_opcode(Opcode::Pop);
             }
@@ -1039,7 +1084,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     for arg in args {
                         self.compile_expr(arg, true);
                     }
-                    self.emit(Opcode::Call, &[Operand::U32(args.len() as u32)]);
+                    self.emit_with_varying_operand(Opcode::Call, args.len() as u32);
                 }
 
                 self.emit_opcode(Opcode::PushUndefined);
@@ -1148,16 +1193,16 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 if self.annex_b_function_names.contains(&name) {
                     let binding = self.get_binding_value(name);
                     let index = self.get_or_insert_binding(binding);
-                    self.emit(Opcode::GetName, &[Operand::U32(index)]);
+                    self.emit_with_varying_operand(Opcode::GetName, index);
 
                     match self.set_mutable_binding_var(name) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
-                            self.emit(Opcode::SetName, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::SetName, index);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
-                            self.emit(Opcode::ThrowMutateImmutable, &[Operand::U32(index)]);
+                            self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
                         Err(BindingLocatorError::Silent) => {
                             self.emit_opcode(Opcode::Pop);
@@ -1235,28 +1280,22 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         let index = self.function(function);
 
         if r#async && generator {
-            self.emit(Opcode::GetGeneratorAsync, &[Operand::U32(index)]);
+            self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
         } else if generator {
-            self.emit(Opcode::GetGenerator, &[Operand::U32(index)]);
+            self.emit_with_varying_operand(Opcode::GetGenerator, index);
         } else if r#async && arrow {
-            self.emit(
-                Opcode::GetAsyncArrowFunction,
-                &[Operand::U32(index), Operand::Bool(false)],
-            );
+            self.emit(Opcode::GetAsyncArrowFunction, &[Operand::Varying(index)]);
         } else if r#async {
             self.emit(
                 Opcode::GetFunctionAsync,
-                &[Operand::U32(index), Operand::Bool(false)],
+                &[Operand::Varying(index), Operand::Bool(false)],
             );
         } else if arrow {
-            self.emit(
-                Opcode::GetArrowFunction,
-                &[Operand::U32(index), Operand::Bool(false)],
-            );
+            self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
             self.emit(
                 Opcode::GetFunction,
-                &[Operand::U32(index), Operand::Bool(false)],
+                &[Operand::Varying(index), Operand::Bool(false)],
             );
         }
 
@@ -1318,28 +1357,22 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         self.functions.push(code);
 
         if r#async && generator {
-            self.emit(Opcode::GetGeneratorAsync, &[Operand::U32(index)]);
+            self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
         } else if generator {
-            self.emit(Opcode::GetGenerator, &[Operand::U32(index)]);
+            self.emit_with_varying_operand(Opcode::GetGenerator, index);
         } else if r#async && arrow {
-            self.emit(
-                Opcode::GetAsyncArrowFunction,
-                &[Operand::U32(index), Operand::Bool(true)],
-            );
+            self.emit(Opcode::GetAsyncArrowFunction, &[Operand::Varying(index)]);
         } else if r#async {
             self.emit(
                 Opcode::GetFunctionAsync,
-                &[Operand::U32(index), Operand::Bool(true)],
+                &[Operand::Varying(index), Operand::Bool(true)],
             );
         } else if arrow {
-            self.emit(
-                Opcode::GetArrowFunction,
-                &[Operand::U32(index), Operand::Bool(true)],
-            );
+            self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
             self.emit(
                 Opcode::GetFunction,
-                &[Operand::U32(index), Operand::Bool(true)],
+                &[Operand::Varying(index), Operand::Bool(true)],
             );
         }
     }
@@ -1388,28 +1421,22 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         self.functions.push(code);
 
         if r#async && generator {
-            self.emit(Opcode::GetGeneratorAsync, &[Operand::U32(index)]);
+            self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
         } else if generator {
-            self.emit(Opcode::GetGenerator, &[Operand::U32(index)]);
+            self.emit_with_varying_operand(Opcode::GetGenerator, index);
         } else if r#async && arrow {
-            self.emit(
-                Opcode::GetAsyncArrowFunction,
-                &[Operand::U32(index), Operand::Bool(true)],
-            );
+            self.emit(Opcode::GetAsyncArrowFunction, &[Operand::Varying(index)]);
         } else if r#async {
             self.emit(
                 Opcode::GetFunctionAsync,
-                &[Operand::U32(index), Operand::Bool(true)],
+                &[Operand::Varying(index), Operand::Bool(true)],
             );
         } else if arrow {
-            self.emit(
-                Opcode::GetArrowFunction,
-                &[Operand::U32(index), Operand::Bool(true)],
-            );
+            self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
             self.emit(
                 Opcode::GetFunction,
-                &[Operand::U32(index), Operand::Bool(true)],
+                &[Operand::Varying(index), Operand::Bool(true)],
             );
         }
     }
@@ -1474,12 +1501,14 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         match kind {
             CallKind::CallEval if contains_spread => self.emit_opcode(Opcode::CallEvalSpread),
             CallKind::CallEval => {
-                self.emit(Opcode::CallEval, &[Operand::U32(call.args().len() as u32)]);
+                self.emit_with_varying_operand(Opcode::CallEval, call.args().len() as u32);
             }
             CallKind::Call if contains_spread => self.emit_opcode(Opcode::CallSpread),
-            CallKind::Call => self.emit(Opcode::Call, &[Operand::U32(call.args().len() as u32)]),
+            CallKind::Call => {
+                self.emit_with_varying_operand(Opcode::Call, call.args().len() as u32);
+            }
             CallKind::New if contains_spread => self.emit_opcode(Opcode::NewSpread),
-            CallKind::New => self.emit(Opcode::New, &[Operand::U32(call.args().len() as u32)]),
+            CallKind::New => self.emit_with_varying_operand(Opcode::New, call.args().len() as u32),
         }
 
         if !use_expr {

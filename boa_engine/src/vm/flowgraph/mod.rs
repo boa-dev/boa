@@ -14,10 +14,14 @@ pub use edge::*;
 pub use graph::*;
 pub use node::*;
 
-use super::Instruction;
+use super::{Instruction, InstructionIterator};
 
 impl CodeBlock {
     /// Output the [`CodeBlock`] VM instructions into a [`Graph`].
+    ///
+    /// # Panics
+    ///
+    /// TODO:
     #[allow(clippy::match_same_arms)]
     pub fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
         // Have to remove any invalid graph chars like `<` or `>`.
@@ -29,18 +33,17 @@ impl CodeBlock {
 
         graph.set_label(name);
 
-        let mut pc = 0;
-        while pc < self.bytecode.len() {
-            let previous_pc = pc;
-            let instruction = Instruction::from_bytecode(&self.bytecode, &mut pc);
+        let mut iterator = InstructionIterator::new(&self.bytecode);
+        while let Some((previous_pc, _, instruction)) = iterator.next() {
             let opcode = instruction.opcode();
             let opcode_str = opcode.as_str();
 
-            let mut tmp = previous_pc;
             let label = format!(
                 "{opcode_str} {}",
-                self.instruction_operands(&mut tmp, interner)
+                self.instruction_operands(&instruction, interner)
             );
+
+            let pc = iterator.pc();
 
             match instruction {
                 Instruction::SetFunctionName { .. } => {
@@ -77,11 +80,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Instruction::PushLiteral { index } => {
-                    let operand_str = self.literals[index as usize].display().to_string();
-                    let operand_str = operand_str.escape_debug();
-                    let label = format!("{opcode_str} {operand_str}");
-
+                Instruction::PushLiteral { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -271,7 +270,6 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Instruction::GetPropertyByName { .. }
-                | Instruction::GetMethod { .. }
                 | Instruction::SetPropertyByName { .. }
                 | Instruction::DefineOwnPropertyByName { .. }
                 | Instruction::DefineClassStaticMethodByName { .. }
@@ -471,7 +469,9 @@ impl CodeBlock {
                 Instruction::Return => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::Red);
                 }
-                Instruction::Reserved1
+                Instruction::Half
+                | Instruction::Wide
+                | Instruction::Reserved1
                 | Instruction::Reserved2
                 | Instruction::Reserved3
                 | Instruction::Reserved4
@@ -527,8 +527,7 @@ impl CodeBlock {
                 | Instruction::Reserved54
                 | Instruction::Reserved55
                 | Instruction::Reserved56
-                | Instruction::Reserved57
-                | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved57 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

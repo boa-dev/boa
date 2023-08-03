@@ -11,13 +11,9 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ThrowMutateImmutable;
 
-impl Operation for ThrowMutateImmutable {
-    const NAME: &'static str = "ThrowMutateImmutable";
-    const INSTRUCTION: &'static str = "INST - ThrowMutateImmutable";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = &context.vm.frame().code_block.names[index as usize];
+impl ThrowMutateImmutable {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = &context.vm.frame().code_block.names[index];
 
         Err(JsNativeError::typ()
             .with_message(format!(
@@ -28,6 +24,26 @@ impl Operation for ThrowMutateImmutable {
     }
 }
 
+impl Operation for ThrowMutateImmutable {
+    const NAME: &'static str = "ThrowMutateImmutable";
+    const INSTRUCTION: &'static str = "INST - ThrowMutateImmutable";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>();
+        Self::operation(context, index as usize)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        Self::operation(context, index as usize)
+    }
+}
+
 /// `SetName` implements the Opcode Operation for `Opcode::SetName`
 ///
 /// Operation:
@@ -35,13 +51,9 @@ impl Operation for ThrowMutateImmutable {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetName;
 
-impl Operation for SetName {
-    const NAME: &'static str = "SetName";
-    const INSTRUCTION: &'static str = "INST - SetName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+impl SetName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let mut binding_locator = context.vm.frame().code_block.bindings[index];
         let value = context.vm.pop();
 
         context.find_runtime_binding(&mut binding_locator)?;
@@ -55,6 +67,26 @@ impl Operation for SetName {
         )?;
 
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for SetName {
+    const NAME: &'static str = "SetName";
+    const INSTRUCTION: &'static str = "INST - SetName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>();
+        Self::operation(context, index as usize)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        Self::operation(context, index as usize)
     }
 }
 

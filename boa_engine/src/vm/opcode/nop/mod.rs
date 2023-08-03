@@ -33,4 +33,12 @@ impl Operation for Reserved {
     fn execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
         unreachable!("Reserved opcodes are unreachable!")
     }
+
+    fn half_execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
+        unreachable!("Half.Reserved opcodes are unreachable!")
+    }
+
+    fn wide_execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
+        unreachable!("Wide.Reserved opcodes are unreachable!")
+    }
 }

@@ -36,7 +36,7 @@ impl ByteCompiler<'_, '_> {
         let error_msg = self.get_or_insert_literal(Literal::String(js_string!(
             "inner result was not an object"
         )));
-        self.emit(Opcode::ThrowNewTypeError, &[Operand::U32(error_msg)]);
+        self.emit_with_varying_operand(Opcode::ThrowNewTypeError, error_msg);
 
         self.patch_jump(skip_return);
         self.emit_opcode(Opcode::IteratorPop);

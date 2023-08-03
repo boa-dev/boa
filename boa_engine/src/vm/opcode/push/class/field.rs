@@ -52,13 +52,10 @@ impl Operation for PushClassField {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassFieldPrivate;
 
-impl Operation for PushClassFieldPrivate {
-    const NAME: &'static str = "PushClassFieldPrivate";
-    const INSTRUCTION: &'static str = "INST - PushClassFieldPrivate";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl PushClassFieldPrivate {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let field_function_value = context.vm.pop();
         let class_value = context.vm.pop();
 
@@ -84,5 +81,25 @@ impl Operation for PushClassFieldPrivate {
                 JsFunction::from_object_unchecked(field_function_object.clone()),
             );
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for PushClassFieldPrivate {
+    const NAME: &'static str = "PushClassFieldPrivate";
+    const INSTRUCTION: &'static str = "INST - PushClassFieldPrivate";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }

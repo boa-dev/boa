@@ -14,13 +14,8 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPropertyByName;
 
-impl Operation for SetPropertyByName {
-    const NAME: &'static str = "SetPropertyByName";
-    const INSTRUCTION: &'static str = "INST - SetPropertyByName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-
+impl SetPropertyByName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let receiver = context.vm.pop();
         let object = context.vm.pop();
@@ -30,9 +25,7 @@ impl Operation for SetPropertyByName {
             object.to_object(context)?
         };
 
-        let name: PropertyKey = context.vm.frame().code_block.names[index as usize]
-            .clone()
-            .into();
+        let name: PropertyKey = context.vm.frame().code_block.names[index].clone().into();
 
         let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
         if !succeeded && context.vm.frame().code_block.strict() {
@@ -42,6 +35,26 @@ impl Operation for SetPropertyByName {
         }
         context.vm.stack.push(value);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for SetPropertyByName {
+    const NAME: &'static str = "SetPropertyByName";
+    const INSTRUCTION: &'static str = "INST - SetPropertyByName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>();
+        Self::operation(context, index as usize)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        Self::operation(context, index as usize)
     }
 }
 
@@ -156,18 +169,12 @@ impl Operation for SetPropertyByValue {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPropertyGetterByName;
 
-impl Operation for SetPropertyGetterByName {
-    const NAME: &'static str = "SetPropertyGetterByName";
-    const INSTRUCTION: &'static str = "INST - SetPropertyGetterByName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
+impl SetPropertyGetterByName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object.to_object(context)?;
-        let name = context.vm.frame().code_block.names[index as usize]
-            .clone()
-            .into();
+        let name = context.vm.frame().code_block.names[index].clone().into();
         let set = object
             .__get_own_property__(&name, context)?
             .as_ref()
@@ -184,6 +191,26 @@ impl Operation for SetPropertyGetterByName {
             context,
         )?;
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for SetPropertyGetterByName {
+    const NAME: &'static str = "SetPropertyGetterByName";
+    const INSTRUCTION: &'static str = "INST - SetPropertyGetterByName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 
@@ -230,18 +257,12 @@ impl Operation for SetPropertyGetterByValue {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPropertySetterByName;
 
-impl Operation for SetPropertySetterByName {
-    const NAME: &'static str = "SetPropertySetterByName";
-    const INSTRUCTION: &'static str = "INST - SetPropertySetterByName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
+impl SetPropertySetterByName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object.to_object(context)?;
-        let name = context.vm.frame().code_block.names[index as usize]
-            .clone()
-            .into();
+        let name = context.vm.frame().code_block.names[index].clone().into();
         let get = object
             .__get_own_property__(&name, context)?
             .as_ref()
@@ -258,6 +279,26 @@ impl Operation for SetPropertySetterByName {
             context,
         )?;
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for SetPropertySetterByName {
+    const NAME: &'static str = "SetPropertySetterByName";
+    const INSTRUCTION: &'static str = "INST - SetPropertySetterByName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 

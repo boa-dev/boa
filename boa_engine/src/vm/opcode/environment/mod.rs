@@ -108,13 +108,9 @@ impl Operation for SuperCallPrepare {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SuperCall;
 
-impl Operation for SuperCall {
-    const NAME: &'static str = "SuperCall";
-    const INSTRUCTION: &'static str = "INST - SuperCall";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u32>();
-        let mut arguments = Vec::with_capacity(argument_count as usize);
+impl SuperCall {
+    fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
+        let mut arguments = Vec::with_capacity(argument_count);
         for _ in 0..argument_count {
             arguments.push(context.vm.pop());
         }
@@ -149,6 +145,26 @@ impl Operation for SuperCall {
 
         context.vm.push(result);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for SuperCall {
+    const NAME: &'static str = "SuperCall";
+    const INSTRUCTION: &'static str = "INST - SuperCall";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let value_count = context.vm.read::<u8>() as usize;
+        Self::operation(context, value_count)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let value_count = context.vm.read::<u16>() as usize;
+        Self::operation(context, value_count)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let value_count = context.vm.read::<u32>() as usize;
+        Self::operation(context, value_count)
     }
 }
 

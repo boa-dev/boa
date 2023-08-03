@@ -13,18 +13,12 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineClassStaticMethodByName;
 
-impl Operation for DefineClassStaticMethodByName {
-    const NAME: &'static str = "DefineClassStaticMethodByName";
-    const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
+impl DefineClassStaticMethodByName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let class = context.vm.pop();
         let class = class.as_object().expect("class must be object");
-        let key = context.vm.frame().code_block.names[index as usize]
-            .clone()
-            .into();
+        let key = context.vm.frame().code_block.names[index].clone().into();
         {
             let function_object = function
                 .as_object()
@@ -52,6 +46,26 @@ impl Operation for DefineClassStaticMethodByName {
     }
 }
 
+impl Operation for DefineClassStaticMethodByName {
+    const NAME: &'static str = "DefineClassStaticMethodByName";
+    const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
 /// `DefineClassMethodByName` implements the Opcode Operation for `Opcode::DefineClassMethodByName`
 ///
 /// Operation:
@@ -59,18 +73,12 @@ impl Operation for DefineClassStaticMethodByName {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineClassMethodByName;
 
-impl Operation for DefineClassMethodByName {
-    const NAME: &'static str = "DefineClassMethodByName";
-    const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
+impl DefineClassMethodByName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let class_proto = context.vm.pop();
         let class_proto = class_proto.as_object().expect("class must be object");
-        let key = context.vm.frame().code_block.names[index as usize]
-            .clone()
-            .into();
+        let key = context.vm.frame().code_block.names[index].clone().into();
         {
             let function_object = function
                 .as_object()
@@ -101,6 +109,26 @@ impl Operation for DefineClassMethodByName {
             context,
         )?;
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for DefineClassMethodByName {
+    const NAME: &'static str = "DefineClassMethodByName";
+    const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 
