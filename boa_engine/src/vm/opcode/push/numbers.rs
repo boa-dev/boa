@@ -51,4 +51,5 @@ implement_push_numbers_with_conversion!(PushInt8, i8, "Push `i8` value on the st
 implement_push_numbers_with_conversion!(PushInt16, i16, "Push `i16` value on the stack");
 
 implement_push_numbers_no_conversion!(PushInt32, i32, "Push `i32` value on the stack");
-implement_push_numbers_no_conversion!(PushRational, f64, "Push `f64` value on the stack");
+implement_push_numbers_no_conversion!(PushFloat, f32, "Push `f64` value on the stack");
+implement_push_numbers_no_conversion!(PushDouble, f64, "Push `f64` value on the stack");

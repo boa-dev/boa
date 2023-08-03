@@ -551,8 +551,14 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         if f64::from(value as i32).to_bits() == value.to_bits() {
             self.emit_push_integer(value as i32);
         } else {
-            self.emit_opcode(Opcode::PushRational);
-            self.emit_u64(value.to_bits());
+            let f32_value = value as f32;
+
+            #[allow(clippy::float_cmp)]
+            if f64::from(f32_value) == value {
+                self.emit(Opcode::PushFloat, &[Operand::U32(f32_value.to_bits())]);
+            } else {
+                self.emit(Opcode::PushDouble, &[Operand::U64(value.to_bits())]);
+            }
         }
     }
 
