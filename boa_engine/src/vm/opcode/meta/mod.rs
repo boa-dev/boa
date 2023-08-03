@@ -54,7 +54,7 @@ impl Operation for ImportMeta {
 
         // 1. Let module be GetActiveScriptOrModule().
 
-        let Some(ActiveRunnable::Module(module)) = context.vm.active_runnable.clone() else {
+        let Some(ActiveRunnable::Module(module)) = context.get_active_script_or_module() else {
             unreachable!("2. Assert: module is a Source Text Module Record.");
         };
 

@@ -38,8 +38,9 @@ impl Operation for Generator {
         let r#async = context.vm.read::<u8>() != 0;
 
         let code_block = context.vm.frame().code_block().clone();
+        let active_runnable = context.vm.frame().active_runnable.clone();
         let pc = context.vm.frame().pc;
-        let mut dummy_call_frame = CallFrame::new(code_block);
+        let mut dummy_call_frame = CallFrame::new(code_block, active_runnable);
         dummy_call_frame.pc = pc;
         let mut call_frame = std::mem::replace(context.vm.frame_mut(), dummy_call_frame);
 

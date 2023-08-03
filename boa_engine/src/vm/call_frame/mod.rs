@@ -12,6 +12,8 @@ use crate::{
 use boa_gc::{Finalize, Gc, Trace};
 use thin_vec::ThinVec;
 
+use super::ActiveRunnable;
+
 /// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
 pub struct CallFrame {
@@ -36,6 +38,9 @@ pub struct CallFrame {
 
     /// How many iterations a loop has done.
     pub(crate) loop_iteration_count: u64,
+
+    /// [[ScriptOrModule]]
+    pub(crate) active_runnable: Option<ActiveRunnable>,
 }
 
 /// ---- `CallFrame` public API ----
@@ -51,7 +56,7 @@ impl CallFrame {
 /// ---- `CallFrame` creation methods ----
 impl CallFrame {
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
-    pub(crate) fn new(code_block: Gc<CodeBlock>) -> Self {
+    pub(crate) fn new(code_block: Gc<CodeBlock>, active_runnable: Option<ActiveRunnable>) -> Self {
         Self {
             code_block,
             pc: 0,
@@ -63,6 +68,7 @@ impl CallFrame {
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
             loop_iteration_count: 0,
+            active_runnable,
         }
     }
 

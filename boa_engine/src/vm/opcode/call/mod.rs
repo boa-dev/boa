@@ -272,9 +272,7 @@ impl Operation for ImportCall {
         // 1. Let referrer be GetActiveScriptOrModule().
         // 2. If referrer is null, set referrer to the current Realm Record.
         let referrer = context
-            .vm
-            .active_runnable
-            .clone()
+            .get_active_script_or_module()
             .map_or_else(|| Referrer::Realm(context.realm().clone()), Into::into);
 
         // 3. Let argRef be ? Evaluation of AssignmentExpression.

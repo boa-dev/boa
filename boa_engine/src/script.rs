@@ -139,14 +139,11 @@ impl Script {
 
         let old_realm = context.enter_realm(self.inner.realm.clone());
         let active_function = context.vm.active_function.take();
-        let old_active = context
-            .vm
-            .active_runnable
-            .replace(ActiveRunnable::Script(self.clone()));
         let env_fp = context.vm.environments.len() as u32;
-        context
-            .vm
-            .push_frame(CallFrame::new(codeblock).with_env_fp(env_fp));
+        context.vm.push_frame(
+            CallFrame::new(codeblock, Some(ActiveRunnable::Script(self.clone())))
+                .with_env_fp(env_fp),
+        );
 
         // TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
 
@@ -155,7 +152,6 @@ impl Script {
         context.vm.pop_frame();
 
         context.vm.active_function = active_function;
-        context.vm.active_runnable = old_active;
         context.enter_realm(old_realm);
 
         context.clear_kept_objects();

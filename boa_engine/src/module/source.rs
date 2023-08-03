@@ -1608,16 +1608,16 @@ impl SourceTextModule {
         envs.push_module(module_compile_env);
 
         // 12. Set the ScriptOrModule of moduleContext to module.
-        let active_runnable = context
-            .vm
-            .active_runnable
-            .replace(ActiveRunnable::Module(parent.clone()));
+        let call_frame = CallFrame::new(
+            codeblock.clone(),
+            Some(ActiveRunnable::Module(parent.clone())),
+        );
+        context.vm.push_frame(call_frame);
 
         // 13. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 14. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
         // 15. Set the PrivateEnvironment of moduleContext to null.
         std::mem::swap(&mut context.vm.environments, &mut envs);
-        let stack = std::mem::take(&mut context.vm.stack);
 
         // 9. Set the Function of moduleContext to null.
         let active_function = context.vm.active_function.take();
@@ -1682,10 +1682,12 @@ impl SourceTextModule {
         }
 
         // 25. Remove moduleContext from the execution context stack.
+        context
+            .vm
+            .pop_frame()
+            .expect("There should be a call frame");
         std::mem::swap(&mut context.vm.environments, &mut envs);
-        context.vm.stack = stack;
         context.vm.active_function = active_function;
-        context.vm.active_runnable = active_runnable;
         context.swap_realm(&mut realm);
 
         debug_assert!(envs.current().as_declarative().is_some());
@@ -1733,15 +1735,11 @@ impl SourceTextModule {
             _ => unreachable!("`execute` should only be called for evaluating modules."),
         };
 
-        let env_fp = environments.len() as u32;
-        let mut callframe = CallFrame::new(codeblock).with_env_fp(env_fp);
-        callframe.promise_capability = capability;
-
         // 4. Set the ScriptOrModule of moduleContext to module.
-        let active_runnable = context
-            .vm
-            .active_runnable
-            .replace(ActiveRunnable::Module(self.parent()));
+        let env_fp = environments.len() as u32;
+        let mut callframe = CallFrame::new(codeblock, Some(ActiveRunnable::Module(self.parent())))
+            .with_env_fp(env_fp);
+        callframe.promise_capability = capability;
 
         // 5. Assert: module has been linked and declarations in its module environment have been instantiated.
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
@@ -1767,7 +1765,6 @@ impl SourceTextModule {
 
         std::mem::swap(&mut context.vm.environments, &mut environments);
         context.vm.active_function = function;
-        context.vm.active_runnable = active_runnable;
         context.swap_realm(&mut realm);
         context.vm.pop_frame();
 

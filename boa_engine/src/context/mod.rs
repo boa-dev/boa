@@ -27,7 +27,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     script::Script,
-    vm::{CallFrame, Vm},
+    vm::{ActiveRunnable, CallFrame, Vm},
     JsResult, JsValue, Source,
 };
 use boa_ast::{expression::Identifier, StatementList};
@@ -705,6 +705,20 @@ impl Context<'_> {
     /// Returns `true` if this context is in strict mode.
     pub(crate) const fn is_strict(&self) -> bool {
         self.strict
+    }
+
+    // GetActiveScriptOrModule
+    pub(crate) fn get_active_script_or_module(&self) -> Option<ActiveRunnable> {
+        // 1. If the execution context stack is empty, return null.
+        // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
+        // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
+        for frame in self.vm.frames.iter().rev() {
+            if frame.active_runnable.is_some() {
+                return frame.active_runnable.clone();
+            }
+        }
+
+        None
     }
 }
 
