@@ -15,7 +15,7 @@
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.3",
     "monaco-editor-webpack-plugin": "^7.1.0",
-    "prettier": "^3.0.0",
+    "prettier": "^3.0.1",
     "style-loader": "^3.3.3",
     "terser-webpack-plugin": "^5.3.9",
     "webpack": "^5.88.2",
