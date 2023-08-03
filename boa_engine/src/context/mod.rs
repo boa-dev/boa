@@ -707,7 +707,12 @@ impl Context<'_> {
         self.strict
     }
 
-    // GetActiveScriptOrModule
+    /// `9.4.1 GetActiveScriptOrModule ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getactivescriptormodule
     pub(crate) fn get_active_script_or_module(&self) -> Option<ActiveRunnable> {
         // 1. If the execution context stack is empty, return null.
         // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
@@ -721,9 +726,15 @@ impl Context<'_> {
         None
     }
 
+    /// Get `active function object`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#active-function-object
     pub(crate) fn active_function_object(&self) -> Option<JsObject> {
-        if self.vm.active_function.is_some() {
-            return self.vm.active_function.clone();
+        if self.vm.native_active_function.is_some() {
+            return self.vm.native_active_function.clone();
         }
 
         if let Some(frame) = self.vm.frames.last() {
