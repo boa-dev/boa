@@ -18,12 +18,15 @@ use crate::{
         array_buffer::{ArrayBuffer, SharedMemoryOrder},
         iterable::iterable_to_list,
         typed_array::integer_indexed_object::{ContentType, IntegerIndexed},
-        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
+    object::{
+        internal_methods::{get_prototype_from_constructor, integer_indexed_element_set},
+        JsObject, ObjectData, ObjectKind,
+    },
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::utf16,
@@ -32,7 +35,7 @@ use crate::{
     Context, JsArgs, JsResult,
 };
 use boa_profiler::Profiler;
-use num_traits::{Signed, Zero};
+use num_traits::Zero;
 use std::cmp::Ordering;
 
 pub mod integer_indexed_object;
@@ -338,15 +341,20 @@ impl IntrinsicObject for TypedArray {
             .method(Self::some, "some", 1)
             .method(Self::sort, "sort", 1)
             .method(Self::subarray, "subarray", 2)
+            .method(Self::to_locale_string, "toLocaleString", 0)
+            // 23.2.3.29 %TypedArray%.prototype.toString ( )
+            // The initial value of the %TypedArray%.prototype.toString data property is the same
+            // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
+            .property(
+                utf16!("toString"),
+                realm.intrinsics().objects().array_prototype_to_string(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .property(
                 "values",
                 values_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            // 23.2.3.29 %TypedArray%.prototype.toString ( )
-            // The initial value of the %TypedArray%.prototype.toString data property is the same
-            // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
-            .method(Array::to_string, "toString", 0)
             .build();
     }
 
@@ -2114,7 +2122,7 @@ impl TypedArray {
         let target_offset = args.get_or_undefined(1).to_integer_or_infinity(context)?;
 
         // 5. If targetOffset < 0, throw a RangeError exception.
-        match target_offset {
+        let target_offset = match target_offset {
             IntegerOrInfinity::Integer(i) if i < 0 => {
                 return Err(JsNativeError::range()
                     .with_message("TypedArray.set called with negative offset")
@@ -2125,20 +2133,21 @@ impl TypedArray {
                     .with_message("TypedArray.set called with negative offset")
                     .into())
             }
-            _ => {}
-        }
+            IntegerOrInfinity::PositiveInfinity => U64OrPositiveInfinity::PositiveInfinity,
+            IntegerOrInfinity::Integer(i) => U64OrPositiveInfinity::U64(i as u64),
+        };
 
         let source = args.get_or_undefined(0);
         match source {
             // 6. If source is an Object that has a [[TypedArrayName]] internal slot, then
             JsValue::Object(source) if source.is_typed_array() => {
                 // a. Perform ? SetTypedArrayFromTypedArray(target, targetOffset, source).
-                Self::set_typed_array_from_typed_array(target, target_offset, source, context)?;
+                Self::set_typed_array_from_typed_array(target, &target_offset, source, context)?;
             }
             // 7. Else,
             _ => {
                 // a. Perform ? SetTypedArrayFromArrayLike(target, targetOffset, source).
-                Self::set_typed_array_from_array_like(target, target_offset, source, context)?;
+                Self::set_typed_array_from_array_like(target, &target_offset, source, context)?;
             }
         }
 
@@ -2154,7 +2163,7 @@ impl TypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-settypedarrayfromtypedarray
     fn set_typed_array_from_typed_array(
         target: &JsObject,
-        target_offset: IntegerOrInfinity,
+        target_offset: &U64OrPositiveInfinity,
         source: &JsObject,
         context: &mut Context<'_>,
     ) -> JsResult<()> {
@@ -2222,13 +2231,12 @@ impl TypedArray {
 
         // 15. If targetOffset is +∞, throw a RangeError exception.
         let target_offset = match target_offset {
-            IntegerOrInfinity::Integer(i) if i >= 0 => i as u64,
-            IntegerOrInfinity::PositiveInfinity => {
+            U64OrPositiveInfinity::U64(target_offset) => target_offset,
+            U64OrPositiveInfinity::PositiveInfinity => {
                 return Err(JsNativeError::range()
                     .with_message("Target offset cannot be Infinity")
                     .into());
             }
-            _ => unreachable!(),
         };
 
         // 16. If srcLength + targetOffset > targetLength, throw a RangeError exception.
@@ -2371,121 +2379,68 @@ impl TypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-settypedarrayfromarraylike
     fn set_typed_array_from_array_like(
         target: &JsObject,
-        target_offset: IntegerOrInfinity,
+        target_offset: &U64OrPositiveInfinity,
         source: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<()> {
-        let target_borrow = target.borrow();
-        let target_array = target_borrow
-            .as_typed_array()
-            .expect("Target must be a typed array");
+        let target_length = {
+            let target_borrow = target.borrow();
+            let target_array = target_borrow
+                .as_typed_array()
+                .expect("Target must be a typed array");
 
-        // 1. Let targetBuffer be target.[[ViewedArrayBuffer]].
-        // 2. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.
-        if target_array.is_detached() {
-            return Err(JsNativeError::typ()
-                .with_message("Buffer of the typed array is detached")
-                .into());
-        }
-
-        // 3. Let targetLength be target.[[ArrayLength]].
-        let target_length = target_array.array_length();
-
-        // 4. Let targetName be the String value of target.[[TypedArrayName]].
-        // 6. Let targetType be the Element Type value in Table 73 for targetName.
-        let target_name = target_array.typed_array_name();
-
-        // 5. Let targetElementSize be the Element Size value specified in Table 73 for targetName.
-        let target_element_size = target_name.element_size();
-
-        // 7. Let targetByteOffset be target.[[ByteOffset]].
-        let target_byte_offset = target_array.byte_offset();
-
-        drop(target_borrow);
-
-        // 8. Let src be ? ToObject(source).
-        let src = source.to_object(context)?;
-
-        // 9. Let srcLength be ? LengthOfArrayLike(src).
-        let src_length = src.length_of_array_like(context)?;
-
-        let target_offset = match target_offset {
-            // 10. If targetOffset is +∞, throw a RangeError exception.
-            IntegerOrInfinity::PositiveInfinity => {
-                return Err(JsNativeError::range()
-                    .with_message("Target offset cannot be Infinity")
-                    .into())
+            // 1. Let targetBuffer be target.[[ViewedArrayBuffer]].
+            // 2. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.
+            if target_array.is_detached() {
+                return Err(JsNativeError::typ()
+                    .with_message("Buffer of the typed array is detached")
+                    .into());
             }
-            IntegerOrInfinity::Integer(i) if i >= 0 => i as u64,
-            _ => unreachable!(),
+
+            // 3. Let targetLength be target.[[ArrayLength]].
+            target_array.array_length()
         };
 
-        // 11. If srcLength + targetOffset > targetLength, throw a RangeError exception.
+        // 4. Let src be ? ToObject(source).
+        let src = source.to_object(context)?;
+
+        // 5. Let srcLength be ? LengthOfArrayLike(src).
+        let src_length = src.length_of_array_like(context)?;
+
+        // 6. If targetOffset = +∞, throw a RangeError exception.
+        let target_offset = match target_offset {
+            U64OrPositiveInfinity::U64(target_offset) => target_offset,
+            U64OrPositiveInfinity::PositiveInfinity => {
+                return Err(JsNativeError::range()
+                    .with_message("Target offset cannot be positive infinity")
+                    .into())
+            }
+        };
+
+        // 7. If srcLength + targetOffset > targetLength, throw a RangeError exception.
         if src_length + target_offset > target_length {
             return Err(JsNativeError::range()
                 .with_message("Source object and target offset longer than target typed array")
                 .into());
         }
 
-        // 12. Let targetByteIndex be targetOffset × targetElementSize + targetByteOffset.
-        let mut target_byte_index = target_offset * target_element_size + target_byte_offset;
-
-        // 13. Let k be 0.
-        let mut k = 0;
-
-        // 14. Let limit be targetByteIndex + targetElementSize × srcLength.
-        let limit = target_byte_index + target_element_size * src_length;
-
-        // 15. Repeat, while targetByteIndex < limit,
-        while target_byte_index < limit {
+        // 8. Let k be 0.
+        // 9. Repeat, while k < srcLength,
+        for k in 0..src_length {
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let value be ? Get(src, Pk).
             let value = src.get(k, context)?;
 
-            // c. If target.[[ContentType]] is BigInt, set value to ? ToBigInt(value).
-            // d. Otherwise, set value to ? ToNumber(value).
-            let value = if target_name.content_type() == ContentType::BigInt {
-                value.to_bigint(context)?.into()
-            } else {
-                value.to_number(context)?.into()
-            };
+            // c. Let targetIndex be 𝔽(targetOffset + k).
+            let target_index = target_offset + k;
 
-            let target_borrow = target.borrow();
-            let target_array = target_borrow
-                .as_typed_array()
-                .expect("Target must be a typed array");
-            let target_buffer_obj = target_array
-                .viewed_array_buffer()
-                .expect("Already checked for detached buffer");
-            let mut target_buffer_obj_borrow = target_buffer_obj.borrow_mut();
-            let target_buffer = target_buffer_obj_borrow
-                .as_array_buffer_mut()
-                .expect("Already checked for detached buffer");
+            // d. Perform ? IntegerIndexedElementSet(target, targetIndex, value).
+            integer_indexed_element_set(target, target_index as f64, &value, context)?;
 
-            // e. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.
-            if target_buffer.is_detached_buffer() {
-                return Err(JsNativeError::typ()
-                    .with_message("Cannot set value on detached array buffer")
-                    .into());
-            }
-
-            // f. Perform SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true, Unordered).
-            target_buffer.set_value_in_buffer(
-                target_byte_index,
-                target_name,
-                &value,
-                SharedMemoryOrder::Unordered,
-                None,
-                context,
-            )?;
-
-            // g. Set k to k + 1.
-            k += 1;
-
-            // h. Set targetByteIndex to targetByteIndex + targetElementSize.
-            target_byte_index += target_element_size;
+            // e. Set k to k + 1.
         }
 
+        // 10. Return unused.
         Ok(())
     }
 
@@ -2764,16 +2719,14 @@ impl TypedArray {
         };
 
         // 2. Let obj be the this value.
+        // 3. Perform ? ValidateTypedArray(obj).
+        // 4. Let len be obj.[[ArrayLength]].
         let obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("TypedArray.sort must be called on typed array object")
         })?;
-
-        // 4. Let buffer be obj.[[ViewedArrayBuffer]].
-        // 5. Let len be obj.[[ArrayLength]].
-        let (buffer, len) =
+        let len =
             {
-                // 3. Perform ? ValidateTypedArray(obj).
                 let obj_borrow = obj.borrow();
                 let o = obj_borrow.as_typed_array().ok_or_else(|| {
                     JsNativeError::typ()
@@ -2781,148 +2734,49 @@ impl TypedArray {
                 })?;
                 if o.is_detached() {
                     return Err(JsNativeError::typ().with_message(
-                    "TypedArray.sort called on typed array object with detached array buffer",
-                ).into());
+                "TypedArray.sort called on typed array object with detached array buffer",
+            ).into());
                 }
 
-                (
-                    o.viewed_array_buffer()
-                        .expect("Already checked for detached buffer")
-                        .clone(),
-                    o.array_length(),
-                )
+                o.array_length()
             };
 
-        // 4. Let items be a new empty List.
-        let mut items = Vec::with_capacity(len as usize);
-
-        // 5. Let k be 0.
-        // 6. Repeat, while k < len,
-        for k in 0..len {
-            // a. Let Pk be ! ToString(𝔽(k)).
-            // b. Let kPresent be ? HasProperty(obj, Pk).
-            // c. If kPresent is true, then
-            if obj.has_property(k, context)? {
-                // i. Let kValue be ? Get(obj, Pk).
-                let k_val = obj.get(k, context)?;
-                // ii. Append kValue to items.
-                items.push(k_val);
-            }
-            // d. Set k to k + 1.
-        }
-
-        // 7. Let itemCount be the number of elements in items.
-        let item_count = items.len();
-
+        // 5. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.30.
+        // 6. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         let sort_compare = |x: &JsValue,
                             y: &JsValue,
                             compare_fn: Option<&JsObject>,
                             context: &mut Context<'_>|
          -> JsResult<Ordering> {
-            // 1. Assert: Both Type(x) and Type(y) are Number or both are BigInt.
-            // 2. If comparefn is not undefined, then
-            if let Some(obj) = compare_fn {
-                // a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
-                let v = obj
-                    .call(&JsValue::undefined(), &[x.clone(), y.clone()], context)?
-                    .to_number(context)?;
-
-                // b. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-                if buffer
-                    .borrow()
-                    .as_array_buffer()
-                    .expect("Must be array buffer")
-                    .is_detached_buffer()
-                {
-                    return Err(JsNativeError::typ()
-                        .with_message("Cannot sort typed array with detached buffer")
-                        .into());
-                }
-
-                // c. If v is NaN, return +0𝔽.
-                // d. Return v.
-                return Ok(v.partial_cmp(&0.0).unwrap_or(Ordering::Equal));
-            }
-
-            if let (JsValue::BigInt(x), JsValue::BigInt(y)) = (x, y) {
-                // 6. If x < y, return -1𝔽.
-                if x < y {
-                    return Ok(Ordering::Less);
-                }
-
-                // 7. If x > y, return 1𝔽.
-                if x > y {
-                    return Ok(Ordering::Greater);
-                }
-
-                // 8. If x is -0𝔽 and y is +0𝔽, return -1𝔽.
-                if x.is_zero()
-                    && y.is_zero()
-                    && x.as_inner().is_negative()
-                    && y.as_inner().is_positive()
-                {
-                    return Ok(Ordering::Less);
-                }
-
-                // 9. If x is +0𝔽 and y is -0𝔽, return 1𝔽.
-                if x.is_zero()
-                    && y.is_zero()
-                    && x.as_inner().is_positive()
-                    && y.as_inner().is_negative()
-                {
-                    return Ok(Ordering::Greater);
-                }
-            } else {
-                let x = x
-                    .as_number()
-                    .expect("Typed array can only contain number or bigint");
-                let y = y
-                    .as_number()
-                    .expect("Typed array can only contain number or bigint");
-
-                // 3. If x and y are both NaN, return +0𝔽.
-                if x.is_nan() && y.is_nan() {
-                    return Ok(Ordering::Equal);
-                }
-
-                // 4. If x is NaN, return 1𝔽.
-                if x.is_nan() {
-                    return Ok(Ordering::Greater);
-                }
-
-                // 5. If y is NaN, return -1𝔽.
-                if y.is_nan() {
-                    return Ok(Ordering::Less);
-                }
-
-                // 6. If x < y, return -1𝔽.
-                if x < y {
-                    return Ok(Ordering::Less);
-                }
-
-                // 7. If x > y, return 1𝔽.
-                if x > y {
-                    return Ok(Ordering::Greater);
-                }
-
-                // 8. If x is -0𝔽 and y is +0𝔽, return -1𝔽.
-                if x.is_zero() && y.is_zero() && x.is_sign_negative() && y.is_sign_positive() {
-                    return Ok(Ordering::Less);
-                }
-
-                // 9. If x is +0𝔽 and y is -0𝔽, return 1𝔽.
-                if x.is_zero() && y.is_zero() && x.is_sign_positive() && y.is_sign_negative() {
-                    return Ok(Ordering::Greater);
-                }
-            }
-
-            // 10. Return +0𝔽.
-            Ok(Ordering::Equal)
+            // a. Return ? CompareTypedArrayElements(x, y, comparefn).
+            compare_typed_array_elements(x, y, compare_fn, context)
         };
 
-        // 8. Sort items using an implementation-defined sequence of calls to SortCompare.
-        // If any such call returns an abrupt completion, stop before performing any further
-        // calls to SortCompare or steps in this algorithm and return that completion.
+        // Note: This step is currently inlined.
+        // 7. Let sortedList be ? SortIndexedProperties(obj, len, SortCompare, read-through-holes).
+        // 1. Let items be a new empty List.
+        let mut items = Vec::with_capacity(len as usize);
+
+        // 2. Let k be 0.
+        // 3. Repeat, while k < len,
+        for k in 0..len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. If holes is skip-holes, then
+            // i. Let kRead be ? HasProperty(obj, Pk).
+            // c. Else,
+            // i. Assert: holes is read-through-holes.
+            // ii. Let kRead be true.
+            // d. If kRead is true, then
+            // i. Let kValue be ? Get(obj, Pk).
+            let k_value = obj.get(k, context)?;
+
+            // ii. Append kValue to items.
+            items.push(k_value);
+            // e. Set k to k + 1.
+        }
+
+        // 4. Sort items using an implementation-defined sequence of calls to SortCompare. If any such call returns an abrupt completion, stop before performing any further calls to SortCompare and return that Completion Record.
+        // 5. Return items.
         let mut sort_err = Ok(());
         items.sort_by(|x, y| {
             if sort_err.is_ok() {
@@ -2936,22 +2790,17 @@ impl TypedArray {
         });
         sort_err?;
 
-        // 9. Let j be 0.
-        // 10. Repeat, while j < itemCount,
+        // 8. Let j be 0.
+        // 9. Repeat, while j < len,
         for (j, item) in items.into_iter().enumerate() {
-            // a. Perform ? Set(obj, ! ToString(𝔽(j)), items[j], true).
-            obj.set(j, item, true, context)?;
+            // a. Perform ! Set(obj, ! ToString(𝔽(j)), sortedList[j], true).
+            obj.set(j, item, true, context)
+                .expect("cannot fail per spec");
+
             // b. Set j to j + 1.
         }
 
-        // 11. Repeat, while j < len,
-        for j in item_count..(len as usize) {
-            // a. Perform ? DeletePropertyOrThrow(obj, ! ToString(𝔽(j))).
-            obj.delete_property_or_throw(j, context)?;
-            // b. Set j to j + 1.
-        }
-
-        // 12. Return obj.
+        // 10. Return obj.
         Ok(obj.clone().into())
     }
 
@@ -3042,7 +2891,95 @@ impl TypedArray {
         .into())
     }
 
-    // TODO: 23.2.3.29 %TypedArray%.prototype.toLocaleString ( [ reserved1 [ , reserved2 ] ] )
+    /// `%TypedArray%.prototype.toLocaleString ( [ reserved1 [ , reserved2 ] ] )`
+    /// `Array.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [ECMA-402 reference][spec-402]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.tolocalestring
+    /// [spec-402]: https://402.ecma-international.org/10.0/#sup-array.prototype.tolocalestring
+    fn to_locale_string(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let array be ? ToObject(this value).
+        // Note: ValidateTypedArray is applied to the this value prior to evaluating the algorithm.
+        let array = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
+
+        let len = {
+            let obj_borrow = array.borrow();
+            let o = obj_borrow.as_typed_array().ok_or_else(|| {
+                JsNativeError::typ().with_message("Value is not a typed array object")
+            })?;
+            if o.is_detached() {
+                return Err(JsNativeError::typ()
+                    .with_message("Buffer of the typed array is detached")
+                    .into());
+            }
+
+            // 2. Let len be array.[[ArrayLength]]
+            o.array_length()
+        };
+
+        // 3. Let separator be the implementation-defined list-separator String value
+        //    appropriate for the host environment's current locale (such as ", ").
+        let separator = {
+            #[cfg(feature = "intl")]
+            {
+                // TODO: this should eventually return a locale-sensitive separator.
+                utf16!(", ")
+            }
+
+            #[cfg(not(feature = "intl"))]
+            {
+                utf16!(", ")
+            }
+        };
+
+        // 4. Let R be the empty String.
+        let mut r = Vec::new();
+
+        // 5. Let k be 0.
+        // 6. Repeat, while k < len,
+        for k in 0..len {
+            // a. If k > 0, then
+            if k > 0 {
+                // i. Set R to the string-concatenation of R and separator.
+                r.extend_from_slice(separator);
+            }
+
+            // b. Let nextElement be ? Get(array, ! ToString(k)).
+            let next_element = array.get(k, context)?;
+
+            // c. If nextElement is not undefined or null, then
+            if !next_element.is_null_or_undefined() {
+                // i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
+                let s = next_element
+                    .invoke(
+                        utf16!("toLocaleString"),
+                        &[
+                            args.get_or_undefined(0).clone(),
+                            args.get_or_undefined(1).clone(),
+                        ],
+                        context,
+                    )?
+                    .to_string(context)?;
+
+                // ii. Set R to the string-concatenation of R and S.
+                r.extend_from_slice(&s);
+            }
+
+            // d. Increase k by 1.
+        }
+
+        // 7. Return R.
+        Ok(js_string!(r).into())
+    }
 
     /// `23.2.3.31 %TypedArray%.prototype.values ( )`
     ///
@@ -3603,6 +3540,102 @@ impl TypedArray {
 
         Ok(())
     }
+}
+
+/// `CompareTypedArrayElements ( x, y, comparefn )`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-comparetypedarrayelements
+fn compare_typed_array_elements(
+    x: &JsValue,
+    y: &JsValue,
+    compare_fn: Option<&JsObject>,
+    context: &mut Context<'_>,
+) -> JsResult<Ordering> {
+    // 1. Assert: x is a Number and y is a Number, or x is a BigInt and y is a BigInt.
+
+    // 2. If comparefn is not undefined, then
+    if let Some(compare_fn) = compare_fn {
+        // a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
+        let v = compare_fn
+            .call(&JsValue::undefined(), &[x.clone(), y.clone()], context)?
+            .to_number(context)?;
+
+        // b. If v is NaN, return +0𝔽.
+        if v.is_nan() {
+            return Ok(Ordering::Equal);
+        }
+
+        // c. Return v.
+        if v.is_sign_positive() {
+            return Ok(Ordering::Greater);
+        }
+        return Ok(Ordering::Less);
+    }
+
+    match (x, y) {
+        (JsValue::BigInt(x), JsValue::BigInt(y)) => {
+            // Note: Other steps are not relevant for BigInts.
+            // 6. If x < y, return -1𝔽.
+            // 7. If x > y, return 1𝔽.
+            // 10. Return +0𝔽.
+            Ok(x.cmp(y))
+        }
+        (JsValue::Integer(x), JsValue::Integer(y)) => {
+            // Note: Other steps are not relevant for integers.
+            // 6. If x < y, return -1𝔽.
+            // 7. If x > y, return 1𝔽.
+            // 10. Return +0𝔽.
+            Ok(x.cmp(y))
+        }
+        (JsValue::Rational(x), JsValue::Rational(y)) => {
+            // 3. If x and y are both NaN, return +0𝔽.
+            if x.is_nan() && y.is_nan() {
+                return Ok(Ordering::Equal);
+            }
+
+            // 4. If x is NaN, return 1𝔽.
+            if x.is_nan() {
+                return Ok(Ordering::Greater);
+            }
+
+            // 5. If y is NaN, return -1𝔽.
+            if y.is_nan() {
+                return Ok(Ordering::Less);
+            }
+
+            // 6. If x < y, return -1𝔽.
+            if x < y {
+                return Ok(Ordering::Less);
+            }
+
+            // 7. If x > y, return 1𝔽.
+            if x > y {
+                return Ok(Ordering::Greater);
+            }
+
+            // 8. If x is -0𝔽 and y is +0𝔽, return -1𝔽.
+            if x.is_sign_negative() && x.is_zero() && y.is_sign_positive() && y.is_zero() {
+                return Ok(Ordering::Less);
+            }
+
+            // 9. If x is +0𝔽 and y is -0𝔽, return 1𝔽.
+            if x.is_sign_positive() && x.is_zero() && y.is_sign_negative() && y.is_zero() {
+                return Ok(Ordering::Greater);
+            }
+
+            // 10. Return +0𝔽.
+            Ok(Ordering::Equal)
+        }
+        _ => unreachable!("x and y must be both Numbers or BigInts"),
+    }
+}
+
+enum U64OrPositiveInfinity {
+    U64(u64),
+    PositiveInfinity,
 }
 
 /// Names of all the typed arrays.

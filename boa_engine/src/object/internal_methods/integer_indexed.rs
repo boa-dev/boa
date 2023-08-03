@@ -422,7 +422,7 @@ fn integer_indexed_element_get(obj: &JsObject, index: f64) -> Option<JsValue> {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-integerindexedelementset
-fn integer_indexed_element_set(
+pub(crate) fn integer_indexed_element_set(
     obj: &JsObject,
     index: f64,
     value: &JsValue,
