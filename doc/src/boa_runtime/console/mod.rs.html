@@ -1011,17 +1011,17 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if </span>!args.is_empty() {
             logger(LogMessage::Log(formatter(args, context)<span class="question-mark">?</span>), console);
-
-            <span class="kw">let </span>stack_trace_dump = context
-                .stack_trace()
-                .map(|frame| frame.code_block().name())
-                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-                .into_iter()
-                .map(JsString::to_std_string_escaped)
-                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-                .join(<span class="string">&quot;\n&quot;</span>);
-            logger(LogMessage::Log(stack_trace_dump), console);
         }
+
+        <span class="kw">let </span>stack_trace_dump = context
+            .stack_trace()
+            .map(|frame| frame.code_block().name())
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+            .into_iter()
+            .map(JsString::to_std_string_escaped)
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+            .join(<span class="string">&quot;\n&quot;</span>);
+        logger(LogMessage::Log(stack_trace_dump), console);
 
         <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
