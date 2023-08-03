@@ -41,6 +41,8 @@ pub struct CallFrame {
 
     /// [[ScriptOrModule]]
     pub(crate) active_runnable: Option<ActiveRunnable>,
+
+    pub(crate) active_function: Option<JsObject>,
 }
 
 /// ---- `CallFrame` public API ----
@@ -56,7 +58,11 @@ impl CallFrame {
 /// ---- `CallFrame` creation methods ----
 impl CallFrame {
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
-    pub(crate) fn new(code_block: Gc<CodeBlock>, active_runnable: Option<ActiveRunnable>) -> Self {
+    pub(crate) fn new(
+        code_block: Gc<CodeBlock>,
+        active_runnable: Option<ActiveRunnable>,
+        active_function: Option<JsObject>,
+    ) -> Self {
         Self {
             code_block,
             pc: 0,
@@ -69,6 +75,7 @@ impl CallFrame {
             binding_stack: Vec::new(),
             loop_iteration_count: 0,
             active_runnable,
+            active_function,
         }
     }
 

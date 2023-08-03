@@ -720,6 +720,18 @@ impl Context<'_> {
 
         None
     }
+
+    pub(crate) fn active_function_object(&self) -> Option<JsObject> {
+        if self.vm.active_function.is_some() {
+            return self.vm.active_function.clone();
+        }
+
+        if let Some(frame) = self.vm.frames.last() {
+            return frame.active_function.clone();
+        }
+
+        None
+    }
 }
 
 impl<'host> Context<'host> {

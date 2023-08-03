@@ -39,8 +39,10 @@ impl Operation for Generator {
 
         let code_block = context.vm.frame().code_block().clone();
         let active_runnable = context.vm.frame().active_runnable.clone();
+        let active_function = context.vm.frame().active_function.clone();
         let pc = context.vm.frame().pc;
-        let mut dummy_call_frame = CallFrame::new(code_block, active_runnable);
+        let mut dummy_call_frame =
+            CallFrame::new(code_block, active_runnable, active_function.clone());
         dummy_call_frame.pc = pc;
         let mut call_frame = std::mem::replace(context.vm.frame_mut(), dummy_call_frame);
 
@@ -51,11 +53,8 @@ impl Operation for Generator {
 
         call_frame.fp = 0;
 
-        let this_function_object = context
-            .vm
-            .active_function
-            .clone()
-            .expect("active function should be set to the generator");
+        let this_function_object =
+            active_function.expect("active function should be set to the generator");
 
         let proto = this_function_object
             .get(PROTOTYPE, context)
@@ -84,7 +83,6 @@ impl Operation for Generator {
                 context: Some(GeneratorContext::new(
                     environments,
                     stack,
-                    context.vm.active_function.clone(),
                     call_frame,
                     context.realm().clone(),
                 )),
@@ -96,7 +94,6 @@ impl Operation for Generator {
                     context: GeneratorContext::new(
                         environments,
                         stack,
-                        context.vm.active_function.clone(),
                         call_frame,
                         context.realm().clone(),
                     ),

@@ -532,9 +532,7 @@ impl BuiltInConstructor for BuiltInFunctionObject {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let active_function = context
-            .vm
-            .active_function
-            .clone()
+            .active_function_object()
             .unwrap_or_else(|| context.intrinsics().constructors().function().constructor());
         Self::create_dynamic_function(active_function, new_target, args, false, false, context)
             .map(Into::into)

@@ -60,7 +60,6 @@ unsafe impl Trace for GeneratorState {
 pub(crate) struct GeneratorContext {
     pub(crate) environments: EnvironmentStack,
     pub(crate) stack: Vec<JsValue>,
-    pub(crate) active_function: Option<JsObject>,
     pub(crate) call_frame: Option<CallFrame>,
     pub(crate) realm: Realm,
 }
@@ -70,14 +69,12 @@ impl GeneratorContext {
     pub(crate) fn new(
         environments: EnvironmentStack,
         stack: Vec<JsValue>,
-        active_function: Option<JsObject>,
         call_frame: CallFrame,
         realm: Realm,
     ) -> Self {
         Self {
             environments,
             stack,
-            active_function,
             call_frame: Some(call_frame),
             realm,
         }
@@ -90,7 +87,6 @@ impl GeneratorContext {
             environments: context.vm.environments.clone(),
             call_frame: Some(context.vm.frame().clone()),
             stack: context.vm.stack[fp..].to_vec(),
-            active_function: context.vm.active_function.clone(),
             realm: context.realm().clone(),
         };
 
@@ -108,7 +104,6 @@ impl GeneratorContext {
     ) -> CompletionRecord {
         std::mem::swap(&mut context.vm.environments, &mut self.environments);
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        std::mem::swap(&mut context.vm.active_function, &mut self.active_function);
         context.swap_realm(&mut self.realm);
         context
             .vm
@@ -125,7 +120,6 @@ impl GeneratorContext {
 
         std::mem::swap(&mut context.vm.environments, &mut self.environments);
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        std::mem::swap(&mut context.vm.active_function, &mut self.active_function);
         context.swap_realm(&mut self.realm);
         self.call_frame = context.vm.pop_frame();
         assert!(self.call_frame.is_some());

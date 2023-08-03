@@ -76,7 +76,7 @@ impl BuiltInConstructor for GeneratorFunction {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let active_function = context.vm.active_function.clone().unwrap_or_else(|| {
+        let active_function = context.active_function_object().unwrap_or_else(|| {
             context
                 .intrinsics()
                 .constructors()

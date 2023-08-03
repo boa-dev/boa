@@ -64,9 +64,7 @@ impl BuiltInConstructor for UriError {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         let new_target = &if new_target.is_undefined() {
             context
-                .vm
-                .active_function
-                .clone()
+                .active_function_object()
                 .unwrap_or_else(|| {
                     context
                         .intrinsics()

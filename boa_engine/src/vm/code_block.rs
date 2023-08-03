@@ -1007,21 +1007,17 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let old_realm = context.realm().clone();
-        let old_active_fn = context.vm.active_function.clone();
 
         let context = &mut context.guard(move |ctx| {
             ctx.enter_realm(old_realm);
-            ctx.vm.active_function = old_active_fn;
         });
 
         let this_function_object = self.clone();
-        let active_function = self.clone();
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
         let realm = function_object.realm().clone();
 
         context.enter_realm(realm);
-        context.vm.active_function = Some(active_function);
 
         let (code, mut environments, class_object, script_or_module) = match function_object.kind()
         {
@@ -1033,12 +1029,18 @@ impl JsObject {
                 let constructor = *constructor;
                 drop(object);
 
-                return if constructor.is_some() {
+                context.vm.active_function = Some(this_function_object);
+
+                let result = if constructor.is_some() {
                     function.call(&JsValue::undefined(), args, context)
                 } else {
                     function.call(this, args, context)
                 }
                 .map_err(|err| err.inject_realm(context.realm().clone()));
+
+                context.vm.active_function = None;
+
+                return result;
             }
             FunctionKind::Ordinary {
                 code,
@@ -1185,7 +1187,7 @@ impl JsObject {
         let argument_count = args.len();
         let parameters_count = code.params.as_ref().len();
 
-        let frame = CallFrame::new(code, script_or_module)
+        let frame = CallFrame::new(code, script_or_module, Some(self.clone()))
             .with_argument_count(argument_count as u32)
             .with_env_fp(env_fp);
 
@@ -1215,20 +1217,16 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let old_realm = context.realm().clone();
-        let old_active_fn = context.vm.active_function.clone();
         let context = &mut context.guard(move |ctx| {
             ctx.enter_realm(old_realm);
-            ctx.vm.active_function = old_active_fn;
         });
 
         let this_function_object = self.clone();
-        let active_function = self.clone();
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
         let realm = function_object.realm().clone();
 
         context.enter_realm(realm);
-        context.vm.active_function = Some(active_function);
 
         match function_object.kind() {
             FunctionKind::Native {
@@ -1240,7 +1238,9 @@ impl JsObject {
                 let constructor = *constructor;
                 drop(object);
 
-                function
+                context.vm.active_function = Some(this_function_object);
+
+                let result = function
                     .call(this_target, args, context)
                     .map_err(|err| err.inject_realm(context.realm().clone()))
                     .and_then(|v| match v {
@@ -1267,7 +1267,11 @@ impl JsObject {
                                 .into())
                             }
                         }
-                    })
+                    });
+
+                context.vm.active_function = None;
+
+                result
             }
             FunctionKind::Ordinary {
                 code,
@@ -1382,7 +1386,7 @@ impl JsObject {
                 let has_binding_identifier = code.has_binding_identifier();
 
                 context.vm.push_frame(
-                    CallFrame::new(code, script_or_module)
+                    CallFrame::new(code, script_or_module, Some(self.clone()))
                         .with_argument_count(argument_count as u32)
                         .with_env_fp(environments_len as u32),
                 );

@@ -172,9 +172,7 @@ impl BuiltInConstructor for RegExp {
         if new_target.is_undefined() {
             // a. Let newTarget be the active function object.
             let new_target = context
-                .vm
-                .active_function
-                .clone()
+                .active_function_object()
                 .map_or(JsValue::undefined(), JsValue::new);
 
             // b. If patternIsRegExp is true and flags is undefined, then

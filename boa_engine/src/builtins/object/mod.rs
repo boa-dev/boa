@@ -131,9 +131,7 @@ impl BuiltInConstructor for Object {
         if !new_target.is_undefined()
             && new_target
                 != &context
-                    .vm
-                    .active_function
-                    .clone()
+                    .active_function_object()
                     .unwrap_or_else(|| context.intrinsics().constructors().object().constructor())
                     .into()
         {

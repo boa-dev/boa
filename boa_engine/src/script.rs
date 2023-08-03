@@ -138,10 +138,9 @@ impl Script {
         let codeblock = self.codeblock(context)?;
 
         let old_realm = context.enter_realm(self.inner.realm.clone());
-        let active_function = context.vm.active_function.take();
         let env_fp = context.vm.environments.len() as u32;
         context.vm.push_frame(
-            CallFrame::new(codeblock, Some(ActiveRunnable::Script(self.clone())))
+            CallFrame::new(codeblock, Some(ActiveRunnable::Script(self.clone())), None)
                 .with_env_fp(env_fp),
         );
 
@@ -151,7 +150,6 @@ impl Script {
         let record = context.run();
         context.vm.pop_frame();
 
-        context.vm.active_function = active_function;
         context.enter_realm(old_realm);
 
         context.clear_kept_objects();
