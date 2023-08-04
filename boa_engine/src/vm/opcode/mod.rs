@@ -249,12 +249,19 @@ generate_impl! {
         /// Stack: **=>** value
         PushInt32,
 
+        /// Push `f32` value on the stack.
+        ///
+        /// Operands: value: `f32`
+        ///
+        /// Stack: **=>** value
+        PushFloat,
+
         /// Push `f64` value on the stack.
         ///
         /// Operands: value: `f64`
         ///
         /// Stack: **=>** value
-        PushRational,
+        PushDouble,
 
         /// Push `NaN` integer on the stack.
         ///
@@ -1788,8 +1795,6 @@ generate_impl! {
         Reserved57 => Reserved,
         /// Reserved [`Opcode`].
         Reserved58 => Reserved,
-        /// Reserved [`Opcode`].
-        Reserved59 => Reserved,
     }
 }
 
