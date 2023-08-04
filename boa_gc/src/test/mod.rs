@@ -8,6 +8,7 @@ mod weak_map;
 struct Harness;
 
 impl Harness {
+    #[track_caller]
     fn assert_collections(o: usize) {
         BOA_GC.with(|current| {
             let gc = current.borrow();
@@ -15,6 +16,7 @@ impl Harness {
         });
     }
 
+    #[track_caller]
     fn assert_empty_gc() {
         BOA_GC.with(|current| {
             let gc = current.borrow();
@@ -24,6 +26,7 @@ impl Harness {
         });
     }
 
+    #[track_caller]
     fn assert_bytes_allocated() {
         BOA_GC.with(|current| {
             let gc = current.borrow();
@@ -31,6 +34,7 @@ impl Harness {
         });
     }
 
+    #[track_caller]
     fn assert_exact_bytes_allocated(bytes: usize) {
         BOA_GC.with(|current| {
             let gc = current.borrow();

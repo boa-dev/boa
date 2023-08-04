@@ -1,9 +1,9 @@
-use crate::{GcRefCell, Trace, WeakGc};
-use std::{cell::Cell, collections::HashMap, ptr::NonNull};
+use crate::{pointers::RawWeakMap, GcRefCell, Trace, WeakGc};
+use std::{cell::Cell, ptr::NonNull};
 
 /// A box that is used to track [`WeakMap`][`crate::WeakMap`]s.
 pub(crate) struct WeakMapBox<K: Trace + Sized + 'static, V: Trace + Sized + 'static> {
-    pub(crate) map: WeakGc<GcRefCell<HashMap<WeakGc<K>, V>>>,
+    pub(crate) map: WeakGc<GcRefCell<RawWeakMap<K, V>>>,
     pub(crate) next: Cell<Option<NonNull<dyn ErasedWeakMapBox>>>,
 }
 
@@ -18,15 +18,16 @@ pub(crate) trait ErasedWeakMapBox {
     /// Returns `true` if the [`WeakMapBox`] is live.
     fn is_live(&self) -> bool;
 
-    /// Traces the weak reference inside of the [`WeakMapBox`] it the weak map is live.
+    /// Traces the weak reference inside of the [`WeakMapBox`] if the weak map is live.
     unsafe fn trace(&self);
 }
 
-impl<K: Trace, V: Trace> ErasedWeakMapBox for WeakMapBox<K, V> {
+impl<K: Trace, V: Trace + Clone> ErasedWeakMapBox for WeakMapBox<K, V> {
     fn clear_dead_entries(&self) {
         if let Some(map) = self.map.upgrade() {
-            let mut map = map.borrow_mut();
-            map.retain(|k, _| k.upgrade().is_some());
+            if let Ok(mut map) = map.try_borrow_mut() {
+                map.clear_expired();
+            }
         }
     }
 

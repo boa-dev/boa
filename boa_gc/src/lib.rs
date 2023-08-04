@@ -78,9 +78,9 @@ pub(crate) mod internals;
 
 use boa_profiler::Profiler;
 use internals::{EphemeronBox, ErasedEphemeronBox, ErasedWeakMapBox, WeakMapBox};
+use pointers::RawWeakMap;
 use std::{
     cell::{Cell, RefCell},
-    collections::HashMap,
     mem,
     ptr::NonNull,
 };
@@ -198,7 +198,7 @@ impl Allocator {
         })
     }
 
-    fn alloc_ephemeron<K: Trace + ?Sized, V: Trace>(
+    fn alloc_ephemeron<K: Trace, V: Trace>(
         value: EphemeronBox<K, V>,
     ) -> NonNull<EphemeronBox<K, V>> {
         let _timer = Profiler::global().start_event("New EphemeronBox", "BoaAlloc");
@@ -219,11 +219,11 @@ impl Allocator {
         })
     }
 
-    fn alloc_weak_map<K: Trace, V: Trace>() -> WeakMap<K, V> {
+    fn alloc_weak_map<K: Trace, V: Trace + Clone>() -> WeakMap<K, V> {
         let _timer = Profiler::global().start_event("New WeakMap", "BoaAlloc");
 
         let weak_map = WeakMap {
-            inner: Gc::new(GcRefCell::new(HashMap::new())),
+            inner: Gc::new(GcRefCell::new(RawWeakMap::new())),
         };
         let weak = WeakGc::new(&weak_map.inner);
 
