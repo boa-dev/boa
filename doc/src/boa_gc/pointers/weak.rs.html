@@ -76,7 +76,7 @@
 /// garbage collections. However, this also means [`WeakGc::upgrade`] could return `None` at any moment.
 </span><span class="attr">#[derive(Debug, Trace, Finalize)]
 #[repr(transparent)]
-</span><span class="kw">pub struct </span>WeakGc&lt;T: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>&gt; {
+</span><span class="kw">pub struct </span>WeakGc&lt;T: Trace + <span class="lifetime">&#39;static</span>&gt; {
     inner: Ephemeron&lt;T, Gc&lt;T&gt;&gt;,
 }
 

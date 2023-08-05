@@ -409,7 +409,7 @@
 
         <span class="comment">// 3. If Type(value) is not Object, throw a TypeError exception.
         </span><span class="kw">let </span>value = args.get_or_undefined(<span class="number">0</span>);
-        <span class="kw">let </span><span class="prelude-val">Some</span>(value) = args.get_or_undefined(<span class="number">0</span>).as_object() <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(value) = value.as_object() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;WeakSet.add: expected target argument of type `object`, got target of type `{}`&quot;</span>,

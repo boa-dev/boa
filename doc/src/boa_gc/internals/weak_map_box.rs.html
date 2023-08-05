@@ -45,12 +45,13 @@
 <a href="#45" id="45">45</a>
 <a href="#46" id="46">46</a>
 <a href="#47" id="47">47</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{GcRefCell, Trace, WeakGc};
-<span class="kw">use </span>std::{cell::Cell, collections::HashMap, ptr::NonNull};
+<a href="#48" id="48">48</a>
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{pointers::RawWeakMap, GcRefCell, Trace, WeakGc};
+<span class="kw">use </span>std::{cell::Cell, ptr::NonNull};
 
 <span class="doccomment">/// A box that is used to track [`WeakMap`][`crate::WeakMap`]s.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WeakMapBox&lt;K: Trace + Sized + <span class="lifetime">&#39;static</span>, V: Trace + Sized + <span class="lifetime">&#39;static</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) map: WeakGc&lt;GcRefCell&lt;HashMap&lt;WeakGc&lt;K&gt;, V&gt;&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) map: WeakGc&lt;GcRefCell&lt;RawWeakMap&lt;K, V&gt;&gt;&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) next: Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;<span class="kw">dyn </span>ErasedWeakMapBox&gt;&gt;&gt;,
 }
 
@@ -65,15 +66,16 @@
     <span class="doccomment">/// Returns `true` if the [`WeakMapBox`] is live.
     </span><span class="kw">fn </span>is_live(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 
-    <span class="doccomment">/// Traces the weak reference inside of the [`WeakMapBox`] it the weak map is live.
+    <span class="doccomment">/// Traces the weak reference inside of the [`WeakMapBox`] if the weak map is live.
     </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>);
 }
 
-<span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; ErasedWeakMapBox <span class="kw">for </span>WeakMapBox&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace, V: Trace + Clone&gt; ErasedWeakMapBox <span class="kw">for </span>WeakMapBox&lt;K, V&gt; {
     <span class="kw">fn </span>clear_dead_entries(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(map) = <span class="self">self</span>.map.upgrade() {
-            <span class="kw">let </span><span class="kw-2">mut </span>map = map.borrow_mut();
-            map.retain(|k, <span class="kw">_</span>| k.upgrade().is_some());
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>map) = map.try_borrow_mut() {
+                map.clear_expired();
+            }
         }
     }
 

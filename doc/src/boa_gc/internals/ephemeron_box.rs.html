@@ -226,9 +226,17 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{trace::Trace, Gc, GcBox};
 <span class="kw">use </span>std::{
-    cell::Cell,
+    cell::{Cell, UnsafeCell},
     ptr::{<span class="self">self</span>, NonNull},
 };
 
@@ -317,41 +325,28 @@
 }
 
 <span class="doccomment">/// The inner allocation of an [`Ephemeron`][crate::Ephemeron] pointer.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EphemeronBox&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EphemeronBox&lt;K: Trace + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) header: EphemeronBoxHeader,
-    data: Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;Data&lt;K, V&gt;&gt;&gt;&gt;,
+    data: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;Data&lt;K, V&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; Drop <span class="kw">for </span>EphemeronBox&lt;K, V&gt; {
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(data) = <span class="self">self</span>.data.take() {
-            <span class="comment">// SAFETY: `data` comes from an `into_raw` call, so this pointer is safe to pass to
-            // `from_raw`.
-            </span>drop(<span class="kw">unsafe </span>{ Box::from_raw(data.as_ptr()) });
-        }
-    }
-}
-
-<span class="kw">struct </span>Data&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
+<span class="kw">struct </span>Data&lt;K: Trace + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
     key: NonNull&lt;GcBox&lt;K&gt;&gt;,
     value: V,
 }
 
-<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; EphemeronBox&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; EphemeronBox&lt;K, V&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(key: <span class="kw-2">&amp;</span>Gc&lt;K&gt;, value: V) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>data = Box::into_raw(Box::new(Data {
-            key: key.inner_ptr(),
-            value,
-        }));
-        <span class="comment">// SAFETY: `Box::into_raw` must always return a non-null pointer.
-        </span><span class="kw">let </span>data = <span class="kw">unsafe </span>{ NonNull::new_unchecked(data) };
         <span class="self">Self </span>{
             header: EphemeronBoxHeader::new(),
-            data: Cell::new(<span class="prelude-val">Some</span>(data)),
+            data: UnsafeCell::new(<span class="prelude-val">Some</span>(Data {
+                key: key.inner_ptr(),
+                value,
+            })),
         }
     }
 
-    <span class="doccomment">/// Returns `true` if the two references refer to the same `GcBox`.
+    <span class="doccomment">/// Returns `true` if the two references refer to the same `EphemeronBox`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ptr_eq(this: <span class="kw-2">&amp;</span><span class="self">Self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="comment">// Use .header to ignore fat pointer vtables, to work around
         // https://github.com/rust-lang/rust/issues/46139
@@ -359,9 +354,31 @@
     }
 
     <span class="doccomment">/// Returns a reference to the ephemeron&#39;s value or None.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>V&gt; {
-        <span class="comment">// SAFETY: the garbage collector ensures `ptr` is valid as long as `data` is `Some`.
-        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.data.get().map(|ptr| <span class="kw-2">&amp;</span>ptr.as_ref().value) }
+    ///
+    /// # Safety
+    ///
+    /// The garbage collector must not run between the call to this function and the eventual
+    /// drop of the returned reference, since that could free the inner value.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>V&gt; {
+        <span class="comment">// SAFETY: the garbage collector ensures the ephemeron doesn&#39;t mutate until
+        // finalization.
+        </span><span class="kw">let </span>data = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.data.get() };
+        data.as_ref().map(|data| <span class="kw-2">&amp;</span>data.value)
+    }
+
+    <span class="doccomment">/// Returns a reference to the ephemeron&#39;s key or None.
+    ///
+    /// # Safety
+    ///
+    /// The garbage collector must not run between the call to this function and the eventual
+    /// drop of the returned reference, since that could free the inner value.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GcBox&lt;K&gt;&gt; {
+        <span class="comment">// SAFETY: the garbage collector ensures the ephemeron doesn&#39;t mutate until
+        // finalization.
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">let </span>data = <span class="kw-2">&amp;*</span><span class="self">self</span>.data.get();
+            data.as_ref().map(|data| data.key.as_ref())
+        }
     }
 
     <span class="doccomment">/// Marks this `EphemeronBox` as live.
@@ -405,7 +422,7 @@
     </span><span class="kw">fn </span>finalize_and_clear(<span class="kw-2">&amp;</span><span class="self">self</span>);
 }
 
-<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; ErasedEphemeronBox <span class="kw">for </span>EphemeronBox&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; ErasedEphemeronBox <span class="kw">for </span>EphemeronBox&lt;K, V&gt; {
     <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>EphemeronBoxHeader {
         <span class="kw-2">&amp;</span><span class="self">self</span>.header
     }
@@ -415,12 +432,13 @@
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="kw">let </span><span class="prelude-val">Some</span>(data) = <span class="self">self</span>.data.get() <span class="kw">else </span>{
+        <span class="comment">// SAFETY: the garbage collector ensures the ephemeron doesn&#39;t mutate until
+        // finalization.
+        </span><span class="kw">let </span>data = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.data.get() };
+        <span class="kw">let </span><span class="prelude-val">Some</span>(data) = data.as_ref() <span class="kw">else </span>{
             <span class="kw">return </span><span class="bool-val">true</span>;
         };
 
-        <span class="comment">// SAFETY: `data` comes from a `Box`, so it is safe to dereference.
-        </span><span class="kw">let </span>data = <span class="kw">unsafe </span>{ data.as_ref() };
         <span class="comment">// SAFETY: `key` comes from a `Gc`, and the garbage collector only invalidates
         // `key` when it is unreachable, making `key` always valid.
         </span><span class="kw">let </span>key = <span class="kw">unsafe </span>{ data.key.as_ref() };
@@ -437,21 +455,19 @@
     }
 
     <span class="kw">fn </span>trace_non_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(data) = <span class="self">self</span>.data.get() <span class="kw">else </span>{
-            <span class="kw">return</span>;
-        };
-        <span class="comment">// SAFETY: `data` comes from a `Box`, so it is safe to dereference.
+        <span class="comment">// SAFETY: Tracing always executes before collecting, meaning this cannot cause
+        // use after free.
         </span><span class="kw">unsafe </span>{
-            data.as_ref().value.trace_non_roots();
-        };
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.value() {
+                value.trace_non_roots();
+            }
+        }
     }
 
     <span class="kw">fn </span>finalize_and_clear(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(data) = <span class="self">self</span>.data.take() {
-            <span class="comment">// SAFETY: `data` comes from an `into_raw` call, so this pointer is safe to pass to
-            // `from_raw`.
-            </span><span class="kw">let </span>_contents = <span class="kw">unsafe </span>{ Box::from_raw(data.as_ptr()) };
-        }
+        <span class="comment">// SAFETY: the invariants of the garbage collector ensures this is only executed when
+        // there are no remaining references to the inner data.
+        </span><span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.data.get()).take() };
     }
 }
 </code></pre></div></section></main></body></html>

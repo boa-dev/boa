@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["WeakMap"]};
+window.SIDEBAR_ITEMS = {"fn":["equivalent_key","make_hash_from_eph","make_hash_from_gc","make_hasher"],"struct":["Iter","RawWeakMap","WeakMap"]};
