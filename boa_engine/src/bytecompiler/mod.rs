@@ -596,9 +596,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         let index = self.next_opcode_location();
         self.emit(
             Opcode::JumpTable,
-            &[Operand::U32(count), Operand::U32(Self::DUMMY_ADDRESS)],
+            &[Operand::U32(Self::DUMMY_ADDRESS), Operand::U32(count)],
         );
-        let default = Label { index: index + 4 };
+        let default = Label { index };
         let mut labels = Vec::with_capacity(count as usize);
         for i in 0..count {
             labels.push(Label {

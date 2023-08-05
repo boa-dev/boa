@@ -87,9 +87,10 @@ impl CallFrame {
 }
 
 /// Indicates how a generator function that has been called/resumed should return.
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 #[repr(u8)]
-pub(crate) enum GeneratorResumeKind {
+#[allow(missing_docs)]
+pub enum GeneratorResumeKind {
     #[default]
     Normal = 0,
     Throw,
