@@ -1452,6 +1452,94 @@
 <a href="#1452" id="1452">1452</a>
 <a href="#1453" id="1453">1453</a>
 <a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1664,6 +1752,21 @@
     }
 }
 
+<span class="doccomment">/// An opcode operand.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+#[allow(unused)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Operand {
+    Bool(bool),
+    I8(i8),
+    U8(u8),
+    I16(i16),
+    U16(u16),
+    I32(i32),
+    U32(u32),
+    I64(i64),
+    U64(u64),
+}
+
 <span class="doccomment">/// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 </span><span class="attr">#[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
@@ -1844,50 +1947,50 @@
             BindingOpcode::Var =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(name, <span class="bool-val">true</span>);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                <span class="self">self</span>.emit(Opcode::DefVar, <span class="kw-2">&amp;</span>[index]);
+                <span class="self">self</span>.emit(Opcode::DefVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
             }
             BindingOpcode::InitVar =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.has_binding(name) {
                     <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
                         <span class="prelude-val">Ok</span>(binding) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                            <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
-                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
-                            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                            <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
                     }
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(name, <span class="bool-val">true</span>);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                 };
             }
             BindingOpcode::InitLet =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(name, <span class="bool-val">false</span>);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                <span class="self">self</span>.emit(Opcode::PutLexicalValue, <span class="kw-2">&amp;</span>[index]);
+                <span class="self">self</span>.emit(Opcode::PutLexicalValue, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
             }
             BindingOpcode::InitConst =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.initialize_immutable_binding(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                <span class="self">self</span>.emit(Opcode::PutLexicalValue, <span class="kw-2">&amp;</span>[index]);
+                <span class="self">self</span>.emit(Opcode::PutLexicalValue, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
             }
             BindingOpcode::SetName =&gt; <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
                 <span class="prelude-val">Ok</span>(binding) =&gt; {
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                 }
                 <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
-                    <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                 }
                 <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
-                    <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 }
             },
         }
@@ -1898,31 +2001,61 @@
         <span class="self">self</span>.bytecode.len() <span class="kw">as </span>u32
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode, operands: <span class="kw-2">&amp;</span>[u32]) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode, operands: <span class="kw-2">&amp;</span>[Operand]) {
         <span class="self">self</span>.emit_opcode(opcode);
         <span class="kw">for </span>operand <span class="kw">in </span>operands {
-            <span class="self">self</span>.emit_u32(<span class="kw-2">*</span>operand);
+            <span class="self">self</span>.emit_operand(<span class="kw-2">*</span>operand);
         }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit_operand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, operand: Operand) {
+        <span class="kw">match </span>operand {
+            Operand::Bool(v) =&gt; <span class="self">self</span>.emit_u8(v.into()),
+            Operand::I8(v) =&gt; <span class="self">self</span>.emit_i8(v),
+            Operand::U8(v) =&gt; <span class="self">self</span>.emit_u8(v),
+            Operand::I16(v) =&gt; <span class="self">self</span>.emit_i16(v),
+            Operand::U16(v) =&gt; <span class="self">self</span>.emit_u16(v),
+            Operand::I32(v) =&gt; <span class="self">self</span>.emit_i32(v),
+            Operand::U32(v) =&gt; <span class="self">self</span>.emit_u32(v),
+            Operand::I64(v) =&gt; <span class="self">self</span>.emit_i64(v),
+            Operand::U64(v) =&gt; <span class="self">self</span>.emit_u64(v),
+        }
+    }
+
+    <span class="kw">fn </span>emit_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i64) {
+        <span class="self">self</span>.emit_u64(value <span class="kw">as </span>u64);
     }
 
     <span class="kw">fn </span>emit_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) {
         <span class="self">self</span>.bytecode.extend(value.to_ne_bytes());
     }
 
+    <span class="kw">fn </span>emit_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i32) {
+        <span class="self">self</span>.emit_u32(value <span class="kw">as </span>u32);
+    }
+
     <span class="kw">fn </span>emit_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u32) {
         <span class="self">self</span>.bytecode.extend(value.to_ne_bytes());
+    }
+
+    <span class="kw">fn </span>emit_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i16) {
+        <span class="self">self</span>.emit_u16(value <span class="kw">as </span>u16);
     }
 
     <span class="kw">fn </span>emit_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u16) {
         <span class="self">self</span>.bytecode.extend(value.to_ne_bytes());
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit_opcode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) {
-        <span class="self">self</span>.emit_u8(opcode <span class="kw">as </span>u8);
+    <span class="kw">fn </span>emit_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i8) {
+        <span class="self">self</span>.emit_u8(value <span class="kw">as </span>u8);
     }
 
     <span class="kw">fn </span>emit_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u8) {
         <span class="self">self</span>.bytecode.push(value);
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit_opcode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) {
+        <span class="self">self</span>.emit_u8(opcode <span class="kw">as </span>u8);
     }
 
     <span class="kw">fn </span>emit_push_integer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i32) {
@@ -1930,20 +2063,18 @@
             <span class="number">0 </span>=&gt; <span class="self">self</span>.emit_opcode(Opcode::PushZero),
             <span class="number">1 </span>=&gt; <span class="self">self</span>.emit_opcode(Opcode::PushOne),
             x <span class="kw">if </span>i32::from(x <span class="kw">as </span>i8) == x =&gt; {
-                <span class="self">self</span>.emit_opcode(Opcode::PushInt8);
-                <span class="self">self</span>.emit_u8(x <span class="kw">as </span>i8 <span class="kw">as </span>u8);
+                <span class="self">self</span>.emit(Opcode::PushInt8, <span class="kw-2">&amp;</span>[Operand::I8(x <span class="kw">as </span>i8)]);
             }
             x <span class="kw">if </span>i32::from(x <span class="kw">as </span>i16) == x =&gt; {
-                <span class="self">self</span>.emit_opcode(Opcode::PushInt16);
-                <span class="self">self</span>.emit_u16(x <span class="kw">as </span>i16 <span class="kw">as </span>u16);
+                <span class="self">self</span>.emit(Opcode::PushInt16, <span class="kw-2">&amp;</span>[Operand::I16(x <span class="kw">as </span>i16)]);
             }
-            x =&gt; <span class="self">self</span>.emit(Opcode::PushInt32, <span class="kw-2">&amp;</span>[x <span class="kw">as _</span>]),
+            x =&gt; <span class="self">self</span>.emit(Opcode::PushInt32, <span class="kw-2">&amp;</span>[Operand::I32(x)]),
         }
     }
 
     <span class="kw">fn </span>emit_push_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: Literal) {
         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_literal(literal);
-        <span class="self">self</span>.emit(Opcode::PushLiteral, <span class="kw-2">&amp;</span>[index]);
+        <span class="self">self</span>.emit(Opcode::PushLiteral, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
     }
 
     <span class="kw">fn </span>emit_push_rational(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: f64) {
@@ -1962,8 +2093,14 @@
         </span><span class="kw">if </span>f64::from(value <span class="kw">as </span>i32).to_bits() == value.to_bits() {
             <span class="self">self</span>.emit_push_integer(value <span class="kw">as </span>i32);
         } <span class="kw">else </span>{
-            <span class="self">self</span>.emit_opcode(Opcode::PushRational);
-            <span class="self">self</span>.emit_u64(value.to_bits());
+            <span class="kw">let </span>f32_value = value <span class="kw">as </span>f32;
+
+            <span class="attr">#[allow(clippy::float_cmp)]
+            </span><span class="kw">if </span>f64::from(f32_value) == value {
+                <span class="self">self</span>.emit(Opcode::PushFloat, <span class="kw-2">&amp;</span>[Operand::U32(f32_value.to_bits())]);
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.emit(Opcode::PushDouble, <span class="kw-2">&amp;</span>[Operand::U64(value.to_bits())]);
+            }
         }
     }
 
@@ -1983,6 +2120,10 @@
         <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNullOrUndefined)
     }
 
+    <span class="kw">fn </span>emit_resume_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, resume_kind: GeneratorResumeKind) {
+        <span class="self">self</span>.emit_push_integer(resume_kind <span class="kw">as </span>i32);
+    }
+
     <span class="kw">fn </span>jump_if_not_resume_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, resume_kind: GeneratorResumeKind) -&gt; Label {
         <span class="kw">let </span>label = <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotResumeKind);
         <span class="self">self</span>.emit_u8(resume_kind <span class="kw">as </span>u8);
@@ -1994,7 +2135,10 @@
     /// Returns the jump label entries and the default label.
     </span><span class="kw">fn </span>jump_table(<span class="kw-2">&amp;mut </span><span class="self">self</span>, count: u32) -&gt; (Vec&lt;Label&gt;, Label) {
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
-        <span class="self">self</span>.emit(Opcode::JumpTable, <span class="kw-2">&amp;</span>[count, <span class="self">Self</span>::DUMMY_ADDRESS]);
+        <span class="self">self</span>.emit(
+            Opcode::JumpTable,
+            <span class="kw-2">&amp;</span>[Operand::U32(count), Operand::U32(<span class="self">Self</span>::DUMMY_ADDRESS)],
+        );
         <span class="kw">let </span>default = Label { index: index + <span class="number">4 </span>};
         <span class="kw">let </span><span class="kw-2">mut </span>labels = Vec::with_capacity(count <span class="kw">as </span>usize);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..count {
@@ -2011,7 +2155,7 @@
     /// Return the `Label` of the operand.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit_opcode_with_operand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) -&gt; Label {
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
-        <span class="self">self</span>.emit(opcode, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS]);
+        <span class="self">self</span>.emit(opcode, <span class="kw-2">&amp;</span>[Operand::U32(<span class="self">Self</span>::DUMMY_ADDRESS)]);
         Label { index }
     }
 
@@ -2019,7 +2163,13 @@
     /// Return the `Label`s of the two operands.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit_opcode_with_two_operands(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) -&gt; (Label, Label) {
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
-        <span class="self">self</span>.emit(opcode, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS, <span class="self">Self</span>::DUMMY_ADDRESS]);
+        <span class="self">self</span>.emit(
+            opcode,
+            <span class="kw-2">&amp;</span>[
+                Operand::U32(<span class="self">Self</span>::DUMMY_ADDRESS),
+                Operand::U32(<span class="self">Self</span>::DUMMY_ADDRESS),
+            ],
+        );
         (Label { index }, Label { index: index + <span class="number">4 </span>})
     }
 
@@ -2046,7 +2196,7 @@
             Access::Variable { name } =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[index]);
+                <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
             }
             Access::Property { access } =&gt; <span class="kw">match </span>access {
                 PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {
@@ -2054,7 +2204,7 @@
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
@@ -2066,14 +2216,14 @@
                 PropertyAccess::Private(access) =&gt; {
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(access.field());
                     <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
-                    <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                 }
                 PropertyAccess::Super(access) =&gt; <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(field) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>field).into());
                         <span class="self">self</span>.emit_opcode(Opcode::Super);
                         <span class="self">self</span>.emit_opcode(Opcode::This);
-                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.emit_opcode(Opcode::Super);
@@ -2084,12 +2234,12 @@
                 },
             },
             Access::This =&gt; {
-                <span class="self">self</span>.emit(Opcode::This, <span class="kw-2">&amp;</span>[]);
+                <span class="self">self</span>.emit_opcode(Opcode::This);
             }
         }
 
         <span class="kw">if </span>!use_expr {
-            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+            <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
     }
 
@@ -2098,8 +2248,7 @@
             <span class="number">0 </span>=&gt; {}
             <span class="number">1 </span>=&gt; compiler.emit_opcode(Opcode::Swap),
             <span class="kw">_ </span>=&gt; {
-                compiler.emit_opcode(Opcode::RotateLeft);
-                compiler.emit_u8(level + <span class="number">1</span>);
+                compiler.emit(Opcode::RotateLeft, <span class="kw-2">&amp;</span>[Operand::U8(level + <span class="number">1</span>)]);
             }
         }
     }
@@ -2115,7 +2264,7 @@
                 <span class="kw">let </span>lex = <span class="self">self</span>.current_environment.is_lex_binding(name);
 
                 <span class="kw">if </span>!lex {
-                    <span class="self">self</span>.emit(Opcode::GetLocator, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::GetLocator, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                 }
 
                 expr_fn(<span class="self">self</span>, <span class="number">0</span>);
@@ -2127,14 +2276,14 @@
                     <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
                         <span class="prelude-val">Ok</span>(binding) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                            <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
-                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
-                            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                            <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
                     }
                 } <span class="kw">else </span>{
@@ -2149,9 +2298,9 @@
                         expr_fn(<span class="self">self</span>, <span class="number">2</span>);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
 
-                        <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         <span class="kw">if </span>!use_expr {
-                            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                            <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
@@ -2169,9 +2318,9 @@
                     <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                     expr_fn(<span class="self">self</span>, <span class="number">1</span>);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(access.field());
-                    <span class="self">self</span>.emit(Opcode::SetPrivateField, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::SetPrivateField, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     <span class="kw">if </span>!use_expr {
-                        <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                        <span class="self">self</span>.emit_opcode(Opcode::Pop);
                     }
                 }
                 PropertyAccess::Super(access) =&gt; <span class="kw">match </span>access.field() {
@@ -2180,9 +2329,9 @@
                         <span class="self">self</span>.emit_opcode(Opcode::This);
                         expr_fn(<span class="self">self</span>, <span class="number">1</span>);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                        <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         <span class="kw">if </span>!use_expr {
-                            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                            <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
@@ -2208,7 +2357,7 @@
                     PropertyAccessField::Const(name) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
-                        <span class="self">self</span>.emit(Opcode::DeletePropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::DeletePropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
@@ -2225,7 +2374,7 @@
             Access::Variable { name } =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                <span class="self">self</span>.emit(Opcode::DeleteName, <span class="kw-2">&amp;</span>[index]);
+                <span class="self">self</span>.emit(Opcode::DeleteName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
             }
             Access::This =&gt; {
                 <span class="self">self</span>.emit_opcode(Opcode::PushTrue);
@@ -2298,7 +2447,7 @@
                 <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(field) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>field).into());
-                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     }
                     PropertyAccessField::Expr(field) =&gt; {
                         <span class="self">self</span>.compile_expr(field, <span class="bool-val">true</span>);
@@ -2310,7 +2459,7 @@
                 <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                 <span class="self">self</span>.emit_opcode(Opcode::Dup);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(access.field());
-                <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[index]);
+                <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
             }
             PropertyAccess::Super(access) =&gt; {
                 <span class="self">self</span>.emit_opcode(Opcode::This);
@@ -2319,7 +2468,7 @@
                 <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(field) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>field).into());
-                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
@@ -2405,23 +2554,21 @@
                 <span class="kw">match </span>field {
                     PropertyAccessField::Const(name) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
-                <span class="self">self</span>.emit_opcode(Opcode::RotateLeft);
-                <span class="self">self</span>.emit_u8(<span class="number">3</span>);
+                <span class="self">self</span>.emit(Opcode::RotateLeft, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">3</span>)]);
                 <span class="self">self</span>.emit_opcode(Opcode::Pop);
             }
             OptionalOperationKind::PrivatePropertyAccess { field } =&gt; {
                 <span class="self">self</span>.emit_opcode(Opcode::Dup);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>field);
-                <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[index]);
-                <span class="self">self</span>.emit_opcode(Opcode::RotateLeft);
-                <span class="self">self</span>.emit_u8(<span class="number">3</span>);
+                <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                <span class="self">self</span>.emit(Opcode::RotateLeft, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">3</span>)]);
                 <span class="self">self</span>.emit_opcode(Opcode::Pop);
             }
             OptionalOperationKind::Call { args } =&gt; {
@@ -2444,7 +2591,7 @@
                     <span class="kw">for </span>arg <span class="kw">in </span>args {
                         <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>);
                     }
-                    <span class="self">self</span>.emit(Opcode::Call, <span class="kw-2">&amp;</span>[args.len() <span class="kw">as </span>u32]);
+                    <span class="self">self</span>.emit(Opcode::Call, <span class="kw-2">&amp;</span>[Operand::U32(args.len() <span class="kw">as </span>u32)]);
                 }
 
                 <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
@@ -2553,19 +2700,19 @@
                 <span class="kw">if </span><span class="self">self</span>.annex_b_function_names.contains(<span class="kw-2">&amp;</span>name) {
                     <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(name);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
 
                     <span class="kw">match </span><span class="self">self</span>.set_mutable_binding_var(name) {
                         <span class="prelude-val">Ok</span>(binding) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                            <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
-                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
-                            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                            <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
                     }
                 }
@@ -2640,20 +2787,29 @@
         <span class="kw">let </span>index = <span class="self">self</span>.function(function);
 
         <span class="kw">if </span>r#async &amp;&amp; generator {
-            <span class="self">self</span>.emit(Opcode::GetGeneratorAsync, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(Opcode::GetGeneratorAsync, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
         } <span class="kw">else if </span>generator {
-            <span class="self">self</span>.emit(Opcode::GetGenerator, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(Opcode::GetGenerator, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
         } <span class="kw">else if </span>r#async &amp;&amp; arrow {
-            <span class="self">self</span>.emit(Opcode::GetAsyncArrowFunction, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(
+                Opcode::GetAsyncArrowFunction,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+            );
         } <span class="kw">else if </span>r#async {
-            <span class="self">self</span>.emit(Opcode::GetFunctionAsync, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(
+                Opcode::GetFunctionAsync,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+            );
         } <span class="kw">else if </span>arrow {
-            <span class="self">self</span>.emit(Opcode::GetArrowFunction, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(
+                Opcode::GetArrowFunction,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+            );
         } <span class="kw">else </span>{
-            <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
-        }
-        <span class="kw">if </span>!generator {
-            <span class="self">self</span>.emit_u8(<span class="number">0</span>);
+            <span class="self">self</span>.emit(
+                Opcode::GetFunction,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+            );
         }
 
         <span class="kw">match </span>node_kind {
@@ -2665,7 +2821,7 @@
             }
             NodeKind::Expression =&gt; {
                 <span class="kw">if </span>!use_expr {
-                    <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 }
             }
         }
@@ -2714,20 +2870,29 @@
         <span class="self">self</span>.functions.push(code);
 
         <span class="kw">if </span>r#async &amp;&amp; generator {
-            <span class="self">self</span>.emit(Opcode::GetGeneratorAsync, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(Opcode::GetGeneratorAsync, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
         } <span class="kw">else if </span>generator {
-            <span class="self">self</span>.emit(Opcode::GetGenerator, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(Opcode::GetGenerator, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
         } <span class="kw">else if </span>r#async &amp;&amp; arrow {
-            <span class="self">self</span>.emit(Opcode::GetAsyncArrowFunction, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(
+                Opcode::GetAsyncArrowFunction,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">true</span>)],
+            );
         } <span class="kw">else if </span>r#async {
-            <span class="self">self</span>.emit(Opcode::GetFunctionAsync, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(
+                Opcode::GetFunctionAsync,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">true</span>)],
+            );
         } <span class="kw">else if </span>arrow {
-            <span class="self">self</span>.emit(Opcode::GetArrowFunction, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(
+                Opcode::GetArrowFunction,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">true</span>)],
+            );
         } <span class="kw">else </span>{
-            <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
-        }
-        <span class="kw">if </span>!generator {
-            <span class="self">self</span>.emit_u8(<span class="number">1</span>);
+            <span class="self">self</span>.emit(
+                Opcode::GetFunction,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">true</span>)],
+            );
         }
     }
 
@@ -2775,20 +2940,29 @@
         <span class="self">self</span>.functions.push(code);
 
         <span class="kw">if </span>r#async &amp;&amp; generator {
-            <span class="self">self</span>.emit(Opcode::GetGeneratorAsync, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(Opcode::GetGeneratorAsync, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
         } <span class="kw">else if </span>generator {
-            <span class="self">self</span>.emit(Opcode::GetGenerator, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(Opcode::GetGenerator, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
         } <span class="kw">else if </span>r#async &amp;&amp; arrow {
-            <span class="self">self</span>.emit(Opcode::GetAsyncArrowFunction, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(
+                Opcode::GetAsyncArrowFunction,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">true</span>)],
+            );
         } <span class="kw">else if </span>r#async {
-            <span class="self">self</span>.emit(Opcode::GetFunctionAsync, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(
+                Opcode::GetFunctionAsync,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">true</span>)],
+            );
         } <span class="kw">else if </span>arrow {
-            <span class="self">self</span>.emit(Opcode::GetArrowFunction, <span class="kw-2">&amp;</span>[index]);
+            <span class="self">self</span>.emit(
+                Opcode::GetArrowFunction,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">true</span>)],
+            );
         } <span class="kw">else </span>{
-            <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
-        }
-        <span class="kw">if </span>!generator {
-            <span class="self">self</span>.emit_u8(<span class="number">1</span>);
+            <span class="self">self</span>.emit(
+                Opcode::GetFunction,
+                <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">true</span>)],
+            );
         }
     }
 
@@ -2852,15 +3026,17 @@
 
         <span class="kw">match </span>kind {
             CallKind::CallEval <span class="kw">if </span>contains_spread =&gt; <span class="self">self</span>.emit_opcode(Opcode::CallEvalSpread),
-            CallKind::CallEval =&gt; <span class="self">self</span>.emit(Opcode::CallEval, <span class="kw-2">&amp;</span>[call.args().len() <span class="kw">as </span>u32]),
+            CallKind::CallEval =&gt; {
+                <span class="self">self</span>.emit(Opcode::CallEval, <span class="kw-2">&amp;</span>[Operand::U32(call.args().len() <span class="kw">as </span>u32)]);
+            }
             CallKind::Call <span class="kw">if </span>contains_spread =&gt; <span class="self">self</span>.emit_opcode(Opcode::CallSpread),
-            CallKind::Call =&gt; <span class="self">self</span>.emit(Opcode::Call, <span class="kw-2">&amp;</span>[call.args().len() <span class="kw">as </span>u32]),
+            CallKind::Call =&gt; <span class="self">self</span>.emit(Opcode::Call, <span class="kw-2">&amp;</span>[Operand::U32(call.args().len() <span class="kw">as </span>u32)]),
             CallKind::New <span class="kw">if </span>contains_spread =&gt; <span class="self">self</span>.emit_opcode(Opcode::NewSpread),
-            CallKind::New =&gt; <span class="self">self</span>.emit(Opcode::New, <span class="kw-2">&amp;</span>[call.args().len() <span class="kw">as </span>u32]),
+            CallKind::New =&gt; <span class="self">self</span>.emit(Opcode::New, <span class="kw-2">&amp;</span>[Operand::U32(call.args().len() <span class="kw">as </span>u32)]),
         }
 
         <span class="kw">if </span>!use_expr {
-            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+            <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
     }
 

@@ -1804,6 +1804,11 @@
 <a href="#1804" id="1804">1804</a>
 <a href="#1805" id="1805">1805</a>
 <a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
+<a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -2055,12 +2060,19 @@
         /// Stack: **=&gt;** value
         </span>PushInt32,
 
+        <span class="doccomment">/// Push `f32` value on the stack.
+        ///
+        /// Operands: value: `f32`
+        ///
+        /// Stack: **=&gt;** value
+        </span>PushFloat,
+
         <span class="doccomment">/// Push `f64` value on the stack.
         ///
         /// Operands: value: `f64`
         ///
         /// Stack: **=&gt;** value
-        </span>PushRational,
+        </span>PushDouble,
 
         <span class="doccomment">/// Push `NaN` integer on the stack.
         ///
@@ -3061,7 +3073,7 @@
 
         <span class="doccomment">/// Get function from the pre-compiled inner functions.
         ///
-        /// Operands: address: `u32`, method: `u8`
+        /// Operands: address: `u32`, is_method: `u8`
         ///
         /// Stack: **=&gt;** func
         </span>GetFunction,
@@ -3594,8 +3606,6 @@
         </span>Reserved57 =&gt; Reserved,
         <span class="doccomment">/// Reserved [`Opcode`].
         </span>Reserved58 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved59 =&gt; Reserved,
     }
 }
 

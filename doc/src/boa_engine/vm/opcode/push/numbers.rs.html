@@ -52,6 +52,7 @@
 <a href="#52" id="52">52</a>
 <a href="#53" id="53">53</a>
 <a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -105,5 +106,6 @@
 <span class="macro">implement_push_numbers_with_conversion!</span>(PushInt16, i16, <span class="string">&quot;Push `i16` value on the stack&quot;</span>);
 
 <span class="macro">implement_push_numbers_no_conversion!</span>(PushInt32, i32, <span class="string">&quot;Push `i32` value on the stack&quot;</span>);
-<span class="macro">implement_push_numbers_no_conversion!</span>(PushRational, f64, <span class="string">&quot;Push `f64` value on the stack&quot;</span>);
+<span class="macro">implement_push_numbers_no_conversion!</span>(PushFloat, f32, <span class="string">&quot;Push `f64` value on the stack&quot;</span>);
+<span class="macro">implement_push_numbers_no_conversion!</span>(PushDouble, f64, <span class="string">&quot;Push `f64` value on the stack&quot;</span>);
 </code></pre></div></section></main></body></html>

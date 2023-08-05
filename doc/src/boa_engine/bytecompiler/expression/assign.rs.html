@@ -229,9 +229,8 @@
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    bytecompiler::{Access, ByteCompiler},
+    bytecompiler::{Access, ByteCompiler, Operand},
     environments::BindingLocatorError,
     vm::{BindingOpcode, Opcode},
 };
@@ -292,9 +291,9 @@
                     <span class="kw">let </span>lex = <span class="self">self</span>.current_environment.is_lex_binding(name);
 
                     <span class="kw">if </span>lex {
-                        <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     } <span class="kw">else </span>{
-                        <span class="self">self</span>.emit(Opcode::GetNameAndLocator, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::GetNameAndLocator, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     }
 
                     <span class="kw">if </span>short_circuit {
@@ -311,14 +310,14 @@
                         <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
                             <span class="prelude-val">Ok</span>(binding) =&gt; {
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                                <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                                <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                             }
                             <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
-                                <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                                <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                             }
                             <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
-                                <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                                <span class="self">self</span>.emit_opcode(Opcode::Pop);
                             }
                         }
                     } <span class="kw">else </span>{
@@ -334,7 +333,7 @@
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
 
-                            <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                             <span class="kw">if </span>short_circuit {
                                 pop_count = <span class="number">2</span>;
                                 early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
@@ -344,7 +343,7 @@
                                 <span class="self">self</span>.emit_opcode(opcode);
                             }
 
-                            <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                             <span class="kw">if </span>!use_expr {
                                 <span class="self">self</span>.emit_opcode(Opcode::Pop);
                             }
@@ -377,7 +376,7 @@
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
 
-                        <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         <span class="kw">if </span>short_circuit {
                             pop_count = <span class="number">1</span>;
                             early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
@@ -387,7 +386,7 @@
                             <span class="self">self</span>.emit_opcode(opcode);
                         }
 
-                        <span class="self">self</span>.emit(Opcode::SetPrivateField, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::SetPrivateField, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         <span class="kw">if </span>!use_expr {
                             <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
@@ -401,7 +400,7 @@
                             <span class="self">self</span>.emit_opcode(Opcode::Swap);
                             <span class="self">self</span>.emit_opcode(Opcode::This);
 
-                            <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                             <span class="kw">if </span>short_circuit {
                                 pop_count = <span class="number">2</span>;
                                 early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
@@ -411,7 +410,7 @@
                                 <span class="self">self</span>.emit_opcode(opcode);
                             }
 
-                            <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                             <span class="kw">if </span>!use_expr {
                                 <span class="self">self</span>.emit_opcode(Opcode::Pop);
                             }
@@ -433,8 +432,7 @@
                             }
 
                             <span class="self">self</span>.emit_opcode(Opcode::This);
-                            <span class="self">self</span>.emit_opcode(Opcode::RotateRight);
-                            <span class="self">self</span>.emit_u8(<span class="number">2</span>);
+                            <span class="self">self</span>.emit(Opcode::RotateRight, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">2</span>)]);
 
                             <span class="self">self</span>.emit_opcode(Opcode::SetPropertyByValue);
                             <span class="kw">if </span>!use_expr {

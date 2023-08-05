@@ -461,7 +461,7 @@
 <span class="kw">use </span>boa_interner::Sym;
 
 <span class="kw">use crate</span>::{
-    bytecompiler::{Access, ByteCompiler},
+    bytecompiler::{Access, ByteCompiler, Operand},
     environments::BindingLocatorError,
     vm::{BindingOpcode, Opcode},
 };
@@ -521,13 +521,13 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(let_binding_indices) = let_binding_indices {
             <span class="kw">for </span>index <span class="kw">in </span><span class="kw-2">&amp;</span>let_binding_indices {
-                <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[<span class="kw-2">*</span>index]);
+                <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[Operand::U32(<span class="kw-2">*</span>index)]);
             }
             <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
             iteration_env_labels =
                 <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment));
             <span class="kw">for </span>index <span class="kw">in </span>let_binding_indices.iter().rev() {
-                <span class="self">self</span>.emit(Opcode::PutLexicalValue, <span class="kw-2">&amp;</span>[<span class="kw-2">*</span>index]);
+                <span class="self">self</span>.emit(Opcode::PutLexicalValue, <span class="kw-2">&amp;</span>[Operand::U32(<span class="kw-2">*</span>index)]);
             }
         }
 
@@ -548,7 +548,7 @@
 
         <span class="self">self</span>.compile_stmt(for_loop.body(), use_expr, <span class="bool-val">true</span>);
 
-        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
+        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[Operand::U32(start_address)]);
 
         <span class="self">self</span>.patch_jump(exit);
         <span class="self">self</span>.pop_loop_control_info();
@@ -677,7 +677,7 @@
             <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
         }
 
-        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
+        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[Operand::U32(start_address)]);
 
         <span class="self">self</span>.patch_jump(exit);
         <span class="self">self</span>.pop_loop_control_info();
@@ -755,14 +755,14 @@
                 <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(<span class="kw-2">*</span>ident) {
                     <span class="prelude-val">Ok</span>(binding) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                        <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     }
                     <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(<span class="kw-2">*</span>ident);
-                        <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     }
                     <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
-                        <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                        <span class="self">self</span>.emit_opcode(Opcode::Pop);
                     }
                 }
             }
@@ -846,7 +846,7 @@
             <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
         }
 
-        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
+        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[Operand::U32(start_address)]);
 
         <span class="self">self</span>.patch_jump(exit);
         <span class="self">self</span>.pop_loop_control_info();
@@ -869,7 +869,7 @@
 
         <span class="self">self</span>.compile_stmt(while_loop.body(), use_expr, <span class="bool-val">true</span>);
 
-        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
+        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[Operand::U32(start_address)]);
 
         <span class="self">self</span>.patch_jump(exit);
         <span class="self">self</span>.pop_loop_control_info();
@@ -896,7 +896,7 @@
 
         <span class="self">self</span>.compile_stmt(do_while_loop.body(), use_expr, <span class="bool-val">true</span>);
 
-        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[condition_label_address]);
+        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[Operand::U32(condition_label_address)]);
         <span class="self">self</span>.patch_jump(exit);
 
         <span class="self">self</span>.pop_loop_control_info();

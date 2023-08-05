@@ -73,10 +73,9 @@
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, Opcode};
 
-<span class="kw">use super</span>::{ByteCompiler, Literal};
+<span class="kw">use super</span>::{ByteCompiler, Literal, Operand};
 <span class="kw">use </span>boa_ast::{declaration::ExportDeclaration, expression::Identifier, ModuleItem, ModuleItemList};
 <span class="kw">use </span>boa_interner::Sym;
 
@@ -139,8 +138,7 @@
                                 .into_common(<span class="bool-val">false</span>);
                             <span class="self">self</span>.emit_push_literal(Literal::String(default));
                             <span class="self">self</span>.emit_opcode(Opcode::Swap);
-                            <span class="self">self</span>.emit_opcode(Opcode::SetFunctionName);
-                            <span class="self">self</span>.emit_u8(<span class="number">0</span>);
+                            <span class="self">self</span>.emit(Opcode::SetFunctionName, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">0</span>)]);
                         }
 
                         <span class="self">self</span>.emit_binding(BindingOpcode::InitLet, name);

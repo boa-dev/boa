@@ -1519,6 +1519,10 @@
 <a href="#1519" id="1519">1519</a>
 <a href="#1520" id="1520">1520</a>
 <a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1861,7 +1865,12 @@
                 <span class="kw-2">*</span>pc += size_of::&lt;i32&gt;();
                 result
             }
-            Opcode::PushRational =&gt; {
+            Opcode::PushFloat =&gt; {
+                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;f32&gt;(<span class="kw-2">*</span>pc);
+                <span class="kw-2">*</span>pc += size_of::&lt;f32&gt;();
+                ryu_js::Buffer::new().format(operand).to_string()
+            }
+            Opcode::PushDouble =&gt; {
                 <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;f64&gt;(<span class="kw-2">*</span>pc);
                 <span class="kw-2">*</span>pc += size_of::&lt;f64&gt;();
                 ryu_js::Buffer::new().format(operand).to_string()
@@ -2197,8 +2206,7 @@
             | Opcode::Reserved55
             | Opcode::Reserved56
             | Opcode::Reserved57
-            | Opcode::Reserved58
-            | Opcode::Reserved59 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Opcode::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }

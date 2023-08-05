@@ -104,12 +104,18 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_ast::expression::operator::{
     binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
     Binary, BinaryInPrivate,
 };
 
-<span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
+<span class="kw">use crate</span>::{
+    bytecompiler::{ByteCompiler, Operand},
+    vm::Opcode,
+};
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_binary(<span class="kw-2">&amp;mut </span><span class="self">self</span>, binary: <span class="kw-2">&amp;</span>Binary, use_expr: bool) {
@@ -127,7 +133,7 @@
                 }
 
                 <span class="kw">if </span>!use_expr {
-                    <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 }
             }
             BinaryOp::Bitwise(op) =&gt; {
@@ -142,7 +148,7 @@
                 }
 
                 <span class="kw">if </span>!use_expr {
-                    <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 }
             }
             BinaryOp::Relational(op) =&gt; {
@@ -163,7 +169,7 @@
                 }
 
                 <span class="kw">if </span>!use_expr {
-                    <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 }
             }
             BinaryOp::Logical(op) =&gt; {
@@ -186,15 +192,15 @@
                 };
 
                 <span class="kw">if </span>!use_expr {
-                    <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 }
             }
             BinaryOp::Comma =&gt; {
-                <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>);
 
                 <span class="kw">if </span>!use_expr {
-                    <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 }
             }
         };
@@ -203,7 +209,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_binary_in_private(<span class="kw-2">&amp;mut </span><span class="self">self</span>, binary: <span class="kw-2">&amp;</span>BinaryInPrivate, use_expr: bool) {
         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>binary.lhs());
         <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>);
-        <span class="self">self</span>.emit(Opcode::InPrivate, <span class="kw-2">&amp;</span>[index]);
+        <span class="self">self</span>.emit(Opcode::InPrivate, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
 
         <span class="kw">if </span>!use_expr {
             <span class="self">self</span>.emit_opcode(Opcode::Pop);

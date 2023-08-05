@@ -118,13 +118,12 @@
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     js_string,
     vm::{GeneratorResumeKind, Opcode},
 };
 
-<span class="kw">use super</span>::{ByteCompiler, Literal};
+<span class="kw">use super</span>::{ByteCompiler, Literal, Operand};
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Closes an iterator
@@ -157,7 +156,7 @@
         <span class="kw">let </span>error_msg = <span class="self">self</span>.get_or_insert_literal(Literal::String(<span class="macro">js_string!</span>(
             <span class="string">&quot;inner result was not an object&quot;
         </span>)));
-        <span class="self">self</span>.emit(Opcode::ThrowNewTypeError, <span class="kw-2">&amp;</span>[error_msg]);
+        <span class="self">self</span>.emit(Opcode::ThrowNewTypeError, <span class="kw-2">&amp;</span>[Operand::U32(error_msg)]);
 
         <span class="self">self</span>.patch_jump(skip_return);
         <span class="self">self</span>.emit_opcode(Opcode::IteratorPop);
@@ -172,7 +171,7 @@
         <span class="self">self</span>.emit_opcode(Opcode::IteratorStackEmpty);
         <span class="kw">let </span>empty = <span class="self">self</span>.jump_if_true();
         <span class="self">self</span>.iterator_close(<span class="self">self</span>.in_async_generator());
-        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start]);
+        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[Operand::U32(start)]);
         <span class="self">self</span>.patch_jump(empty);
     }
 
@@ -193,8 +192,7 @@
             <span class="self">self</span>.async_generator_yield();
         } <span class="kw">else </span>{
             <span class="comment">// 3. Otherwise, return ? GeneratorYield(CreateIterResultObject(value, false)).
-            </span><span class="self">self</span>.emit_opcode(Opcode::CreateIteratorResult);
-            <span class="self">self</span>.emit_u8(u8::from(<span class="bool-val">false</span>));
+            </span><span class="self">self</span>.emit(Opcode::CreateIteratorResult, <span class="kw-2">&amp;</span>[Operand::Bool(<span class="bool-val">false</span>)]);
             <span class="self">self</span>.emit_opcode(Opcode::GeneratorYield);
         }
 
@@ -229,7 +227,7 @@
         </span><span class="self">self</span>.emit_opcode(Opcode::Pop);
 
         <span class="comment">// Stack: received
-        </span><span class="self">self</span>.emit_push_integer(GeneratorResumeKind::Return <span class="kw">as </span>i32);
+        </span><span class="self">self</span>.emit_resume_kind(GeneratorResumeKind::Return);
 
         <span class="comment">// Stack: resume_kind(Return) received
         </span><span class="self">self</span>.patch_jump(non_normal_resume);

@@ -212,7 +212,7 @@
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    bytecompiler::{Access, ByteCompiler, FunctionSpec},
+    bytecompiler::{Access, ByteCompiler, FunctionSpec, Operand},
     vm::Opcode,
 };
 <span class="kw">use </span>boa_ast::{
@@ -231,7 +231,7 @@
                 PropertyDefinition::IdentifierReference(ident) =&gt; {
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(<span class="kw-2">*</span>ident);
                     <span class="self">self</span>.access_get(Access::Variable { name: <span class="kw-2">*</span>ident }, <span class="bool-val">true</span>);
-                    <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                 }
                 PropertyDefinition::Property(name, expr) =&gt; <span class="kw">match </span>name {
                     PropertyName::Literal(name) =&gt; {
@@ -240,7 +240,7 @@
                         <span class="kw">if </span><span class="kw-2">*</span>name == Sym::__PROTO__ &amp;&amp; !<span class="self">self</span>.json_parse {
                             <span class="self">self</span>.emit_opcode(Opcode::SetPrototype);
                         } <span class="kw">else </span>{
-                            <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                     }
                     PropertyName::Computed(name_node) =&gt; {
@@ -249,8 +249,7 @@
                         <span class="kw">if </span>expr.is_anonymous_function_definition() {
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
-                            <span class="self">self</span>.emit_opcode(Opcode::SetFunctionName);
-                            <span class="self">self</span>.emit_u8(<span class="number">0</span>);
+                            <span class="self">self</span>.emit(Opcode::SetFunctionName, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">0</span>)]);
                         } <span class="kw">else </span>{
                             <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         }
@@ -263,7 +262,7 @@
                             <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                            <span class="self">self</span>.emit(Opcode::SetPropertyGetterByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::SetPropertyGetterByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) =&gt; {
                             <span class="self">self</span>.compile_object_literal_computed_method(
@@ -278,7 +277,7 @@
                             <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                            <span class="self">self</span>.emit(Opcode::SetPropertySetterByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::SetPropertySetterByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) =&gt; {
                             <span class="self">self</span>.compile_object_literal_computed_method(
@@ -293,7 +292,7 @@
                             <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                            <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) =&gt; {
                             <span class="self">self</span>.compile_object_literal_computed_method(
@@ -308,7 +307,7 @@
                             <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                            <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) =&gt; {
                             <span class="self">self</span>.compile_object_literal_computed_method(
@@ -323,7 +322,7 @@
                             <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                            <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) =&gt; {
                             <span class="self">self</span>.compile_object_literal_computed_method(
@@ -338,7 +337,7 @@
                             <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                            <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) =&gt; {
                             <span class="self">self</span>.compile_object_literal_computed_method(
@@ -352,7 +351,10 @@
                 PropertyDefinition::SpreadObject(expr) =&gt; {
                     <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                     <span class="self">self</span>.emit_opcode(Opcode::Swap);
-                    <span class="self">self</span>.emit(Opcode::CopyDataProperties, <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>]);
+                    <span class="self">self</span>.emit(
+                        Opcode::CopyDataProperties,
+                        <span class="kw-2">&amp;</span>[Operand::U32(<span class="number">0</span>), Operand::U32(<span class="number">0</span>)],
+                    );
                     <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 }
                 PropertyDefinition::CoverInitializedName(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
@@ -362,7 +364,7 @@
         }
 
         <span class="kw">if </span>!use_expr {
-            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+            <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
     }
 
@@ -385,16 +387,15 @@
         </span><span class="self">self</span>.object_method(function);
 
         <span class="comment">// stack: object, object, ToPropertyKey(name), ToPropertyKey(name), method
-        </span><span class="self">self</span>.emit_opcode(Opcode::SetFunctionName);
-        <span class="kw">match </span>kind {
-            MethodKind::Get =&gt; <span class="self">self</span>.emit_u8(<span class="number">1</span>),
-            MethodKind::Set =&gt; <span class="self">self</span>.emit_u8(<span class="number">2</span>),
-            MethodKind::Ordinary =&gt; <span class="self">self</span>.emit_u8(<span class="number">0</span>),
-        }
+        </span><span class="kw">let </span>value = <span class="kw">match </span>kind {
+            MethodKind::Get =&gt; <span class="number">1</span>,
+            MethodKind::Set =&gt; <span class="number">2</span>,
+            MethodKind::Ordinary =&gt; <span class="number">0</span>,
+        };
+        <span class="self">self</span>.emit(Opcode::SetFunctionName, <span class="kw-2">&amp;</span>[Operand::U8(value)]);
 
         <span class="comment">// stack: object, object, ToPropertyKey(name), method
-        </span><span class="self">self</span>.emit_opcode(Opcode::RotateLeft);
-        <span class="self">self</span>.emit_u8(<span class="number">3</span>);
+        </span><span class="self">self</span>.emit(Opcode::RotateLeft, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">3</span>)]);
 
         <span class="comment">// stack: object, ToPropertyKey(name), method, object
         </span><span class="self">self</span>.emit_opcode(Opcode::Swap);
@@ -406,8 +407,7 @@
         </span><span class="self">self</span>.emit_opcode(Opcode::Swap);
 
         <span class="comment">// stack: object, ToPropertyKey(name), method, object
-        </span><span class="self">self</span>.emit_opcode(Opcode::RotateRight);
-        <span class="self">self</span>.emit_u8(<span class="number">3</span>);
+        </span><span class="self">self</span>.emit(Opcode::RotateRight, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">3</span>)]);
 
         <span class="comment">// stack: object, object, ToPropertyKey(name), method
         </span><span class="kw">match </span>kind {

@@ -163,14 +163,8 @@
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    bytecompiler::{Access, ByteCompiler},
+    bytecompiler::{Access, ByteCompiler, Operand},
     environments::BindingLocatorError,
     vm::Opcode,
 };
@@ -199,9 +193,9 @@
                 <span class="kw">let </span>lex = <span class="self">self</span>.current_environment.is_lex_binding(name);
 
                 <span class="kw">if </span>lex {
-                    <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.emit(Opcode::GetNameAndLocator, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::GetNameAndLocator, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                 }
 
                 <span class="self">self</span>.emit_opcode(opcode);
@@ -215,14 +209,14 @@
                     <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
                         <span class="prelude-val">Ok</span>(binding) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                            <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
-                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[index]);
+                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
-                            <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
+                            <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
                     }
                 } <span class="kw">else </span>{
@@ -238,14 +232,13 @@
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
 
-                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         <span class="self">self</span>.emit_opcode(opcode);
                         <span class="kw">if </span>post {
-                            <span class="self">self</span>.emit_opcode(Opcode::RotateRight);
-                            <span class="self">self</span>.emit_u8(<span class="number">4</span>);
+                            <span class="self">self</span>.emit(Opcode::RotateRight, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">4</span>)]);
                         }
 
-                        <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         <span class="kw">if </span>post {
                             <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
@@ -260,8 +253,7 @@
                         <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValuePush);
                         <span class="self">self</span>.emit_opcode(opcode);
                         <span class="kw">if </span>post {
-                            <span class="self">self</span>.emit_opcode(Opcode::RotateRight);
-                            <span class="self">self</span>.emit_u8(<span class="number">5</span>);
+                            <span class="self">self</span>.emit(Opcode::RotateRight, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">5</span>)]);
                         }
 
                         <span class="self">self</span>.emit_opcode(Opcode::SetPropertyByValue);
@@ -275,14 +267,13 @@
                     <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
 
-                    <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     <span class="self">self</span>.emit_opcode(opcode);
                     <span class="kw">if </span>post {
-                        <span class="self">self</span>.emit_opcode(Opcode::RotateRight);
-                        <span class="self">self</span>.emit_u8(<span class="number">3</span>);
+                        <span class="self">self</span>.emit(Opcode::RotateRight, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">3</span>)]);
                     }
 
-                    <span class="self">self</span>.emit(Opcode::SetPrivateField, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit(Opcode::SetPrivateField, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                     <span class="kw">if </span>post {
                         <span class="self">self</span>.emit_opcode(Opcode::Pop);
                     }
@@ -296,14 +287,13 @@
                         <span class="self">self</span>.emit_opcode(Opcode::Swap);
                         <span class="self">self</span>.emit_opcode(Opcode::This);
 
-                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         <span class="self">self</span>.emit_opcode(opcode);
                         <span class="kw">if </span>post {
-                            <span class="self">self</span>.emit_opcode(Opcode::RotateRight);
-                            <span class="self">self</span>.emit_u8(<span class="number">3</span>);
+                            <span class="self">self</span>.emit(Opcode::RotateRight, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">3</span>)]);
                         }
 
-                        <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                        <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
                         <span class="kw">if </span>post {
                             <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
@@ -317,13 +307,11 @@
                         <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValuePush);
                         <span class="self">self</span>.emit_opcode(opcode);
                         <span class="kw">if </span>post {
-                            <span class="self">self</span>.emit_opcode(Opcode::RotateRight);
-                            <span class="self">self</span>.emit_u8(<span class="number">2</span>);
+                            <span class="self">self</span>.emit(Opcode::RotateRight, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">2</span>)]);
                         }
 
                         <span class="self">self</span>.emit_opcode(Opcode::This);
-                        <span class="self">self</span>.emit_opcode(Opcode::RotateRight);
-                        <span class="self">self</span>.emit_u8(<span class="number">2</span>);
+                        <span class="self">self</span>.emit(Opcode::RotateRight, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">2</span>)]);
 
                         <span class="self">self</span>.emit_opcode(Opcode::SetPropertyByValue);
                         <span class="kw">if </span>post {
