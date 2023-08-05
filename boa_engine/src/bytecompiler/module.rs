@@ -1,6 +1,6 @@
 use crate::vm::{BindingOpcode, Opcode};
 
-use super::{ByteCompiler, Literal};
+use super::{ByteCompiler, Literal, Operand};
 use boa_ast::{declaration::ExportDeclaration, expression::Identifier, ModuleItem, ModuleItemList};
 use boa_interner::Sym;
 
@@ -63,8 +63,7 @@ impl ByteCompiler<'_, '_> {
                                 .into_common(false);
                             self.emit_push_literal(Literal::String(default));
                             self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::SetFunctionName);
-                            self.emit_u8(0);
+                            self.emit(Opcode::SetFunctionName, &[Operand::U8(0)]);
                         }
 
                         self.emit_binding(BindingOpcode::InitLet, name);

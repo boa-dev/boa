@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, FunctionSpec},
+    bytecompiler::{Access, ByteCompiler, FunctionSpec, Operand},
     vm::Opcode,
 };
 use boa_ast::{
@@ -18,7 +18,7 @@ impl ByteCompiler<'_, '_> {
                 PropertyDefinition::IdentifierReference(ident) => {
                     let index = self.get_or_insert_name(*ident);
                     self.access_get(Access::Variable { name: *ident }, true);
-                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                    self.emit(Opcode::DefineOwnPropertyByName, &[Operand::U32(index)]);
                 }
                 PropertyDefinition::Property(name, expr) => match name {
                     PropertyName::Literal(name) => {
@@ -27,7 +27,7 @@ impl ByteCompiler<'_, '_> {
                         if *name == Sym::__PROTO__ && !self.json_parse {
                             self.emit_opcode(Opcode::SetPrototype);
                         } else {
-                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                            self.emit(Opcode::DefineOwnPropertyByName, &[Operand::U32(index)]);
                         }
                     }
                     PropertyName::Computed(name_node) => {
@@ -36,8 +36,7 @@ impl ByteCompiler<'_, '_> {
                         if expr.is_anonymous_function_definition() {
                             self.emit_opcode(Opcode::Dup);
                             self.compile_expr(expr, true);
-                            self.emit_opcode(Opcode::SetFunctionName);
-                            self.emit_u8(0);
+                            self.emit(Opcode::SetFunctionName, &[Operand::U8(0)]);
                         } else {
                             self.compile_expr(expr, true);
                         }
@@ -50,7 +49,7 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
-                            self.emit(Opcode::SetPropertyGetterByName, &[index]);
+                            self.emit(Opcode::SetPropertyGetterByName, &[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) => {
                             self.compile_object_literal_computed_method(
@@ -65,7 +64,7 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
-                            self.emit(Opcode::SetPropertySetterByName, &[index]);
+                            self.emit(Opcode::SetPropertySetterByName, &[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) => {
                             self.compile_object_literal_computed_method(
@@ -80,7 +79,7 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
-                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                            self.emit(Opcode::DefineOwnPropertyByName, &[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) => {
                             self.compile_object_literal_computed_method(
@@ -95,7 +94,7 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
-                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                            self.emit(Opcode::DefineOwnPropertyByName, &[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) => {
                             self.compile_object_literal_computed_method(
@@ -110,7 +109,7 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
-                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                            self.emit(Opcode::DefineOwnPropertyByName, &[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) => {
                             self.compile_object_literal_computed_method(
@@ -125,7 +124,7 @@ impl ByteCompiler<'_, '_> {
                             self.object_method(expr.into());
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
-                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                            self.emit(Opcode::DefineOwnPropertyByName, &[Operand::U32(index)]);
                         }
                         PropertyName::Computed(name_node) => {
                             self.compile_object_literal_computed_method(
@@ -139,7 +138,10 @@ impl ByteCompiler<'_, '_> {
                 PropertyDefinition::SpreadObject(expr) => {
                     self.compile_expr(expr, true);
                     self.emit_opcode(Opcode::Swap);
-                    self.emit(Opcode::CopyDataProperties, &[0, 0]);
+                    self.emit(
+                        Opcode::CopyDataProperties,
+                        &[Operand::U32(0), Operand::U32(0)],
+                    );
                     self.emit_opcode(Opcode::Pop);
                 }
                 PropertyDefinition::CoverInitializedName(_, _) => {
@@ -149,7 +151,7 @@ impl ByteCompiler<'_, '_> {
         }
 
         if !use_expr {
-            self.emit(Opcode::Pop, &[]);
+            self.emit_opcode(Opcode::Pop);
         }
     }
 
@@ -172,16 +174,15 @@ impl ByteCompiler<'_, '_> {
         self.object_method(function);
 
         // stack: object, object, ToPropertyKey(name), ToPropertyKey(name), method
-        self.emit_opcode(Opcode::SetFunctionName);
-        match kind {
-            MethodKind::Get => self.emit_u8(1),
-            MethodKind::Set => self.emit_u8(2),
-            MethodKind::Ordinary => self.emit_u8(0),
-        }
+        let value = match kind {
+            MethodKind::Get => 1,
+            MethodKind::Set => 2,
+            MethodKind::Ordinary => 0,
+        };
+        self.emit(Opcode::SetFunctionName, &[Operand::U8(value)]);
 
         // stack: object, object, ToPropertyKey(name), method
-        self.emit_opcode(Opcode::RotateLeft);
-        self.emit_u8(3);
+        self.emit(Opcode::RotateLeft, &[Operand::U8(3)]);
 
         // stack: object, ToPropertyKey(name), method, object
         self.emit_opcode(Opcode::Swap);
@@ -193,8 +194,7 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::Swap);
 
         // stack: object, ToPropertyKey(name), method, object
-        self.emit_opcode(Opcode::RotateRight);
-        self.emit_u8(3);
+        self.emit(Opcode::RotateRight, &[Operand::U8(3)]);
 
         // stack: object, object, ToPropertyKey(name), method
         match kind {

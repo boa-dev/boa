@@ -3,7 +3,7 @@ use crate::{
     vm::{GeneratorResumeKind, Opcode},
 };
 
-use super::{ByteCompiler, Literal};
+use super::{ByteCompiler, Literal, Operand};
 
 impl ByteCompiler<'_, '_> {
     /// Closes an iterator
@@ -36,7 +36,7 @@ impl ByteCompiler<'_, '_> {
         let error_msg = self.get_or_insert_literal(Literal::String(js_string!(
             "inner result was not an object"
         )));
-        self.emit(Opcode::ThrowNewTypeError, &[error_msg]);
+        self.emit(Opcode::ThrowNewTypeError, &[Operand::U32(error_msg)]);
 
         self.patch_jump(skip_return);
         self.emit_opcode(Opcode::IteratorPop);
@@ -51,7 +51,7 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::IteratorStackEmpty);
         let empty = self.jump_if_true();
         self.iterator_close(self.in_async_generator());
-        self.emit(Opcode::Jump, &[start]);
+        self.emit(Opcode::Jump, &[Operand::U32(start)]);
         self.patch_jump(empty);
     }
 
@@ -72,8 +72,7 @@ impl ByteCompiler<'_, '_> {
             self.async_generator_yield();
         } else {
             // 3. Otherwise, return ? GeneratorYield(CreateIterResultObject(value, false)).
-            self.emit_opcode(Opcode::CreateIteratorResult);
-            self.emit_u8(u8::from(false));
+            self.emit(Opcode::CreateIteratorResult, &[Operand::Bool(false)]);
             self.emit_opcode(Opcode::GeneratorYield);
         }
 
@@ -108,7 +107,7 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::Pop);
 
         // Stack: received
-        self.emit_push_integer(GeneratorResumeKind::Return as i32);
+        self.emit_resume_kind(GeneratorResumeKind::Return);
 
         // Stack: resume_kind(Return) received
         self.patch_jump(non_normal_resume);

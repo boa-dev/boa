@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler},
+    bytecompiler::{Access, ByteCompiler, Operand},
     environments::BindingLocatorError,
     vm::{BindingOpcode, Opcode},
 };
@@ -60,9 +60,9 @@ impl ByteCompiler<'_, '_> {
                     let lex = self.current_environment.is_lex_binding(name);
 
                     if lex {
-                        self.emit(Opcode::GetName, &[index]);
+                        self.emit(Opcode::GetName, &[Operand::U32(index)]);
                     } else {
-                        self.emit(Opcode::GetNameAndLocator, &[index]);
+                        self.emit(Opcode::GetNameAndLocator, &[Operand::U32(index)]);
                     }
 
                     if short_circuit {
@@ -79,14 +79,14 @@ impl ByteCompiler<'_, '_> {
                         match self.set_mutable_binding(name) {
                             Ok(binding) => {
                                 let index = self.get_or_insert_binding(binding);
-                                self.emit(Opcode::SetName, &[index]);
+                                self.emit(Opcode::SetName, &[Operand::U32(index)]);
                             }
                             Err(BindingLocatorError::MutateImmutable) => {
                                 let index = self.get_or_insert_name(name);
-                                self.emit(Opcode::ThrowMutateImmutable, &[index]);
+                                self.emit(Opcode::ThrowMutateImmutable, &[Operand::U32(index)]);
                             }
                             Err(BindingLocatorError::Silent) => {
-                                self.emit(Opcode::Pop, &[]);
+                                self.emit_opcode(Opcode::Pop);
                             }
                         }
                     } else {
@@ -102,7 +102,7 @@ impl ByteCompiler<'_, '_> {
                             self.emit_opcode(Opcode::Dup);
                             self.emit_opcode(Opcode::Dup);
 
-                            self.emit(Opcode::GetPropertyByName, &[index]);
+                            self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
                             if short_circuit {
                                 pop_count = 2;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
@@ -112,7 +112,7 @@ impl ByteCompiler<'_, '_> {
                                 self.emit_opcode(opcode);
                             }
 
-                            self.emit(Opcode::SetPropertyByName, &[index]);
+                            self.emit(Opcode::SetPropertyByName, &[Operand::U32(index)]);
                             if !use_expr {
                                 self.emit_opcode(Opcode::Pop);
                             }
@@ -145,7 +145,7 @@ impl ByteCompiler<'_, '_> {
                         self.compile_expr(access.target(), true);
                         self.emit_opcode(Opcode::Dup);
 
-                        self.emit(Opcode::GetPrivateField, &[index]);
+                        self.emit(Opcode::GetPrivateField, &[Operand::U32(index)]);
                         if short_circuit {
                             pop_count = 1;
                             early_exit = Some(self.emit_opcode_with_operand(opcode));
@@ -155,7 +155,7 @@ impl ByteCompiler<'_, '_> {
                             self.emit_opcode(opcode);
                         }
 
-                        self.emit(Opcode::SetPrivateField, &[index]);
+                        self.emit(Opcode::SetPrivateField, &[Operand::U32(index)]);
                         if !use_expr {
                             self.emit_opcode(Opcode::Pop);
                         }
@@ -169,7 +169,7 @@ impl ByteCompiler<'_, '_> {
                             self.emit_opcode(Opcode::Swap);
                             self.emit_opcode(Opcode::This);
 
-                            self.emit(Opcode::GetPropertyByName, &[index]);
+                            self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
                             if short_circuit {
                                 pop_count = 2;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
@@ -179,7 +179,7 @@ impl ByteCompiler<'_, '_> {
                                 self.emit_opcode(opcode);
                             }
 
-                            self.emit(Opcode::SetPropertyByName, &[index]);
+                            self.emit(Opcode::SetPropertyByName, &[Operand::U32(index)]);
                             if !use_expr {
                                 self.emit_opcode(Opcode::Pop);
                             }
@@ -201,8 +201,7 @@ impl ByteCompiler<'_, '_> {
                             }
 
                             self.emit_opcode(Opcode::This);
-                            self.emit_opcode(Opcode::RotateRight);
-                            self.emit_u8(2);
+                            self.emit(Opcode::RotateRight, &[Operand::U8(2)]);
 
                             self.emit_opcode(Opcode::SetPropertyByValue);
                             if !use_expr {
