@@ -119,7 +119,7 @@ fn check_empty_interner() {
 
     let sym = sym_from_usize(123); // Choose an arbitrary symbol
 
-    assert_eq!(interner.resolve(sym).is_none(), true);
+    assert!(interner.resolve(sym).is_none());
 }
 
 #[test]
@@ -128,5 +128,5 @@ fn check_capacity() {
 
     let sym = sym_from_usize(123); // Choose an arbitrary symbol
 
-    assert_eq!(interner.resolve(sym).is_none(), true);
+    assert!(interner.resolve(sym).is_none());
 }
