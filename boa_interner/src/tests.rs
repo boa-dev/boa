@@ -112,3 +112,21 @@ fn check_unpaired_surrogates() {
     assert_eq!(interner.resolve_expect(sym6).utf8(), Some("jkl"));
     assert_eq!(interner.resolve_expect(sym6).utf16(), utf16!("jkl"));
 }
+
+#[test]
+fn check_empty_interner() {
+    let interner = Interner::default();
+
+    let sym = sym_from_usize(123); // Choose an arbitrary symbol
+
+    assert!(interner.resolve(sym).is_none());
+}
+
+#[test]
+fn check_capacity() {
+    let interner = Interner::with_capacity(100);
+
+    let sym = sym_from_usize(123); // Choose an arbitrary symbol
+
+    assert!(interner.resolve(sym).is_none());
+}
