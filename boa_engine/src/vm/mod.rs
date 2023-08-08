@@ -5,13 +5,11 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    environments::{DeclarativeEnvironment, EnvironmentStack},
-    script::Script,
-    vm::code_block::Readable,
+    environments::EnvironmentStack, realm::Realm, script::Script, vm::code_block::Readable,
     Context, JsError, JsNativeError, JsNativeErrorKind, JsObject, JsResult, JsValue, Module,
 };
 
-use boa_gc::{custom_trace, Finalize, Gc, Trace};
+use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use std::mem::size_of;
 
@@ -74,6 +72,9 @@ pub struct Vm {
     /// because we don't push a frame for them.
     pub(crate) native_active_function: Option<JsObject>,
 
+    /// realm holds both the global object and the environment
+    pub(crate) realm: Realm,
+
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
 }
@@ -96,15 +97,16 @@ unsafe impl Trace for ActiveRunnable {
 
 impl Vm {
     /// Creates a new virtual machine.
-    pub(crate) fn new(global: Gc<DeclarativeEnvironment>) -> Self {
+    pub(crate) fn new(realm: Realm) -> Self {
         Self {
             frames: Vec::with_capacity(16),
             stack: Vec::with_capacity(1024),
             return_value: JsValue::undefined(),
-            environments: EnvironmentStack::new(global),
+            environments: EnvironmentStack::new(realm.environment().clone()),
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
             native_active_function: None,
+            realm,
             #[cfg(feature = "trace")]
             trace: false,
         }
@@ -158,11 +160,20 @@ impl Vm {
     pub(crate) fn push_frame(&mut self, mut frame: CallFrame) {
         let current_stack_length = self.stack.len();
         frame.set_frame_pointer(current_stack_length as u32);
+        std::mem::swap(&mut self.environments, &mut frame.environments);
+        std::mem::swap(&mut self.realm, &mut frame.realm);
+
         self.frames.push(frame);
     }
 
     pub(crate) fn pop_frame(&mut self) -> Option<CallFrame> {
-        self.frames.pop()
+        let mut frame = self.frames.pop();
+        if let Some(frame) = &mut frame {
+            std::mem::swap(&mut self.environments, &mut frame.environments);
+            std::mem::swap(&mut self.realm, &mut frame.realm);
+        }
+
+        frame
     }
 
     /// Handles an exception thrown at position `pc`.
@@ -195,6 +206,23 @@ impl Vm {
     pub(crate) fn set_return_value(&mut self, value: JsValue) {
         self.return_value = value;
     }
+
+    pub(crate) fn take_return_value(&mut self) -> JsValue {
+        std::mem::take(&mut self.return_value)
+    }
+
+    pub(crate) fn pop_n_values(&mut self, n: usize) -> Vec<JsValue> {
+        let at = self.stack.len() - n;
+        self.stack.split_off(at)
+    }
+
+    pub(crate) fn push_values(&mut self, values: &[JsValue]) {
+        self.stack.extend_from_slice(values);
+    }
+
+    pub(crate) fn insert_values_at(&mut self, values: &[JsValue], at: usize) {
+        self.stack.splice(at..at, values.iter().cloned());
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -213,7 +241,7 @@ impl Context<'_> {
     const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
     const NUMBER_OF_COLUMNS: usize = 4;
 
-    fn trace_call_frame(&self) {
+    pub(crate) fn trace_call_frame(&self) {
         let msg = if self.vm.frames.last().is_some() {
             format!(
                 " Call Frame -- {} ",
@@ -257,21 +285,42 @@ impl Context<'_> {
             .code_block
             .instruction_operands(&instruction, self.interner());
 
+        let opcode = instruction.opcode();
+        match opcode {
+            Opcode::Call
+            | Opcode::CallSpread
+            | Opcode::CallEval
+            | Opcode::CallEvalSpread
+            | Opcode::New
+            | Opcode::NewSpread
+            | Opcode::Return
+            | Opcode::SuperCall
+            | Opcode::SuperCallSpread
+            | Opcode::SuperCallDerived => {
+                println!();
+            }
+            _ => {}
+        }
+
         let instant = Instant::now();
         let result = self.execute_instruction();
-
         let duration = instant.elapsed();
+
+        let fp = self.vm.frames.last().map(|frame| frame.fp as usize);
 
         let stack = {
             let mut stack = String::from("[ ");
-            for (i, value) in self.vm.stack.iter().rev().enumerate() {
+            for (i, (j, value)) in self.vm.stack.iter().enumerate().rev().enumerate() {
                 match value {
                     value if value.is_callable() => stack.push_str("[function]"),
                     value if value.is_object() => stack.push_str("[object]"),
                     value => stack.push_str(&value.display().to_string()),
                 }
 
-                if i + 1 != self.vm.stack.len() {
+                if fp == Some(j) {
+                    let frame_index = self.vm.frames.len() - 1;
+                    stack.push_str(&format!(" |{frame_index}|"));
+                } else if i + 1 != self.vm.stack.len() {
                     stack.push(',');
                 }
 
@@ -289,10 +338,9 @@ impl Context<'_> {
         };
 
         println!(
-            "{:<TIME_COLUMN_WIDTH$} {}{:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
+            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
             format!("{}μs", duration.as_micros()),
-            instruction.opcode().as_str(),
-            varying_operand_kind,
+            format!("{}{varying_operand_kind}", opcode.as_str()),
             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
             OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
             OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
@@ -328,7 +376,7 @@ impl Context<'_> {
             self.trace_call_frame();
         }
 
-        loop {
+        'instruction: loop {
             #[cfg(feature = "fuzz")]
             {
                 if self.instructions_remaining == 0 {
@@ -353,22 +401,60 @@ impl Context<'_> {
                 Ok(CompletionType::Normal) => {}
                 Ok(CompletionType::Return) => {
                     self.vm.stack.truncate(self.vm.frame().fp as usize);
-                    let execution_result = std::mem::take(&mut self.vm.return_value);
-                    return CompletionRecord::Normal(execution_result);
+
+                    let result = self.vm.take_return_value();
+                    if self.vm.frame().exit_early {
+                        return CompletionRecord::Normal(result);
+                    }
+
+                    self.vm.push(result);
+                    self.vm.pop_frame();
                 }
                 Ok(CompletionType::Throw) => {
                     self.vm.stack.truncate(self.vm.frame().fp as usize);
-                    return CompletionRecord::Throw(
-                        self.vm
-                            .pending_exception
-                            .take()
-                            .expect("Err must exist for a CompletionType::Throw"),
-                    );
+
+                    if self.vm.frame().exit_early {
+                        return CompletionRecord::Throw(
+                            self.vm
+                                .pending_exception
+                                .take()
+                                .expect("Err must exist for a CompletionType::Throw"),
+                        );
+                    }
+
+                    self.vm.pop_frame();
+
+                    while let Some(frame) = self.vm.frames.last_mut() {
+                        let pc = frame.pc;
+                        let fp = frame.fp;
+                        let exit_early = frame.exit_early;
+
+                        if self.vm.handle_exception_at(pc) {
+                            continue 'instruction;
+                        }
+
+                        if exit_early {
+                            return CompletionRecord::Throw(
+                                self.vm
+                                    .pending_exception
+                                    .take()
+                                    .expect("Err must exist for a CompletionType::Throw"),
+                            );
+                        }
+
+                        self.vm.stack.truncate(fp as usize);
+                        self.vm.pop_frame();
+                    }
                 }
                 // Early return immediately.
                 Ok(CompletionType::Yield) => {
-                    let result = self.vm.pop();
-                    return CompletionRecord::Return(result);
+                    let result = self.vm.take_return_value();
+                    if self.vm.frame().exit_early {
+                        return CompletionRecord::Return(result);
+                    }
+
+                    self.vm.push(result);
+                    self.vm.pop_frame();
                 }
                 Err(err) => {
                     if let Some(native_error) = err.as_native() {
@@ -384,10 +470,19 @@ impl Context<'_> {
                                 return CompletionRecord::Throw(err);
                             }
                             JsNativeErrorKind::RuntimeLimit => {
-                                self.vm
-                                    .environments
-                                    .truncate(self.vm.frame().env_fp as usize);
-                                self.vm.stack.truncate(self.vm.frame().fp as usize);
+                                let mut fp = self.vm.stack.len();
+                                let mut env_fp = self.vm.environments.len();
+                                while let Some(frame) = self.vm.frames.last() {
+                                    if frame.exit_early {
+                                        break;
+                                    }
+
+                                    fp = frame.fp as usize;
+                                    env_fp = frame.env_fp as usize;
+                                    self.vm.pop_frame();
+                                }
+                                self.vm.environments.truncate(env_fp);
+                                self.vm.stack.truncate(fp);
                                 return CompletionRecord::Throw(err);
                             }
                             _ => {}
@@ -401,11 +496,38 @@ impl Context<'_> {
                         continue;
                     }
 
-                    self.vm
-                        .environments
-                        .truncate(self.vm.frame().env_fp as usize);
-                    self.vm.stack.truncate(self.vm.frame().fp as usize);
-                    return CompletionRecord::Throw(err);
+                    if self.vm.frame().exit_early {
+                        self.vm
+                            .environments
+                            .truncate(self.vm.frame().env_fp as usize);
+                        self.vm.stack.truncate(self.vm.frame().fp as usize);
+                        return CompletionRecord::Throw(err);
+                    }
+
+                    // Inject realm before crossing the function boundry
+                    let err = err.inject_realm(self.realm().clone());
+
+                    self.vm.pop_frame();
+
+                    while let Some(frame) = self.vm.frames.last_mut() {
+                        let pc = frame.pc;
+                        let fp = frame.fp;
+                        let env_fp = frame.env_fp;
+                        let exit_early = frame.exit_early;
+
+                        if self.vm.handle_exception_at(pc) {
+                            self.vm.pending_exception = Some(err);
+                            continue 'instruction;
+                        }
+
+                        if exit_early {
+                            return CompletionRecord::Throw(err);
+                        }
+
+                        self.vm.environments.truncate(env_fp as usize);
+                        self.vm.stack.truncate(fp as usize);
+                        self.vm.pop_frame();
+                    }
                 }
             }
         }

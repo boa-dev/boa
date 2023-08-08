@@ -211,40 +211,38 @@ impl JsObject {
 
     /// Internal method `[[Call]]`
     ///
-    /// Call this object if it has a `[[Call]]` internal method.
+    /// The caller must ensure that the following values are pushed on the stack.
+    ///
+    /// Stack: `this, function, arg0, arg1, ..., argN`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
-    #[track_caller]
-    pub(crate) fn __call__(
-        &self,
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        let _timer = Profiler::global().start_event("Object::__call__", "object");
-        (self.vtable().__call__)(self, this, args, context)
+    pub(crate) fn __call__(&self, argument_count: usize) -> CallValue {
+        CallValue::Pending {
+            func: self.vtable().__call__,
+            object: self.clone(),
+            argument_count,
+        }
     }
 
     /// Internal method `[[Construct]]`
     ///
-    /// Construct a new instance of this object if this object has a `[[Construct]]` internal method.
+    /// The caller must ensure that the following values are pushed on the stack.
+    ///
+    /// Stack: `function, arg0, arg1, ..., argN, new.target`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
-    #[track_caller]
-    pub(crate) fn __construct__(
-        &self,
-        args: &[JsValue],
-        new_target: &Self,
-        context: &mut Context<'_>,
-    ) -> JsResult<Self> {
-        let _timer = Profiler::global().start_event("Object::__construct__", "object");
-        (self.vtable().__construct__)(self, args, new_target, context)
+    pub(crate) fn __construct__(&self, argument_count: usize) -> CallValue {
+        CallValue::Pending {
+            func: self.vtable().__construct__,
+            object: self.clone(),
+            argument_count,
+        }
     }
 }
 
@@ -299,9 +297,46 @@ pub(crate) struct InternalObjectMethods {
         fn(&JsObject, PropertyKey, JsValue, JsValue, &mut Context<'_>) -> JsResult<bool>,
     pub(crate) __delete__: fn(&JsObject, &PropertyKey, &mut Context<'_>) -> JsResult<bool>,
     pub(crate) __own_property_keys__: fn(&JsObject, &mut Context<'_>) -> JsResult<Vec<PropertyKey>>,
-    pub(crate) __call__: fn(&JsObject, &JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue>,
+    pub(crate) __call__:
+        fn(&JsObject, argument_count: usize, &mut Context<'_>) -> JsResult<CallValue>,
     pub(crate) __construct__:
-        fn(&JsObject, &[JsValue], &JsObject, &mut Context<'_>) -> JsResult<JsObject>,
+        fn(&JsObject, argument_count: usize, &mut Context<'_>) -> JsResult<CallValue>,
+}
+
+/// The return value of an internal method (`[[Call]]` or `[[Construct]]`).
+///
+/// This is done to avoid recusion.
+pub(crate) enum CallValue {
+    /// Calling is ready, the frames have been setup.
+    ///
+    /// Requires calling [`Context::run()`].
+    Ready,
+
+    /// Further processing is needed.
+    Pending {
+        func: fn(&JsObject, argument_count: usize, &mut Context<'_>) -> JsResult<CallValue>,
+        object: JsObject,
+        argument_count: usize,
+    },
+
+    /// The value has been computed and is the first element on the stack.
+    Complete,
+}
+
+impl CallValue {
+    /// Resolves the [`CallValue`], and return if the value is complete.
+    pub(crate) fn resolve(mut self, context: &mut Context<'_>) -> JsResult<bool> {
+        while let Self::Pending {
+            func,
+            object,
+            argument_count,
+        } = self
+        {
+            self = func(&object, argument_count, context)?;
+        }
+
+        Ok(matches!(self, Self::Complete))
+    }
 }
 
 /// Abstract operation `OrdinaryGetPrototypeOf`.
@@ -913,10 +948,9 @@ where
 
 pub(crate) fn non_existant_call(
     _obj: &JsObject,
-    _this: &JsValue,
-    _args: &[JsValue],
+    _argument_count: usize,
     context: &mut Context<'_>,
-) -> JsResult<JsValue> {
+) -> JsResult<CallValue> {
     Err(JsNativeError::typ()
         .with_message("not a callable function")
         .with_realm(context.realm().clone())
@@ -925,12 +959,11 @@ pub(crate) fn non_existant_call(
 
 pub(crate) fn non_existant_construct(
     _obj: &JsObject,
-    _args: &[JsValue],
-    _new_target: &JsObject,
+    _argument_count: usize,
     context: &mut Context<'_>,
-) -> JsResult<JsObject> {
+) -> JsResult<CallValue> {
     Err(JsNativeError::typ()
-        .with_message("object is not constructable")
+        .with_message("not a constructor")
         .with_realm(context.realm().clone())
         .into())
 }

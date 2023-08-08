@@ -1007,9 +1007,11 @@ impl ByteCompiler<'_, '_> {
         //    a. Perform ? IteratorBindingInitialization of formals with arguments iteratorRecord and undefined.
         // 26. Else,
         //    a. Perform ? IteratorBindingInitialization of formals with arguments iteratorRecord and env.
-        for parameter in formals.as_ref() {
+        for (i, parameter) in formals.as_ref().iter().enumerate() {
             if parameter.is_rest_param() {
                 self.emit_opcode(Opcode::RestParameterInit);
+            } else {
+                self.emit_with_varying_operand(Opcode::GetArgument, i as u32);
             }
             match parameter.variable().binding() {
                 Binding::Identifier(ident) => {
@@ -1029,9 +1031,6 @@ impl ByteCompiler<'_, '_> {
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                 }
             }
-        }
-        if !formals.has_rest_parameter() {
-            self.emit_opcode(Opcode::RestParameterPop);
         }
 
         if generator {

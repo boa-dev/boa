@@ -1402,7 +1402,7 @@ impl SourceTextModule {
         // 2. Assert: All named exports from module are resolvable.
         // 3. Let realm be module.[[Realm]].
         // 4. Assert: realm is not undefined.
-        let mut realm = parent.realm().clone();
+        let realm = parent.realm().clone();
 
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
@@ -1600,22 +1600,23 @@ impl SourceTextModule {
         envs.push_module(env);
 
         // 9. Set the Function of moduleContext to null.
+        // 10. Assert: module.[[Realm]] is not undefined.
+        // 11. Set the Realm of moduleContext to module.[[Realm]].
         // 12. Set the ScriptOrModule of moduleContext to module.
-        let call_frame = CallFrame::new(
-            codeblock.clone(),
-            Some(ActiveRunnable::Module(parent.clone())),
-            None,
-        );
-        context.vm.push_frame(call_frame);
-
         // 13. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 14. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
         // 15. Set the PrivateEnvironment of moduleContext to null.
-        std::mem::swap(&mut context.vm.environments, &mut envs);
+        let call_frame = CallFrame::new(
+            codeblock.clone(),
+            Some(ActiveRunnable::Module(parent.clone())),
+            envs,
+            realm.clone(),
+        );
+        context.vm.push_frame(call_frame);
 
-        // 10. Assert: module.[[Realm]] is not undefined.
-        // 11. Set the Realm of moduleContext to module.[[Realm]].
-        context.swap_realm(&mut realm);
+        context.vm.push(JsValue::undefined()); // Push `this` value.
+        context.vm.push(JsValue::undefined()); // No function object, so push undefined.
+
         // 17. Push moduleContext onto the execution context stack; moduleContext is now the running execution context.
 
         // deferred initialization of import bindings
@@ -1673,15 +1674,14 @@ impl SourceTextModule {
         }
 
         // 25. Remove moduleContext from the execution context stack.
-        context
+        let frame = context
             .vm
             .pop_frame()
             .expect("There should be a call frame");
-        std::mem::swap(&mut context.vm.environments, &mut envs);
-        context.swap_realm(&mut realm);
 
-        debug_assert!(envs.current().as_declarative().is_some());
-        *parent.inner.environment.borrow_mut() = envs.current().as_declarative().cloned();
+        debug_assert!(frame.environments.current().as_declarative().is_some());
+        *parent.inner.environment.borrow_mut() =
+            frame.environments.current().as_declarative().cloned();
 
         // 16. Set module.[[Context]] to moduleContext.
         self.inner
@@ -1692,7 +1692,7 @@ impl SourceTextModule {
                     info,
                     context: SourceTextContext {
                         codeblock,
-                        environments: envs,
+                        environments: frame.environments.clone(),
                         realm,
                     },
                 },
@@ -1716,8 +1716,8 @@ impl SourceTextModule {
         // 1. Let moduleContext be a new ECMAScript code execution context.
         let SourceTextContext {
             codeblock,
-            mut environments,
-            mut realm,
+            environments,
+            realm,
         } = match &*self.inner.status.borrow() {
             Status::Evaluating { context, .. } | Status::EvaluatingAsync { context, .. } => {
                 context.clone()
@@ -1726,21 +1726,26 @@ impl SourceTextModule {
         };
 
         // 2. Set the Function of moduleContext to null.
+        // 3. Set the Realm of moduleContext to module.[[Realm]].
         // 4. Set the ScriptOrModule of moduleContext to module.
-        let env_fp = environments.len() as u32;
-        let mut callframe =
-            CallFrame::new(codeblock, Some(ActiveRunnable::Module(self.parent())), None)
-                .with_env_fp(env_fp);
-        callframe.promise_capability = capability;
-
         // 5. Assert: module has been linked and declarations in its module environment have been instantiated.
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 7. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
-        std::mem::swap(&mut context.vm.environments, &mut environments);
-        // 3. Set the Realm of moduleContext to module.[[Realm]].
-        context.swap_realm(&mut realm);
+        let env_fp = environments.len() as u32;
+        let mut callframe = CallFrame::new(
+            codeblock,
+            Some(ActiveRunnable::Module(self.parent())),
+            environments,
+            realm,
+        )
+        .with_env_fp(env_fp);
+        callframe.promise_capability = capability;
+
         // 8. Suspend the running execution context.
         context.vm.push_frame(callframe);
+
+        context.vm.push(JsValue::undefined()); // Push `this` value.
+        context.vm.push(JsValue::undefined()); // No function object, so push undefined.
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.
@@ -1753,8 +1758,6 @@ impl SourceTextModule {
         //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
         let result = context.run();
 
-        std::mem::swap(&mut context.vm.environments, &mut environments);
-        context.swap_realm(&mut realm);
         context.vm.pop_frame();
 
         //     f. If result is an abrupt completion, then

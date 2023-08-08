@@ -129,10 +129,17 @@ impl Json {
             Gc::new(compiler.finish())
         };
 
+        let realm = context.realm().clone();
+
         let env_fp = context.vm.environments.len() as u32;
-        context
-            .vm
-            .push_frame(CallFrame::new(code_block, None, None).with_env_fp(env_fp));
+        context.vm.push_frame(
+            CallFrame::new(code_block, None, context.vm.environments.clone(), realm)
+                .with_env_fp(env_fp),
+        );
+
+        context.vm.push(JsValue::undefined()); // Push `this` value.
+        context.vm.push(JsValue::undefined()); // No function object, so push undefined.
+
         context.realm().resize_global_env();
         let record = context.run();
         context.vm.pop_frame();

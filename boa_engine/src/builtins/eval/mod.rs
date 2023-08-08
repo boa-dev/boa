@@ -256,9 +256,15 @@ impl Eval {
         }
 
         let env_fp = context.vm.environments.len() as u32;
+        let environments = context.vm.environments.clone();
+        let realm = context.realm().clone();
         context
             .vm
-            .push_frame(CallFrame::new(code_block, None, None).with_env_fp(env_fp));
+            .push_frame(CallFrame::new(code_block, None, environments, realm).with_env_fp(env_fp));
+
+        context.vm.push(JsValue::undefined()); // Push `this` value.
+        context.vm.push(JsValue::undefined()); // No function object, so push undefined.
+
         context.realm().resize_global_env();
 
         let record = context.run();

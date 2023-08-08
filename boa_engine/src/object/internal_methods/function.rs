@@ -1,13 +1,16 @@
 use crate::{
+    builtins::function::{arguments::Arguments, FunctionKind, ThisMode},
     context::intrinsics::StandardConstructors,
+    environments::{FunctionSlots, ThisBindingStatus},
     object::{
         internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
         JsObject, ObjectData, ObjectKind,
     },
+    vm::CallFrame,
     Context, JsNativeError, JsResult, JsValue,
 };
 
-use super::get_prototype_from_constructor;
+use super::{get_prototype_from_constructor, CallValue};
 
 /// Definitions of the internal object methods for function objects.
 ///
@@ -33,13 +36,125 @@ pub(crate) static CONSTRUCTOR_INTERNAL_METHODS: InternalObjectMethods = Internal
 /// Panics if the object is currently mutably borrowed.
 // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
 // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
-fn function_call(
-    obj: &JsObject,
-    this: &JsValue,
-    args: &[JsValue],
+pub(crate) fn function_call(
+    function_object: &JsObject,
+    argument_count: usize,
     context: &mut Context<'_>,
-) -> JsResult<JsValue> {
-    obj.call_internal(this, args, context)
+) -> JsResult<CallValue> {
+    context.check_runtime_limits()?;
+
+    let object = function_object.borrow();
+    let function = object.as_function().expect("not a function");
+    let realm = function.realm().clone();
+
+    if let FunctionKind::Ordinary { .. } = function.kind() {
+        if function.code.is_class_constructor() {
+            return Err(JsNativeError::typ()
+                .with_message("class constructor cannot be invoked without 'new'")
+                .with_realm(realm)
+                .into());
+        }
+    }
+
+    let code = function.code.clone();
+    let environments = function.environments.clone();
+    let script_or_module = function.script_or_module.clone();
+
+    drop(object);
+
+    let env_fp = environments.len() as u32;
+
+    let mut frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+        .with_argument_count(argument_count as u32)
+        .with_env_fp(env_fp);
+
+    frame.exit_early = false;
+
+    context.vm.push_frame(frame);
+
+    let at = context.vm.stack.len() - argument_count;
+
+    context.vm.frame_mut().fp = at as u32 - 2;
+
+    let this = context.vm.stack[at - 2].clone();
+
+    let lexical_this_mode = code.this_mode == ThisMode::Lexical;
+
+    let this = if lexical_this_mode {
+        ThisBindingStatus::Lexical
+    } else if code.strict() {
+        ThisBindingStatus::Initialized(this.clone())
+    } else if this.is_null_or_undefined() {
+        ThisBindingStatus::Initialized(context.realm().global_this().clone().into())
+    } else {
+        ThisBindingStatus::Initialized(
+            this.to_object(context)
+                .expect("conversion cannot fail")
+                .into(),
+        )
+    };
+
+    let mut last_env = 0;
+
+    if code.has_binding_identifier() {
+        let index = context
+            .vm
+            .environments
+            .push_lexical(code.compile_environments[last_env].clone());
+        context
+            .vm
+            .environments
+            .put_lexical_value(index, 0, function_object.clone().into());
+        last_env += 1;
+    }
+
+    context.vm.environments.push_function(
+        code.compile_environments[last_env].clone(),
+        FunctionSlots::new(this, function_object.clone(), None),
+    );
+
+    if code.has_parameters_env_bindings() {
+        last_env += 1;
+        context
+            .vm
+            .environments
+            .push_lexical(code.compile_environments[last_env].clone());
+    }
+
+    // Taken from: `FunctionDeclarationInstantiation` abstract function.
+    //
+    // Spec: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
+    //
+    // 22. If argumentsObjectNeeded is true, then
+    if code.needs_arguments_object() {
+        // a. If strict is true or simpleParameterList is false, then
+        //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+        // b. Else,
+        //     i. NOTE: A mapped argument object is only provided for non-strict functions
+        //              that don't have a rest parameter, any parameter
+        //              default value initializers, or any destructured parameters.
+        //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
+        let args = context.vm.stack[at..].to_vec();
+        let arguments_obj = if code.strict() || !code.params.is_simple() {
+            Arguments::create_unmapped_arguments_object(&args, context)
+        } else {
+            let env = context.vm.environments.current();
+            Arguments::create_mapped_arguments_object(
+                function_object,
+                &code.params,
+                &args,
+                env.declarative_expect(),
+                context,
+            )
+        };
+        let env_index = context.vm.environments.len() as u32 - 1;
+        context
+            .vm
+            .environments
+            .put_lexical_value(env_index, 0, arguments_obj.into());
+    }
+
+    Ok(CallValue::Ready)
 }
 
 /// Construct an instance of this object with the specified arguments.
@@ -49,12 +164,144 @@ fn function_call(
 /// Panics if the object is currently mutably borrowed.
 // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
 fn function_construct(
-    obj: &JsObject,
-    args: &[JsValue],
-    new_target: &JsObject,
+    this_function_object: &JsObject,
+    argument_count: usize,
     context: &mut Context<'_>,
-) -> JsResult<JsObject> {
-    obj.construct_internal(args, &new_target.clone().into(), context)
+) -> JsResult<CallValue> {
+    context.check_runtime_limits()?;
+
+    let object = this_function_object.borrow();
+    let function = object.as_function().expect("not a function");
+    let realm = function.realm().clone();
+
+    let FunctionKind::Ordinary {
+        constructor_kind, ..
+    } = function.kind()
+    else {
+        unreachable!("not a constructor")
+    };
+
+    let code = function.code.clone();
+    let environments = function.environments.clone();
+    let script_or_module = function.script_or_module.clone();
+    let constructor_kind = *constructor_kind;
+    drop(object);
+
+    let env_fp = environments.len() as u32;
+
+    let new_target = context.vm.pop();
+
+    let at = context.vm.stack.len() - argument_count;
+
+    let this = if constructor_kind.is_base() {
+        // If the prototype of the constructor is not an object, then use the default object
+        // prototype as prototype for the new object
+        // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
+        // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
+        let prototype =
+            get_prototype_from_constructor(&new_target, StandardConstructors::object, context)?;
+        let this = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::ordinary(),
+        );
+
+        this.initialize_instance_elements(this_function_object, context)?;
+
+        Some(this)
+    } else {
+        None
+    };
+
+    let mut frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+        .with_argument_count(argument_count as u32)
+        .with_env_fp(env_fp);
+
+    frame.exit_early = false;
+    frame.construct = true;
+
+    context.vm.push_frame(frame);
+
+    context.vm.frame_mut().fp = at as u32 - 1;
+
+    let mut last_env = 0;
+
+    if code.has_binding_identifier() {
+        let index = context
+            .vm
+            .environments
+            .push_lexical(code.compile_environments[last_env].clone());
+        context
+            .vm
+            .environments
+            .put_lexical_value(index, 0, this_function_object.clone().into());
+        last_env += 1;
+    }
+
+    context.vm.environments.push_function(
+        code.compile_environments[last_env].clone(),
+        FunctionSlots::new(
+            this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
+                ThisBindingStatus::Initialized(o.into())
+            }),
+            this_function_object.clone(),
+            Some(
+                new_target
+                    .as_object()
+                    .expect("new.target should be an object")
+                    .clone(),
+            ),
+        ),
+    );
+
+    if code.has_parameters_env_bindings() {
+        last_env += 1;
+        context
+            .vm
+            .environments
+            .push_lexical(code.compile_environments[last_env].clone());
+    }
+
+    // Taken from: `FunctionDeclarationInstantiation` abstract function.
+    //
+    // Spec: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
+    //
+    // 22. If argumentsObjectNeeded is true, then
+    if code.needs_arguments_object() {
+        // a. If strict is true or simpleParameterList is false, then
+        //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+        // b. Else,
+        //     i. NOTE: A mapped argument object is only provided for non-strict functions
+        //              that don't have a rest parameter, any parameter
+        //              default value initializers, or any destructured parameters.
+        //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
+        let args = context.vm.stack[at..].to_vec();
+        let arguments_obj = if code.strict() || !code.params.is_simple() {
+            Arguments::create_unmapped_arguments_object(&args, context)
+        } else {
+            let env = context.vm.environments.current();
+            Arguments::create_mapped_arguments_object(
+                this_function_object,
+                &code.params,
+                &args,
+                env.declarative_expect(),
+                context,
+            )
+        };
+        let env_index = context.vm.environments.len() as u32 - 1;
+        context
+            .vm
+            .environments
+            .put_lexical_value(env_index, 0, arguments_obj.into());
+    }
+
+    // Insert `this` value
+    context
+        .vm
+        .stack
+        .insert(at - 1, this.map(JsValue::new).unwrap_or_default());
+
+    Ok(CallValue::Ready)
 }
 
 /// Definitions of the internal object methods for native function objects.
@@ -81,13 +328,15 @@ pub(crate) static NATIVE_CONSTRUCTOR_INTERNAL_METHODS: InternalObjectMethods =
 ///
 /// Panics if the object is currently mutably borrowed.
 // <https://tc39.es/ecma262/#sec-built-in-function-objects-call-thisargument-argumentslist>
-#[track_caller]
 pub(crate) fn native_function_call(
     obj: &JsObject,
-    this: &JsValue,
-    args: &[JsValue],
+    argument_count: usize,
     context: &mut Context<'_>,
-) -> JsResult<JsValue> {
+) -> JsResult<CallValue> {
+    let args = context.vm.pop_n_values(argument_count);
+    let _func = context.vm.pop();
+    let this = context.vm.pop();
+
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
     context.check_runtime_limits()?;
@@ -112,16 +361,18 @@ pub(crate) fn native_function_call(
     context.vm.native_active_function = Some(this_function_object);
 
     let result = if constructor.is_some() {
-        function.call(&JsValue::undefined(), args, context)
+        function.call(&JsValue::undefined(), &args, context)
     } else {
-        function.call(this, args, context)
+        function.call(&this, &args, context)
     }
     .map_err(|err| err.inject_realm(context.realm().clone()));
 
     context.vm.native_active_function = None;
     context.swap_realm(&mut realm);
 
-    result
+    context.vm.push(result?);
+
+    Ok(CallValue::Complete)
 }
 
 /// Construct an instance of this object with the specified arguments.
@@ -130,13 +381,11 @@ pub(crate) fn native_function_call(
 ///
 /// Panics if the object is currently mutably borrowed.
 // <https://tc39.es/ecma262/#sec-built-in-function-objects-construct-argumentslist-newtarget>
-#[track_caller]
 fn native_function_construct(
     obj: &JsObject,
-    args: &[JsValue],
-    new_target: &JsObject,
+    argument_count: usize,
     context: &mut Context<'_>,
-) -> JsResult<JsObject> {
+) -> JsResult<CallValue> {
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
     context.check_runtime_limits()?;
@@ -160,9 +409,12 @@ fn native_function_construct(
     context.swap_realm(&mut realm);
     context.vm.native_active_function = Some(this_function_object);
 
-    let new_target = new_target.clone().into();
+    let new_target = context.vm.pop();
+    let args = context.vm.pop_n_values(argument_count);
+    let _func = context.vm.pop();
+
     let result = function
-        .call(&new_target, args, context)
+        .call(&new_target, &args, context)
         .map_err(|err| err.inject_realm(context.realm().clone()))
         .and_then(|v| match v {
             JsValue::Object(ref o) => Ok(o.clone()),
@@ -189,5 +441,7 @@ fn native_function_construct(
     context.vm.native_active_function = None;
     context.swap_realm(&mut realm);
 
-    result
+    context.vm.push(result?);
+
+    Ok(CallValue::Complete)
 }

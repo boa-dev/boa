@@ -9,7 +9,7 @@ use crate::{
 };
 use rustc_hash::FxHashSet;
 
-use super::ORDINARY_INTERNAL_METHODS;
+use super::{CallValue, ORDINARY_INTERNAL_METHODS};
 
 /// Definitions of the internal object methods for array exotic objects.
 ///
@@ -922,10 +922,9 @@ pub(crate) fn proxy_exotic_own_property_keys(
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist
 fn proxy_exotic_call(
     obj: &JsObject,
-    this: &JsValue,
-    args: &[JsValue],
+    argument_count: usize,
     context: &mut Context<'_>,
-) -> JsResult<JsValue> {
+) -> JsResult<CallValue> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
@@ -940,18 +939,25 @@ fn proxy_exotic_call(
     let Some(trap) = handler.get_method(utf16!("apply"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? Call(target, thisArgument, argumentsList).
-        return target.call(this, args, context);
+        return Ok(target.__call__(argument_count));
     };
 
+    let args = context.vm.pop_n_values(argument_count);
+
     // 7. Let argArray be ! CreateArrayFromList(argumentsList).
-    let arg_array = array::Array::create_array_from_list(args.to_vec(), context);
+    let arg_array = array::Array::create_array_from_list(args, context);
 
     // 8. Return ? Call(trap, handler, « target, thisArgument, argArray »).
-    trap.call(
-        &handler.into(),
-        &[target.clone().into(), this.clone(), arg_array.into()],
-        context,
-    )
+    let _func = context.vm.pop();
+    let this = context.vm.pop();
+
+    context.vm.push(handler); // This
+    context.vm.push(trap.clone()); // Function
+
+    context.vm.push(target);
+    context.vm.push(this);
+    context.vm.push(arg_array);
+    Ok(trap.__call__(3))
 }
 
 /// `[[Construct]] ( argumentsList, newTarget )`
@@ -962,10 +968,9 @@ fn proxy_exotic_call(
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget
 fn proxy_exotic_construct(
     obj: &JsObject,
-    args: &[JsValue],
-    new_target: &JsObject,
+    argument_count: usize,
     context: &mut Context<'_>,
-) -> JsResult<JsObject> {
+) -> JsResult<CallValue> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
@@ -983,20 +988,20 @@ fn proxy_exotic_construct(
     let Some(trap) = handler.get_method(utf16!("construct"), context)? else {
         // 7. If trap is undefined, then
         // a. Return ? Construct(target, argumentsList, newTarget).
-        return target.construct(args, Some(new_target), context);
+        return Ok(target.__construct__(argument_count));
     };
 
+    let new_target = context.vm.pop();
+    let args = context.vm.pop_n_values(argument_count);
+    let _func = context.vm.pop();
+
     // 8. Let argArray be ! CreateArrayFromList(argumentsList).
-    let arg_array = array::Array::create_array_from_list(args.to_vec(), context);
+    let arg_array = array::Array::create_array_from_list(args, context);
 
     // 9. Let newObj be ? Call(trap, handler, « target, argArray, newTarget »).
     let new_obj = trap.call(
         &handler.into(),
-        &[
-            target.clone().into(),
-            arg_array.into(),
-            new_target.clone().into(),
-        ],
+        &[target.into(), arg_array.into(), new_target],
         context,
     )?;
 
@@ -1006,5 +1011,6 @@ fn proxy_exotic_construct(
     })?;
 
     // 11. Return newObj.
-    Ok(new_obj)
+    context.vm.push(new_obj);
+    Ok(CallValue::Complete)
 }

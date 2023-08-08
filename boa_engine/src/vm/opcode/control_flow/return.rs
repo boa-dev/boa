@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsNativeError, JsResult,
 };
 
 /// `Return` implements the Opcode Operation for `Opcode::Return`
@@ -16,6 +16,57 @@ impl Operation for Return {
 
     fn execute(_context: &mut Context<'_>) -> JsResult<CompletionType> {
         Ok(CompletionType::Return)
+    }
+}
+
+/// `CheckReturn` implements the Opcode Operation for `Opcode::CheckReturn`
+///
+/// Operation:
+///  - Check return from a function.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CheckReturn;
+
+impl Operation for CheckReturn {
+    const NAME: &'static str = "CheckReturn";
+    const INSTRUCTION: &'static str = "INST - CheckReturn";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        if !context.vm.frame().construct {
+            return Ok(CompletionType::Normal);
+        }
+        let frame = context.vm.frame();
+        let this = frame.this(&context.vm);
+        let result = context.vm.take_return_value();
+
+        let result = if result.is_object() {
+            result
+        } else if !this.is_undefined() {
+            this
+        } else if !result.is_undefined() {
+            let realm = context.vm.frame().realm.clone();
+            context.vm.pending_exception = Some(
+                JsNativeError::typ()
+                    .with_message("derived constructor can only return an Object or undefined")
+                    .with_realm(realm)
+                    .into(),
+            );
+            return Ok(CompletionType::Throw);
+        } else {
+            let realm = context.vm.frame().realm.clone();
+            let this = context.vm.environments.get_this_binding();
+
+            match this {
+                Err(err) => {
+                    let err = err.inject_realm(realm);
+                    context.vm.pending_exception = Some(err);
+                    return Ok(CompletionType::Throw);
+                }
+                Ok(this) => this,
+            }
+        };
+
+        context.vm.set_return_value(result);
+        Ok(CompletionType::Normal)
     }
 }
 

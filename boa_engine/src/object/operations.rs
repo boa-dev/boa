@@ -319,12 +319,29 @@ impl JsObject {
     ) -> JsResult<JsValue> {
         // SKIP: 1. If argumentsList is not present, set argumentsList to a new empty List.
         // SKIP: 2. If IsCallable(F) is false, throw a TypeError exception.
-
         // NOTE(HalidOdat): For object's that are not callable we implement a special __call__ internal method
         //                  that throws on call.
 
+        context.vm.push(this.clone()); // this
+        context.vm.push(self.clone()); // func
+        let argument_count = args.len();
+        context.vm.push_values(args);
+
         // 3. Return ? F.[[Call]](V, argumentsList).
-        self.__call__(this, args, context)
+        let frame_index = context.vm.frames.len();
+        let is_complete = self.__call__(argument_count).resolve(context)?;
+
+        if is_complete {
+            return Ok(context.vm.pop());
+        }
+
+        context.vm.frames[frame_index].exit_early = true;
+
+        let result = context.run().consume();
+
+        context.vm.pop_frame().expect("frame must exist");
+
+        result
     }
 
     /// `Construct ( F [ , argumentsList [ , newTarget ] ] )`
@@ -349,9 +366,32 @@ impl JsObject {
     ) -> JsResult<Self> {
         // 1. If newTarget is not present, set newTarget to F.
         let new_target = new_target.unwrap_or(self);
+
+        context.vm.push(self.clone()); // func
+        let argument_count = args.len();
+        context.vm.push_values(args);
+        context.vm.push(new_target.clone());
+
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
         // 3. Return ? F.[[Construct]](argumentsList, newTarget).
-        self.__construct__(args, new_target, context)
+        let frame_index = context.vm.frames.len();
+        let is_complete = self.__construct__(argument_count).resolve(context)?;
+
+        if is_complete {
+            let result = context.vm.pop();
+            return Ok(result
+                .as_object()
+                .expect("construct value should be an object")
+                .clone());
+        }
+
+        context.vm.frames[frame_index].exit_early = true;
+
+        let result = context.run().consume();
+
+        context.vm.pop_frame().expect("frame must exist");
+
+        Ok(result?.as_object().expect("should be an object").clone())
     }
 
     /// Make the object [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].
@@ -1168,7 +1208,7 @@ impl JsValue {
                 .into());
         };
 
-        object.__call__(this, args, context)
+        object.call(this, args, context)
     }
 
     /// Abstract operation `( V, P [ , argumentsList ] )`

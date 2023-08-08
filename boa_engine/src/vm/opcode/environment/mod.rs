@@ -80,23 +80,14 @@ impl Operation for SuperCallPrepare {
             .get_this_environment()
             .as_function()
             .expect("super call must be in function environment");
-        let new_target = this_env
-            .slots()
-            .new_target()
-            .expect("must have new target")
-            .clone();
         let active_function = this_env.slots().function_object().clone();
         let super_constructor = active_function
             .__get_prototype_of__(context)
             .expect("function object must have prototype");
 
-        if let Some(constructor) = super_constructor {
-            context.vm.push(constructor);
-        } else {
-            context.vm.push(JsValue::Null);
-        }
-        context.vm.push(new_target);
-
+        context
+            .vm
+            .push(super_constructor.map_or_else(JsValue::null, JsValue::from));
         Ok(CompletionType::Normal)
     }
 }
@@ -110,26 +101,13 @@ pub(crate) struct SuperCall;
 
 impl SuperCall {
     fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
-        let mut arguments = Vec::with_capacity(argument_count);
-        for _ in 0..argument_count {
-            arguments.push(context.vm.pop());
-        }
-        arguments.reverse();
-
-        let new_target_value = context.vm.pop();
-        let super_constructor = context.vm.pop();
-
-        let new_target = new_target_value
-            .as_object()
-            .expect("new target must be object");
-
+        let super_constructor_index = context.vm.stack.len() - argument_count - 1;
+        let super_constructor = context.vm.stack[super_constructor_index].clone();
         let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
                 .with_message("super constructor object must be constructor")
                 .into());
         };
-
-        let result = super_constructor.__construct__(&arguments, new_target, context)?;
 
         let this_env = context
             .vm
@@ -138,12 +116,17 @@ impl SuperCall {
             .as_function()
             .expect("super call must be in function environment");
 
-        this_env.bind_this_value(result.clone())?;
-        let function_object = this_env.slots().function_object().clone();
+        let new_target = this_env
+            .slots()
+            .new_target()
+            .expect("must have new.target")
+            .clone();
 
-        result.initialize_instance_elements(&function_object, context)?;
+        context.vm.push(new_target);
 
-        context.vm.push(result);
+        super_constructor
+            .__construct__(argument_count)
+            .resolve(context)?;
         Ok(CompletionType::Normal)
     }
 }
@@ -176,8 +159,8 @@ impl Operation for SuperCall {
 pub(crate) struct SuperCallSpread;
 
 impl Operation for SuperCallSpread {
-    const NAME: &'static str = "SuperCallWithRest";
-    const INSTRUCTION: &'static str = "INST - SuperCallWithRest";
+    const NAME: &'static str = "SuperCallSpread";
+    const INSTRUCTION: &'static str = "INST - SuperCallSpread";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
@@ -192,12 +175,7 @@ impl Operation for SuperCallSpread {
             .expect("arguments array in call spread function must be dense")
             .clone();
 
-        let new_target_value = context.vm.pop();
         let super_constructor = context.vm.pop();
-
-        let new_target = new_target_value
-            .as_object()
-            .expect("new target must be object");
 
         let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
@@ -205,7 +183,9 @@ impl Operation for SuperCallSpread {
                 .into());
         };
 
-        let result = super_constructor.__construct__(&arguments, new_target, context)?;
+        context.vm.push(super_constructor.clone());
+
+        context.vm.push_values(&arguments);
 
         let this_env = context
             .vm
@@ -214,12 +194,17 @@ impl Operation for SuperCallSpread {
             .as_function()
             .expect("super call must be in function environment");
 
-        this_env.bind_this_value(result.clone())?;
-        let function_object = this_env.slots().function_object().clone();
+        let new_target = this_env
+            .slots()
+            .new_target()
+            .expect("must have new.target")
+            .clone();
 
-        result.initialize_instance_elements(&function_object, context)?;
+        context.vm.push(new_target);
 
-        context.vm.push(result);
+        super_constructor
+            .__construct__(arguments.len())
+            .resolve(context)?;
         Ok(CompletionType::Normal)
     }
 }
@@ -236,11 +221,7 @@ impl Operation for SuperCallDerived {
     const INSTRUCTION: &'static str = "INST - SuperCallDerived";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let argument_count = context.vm.frame().argument_count;
-        let mut arguments = Vec::with_capacity(argument_count as usize);
-        for _ in 0..argument_count {
-            arguments.push(context.vm.pop());
-        }
+        let argument_count = context.vm.frame().argument_count as usize;
 
         let this_env = context
             .vm
@@ -265,8 +246,45 @@ impl Operation for SuperCallDerived {
                 .into());
         }
 
-        let result = super_constructor.__construct__(&arguments, &new_target, context)?;
+        let arguments_start_index = context.vm.stack.len() - argument_count;
+        context
+            .vm
+            .stack
+            .insert(arguments_start_index, super_constructor.clone().into());
 
+        context.vm.push(new_target);
+
+        super_constructor
+            .__construct__(argument_count)
+            .resolve(context)?;
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `BindThisValue` implements the Opcode Operation for `Opcode::BindThisValue`
+///
+/// Operation:
+///  - Binds `this` value and initializes the instance elements.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct BindThisValue;
+
+impl Operation for BindThisValue {
+    const NAME: &'static str = "BindThisValue";
+    const INSTRUCTION: &'static str = "INST - BindThisValue";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        // Taken from `SuperCall : super Arguments` steps 7-12.
+        //
+        // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>
+
+        let result = context
+            .vm
+            .pop()
+            .as_object()
+            .expect("construct result should be an object")
+            .clone();
+
+        // 7. Let thisER be GetThisEnvironment().
         let this_env = context
             .vm
             .environments
@@ -274,10 +292,17 @@ impl Operation for SuperCallDerived {
             .as_function()
             .expect("super call must be in function environment");
 
+        // 8. Perform ? thisER.BindThisValue(result).
         this_env.bind_this_value(result.clone())?;
 
+        // 9. Let F be thisER.[[FunctionObject]].
+        // SKIP: 10. Assert: F is an ECMAScript function object.
+        let active_function = this_env.slots().function_object().clone();
+
+        // 11. Perform ? InitializeInstanceElements(result, F).
         result.initialize_instance_elements(&active_function, context)?;
 
+        // 12. Return result.
         context.vm.push(result);
         Ok(CompletionType::Normal)
     }

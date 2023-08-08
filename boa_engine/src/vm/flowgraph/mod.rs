@@ -207,7 +207,8 @@ impl CodeBlock {
                 | Instruction::Call { .. }
                 | Instruction::New { .. }
                 | Instruction::SuperCall { .. }
-                | Instruction::ConcatToString { .. } => {
+                | Instruction::ConcatToString { .. }
+                | Instruction::GetArgument { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -425,7 +426,6 @@ impl CodeBlock {
                 | Instruction::RequireObjectCoercible
                 | Instruction::ValueNotNullOrUndefined
                 | Instruction::RestParameterInit
-                | Instruction::RestParameterPop
                 | Instruction::PushValueToArray
                 | Instruction::PushElisionToArray
                 | Instruction::PushIteratorToArray
@@ -456,6 +456,8 @@ impl CodeBlock {
                 | Instruction::SetReturnValue
                 | Instruction::Exception
                 | Instruction::MaybeException
+                | Instruction::CheckReturn
+                | Instruction::BindThisValue
                 | Instruction::Nop => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
@@ -520,9 +522,7 @@ impl CodeBlock {
                 | Instruction::Reserved53
                 | Instruction::Reserved54
                 | Instruction::Reserved55
-                | Instruction::Reserved56
-                | Instruction::Reserved57
-                | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved56 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

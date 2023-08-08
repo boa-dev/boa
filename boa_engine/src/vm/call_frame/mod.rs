@@ -4,15 +4,16 @@
 
 use crate::{
     builtins::{iterable::IteratorRecord, promise::PromiseCapability},
-    environments::BindingLocator,
+    environments::{BindingLocator, EnvironmentStack},
     object::JsObject,
+    realm::Realm,
     vm::CodeBlock,
     JsValue,
 };
 use boa_gc::{Finalize, Gc, Trace};
 use thin_vec::ThinVec;
 
-use super::ActiveRunnable;
+use super::{ActiveRunnable, Vm};
 
 /// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
@@ -42,7 +43,12 @@ pub struct CallFrame {
     /// \[\[ScriptOrModule\]\]
     pub(crate) active_runnable: Option<ActiveRunnable>,
 
-    pub(crate) active_function: Option<JsObject>,
+    pub(crate) environments: EnvironmentStack,
+
+    pub(crate) realm: Realm,
+
+    pub(crate) exit_early: bool,
+    pub(crate) construct: bool,
 }
 
 /// ---- `CallFrame` public API ----
@@ -57,11 +63,15 @@ impl CallFrame {
 
 /// ---- `CallFrame` creation methods ----
 impl CallFrame {
+    pub(crate) const THIS_POSITION: u32 = 0;
+    pub(crate) const FUNCTION_POSITION: u32 = 1;
+
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
         code_block: Gc<CodeBlock>,
         active_runnable: Option<ActiveRunnable>,
-        active_function: Option<JsObject>,
+        environments: EnvironmentStack,
+        realm: Realm,
     ) -> Self {
         Self {
             code_block,
@@ -75,7 +85,10 @@ impl CallFrame {
             binding_stack: Vec::new(),
             loop_iteration_count: 0,
             active_runnable,
-            active_function,
+            environments,
+            realm,
+            exit_early: true,
+            construct: false,
         }
     }
 
@@ -89,6 +102,20 @@ impl CallFrame {
     pub(crate) fn with_env_fp(mut self, env_fp: u32) -> Self {
         self.env_fp = env_fp;
         self
+    }
+
+    pub(crate) fn this(&self, vm: &Vm) -> JsValue {
+        let this_index = self.fp + Self::THIS_POSITION;
+        vm.stack[this_index as usize].clone()
+    }
+
+    pub(crate) fn function(&self, vm: &Vm) -> Option<JsObject> {
+        let function_index = self.fp + Self::FUNCTION_POSITION;
+        if let Some(object) = vm.stack[function_index as usize].as_object() {
+            return Some(object.clone());
+        }
+
+        None
     }
 }
 

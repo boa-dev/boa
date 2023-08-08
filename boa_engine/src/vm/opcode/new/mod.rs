@@ -13,23 +13,17 @@ pub(crate) struct New;
 
 impl New {
     fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
-        let mut arguments = Vec::with_capacity(argument_count);
-        for _ in 0..argument_count {
-            arguments.push(context.vm.pop());
-        }
-        arguments.reverse();
-        let func = context.vm.pop();
+        let at = context.vm.stack.len() - argument_count;
+        let func = &context.vm.stack[at - 1];
 
-        let result = func
-            .as_constructor()
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("not a constructor")
-                    .into()
-            })
-            .and_then(|cons| cons.__construct__(&arguments, cons, context))?;
+        let cons = func
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("not a constructor"))?
+            .clone();
 
-        context.vm.push(result);
+        context.vm.push(cons.clone()); // Push new.target
+
+        cons.__construct__(argument_count).resolve(context)?;
         Ok(CompletionType::Normal)
     }
 }
@@ -80,16 +74,17 @@ impl Operation for NewSpread {
 
         let func = context.vm.pop();
 
-        let result = func
-            .as_constructor()
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("not a constructor")
-                    .into()
-            })
-            .and_then(|cons| cons.__construct__(&arguments, cons, context))?;
+        let cons = func
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("not a constructor"))?
+            .clone();
 
-        context.vm.push(result);
+        let argument_count = arguments.len();
+        context.vm.push(func);
+        context.vm.push_values(&arguments);
+        context.vm.push(cons.clone()); // Push new.target
+
+        cons.__construct__(argument_count).resolve(context)?;
         Ok(CompletionType::Normal)
     }
 }
