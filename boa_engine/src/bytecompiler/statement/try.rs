@@ -5,7 +5,8 @@ use crate::{
 use boa_ast::{
     declaration::Binding,
     operations::bound_names,
-    statement::{Catch, Finally, Try},
+    statement::{Block, Catch, Finally, Try},
+    Statement, StatementListItem,
 };
 
 impl ByteCompiler<'_, '_> {
@@ -130,7 +131,7 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::Pop);
         }
 
-        self.compile_block(catch.block(), use_expr);
+        self.compile_catch_finally_block(catch.block(), use_expr);
 
         let env_index = self.pop_compile_environment();
         self.patch_jump_with_target(push_env, env_index);
@@ -141,7 +142,7 @@ impl ByteCompiler<'_, '_> {
         // TODO: We could probably remove the Get/SetReturnValue if we check that there is no break/continues statements.
         self.current_stack_value_count += 1;
         self.emit_opcode(Opcode::GetReturnValue);
-        self.compile_block(finally.block(), true);
+        self.compile_catch_finally_block(finally.block(), true);
         self.emit_opcode(Opcode::SetReturnValue);
         self.current_stack_value_count -= 1;
 
@@ -161,5 +162,37 @@ impl ByteCompiler<'_, '_> {
         }
 
         self.patch_jump(do_not_throw_exit);
+    }
+
+    /// Compile a catch or finally block.
+    ///
+    /// If the block contains a break or continue as the first statement,
+    /// the return value is set to undefined.
+    /// See the [ECMAScript reference][spec] for more information.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-try-statement-runtime-semantics-evaluation
+    fn compile_catch_finally_block(&mut self, block: &Block, use_expr: bool) {
+        let mut b = block;
+
+        'outer: loop {
+            match b.statement_list().first() {
+                Some(StatementListItem::Statement(
+                    Statement::Break(_) | Statement::Continue(_),
+                )) => {
+                    self.emit_opcode(Opcode::PushUndefined);
+                    self.emit_opcode(Opcode::SetReturnValue);
+                    break 'outer;
+                }
+                Some(StatementListItem::Statement(Statement::Block(block))) => {
+                    b = block;
+                    continue 'outer;
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
+
+        self.compile_block(block, use_expr);
     }
 }

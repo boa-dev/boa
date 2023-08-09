@@ -843,15 +843,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     /// Compile a [`StatementList`].
     pub fn compile_statement_list(&mut self, list: &StatementList, use_expr: bool, block: bool) {
         if use_expr || self.jump_control_info_has_use_expr() {
-            let mut has_returns_value = false;
             let mut use_expr_index = 0;
-            let mut first_return_is_abrupt = false;
             for (i, statement) in list.statements().iter().enumerate() {
                 match statement {
                     StatementListItem::Statement(Statement::Break(_) | Statement::Continue(_)) => {
-                        if !has_returns_value {
-                            first_return_is_abrupt = true;
-                        }
                         break;
                     }
                     StatementListItem::Statement(Statement::Empty | Statement::Var(_))
@@ -859,15 +854,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     StatementListItem::Statement(Statement::Block(block))
                         if !returns_value(block) => {}
                     StatementListItem::Statement(_) => {
-                        has_returns_value = true;
                         use_expr_index = i;
                     }
                 }
-            }
-
-            if first_return_is_abrupt {
-                self.emit_opcode(Opcode::PushUndefined);
-                self.emit_opcode(Opcode::SetReturnValue);
             }
 
             for (i, item) in list.statements().iter().enumerate() {
