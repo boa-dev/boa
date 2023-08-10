@@ -21,6 +21,7 @@ use ast::operations::bound_names;
 use boa_ast::{self as ast, declaration::Variable, pattern::Pattern, Keyword, Punctuator};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
+use rustc_hash::FxHashSet;
 use std::io::Read;
 
 /// Parses a lexical declaration.
@@ -97,6 +98,25 @@ where
 
         if !self.loop_init {
             cursor.expect_semicolon("lexical declaration", interner)?;
+        }
+
+        // It is a Syntax Error if the BoundNames of BindingList contains "let".
+        // It is a Syntax Error if the BoundNames of BindingList contains any duplicate entries.
+        let bound_names = bound_names(&lexical_declaration);
+        let mut names = FxHashSet::default();
+        for name in bound_names {
+            if name.sym() == Sym::LET {
+                return Err(Error::general(
+                    "'let' is disallowed as a lexically bound name",
+                    tok.span().start(),
+                ));
+            }
+            if !names.insert(name) {
+                return Err(Error::general(
+                    "lexical name declared multiple times",
+                    tok.span().start(),
+                ));
+            }
         }
 
         Ok(lexical_declaration)
