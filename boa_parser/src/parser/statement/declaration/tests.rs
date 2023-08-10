@@ -349,3 +349,14 @@ fn multiple_const_declaration() {
         interner,
     );
 }
+
+/// Checks `LexicalDeclaration` early errors.
+#[test]
+fn lexical_declaration_early_errors() {
+    check_invalid_script("let let = 0");
+    check_invalid_script("let a = 0, a = 0");
+    check_invalid_script("const a = 0, a = 0");
+    check_invalid_script("for (let let = 0; ; ) {}");
+    check_invalid_script("for (let a = 0, a = 0; ; ) {}");
+    check_invalid_script("for (const a = 0, a = 0; ; ) {}");
+}
