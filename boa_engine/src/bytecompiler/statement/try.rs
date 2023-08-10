@@ -174,18 +174,17 @@ impl ByteCompiler<'_, '_> {
     fn compile_catch_finally_block(&mut self, block: &Block, use_expr: bool) {
         let mut b = block;
 
-        'outer: loop {
+        loop {
             match b.statement_list().first() {
                 Some(StatementListItem::Statement(
                     Statement::Break(_) | Statement::Continue(_),
                 )) => {
                     self.emit_opcode(Opcode::PushUndefined);
                     self.emit_opcode(Opcode::SetReturnValue);
-                    break 'outer;
+                    break;
                 }
                 Some(StatementListItem::Statement(Statement::Block(block))) => {
                     b = block;
-                    continue 'outer;
                 }
                 _ => {
                     break;
