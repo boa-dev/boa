@@ -36,11 +36,6 @@ pub struct CallFrame {
 
     /// How many iterations a loop has done.
     pub(crate) loop_iteration_count: u64,
-
-    /// The value that is returned from the function.
-    //
-    // TODO(HalidOdat): Remove this and put into the stack, maybe before frame pointer.
-    pub(crate) return_value: JsValue,
 }
 
 /// ---- `CallFrame` public API ----
@@ -68,7 +63,6 @@ impl CallFrame {
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
             loop_iteration_count: 0,
-            return_value: JsValue::undefined(),
         }
     }
 

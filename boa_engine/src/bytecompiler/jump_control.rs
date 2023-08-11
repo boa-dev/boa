@@ -66,7 +66,7 @@ pub(crate) enum JumpRecordAction {
 pub(crate) enum JumpRecordKind {
     Break,
     Continue,
-    Return,
+    Return { return_value_on_stack: bool },
 }
 
 /// This represents a local control flow handling. See [`JumpRecordKind`] for types.
@@ -122,7 +122,13 @@ impl JumpRecord {
         match self.kind {
             JumpRecordKind::Break => compiler.patch_jump(self.label),
             JumpRecordKind::Continue => compiler.patch_jump_with_target(self.label, start_address),
-            JumpRecordKind::Return => {
+            JumpRecordKind::Return {
+                return_value_on_stack,
+            } => {
+                if return_value_on_stack {
+                    compiler.emit_opcode(Opcode::SetReturnValue);
+                }
+
                 match (compiler.in_async(), compiler.in_generator()) {
                     // Taken from:
                     //  - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): https://tc39.es/ecma262/#sec-asyncgeneratorstart
@@ -137,6 +143,7 @@ impl JumpRecord {
                     (true, false) => compiler.emit_opcode(Opcode::CompletePromiseCapability),
                     (_, _) => {}
                 }
+
                 compiler.emit_opcode(Opcode::Return);
             }
         }

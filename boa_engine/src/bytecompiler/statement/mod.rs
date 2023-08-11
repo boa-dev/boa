@@ -72,9 +72,8 @@ impl ByteCompiler<'_, '_> {
                 } else {
                     self.emit_opcode(Opcode::PushUndefined);
                 }
-                self.emit_opcode(Opcode::SetReturnValue);
 
-                self.r#return();
+                self.r#return(true);
             }
             Statement::Try(t) => self.compile_try(t, use_expr),
             Statement::Expression(expr) => {
@@ -88,10 +87,16 @@ impl ByteCompiler<'_, '_> {
         }
     }
 
-    pub(crate) fn r#return(&mut self) {
+    pub(crate) fn r#return(&mut self, return_value_on_stack: bool) {
         let actions = self.return_jump_record_actions();
 
-        JumpRecord::new(JumpRecordKind::Return, actions).perform_actions(Self::DUMMY_ADDRESS, self);
+        JumpRecord::new(
+            JumpRecordKind::Return {
+                return_value_on_stack,
+            },
+            actions,
+        )
+        .perform_actions(Self::DUMMY_ADDRESS, self);
     }
 
     fn return_jump_record_actions(&self) -> Vec<JumpRecordAction> {

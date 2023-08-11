@@ -159,6 +159,7 @@ impl FunctionCompiler {
         // Note: We do handle exceptions thrown by generator body in `AsyncGeneratorStart`.
         if compiler.in_generator() {
             assert!(compiler.async_handler.is_none());
+
             if compiler.in_async() {
                 // Patched in `ByteCompiler::finish()`.
                 compiler.async_handler = Some(compiler.push_handler());

@@ -204,8 +204,7 @@ impl ByteCompiler<'_, '_> {
                     }
                     self.close_active_iterators();
 
-                    self.emit_opcode(Opcode::SetReturnValue);
-                    self.r#return();
+                    self.r#return(true);
 
                     self.patch_jump(throw_method_undefined);
                     self.iterator_close(self.in_async());

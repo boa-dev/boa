@@ -85,13 +85,18 @@ impl GeneratorContext {
 
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &mut Context<'_>) -> Self {
-        Self {
+        let fp = context.vm.frame().fp as usize;
+        let this = Self {
             environments: context.vm.environments.clone(),
             call_frame: Some(context.vm.frame().clone()),
-            stack: context.vm.stack.clone(),
+            stack: context.vm.stack[fp..].to_vec(),
             active_function: context.vm.active_function.clone(),
             realm: context.realm().clone(),
-        }
+        };
+
+        context.vm.stack.truncate(fp);
+
+        this
     }
 
     /// Resumes execution with `GeneratorContext` as the current execution context.
@@ -108,6 +113,8 @@ impl GeneratorContext {
         context
             .vm
             .push_frame(self.call_frame.take().expect("should have a call frame"));
+
+        context.vm.frame_mut().fp = 0;
 
         if let Some(value) = value {
             context.vm.push(value);
