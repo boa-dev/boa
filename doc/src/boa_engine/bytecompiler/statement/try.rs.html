@@ -163,6 +163,38 @@
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{jump_control::JumpControlInfoFlags, ByteCompiler},
     vm::{BindingOpcode, Opcode},
@@ -170,7 +202,8 @@
 <span class="kw">use </span>boa_ast::{
     declaration::Binding,
     operations::bound_names,
-    statement::{Catch, Finally, Try},
+    statement::{Block, Catch, Finally, Try},
+    Statement, StatementListItem,
 };
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
@@ -295,7 +328,7 @@
             <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
 
-        <span class="self">self</span>.compile_block(catch.block(), use_expr);
+        <span class="self">self</span>.compile_catch_finally_block(catch.block(), use_expr);
 
         <span class="kw">let </span>env_index = <span class="self">self</span>.pop_compile_environment();
         <span class="self">self</span>.patch_jump_with_target(push_env, env_index);
@@ -306,7 +339,7 @@
         <span class="comment">// TODO: We could probably remove the Get/SetReturnValue if we check that there is no break/continues statements.
         </span><span class="self">self</span>.current_stack_value_count += <span class="number">1</span>;
         <span class="self">self</span>.emit_opcode(Opcode::GetReturnValue);
-        <span class="self">self</span>.compile_block(finally.block(), <span class="bool-val">true</span>);
+        <span class="self">self</span>.compile_catch_finally_block(finally.block(), <span class="bool-val">true</span>);
         <span class="self">self</span>.emit_opcode(Opcode::SetReturnValue);
         <span class="self">self</span>.current_stack_value_count -= <span class="number">1</span>;
 
@@ -326,6 +359,37 @@
         }
 
         <span class="self">self</span>.patch_jump(do_not_throw_exit);
+    }
+
+    <span class="doccomment">/// Compile a catch or finally block.
+    ///
+    /// If the block contains a break or continue as the first statement,
+    /// the return value is set to undefined.
+    /// See the [ECMAScript reference][spec] for more information.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-try-statement-runtime-semantics-evaluation
+    </span><span class="kw">fn </span>compile_catch_finally_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <span class="kw-2">&amp;</span>Block, use_expr: bool) {
+        <span class="kw">let </span><span class="kw-2">mut </span>b = block;
+
+        <span class="kw">loop </span>{
+            <span class="kw">match </span>b.statement_list().first() {
+                <span class="prelude-val">Some</span>(StatementListItem::Statement(
+                    Statement::Break(<span class="kw">_</span>) | Statement::Continue(<span class="kw">_</span>),
+                )) =&gt; {
+                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+                    <span class="self">self</span>.emit_opcode(Opcode::SetReturnValue);
+                    <span class="kw">break</span>;
+                }
+                <span class="prelude-val">Some</span>(StatementListItem::Statement(Statement::Block(block))) =&gt; {
+                    b = block;
+                }
+                <span class="kw">_ </span>=&gt; {
+                    <span class="kw">break</span>;
+                }
+            }
+        }
+
+        <span class="self">self</span>.compile_block(block, use_expr);
     }
 }
 </code></pre></div></section></main></body></html>
