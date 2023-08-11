@@ -555,6 +555,13 @@
 <a href="#555" id="555">555</a>
 <a href="#556" id="556">556</a>
 <a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `JumpControlInfo` tracks relevant jump information used during compilation.
 //!
 //! Primarily, jump control tracks information related to the compilation of [iteration
@@ -623,7 +630,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>JumpRecordKind {
     Break,
     Continue,
-    Return,
+    Return { return_value_on_stack: bool },
 }
 
 <span class="doccomment">/// This represents a local control flow handling. See [`JumpRecordKind`] for types.
@@ -679,7 +686,13 @@
         </span><span class="kw">match </span><span class="self">self</span>.kind {
             JumpRecordKind::Break =&gt; compiler.patch_jump(<span class="self">self</span>.label),
             JumpRecordKind::Continue =&gt; compiler.patch_jump_with_target(<span class="self">self</span>.label, start_address),
-            JumpRecordKind::Return =&gt; {
+            JumpRecordKind::Return {
+                return_value_on_stack,
+            } =&gt; {
+                <span class="kw">if </span>return_value_on_stack {
+                    compiler.emit_opcode(Opcode::SetReturnValue);
+                }
+
                 <span class="kw">match </span>(compiler.in_async(), compiler.in_generator()) {
                     <span class="comment">// Taken from:
                     //  - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): https://tc39.es/ecma262/#sec-asyncgeneratorstart
@@ -694,6 +707,7 @@
                     </span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; compiler.emit_opcode(Opcode::CompletePromiseCapability),
                     (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {}
                 }
+
                 compiler.emit_opcode(Opcode::Return);
             }
         }

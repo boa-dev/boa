@@ -356,7 +356,6 @@
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
 <a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
@@ -563,8 +562,7 @@
                     }
                     <span class="self">self</span>.close_active_iterators();
 
-                    <span class="self">self</span>.emit_opcode(Opcode::SetReturnValue);
-                    <span class="self">self</span>.r#return();
+                    <span class="self">self</span>.r#return(<span class="bool-val">true</span>);
 
                     <span class="self">self</span>.patch_jump(throw_method_undefined);
                     <span class="self">self</span>.iterator_close(<span class="self">self</span>.in_async());

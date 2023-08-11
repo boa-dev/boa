@@ -1529,6 +1529,7 @@
 <a href="#1529" id="1529">1529</a>
 <a href="#1530" id="1530">1530</a>
 <a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1846,6 +1847,7 @@
             params: FormalParameterList::default(),
             compile_environments: Vec::default(),
             current_open_environments_count: <span class="number">0</span>,
+
             current_stack_value_count: <span class="number">0</span>,
             code_block_flags,
             handlers: ThinVec::default(),
@@ -3027,7 +3029,7 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(async_handler) = <span class="self">self</span>.async_handler {
             <span class="self">self</span>.patch_handler(async_handler);
         }
-        <span class="self">self</span>.r#return();
+        <span class="self">self</span>.r#return(<span class="bool-val">false</span>);
 
         <span class="kw">let </span>name = <span class="self">self
             </span>.context

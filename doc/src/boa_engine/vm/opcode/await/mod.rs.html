@@ -201,6 +201,8 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 
 <span class="kw">use crate</span>::{
@@ -392,14 +394,16 @@
                 .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[error.to_opaque(context)], context)
                 .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
         } <span class="kw">else </span>{
-            <span class="kw">let </span>return_value = context.vm.frame().return_value.clone();
+            <span class="kw">let </span>return_value = context.vm.get_return_value();
             promise_capability
                 .resolve()
                 .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[return_value], context)
                 .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
         };
 
-        context.vm.frame_mut().return_value = promise_capability.promise().clone().into();
+        context
+            .vm
+            .set_return_value(promise_capability.promise().clone().into());
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }

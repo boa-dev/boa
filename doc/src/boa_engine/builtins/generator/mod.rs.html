@@ -419,6 +419,13 @@
 <a href="#419" id="419">419</a>
 <a href="#420" id="420">420</a>
 <a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Generator` object.
 //!
 //! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.
@@ -506,13 +513,18 @@
 
     <span class="doccomment">/// Creates a new `GeneratorContext` from the current `Context` state.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_current(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
+        <span class="kw">let </span>fp = context.vm.frame().fp <span class="kw">as </span>usize;
+        <span class="kw">let </span>this = <span class="self">Self </span>{
             environments: context.vm.environments.clone(),
             call_frame: <span class="prelude-val">Some</span>(context.vm.frame().clone()),
-            stack: context.vm.stack.clone(),
+            stack: context.vm.stack[fp..].to_vec(),
             active_function: context.vm.active_function.clone(),
             realm: context.realm().clone(),
-        }
+        };
+
+        context.vm.stack.truncate(fp);
+
+        this
     }
 
     <span class="doccomment">/// Resumes execution with `GeneratorContext` as the current execution context.
@@ -529,6 +541,8 @@
         context
             .vm
             .push_frame(<span class="self">self</span>.call_frame.take().expect(<span class="string">&quot;should have a call frame&quot;</span>));
+
+        context.vm.frame_mut().fp = <span class="number">0</span>;
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = value {
             context.vm.push(value);

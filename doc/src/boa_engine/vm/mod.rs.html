@@ -377,6 +377,16 @@
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -432,6 +442,7 @@
 </span><span class="kw">pub struct </span>Vm {
     <span class="kw">pub</span>(<span class="kw">crate</span>) frames: Vec&lt;CallFrame&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack: Vec&lt;JsValue&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) return_value: JsValue,
 
     <span class="doccomment">/// When an error is thrown, the pending exception is set.
     ///
@@ -473,6 +484,7 @@
         <span class="self">Self </span>{
             frames: Vec::with_capacity(<span class="number">16</span>),
             stack: Vec::with_capacity(<span class="number">1024</span>),
+            return_value: JsValue::undefined(),
             environments: EnvironmentStack::new(global),
             pending_exception: <span class="prelude-val">None</span>,
             runtime_limits: RuntimeLimits::default(),
@@ -560,6 +572,14 @@
 
         <span class="bool-val">true
     </span>}
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_return_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsValue {
+        <span class="self">self</span>.return_value.clone()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_return_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: JsValue) {
+        <span class="self">self</span>.return_value = value;
+    }
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
@@ -708,7 +728,7 @@
                 <span class="prelude-val">Ok</span>(CompletionType::Normal) =&gt; {}
                 <span class="prelude-val">Ok</span>(CompletionType::Return) =&gt; {
                     <span class="self">self</span>.vm.stack.truncate(<span class="self">self</span>.vm.frame().fp <span class="kw">as </span>usize);
-                    <span class="kw">let </span>execution_result = <span class="self">self</span>.vm.frame_mut().return_value.clone();
+                    <span class="kw">let </span>execution_result = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.vm.return_value);
                     <span class="kw">return </span>CompletionRecord::Normal(execution_result);
                 }
                 <span class="prelude-val">Ok</span>(CompletionType::Throw) =&gt; {

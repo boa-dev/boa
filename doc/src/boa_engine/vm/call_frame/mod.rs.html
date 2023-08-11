@@ -122,12 +122,6 @@
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -166,11 +160,6 @@
 
     <span class="doccomment">/// How many iterations a loop has done.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) loop_iteration_count: u64,
-
-    <span class="doccomment">/// The value that is returned from the function.
-    </span><span class="comment">//
-    // TODO(HalidOdat): Remove this and put into the stack, maybe before frame pointer.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) return_value: JsValue,
 }
 
 <span class="doccomment">/// ---- `CallFrame` public API ----
@@ -198,7 +187,6 @@
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
             loop_iteration_count: <span class="number">0</span>,
-            return_value: JsValue::undefined(),
         }
     }
 

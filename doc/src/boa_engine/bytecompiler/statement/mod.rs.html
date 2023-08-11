@@ -118,6 +118,11 @@
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 
 <span class="kw">use </span>boa_ast::Statement;
@@ -192,9 +197,8 @@
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                 }
-                <span class="self">self</span>.emit_opcode(Opcode::SetReturnValue);
 
-                <span class="self">self</span>.r#return();
+                <span class="self">self</span>.r#return(<span class="bool-val">true</span>);
             }
             Statement::Try(t) =&gt; <span class="self">self</span>.compile_try(t, use_expr),
             Statement::Expression(expr) =&gt; {
@@ -208,10 +212,16 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>r#return(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>r#return(<span class="kw-2">&amp;mut </span><span class="self">self</span>, return_value_on_stack: bool) {
         <span class="kw">let </span>actions = <span class="self">self</span>.return_jump_record_actions();
 
-        JumpRecord::new(JumpRecordKind::Return, actions).perform_actions(<span class="self">Self</span>::DUMMY_ADDRESS, <span class="self">self</span>);
+        JumpRecord::new(
+            JumpRecordKind::Return {
+                return_value_on_stack,
+            },
+            actions,
+        )
+        .perform_actions(<span class="self">Self</span>::DUMMY_ADDRESS, <span class="self">self</span>);
     }
 
     <span class="kw">fn </span>return_jump_record_actions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;JumpRecordAction&gt; {

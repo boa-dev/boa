@@ -192,6 +192,7 @@
 <a href="#192" id="192">192</a>
 <a href="#193" id="193">193</a>
 <a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
@@ -353,6 +354,7 @@
         // Note: We do handle exceptions thrown by generator body in `AsyncGeneratorStart`.
         </span><span class="kw">if </span>compiler.in_generator() {
             <span class="macro">assert!</span>(compiler.async_handler.is_none());
+
             <span class="kw">if </span>compiler.in_async() {
                 <span class="comment">// Patched in `ByteCompiler::finish()`.
                 </span>compiler.async_handler = <span class="prelude-val">Some</span>(compiler.push_handler());

@@ -1504,25 +1504,6 @@
 <a href="#1504" id="1504">1504</a>
 <a href="#1505" id="1505">1505</a>
 <a href="#1506" id="1506">1506</a>
-<a href="#1507" id="1507">1507</a>
-<a href="#1508" id="1508">1508</a>
-<a href="#1509" id="1509">1509</a>
-<a href="#1510" id="1510">1510</a>
-<a href="#1511" id="1511">1511</a>
-<a href="#1512" id="1512">1512</a>
-<a href="#1513" id="1513">1513</a>
-<a href="#1514" id="1514">1514</a>
-<a href="#1515" id="1515">1515</a>
-<a href="#1516" id="1516">1516</a>
-<a href="#1517" id="1517">1517</a>
-<a href="#1518" id="1518">1518</a>
-<a href="#1519" id="1519">1519</a>
-<a href="#1520" id="1520">1520</a>
-<a href="#1521" id="1521">1521</a>
-<a href="#1522" id="1522">1522</a>
-<a href="#1523" id="1523">1523</a>
-<a href="#1524" id="1524">1524</a>
-<a href="#1525" id="1525">1525</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2760,22 +2741,7 @@
         }
 
         <span class="kw">let </span>argument_count = args.len();
-
-        <span class="comment">// Push function arguments to the stack.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>args = <span class="kw">if </span>code.params.as_ref().len() &gt; args.len() {
-            <span class="kw">let </span><span class="kw-2">mut </span>v = args.to_vec();
-            v.extend(<span class="macro">vec!</span>[
-                JsValue::Undefined;
-                code.params.as_ref().len() - args.len()
-            ]);
-            v
-        } <span class="kw">else </span>{
-            args.to_vec()
-        };
-        args.reverse();
-        <span class="kw">let </span><span class="kw-2">mut </span>stack = args;
-
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
+        <span class="kw">let </span>parameters_count = code.params.as_ref().len();
 
         <span class="kw">let </span>frame = CallFrame::new(code)
             .with_argument_count(argument_count <span class="kw">as </span>u32)
@@ -2785,6 +2751,12 @@
 
         context.vm.push_frame(frame);
 
+        <span class="comment">// Push function arguments to the stack.
+        </span><span class="kw">for _ in </span>argument_count..parameters_count {
+            context.vm.push(JsValue::undefined());
+        }
+        context.vm.stack.extend(args.iter().rev().cloned());
+
         <span class="kw">let </span>result = context
             .run()
             .consume()
@@ -2792,7 +2764,6 @@
 
         context.vm.pop_frame().expect(<span class="string">&quot;frame must exist&quot;</span>);
         std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.vm.environments);
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span>script_or_module);
 
         result
@@ -2967,22 +2938,7 @@
                 }
 
                 <span class="kw">let </span>argument_count = args.len();
-
-                <span class="comment">// Push function arguments to the stack.
-                </span><span class="kw">let </span>args = <span class="kw">if </span>code.params.as_ref().len() &gt; args.len() {
-                    <span class="kw">let </span><span class="kw-2">mut </span>v = args.to_vec();
-                    v.extend(<span class="macro">vec!</span>[
-                        JsValue::Undefined;
-                        code.params.as_ref().len() - args.len()
-                    ]);
-                    v
-                } <span class="kw">else </span>{
-                    args.to_vec()
-                };
-
-                <span class="kw">for </span>arg <span class="kw">in </span>args.iter().rev() {
-                    context.vm.push(arg.clone());
-                }
+                <span class="kw">let </span>parameters_count = code.params.as_ref().len();
 
                 <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier();
 
@@ -2993,6 +2949,12 @@
                         .with_argument_count(argument_count <span class="kw">as </span>u32)
                         .with_env_fp(environments_len <span class="kw">as </span>u32),
                 );
+
+                <span class="comment">// Push function arguments to the stack.
+                </span><span class="kw">for _ in </span>argument_count..parameters_count {
+                    context.vm.push(JsValue::undefined());
+                }
+                context.vm.stack.extend(args.iter().rev().cloned());
 
                 <span class="kw">let </span>record = context.run();
 
