@@ -185,30 +185,26 @@ impl ByteCompiler<'_, '_> {
                     self.compile_array_pattern_element(element, def);
                 }
 
+                let no_exception_thrown = self.jump();
                 self.patch_handler(handler_index);
                 self.emit_opcode(Opcode::MaybeException);
 
                 // stack: hasPending, exception?
 
                 self.current_stack_value_count += 2;
-
                 let iterator_close_handler = self.push_handler();
                 self.iterator_close(false);
-
-                let exit = self.jump();
                 self.patch_handler(iterator_close_handler);
                 self.current_stack_value_count -= 2;
-                {
-                    let jump = self.jump_if_false();
-                    self.emit_opcode(Opcode::Throw);
-                    self.patch_jump(jump);
-                }
-                self.emit_opcode(Opcode::ReThrow);
-                self.patch_jump(exit);
 
                 let jump = self.jump_if_false();
                 self.emit_opcode(Opcode::Throw);
                 self.patch_jump(jump);
+                self.emit_opcode(Opcode::ReThrow);
+
+                self.patch_jump(no_exception_thrown);
+
+                self.iterator_close(false);
             }
         }
     }
