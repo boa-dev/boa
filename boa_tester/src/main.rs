@@ -95,6 +95,7 @@ use std::{
     io::Read,
     ops::{Add, AddAssign},
     path::{Path, PathBuf},
+    process::Command,
 };
 
 /// Structure to allow defining ignored tests, features and files that should
@@ -157,8 +158,21 @@ enum Cli {
         verbose: u8,
 
         /// Path to the Test262 suite.
-        #[arg(long, default_value = "./test262", value_hint = ValueHint::DirPath)]
-        test262_path: PathBuf,
+        #[arg(
+            long,
+            value_hint = ValueHint::DirPath,
+            conflicts_with = "test262_update",
+            conflicts_with = "test262_commit"
+        )]
+        test262_path: Option<PathBuf>,
+
+        /// Specify the Test262 commit when cloning the repository.
+        #[arg(long, conflicts_with = "test262_update")]
+        test262_commit: Option<String>,
+
+        /// Update Test262 commit of the repository.
+        #[arg(long)]
+        test262_update: bool,
 
         /// Which specific test or test suite to run. Should be a path relative to the Test262 directory: e.g. "test/language/types/number"
         #[arg(short, long, default_value = "test", value_hint = ValueHint::AnyPath)]
@@ -204,6 +218,8 @@ enum Cli {
     },
 }
 
+const DEFAULT_TEST262_DIRECTORY: &str = "test262";
+
 /// Program entry point.
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -211,6 +227,8 @@ fn main() -> Result<()> {
         Cli::Run {
             verbose,
             test262_path,
+            test262_commit,
+            test262_update,
             suite,
             output,
             optimize,
@@ -218,21 +236,31 @@ fn main() -> Result<()> {
             ignored: ignore,
             edition,
             versioned,
-        } => run_test_suite(
-            verbose,
-            !disable_parallelism,
-            test262_path.as_path(),
-            suite.as_path(),
-            output.as_deref(),
-            ignore.as_path(),
-            edition.unwrap_or_default(),
-            versioned,
-            if optimize {
-                OptimizerOptions::OPTIMIZE_ALL
+        } => {
+            let test262_path = if let Some(path) = test262_path.as_deref() {
+                path
             } else {
-                OptimizerOptions::empty()
-            },
-        ),
+                clone_test262(test262_update, test262_commit.as_deref(), verbose)?;
+
+                Path::new(DEFAULT_TEST262_DIRECTORY)
+            };
+
+            run_test_suite(
+                verbose,
+                !disable_parallelism,
+                test262_path,
+                suite.as_path(),
+                output.as_deref(),
+                ignore.as_path(),
+                edition.unwrap_or_default(),
+                versioned,
+                if optimize {
+                    OptimizerOptions::OPTIMIZE_ALL
+                } else {
+                    OptimizerOptions::empty()
+                },
+            )
+        }
         Cli::Compare {
             base,
             new,
@@ -241,12 +269,137 @@ fn main() -> Result<()> {
     }
 }
 
+/// Returns the commit hash and commit message of the provided branch name.
+fn get_last_branch_commit(branch: &str) -> Result<(String, String)> {
+    let result = Command::new("git")
+        .arg("log")
+        .args(["-n", "1"])
+        .arg("--pretty=format:%H %s")
+        .arg(branch)
+        .current_dir(DEFAULT_TEST262_DIRECTORY)
+        .output()?;
+
+    if !result.status.success() {
+        bail!(
+            "test262 getting commit hash and message failed with return code {:?}",
+            result.status.code()
+        );
+    }
+
+    let output = std::str::from_utf8(&result.stdout)?.trim();
+
+    let (hash, message) = output
+        .split_once(' ')
+        .expect("git log output to contain hash and message");
+
+    Ok((hash.into(), message.into()))
+}
+
+fn reset_test262_commit(commit: &str, verbose: u8) -> Result<()> {
+    if verbose != 0 {
+        println!("Reset test262 to commit: {commit}...");
+    }
+
+    let result = Command::new("git")
+        .arg("reset")
+        .arg("--hard")
+        .arg(commit)
+        .current_dir(DEFAULT_TEST262_DIRECTORY)
+        .status()?;
+
+    if !result.success() {
+        bail!(
+            "test262 commit {commit} checkout failed with return code: {:?}",
+            result.code()
+        );
+    }
+
+    Ok(())
+}
+
+fn clone_test262(update: bool, commit: Option<&str>, verbose: u8) -> Result<()> {
+    const TEST262_REPOSITORY: &str = "https://github.com/tc39/test262";
+
+    if Path::new(DEFAULT_TEST262_DIRECTORY).is_dir() {
+        if verbose != 0 {
+            println!("Fetching latest test262 commits...");
+        }
+        let result = Command::new("git")
+            .arg("fetch")
+            .current_dir(DEFAULT_TEST262_DIRECTORY)
+            .status()?;
+
+        if !result.success() {
+            bail!(
+                "Test262 fetching latest failed with return code {:?}",
+                result.code()
+            );
+        }
+
+        let (current_commit_hash, current_commit_message) = get_last_branch_commit("HEAD")?;
+
+        if let Some(commit) = commit {
+            if current_commit_hash != commit {
+                println!("Test262 switching to commit {commit}...");
+                reset_test262_commit(commit, verbose)?;
+            }
+            return Ok(());
+        }
+
+        if verbose != 0 {
+            println!("Checking latest Test262 with current HEAD...");
+        }
+        let (latest_commit_hash, latest_commit_message) = get_last_branch_commit("origin/main")?;
+
+        if current_commit_hash != latest_commit_hash {
+            if update {
+                println!("Updating Test262 repository:");
+            } else {
+                println!("Warning Test262 repository is not in sync, use '--test262-update' to automatically update it:");
+            }
+
+            println!("    Current commit: {current_commit_hash} {current_commit_message}");
+            println!("    Latest commit:  {latest_commit_hash} {latest_commit_message}");
+
+            if update {
+                reset_test262_commit(&latest_commit_hash, verbose)?;
+            }
+        }
+
+        return Ok(());
+    }
+
+    println!("Cloning test262...");
+    let result = Command::new("git")
+        .arg("clone")
+        .arg(TEST262_REPOSITORY)
+        .arg(DEFAULT_TEST262_DIRECTORY)
+        .status()?;
+
+    if !result.success() {
+        bail!(
+            "Cloning Test262 repository failed with return code {:?}",
+            result.code()
+        );
+    }
+
+    if let Some(commit) = commit {
+        if verbose != 0 {
+            println!("Reset Test262 to commit: {commit}...");
+        }
+
+        reset_test262_commit(commit, verbose)?;
+    }
+
+    Ok(())
+}
+
 /// Runs the full test suite.
 #[allow(clippy::too_many_arguments)]
 fn run_test_suite(
     verbose: u8,
     parallel: bool,
-    test262: &Path,
+    test262_path: &Path,
     suite: &Path,
     output: Option<&Path>,
     ignore: &Path,
@@ -275,10 +428,10 @@ fn run_test_suite(
     if verbose != 0 {
         println!("Loading the test suite...");
     }
-    let harness = read_harness(test262).wrap_err("could not read harness")?;
+    let harness = read_harness(test262_path).wrap_err("could not read harness")?;
 
     if suite.to_string_lossy().ends_with(".js") {
-        let test = read_test(&test262.join(suite)).wrap_err_with(|| {
+        let test = read_test(&test262_path.join(suite)).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the test {suite}")
         })?;
@@ -296,7 +449,7 @@ fn run_test_suite(
 
         println!();
     } else {
-        let suite = read_suite(&test262.join(suite), &ignored, false).wrap_err_with(|| {
+        let suite = read_suite(&test262_path.join(suite), &ignored, false).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the suite {suite}")
         })?;
@@ -366,7 +519,7 @@ fn run_test_suite(
         }
 
         if let Some(output) = output {
-            write_json(results, output, verbose)
+            write_json(results, output, verbose, test262_path)
                 .wrap_err("could not write the results to the output JSON file")?;
         }
     }

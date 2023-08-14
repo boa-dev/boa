@@ -6,7 +6,7 @@ use fxhash::FxHashSet;
 use serde::{Deserialize, Serialize};
 use std::{
     env, fs,
-    io::{self, BufReader, BufWriter},
+    io::{BufReader, BufWriter},
     path::Path,
 };
 
@@ -81,7 +81,12 @@ const FEATURES_FILE_NAME: &str = "features.json";
 /// Writes the results of running the test suite to the given JSON output file.
 ///
 /// It will append the results to the ones already present, in an array.
-pub(crate) fn write_json(results: SuiteResult, output_dir: &Path, verbose: u8) -> io::Result<()> {
+pub(crate) fn write_json(
+    results: SuiteResult,
+    output_dir: &Path,
+    verbose: u8,
+    test262_path: &Path,
+) -> Result<()> {
     let mut branch = env::var("GITHUB_REF").unwrap_or_default();
     if branch.starts_with("refs/pull") {
         branch = "pull".to_owned();
@@ -108,7 +113,7 @@ pub(crate) fn write_json(results: SuiteResult, output_dir: &Path, verbose: u8) -
 
     let new_results = ResultInfo {
         commit: env::var("GITHUB_SHA").unwrap_or_default().into_boxed_str(),
-        test262_commit: get_test262_commit(),
+        test262_commit: get_test262_commit(test262_path)?,
         results,
     };
 
@@ -157,12 +162,12 @@ pub(crate) fn write_json(results: SuiteResult, output_dir: &Path, verbose: u8) -
 }
 
 /// Gets the commit OID of the test262 submodule.
-fn get_test262_commit() -> Box<str> {
-    let mut commit_id = fs::read_to_string(".git/modules/test262/HEAD")
-        .expect("did not find git submodule ref at '.git/modules/test262/HEAD'");
+fn get_test262_commit(test262_path: &Path) -> Result<Box<str>> {
+    let main_head_path = test262_path.join(".git/refs/heads/main");
+    let mut commit_id = fs::read_to_string(main_head_path)?;
     // Remove newline.
     commit_id.pop();
-    commit_id.into_boxed_str()
+    Ok(commit_id.into_boxed_str())
 }
 
 /// Updates the GitHub pages repository by pulling latest changes before writing the new things.

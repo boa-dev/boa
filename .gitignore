@@ -19,6 +19,9 @@ yarn-error.log
 tests/js
 .boa_history
 
+# test262 testing suite
+test262
+
 # Profiling
 *.string_data
 *.string_index
