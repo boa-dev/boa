@@ -61,7 +61,7 @@ regress = "0.6.0"
 rustc-hash = "1.1.0"
 num-bigint = { version = "0.4.3", features = ["serde"] }
 num-integer = "0.1.45"
-bitflags = "2.3.3"
+bitflags = "2.4.0"
 indexmap = "2.0.0"
 ryu-js = "0.2.2"
 chrono = { version = "0.4.26", default-features = false, features = ["clock", "std"] }
