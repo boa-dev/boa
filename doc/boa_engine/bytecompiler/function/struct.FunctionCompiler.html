@@ -21,8 +21,8 @@
 </div></details><details class="toggle method-toggle" open><summary><section id="method.class_name" class="method"><a class="srclink rightside" href="../../../src/boa_engine/bytecompiler/function.rs.html#83-86">source</a><h4 class="code-header">pub(crate) const fn <a href="#method.class_name" class="fn">class_name</a>(self, class_name: Sym) -&gt; Self</h4></section></summary><div class="docblock"><p>Indicate if the function has a class associated with it.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.compile" class="method"><a class="srclink rightside" href="../../../src/boa_engine/bytecompiler/function.rs.html#89-194">source</a><h4 class="code-header">pub(crate) fn <a href="#method.compile" class="fn">compile</a>(
     self,
-    parameters: &amp;FormalParameterList,
-    body: &amp;FunctionBody,
+    parameters: &amp;<a class="struct" href="../../../boa_ast/function/parameters/struct.FormalParameterList.html" title="struct boa_ast::function::parameters::FormalParameterList">FormalParameterList</a>,
+    body: &amp;<a class="type" href="../../../boa_ast/function/type.FunctionBody.html" title="type boa_ast::function::FunctionBody">FunctionBody</a>,
     outer_env: <a class="struct" href="https://doc.rust-lang.org/1.71.1/alloc/rc/struct.Rc.html" title="struct alloc::rc::Rc">Rc</a>&lt;<a class="struct" href="../../environments/compile/struct.CompileTimeEnvironment.html" title="struct boa_engine::environments::compile::CompileTimeEnvironment">CompileTimeEnvironment</a>&gt;,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
 ) -&gt; Gc&lt;<a class="struct" href="../../vm/code_block/struct.CodeBlock.html" title="struct boa_engine::vm::code_block::CodeBlock">CodeBlock</a>&gt;</h4></section></summary><div class="docblock"><p>Compile a function statement list and it’s parameters into bytecode.</p>
