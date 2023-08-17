@@ -828,8 +828,13 @@ pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -
     arg.to_i32(context)
 }
 
-/// 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`
+/// 13.46 PrepareTemporalFields ( fields, fieldNames, requiredFields [ , duplicateBehaviour ] )
+pub(crate) fn prepare_temporal_fields() -> JsResult<JsObject> {
+    todo!()
+}
+
 // IMPLEMENTATION NOTE: op -> true == until | false == since
+/// 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`
 #[inline]
 pub(crate) fn get_diff_settings(
     op: bool,

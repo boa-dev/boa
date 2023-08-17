@@ -452,7 +452,8 @@ impl Instant {
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        todo!()
+        // TODO: Complete
+        return Ok(JsValue::undefined())
     }
 
     /// 8.3.18 `Temporal.Instant.prototype.toZonedDateTimeISO ( timeZone )`
@@ -461,7 +462,8 @@ impl Instant {
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        todo!()
+        // TODO Complete
+        return Ok(JsValue::undefined())
     }
 }
 
