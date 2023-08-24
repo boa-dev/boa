@@ -87,7 +87,7 @@ fn array() {
 #[test]
 fn template() {
     test_formatting(
-        r#"
+        r"
         function tag(t, ...args) {
             let a = [];
             a = a.concat([t[0], t[1], t[2]]);
@@ -97,7 +97,7 @@ fn template() {
         }
         let a = 10;
         tag`result: ${a} \x26 ${a + 10}`;
-        "#,
+        ",
     );
 }
 

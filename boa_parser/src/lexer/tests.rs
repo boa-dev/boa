@@ -18,7 +18,7 @@ fn expect_tokens<R>(lexer: &mut Lexer<R>, expected: &[TokenKind], interner: &mut
 where
     R: Read,
 {
-    for expect in expected.iter() {
+    for expect in expected {
         assert_eq!(&lexer.next(interner).unwrap().unwrap().kind(), &expect);
     }
 
@@ -933,13 +933,13 @@ fn string_codepoint_with_no_braces() {
 fn illegal_code_point_following_numeric_literal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
     // be immediately followed by an IdentifierStart where the IdentifierStart
-    let mut lexer = Lexer::new(&br#"17.4\u{2764}"#[..]);
+    let mut lexer = Lexer::new(&br"17.4\u{2764}"[..]);
     let interner = &mut Interner::default();
 
     assert!(
         lexer.next(interner).is_err(),
         "{}",
-        r#"IdentifierStart \u{2764} following NumericLiteral not rejected as expected"#
+        r"IdentifierStart \u{2764} following NumericLiteral not rejected as expected"
     );
 }
 
@@ -961,7 +961,7 @@ fn string_unicode() {
 
 #[test]
 fn string_unicode_escape_with_braces() {
-    let mut lexer = Lexer::new(&br#"'{\u{20ac}\u{a0}\u{a0}}'"#[..]);
+    let mut lexer = Lexer::new(&br"'{\u{20ac}\u{a0}\u{a0}}'"[..]);
     let interner = &mut Interner::default();
 
     let sym =
@@ -970,7 +970,7 @@ fn string_unicode_escape_with_braces() {
 
     expect_tokens(&mut lexer, &expected, interner);
 
-    lexer = Lexer::new(&br#"\u{{a0}"#[..]);
+    lexer = Lexer::new(&br"\u{{a0}"[..]);
 
     if let Error::Syntax(_, pos) = lexer
         .next(interner)
@@ -981,7 +981,7 @@ fn string_unicode_escape_with_braces() {
         panic!("invalid error type");
     }
 
-    lexer = Lexer::new(&br#"\u{{a0}}"#[..]);
+    lexer = Lexer::new(&br"\u{{a0}}"[..]);
 
     if let Error::Syntax(_, pos) = lexer
         .next(interner)
@@ -995,7 +995,7 @@ fn string_unicode_escape_with_braces() {
 
 #[test]
 fn string_unicode_escape_with_braces_2() {
-    let s = r#"'\u{20ac}\u{a0}\u{a0}'"#;
+    let s = r"'\u{20ac}\u{a0}\u{a0}'";
 
     let mut lexer = Lexer::new(s.as_bytes());
     let interner = &mut Interner::default();
@@ -1008,7 +1008,7 @@ fn string_unicode_escape_with_braces_2() {
 
 #[test]
 fn string_with_single_escape() {
-    let s = r#"'\Б'"#;
+    let s = r"'\Б'";
 
     let mut lexer = Lexer::new(s.as_bytes());
     let interner = &mut Interner::default();
@@ -1022,13 +1022,13 @@ fn string_with_single_escape() {
 #[test]
 fn string_legacy_octal_escape() {
     let test_cases = [
-        (r#"'\3'"#, "\u{3}"),
-        (r#"'\03'"#, "\u{3}"),
-        (r#"'\003'"#, "\u{3}"),
-        (r#"'\0003'"#, "\u{0}3"),
-        (r#"'\43'"#, "#"),
-        (r#"'\043'"#, "#"),
-        (r#"'\101'"#, "A"),
+        (r"'\3'", "\u{3}"),
+        (r"'\03'", "\u{3}"),
+        (r"'\003'", "\u{3}"),
+        (r"'\0003'", "\u{0}3"),
+        (r"'\43'", "#"),
+        (r"'\043'", "#"),
+        (r"'\101'", "A"),
     ];
 
     for (s, expected) in &test_cases {
@@ -1062,7 +1062,7 @@ fn string_legacy_octal_escape() {
 
 #[test]
 fn string_zero_escape() {
-    let test_cases = [(r#"'\0'"#, "\u{0}"), (r#"'\0A'"#, "\u{0}A")];
+    let test_cases = [(r"'\0'", "\u{0}"), (r"'\0A'", "\u{0}A")];
 
     for (s, expected) in &test_cases {
         let mut lexer = Lexer::new(s.as_bytes());
@@ -1077,7 +1077,7 @@ fn string_zero_escape() {
 
 #[test]
 fn string_non_octal_decimal_escape() {
-    let test_cases = [(r#"'\8'"#, "8"), (r#"'\9'"#, "9")];
+    let test_cases = [(r"'\8'", "8"), (r"'\9'", "9")];
 
     for (s, expected) in &test_cases {
         let mut lexer = Lexer::new(s.as_bytes());
