@@ -17,9 +17,9 @@ pub struct Position {
 
 impl Position {
     /// Creates a new `Position` from Non-Zero values.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Will panic if the line number or column number is zero.
     #[inline]
     #[track_caller]
