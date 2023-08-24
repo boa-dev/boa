@@ -199,7 +199,7 @@ impl VisitWith for VariableList {
     where
         V: Visitor<'a>,
     {
-        for variable in self.list.iter() {
+        for variable in &*self.list {
             try_break!(visitor.visit_variable(variable));
         }
         ControlFlow::Continue(())
@@ -209,7 +209,7 @@ impl VisitWith for VariableList {
     where
         V: VisitorMut<'a>,
     {
-        for variable in self.list.iter_mut() {
+        for variable in &mut *self.list {
             try_break!(visitor.visit_variable_mut(variable));
         }
         ControlFlow::Continue(())

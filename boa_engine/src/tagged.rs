@@ -33,7 +33,7 @@ pub(crate) struct Tagged<T>(NonNull<T>);
 
 impl<T> Clone for Tagged<T> {
     fn clone(&self) -> Self {
-        Self(self.0)
+        *self
     }
 }
 

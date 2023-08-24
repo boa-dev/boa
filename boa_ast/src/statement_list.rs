@@ -162,7 +162,7 @@ impl ToIndentedString for StatementList {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = String::new();
         // Print statements
-        for item in self.statements.iter() {
+        for item in &*self.statements {
             // We rely on the node to add the correct indent.
             buf.push_str(&item.to_indented_string(interner, indentation));
 
@@ -177,7 +177,7 @@ impl VisitWith for StatementList {
     where
         V: Visitor<'a>,
     {
-        for statement in self.statements.iter() {
+        for statement in &*self.statements {
             try_break!(visitor.visit_statement_list_item(statement));
         }
         ControlFlow::Continue(())
@@ -187,7 +187,7 @@ impl VisitWith for StatementList {
     where
         V: VisitorMut<'a>,
     {
-        for statement in self.statements.iter_mut() {
+        for statement in &mut *self.statements {
             try_break!(visitor.visit_statement_list_item_mut(statement));
         }
         ControlFlow::Continue(())

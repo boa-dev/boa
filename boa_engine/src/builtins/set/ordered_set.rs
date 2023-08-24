@@ -15,7 +15,7 @@ pub struct OrderedSet<S = RandomState> {
 
 unsafe impl<S: BuildHasher> Trace for OrderedSet<S> {
     custom_trace!(this, {
-        for v in this.inner.iter() {
+        for v in &this.inner {
             if let MapKey::Key(v) = v {
                 mark(v);
             }

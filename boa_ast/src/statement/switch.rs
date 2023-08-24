@@ -158,7 +158,7 @@ impl ToIndentedString for Switch {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let indent = "    ".repeat(indentation);
         let mut buf = format!("switch ({}) {{\n", self.val().to_interned_string(interner));
-        for e in self.cases().iter() {
+        for e in &*self.cases {
             if let Some(condition) = e.condition() {
                 buf.push_str(&format!(
                     "{indent}    case {}:\n{}",
@@ -192,7 +192,7 @@ impl VisitWith for Switch {
         V: Visitor<'a>,
     {
         try_break!(visitor.visit_expression(&self.val));
-        for case in self.cases.iter() {
+        for case in &*self.cases {
             try_break!(visitor.visit_case(case));
         }
         ControlFlow::Continue(())
@@ -203,7 +203,7 @@ impl VisitWith for Switch {
         V: VisitorMut<'a>,
     {
         try_break!(visitor.visit_expression_mut(&mut self.val));
-        for case in self.cases.iter_mut() {
+        for case in &mut *self.cases {
             try_break!(visitor.visit_case_mut(case));
         }
         ControlFlow::Continue(())

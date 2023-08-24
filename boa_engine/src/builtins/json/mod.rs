@@ -684,7 +684,7 @@ impl Json {
                         partial.iter().map(Vec::as_slice),
                         &separator,
                     ))
-                    .chain([utf16!("\n"), &stepback[..], utf16!("}")].into_iter())
+                    .chain([utf16!("\n"), &stepback[..], utf16!("}")])
                     .flatten()
                     .copied()
                     .collect::<Vec<_>>();
@@ -797,7 +797,7 @@ impl Json {
                         partial.iter().map(Cow::as_ref),
                         &separator,
                     ))
-                    .chain([utf16!("\n"), &stepback[..], utf16!("]")].into_iter())
+                    .chain([utf16!("\n"), &stepback[..], utf16!("]")])
                     .flatten()
                     .copied()
                     .collect::<Vec<_>>();

@@ -109,6 +109,7 @@ impl WellKnown {
     }
 }
 
+// TODO: Address below clippy::arc_with_non_send_sync below.
 /// The inner representation of a JavaScript symbol.
 #[derive(Debug, Clone)]
 struct Inner {

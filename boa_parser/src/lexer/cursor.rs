@@ -313,7 +313,7 @@ where
     /// This expects for the buffer to be fully filled. If it's not, it will fail with an
     /// `UnexpectedEof` I/O error.
     fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        for byte in buf.iter_mut() {
+        for byte in &mut *buf {
             *byte = self.next_byte()?.ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::UnexpectedEof,

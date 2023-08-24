@@ -186,7 +186,7 @@ impl VisitWith for Optional {
         V: Visitor<'a>,
     {
         try_break!(visitor.visit_expression(&self.target));
-        for op in self.chain.iter() {
+        for op in &*self.chain {
             try_break!(visitor.visit_optional_operation(op));
         }
         ControlFlow::Continue(())
@@ -197,7 +197,7 @@ impl VisitWith for Optional {
         V: VisitorMut<'a>,
     {
         try_break!(visitor.visit_expression_mut(&mut self.target));
-        for op in self.chain.iter_mut() {
+        for op in &mut *self.chain {
             try_break!(visitor.visit_optional_operation_mut(op));
         }
         ControlFlow::Continue(())

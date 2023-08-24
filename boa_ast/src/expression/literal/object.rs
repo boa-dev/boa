@@ -206,7 +206,7 @@ impl ToIndentedString for ObjectLiteral {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = "{\n".to_owned();
         let indentation = "    ".repeat(indent_n + 1);
-        for property in self.properties().iter() {
+        for property in &*self.properties {
             buf.push_str(&match property {
                 PropertyDefinition::IdentifierReference(ident) => {
                     format!("{indentation}{},\n", interner.resolve_expect(ident.sym()))
@@ -324,7 +324,7 @@ impl VisitWith for ObjectLiteral {
     where
         V: Visitor<'a>,
     {
-        for pd in self.properties.iter() {
+        for pd in &*self.properties {
             try_break!(visitor.visit_property_definition(pd));
         }
         ControlFlow::Continue(())
@@ -334,7 +334,7 @@ impl VisitWith for ObjectLiteral {
     where
         V: VisitorMut<'a>,
     {
-        for pd in self.properties.iter_mut() {
+        for pd in &mut *self.properties {
             try_break!(visitor.visit_property_definition_mut(pd));
         }
         ControlFlow::Continue(())

@@ -322,7 +322,7 @@ impl String {
         let mut buf = [0; 2];
 
         // 2. For each element next of codePoints, do
-        for arg in args.iter() {
+        for arg in args {
             // a. Let nextCP be ? ToNumber(next).
             let nextcp = arg.to_number(context)?;
 

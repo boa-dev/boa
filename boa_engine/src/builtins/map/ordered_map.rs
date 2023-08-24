@@ -45,7 +45,7 @@ pub struct OrderedMap<V, S = RandomState> {
 impl<V: Trace, S: BuildHasher> Finalize for OrderedMap<V, S> {}
 unsafe impl<V: Trace, S: BuildHasher> Trace for OrderedMap<V, S> {
     custom_trace!(this, {
-        for (k, v) in this.map.iter() {
+        for (k, v) in &this.map {
             if let MapKey::Key(key) = k {
                 mark(key);
             }

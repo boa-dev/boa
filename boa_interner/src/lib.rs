@@ -355,6 +355,11 @@ impl Interner {
     }
 
     /// Returns the string for the given symbol if any.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the size of both statics is not equal or the interners do
+    /// not have the same size
     #[must_use]
     pub fn resolve(&self, symbol: Sym) -> Option<JSInternedStrRef<'_, '_>> {
         let index = symbol.get() - 1;

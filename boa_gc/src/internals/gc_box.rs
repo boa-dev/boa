@@ -80,7 +80,7 @@ impl fmt::Debug for GcBoxHeader {
             .field("marked", &self.is_marked())
             .field("ref_count", &self.ref_count.get())
             .field("non_root_count", &self.get_non_root_count())
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
