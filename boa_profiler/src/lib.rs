@@ -150,6 +150,10 @@ impl Profiler {
     }
 
     /// Drop the global instance of the profiler.
+    /// 
+    /// # Panics
+    /// 
+    /// Calling `drop` will panic if `INSTANCE` cannot be taken back.
     pub fn drop(&self) {
         // In order to drop the INSTANCE we need to get ownership of it, which isn't possible on a static unless you make it a mutable static
         // mutating statics is unsafe, so we need to wrap it as so.
