@@ -16,7 +16,10 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::{calendar, to_integer_if_integral, zoned_date_time};
+use super::{
+    calendar, plain_date::iso::IsoDateRecord, to_integer_if_integral, zoned_date_time,
+    DateTimeValues,
+};
 
 mod record;
 
@@ -241,22 +244,9 @@ impl BuiltInConstructor for Duration {
 
 // -- Duration accessor property implementations --
 
-enum DurationField {
-    Years,
-    Months,
-    Weeks,
-    Days,
-    Hours,
-    Minutes,
-    Seconds,
-    Milliseconds,
-    Microseconds,
-    Nanoseconds,
-}
-
 impl Duration {
     // Internal utility function for getting `Duration` field values.
-    fn get_internal_field(this: &JsValue, field: &DurationField) -> JsResult<JsValue> {
+    fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Duration must be an object.")
         })?;
@@ -266,67 +256,70 @@ impl Duration {
         })?;
 
         match field {
-            DurationField::Years => Ok(JsValue::Rational(duration.inner.years())),
-            DurationField::Months => Ok(JsValue::Rational(duration.inner.months())),
-            DurationField::Weeks => Ok(JsValue::Rational(duration.inner.weeks())),
-            DurationField::Days => Ok(JsValue::Rational(duration.inner.days())),
-            DurationField::Hours => Ok(JsValue::Rational(duration.inner.hours())),
-            DurationField::Minutes => Ok(JsValue::Rational(duration.inner.minutes())),
-            DurationField::Seconds => Ok(JsValue::Rational(duration.inner.seconds())),
-            DurationField::Milliseconds => Ok(JsValue::Rational(duration.inner.milliseconds())),
-            DurationField::Microseconds => Ok(JsValue::Rational(duration.inner.microseconds())),
-            DurationField::Nanoseconds => Ok(JsValue::Rational(duration.inner.nanoseconds())),
+            DateTimeValues::Year => Ok(JsValue::Rational(duration.inner.years())),
+            DateTimeValues::Month => Ok(JsValue::Rational(duration.inner.months())),
+            DateTimeValues::Week => Ok(JsValue::Rational(duration.inner.weeks())),
+            DateTimeValues::Day => Ok(JsValue::Rational(duration.inner.days())),
+            DateTimeValues::Hour => Ok(JsValue::Rational(duration.inner.hours())),
+            DateTimeValues::Minute => Ok(JsValue::Rational(duration.inner.minutes())),
+            DateTimeValues::Second => Ok(JsValue::Rational(duration.inner.seconds())),
+            DateTimeValues::Millisecond => Ok(JsValue::Rational(duration.inner.milliseconds())),
+            DateTimeValues::Microsecond => Ok(JsValue::Rational(duration.inner.microseconds())),
+            DateTimeValues::Nanosecond => Ok(JsValue::Rational(duration.inner.nanoseconds())),
+            _ => unreachable!(
+                "Any other DateTimeValue fields on Duration would be an implementation error."
+            ),
         }
     }
 
     /// 7.3.3 get Temporal.Duration.prototype.years
     fn get_years(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DurationField::Years)
+        Self::get_internal_field(this, &DateTimeValues::Year)
     }
 
     // 7.3.4 get Temporal.Duration.prototype.months
     fn get_months(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DurationField::Months)
+        Self::get_internal_field(this, &DateTimeValues::Month)
     }
 
     /// 7.3.5 get Temporal.Duration.prototype.weeks
     fn get_weeks(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DurationField::Weeks)
+        Self::get_internal_field(this, &DateTimeValues::Week)
     }
 
     /// 7.3.6 get Temporal.Duration.prototype.days
     fn get_days(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DurationField::Days)
+        Self::get_internal_field(this, &DateTimeValues::Day)
     }
 
     /// 7.3.7 get Temporal.Duration.prototype.hours
     fn get_hours(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DurationField::Hours)
+        Self::get_internal_field(this, &DateTimeValues::Hour)
     }
 
     /// 7.3.8 get Temporal.Duration.prototype.minutes
     fn get_minutes(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DurationField::Minutes)
+        Self::get_internal_field(this, &DateTimeValues::Minute)
     }
 
     /// 7.3.9 get Temporal.Duration.prototype.seconds
     fn get_seconds(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DurationField::Seconds)
+        Self::get_internal_field(this, &DateTimeValues::Second)
     }
 
     /// 7.3.10 get Temporal.Duration.prototype.milliseconds
     fn get_milliseconds(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DurationField::Milliseconds)
+        Self::get_internal_field(this, &DateTimeValues::Millisecond)
     }
 
     /// 7.3.11 get Temporal.Duration.prototype.microseconds
     fn get_microseconds(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DurationField::Microseconds)
+        Self::get_internal_field(this, &DateTimeValues::Microsecond)
     }
 
     /// 7.3.12 get Temporal.Duration.prototype.nanoseconds
     fn get_nanoseconds(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DurationField::Nanoseconds)
+        Self::get_internal_field(this, &DateTimeValues::Nanosecond)
     }
 
     /// 7.3.13 get Temporal.Duration.prototype.sign
@@ -549,7 +542,7 @@ impl Duration {
             // 5. Else,
             _ => {
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                super::get_option_object(round_to)?
+                super::get_options_object(round_to)?
             }
         };
 
@@ -719,7 +712,7 @@ impl Duration {
             // 5. Else,
             JsValue::Object(options_obj) => {
                 // a. Set totalOf to ? GetOptionsObject(totalOf).
-                super::get_option_object(&options_obj.clone().into())?
+                super::get_options_object(&options_obj.clone().into())?
             }
             _ => unreachable!("total_of must be a String, Object, or undefined. Any other value is an implementation error."),
         };
@@ -811,37 +804,37 @@ impl Duration {
             context,
         )?;
 
-        let whole = match unit.as_slice() {
+        let whole = match unit.to_std_string_escaped().as_str() {
             // 18. If unit is "year", then
             // a. Let whole be roundResult.[[Years]].
-            super::YEAR => round_record.years(),
+            "year" => round_record.years(),
             // 19. Else if unit is "month", then
             // a. Let whole be roundResult.[[Months]].
-            super::MONTH => round_record.months(),
+            "month" => round_record.months(),
             // 20. Else if unit is "week", then
             // a. Let whole be roundResult.[[Weeks]].
-            super::WEEK => round_record.weeks(),
+            "week" => round_record.weeks(),
             // 21. Else if unit is "day", then
             // a. Let whole be roundResult.[[Days]].
-            super::DAY => round_record.days(),
+            "day" => round_record.days(),
             // 22. Else if unit is "hour", then
             // a. Let whole be roundResult.[[Hours]].
-            super::HOUR => round_record.hours(),
+            "hour" => round_record.hours(),
             // 23. Else if unit is "minute", then
             // a. Let whole be roundResult.[[Minutes]].
-            super::MINUTE => round_record.minutes(),
+            "minute" => round_record.minutes(),
             // 24. Else if unit is "second", then
             // a. Let whole be roundResult.[[Seconds]].
-            super::SECOND=> round_record.seconds(),
+            "second" => round_record.seconds(),
             // 25. Else if unit is "millisecond", then
             // a. Let whole be roundResult.[[Milliseconds]].
-            super::MILLISECOND=> round_record.milliseconds(),
+            "millisecond"=> round_record.milliseconds(),
             // 26. Else if unit is "microsecond", then
             // a. Let whole be roundResult.[[Microseconds]].
-            super::MICROSECOND=> round_record.microseconds(),
+            "microsecond" => round_record.microseconds(),
             // 27. Else,
             // b. Let whole be roundResult.[[Nanoseconds]].
-            super::NANOSECOND=> round_record.nanoseconds(),
+            "nanosecond" => round_record.nanoseconds(),
             // a. Assert: unit is "nanosecond".
             _=> unreachable!("Unit must be a valid temporal unit. Any other value would be an implementation error."),
         };
@@ -992,8 +985,9 @@ fn days_until(earlier: &JsObject, later: &JsObject) -> i32 {
     let date_one = obj
         .as_plain_date()
         .expect("earlier must be a PlainDate obj.");
-    let epoch_days_one =
-        super::iso_date_to_epoch_days(date_one.iso_year, date_one.iso_month, date_one.iso_day);
+
+    let epoch_days_one = date_one.inner.as_epoch_days();
+
     drop(obj);
 
     // 2. Let epochDays2 be ISODateToEpochDays(later.[[ISOYear]], later.[[ISOMonth]] - 1, later.[[ISODay]]).
@@ -1001,8 +995,8 @@ fn days_until(earlier: &JsObject, later: &JsObject) -> i32 {
     let date_two = obj
         .as_plain_date()
         .expect("earlier must be a PlainDate obj.");
-    let epoch_days_two =
-        super::iso_date_to_epoch_days(date_two.iso_year, date_two.iso_month, date_two.iso_day);
+
+    let epoch_days_two = date_two.inner.as_epoch_days();
 
     // 3. Return epochDays2 - epochDays1.
     epoch_days_two - epoch_days_one
@@ -1010,7 +1004,7 @@ fn days_until(earlier: &JsObject, later: &JsObject) -> i32 {
 
 /// Abstract Operation 7.5.24 `MoveRelativeDate ( calendar, relativeTo, duration, dateAdd )`
 fn move_relative_date(
-    calendar: &JsObject,
+    calendar: &JsValue,
     relative_to: &JsObject,
     duration: JsObject,
     date_add: Option<&JsValue>,

@@ -11,39 +11,17 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-#[derive(Debug, Clone)]
-pub(crate) struct IsoDateRecord {
-    y: i32,
-    m: i32,
-    d: i32,
-}
+use self::iso::IsoDateRecord;
 
-impl IsoDateRecord {
-    pub(crate) const fn new(y: i32, m: i32, d: i32) -> Self {
-        Self { y, m, d }
-    }
+use super::{to_temporal_overflow, get_options_object};
 
-    pub(crate) fn is_valid_iso_date(&self) -> bool {
-        if self.m < 1 || self.m > 12 {
-            return false;
-        }
-
-        let days_in_month = super::calendar::iso_days_in_month(self.y, self.m);
-
-        if self.d < 1 || self.d > days_in_month {
-            return false;
-        }
-        true
-    }
-}
+pub(crate) mod iso;
 
 /// The `Temporal.PlainDate` object.
 #[derive(Debug, Clone)]
 pub struct PlainDate {
-    pub(crate) iso_year: i32,
-    pub(crate) iso_month: i32,
-    pub(crate) iso_day: i32,
-    pub(crate) calendar: JsObject, // Calendar can probably be stored as a JsObject.
+    pub(crate) inner: IsoDateRecord,
+    pub(crate) calendar: JsValue, // Calendar can probably be stored as a JsObject.
 }
 
 impl BuiltInObject for PlainDate {
@@ -224,16 +202,12 @@ impl BuiltInConstructor for PlainDate {
         let iso_year = super::to_integer_with_truncation(args.get_or_undefined(0), context)?;
         let iso_month = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
         let iso_day = super::to_integer_with_truncation(args.get_or_undefined(2), context)?;
-        let calendar_like = JsObject::with_null_proto(); // args.get_or_undefined(3);
+        let default_calendar = JsValue::from("iso8601");
+        let calendar_like = args.get(3).unwrap_or(&default_calendar);
 
-        create_temporal_date(
-            iso_year,
-            iso_month,
-            iso_day,
-            calendar_like,
-            Some(new_target),
-            context,
-        )
+        let iso = IsoDateRecord::new(iso_year, iso_month, iso_day);
+
+        create_temporal_date(iso, calendar_like.clone(), Some(new_target), context)
     }
 }
 
@@ -324,7 +298,8 @@ impl PlainDate {
     }
 }
 
-// -- `PlainDate` method implementation --
+// ==== `PlainDate.prototype` method implementation ====
+
 impl PlainDate {
     fn to_plain_year_month(
         this: &JsValue,
@@ -488,23 +463,31 @@ impl PlainDate {
 // -- `PlainDate` Abstract Operations --
 
 /// 3.5.3 `CreateTemporalDate ( isoYear, isoMonth, isoDay, calendar [ , newTarget ] )`
-fn create_temporal_date(
-    y: i32,
-    mo: i32,
-    d: i32,
-    calendar: JsObject,
+pub(crate) fn create_temporal_date(
+    iso_date: IsoDateRecord,
+    calendar: JsValue,
     new_target: Option<&JsValue>,
     context: &mut Context<'_>,
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(isoYear, isoMonth, isoDay) is false, throw a RangeError exception.
-    if IsoDateRecord::new(y, mo, d).is_valid_iso_date() {
+    if !iso_date.is_valid() {
         return Err(JsNativeError::range()
             .with_message("Date is not a valid ISO date.")
             .into());
     };
 
     // 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if super::plain_date_time::iso_datetime_within_limits(y, mo, d, 12, 0, 0, 0, 0, 0) {
+    if super::plain_date_time::iso_datetime_within_limits(
+        iso_date.year(),
+        iso_date.month(),
+        iso_date.day(),
+        12,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ) {
         return Err(JsNativeError::range()
             .with_message("Date is not within ISO date time limits.")
             .into());
@@ -531,11 +514,9 @@ fn create_temporal_date(
     let date = obj.as_plain_date_mut().expect("this value must be a date");
 
     // 5. Set object.[[ISOYear]] to isoYear.
-    date.iso_year = y;
     // 6. Set object.[[ISOMonth]] to isoMonth.
-    date.iso_month = mo;
     // 7. Set object.[[ISODay]] to isoDay.
-    date.iso_day = d;
+    date.inner = iso_date;
     // 8. Set object.[[Calendar]] to calendar.
     date.calendar = calendar;
 
@@ -544,8 +525,69 @@ fn create_temporal_date(
     Ok(new_date.into())
 }
 
-pub(crate) fn to_temporal_date(item: &JsValue, options: Option<JsObject>) -> JsResult<PlainDate> {
-    Err(JsNativeError::error()
-        .with_message("not yet implemented.")
+pub(crate) fn to_temporal_date(item: &JsValue, options: Option<JsValue>, context: &mut Context<'_>) -> JsResult<JsValue> {
+    // 1. If options is not present, set options to undefined.
+    let options = options.unwrap_or(JsValue::undefined());
+
+    // 2. Assert: Type(options) is Object or Undefined.
+    // 3. If options is not undefined, set options to ? SnapshotOwnProperties(? GetOptionsObject(options), null).
+    let options_obj = get_options_object(&options)?;
+
+    // 4. If Type(item) is Object, then
+    if let Some(object) = item.as_object() {
+        // a. If item has an [[InitializedTemporalDate]] internal slot, then
+        if object.is_date() {
+            // i. Return item.
+            return Ok(object.clone().into());
+        // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
+        } else if object.is_zoned_date_time() {
+            return Err(JsNativeError::range()
+                .with_message("ZonedDateTime not yet implemented.")
+                .into());
+            // i. Perform ? ToTemporalOverflow(options).
+            // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
+            // iii. Let plainDateTime be ? GetPlainDateTimeFor(item.[[TimeZone]], instant, item.[[Calendar]]).
+            // iv. Return ! CreateTemporalDate(plainDateTime.[[ISOYear]], plainDateTime.[[ISOMonth]], plainDateTime.[[ISODay]], plainDateTime.[[Calendar]]).
+
+        // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
+        } else if object.is_plain_date_time() {
+            // i. Perform ? ToTemporalOverflow(options).
+            let overflow = to_temporal_overflow(&options_obj, context)?;
+
+            let obj = object.borrow();
+            let date_time = obj.as_plain_date_time().expect("obj must be a PlainDateTime");
+
+            let iso = date_time.inner.iso_date();
+            let calendar = date_time.calendar.clone();
+
+            drop(obj);
+
+            // ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
+            return create_temporal_date(iso, calendar, None, context)
+        }
+
+        // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
+        // e. Let fieldNames be ? CalendarFields(calendar, « "day", "month", "monthCode", "year" »).
+        // f. Let fields be ? PrepareTemporalFields(item, fieldNames, «»).
+        // g. Return ? CalendarDateFromFields(calendar, fields, options).
+    }
+
+    // 5. If item is not a String, throw a TypeError exception.
+    if !item.is_string() {
+        return Err(JsNativeError::typ()
+            .with_message("ToTemporalDate item must be an object or string.")
+            .into());
+    }
+
+    Err(JsNativeError::range()
+        .with_message("Not yet implemented.")
         .into())
+    // 6. Let result be ? ParseTemporalDateString(item).
+    // 7. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
+    // 8. Let calendar be result.[[Calendar]].
+    // 9. If calendar is undefined, set calendar to "iso8601".
+    // 10. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
+    // 11. Set calendar to the ASCII-lowercase of calendar.
+    // 12. Perform ? ToTemporalOverflow(options).
+    // 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
 }

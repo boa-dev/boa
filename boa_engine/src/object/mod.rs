@@ -2206,6 +2206,23 @@ impl Object {
         }
     }
 
+    /// Checks if object is a `PlainDateTime` object.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn is_plain_date_time(&self) -> bool {
+        matches!(self.kind, ObjectKind::PlainDateTime(_))
+    }
+
+    /// Gets a reference to `PlainDateTime` data if the object is a `Temporal.PlainDateTime`.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn as_plain_date_time(&self) -> Option<&PlainDateTime> {
+        match &self.kind {
+            ObjectKind::PlainDateTime(date) => Some(date),
+            _ => None,
+        }
+    }
+
     /// Checks if object is a `PlainDate` object.
     #[inline]
     #[cfg(feature = "temporal")]
@@ -2229,6 +2246,60 @@ impl Object {
     pub fn as_plain_date(&self) -> Option<&PlainDate> {
         match &self.kind {
             ObjectKind::PlainDate(date) => Some(date),
+            _ => None,
+        }
+    }
+
+    /// Checks if object is a `PlainYearMonth` object.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn is_plain_year_month(&self) -> bool {
+        matches!(self.kind, ObjectKind::PlainYearMonth(_))
+    }
+
+    /// Gets a mutable reference to `PlainYearMonth` data if the object is a `Temporal.PlainYearMonth`.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn as_plain_year_month_mut(&mut self) -> Option<&mut PlainYearMonth> {
+        match &mut self.kind {
+            ObjectKind::PlainYearMonth(year_month) => Some(year_month),
+            _ => None,
+        }
+    }
+
+    /// Gets the `PlainYearMonth` data if the object is a `Temporal.PlainYearMonth`.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn as_plain_year_month(&self) -> Option<&PlainYearMonth> {
+        match &self.kind {
+            ObjectKind::PlainYearMonth(ym) => Some(ym),
+            _ => None,
+        }
+    }
+
+    /// Checks if object is a `PlainMonthDay` object.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn is_plain_month_day(&self) -> bool {
+        matches!(self.kind, ObjectKind::PlainMonthDay(_))
+    }
+
+    /// Gets the `PlainMonthDay` data if the object is a `Temporal.PlainMonthDay`.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn as_plain_month_day(&self) -> Option<&PlainMonthDay> {
+        match &self.kind {
+            ObjectKind::PlainMonthDay(md) => Some(md),
+            _ => None,
+        }
+    }
+
+    /// Gets a mutable reference to `PlainMonthDay` data if the object is a `Temporal.PlainMonthDay`.
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub fn as_plain_month_day_mut(&mut self) -> Option<&mut PlainMonthDay> {
+        match &mut self.kind {
+            ObjectKind::PlainMonthDay(month_day) => Some(month_day),
             _ => None,
         }
     }

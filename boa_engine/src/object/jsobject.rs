@@ -760,6 +760,18 @@ impl JsObject {
         self.borrow().is_time_zone()
     }
 
+    /// Checks if current object is a `Temporal.PlainDateTime` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    #[cfg(feature = "temporal")]
+    pub fn is_plain_date_time(&self) -> bool {
+        self.borrow().is_plain_date_time()
+    }
+
     /// Checks if current object is a `Temporal.PlainDate` object.
     ///
     /// # Panics
@@ -770,6 +782,30 @@ impl JsObject {
     #[cfg(feature = "temporal")]
     pub fn is_plain_date(&self) -> bool {
         self.borrow().is_plain_date()
+    }
+
+    /// Checks if current object is a `Temporal.PlainYearMonth` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    #[cfg(feature = "temporal")]
+    pub fn is_plain_year_month(&self) -> bool {
+        self.borrow().is_plain_year_month()
+    }
+
+    /// Checks if current object is a `Temporal.PlainMonthDay` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    #[cfg(feature = "temporal")]
+    pub fn is_plain_month_day(&self) -> bool {
+        self.borrow().is_plain_month_day()
     }
 
     /// Checks if current object is a `Temporal.ZonedDateTime` object.

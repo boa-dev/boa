@@ -8,6 +8,7 @@
 mod calendar;
 mod date_equations;
 mod duration;
+mod fields;
 mod instant;
 mod now;
 mod plain_date;
@@ -18,6 +19,8 @@ mod plain_year_month;
 mod time_zone;
 mod zoned_date_time;
 
+pub(crate) use fields::TemporalFields;
+
 use self::date_equations::mathematical_days_in_year;
 pub use self::{
     calendar::*, duration::*, instant::*, now::*, plain_date::*, plain_date_time::*,
@@ -26,6 +29,7 @@ pub use self::{
 use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
 use crate::{
     context::intrinsics::{Intrinsics, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
     property::{Attribute, PropertyKey},
     realm::Realm,
@@ -38,15 +42,22 @@ use boa_ast::temporal::{self, OffsetSign, UtcOffset};
 use boa_profiler::Profiler;
 
 // Relavant numeric constants
-pub(crate) const NS_MAX_INSTANT: i128 = 8_640_000_000_000_000_000_000;
-pub(crate) const NS_MIN_INSTANT: i128 = -8_640_000_000_000_000_000_000;
 pub(crate) const NS_PER_DAY: i64 = 86_400_000_000_000;
 pub(crate) const MICRO_PER_DAY: i64 = 8_640_000_000;
 pub(crate) const MILLI_PER_DAY: i64 = 8_600_000;
 
-// Datetime utf16 constants.
+pub(crate) fn ns_max_instant() -> JsBigInt {
+    JsBigInt::from(i128::from(NS_PER_DAY) * 100_000_000_i128)
+}
+
+pub(crate) fn ns_min_instant() -> JsBigInt {
+    JsBigInt::from(i128::from(NS_PER_DAY) * -100_000_000_i128)
+}
+
+// Relavant datetime utf16 constants.
 pub(crate) const YEAR: &[u16] = utf16!("year");
 pub(crate) const MONTH: &[u16] = utf16!("month");
+pub(crate) const MONTH_CODE: &[u16] = utf16!("monthCode");
 pub(crate) const WEEK: &[u16] = utf16!("week");
 pub(crate) const DAY: &[u16] = utf16!("day");
 pub(crate) const HOUR: &[u16] = utf16!("hour");
@@ -55,6 +66,10 @@ pub(crate) const SECOND: &[u16] = utf16!("second");
 pub(crate) const MILLISECOND: &[u16] = utf16!("millisecond");
 pub(crate) const MICROSECOND: &[u16] = utf16!("microsecond");
 pub(crate) const NANOSECOND: &[u16] = utf16!("nanosecond");
+pub(crate) const OFFSET: &[u16] = utf16!("offset");
+pub(crate) const ERA: &[u16] = utf16!("era");
+pub(crate) const ERA_YEAR: &[u16] = utf16!("eraYear");
+pub(crate) const TZ: &[u16] = utf16!("timeZone");
 
 // Rounding Mode string constants
 pub(crate) const CEIL: &[u16] = utf16!("ceil");
@@ -66,6 +81,21 @@ pub(crate) const HALFFLOOR: &[u16] = utf16!("halfFloor");
 pub(crate) const HALFEXPAND: &[u16] = utf16!("halfExpand");
 pub(crate) const HALFTRUNC: &[u16] = utf16!("halfTrunc");
 pub(crate) const HALFEVEN: &[u16] = utf16!("halfEven");
+
+// An enum representing common fields across `Temporal` objects.
+pub(crate) enum DateTimeValues {
+    Year,
+    Month,
+    MonthCode,
+    Week,
+    Day,
+    Hour,
+    Minute,
+    Second,
+    Millisecond,
+    Microsecond,
+    Nanosecond,
+}
 
 /// `TemporalUnits` represents the temporal relationship laid out in table 13 of the [ECMAScript Specification][spec]
 ///
@@ -219,25 +249,21 @@ fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
     format!("{n:0min_length$}")
 }
 
+// TODO: 13.1 IteratorToListOfType
+
 /// 13.2 `ISODateToEpochDays ( year, month, date )`
-pub(crate) fn iso_date_to_epoch_days(year: i32, month: i32, date: i32) -> i32 {
-    // 1. Let resolvedYear be year + floor(month / 12).
-    let resolved_year = year + (f64::from(month) / 12_f64).floor() as i32;
-    // 2. Let resolvedMonth be month modulo 12.
-    let resolved_month = month % 12;
+// Note: implemented on IsoDateRecord.
 
-    // 3. Find a time t such that EpochTimeToEpochYear(t) is resolvedYear, EpochTimeToMonthInYear(t) is resolvedMonth, and EpochTimeToDate(t) is 1.
-    let year_t = self::date_equations::epoch_time_for_year(f64::from(resolved_year));
-    let month_t =
-        self::date_equations::epoch_time_for_month_given_year(resolved_month, resolved_year);
-
-    // 4. Return EpochTimeToDayNumber(t) + date - 1.
-    self::date_equations::epoch_time_to_day_number(year_t + month_t) as i32 + date - 1
+// TODO: 13.3 EpochDaysToEpochMs
+pub(crate) fn epoch_days_to_epoch_ms(day: i32, time: i32) -> f64 {
+    f64::from(day) * (MILLI_PER_DAY as f64) + f64::from(time)
 }
+
+// TODO: 13.4 Date Equations -> See ./date_equations.rs
 
 /// Abstract Operation 13.5 `GetOptionsObject ( options )`
 #[inline]
-pub(crate) fn get_option_object(options: &JsValue) -> JsResult<JsObject> {
+pub(crate) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
     // 1. If options is undefined, then
     if options.is_undefined() {
         // a. Return OrdinaryObjectCreate(null).
@@ -256,13 +282,13 @@ pub(crate) fn get_option_object(options: &JsValue) -> JsResult<JsObject> {
         .into())
 }
 
-/// 13.6 `CopyOptions ( options )`
+/// ---- `CopyOptions ( options )` REMOVED -
 #[inline]
 pub(crate) fn copy_options(options: &JsValue, context: &mut Context<'_>) -> JsResult<JsObject> {
     // 1. Let optionsCopy be OrdinaryObjectCreate(null).
     let options_copy = JsObject::with_null_proto();
     // 2. Perform ? CopyDataProperties(optionsCopy, ? GetOptionsObject(options), « »).
-    let option_object = get_option_object(options)?;
+    let option_object = get_options_object(options)?;
     let excluded_keys: Vec<PropertyKey> = Vec::new();
     options_copy.copy_data_properties(&option_object.into(), excluded_keys, context)?;
     // 3. Return optionsCopy.
@@ -276,7 +302,7 @@ pub(crate) enum OptionType {
     Number,
 }
 
-/// 13.7 `GetOption ( options, property, type, values, default )`
+/// 13.6 `GetOption ( options, property, type, values, default )`
 #[inline]
 pub(crate) fn get_option(
     options: &JsObject,
@@ -342,6 +368,28 @@ pub(crate) fn get_option(
 
     // 7. Return value.
     Ok(value)
+}
+
+/// 13.7 `ToTemporalOverflow (options)
+pub(crate) fn to_temporal_overflow(
+    options: &JsObject,
+    context: &mut Context<'_>,
+) -> JsResult<JsString> {
+    // 1. If options is undefined, return "constrain".
+    if options.prototype().is_none() {
+        Ok("constrain".into())
+    } else {
+        // 2. Return ? GetOption(options, "overflow", "string", « "constrain", "reject" », "constrain").
+        let result = get_option(
+            options,
+            PropertyKey::from("overflow"),
+            OptionType::String,
+            Some(&["constrain".into(), "reject".into()]),
+            Some(&JsValue::from(utf16!("constrain"))),
+            context,
+        )?;
+        Ok(result.to_string(context)?)
+    }
 }
 
 /// 13.10 `ToTemporalRoundingMode ( normalizedOptions, fallback )`
@@ -795,6 +843,24 @@ pub(crate) fn round_to_increment_as_if_positive(
     Ok(JsBigInt::mul(&rounded, &JsBigInt::from(increment)))
 }
 
+/// 13.43 ToPositiveIntegerWithTruncation ( argument )
+#[inline]
+pub(crate) fn to_positive_integer_with_trunc(
+    value: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<i32> {
+    // 1. Let integer be ? ToIntegerWithTruncation(argument).
+    let int = to_integer_with_truncation(value, context)?;
+    // 2. If integer ≤ 0, throw a RangeError exception.
+    if int <= 0 {
+        return Err(JsNativeError::range()
+            .with_message("value is not a positive integer")
+            .into());
+    }
+    // 3. Return integer.
+    Ok(int)
+}
+
 /// 13.44 `ToIntegerWithTruncation ( argument )`
 #[inline]
 pub(crate) fn to_integer_with_truncation(
@@ -828,10 +894,8 @@ pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -
     arg.to_i32(context)
 }
 
-/// 13.46 PrepareTemporalFields ( fields, fieldNames, requiredFields [ , duplicateBehaviour ] )
-pub(crate) fn prepare_temporal_fields() -> JsResult<JsObject> {
-    todo!()
-}
+// 13.46 PrepareTemporalFields ( fields, fieldNames, requiredFields [ , duplicateBehaviour ] )
+// See fields.rs
 
 // IMPLEMENTATION NOTE: op -> true == until | false == since
 /// 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`

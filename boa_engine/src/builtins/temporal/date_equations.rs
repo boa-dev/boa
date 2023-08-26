@@ -2,10 +2,10 @@
 //!
 //! [spec]: https://tc39.es/proposal-temporal/#sec-date-equations
 
-use std::ops::Mul;
+use std::ops::{Add, Mul};
 
-pub(crate) fn epoch_time_to_day_number(t: f64) -> f64 {
-    (t / super::NS_PER_DAY as f64).floor()
+pub(crate) fn epoch_time_to_day_number(t: f64) -> i32 {
+    (t / super::NS_PER_DAY as f64).floor() as i32
 }
 
 pub(crate) fn mathematical_days_in_year(y: i32) -> i32 {
@@ -22,33 +22,31 @@ pub(crate) fn mathematical_days_in_year(y: i32) -> i32 {
     }
 }
 
-pub(crate) fn epoch_day_number_for_year(y: f64) -> f64 {
-    365_f64.mul_add(y - 1970_f64, ((y - 1969_f64) / 4_f64).floor())
-        - ((y - 1901_f64) / 100_f64).floor()
-        + ((y - 1601_f64) / 400_f64).floor()
+pub(crate) fn epoch_day_number_for_year(y: i32) -> i32 {
+    365 * (y - 1970) + ((y - 1970) / 4) - ((y - 1901) / 100) + ((y - 1601) / 400)
 }
 
-pub(crate) fn epoch_time_for_year(y: f64) -> f64 {
-    super::NS_PER_DAY as f64 * epoch_day_number_for_year(y)
+pub(crate) fn epoch_time_for_year(y: i32) -> f64 {
+    super::NS_PER_DAY as f64 * epoch_day_number_for_year(y) as f64
 }
 
-pub(crate) fn epoch_time_to_epoch_year(t: f64) -> f64 {
+pub(crate) fn epoch_time_to_epoch_year(t: f64) -> i32 {
     // roughly calculate the largest possible year given the time t,
     // then check and refine the year.
     let day_count = epoch_time_to_day_number(t);
-    let mut year = (day_count / 365_f64).floor();
+    let mut year = day_count / 365;
     loop {
         if epoch_time_for_year(year) <= t {
             break;
         }
-        year -= 1_f64;
+        year -= 1;
     }
 
     year
 }
 
 pub(crate) fn mathematical_in_leap_year(t: f64) -> i32 {
-    mathematical_days_in_year(epoch_time_to_epoch_year(t) as i32)
+    mathematical_days_in_year(epoch_time_to_epoch_year(t))
 }
 
 pub(crate) fn epoch_time_to_month_in_year(t: f64) -> i32 {
@@ -105,6 +103,32 @@ pub(crate) fn epoch_time_for_month_given_year(m: i32, y: i32) -> f64 {
     (super::NS_PER_DAY as f64).mul(f64::from(days))
 }
 
+pub(crate) fn epoch_time_to_date(t: f64) -> i32 {
+    let day_in_year = epoch_time_to_day_in_year(t);
+    let in_leap_year = mathematical_in_leap_year(t);
+    let month = epoch_time_to_month_in_year(t);
+
+    match month {
+        0 => day_in_year + 1,
+        1 => day_in_year - 30,
+        2 => day_in_year - 59 - in_leap_year,
+        3 => day_in_year - 89 - in_leap_year,
+        4 => day_in_year - 119 - in_leap_year,
+        5 => day_in_year - 150 - in_leap_year,
+        6 => day_in_year - 180 - in_leap_year,
+        7 => day_in_year - 211 - in_leap_year,
+        8 => day_in_year - 242 - in_leap_year,
+        9 => day_in_year - 272 - in_leap_year,
+        10 => day_in_year - 303 - in_leap_year,
+        11 => day_in_year - 333 - in_leap_year,
+        _ => unreachable!(),
+    }
+}
+
 pub(crate) fn epoch_time_to_day_in_year(t: f64) -> i32 {
-    (epoch_time_to_day_number(t) - epoch_day_number_for_year(epoch_time_to_epoch_year(t))) as i32
+    epoch_time_to_day_number(t) - epoch_day_number_for_year(epoch_time_to_epoch_year(t))
+}
+
+pub(crate) fn epoch_time_to_week_day(t: f64) -> i32 {
+    (epoch_time_to_day_number(t) + 4) % 7
 }

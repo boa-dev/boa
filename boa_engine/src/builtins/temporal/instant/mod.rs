@@ -17,8 +17,8 @@ use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
 
 use super::{
-    duration, HOUR, MICROSECOND, MICRO_PER_DAY, MILLISECOND, MILLI_PER_DAY, MINUTE, NANOSECOND,
-    NS_MAX_INSTANT, NS_MIN_INSTANT, NS_PER_DAY, SECOND,
+    duration, ns_max_instant, ns_min_instant, HOUR, MICROSECOND, MICRO_PER_DAY, MILLISECOND,
+    MILLI_PER_DAY, MINUTE, NANOSECOND, NS_PER_DAY, SECOND,
 };
 
 const NANOSECONDS_PER_SECOND: i64 = 10_000_000_000;
@@ -357,7 +357,7 @@ impl Instant {
         // 5. Else,
         } else {
             // a. Set roundTo to ? GetOptionsObject(roundTo).
-            super::get_option_object(round_to)?
+            super::get_options_object(round_to)?
         };
         // 6. NOTE: The following steps read options and perform independent validation in
         // alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
@@ -453,7 +453,9 @@ impl Instant {
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // TODO: Complete
-        return Ok(JsValue::undefined())
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// 8.3.18 `Temporal.Instant.prototype.toZonedDateTimeISO ( timeZone )`
@@ -463,7 +465,9 @@ impl Instant {
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // TODO Complete
-        return Ok(JsValue::undefined())
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 }
 
@@ -474,8 +478,8 @@ impl Instant {
 fn is_valid_epoch_nanos(epoch_nanos: &JsBigInt) -> bool {
     // 1. Assert: Type(epochNanoseconds) is BigInt.
     // 2. If ℝ(epochNanoseconds) < nsMinInstant or ℝ(epochNanoseconds) > nsMaxInstant, then
-    if epoch_nanos.to_f64() < JsBigInt::from(NS_MIN_INSTANT).to_f64()
-        || epoch_nanos.to_f64() > JsBigInt::from(NS_MAX_INSTANT).to_f64()
+    if epoch_nanos.to_f64() < ns_min_instant().to_f64()
+        || epoch_nanos.to_f64() > ns_max_instant().to_f64()
     {
         // a. Return false.
         return false;

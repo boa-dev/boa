@@ -11,7 +11,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::{NS_MAX_INSTANT, NS_MIN_INSTANT};
+use super::{ns_max_instant, ns_min_instant};
 use std::time::SystemTime;
 
 /// JavaScript `Temporal.Now` object.
@@ -141,8 +141,8 @@ fn host_system_utc_epoch_nanoseconds() -> JsResult<JsBigInt> {
 }
 
 fn clamp_epoc_nanos(ns: JsBigInt) -> JsBigInt {
-    let max = JsBigInt::from(NS_MAX_INSTANT);
-    let min = JsBigInt::from(NS_MIN_INSTANT);
+    let max = ns_max_instant();
+    let min = ns_min_instant();
     ns.clamp(min, max)
 }
 
