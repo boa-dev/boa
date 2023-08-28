@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"boa_engine":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.71.1/core/future/future/trait.Future.html\" title=\"trait core::future::future::Future\">Future</a> for <a class=\"struct\" href=\"boa_engine/object/builtins/jspromise/struct.JsFuture.html\" title=\"struct boa_engine::object::builtins::jspromise::JsFuture\">JsFuture</a>"]]
+"boa_engine":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.72.0/core/future/future/trait.Future.html\" title=\"trait core::future::future::Future\">Future</a> for <a class=\"struct\" href=\"boa_engine/object/builtins/jspromise/struct.JsFuture.html\" title=\"struct boa_engine::object::builtins::jspromise::JsFuture\">JsFuture</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
