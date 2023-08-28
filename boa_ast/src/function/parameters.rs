@@ -151,6 +151,7 @@ impl VisitWith for FormalParameterList {
         for parameter in &*self.parameters {
             try_break!(visitor.visit_formal_parameter(parameter));
         }
+
         ControlFlow::Continue(())
     }
 
