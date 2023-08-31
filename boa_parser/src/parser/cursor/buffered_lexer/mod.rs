@@ -26,7 +26,7 @@ const PEEK_BUF_SIZE: usize = (MAX_PEEK_SKIP + 1) * 2 + 1;
 
 #[derive(Debug)]
 pub(super) struct BufferedLexer<R> {
-    lexer: Lexer<R>,
+    lexer: Box<Lexer<R>>,
     peeked: [Option<Token>; PEEK_BUF_SIZE],
     read_index: usize,
     write_index: usize,
@@ -38,7 +38,7 @@ where
 {
     fn from(lexer: Lexer<R>) -> Self {
         Self {
-            lexer,
+            lexer: Box::new(lexer),
             peeked: [
                 None::<Token>,
                 None::<Token>,
