@@ -265,7 +265,7 @@ impl<T: Trace> Finalize for Box<[T]> {}
 // SAFETY: All the inner elements of the `Box` array are correctly marked.
 unsafe impl<T: Trace> Trace for Box<[T]> {
     custom_trace!(this, {
-        for e in this.iter() {
+        for e in &**this {
             mark(e);
         }
     });
@@ -319,7 +319,7 @@ impl<T: Ord + Trace> Finalize for BinaryHeap<T> {}
 // SAFETY: All the elements of the `BinaryHeap` are correctly marked.
 unsafe impl<T: Ord + Trace> Trace for BinaryHeap<T> {
     custom_trace!(this, {
-        for v in this.iter() {
+        for v in this {
             mark(v);
         }
     });
@@ -350,7 +350,7 @@ impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Finalize for HashMap<K, V, 
 // SAFETY: All the elements of the `HashMap` are correctly marked.
 unsafe impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Trace for HashMap<K, V, S> {
     custom_trace!(this, {
-        for (k, v) in this.iter() {
+        for (k, v) in this {
             mark(k);
             mark(v);
         }
@@ -361,7 +361,7 @@ impl<T: Eq + Hash + Trace, S: BuildHasher> Finalize for HashSet<T, S> {}
 // SAFETY: All the elements of the `HashSet` are correctly marked.
 unsafe impl<T: Eq + Hash + Trace, S: BuildHasher> Trace for HashSet<T, S> {
     custom_trace!(this, {
-        for v in this.iter() {
+        for v in this {
             mark(v);
         }
     });
@@ -371,6 +371,7 @@ impl<T: Eq + Hash + Trace> Finalize for LinkedList<T> {}
 // SAFETY: All the elements of the `LinkedList` are correctly marked.
 unsafe impl<T: Eq + Hash + Trace> Trace for LinkedList<T> {
     custom_trace!(this, {
+        #[allow(clippy::explicit_iter_loop)]
         for v in this.iter() {
             mark(v);
         }
@@ -387,7 +388,7 @@ impl<T: Trace> Finalize for VecDeque<T> {}
 // SAFETY: All the elements of the `VecDeque` are correctly marked.
 unsafe impl<T: Trace> Trace for VecDeque<T> {
     custom_trace!(this, {
-        for v in this.iter() {
+        for v in this {
             mark(v);
         }
     });

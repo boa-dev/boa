@@ -78,7 +78,7 @@ impl VisitWith for Call {
         V: Visitor<'a>,
     {
         try_break!(visitor.visit_expression(&self.function));
-        for expr in self.args.iter() {
+        for expr in &*self.args {
             try_break!(visitor.visit_expression(expr));
         }
         ControlFlow::Continue(())
@@ -89,7 +89,7 @@ impl VisitWith for Call {
         V: VisitorMut<'a>,
     {
         try_break!(visitor.visit_expression_mut(&mut self.function));
-        for expr in self.args.iter_mut() {
+        for expr in &mut *self.args {
             try_break!(visitor.visit_expression_mut(expr));
         }
         ControlFlow::Continue(())
@@ -146,7 +146,7 @@ impl VisitWith for SuperCall {
     where
         V: Visitor<'a>,
     {
-        for expr in self.args.iter() {
+        for expr in &*self.args {
             try_break!(visitor.visit_expression(expr));
         }
         ControlFlow::Continue(())
@@ -156,7 +156,7 @@ impl VisitWith for SuperCall {
     where
         V: VisitorMut<'a>,
     {
-        for expr in self.args.iter_mut() {
+        for expr in &mut *self.args {
             try_break!(visitor.visit_expression_mut(expr));
         }
         ControlFlow::Continue(())

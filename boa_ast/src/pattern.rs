@@ -171,7 +171,7 @@ impl VisitWith for ObjectPattern {
     where
         V: Visitor<'a>,
     {
-        for elem in self.0.iter() {
+        for elem in &*self.0 {
             try_break!(visitor.visit_object_pattern_element(elem));
         }
         ControlFlow::Continue(())
@@ -181,7 +181,7 @@ impl VisitWith for ObjectPattern {
     where
         V: VisitorMut<'a>,
     {
-        for elem in self.0.iter_mut() {
+        for elem in &mut *self.0 {
             try_break!(visitor.visit_object_pattern_element_mut(elem));
         }
         ControlFlow::Continue(())
@@ -249,7 +249,7 @@ impl VisitWith for ArrayPattern {
     where
         V: Visitor<'a>,
     {
-        for elem in self.0.iter() {
+        for elem in &*self.0 {
             try_break!(visitor.visit_array_pattern_element(elem));
         }
         ControlFlow::Continue(())
@@ -259,7 +259,7 @@ impl VisitWith for ArrayPattern {
     where
         V: VisitorMut<'a>,
     {
-        for elem in self.0.iter_mut() {
+        for elem in &mut *self.0 {
             try_break!(visitor.visit_array_pattern_element_mut(elem));
         }
         ControlFlow::Continue(())

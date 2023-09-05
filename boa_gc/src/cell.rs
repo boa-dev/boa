@@ -491,12 +491,12 @@ impl<T: Trace + ?Sized + Debug> Debug for GcRefCell<T> {
                 .debug_struct("GcCell")
                 .field("flags", &self.flags.get())
                 .field("value", &self.borrow())
-                .finish(),
+                .finish_non_exhaustive(),
             BorrowState::Writing => f
                 .debug_struct("GcCell")
                 .field("flags", &self.flags.get())
                 .field("value", &"<borrowed>")
-                .finish(),
+                .finish_non_exhaustive(),
         }
     }
 }

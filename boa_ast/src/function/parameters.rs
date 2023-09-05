@@ -148,9 +148,10 @@ impl VisitWith for FormalParameterList {
     where
         V: Visitor<'a>,
     {
-        for parameter in self.parameters.iter() {
+        for parameter in &*self.parameters {
             try_break!(visitor.visit_formal_parameter(parameter));
         }
+
         ControlFlow::Continue(())
     }
 
@@ -158,9 +159,10 @@ impl VisitWith for FormalParameterList {
     where
         V: VisitorMut<'a>,
     {
-        for parameter in self.parameters.iter_mut() {
+        for parameter in &mut *self.parameters {
             try_break!(visitor.visit_formal_parameter_mut(parameter));
         }
+
         // TODO recompute flags
         ControlFlow::Continue(())
     }

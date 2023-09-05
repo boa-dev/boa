@@ -97,10 +97,10 @@ fn last_index() {
 fn exec() {
     run_test_actions([
         TestAction::run_harness(),
-        TestAction::run(indoc! {r#"
+        TestAction::run(indoc! {r"
                 var re = /quick\s(brown).+?(jumps)/ig;
                 var result = re.exec('The Quick Brown Fox Jumps Over The Lazy Dog');
-            "#}),
+            "}),
         TestAction::assert(indoc! {r#"
             arrayEquals(
                 result,

@@ -46,7 +46,7 @@ impl<Char> InternedStr<Char> {
 
 impl<Char> Clone for InternedStr<Char> {
     fn clone(&self) -> Self {
-        Self { ptr: self.ptr }
+        *self
     }
 }
 

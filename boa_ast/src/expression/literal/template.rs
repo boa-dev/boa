@@ -70,7 +70,7 @@ impl ToInternedString for TemplateLiteral {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "`".to_owned();
 
-        for elt in self.elements.iter() {
+        for elt in &*self.elements {
             match elt {
                 TemplateElement::String(s) => buf.push_str(&interner.resolve_expect(*s).join(
                     Cow::Borrowed,
@@ -93,7 +93,7 @@ impl VisitWith for TemplateLiteral {
     where
         V: Visitor<'a>,
     {
-        for element in self.elements.iter() {
+        for element in &*self.elements {
             try_break!(visitor.visit_template_element(element));
         }
         ControlFlow::Continue(())
@@ -103,7 +103,7 @@ impl VisitWith for TemplateLiteral {
     where
         V: VisitorMut<'a>,
     {
-        for element in self.elements.iter_mut() {
+        for element in &mut *self.elements {
             try_break!(visitor.visit_template_element_mut(element));
         }
         ControlFlow::Continue(())

@@ -62,7 +62,7 @@ impl TestSuite {
         };
 
         let mut features = FxHashSet::default();
-        for test_iter in self.tests.iter() {
+        for test_iter in &*self.tests {
             features.extend(test_iter.features.iter().map(ToString::to_string));
         }
 

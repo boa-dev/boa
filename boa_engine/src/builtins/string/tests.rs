@@ -6,12 +6,12 @@ use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction}
 fn length() {
     //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
     run_test_actions([
-        TestAction::run(indoc! {r#"
+        TestAction::run(indoc! {r"
                 const a = new String(' ');
                 const b = new String('\ud834\udf06');
                 const c = new String(' \b ');
                 const d = new String('中文长度')
-            "#}),
+            "}),
         // unicode surrogate pair length should be 1
         // utf16/usc2 length should be 2
         // utf8 length should be 4
@@ -307,12 +307,12 @@ fn includes_with_regex_arg() {
 fn match_all_one() {
     run_test_actions([
         TestAction::run_harness(),
-        TestAction::run(indoc! {r#"
+        TestAction::run(indoc! {r"
             var groupMatches = 'test1test2'.matchAll(/t(e)(st(\d?))/g);
             var m1 = groupMatches.next();
             var m2 = groupMatches.next();
             var m3 = groupMatches.next();
-        "#}),
+        "}),
         TestAction::assert("!m1.done"),
         TestAction::assert("!m2.done"),
         TestAction::assert("m3.done"),
@@ -553,12 +553,12 @@ fn split() {
                     ['']
                 )
             "#}),
-        TestAction::assert(indoc! {r#"
+        TestAction::assert(indoc! {r"
                 arrayEquals(
                     '\u{1D7D8}\u{1D7D9}\u{1D7DA}\u{1D7DB}'.split(''),
                     ['\uD835', '\uDFD8', '\uD835', '\uDFD9', '\uD835', '\uDFDA', '\uD835', '\uDFDB']
                 )
-            "#}),
+            "}),
     ]);
 }
 

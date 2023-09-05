@@ -111,13 +111,13 @@ impl VisitWith for TaggedTemplate {
         V: Visitor<'a>,
     {
         try_break!(visitor.visit_expression(&self.tag));
-        for raw in self.raws.iter() {
+        for raw in &*self.raws {
             try_break!(visitor.visit_sym(raw));
         }
         for cooked in self.cookeds.iter().flatten() {
             try_break!(visitor.visit_sym(cooked));
         }
-        for expr in self.exprs.iter() {
+        for expr in &*self.exprs {
             try_break!(visitor.visit_expression(expr));
         }
         ControlFlow::Continue(())
@@ -128,13 +128,13 @@ impl VisitWith for TaggedTemplate {
         V: VisitorMut<'a>,
     {
         try_break!(visitor.visit_expression_mut(&mut self.tag));
-        for raw in self.raws.iter_mut() {
+        for raw in &mut *self.raws {
             try_break!(visitor.visit_sym_mut(raw));
         }
         for cooked in self.cookeds.iter_mut().flatten() {
             try_break!(visitor.visit_sym_mut(cooked));
         }
-        for expr in self.exprs.iter_mut() {
+        for expr in &mut *self.exprs {
             try_break!(visitor.visit_expression_mut(expr));
         }
         ControlFlow::Continue(())

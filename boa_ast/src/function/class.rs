@@ -124,7 +124,7 @@ impl ToIndentedString for Class {
                 block_to_string(expr.body().statements(), interner, indent_n + 1)
             ));
         }
-        for element in self.elements.iter() {
+        for element in &*self.elements {
             buf.push_str(&match element {
                 ClassElement::MethodDefinition(name, method) => {
                     format!(
@@ -394,7 +394,7 @@ impl VisitWith for Class {
         if let Some(func) = &self.constructor {
             try_break!(visitor.visit_function(func));
         }
-        for elem in self.elements.iter() {
+        for elem in &*self.elements {
             try_break!(visitor.visit_class_element(elem));
         }
         ControlFlow::Continue(())
@@ -413,7 +413,7 @@ impl VisitWith for Class {
         if let Some(func) = &mut self.constructor {
             try_break!(visitor.visit_function_mut(func));
         }
-        for elem in self.elements.iter_mut() {
+        for elem in &mut *self.elements {
             try_break!(visitor.visit_class_element_mut(elem));
         }
         ControlFlow::Continue(())
