@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check code formatting
         run: npx prettier --check .
 
@@ -28,7 +28,7 @@ jobs:
     env:
       WASM_PACK_PATH: ~/.cargo/bin/wasm-pack
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable

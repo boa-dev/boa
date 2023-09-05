@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -69,7 +69,7 @@ jobs:
           binary_name: boa.exe
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
