@@ -958,7 +958,7 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for </span>elem <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter() {
+        <span class="kw">for </span>elem <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.<span class="number">0 </span>{
             <span class="macro">try_break!</span>(visitor.visit_object_pattern_element(elem));
         }
         ControlFlow::Continue(())
@@ -968,7 +968,7 @@
     <span class="kw">where
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for </span>elem <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter_mut() {
+        <span class="kw">for </span>elem <span class="kw">in </span><span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0 </span>{
             <span class="macro">try_break!</span>(visitor.visit_object_pattern_element_mut(elem));
         }
         ControlFlow::Continue(())
@@ -1036,7 +1036,7 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for </span>elem <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter() {
+        <span class="kw">for </span>elem <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.<span class="number">0 </span>{
             <span class="macro">try_break!</span>(visitor.visit_array_pattern_element(elem));
         }
         ControlFlow::Continue(())
@@ -1046,7 +1046,7 @@
     <span class="kw">where
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for </span>elem <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter_mut() {
+        <span class="kw">for </span>elem <span class="kw">in </span><span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0 </span>{
             <span class="macro">try_break!</span>(visitor.visit_array_pattern_element_mut(elem));
         }
         ControlFlow::Continue(())

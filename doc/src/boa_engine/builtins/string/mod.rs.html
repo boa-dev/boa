@@ -3148,7 +3148,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">2</span>];
 
         <span class="comment">// 2. For each element next of codePoints, do
-        </span><span class="kw">for </span>arg <span class="kw">in </span>args.iter() {
+        </span><span class="kw">for </span>arg <span class="kw">in </span>args {
             <span class="comment">// a. Let nextCP be ? ToNumber(next).
             </span><span class="kw">let </span>nextcp = arg.to_number(context)<span class="question-mark">?</span>;
 

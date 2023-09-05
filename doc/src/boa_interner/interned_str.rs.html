@@ -126,8 +126,8 @@
 
 <span class="kw">impl</span>&lt;Char&gt; Clone <span class="kw">for </span>InternedStr&lt;Char&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ ptr: <span class="self">self</span>.ptr }
-    }
+        <span class="kw-2">*</span><span class="self">self
+    </span>}
 }
 
 <span class="kw">impl</span>&lt;Char&gt; Copy <span class="kw">for </span>InternedStr&lt;Char&gt; {}

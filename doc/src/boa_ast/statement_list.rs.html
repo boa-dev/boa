@@ -367,7 +367,7 @@
     <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
         <span class="comment">// Print statements
-        </span><span class="kw">for </span>item <span class="kw">in </span><span class="self">self</span>.statements.iter() {
+        </span><span class="kw">for </span>item <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.statements {
             <span class="comment">// We rely on the node to add the correct indent.
             </span>buf.push_str(<span class="kw-2">&amp;</span>item.to_indented_string(interner, indentation));
 
@@ -382,7 +382,7 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for </span>statement <span class="kw">in </span><span class="self">self</span>.statements.iter() {
+        <span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.statements {
             <span class="macro">try_break!</span>(visitor.visit_statement_list_item(statement));
         }
         ControlFlow::Continue(())
@@ -392,7 +392,7 @@
     <span class="kw">where
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for </span>statement <span class="kw">in </span><span class="self">self</span>.statements.iter_mut() {
+        <span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;mut *</span><span class="self">self</span>.statements {
             <span class="macro">try_break!</span>(visitor.visit_statement_list_item_mut(statement));
         }
         ControlFlow::Continue(())

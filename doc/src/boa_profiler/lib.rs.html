@@ -198,6 +198,10 @@
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The **`boa_profiler`** crate is a code profiler for Boa.
 //!
 //! # Crate Overview
@@ -350,6 +354,10 @@
     }
 
     <span class="doccomment">/// Drop the global instance of the profiler.
+    ///
+    /// # Panics
+    ///
+    /// Calling `drop` will panic if `INSTANCE` cannot be taken back.
     </span><span class="kw">pub fn </span>drop(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// In order to drop the INSTANCE we need to get ownership of it, which isn&#39;t possible on a static unless you make it a mutable static
         // mutating statics is unsafe, so we need to wrap it as so.

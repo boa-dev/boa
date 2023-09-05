@@ -300,6 +300,10 @@
 <a href="#300" id="300">300</a>
 <a href="#301" id="301">301</a>
 <a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cmp::Ordering, fmt, num::NonZeroU32};
 
 <span class="doccomment">/// A position in the ECMAScript source code.
@@ -318,7 +322,11 @@
 }
 
 <span class="kw">impl </span>Position {
-    <span class="doccomment">/// Creates a new `Position`.
+    <span class="doccomment">/// Creates a new `Position` from Non-Zero values.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the line number or column number is zero.
     </span><span class="attr">#[inline]
     #[track_caller]
     #[must_use]

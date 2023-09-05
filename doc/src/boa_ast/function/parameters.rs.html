@@ -285,6 +285,8 @@
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
 <a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     declaration::{Binding, Variable},
     expression::Expression,
@@ -435,9 +437,10 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for </span>parameter <span class="kw">in </span><span class="self">self</span>.parameters.iter() {
+        <span class="kw">for </span>parameter <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.parameters {
             <span class="macro">try_break!</span>(visitor.visit_formal_parameter(parameter));
         }
+
         ControlFlow::Continue(())
     }
 
@@ -445,9 +448,10 @@
     <span class="kw">where
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for </span>parameter <span class="kw">in </span><span class="self">self</span>.parameters.iter_mut() {
+        <span class="kw">for </span>parameter <span class="kw">in </span><span class="kw-2">&amp;mut *</span><span class="self">self</span>.parameters {
             <span class="macro">try_break!</span>(visitor.visit_formal_parameter_mut(parameter));
         }
+
         <span class="comment">// TODO recompute flags
         </span>ControlFlow::Continue(())
     }

@@ -704,7 +704,7 @@
                 block_to_string(expr.body().statements(), interner, indent_n + <span class="number">1</span>)
             ));
         }
-        <span class="kw">for </span>element <span class="kw">in </span><span class="self">self</span>.elements.iter() {
+        <span class="kw">for </span>element <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.elements {
             buf.push_str(<span class="kw-2">&amp;</span><span class="kw">match </span>element {
                 ClassElement::MethodDefinition(name, method) =&gt; {
                     <span class="macro">format!</span>(
@@ -974,7 +974,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(func) = <span class="kw-2">&amp;</span><span class="self">self</span>.constructor {
             <span class="macro">try_break!</span>(visitor.visit_function(func));
         }
-        <span class="kw">for </span>elem <span class="kw">in </span><span class="self">self</span>.elements.iter() {
+        <span class="kw">for </span>elem <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.elements {
             <span class="macro">try_break!</span>(visitor.visit_class_element(elem));
         }
         ControlFlow::Continue(())
@@ -993,7 +993,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(func) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.constructor {
             <span class="macro">try_break!</span>(visitor.visit_function_mut(func));
         }
-        <span class="kw">for </span>elem <span class="kw">in </span><span class="self">self</span>.elements.iter_mut() {
+        <span class="kw">for </span>elem <span class="kw">in </span><span class="kw-2">&amp;mut *</span><span class="self">self</span>.elements {
             <span class="macro">try_break!</span>(visitor.visit_class_element_mut(elem));
         }
         ControlFlow::Continue(())

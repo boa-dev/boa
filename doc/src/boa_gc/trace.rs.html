@@ -418,6 +418,7 @@
 <a href="#418" id="418">418</a>
 <a href="#419" id="419">419</a>
 <a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     borrow::{Cow, ToOwned},
     cell::Cell,
@@ -685,7 +686,7 @@
 <span class="comment">// SAFETY: All the inner elements of the `Box` array are correctly marked.
 </span><span class="kw">unsafe impl</span>&lt;T: Trace&gt; Trace <span class="kw">for </span>Box&lt;[T]&gt; {
     <span class="macro">custom_trace!</span>(this, {
-        <span class="kw">for </span>e <span class="kw">in </span>this.iter() {
+        <span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;**</span>this {
             mark(e);
         }
     });
@@ -739,7 +740,7 @@
 <span class="comment">// SAFETY: All the elements of the `BinaryHeap` are correctly marked.
 </span><span class="kw">unsafe impl</span>&lt;T: Ord + Trace&gt; Trace <span class="kw">for </span>BinaryHeap&lt;T&gt; {
     <span class="macro">custom_trace!</span>(this, {
-        <span class="kw">for </span>v <span class="kw">in </span>this.iter() {
+        <span class="kw">for </span>v <span class="kw">in </span>this {
             mark(v);
         }
     });
@@ -770,7 +771,7 @@
 <span class="comment">// SAFETY: All the elements of the `HashMap` are correctly marked.
 </span><span class="kw">unsafe impl</span>&lt;K: Eq + Hash + Trace, V: Trace, S: BuildHasher&gt; Trace <span class="kw">for </span>HashMap&lt;K, V, S&gt; {
     <span class="macro">custom_trace!</span>(this, {
-        <span class="kw">for </span>(k, v) <span class="kw">in </span>this.iter() {
+        <span class="kw">for </span>(k, v) <span class="kw">in </span>this {
             mark(k);
             mark(v);
         }
@@ -781,7 +782,7 @@
 <span class="comment">// SAFETY: All the elements of the `HashSet` are correctly marked.
 </span><span class="kw">unsafe impl</span>&lt;T: Eq + Hash + Trace, S: BuildHasher&gt; Trace <span class="kw">for </span>HashSet&lt;T, S&gt; {
     <span class="macro">custom_trace!</span>(this, {
-        <span class="kw">for </span>v <span class="kw">in </span>this.iter() {
+        <span class="kw">for </span>v <span class="kw">in </span>this {
             mark(v);
         }
     });
@@ -791,7 +792,8 @@
 <span class="comment">// SAFETY: All the elements of the `LinkedList` are correctly marked.
 </span><span class="kw">unsafe impl</span>&lt;T: Eq + Hash + Trace&gt; Trace <span class="kw">for </span>LinkedList&lt;T&gt; {
     <span class="macro">custom_trace!</span>(this, {
-        <span class="kw">for </span>v <span class="kw">in </span>this.iter() {
+        <span class="attr">#[allow(clippy::explicit_iter_loop)]
+        </span><span class="kw">for </span>v <span class="kw">in </span>this.iter() {
             mark(v);
         }
     });
@@ -807,7 +809,7 @@
 <span class="comment">// SAFETY: All the elements of the `VecDeque` are correctly marked.
 </span><span class="kw">unsafe impl</span>&lt;T: Trace&gt; Trace <span class="kw">for </span>VecDeque&lt;T&gt; {
     <span class="macro">custom_trace!</span>(this, {
-        <span class="kw">for </span>v <span class="kw">in </span>this.iter() {
+        <span class="kw">for </span>v <span class="kw">in </span>this {
             mark(v);
         }
     });

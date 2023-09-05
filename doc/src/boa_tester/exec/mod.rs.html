@@ -755,7 +755,7 @@
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>features = FxHashSet::default();
-        <span class="kw">for </span>test_iter <span class="kw">in </span><span class="self">self</span>.tests.iter() {
+        <span class="kw">for </span>test_iter <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.tests {
             features.extend(test_iter.features.iter().map(ToString::to_string));
         }
 

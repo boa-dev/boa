@@ -666,7 +666,7 @@
 
 <span class="kw">unsafe impl</span>&lt;K: Trace&gt; Trace <span class="kw">for </span>OrderedHashMap&lt;K&gt; {
     <span class="macro">custom_trace!</span>(this, {
-        <span class="kw">for </span>(k, v) <span class="kw">in </span>this.<span class="number">0</span>.iter() {
+        <span class="kw">for </span>(k, v) <span class="kw">in </span><span class="kw-2">&amp;</span>this.<span class="number">0 </span>{
             mark(k);
             mark(v);
         }

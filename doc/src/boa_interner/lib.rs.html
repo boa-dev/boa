@@ -443,6 +443,11 @@
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_interner`** is a string interner for compiler performance.
 //!
 //! # Crate Overview
@@ -800,6 +805,11 @@
     }
 
     <span class="doccomment">/// Returns the string for the given symbol if any.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the size of both statics is not equal or the interners do
+    /// not have the same size
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: Sym) -&gt; <span class="prelude-ty">Option</span>&lt;JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">let </span>index = symbol.get() - <span class="number">1</span>;

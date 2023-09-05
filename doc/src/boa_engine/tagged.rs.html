@@ -142,8 +142,8 @@
 
 <span class="kw">impl</span>&lt;T&gt; Clone <span class="kw">for </span>Tagged&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0</span>)
-    }
+        <span class="kw-2">*</span><span class="self">self
+    </span>}
 }
 
 <span class="kw">impl</span>&lt;T&gt; Copy <span class="kw">for </span>Tagged&lt;T&gt; {}

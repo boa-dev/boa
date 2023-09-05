@@ -280,7 +280,7 @@
 <span class="kw">impl</span>&lt;V: Trace, S: BuildHasher&gt; Finalize <span class="kw">for </span>OrderedMap&lt;V, S&gt; {}
 <span class="kw">unsafe impl</span>&lt;V: Trace, S: BuildHasher&gt; Trace <span class="kw">for </span>OrderedMap&lt;V, S&gt; {
     <span class="macro">custom_trace!</span>(this, {
-        <span class="kw">for </span>(k, v) <span class="kw">in </span>this.map.iter() {
+        <span class="kw">for </span>(k, v) <span class="kw">in </span><span class="kw-2">&amp;</span>this.map {
             <span class="kw">if let </span>MapKey::Key(key) = k {
                 mark(key);
             }

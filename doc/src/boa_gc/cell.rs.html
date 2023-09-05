@@ -993,12 +993,12 @@
                 .debug_struct(<span class="string">&quot;GcCell&quot;</span>)
                 .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.flags.get())
                 .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.borrow())
-                .finish(),
+                .finish_non_exhaustive(),
             BorrowState::Writing =&gt; f
                 .debug_struct(<span class="string">&quot;GcCell&quot;</span>)
                 .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.flags.get())
                 .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;borrowed&gt;&quot;</span>)
-                .finish(),
+                .finish_non_exhaustive(),
         }
     }
 }

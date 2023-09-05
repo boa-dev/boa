@@ -369,7 +369,7 @@
     <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
         <span class="kw">let </span>indent = <span class="string">&quot;    &quot;</span>.repeat(indentation);
         <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">format!</span>(<span class="string">&quot;switch ({}) {{\n&quot;</span>, <span class="self">self</span>.val().to_interned_string(interner));
-        <span class="kw">for </span>e <span class="kw">in </span><span class="self">self</span>.cases().iter() {
+        <span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.cases {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = e.condition() {
                 buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                     <span class="string">&quot;{indent}    case {}:\n{}&quot;</span>,
@@ -403,7 +403,7 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="macro">try_break!</span>(visitor.visit_expression(<span class="kw-2">&amp;</span><span class="self">self</span>.val));
-        <span class="kw">for </span>case <span class="kw">in </span><span class="self">self</span>.cases.iter() {
+        <span class="kw">for </span>case <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.cases {
             <span class="macro">try_break!</span>(visitor.visit_case(case));
         }
         ControlFlow::Continue(())
@@ -414,7 +414,7 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="macro">try_break!</span>(visitor.visit_expression_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.val));
-        <span class="kw">for </span>case <span class="kw">in </span><span class="self">self</span>.cases.iter_mut() {
+        <span class="kw">for </span>case <span class="kw">in </span><span class="kw-2">&amp;mut *</span><span class="self">self</span>.cases {
             <span class="macro">try_break!</span>(visitor.visit_case_mut(case));
         }
         ControlFlow::Continue(())

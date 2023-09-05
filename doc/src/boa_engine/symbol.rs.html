@@ -319,6 +319,7 @@
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
@@ -430,7 +431,8 @@
     }
 }
 
-<span class="doccomment">/// The inner representation of a JavaScript symbol.
+<span class="comment">// TODO: Address below clippy::arc_with_non_send_sync below.
+</span><span class="doccomment">/// The inner representation of a JavaScript symbol.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">struct </span>Inner {
     hash: u64,

@@ -450,7 +450,7 @@
 
     <span class="doccomment">/// Regular expression to retrieve the metadata of a test.
     </span><span class="kw">static </span>META_REGEX: Lazy&lt;Regex&gt; = Lazy::new(|| {
-        Regex::new(<span class="string">r#&quot;/\*\-{3}((?:.|\n)*)\-{3}\*/&quot;#</span>)
+        Regex::new(<span class="string">r&quot;/\*\-{3}((?:.|\n)*)\-{3}\*/&quot;</span>)
             .expect(<span class="string">&quot;could not compile metadata regular expression&quot;</span>)
     });
 
