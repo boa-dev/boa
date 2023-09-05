@@ -608,7 +608,7 @@ impl DurationRecord {
             }
             // 14. Else,
             // a. Assert: largestUnit is "nanosecond".
-        _ => assert!(largest_unit.to_std_string_escaped().as_str() == "nanosecond"),
+            _ => assert!(largest_unit.to_std_string_escaped().as_str() == "nanosecond"),
         }
 
         // 15. For each value v of « days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds », do
@@ -901,9 +901,9 @@ impl DurationRecord {
                 self.set_nanoseconds(0_f64);
 
                 0_f64
-            },
+            }
             // 7. Else,
-            _=> {
+            _ => {
                 // a. Let fractionalSeconds be nanoseconds × 10-9 + microseconds × 10-6 + milliseconds × 10-3 + seconds.
                 self.seconds().mul_add(
                     1000_f64,
@@ -945,8 +945,8 @@ impl DurationRecord {
                     &calendar_obj,
                     &relative_to,
                     &years_duration,
-                    &JsValue::undefined(),
-                    Some(&date_add),
+                    None,
+                    context,
                 )?;
 
                 // e. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
@@ -964,8 +964,8 @@ impl DurationRecord {
                     &calendar_obj,
                     &relative_to,
                     &years_months_weeks,
-                    &JsValue::undefined(),
-                    Some(&date_add),
+                    None,
+                    context,
                 )?;
 
                 // g. Let monthsWeeksInDays be DaysUntil(yearsLater, yearsMonthsWeeksLater).
@@ -990,8 +990,8 @@ impl DurationRecord {
                     &calendar_obj,
                     &relative_to,
                     &whole_days_duration,
-                    &JsValue::undefined(),
-                    Some(&date_add),
+                    None,
+                    context,
                 )?;
 
                 // l. Let untilOptions be OrdinaryObjectCreate(null).
@@ -1005,7 +1005,7 @@ impl DurationRecord {
                     &relative_to,
                     &whole_days_later,
                     &until_options.into(),
-                    None,
+                    context,
                 )?;
 
                 // o. Let yearsPassed be timePassed.[[Years]].
@@ -1028,8 +1028,8 @@ impl DurationRecord {
                     &calendar_obj,
                     &relative_to,
                     &years_duration,
-                    &JsValue::undefined(),
-                    Some(&date_add),
+                    None,
+                    context,
                 )?;
 
                 // t. Let daysPassed be DaysUntil(oldRelativeTo, relativeTo).
@@ -1049,12 +1049,8 @@ impl DurationRecord {
                 )?;
 
                 // x. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneYear, dateAdd).
-                let move_result = super::move_relative_date(
-                    &calendar_obj,
-                    &relative_to,
-                    one_year,
-                    Some(&date_add),
-                )?;
+                let move_result =
+                    super::move_relative_date(&calendar_obj, &relative_to, one_year, context)?;
 
                 // y. Let oneYearDays be moveResult.[[Days]].
                 let one_year_days = move_result.1;
@@ -1104,8 +1100,8 @@ impl DurationRecord {
                     &calendar_obj,
                     &relative_to,
                     &years_month,
-                    &JsValue::undefined(),
-                    Some(&date_add),
+                    None,
+                    context,
                 )?;
 
                 // e. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
@@ -1123,8 +1119,8 @@ impl DurationRecord {
                     &calendar_obj,
                     &relative_to,
                     &years_months_weeks,
-                    &JsValue::undefined(),
-                    Some(&date_add),
+                    None,
+                    context,
                 )?;
                 // g. Let weeksInDays be DaysUntil(yearsMonthsLater, yearsMonthsWeeksLater).
                 let weeks_in_days =
@@ -1151,7 +1147,7 @@ impl DurationRecord {
                     &calendar_obj,
                     &relative_to,
                     one_month.clone(),
-                    Some(&date_add),
+                    context,
                 )?;
 
                 // m. Set relativeTo to moveResult.[[RelativeTo]].
@@ -1170,7 +1166,7 @@ impl DurationRecord {
                         &calendar_obj,
                         &relative_to,
                         one_month.clone(),
-                        Some(&date_add),
+                        context,
                     )?;
 
                     // iv. Set relativeTo to moveResult.[[RelativeTo]].
@@ -1221,7 +1217,7 @@ impl DurationRecord {
                     &calendar_obj,
                     &relative_to,
                     one_week.clone(),
-                    Some(&date_add),
+                    context,
                 )?;
 
                 // f. Set relativeTo to moveResult.[[RelativeTo]].
@@ -1240,7 +1236,7 @@ impl DurationRecord {
                         &calendar_obj,
                         &relative_to,
                         one_week.clone(),
-                        Some(&date_add),
+                        context,
                     )?;
                     // iv. Set relativeTo to moveResult.[[RelativeTo]].
                     relative_to = move_result.0;

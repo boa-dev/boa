@@ -5,47 +5,58 @@ use crate::{
 
 use super::plain_date::iso::IsoDateRecord;
 
+use bitflags::{bitflags, iter::Iter, Flags};
+use icu_datetime::fields::Field;
 use rustc_hash::FxHashSet;
 
-/// The temproal fields are laid out in the Temporal proposal under section 13.46 `PrepareTemporalFields`
+bitflags! {
+    #[derive(PartialEq, Eq)]
+    pub struct FieldMap: u16 {
+        const YEAR = 0b00000000_00000001;
+        const MONTH = 0b00000000_00000010;
+        const MONTH_CODE = 0b00000000_00000100;
+        const DAY = 0b00000000_00001000;
+        const HOUR = 0b00000000_00010000;
+        const MINUTE = 0b00000000_00100000;
+        const SECOND = 0b00000000_01000000;
+        const MILLISECOND = 0b00000000_10000000;
+        const MICROSECOND = 0b00000001_00000000;
+        const NANOSECOND = 0b00000010_00000000;
+        const OFFSET = 0b00000100_00000000;
+        const ERA = 0b00001000_00000000;
+        const ERA_YEAR = 0b00010000_00000000;
+        const TIME_ZONE = 0b00100000_00000000;
+    }
+}
+
+/// The temporal fields are laid out in the Temporal proposal under section 13.46 `PrepareTemporalFields`
 /// with conversion and defaults laid out by Table 17 (displayed below).
 ///
+/// `TemporalFields` is meant to act as a native Rust implementation
+/// of the fields.
+///
+///
 /// ## Table 17: Temporal field requirements
-/// | -------------|---------------------------------|------------|
+///
 /// |   Property   |           Conversion            |  Default   |
 /// | -------------|---------------------------------|------------|
 /// | "year"	   |     ToIntegerWithTruncation     | undefined  |
-/// | -------------|---------------------------------|------------|
 /// | "month"	   | ToPositiveIntegerWithTruncation | undefined  |
-/// | -------------|---------------------------------|------------|
 /// | "monthCode"  |   ToPrimitiveAndRequireString   | undefined  |
-/// | -------------|---------------------------------|------------|
 /// | "day"        | ToPositiveIntegerWithTruncation | undefined  |
-/// | -------------|---------------------------------|------------|
 /// | "hour"       |     ToIntegerWithTruncation     |    +0𝔽     |
-/// | -------------|---------------------------------|------------|
 /// | "minute"	   |     ToIntegerWithTruncation     |    +0𝔽     |
-/// | -------------|---------------------------------|------------|
 /// | "second"     |     ToIntegerWithTruncation	 |    +0𝔽     |
-/// | -------------|---------------------------------|------------|
 /// | "millisecond"|     ToIntegerWithTruncation     |    +0𝔽     |
-/// | -------------|---------------------------------|------------|
 /// | "microsecond"|     ToIntegerWithTruncation     |    +0𝔽     |
-/// | -------------|---------------------------------|------------|
 /// | "nanosecond" |     ToIntegerWithTruncation     |    +0𝔽     |
-/// | -------------|---------------------------------|------------|
 /// | "offset"     |   ToPrimitiveAndRequireString   | undefined  |
-/// | -------------|---------------------------------|------------|
 /// | "era"        |   ToPrimitiveAndRequireString   | undefined  |
-/// | -------------|---------------------------------|------------|
 /// | "eraYear"    |     ToIntegerWithTruncation     | undefined  |
-/// | -------------|---------------------------------|------------|
 /// | "timeZone"   |                                 | undefined  |
-/// |-------------------------------------------------------------|
 ///
-/// `TemporalFields` acts as a middle ground between Table 17 and a native Rust
-/// implementation of the fields.
 pub(crate) struct TemporalFields {
+    bit_map: FieldMap,
     year: Option<i32>,
     month: Option<i32>,
     month_code: Option<JsString>, // TODO: Switch to icu compatible value.
@@ -58,13 +69,14 @@ pub(crate) struct TemporalFields {
     nanosecond: i32,
     offset: Option<JsString>,
     era: Option<JsString>,       // TODO: switch to icu compatible value.
-    era_year: Option<JsString>,  // TODO: switch to icu compatible value.
+    era_year: Option<i32>,       // TODO: switch to icu compatible value.
     time_zone: Option<JsString>, // TODO: figure out the identifier for TimeZone.
 }
 
 impl Default for TemporalFields {
     fn default() -> Self {
         Self {
+            bit_map: FieldMap::empty(),
             year: None,
             month: None,
             month_code: None,
@@ -130,6 +142,7 @@ impl TemporalFields {
     fn set_year(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let y = super::to_integer_with_truncation(value, context)?;
         self.year = Some(y);
+        self.bit_map.set(FieldMap::YEAR, true);
         Ok(())
     }
 
@@ -137,6 +150,7 @@ impl TemporalFields {
     fn set_month(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let mo = super::to_positive_integer_with_trunc(value, context)?;
         self.year = Some(mo);
+        self.bit_map.set(FieldMap::MONTH, true);
         Ok(())
     }
 
@@ -151,6 +165,8 @@ impl TemporalFields {
                 .into());
         }
 
+        self.bit_map.set(FieldMap::MONTH_CODE, true);
+
         Ok(())
     }
 
@@ -158,6 +174,7 @@ impl TemporalFields {
     fn set_day(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let d = super::to_positive_integer_with_trunc(value, context)?;
         self.day = Some(d);
+        self.bit_map.set(FieldMap::DAY, true);
         Ok(())
     }
 
@@ -165,6 +182,7 @@ impl TemporalFields {
     fn set_hour(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let h = super::to_integer_with_truncation(value, context)?;
         self.hour = h;
+        self.bit_map.set(FieldMap::HOUR, true);
         Ok(())
     }
 
@@ -172,6 +190,7 @@ impl TemporalFields {
     fn set_minute(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let m = super::to_integer_with_truncation(value, context)?;
         self.minute = m;
+        self.bit_map.set(FieldMap::MINUTE, true);
         Ok(())
     }
 
@@ -179,6 +198,7 @@ impl TemporalFields {
     fn set_second(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let sec = super::to_integer_with_truncation(value, context)?;
         self.second = sec;
+        self.bit_map.set(FieldMap::SECOND, true);
         Ok(())
     }
 
@@ -186,6 +206,7 @@ impl TemporalFields {
     fn set_milli(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let milli = super::to_integer_with_truncation(value, context)?;
         self.millisecond = milli;
+        self.bit_map.set(FieldMap::MILLISECOND, true);
         Ok(())
     }
 
@@ -193,6 +214,7 @@ impl TemporalFields {
     fn set_micro(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let micro = super::to_integer_with_truncation(value, context)?;
         self.microsecond = micro;
+        self.bit_map.set(FieldMap::MICROSECOND, true);
         Ok(())
     }
 
@@ -200,6 +222,7 @@ impl TemporalFields {
     fn set_nano(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let nano = super::to_integer_with_truncation(value, context)?;
         self.nanosecond = nano;
+        self.bit_map.set(FieldMap::NANOSECOND, true);
         Ok(())
     }
 
@@ -207,12 +230,13 @@ impl TemporalFields {
     fn set_offset(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let mc = value.to_primitive(context, PreferredType::String)?;
         if let Some(string) = mc.as_string() {
-            self.month_code = Some(string.clone())
+            self.offset = Some(string.clone())
         } else {
             return Err(JsNativeError::typ()
                 .with_message("ToPrimativeAndRequireString must be of type String.")
                 .into());
         }
+        self.bit_map.set(FieldMap::OFFSET, true);
 
         Ok(())
     }
@@ -221,27 +245,22 @@ impl TemporalFields {
     fn set_era(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let mc = value.to_primitive(context, PreferredType::String)?;
         if let Some(string) = mc.as_string() {
-            self.month_code = Some(string.clone())
+            self.era = Some(string.clone())
         } else {
             return Err(JsNativeError::typ()
                 .with_message("ToPrimativeAndRequireString must be of type String.")
                 .into());
         }
+        self.bit_map.set(FieldMap::ERA, true);
 
         Ok(())
     }
 
     #[inline]
     fn set_era_year(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
-        let mc = value.to_primitive(context, PreferredType::String)?;
-        if let Some(string) = mc.as_string() {
-            self.month_code = Some(string.clone())
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("ToPrimativeAndRequireString must be of type String.")
-                .into());
-        }
-
+        let ey = super::to_integer_with_truncation(value, context)?;
+        self.era_year = Some(ey);
+        self.bit_map.set(FieldMap::ERA_YEAR, true);
         Ok(())
     }
 
@@ -249,6 +268,7 @@ impl TemporalFields {
     fn set_time_zone(&mut self, value: &JsValue) -> JsResult<()> {
         let tz = value.as_string().map(|s| s.clone());
         self.time_zone = tz;
+        self.bit_map.set(FieldMap::TIME_ZONE, true);
         Ok(())
     }
 }
@@ -285,7 +305,6 @@ impl TemporalFields {
                     .into());
             }
 
-            // NOTE: is this safe with JsString?
             let new_value = dups_map.insert(field.to_std_string_escaped());
 
             // b. If property is not equal to previousProperty, then
@@ -346,6 +365,126 @@ impl TemporalFields {
 
         // 8. Return result.
         Ok(result)
+    }
+
+    pub(crate) fn as_object(&self, context: &mut Context<'_>) -> JsResult<JsObject> {
+        let obj = JsObject::with_null_proto();
+
+        for bit in self.bit_map.iter() {
+            match bit {
+                FieldMap::YEAR => {
+                    obj.create_data_property_or_throw(
+                        "year",
+                        self.year.map(JsValue::from).unwrap_or(JsValue::undefined()),
+                        context,
+                    )?;
+                }
+                FieldMap::MONTH => {
+                    obj.create_data_property_or_throw(
+                        "month",
+                        self.month
+                            .map(JsValue::from)
+                            .unwrap_or(JsValue::undefined()),
+                        context,
+                    )?;
+                }
+                FieldMap::MONTH_CODE => {
+                    obj.create_data_property_or_throw(
+                        "monthCode",
+                        self.month_code
+                            .as_ref()
+                            .map(|f| f.clone().into())
+                            .unwrap_or(JsValue::undefined()),
+                        context,
+                    )?;
+                }
+                FieldMap::DAY => {
+                    obj.create_data_property(
+                        "day",
+                        self.day()
+                            .map(JsValue::from)
+                            .unwrap_or(JsValue::undefined()),
+                        context,
+                    )?;
+                }
+                FieldMap::HOUR => {
+                    obj.create_data_property("hour", self.hour, context)?;
+                }
+                FieldMap::MINUTE => {
+                    obj.create_data_property("minute", self.minute, context)?;
+                }
+                FieldMap::SECOND => {
+                    obj.create_data_property_or_throw("second", self.second, context)?;
+                }
+                FieldMap::MILLISECOND => {
+                    obj.create_data_property_or_throw("millisecond", self.millisecond, context)?;
+                }
+                FieldMap::MICROSECOND => {
+                    obj.create_data_property_or_throw("microsecond", self.microsecond, context)?;
+                }
+                FieldMap::NANOSECOND => {
+                    obj.create_data_property_or_throw("nanosecond", self.nanosecond, context)?;
+                }
+                FieldMap::OFFSET => {
+                    obj.create_data_property_or_throw(
+                        "offset",
+                        self.offset
+                            .as_ref()
+                            .map(|s| s.clone().into())
+                            .unwrap_or(JsValue::undefined()),
+                        context,
+                    )?;
+                }
+                FieldMap::ERA => {
+                    obj.create_data_property_or_throw(
+                        "era",
+                        self.era
+                            .as_ref()
+                            .map(|s| s.clone().into())
+                            .unwrap_or(JsValue::undefined()),
+                        context,
+                    )?;
+                }
+                FieldMap::ERA_YEAR => {
+                    obj.create_data_property_or_throw(
+                        "eraYear",
+                        self.era_year
+                            .map(JsValue::from)
+                            .unwrap_or(JsValue::undefined()),
+                        context,
+                    )?;
+                }
+                FieldMap::TIME_ZONE => {
+                    obj.create_data_property_or_throw(
+                        "timeZone",
+                        self.time_zone
+                            .as_ref()
+                            .map(|s| s.clone().into())
+                            .unwrap_or(JsValue::undefined()),
+                        context,
+                    )?;
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        if self.bit_map.contains(FieldMap::YEAR) {
+            let value = self
+                .year()
+                .map(JsValue::from)
+                .unwrap_or(JsValue::undefined());
+            obj.create_data_property_or_throw(PropertyKey::from("year"), value, context)?;
+        }
+
+        if self.bit_map.contains(FieldMap::MONTH) {
+            let value = self
+                .month()
+                .map(JsValue::from)
+                .unwrap_or(JsValue::undefined());
+            obj.create_data_property_or_throw(PropertyKey::from("month"), value, context)?;
+        }
+
+        Ok(obj)
     }
 
     pub(crate) fn resolve_month(&mut self) -> JsResult<()> {

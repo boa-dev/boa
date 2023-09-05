@@ -254,8 +254,8 @@ impl BuiltInConstructor for PlainYearMonth {
         // TODO: calendar handling.
         // 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
 
-        let record = IsoYearMonthRecord::new(y, m, ref_day);
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
+        let record = IsoYearMonthRecord::new(y, m, ref_day);
         create_temporal_year_month(record, JsValue::from("iso8601"), Some(new_target), context)
     }
 }

@@ -900,7 +900,7 @@ pub(crate) fn to_temporal_duration(item: &JsValue, context: &mut Context<'_>) ->
 pub(crate) fn to_temporal_duration_record(
     _temporal_duration_like: &JsValue,
 ) -> JsResult<DurationRecord> {
-    todo!()
+    Err(JsNativeError::range().with_message("Not yet implemented.").into())
 }
 
 /// 7.5.14 `CreateTemporalDuration ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds [ , newTarget ] )`
@@ -1007,15 +1007,9 @@ fn move_relative_date(
     calendar: &JsValue,
     relative_to: &JsObject,
     duration: JsObject,
-    date_add: Option<&JsValue>,
+    context: &mut Context<'_>,
 ) -> JsResult<(JsObject, f64)> {
-    let new_date = calendar::calendar_date_add(
-        calendar,
-        relative_to,
-        &duration,
-        &JsValue::undefined(),
-        date_add,
-    )?;
+    let new_date = calendar::calendar_date_add(calendar, relative_to, &duration, None, context)?;
     let days = f64::from(days_until(relative_to, &new_date));
     Ok((new_date, days))
 }

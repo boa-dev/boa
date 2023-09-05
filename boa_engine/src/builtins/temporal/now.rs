@@ -132,7 +132,7 @@ impl Now {
 
 /// 2.3.1 `HostSystemUTCEpochNanoseconds ( global )`
 fn host_system_utc_epoch_nanoseconds() -> JsResult<JsBigInt> {
-    // TODO: Implement `SystemTime::now()` calls manually. Needed for `no_std`
+    // TODO: Implement `SystemTime::now()` calls for `no_std`
     let epoch_nanos = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .map_err(|e| JsNativeError::range().with_message(e.to_string()))?
@@ -146,10 +146,16 @@ fn clamp_epoc_nanos(ns: JsBigInt) -> JsBigInt {
     ns.clamp(min, max)
 }
 
-/// 2.3.2 `SystemUTCEpochNanoseconds`
+/// 2.3.2 `SystemUTCEpochMilliseconds`
+fn system_utc_epoch_millis() -> JsResult<f64> {
+    let now = host_system_utc_epoch_nanoseconds()?;
+    Ok(now.to_f64().div_euclid(1_000_000_f64).floor())
+}
+
+/// 2.3.3 `SystemUTCEpochNanoseconds`
 #[allow(unused)]
-fn system_utc_epoch_nanos() -> JsBigInt {
-    todo!()
+fn system_utc_epoch_nanos() -> JsResult<JsBigInt> {
+    host_system_utc_epoch_nanoseconds()
 }
 
 /// `SystemInstant`

@@ -379,26 +379,26 @@ impl Instant {
         let smallest_unit = smallest_unit
             .as_string()
             .expect("GetTemporalUnit cannot return Undefined when default is required.");
-        let maximum = match smallest_unit.as_slice() {
+        let maximum = match smallest_unit.to_std_string_escaped().as_str() {
             // 10. If smallestUnit is "hour", then
             // a. Let maximum be HoursPerDay.
-            HOUR => 24,
+            "hour" => 24,
             // 11. Else if smallestUnit is "minute", then
             // a. Let maximum be MinutesPerHour × HoursPerDay.
-            MINUTE => 14400,
+            "minute" => 14400,
             // 12. Else if smallestUnit is "second", then
             // a. Let maximum be SecondsPerMinute × MinutesPerHour × HoursPerDay.
-            SECOND => 86400,
+            "second" => 86400,
             // 13. Else if smallestUnit is "millisecond", then
             // a. Let maximum be ℝ(msPerDay).
-            MILLISECOND => MILLI_PER_DAY,
+            "millisecond" => MILLI_PER_DAY,
             // 14. Else if smallestUnit is "microsecond", then
             // a. Let maximum be 103 × ℝ(msPerDay).
-            MICROSECOND => MICRO_PER_DAY,
+            "microsecond" => MICRO_PER_DAY,
             // 15. Else,
             // a. Assert: smallestUnit is "nanosecond".
             // b. Let maximum be nsPerDay.
-            NANOSECOND => NS_PER_DAY,
+            "nanosecond" => NS_PER_DAY,
             // unreachable here functions as 15.a.
             _ => unreachable!(),
         };

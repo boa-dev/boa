@@ -23,7 +23,6 @@ impl IsoDateTimeRecord {
     }
 }
 
-
 // ==== `IsoDateTimeRecord` methods ====
 
 impl IsoDateTimeRecord {

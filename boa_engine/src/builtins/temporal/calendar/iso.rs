@@ -5,7 +5,7 @@ use crate::{
     builtins::temporal::{self, plain_date::iso::IsoDateRecord, IsoYearMonthRecord},
     js_string,
     string::utf16,
-    Context, JsArgs, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::BuiltinCalendar;
@@ -15,10 +15,6 @@ use icu_calendar::{iso::Iso, Calendar};
 pub(crate) struct IsoCalendar;
 
 impl BuiltinCalendar for IsoCalendar {
-    fn identifier(&self) -> &str {
-        "iso8601"
-    }
-
     /// Temporal Proposal 15.8.2.1 `Temporal.prototype.dateFromFields( fields [, options])` - Supercedes 12.5.4
     fn date_from_fields(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
@@ -148,8 +144,20 @@ impl BuiltinCalendar for IsoCalendar {
         temporal::create_temporal_month_day(result, JsValue::from("iso8601"), None, context)
     }
 
-    /// TODO: Docs
+    /// 12.5.7 Temporal.Calendar.prototype.dateAdd ( date, duration [ , options ] )
+    ///
+    /// Below implements the basic implementation for an iso8601 calendar's "dateAdd" method.
     fn date_add(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+        // 1. Let calendar be the this value.
+        // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
+        // 3. Assert: calendar.[[Identifier]] is "iso8601".
+        // 4. Set date to ? ToTemporalDate(date).
+        // 5. Set duration to ? ToTemporalDuration(duration).
+        // 6. Set options to ? GetOptionsObject(options).
+        // 7. Let overflow be ? ToTemporalOverflow(options).
+        // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
+        // 9. Let result be ? AddISODate(date.[[ISOYear]], date.[[ISOMonth]], date.[[ISODay]], duration.[[Years]], duration.[[Months]], duration.[[Weeks]], balanceResult.[[Days]], overflow).
+        // 10. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], "iso8601").
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())

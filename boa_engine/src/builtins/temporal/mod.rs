@@ -28,15 +28,16 @@ pub use self::{
 };
 use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
 use crate::{
+    builtins::iterable::IteratorRecord,
     context::intrinsics::{Intrinsics, StandardConstructors},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
     property::{Attribute, PropertyKey},
     realm::Realm,
     string::utf16,
-    value::IntegerOrInfinity,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
-    NativeFunction,
+    value::{IntegerOrInfinity, Type},
+    Context, JsBigInt, JsNativeError, JsNativeErrorKind, JsObject, JsResult, JsString, JsSymbol,
+    JsValue, NativeFunction,
 };
 use boa_ast::temporal::{self, OffsetSign, UtcOffset};
 use boa_profiler::Profiler;
@@ -70,17 +71,6 @@ pub(crate) const OFFSET: &[u16] = utf16!("offset");
 pub(crate) const ERA: &[u16] = utf16!("era");
 pub(crate) const ERA_YEAR: &[u16] = utf16!("eraYear");
 pub(crate) const TZ: &[u16] = utf16!("timeZone");
-
-// Rounding Mode string constants
-pub(crate) const CEIL: &[u16] = utf16!("ceil");
-pub(crate) const FLOOR: &[u16] = utf16!("floor");
-pub(crate) const EXPAND: &[u16] = utf16!("expand");
-pub(crate) const TRUNC: &[u16] = utf16!("trunc");
-pub(crate) const HALFCEIL: &[u16] = utf16!("halfCeil");
-pub(crate) const HALFFLOOR: &[u16] = utf16!("halfFloor");
-pub(crate) const HALFEXPAND: &[u16] = utf16!("halfExpand");
-pub(crate) const HALFTRUNC: &[u16] = utf16!("halfTrunc");
-pub(crate) const HALFEVEN: &[u16] = utf16!("halfEven");
 
 // An enum representing common fields across `Temporal` objects.
 pub(crate) enum DateTimeValues {
@@ -250,6 +240,38 @@ fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
 }
 
 // TODO: 13.1 IteratorToListOfType
+pub(crate) fn iterator_to_list_of_types(
+    iterator: &IteratorRecord,
+    element_types: &[Type],
+    context: &mut Context<'_>,
+) -> JsResult<Vec<JsValue>> {
+    // 1. Let values be a new empty List.
+    let mut values = Vec::new();
+
+    // 2. Let next be true.
+    // 3. Repeat, while next is not false,
+    // a. Set next to ? IteratorStep(iteratorRecord).
+    // b. If next is not false, then
+    while let Some(next) = iterator.step(context)? {
+        // i. Let nextValue be ? IteratorValue(next).
+        let next_value = next.value(context)?;
+        // ii. If Type(nextValue) is not an element of elementTypes, then
+        if element_types.contains(&next_value.get_type()) {
+            // 1. Let completion be ThrowCompletion(a newly created TypeError object).
+            let completion = JsNativeError::typ()
+                .with_message("IteratorNext is not within allowed type values.");
+
+            // NOTE: The below should return as we are forcing a ThrowCompletion.
+            // 2. Return ? IteratorClose(iteratorRecord, completion).
+            let _never = iterator.close(Err(completion.into()), context)?;
+        }
+        // iii. Append nextValue to the end of the List values.
+        values.push(next_value);
+    }
+
+    // 4. Return values.
+    Ok(values)
+}
 
 /// 13.2 `ISODateToEpochDays ( year, month, date )`
 // Note: implemented on IsoDateRecord.
@@ -406,8 +428,8 @@ pub(crate) fn to_temporal_rounding_mode(
         PropertyKey::from("roundingMode"),
         OptionType::String,
         Some(&[
-            CEIL.into(),
-            FLOOR.into(),
+            "ceil".into(),
+            "floor".into(),
             "expand".into(),
             "trunc".into(),
             "halfCeil".into(),
@@ -431,11 +453,11 @@ pub(crate) fn to_temporal_rounding_mode(
 
 // 13.11 `NegateTemporalRoundingMode ( roundingMode )`
 fn negate_temporal_rounding_mode(rounding_mode: JsString) -> JsString {
-    match rounding_mode.as_slice() {
-        CEIL => FLOOR.into(),
-        FLOOR => CEIL.into(),
-        HALFCEIL => HALFFLOOR.into(),
-        HALFFLOOR => HALFCEIL.into(),
+    match rounding_mode.to_std_string_escaped().as_str() {
+        "ceil" => "floor".into(),
+        "floor" => "ceil".into(),
+        "halfCeil" => "halfFloor".into(),
+        "halfFloor" => "halfCeil".into(),
         _ => rounding_mode,
     }
 }
@@ -585,7 +607,6 @@ pub(crate) fn get_temporal_unit(
             .into());
     }
 
-    // NOTE (nekevss): Value here is either a string or undefined.
     // 11. If value is listed in the Plural column of Table 13, then
     // a. Set value to the value in the Singular column of the corresponding row.
     // 12. Return value.
@@ -692,19 +713,19 @@ fn larger_of_two_temporal_units(u1: &JsString, u2: &JsString) -> JsString {
 
 /// 13.23 `MaximumTemporalDurationRoundingIncrement ( unit )`
 fn maximum_temporal_duration_rounding_increment(unit: &JsString) -> JsValue {
-    match unit.as_slice() {
+    match unit.to_std_string_escaped().as_str() {
         // 1. If unit is "year", "month", "week", or "day", then
         // a. Return undefined.
-        YEAR | MONTH | WEEK | DAY => JsValue::undefined(),
+        "year" | "month" | "week" | "day" => JsValue::undefined(),
         // 2. If unit is "hour", then
         // a. Return 24.
-        HOUR => JsValue::from(24),
+        "hour" => JsValue::from(24),
         // 3. If unit is "minute" or "second", then
         // a. Return 60.
-        MINUTE | SECOND => JsValue::from(60),
+        "minute" | "second" => JsValue::from(60),
         // 4. Assert: unit is one of "millisecond", "microsecond", or "nanosecond".
         // 5. Return 1000.
-        MILLISECOND | MICROSECOND | NANOSECOND => JsValue::from(1000),
+        "millisecond" | "microsecond" | "nanosecond" => JsValue::from(1000),
         _ => unreachable!(),
     }
 }
@@ -715,16 +736,16 @@ pub(crate) fn get_unsigned_round_mode(
     rounding_mode: &JsString,
     is_negative: bool,
 ) -> UnsignedRoundingMode {
-    match rounding_mode.as_slice() {
-        CEIL if !is_negative => UnsignedRoundingMode::Infinity,
-        CEIL => UnsignedRoundingMode::Zero,
-        FLOOR if !is_negative => UnsignedRoundingMode::Zero,
-        FLOOR | TRUNC | EXPAND => UnsignedRoundingMode::Infinity,
-        HALFCEIL if !is_negative => UnsignedRoundingMode::HalfInfinity,
-        HALFCEIL | HALFTRUNC => UnsignedRoundingMode::HalfZero,
-        HALFFLOOR if !is_negative => UnsignedRoundingMode::HalfZero,
-        HALFFLOOR | HALFEXPAND => UnsignedRoundingMode::HalfInfinity,
-        HALFEVEN => UnsignedRoundingMode::HalfEven,
+    match rounding_mode.to_std_string_escaped().as_str() {
+        "ceil" if !is_negative => UnsignedRoundingMode::Infinity,
+        "ceil" => UnsignedRoundingMode::Zero,
+        "floor" if !is_negative => UnsignedRoundingMode::Zero,
+        "floor" | "trunc" | "expand" => UnsignedRoundingMode::Infinity,
+        "halfCeil" if !is_negative => UnsignedRoundingMode::HalfInfinity,
+        "halfCeil" | "halfTrunc" => UnsignedRoundingMode::HalfZero,
+        "halfFloor" if !is_negative => UnsignedRoundingMode::HalfZero,
+        "halfFloor" | "halfExpand" => UnsignedRoundingMode::HalfInfinity,
+        "halfEven" => UnsignedRoundingMode::HalfEven,
         _ => unreachable!(),
     }
 }

@@ -13,7 +13,7 @@ use boa_profiler::Profiler;
 
 use self::iso::IsoDateRecord;
 
-use super::{to_temporal_overflow, get_options_object};
+use super::{get_options_object, to_temporal_overflow};
 
 pub(crate) mod iso;
 
@@ -525,7 +525,11 @@ pub(crate) fn create_temporal_date(
     Ok(new_date.into())
 }
 
-pub(crate) fn to_temporal_date(item: &JsValue, options: Option<JsValue>, context: &mut Context<'_>) -> JsResult<JsValue> {
+pub(crate) fn to_temporal_date(
+    item: &JsValue,
+    options: Option<JsValue>,
+    context: &mut Context<'_>,
+) -> JsResult<JsValue> {
     // 1. If options is not present, set options to undefined.
     let options = options.unwrap_or(JsValue::undefined());
 
@@ -549,13 +553,15 @@ pub(crate) fn to_temporal_date(item: &JsValue, options: Option<JsValue>, context
             // iii. Let plainDateTime be ? GetPlainDateTimeFor(item.[[TimeZone]], instant, item.[[Calendar]]).
             // iv. Return ! CreateTemporalDate(plainDateTime.[[ISOYear]], plainDateTime.[[ISOMonth]], plainDateTime.[[ISODay]], plainDateTime.[[Calendar]]).
 
-        // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
+            // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
         } else if object.is_plain_date_time() {
             // i. Perform ? ToTemporalOverflow(options).
             let overflow = to_temporal_overflow(&options_obj, context)?;
 
             let obj = object.borrow();
-            let date_time = obj.as_plain_date_time().expect("obj must be a PlainDateTime");
+            let date_time = obj
+                .as_plain_date_time()
+                .expect("obj must be a PlainDateTime");
 
             let iso = date_time.inner.iso_date();
             let calendar = date_time.calendar.clone();
@@ -563,7 +569,7 @@ pub(crate) fn to_temporal_date(item: &JsValue, options: Option<JsValue>, context
             drop(obj);
 
             // ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
-            return create_temporal_date(iso, calendar, None, context)
+            return create_temporal_date(iso, calendar, None, context);
         }
 
         // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
@@ -573,21 +579,27 @@ pub(crate) fn to_temporal_date(item: &JsValue, options: Option<JsValue>, context
     }
 
     // 5. If item is not a String, throw a TypeError exception.
-    if !item.is_string() {
-        return Err(JsNativeError::typ()
-            .with_message("ToTemporalDate item must be an object or string.")
-            .into());
+    match item {
+        JsValue::String(s)=> {
+            // 6. Let result be ? ParseTemporalDateString(item).
+            // 7. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
+            // 8. Let calendar be result.[[Calendar]].
+            // 9. If calendar is undefined, set calendar to "iso8601".
+            // 10. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
+            // 11. Set calendar to the ASCII-lowercase of calendar.
+            // 12. Perform ? ToTemporalOverflow(options).
+            // 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
+
+            Err(JsNativeError::range()
+                .with_message("Not yet implemented.")
+                .into())
+        },
+        _=> {
+            Err(JsNativeError::typ()
+                .with_message("ToTemporalDate item must be an object or string.")
+                .into())
+        },
     }
 
-    Err(JsNativeError::range()
-        .with_message("Not yet implemented.")
-        .into())
-    // 6. Let result be ? ParseTemporalDateString(item).
-    // 7. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
-    // 8. Let calendar be result.[[Calendar]].
-    // 9. If calendar is undefined, set calendar to "iso8601".
-    // 10. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
-    // 11. Set calendar to the ASCII-lowercase of calendar.
-    // 12. Perform ? ToTemporalOverflow(options).
-    // 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
+
 }
