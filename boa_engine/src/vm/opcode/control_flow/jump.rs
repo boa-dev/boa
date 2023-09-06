@@ -118,8 +118,8 @@ impl Operation for JumpTable {
     const INSTRUCTION: &'static str = "INST - JumpTable";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let count = context.vm.read::<u32>();
         let default = context.vm.read::<u32>();
+        let count = context.vm.read::<u32>();
 
         let value = context.vm.pop();
         if let JsValue::Integer(value) = &value {

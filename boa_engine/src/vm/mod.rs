@@ -33,10 +33,13 @@ mod runtime_limits;
 pub mod flowgraph;
 
 pub use runtime_limits::RuntimeLimits;
-pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
+pub use {
+    call_frame::{CallFrame, GeneratorResumeKind},
+    code_block::CodeBlock,
+    opcode::{Instruction, InstructionIterator, Opcode},
+};
 
 pub(crate) use {
-    call_frame::GeneratorResumeKind,
     code_block::{
         create_function_object, create_function_object_fast, create_generator_function_object,
         CodeBlockFlags, Handler,

@@ -301,387 +301,335 @@ impl CodeBlock {
     /// Returns an empty `String` if no operands are present.
     #[cfg(any(feature = "trace", feature = "flowgraph"))]
     pub(crate) fn instruction_operands(&self, pc: &mut usize, interner: &Interner) -> String {
-        let opcode: Opcode = self.bytecode[*pc].into();
-        *pc += size_of::<Opcode>();
-        match opcode {
-            Opcode::SetFunctionName => {
-                let operand = self.read::<u8>(*pc);
-                *pc += size_of::<u8>();
-                match operand {
-                    0 => "prefix: none",
-                    1 => "prefix: get",
-                    2 => "prefix: set",
-                    _ => unreachable!(),
-                }
-                .to_owned()
+        use super::Instruction;
+
+        let instruction = Instruction::from_bytecode(&self.bytecode, pc);
+        match instruction {
+            Instruction::SetFunctionName { prefix } => match prefix {
+                0 => "prefix: none",
+                1 => "prefix: get",
+                2 => "prefix: set",
+                _ => unreachable!(),
             }
-            Opcode::RotateLeft | Opcode::RotateRight => {
-                let result = self.read::<u8>(*pc).to_string();
-                *pc += size_of::<u8>();
-                result
+            .to_owned(),
+            Instruction::RotateLeft { n } | Instruction::RotateRight { n } => n.to_string(),
+            Instruction::Generator { r#async } => {
+                format!("async: {async}")
             }
-            Opcode::Generator => {
-                let result = self.read::<u8>(*pc);
-                *pc += size_of::<u8>();
-                format!("async: {}", result != 0)
+            Instruction::PushInt8 { value } => value.to_string(),
+            Instruction::PushInt16 { value } => value.to_string(),
+            Instruction::PushInt32 { value } => value.to_string(),
+            Instruction::PushFloat { value } => ryu_js::Buffer::new().format(value).to_string(),
+            Instruction::PushDouble { value } => ryu_js::Buffer::new().format(value).to_string(),
+            Instruction::PushLiteral { index: value }
+            | Instruction::ThrowNewTypeError { message: value }
+            | Instruction::Jump { address: value }
+            | Instruction::JumpIfTrue { address: value }
+            | Instruction::JumpIfFalse { address: value }
+            | Instruction::JumpIfNotUndefined { address: value }
+            | Instruction::JumpIfNullOrUndefined { address: value }
+            | Instruction::Case { address: value }
+            | Instruction::Default { address: value }
+            | Instruction::LogicalAnd { exit: value }
+            | Instruction::LogicalOr { exit: value }
+            | Instruction::Coalesce { exit: value }
+            | Instruction::CallEval {
+                argument_count: value,
             }
-            Opcode::PushInt8 => {
-                let result = self.read::<i8>(*pc).to_string();
-                *pc += size_of::<i8>();
-                result
+            | Instruction::Call {
+                argument_count: value,
             }
-            Opcode::PushInt16 => {
-                let result = self.read::<i16>(*pc).to_string();
-                *pc += size_of::<i16>();
-                result
+            | Instruction::New {
+                argument_count: value,
             }
-            Opcode::PushInt32 => {
-                let result = self.read::<i32>(*pc).to_string();
-                *pc += size_of::<i32>();
-                result
+            | Instruction::SuperCall {
+                argument_count: value,
             }
-            Opcode::PushFloat => {
-                let operand = self.read::<f32>(*pc);
-                *pc += size_of::<f32>();
-                ryu_js::Buffer::new().format(operand).to_string()
+            | Instruction::ConcatToString { value_count: value } => value.to_string(),
+            Instruction::PushDeclarativeEnvironment {
+                compile_environments_index,
             }
-            Opcode::PushDouble => {
-                let operand = self.read::<f64>(*pc);
-                *pc += size_of::<f64>();
-                ryu_js::Buffer::new().format(operand).to_string()
+            | Instruction::PushFunctionEnvironment {
+                compile_environments_index,
+            } => compile_environments_index.to_string(),
+            Instruction::CopyDataProperties {
+                excluded_key_count: value1,
+                excluded_key_count_computed: value2,
             }
-            Opcode::PushLiteral
-            | Opcode::ThrowNewTypeError
-            | Opcode::Jump
-            | Opcode::JumpIfTrue
-            | Opcode::JumpIfFalse
-            | Opcode::JumpIfNotUndefined
-            | Opcode::JumpIfNullOrUndefined
-            | Opcode::Case
-            | Opcode::Default
-            | Opcode::LogicalAnd
-            | Opcode::LogicalOr
-            | Opcode::Coalesce
-            | Opcode::CallEval
-            | Opcode::Call
-            | Opcode::New
-            | Opcode::SuperCall
-            | Opcode::ConcatToString => {
-                let result = self.read::<u32>(*pc).to_string();
-                *pc += size_of::<u32>();
-                result
+            | Instruction::GeneratorDelegateNext {
+                return_method_undefined: value1,
+                throw_method_undefined: value2,
             }
-            Opcode::PushDeclarativeEnvironment | Opcode::PushFunctionEnvironment => {
-                let operand = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-                format!("{operand}")
+            | Instruction::GeneratorDelegateResume {
+                exit: value1,
+                r#return: value2,
+            } => {
+                format!("{value1}, {value2}")
             }
-            Opcode::CopyDataProperties
-            | Opcode::GeneratorDelegateNext
-            | Opcode::GeneratorDelegateResume => {
-                let operand1 = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-                let operand2 = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-                format!("{operand1}, {operand2}")
+            Instruction::TemplateLookup { exit: value, site }
+            | Instruction::TemplateCreate { count: value, site } => {
+                format!("{value}, {site}")
             }
-            Opcode::TemplateLookup | Opcode::TemplateCreate => {
-                let operand1 = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-                let operand2 = self.read::<u64>(*pc);
-                *pc += size_of::<u64>();
-                format!("{operand1}, {operand2}")
-            }
-            Opcode::GetArrowFunction
-            | Opcode::GetAsyncArrowFunction
-            | Opcode::GetFunction
-            | Opcode::GetFunctionAsync => {
-                let operand = self.read::<u32>(*pc);
-                *pc += size_of::<u32>() + size_of::<u8>();
+            Instruction::GetArrowFunction { index, method }
+            | Instruction::GetAsyncArrowFunction { index, method }
+            | Instruction::GetFunction { index, method }
+            | Instruction::GetFunctionAsync { index, method } => {
                 format!(
-                    "{operand:04}: '{}' (length: {})",
-                    self.functions[operand as usize]
+                    "{index:04}: '{}' (length: {}), method: {method}",
+                    self.functions[index as usize]
                         .name()
                         .to_std_string_escaped(),
-                    self.functions[operand as usize].length
+                    self.functions[index as usize].length
                 )
             }
-            Opcode::GetGenerator | Opcode::GetGeneratorAsync => {
-                let operand = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
+            Instruction::GetGenerator { index } | Instruction::GetGeneratorAsync { index } => {
                 format!(
-                    "{operand:04}: '{}' (length: {})",
-                    self.functions[operand as usize]
+                    "{index:04}: '{}' (length: {})",
+                    self.functions[index as usize]
                         .name()
                         .to_std_string_escaped(),
-                    self.functions[operand as usize].length
+                    self.functions[index as usize].length
                 )
             }
-            Opcode::DefVar
-            | Opcode::DefInitVar
-            | Opcode::PutLexicalValue
-            | Opcode::GetName
-            | Opcode::GetLocator
-            | Opcode::GetNameAndLocator
-            | Opcode::GetNameOrUndefined
-            | Opcode::SetName
-            | Opcode::DeleteName => {
-                let operand = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
+            Instruction::DefVar { index }
+            | Instruction::DefInitVar { index }
+            | Instruction::PutLexicalValue { index }
+            | Instruction::GetName { index }
+            | Instruction::GetLocator { index }
+            | Instruction::GetNameAndLocator { index }
+            | Instruction::GetNameOrUndefined { index }
+            | Instruction::SetName { index }
+            | Instruction::DeleteName { index } => {
                 format!(
-                    "{:04}: '{}'",
-                    operand,
-                    interner.resolve_expect(self.bindings[operand as usize].name().sym()),
+                    "{index:04}: '{}'",
+                    interner.resolve_expect(self.bindings[index as usize].name().sym()),
                 )
             }
-            Opcode::GetPropertyByName
-            | Opcode::GetMethod
-            | Opcode::SetPropertyByName
-            | Opcode::DefineOwnPropertyByName
-            | Opcode::DefineClassStaticMethodByName
-            | Opcode::DefineClassMethodByName
-            | Opcode::SetPropertyGetterByName
-            | Opcode::DefineClassStaticGetterByName
-            | Opcode::DefineClassGetterByName
-            | Opcode::SetPropertySetterByName
-            | Opcode::DefineClassStaticSetterByName
-            | Opcode::DefineClassSetterByName
-            | Opcode::DeletePropertyByName
-            | Opcode::SetPrivateField
-            | Opcode::DefinePrivateField
-            | Opcode::SetPrivateMethod
-            | Opcode::SetPrivateSetter
-            | Opcode::SetPrivateGetter
-            | Opcode::GetPrivateField
-            | Opcode::PushClassFieldPrivate
-            | Opcode::PushClassPrivateGetter
-            | Opcode::PushClassPrivateSetter
-            | Opcode::PushClassPrivateMethod
-            | Opcode::InPrivate
-            | Opcode::ThrowMutateImmutable => {
-                let operand = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
+            Instruction::GetPropertyByName { index }
+            | Instruction::GetMethod { index }
+            | Instruction::SetPropertyByName { index }
+            | Instruction::DefineOwnPropertyByName { index }
+            | Instruction::DefineClassStaticMethodByName { index }
+            | Instruction::DefineClassMethodByName { index }
+            | Instruction::SetPropertyGetterByName { index }
+            | Instruction::DefineClassStaticGetterByName { index }
+            | Instruction::DefineClassGetterByName { index }
+            | Instruction::SetPropertySetterByName { index }
+            | Instruction::DefineClassStaticSetterByName { index }
+            | Instruction::DefineClassSetterByName { index }
+            | Instruction::DeletePropertyByName { index }
+            | Instruction::SetPrivateField { index }
+            | Instruction::DefinePrivateField { index }
+            | Instruction::SetPrivateMethod { index }
+            | Instruction::SetPrivateSetter { index }
+            | Instruction::SetPrivateGetter { index }
+            | Instruction::GetPrivateField { index }
+            | Instruction::PushClassFieldPrivate { index }
+            | Instruction::PushClassPrivateGetter { index }
+            | Instruction::PushClassPrivateSetter { index }
+            | Instruction::PushClassPrivateMethod { index }
+            | Instruction::InPrivate { index }
+            | Instruction::ThrowMutateImmutable { index } => {
                 format!(
-                    "{operand:04}: '{}'",
-                    self.names[operand as usize].to_std_string_escaped(),
+                    "{index:04}: '{}'",
+                    self.names[index as usize].to_std_string_escaped(),
                 )
             }
-            Opcode::PushPrivateEnvironment => {
-                let count = self.read::<u32>(*pc);
-                *pc += size_of::<u32>() * (count as usize + 1);
-                String::new()
+            Instruction::PushPrivateEnvironment { name_indices } => {
+                format!("{name_indices:?}")
             }
-            Opcode::JumpTable => {
-                let count = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-                let default = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-
-                let mut operands = format!("#{count}: Default: {default:4}");
-                for i in 1..=count {
-                    let address = self.read::<u32>(*pc);
-                    *pc += size_of::<u32>();
-
+            Instruction::JumpTable { default, addresses } => {
+                let mut operands = format!("#{}: Default: {default:4}", addresses.len());
+                for (i, address) in addresses.iter().enumerate() {
                     operands += &format!(", {i}: {address}");
                 }
                 operands
             }
-            Opcode::JumpIfNotResumeKind => {
-                let exit = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
-
-                let resume_kind = self.read::<u8>(*pc);
-                *pc += size_of::<u8>();
-
-                format!(
-                    "ResumeKind: {:?}, exit: {exit}",
-                    JsValue::new(resume_kind).to_generator_resume_kind()
-                )
+            Instruction::JumpIfNotResumeKind { exit, resume_kind } => {
+                format!("ResumeKind: {resume_kind:?}, exit: {exit}")
             }
-            Opcode::CreateIteratorResult => {
-                let done = self.read::<u8>(*pc) != 0;
-                *pc += size_of::<u8>();
+            Instruction::CreateIteratorResult { done } => {
                 format!("done: {done}")
             }
-            Opcode::Pop
-            | Opcode::Dup
-            | Opcode::Swap
-            | Opcode::PushZero
-            | Opcode::PushOne
-            | Opcode::PushNaN
-            | Opcode::PushPositiveInfinity
-            | Opcode::PushNegativeInfinity
-            | Opcode::PushNull
-            | Opcode::PushTrue
-            | Opcode::PushFalse
-            | Opcode::PushUndefined
-            | Opcode::PushEmptyObject
-            | Opcode::PushClassPrototype
-            | Opcode::SetClassPrototype
-            | Opcode::SetHomeObject
-            | Opcode::SetHomeObjectClass
-            | Opcode::Add
-            | Opcode::Sub
-            | Opcode::Div
-            | Opcode::Mul
-            | Opcode::Mod
-            | Opcode::Pow
-            | Opcode::ShiftRight
-            | Opcode::ShiftLeft
-            | Opcode::UnsignedShiftRight
-            | Opcode::BitOr
-            | Opcode::BitAnd
-            | Opcode::BitXor
-            | Opcode::BitNot
-            | Opcode::In
-            | Opcode::Eq
-            | Opcode::StrictEq
-            | Opcode::NotEq
-            | Opcode::StrictNotEq
-            | Opcode::GreaterThan
-            | Opcode::GreaterThanOrEq
-            | Opcode::LessThan
-            | Opcode::LessThanOrEq
-            | Opcode::InstanceOf
-            | Opcode::TypeOf
-            | Opcode::Void
-            | Opcode::LogicalNot
-            | Opcode::Pos
-            | Opcode::Neg
-            | Opcode::Inc
-            | Opcode::IncPost
-            | Opcode::Dec
-            | Opcode::DecPost
-            | Opcode::GetPropertyByValue
-            | Opcode::GetPropertyByValuePush
-            | Opcode::SetPropertyByValue
-            | Opcode::DefineOwnPropertyByValue
-            | Opcode::DefineClassStaticMethodByValue
-            | Opcode::DefineClassMethodByValue
-            | Opcode::SetPropertyGetterByValue
-            | Opcode::DefineClassStaticGetterByValue
-            | Opcode::DefineClassGetterByValue
-            | Opcode::SetPropertySetterByValue
-            | Opcode::DefineClassStaticSetterByValue
-            | Opcode::DefineClassSetterByValue
-            | Opcode::DeletePropertyByValue
-            | Opcode::DeleteSuperThrow
-            | Opcode::ToPropertyKey
-            | Opcode::ToBoolean
-            | Opcode::Throw
-            | Opcode::ReThrow
-            | Opcode::Exception
-            | Opcode::MaybeException
-            | Opcode::This
-            | Opcode::Super
-            | Opcode::Return
-            | Opcode::AsyncGeneratorClose
-            | Opcode::CreatePromiseCapability
-            | Opcode::CompletePromiseCapability
-            | Opcode::PopEnvironment
-            | Opcode::IncrementLoopIteration
-            | Opcode::CreateForInIterator
-            | Opcode::GetIterator
-            | Opcode::GetAsyncIterator
-            | Opcode::IteratorNext
-            | Opcode::IteratorNextWithoutPop
-            | Opcode::IteratorFinishAsyncNext
-            | Opcode::IteratorValue
-            | Opcode::IteratorValueWithoutPop
-            | Opcode::IteratorResult
-            | Opcode::IteratorDone
-            | Opcode::IteratorToArray
-            | Opcode::IteratorPop
-            | Opcode::IteratorReturn
-            | Opcode::IteratorStackEmpty
-            | Opcode::RequireObjectCoercible
-            | Opcode::ValueNotNullOrUndefined
-            | Opcode::RestParameterInit
-            | Opcode::RestParameterPop
-            | Opcode::PushValueToArray
-            | Opcode::PushElisionToArray
-            | Opcode::PushIteratorToArray
-            | Opcode::PushNewArray
-            | Opcode::GeneratorYield
-            | Opcode::AsyncGeneratorYield
-            | Opcode::GeneratorNext
-            | Opcode::PushClassField
-            | Opcode::SuperCallDerived
-            | Opcode::Await
-            | Opcode::NewTarget
-            | Opcode::ImportMeta
-            | Opcode::SuperCallPrepare
-            | Opcode::CallEvalSpread
-            | Opcode::CallSpread
-            | Opcode::NewSpread
-            | Opcode::SuperCallSpread
-            | Opcode::SetPrototype
-            | Opcode::PushObjectEnvironment
-            | Opcode::IsObject
-            | Opcode::SetNameByLocator
-            | Opcode::PopPrivateEnvironment
-            | Opcode::ImportCall
-            | Opcode::GetReturnValue
-            | Opcode::SetReturnValue
-            | Opcode::Nop => String::new(),
-            Opcode::Reserved1
-            | Opcode::Reserved2
-            | Opcode::Reserved3
-            | Opcode::Reserved4
-            | Opcode::Reserved5
-            | Opcode::Reserved6
-            | Opcode::Reserved7
-            | Opcode::Reserved8
-            | Opcode::Reserved9
-            | Opcode::Reserved10
-            | Opcode::Reserved11
-            | Opcode::Reserved12
-            | Opcode::Reserved13
-            | Opcode::Reserved14
-            | Opcode::Reserved15
-            | Opcode::Reserved16
-            | Opcode::Reserved17
-            | Opcode::Reserved18
-            | Opcode::Reserved19
-            | Opcode::Reserved20
-            | Opcode::Reserved21
-            | Opcode::Reserved22
-            | Opcode::Reserved23
-            | Opcode::Reserved24
-            | Opcode::Reserved25
-            | Opcode::Reserved26
-            | Opcode::Reserved27
-            | Opcode::Reserved28
-            | Opcode::Reserved29
-            | Opcode::Reserved30
-            | Opcode::Reserved31
-            | Opcode::Reserved32
-            | Opcode::Reserved33
-            | Opcode::Reserved34
-            | Opcode::Reserved35
-            | Opcode::Reserved36
-            | Opcode::Reserved37
-            | Opcode::Reserved38
-            | Opcode::Reserved39
-            | Opcode::Reserved40
-            | Opcode::Reserved41
-            | Opcode::Reserved42
-            | Opcode::Reserved43
-            | Opcode::Reserved44
-            | Opcode::Reserved45
-            | Opcode::Reserved46
-            | Opcode::Reserved47
-            | Opcode::Reserved48
-            | Opcode::Reserved49
-            | Opcode::Reserved50
-            | Opcode::Reserved51
-            | Opcode::Reserved52
-            | Opcode::Reserved53
-            | Opcode::Reserved54
-            | Opcode::Reserved55
-            | Opcode::Reserved56
-            | Opcode::Reserved57
-            | Opcode::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
+            Instruction::Pop
+            | Instruction::Dup
+            | Instruction::Swap
+            | Instruction::PushZero
+            | Instruction::PushOne
+            | Instruction::PushNaN
+            | Instruction::PushPositiveInfinity
+            | Instruction::PushNegativeInfinity
+            | Instruction::PushNull
+            | Instruction::PushTrue
+            | Instruction::PushFalse
+            | Instruction::PushUndefined
+            | Instruction::PushEmptyObject
+            | Instruction::PushClassPrototype
+            | Instruction::SetClassPrototype
+            | Instruction::SetHomeObject
+            | Instruction::SetHomeObjectClass
+            | Instruction::Add
+            | Instruction::Sub
+            | Instruction::Div
+            | Instruction::Mul
+            | Instruction::Mod
+            | Instruction::Pow
+            | Instruction::ShiftRight
+            | Instruction::ShiftLeft
+            | Instruction::UnsignedShiftRight
+            | Instruction::BitOr
+            | Instruction::BitAnd
+            | Instruction::BitXor
+            | Instruction::BitNot
+            | Instruction::In
+            | Instruction::Eq
+            | Instruction::StrictEq
+            | Instruction::NotEq
+            | Instruction::StrictNotEq
+            | Instruction::GreaterThan
+            | Instruction::GreaterThanOrEq
+            | Instruction::LessThan
+            | Instruction::LessThanOrEq
+            | Instruction::InstanceOf
+            | Instruction::TypeOf
+            | Instruction::Void
+            | Instruction::LogicalNot
+            | Instruction::Pos
+            | Instruction::Neg
+            | Instruction::Inc
+            | Instruction::IncPost
+            | Instruction::Dec
+            | Instruction::DecPost
+            | Instruction::GetPropertyByValue
+            | Instruction::GetPropertyByValuePush
+            | Instruction::SetPropertyByValue
+            | Instruction::DefineOwnPropertyByValue
+            | Instruction::DefineClassStaticMethodByValue
+            | Instruction::DefineClassMethodByValue
+            | Instruction::SetPropertyGetterByValue
+            | Instruction::DefineClassStaticGetterByValue
+            | Instruction::DefineClassGetterByValue
+            | Instruction::SetPropertySetterByValue
+            | Instruction::DefineClassStaticSetterByValue
+            | Instruction::DefineClassSetterByValue
+            | Instruction::DeletePropertyByValue
+            | Instruction::DeleteSuperThrow
+            | Instruction::ToPropertyKey
+            | Instruction::ToBoolean
+            | Instruction::Throw
+            | Instruction::ReThrow
+            | Instruction::Exception
+            | Instruction::MaybeException
+            | Instruction::This
+            | Instruction::Super
+            | Instruction::Return
+            | Instruction::AsyncGeneratorClose
+            | Instruction::CreatePromiseCapability
+            | Instruction::CompletePromiseCapability
+            | Instruction::PopEnvironment
+            | Instruction::IncrementLoopIteration
+            | Instruction::CreateForInIterator
+            | Instruction::GetIterator
+            | Instruction::GetAsyncIterator
+            | Instruction::IteratorNext
+            | Instruction::IteratorNextWithoutPop
+            | Instruction::IteratorFinishAsyncNext
+            | Instruction::IteratorValue
+            | Instruction::IteratorValueWithoutPop
+            | Instruction::IteratorResult
+            | Instruction::IteratorDone
+            | Instruction::IteratorToArray
+            | Instruction::IteratorPop
+            | Instruction::IteratorReturn
+            | Instruction::IteratorStackEmpty
+            | Instruction::RequireObjectCoercible
+            | Instruction::ValueNotNullOrUndefined
+            | Instruction::RestParameterInit
+            | Instruction::RestParameterPop
+            | Instruction::PushValueToArray
+            | Instruction::PushElisionToArray
+            | Instruction::PushIteratorToArray
+            | Instruction::PushNewArray
+            | Instruction::GeneratorYield
+            | Instruction::AsyncGeneratorYield
+            | Instruction::GeneratorNext
+            | Instruction::PushClassField
+            | Instruction::SuperCallDerived
+            | Instruction::Await
+            | Instruction::NewTarget
+            | Instruction::ImportMeta
+            | Instruction::SuperCallPrepare
+            | Instruction::CallEvalSpread
+            | Instruction::CallSpread
+            | Instruction::NewSpread
+            | Instruction::SuperCallSpread
+            | Instruction::SetPrototype
+            | Instruction::PushObjectEnvironment
+            | Instruction::IsObject
+            | Instruction::SetNameByLocator
+            | Instruction::PopPrivateEnvironment
+            | Instruction::ImportCall
+            | Instruction::GetReturnValue
+            | Instruction::SetReturnValue
+            | Instruction::Nop => String::new(),
+            Instruction::Reserved1
+            | Instruction::Reserved2
+            | Instruction::Reserved3
+            | Instruction::Reserved4
+            | Instruction::Reserved5
+            | Instruction::Reserved6
+            | Instruction::Reserved7
+            | Instruction::Reserved8
+            | Instruction::Reserved9
+            | Instruction::Reserved10
+            | Instruction::Reserved11
+            | Instruction::Reserved12
+            | Instruction::Reserved13
+            | Instruction::Reserved14
+            | Instruction::Reserved15
+            | Instruction::Reserved16
+            | Instruction::Reserved17
+            | Instruction::Reserved18
+            | Instruction::Reserved19
+            | Instruction::Reserved20
+            | Instruction::Reserved21
+            | Instruction::Reserved22
+            | Instruction::Reserved23
+            | Instruction::Reserved24
+            | Instruction::Reserved25
+            | Instruction::Reserved26
+            | Instruction::Reserved27
+            | Instruction::Reserved28
+            | Instruction::Reserved29
+            | Instruction::Reserved30
+            | Instruction::Reserved31
+            | Instruction::Reserved32
+            | Instruction::Reserved33
+            | Instruction::Reserved34
+            | Instruction::Reserved35
+            | Instruction::Reserved36
+            | Instruction::Reserved37
+            | Instruction::Reserved38
+            | Instruction::Reserved39
+            | Instruction::Reserved40
+            | Instruction::Reserved41
+            | Instruction::Reserved42
+            | Instruction::Reserved43
+            | Instruction::Reserved44
+            | Instruction::Reserved45
+            | Instruction::Reserved46
+            | Instruction::Reserved47
+            | Instruction::Reserved48
+            | Instruction::Reserved49
+            | Instruction::Reserved50
+            | Instruction::Reserved51
+            | Instruction::Reserved52
+            | Instruction::Reserved53
+            | Instruction::Reserved54
+            | Instruction::Reserved55
+            | Instruction::Reserved56
+            | Instruction::Reserved57
+            | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
