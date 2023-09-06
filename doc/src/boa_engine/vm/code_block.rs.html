@@ -1452,58 +1452,6 @@
 <a href="#1452" id="1452">1452</a>
 <a href="#1453" id="1453">1453</a>
 <a href="#1454" id="1454">1454</a>
-<a href="#1455" id="1455">1455</a>
-<a href="#1456" id="1456">1456</a>
-<a href="#1457" id="1457">1457</a>
-<a href="#1458" id="1458">1458</a>
-<a href="#1459" id="1459">1459</a>
-<a href="#1460" id="1460">1460</a>
-<a href="#1461" id="1461">1461</a>
-<a href="#1462" id="1462">1462</a>
-<a href="#1463" id="1463">1463</a>
-<a href="#1464" id="1464">1464</a>
-<a href="#1465" id="1465">1465</a>
-<a href="#1466" id="1466">1466</a>
-<a href="#1467" id="1467">1467</a>
-<a href="#1468" id="1468">1468</a>
-<a href="#1469" id="1469">1469</a>
-<a href="#1470" id="1470">1470</a>
-<a href="#1471" id="1471">1471</a>
-<a href="#1472" id="1472">1472</a>
-<a href="#1473" id="1473">1473</a>
-<a href="#1474" id="1474">1474</a>
-<a href="#1475" id="1475">1475</a>
-<a href="#1476" id="1476">1476</a>
-<a href="#1477" id="1477">1477</a>
-<a href="#1478" id="1478">1478</a>
-<a href="#1479" id="1479">1479</a>
-<a href="#1480" id="1480">1480</a>
-<a href="#1481" id="1481">1481</a>
-<a href="#1482" id="1482">1482</a>
-<a href="#1483" id="1483">1483</a>
-<a href="#1484" id="1484">1484</a>
-<a href="#1485" id="1485">1485</a>
-<a href="#1486" id="1486">1486</a>
-<a href="#1487" id="1487">1487</a>
-<a href="#1488" id="1488">1488</a>
-<a href="#1489" id="1489">1489</a>
-<a href="#1490" id="1490">1490</a>
-<a href="#1491" id="1491">1491</a>
-<a href="#1492" id="1492">1492</a>
-<a href="#1493" id="1493">1493</a>
-<a href="#1494" id="1494">1494</a>
-<a href="#1495" id="1495">1495</a>
-<a href="#1496" id="1496">1496</a>
-<a href="#1497" id="1497">1497</a>
-<a href="#1498" id="1498">1498</a>
-<a href="#1499" id="1499">1499</a>
-<a href="#1500" id="1500">1500</a>
-<a href="#1501" id="1501">1501</a>
-<a href="#1502" id="1502">1502</a>
-<a href="#1503" id="1503">1503</a>
-<a href="#1504" id="1504">1504</a>
-<a href="#1505" id="1505">1505</a>
-<a href="#1506" id="1506">1506</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1807,387 +1755,335 @@
     /// Returns an empty `String` if no operands are present.
     </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>instruction_operands(<span class="kw-2">&amp;</span><span class="self">self</span>, pc: <span class="kw-2">&amp;mut </span>usize, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
-        <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[<span class="kw-2">*</span>pc].into();
-        <span class="kw-2">*</span>pc += size_of::&lt;Opcode&gt;();
-        <span class="kw">match </span>opcode {
-            Opcode::SetFunctionName =&gt; {
-                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u8&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u8&gt;();
-                <span class="kw">match </span>operand {
-                    <span class="number">0 </span>=&gt; <span class="string">&quot;prefix: none&quot;</span>,
-                    <span class="number">1 </span>=&gt; <span class="string">&quot;prefix: get&quot;</span>,
-                    <span class="number">2 </span>=&gt; <span class="string">&quot;prefix: set&quot;</span>,
-                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-                }
-                .to_owned()
+        <span class="kw">use </span><span class="kw">super</span>::Instruction;
+
+        <span class="kw">let </span>instruction = Instruction::from_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>.bytecode, pc);
+        <span class="kw">match </span>instruction {
+            Instruction::SetFunctionName { prefix } =&gt; <span class="kw">match </span>prefix {
+                <span class="number">0 </span>=&gt; <span class="string">&quot;prefix: none&quot;</span>,
+                <span class="number">1 </span>=&gt; <span class="string">&quot;prefix: get&quot;</span>,
+                <span class="number">2 </span>=&gt; <span class="string">&quot;prefix: set&quot;</span>,
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }
-            Opcode::RotateLeft | Opcode::RotateRight =&gt; {
-                <span class="kw">let </span>result = <span class="self">self</span>.read::&lt;u8&gt;(<span class="kw-2">*</span>pc).to_string();
-                <span class="kw-2">*</span>pc += size_of::&lt;u8&gt;();
-                result
+            .to_owned(),
+            Instruction::RotateLeft { n } | Instruction::RotateRight { n } =&gt; n.to_string(),
+            Instruction::Generator { r#async } =&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;async: {async}&quot;</span>)
             }
-            Opcode::Generator =&gt; {
-                <span class="kw">let </span>result = <span class="self">self</span>.read::&lt;u8&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u8&gt;();
-                <span class="macro">format!</span>(<span class="string">&quot;async: {}&quot;</span>, result != <span class="number">0</span>)
+            Instruction::PushInt8 { value } =&gt; value.to_string(),
+            Instruction::PushInt16 { value } =&gt; value.to_string(),
+            Instruction::PushInt32 { value } =&gt; value.to_string(),
+            Instruction::PushFloat { value } =&gt; ryu_js::Buffer::new().format(value).to_string(),
+            Instruction::PushDouble { value } =&gt; ryu_js::Buffer::new().format(value).to_string(),
+            Instruction::PushLiteral { index: value }
+            | Instruction::ThrowNewTypeError { message: value }
+            | Instruction::Jump { address: value }
+            | Instruction::JumpIfTrue { address: value }
+            | Instruction::JumpIfFalse { address: value }
+            | Instruction::JumpIfNotUndefined { address: value }
+            | Instruction::JumpIfNullOrUndefined { address: value }
+            | Instruction::Case { address: value }
+            | Instruction::Default { address: value }
+            | Instruction::LogicalAnd { exit: value }
+            | Instruction::LogicalOr { exit: value }
+            | Instruction::Coalesce { exit: value }
+            | Instruction::CallEval {
+                argument_count: value,
             }
-            Opcode::PushInt8 =&gt; {
-                <span class="kw">let </span>result = <span class="self">self</span>.read::&lt;i8&gt;(<span class="kw-2">*</span>pc).to_string();
-                <span class="kw-2">*</span>pc += size_of::&lt;i8&gt;();
-                result
+            | Instruction::Call {
+                argument_count: value,
             }
-            Opcode::PushInt16 =&gt; {
-                <span class="kw">let </span>result = <span class="self">self</span>.read::&lt;i16&gt;(<span class="kw-2">*</span>pc).to_string();
-                <span class="kw-2">*</span>pc += size_of::&lt;i16&gt;();
-                result
+            | Instruction::New {
+                argument_count: value,
             }
-            Opcode::PushInt32 =&gt; {
-                <span class="kw">let </span>result = <span class="self">self</span>.read::&lt;i32&gt;(<span class="kw-2">*</span>pc).to_string();
-                <span class="kw-2">*</span>pc += size_of::&lt;i32&gt;();
-                result
+            | Instruction::SuperCall {
+                argument_count: value,
             }
-            Opcode::PushFloat =&gt; {
-                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;f32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;f32&gt;();
-                ryu_js::Buffer::new().format(operand).to_string()
+            | Instruction::ConcatToString { value_count: value } =&gt; value.to_string(),
+            Instruction::PushDeclarativeEnvironment {
+                compile_environments_index,
             }
-            Opcode::PushDouble =&gt; {
-                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;f64&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;f64&gt;();
-                ryu_js::Buffer::new().format(operand).to_string()
+            | Instruction::PushFunctionEnvironment {
+                compile_environments_index,
+            } =&gt; compile_environments_index.to_string(),
+            Instruction::CopyDataProperties {
+                excluded_key_count: value1,
+                excluded_key_count_computed: value2,
             }
-            Opcode::PushLiteral
-            | Opcode::ThrowNewTypeError
-            | Opcode::Jump
-            | Opcode::JumpIfTrue
-            | Opcode::JumpIfFalse
-            | Opcode::JumpIfNotUndefined
-            | Opcode::JumpIfNullOrUndefined
-            | Opcode::Case
-            | Opcode::Default
-            | Opcode::LogicalAnd
-            | Opcode::LogicalOr
-            | Opcode::Coalesce
-            | Opcode::CallEval
-            | Opcode::Call
-            | Opcode::New
-            | Opcode::SuperCall
-            | Opcode::ConcatToString =&gt; {
-                <span class="kw">let </span>result = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc).to_string();
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-                result
+            | Instruction::GeneratorDelegateNext {
+                return_method_undefined: value1,
+                throw_method_undefined: value2,
             }
-            Opcode::PushDeclarativeEnvironment | Opcode::PushFunctionEnvironment =&gt; {
-                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-                <span class="macro">format!</span>(<span class="string">&quot;{operand}&quot;</span>)
+            | Instruction::GeneratorDelegateResume {
+                exit: value1,
+                r#return: value2,
+            } =&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;{value1}, {value2}&quot;</span>)
             }
-            Opcode::CopyDataProperties
-            | Opcode::GeneratorDelegateNext
-            | Opcode::GeneratorDelegateResume =&gt; {
-                <span class="kw">let </span>operand1 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-                <span class="kw">let </span>operand2 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-                <span class="macro">format!</span>(<span class="string">&quot;{operand1}, {operand2}&quot;</span>)
+            Instruction::TemplateLookup { exit: value, site }
+            | Instruction::TemplateCreate { count: value, site } =&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;{value}, {site}&quot;</span>)
             }
-            Opcode::TemplateLookup | Opcode::TemplateCreate =&gt; {
-                <span class="kw">let </span>operand1 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-                <span class="kw">let </span>operand2 = <span class="self">self</span>.read::&lt;u64&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u64&gt;();
-                <span class="macro">format!</span>(<span class="string">&quot;{operand1}, {operand2}&quot;</span>)
-            }
-            Opcode::GetArrowFunction
-            | Opcode::GetAsyncArrowFunction
-            | Opcode::GetFunction
-            | Opcode::GetFunctionAsync =&gt; {
-                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;() + size_of::&lt;u8&gt;();
+            Instruction::GetArrowFunction { index, method }
+            | Instruction::GetAsyncArrowFunction { index, method }
+            | Instruction::GetFunction { index, method }
+            | Instruction::GetFunctionAsync { index, method } =&gt; {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{operand:04}: &#39;{}&#39; (length: {})&quot;</span>,
-                    <span class="self">self</span>.functions[operand <span class="kw">as </span>usize]
+                    <span class="string">&quot;{index:04}: &#39;{}&#39; (length: {}), method: {method}&quot;</span>,
+                    <span class="self">self</span>.functions[index <span class="kw">as </span>usize]
                         .name()
                         .to_std_string_escaped(),
-                    <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length
+                    <span class="self">self</span>.functions[index <span class="kw">as </span>usize].length
                 )
             }
-            Opcode::GetGenerator | Opcode::GetGeneratorAsync =&gt; {
-                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
+            Instruction::GetGenerator { index } | Instruction::GetGeneratorAsync { index } =&gt; {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{operand:04}: &#39;{}&#39; (length: {})&quot;</span>,
-                    <span class="self">self</span>.functions[operand <span class="kw">as </span>usize]
+                    <span class="string">&quot;{index:04}: &#39;{}&#39; (length: {})&quot;</span>,
+                    <span class="self">self</span>.functions[index <span class="kw">as </span>usize]
                         .name()
                         .to_std_string_escaped(),
-                    <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length
+                    <span class="self">self</span>.functions[index <span class="kw">as </span>usize].length
                 )
             }
-            Opcode::DefVar
-            | Opcode::DefInitVar
-            | Opcode::PutLexicalValue
-            | Opcode::GetName
-            | Opcode::GetLocator
-            | Opcode::GetNameAndLocator
-            | Opcode::GetNameOrUndefined
-            | Opcode::SetName
-            | Opcode::DeleteName =&gt; {
-                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
+            Instruction::DefVar { index }
+            | Instruction::DefInitVar { index }
+            | Instruction::PutLexicalValue { index }
+            | Instruction::GetName { index }
+            | Instruction::GetLocator { index }
+            | Instruction::GetNameAndLocator { index }
+            | Instruction::GetNameOrUndefined { index }
+            | Instruction::SetName { index }
+            | Instruction::DeleteName { index } =&gt; {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{:04}: &#39;{}&#39;&quot;</span>,
-                    operand,
-                    interner.resolve_expect(<span class="self">self</span>.bindings[operand <span class="kw">as </span>usize].name().sym()),
+                    <span class="string">&quot;{index:04}: &#39;{}&#39;&quot;</span>,
+                    interner.resolve_expect(<span class="self">self</span>.bindings[index <span class="kw">as </span>usize].name().sym()),
                 )
             }
-            Opcode::GetPropertyByName
-            | Opcode::GetMethod
-            | Opcode::SetPropertyByName
-            | Opcode::DefineOwnPropertyByName
-            | Opcode::DefineClassStaticMethodByName
-            | Opcode::DefineClassMethodByName
-            | Opcode::SetPropertyGetterByName
-            | Opcode::DefineClassStaticGetterByName
-            | Opcode::DefineClassGetterByName
-            | Opcode::SetPropertySetterByName
-            | Opcode::DefineClassStaticSetterByName
-            | Opcode::DefineClassSetterByName
-            | Opcode::DeletePropertyByName
-            | Opcode::SetPrivateField
-            | Opcode::DefinePrivateField
-            | Opcode::SetPrivateMethod
-            | Opcode::SetPrivateSetter
-            | Opcode::SetPrivateGetter
-            | Opcode::GetPrivateField
-            | Opcode::PushClassFieldPrivate
-            | Opcode::PushClassPrivateGetter
-            | Opcode::PushClassPrivateSetter
-            | Opcode::PushClassPrivateMethod
-            | Opcode::InPrivate
-            | Opcode::ThrowMutateImmutable =&gt; {
-                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
+            Instruction::GetPropertyByName { index }
+            | Instruction::GetMethod { index }
+            | Instruction::SetPropertyByName { index }
+            | Instruction::DefineOwnPropertyByName { index }
+            | Instruction::DefineClassStaticMethodByName { index }
+            | Instruction::DefineClassMethodByName { index }
+            | Instruction::SetPropertyGetterByName { index }
+            | Instruction::DefineClassStaticGetterByName { index }
+            | Instruction::DefineClassGetterByName { index }
+            | Instruction::SetPropertySetterByName { index }
+            | Instruction::DefineClassStaticSetterByName { index }
+            | Instruction::DefineClassSetterByName { index }
+            | Instruction::DeletePropertyByName { index }
+            | Instruction::SetPrivateField { index }
+            | Instruction::DefinePrivateField { index }
+            | Instruction::SetPrivateMethod { index }
+            | Instruction::SetPrivateSetter { index }
+            | Instruction::SetPrivateGetter { index }
+            | Instruction::GetPrivateField { index }
+            | Instruction::PushClassFieldPrivate { index }
+            | Instruction::PushClassPrivateGetter { index }
+            | Instruction::PushClassPrivateSetter { index }
+            | Instruction::PushClassPrivateMethod { index }
+            | Instruction::InPrivate { index }
+            | Instruction::ThrowMutateImmutable { index } =&gt; {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{operand:04}: &#39;{}&#39;&quot;</span>,
-                    <span class="self">self</span>.names[operand <span class="kw">as </span>usize].to_std_string_escaped(),
+                    <span class="string">&quot;{index:04}: &#39;{}&#39;&quot;</span>,
+                    <span class="self">self</span>.names[index <span class="kw">as </span>usize].to_std_string_escaped(),
                 )
             }
-            Opcode::PushPrivateEnvironment =&gt; {
-                <span class="kw">let </span>count = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;() * (count <span class="kw">as </span>usize + <span class="number">1</span>);
-                String::new()
+            Instruction::PushPrivateEnvironment { name_indices } =&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;{name_indices:?}&quot;</span>)
             }
-            Opcode::JumpTable =&gt; {
-                <span class="kw">let </span>count = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-                <span class="kw">let </span>default = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-
-                <span class="kw">let </span><span class="kw-2">mut </span>operands = <span class="macro">format!</span>(<span class="string">&quot;#{count}: Default: {default:4}&quot;</span>);
-                <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..=count {
-                    <span class="kw">let </span>address = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                    <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-
+            Instruction::JumpTable { default, addresses } =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>operands = <span class="macro">format!</span>(<span class="string">&quot;#{}: Default: {default:4}&quot;</span>, addresses.len());
+                <span class="kw">for </span>(i, address) <span class="kw">in </span>addresses.iter().enumerate() {
                     operands += <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;, {i}: {address}&quot;</span>);
                 }
                 operands
             }
-            Opcode::JumpIfNotResumeKind =&gt; {
-                <span class="kw">let </span>exit = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
-
-                <span class="kw">let </span>resume_kind = <span class="self">self</span>.read::&lt;u8&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u8&gt;();
-
-                <span class="macro">format!</span>(
-                    <span class="string">&quot;ResumeKind: {:?}, exit: {exit}&quot;</span>,
-                    JsValue::new(resume_kind).to_generator_resume_kind()
-                )
+            Instruction::JumpIfNotResumeKind { exit, resume_kind } =&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;ResumeKind: {resume_kind:?}, exit: {exit}&quot;</span>)
             }
-            Opcode::CreateIteratorResult =&gt; {
-                <span class="kw">let </span>done = <span class="self">self</span>.read::&lt;u8&gt;(<span class="kw-2">*</span>pc) != <span class="number">0</span>;
-                <span class="kw-2">*</span>pc += size_of::&lt;u8&gt;();
+            Instruction::CreateIteratorResult { done } =&gt; {
                 <span class="macro">format!</span>(<span class="string">&quot;done: {done}&quot;</span>)
             }
-            Opcode::Pop
-            | Opcode::Dup
-            | Opcode::Swap
-            | Opcode::PushZero
-            | Opcode::PushOne
-            | Opcode::PushNaN
-            | Opcode::PushPositiveInfinity
-            | Opcode::PushNegativeInfinity
-            | Opcode::PushNull
-            | Opcode::PushTrue
-            | Opcode::PushFalse
-            | Opcode::PushUndefined
-            | Opcode::PushEmptyObject
-            | Opcode::PushClassPrototype
-            | Opcode::SetClassPrototype
-            | Opcode::SetHomeObject
-            | Opcode::SetHomeObjectClass
-            | Opcode::Add
-            | Opcode::Sub
-            | Opcode::Div
-            | Opcode::Mul
-            | Opcode::Mod
-            | Opcode::Pow
-            | Opcode::ShiftRight
-            | Opcode::ShiftLeft
-            | Opcode::UnsignedShiftRight
-            | Opcode::BitOr
-            | Opcode::BitAnd
-            | Opcode::BitXor
-            | Opcode::BitNot
-            | Opcode::In
-            | Opcode::Eq
-            | Opcode::StrictEq
-            | Opcode::NotEq
-            | Opcode::StrictNotEq
-            | Opcode::GreaterThan
-            | Opcode::GreaterThanOrEq
-            | Opcode::LessThan
-            | Opcode::LessThanOrEq
-            | Opcode::InstanceOf
-            | Opcode::TypeOf
-            | Opcode::Void
-            | Opcode::LogicalNot
-            | Opcode::Pos
-            | Opcode::Neg
-            | Opcode::Inc
-            | Opcode::IncPost
-            | Opcode::Dec
-            | Opcode::DecPost
-            | Opcode::GetPropertyByValue
-            | Opcode::GetPropertyByValuePush
-            | Opcode::SetPropertyByValue
-            | Opcode::DefineOwnPropertyByValue
-            | Opcode::DefineClassStaticMethodByValue
-            | Opcode::DefineClassMethodByValue
-            | Opcode::SetPropertyGetterByValue
-            | Opcode::DefineClassStaticGetterByValue
-            | Opcode::DefineClassGetterByValue
-            | Opcode::SetPropertySetterByValue
-            | Opcode::DefineClassStaticSetterByValue
-            | Opcode::DefineClassSetterByValue
-            | Opcode::DeletePropertyByValue
-            | Opcode::DeleteSuperThrow
-            | Opcode::ToPropertyKey
-            | Opcode::ToBoolean
-            | Opcode::Throw
-            | Opcode::ReThrow
-            | Opcode::Exception
-            | Opcode::MaybeException
-            | Opcode::This
-            | Opcode::Super
-            | Opcode::Return
-            | Opcode::AsyncGeneratorClose
-            | Opcode::CreatePromiseCapability
-            | Opcode::CompletePromiseCapability
-            | Opcode::PopEnvironment
-            | Opcode::IncrementLoopIteration
-            | Opcode::CreateForInIterator
-            | Opcode::GetIterator
-            | Opcode::GetAsyncIterator
-            | Opcode::IteratorNext
-            | Opcode::IteratorNextWithoutPop
-            | Opcode::IteratorFinishAsyncNext
-            | Opcode::IteratorValue
-            | Opcode::IteratorValueWithoutPop
-            | Opcode::IteratorResult
-            | Opcode::IteratorDone
-            | Opcode::IteratorToArray
-            | Opcode::IteratorPop
-            | Opcode::IteratorReturn
-            | Opcode::IteratorStackEmpty
-            | Opcode::RequireObjectCoercible
-            | Opcode::ValueNotNullOrUndefined
-            | Opcode::RestParameterInit
-            | Opcode::RestParameterPop
-            | Opcode::PushValueToArray
-            | Opcode::PushElisionToArray
-            | Opcode::PushIteratorToArray
-            | Opcode::PushNewArray
-            | Opcode::GeneratorYield
-            | Opcode::AsyncGeneratorYield
-            | Opcode::GeneratorNext
-            | Opcode::PushClassField
-            | Opcode::SuperCallDerived
-            | Opcode::Await
-            | Opcode::NewTarget
-            | Opcode::ImportMeta
-            | Opcode::SuperCallPrepare
-            | Opcode::CallEvalSpread
-            | Opcode::CallSpread
-            | Opcode::NewSpread
-            | Opcode::SuperCallSpread
-            | Opcode::SetPrototype
-            | Opcode::PushObjectEnvironment
-            | Opcode::IsObject
-            | Opcode::SetNameByLocator
-            | Opcode::PopPrivateEnvironment
-            | Opcode::ImportCall
-            | Opcode::GetReturnValue
-            | Opcode::SetReturnValue
-            | Opcode::Nop =&gt; String::new(),
-            Opcode::Reserved1
-            | Opcode::Reserved2
-            | Opcode::Reserved3
-            | Opcode::Reserved4
-            | Opcode::Reserved5
-            | Opcode::Reserved6
-            | Opcode::Reserved7
-            | Opcode::Reserved8
-            | Opcode::Reserved9
-            | Opcode::Reserved10
-            | Opcode::Reserved11
-            | Opcode::Reserved12
-            | Opcode::Reserved13
-            | Opcode::Reserved14
-            | Opcode::Reserved15
-            | Opcode::Reserved16
-            | Opcode::Reserved17
-            | Opcode::Reserved18
-            | Opcode::Reserved19
-            | Opcode::Reserved20
-            | Opcode::Reserved21
-            | Opcode::Reserved22
-            | Opcode::Reserved23
-            | Opcode::Reserved24
-            | Opcode::Reserved25
-            | Opcode::Reserved26
-            | Opcode::Reserved27
-            | Opcode::Reserved28
-            | Opcode::Reserved29
-            | Opcode::Reserved30
-            | Opcode::Reserved31
-            | Opcode::Reserved32
-            | Opcode::Reserved33
-            | Opcode::Reserved34
-            | Opcode::Reserved35
-            | Opcode::Reserved36
-            | Opcode::Reserved37
-            | Opcode::Reserved38
-            | Opcode::Reserved39
-            | Opcode::Reserved40
-            | Opcode::Reserved41
-            | Opcode::Reserved42
-            | Opcode::Reserved43
-            | Opcode::Reserved44
-            | Opcode::Reserved45
-            | Opcode::Reserved46
-            | Opcode::Reserved47
-            | Opcode::Reserved48
-            | Opcode::Reserved49
-            | Opcode::Reserved50
-            | Opcode::Reserved51
-            | Opcode::Reserved52
-            | Opcode::Reserved53
-            | Opcode::Reserved54
-            | Opcode::Reserved55
-            | Opcode::Reserved56
-            | Opcode::Reserved57
-            | Opcode::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            Instruction::Pop
+            | Instruction::Dup
+            | Instruction::Swap
+            | Instruction::PushZero
+            | Instruction::PushOne
+            | Instruction::PushNaN
+            | Instruction::PushPositiveInfinity
+            | Instruction::PushNegativeInfinity
+            | Instruction::PushNull
+            | Instruction::PushTrue
+            | Instruction::PushFalse
+            | Instruction::PushUndefined
+            | Instruction::PushEmptyObject
+            | Instruction::PushClassPrototype
+            | Instruction::SetClassPrototype
+            | Instruction::SetHomeObject
+            | Instruction::SetHomeObjectClass
+            | Instruction::Add
+            | Instruction::Sub
+            | Instruction::Div
+            | Instruction::Mul
+            | Instruction::Mod
+            | Instruction::Pow
+            | Instruction::ShiftRight
+            | Instruction::ShiftLeft
+            | Instruction::UnsignedShiftRight
+            | Instruction::BitOr
+            | Instruction::BitAnd
+            | Instruction::BitXor
+            | Instruction::BitNot
+            | Instruction::In
+            | Instruction::Eq
+            | Instruction::StrictEq
+            | Instruction::NotEq
+            | Instruction::StrictNotEq
+            | Instruction::GreaterThan
+            | Instruction::GreaterThanOrEq
+            | Instruction::LessThan
+            | Instruction::LessThanOrEq
+            | Instruction::InstanceOf
+            | Instruction::TypeOf
+            | Instruction::Void
+            | Instruction::LogicalNot
+            | Instruction::Pos
+            | Instruction::Neg
+            | Instruction::Inc
+            | Instruction::IncPost
+            | Instruction::Dec
+            | Instruction::DecPost
+            | Instruction::GetPropertyByValue
+            | Instruction::GetPropertyByValuePush
+            | Instruction::SetPropertyByValue
+            | Instruction::DefineOwnPropertyByValue
+            | Instruction::DefineClassStaticMethodByValue
+            | Instruction::DefineClassMethodByValue
+            | Instruction::SetPropertyGetterByValue
+            | Instruction::DefineClassStaticGetterByValue
+            | Instruction::DefineClassGetterByValue
+            | Instruction::SetPropertySetterByValue
+            | Instruction::DefineClassStaticSetterByValue
+            | Instruction::DefineClassSetterByValue
+            | Instruction::DeletePropertyByValue
+            | Instruction::DeleteSuperThrow
+            | Instruction::ToPropertyKey
+            | Instruction::ToBoolean
+            | Instruction::Throw
+            | Instruction::ReThrow
+            | Instruction::Exception
+            | Instruction::MaybeException
+            | Instruction::This
+            | Instruction::Super
+            | Instruction::Return
+            | Instruction::AsyncGeneratorClose
+            | Instruction::CreatePromiseCapability
+            | Instruction::CompletePromiseCapability
+            | Instruction::PopEnvironment
+            | Instruction::IncrementLoopIteration
+            | Instruction::CreateForInIterator
+            | Instruction::GetIterator
+            | Instruction::GetAsyncIterator
+            | Instruction::IteratorNext
+            | Instruction::IteratorNextWithoutPop
+            | Instruction::IteratorFinishAsyncNext
+            | Instruction::IteratorValue
+            | Instruction::IteratorValueWithoutPop
+            | Instruction::IteratorResult
+            | Instruction::IteratorDone
+            | Instruction::IteratorToArray
+            | Instruction::IteratorPop
+            | Instruction::IteratorReturn
+            | Instruction::IteratorStackEmpty
+            | Instruction::RequireObjectCoercible
+            | Instruction::ValueNotNullOrUndefined
+            | Instruction::RestParameterInit
+            | Instruction::RestParameterPop
+            | Instruction::PushValueToArray
+            | Instruction::PushElisionToArray
+            | Instruction::PushIteratorToArray
+            | Instruction::PushNewArray
+            | Instruction::GeneratorYield
+            | Instruction::AsyncGeneratorYield
+            | Instruction::GeneratorNext
+            | Instruction::PushClassField
+            | Instruction::SuperCallDerived
+            | Instruction::Await
+            | Instruction::NewTarget
+            | Instruction::ImportMeta
+            | Instruction::SuperCallPrepare
+            | Instruction::CallEvalSpread
+            | Instruction::CallSpread
+            | Instruction::NewSpread
+            | Instruction::SuperCallSpread
+            | Instruction::SetPrototype
+            | Instruction::PushObjectEnvironment
+            | Instruction::IsObject
+            | Instruction::SetNameByLocator
+            | Instruction::PopPrivateEnvironment
+            | Instruction::ImportCall
+            | Instruction::GetReturnValue
+            | Instruction::SetReturnValue
+            | Instruction::Nop =&gt; String::new(),
+            Instruction::Reserved1
+            | Instruction::Reserved2
+            | Instruction::Reserved3
+            | Instruction::Reserved4
+            | Instruction::Reserved5
+            | Instruction::Reserved6
+            | Instruction::Reserved7
+            | Instruction::Reserved8
+            | Instruction::Reserved9
+            | Instruction::Reserved10
+            | Instruction::Reserved11
+            | Instruction::Reserved12
+            | Instruction::Reserved13
+            | Instruction::Reserved14
+            | Instruction::Reserved15
+            | Instruction::Reserved16
+            | Instruction::Reserved17
+            | Instruction::Reserved18
+            | Instruction::Reserved19
+            | Instruction::Reserved20
+            | Instruction::Reserved21
+            | Instruction::Reserved22
+            | Instruction::Reserved23
+            | Instruction::Reserved24
+            | Instruction::Reserved25
+            | Instruction::Reserved26
+            | Instruction::Reserved27
+            | Instruction::Reserved28
+            | Instruction::Reserved29
+            | Instruction::Reserved30
+            | Instruction::Reserved31
+            | Instruction::Reserved32
+            | Instruction::Reserved33
+            | Instruction::Reserved34
+            | Instruction::Reserved35
+            | Instruction::Reserved36
+            | Instruction::Reserved37
+            | Instruction::Reserved38
+            | Instruction::Reserved39
+            | Instruction::Reserved40
+            | Instruction::Reserved41
+            | Instruction::Reserved42
+            | Instruction::Reserved43
+            | Instruction::Reserved44
+            | Instruction::Reserved45
+            | Instruction::Reserved46
+            | Instruction::Reserved47
+            | Instruction::Reserved48
+            | Instruction::Reserved49
+            | Instruction::Reserved50
+            | Instruction::Reserved51
+            | Instruction::Reserved52
+            | Instruction::Reserved53
+            | Instruction::Reserved54
+            | Instruction::Reserved55
+            | Instruction::Reserved56
+            | Instruction::Reserved57
+            | Instruction::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }

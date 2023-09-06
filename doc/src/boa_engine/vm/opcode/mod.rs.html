@@ -1809,8 +1809,314 @@
 <a href="#1809" id="1809">1809</a>
 <a href="#1810" id="1810">1810</a>
 <a href="#1811" id="1811">1811</a>
-</pre></div><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
-</span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
+<a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
+<a href="#1817" id="1817">1817</a>
+<a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
+<a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
+<a href="#1880" id="1880">1880</a>
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
+<a href="#1885" id="1885">1885</a>
+<a href="#1886" id="1886">1886</a>
+<a href="#1887" id="1887">1887</a>
+<a href="#1888" id="1888">1888</a>
+<a href="#1889" id="1889">1889</a>
+<a href="#1890" id="1890">1890</a>
+<a href="#1891" id="1891">1891</a>
+<a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
+<a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a>
+<a href="#1952" id="1952">1952</a>
+<a href="#1953" id="1953">1953</a>
+<a href="#1954" id="1954">1954</a>
+<a href="#1955" id="1955">1955</a>
+<a href="#1956" id="1956">1956</a>
+<a href="#1957" id="1957">1957</a>
+<a href="#1958" id="1958">1958</a>
+<a href="#1959" id="1959">1959</a>
+<a href="#1960" id="1960">1960</a>
+<a href="#1961" id="1961">1961</a>
+<a href="#1962" id="1962">1962</a>
+<a href="#1963" id="1963">1963</a>
+<a href="#1964" id="1964">1964</a>
+<a href="#1965" id="1965">1965</a>
+<a href="#1966" id="1966">1966</a>
+<a href="#1967" id="1967">1967</a>
+<a href="#1968" id="1968">1968</a>
+<a href="#1969" id="1969">1969</a>
+<a href="#1970" id="1970">1970</a>
+<a href="#1971" id="1971">1971</a>
+<a href="#1972" id="1972">1972</a>
+<a href="#1973" id="1973">1973</a>
+<a href="#1974" id="1974">1974</a>
+<a href="#1975" id="1975">1975</a>
+<a href="#1976" id="1976">1976</a>
+<a href="#1977" id="1977">1977</a>
+<a href="#1978" id="1978">1978</a>
+<a href="#1979" id="1979">1979</a>
+<a href="#1980" id="1980">1980</a>
+<a href="#1981" id="1981">1981</a>
+<a href="#1982" id="1982">1982</a>
+<a href="#1983" id="1983">1983</a>
+<a href="#1984" id="1984">1984</a>
+<a href="#1985" id="1985">1985</a>
+<a href="#1986" id="1986">1986</a>
+<a href="#1987" id="1987">1987</a>
+<a href="#1988" id="1988">1988</a>
+<a href="#1989" id="1989">1989</a>
+<a href="#1990" id="1990">1990</a>
+<a href="#1991" id="1991">1991</a>
+<a href="#1992" id="1992">1992</a>
+<a href="#1993" id="1993">1993</a>
+<a href="#1994" id="1994">1994</a>
+<a href="#1995" id="1995">1995</a>
+<a href="#1996" id="1996">1996</a>
+<a href="#1997" id="1997">1997</a>
+<a href="#1998" id="1998">1998</a>
+<a href="#1999" id="1999">1999</a>
+<a href="#2000" id="2000">2000</a>
+<a href="#2001" id="2001">2001</a>
+<a href="#2002" id="2002">2002</a>
+<a href="#2003" id="2003">2003</a>
+<a href="#2004" id="2004">2004</a>
+<a href="#2005" id="2005">2005</a>
+<a href="#2006" id="2006">2006</a>
+<a href="#2007" id="2007">2007</a>
+<a href="#2008" id="2008">2008</a>
+<a href="#2009" id="2009">2009</a>
+<a href="#2010" id="2010">2010</a>
+<a href="#2011" id="2011">2011</a>
+<a href="#2012" id="2012">2012</a>
+<a href="#2013" id="2013">2013</a>
+<a href="#2014" id="2014">2014</a>
+<a href="#2015" id="2015">2015</a>
+<a href="#2016" id="2016">2016</a>
+<a href="#2017" id="2017">2017</a>
+<a href="#2018" id="2018">2018</a>
+<a href="#2019" id="2019">2019</a>
+<a href="#2020" id="2020">2020</a>
+<a href="#2021" id="2021">2021</a>
+<a href="#2022" id="2022">2022</a>
+<a href="#2023" id="2023">2023</a>
+<a href="#2024" id="2024">2024</a>
+<a href="#2025" id="2025">2025</a>
+<a href="#2026" id="2026">2026</a>
+<a href="#2027" id="2027">2027</a>
+<a href="#2028" id="2028">2028</a>
+<a href="#2029" id="2029">2029</a>
+<a href="#2030" id="2030">2030</a>
+<a href="#2031" id="2031">2031</a>
+<a href="#2032" id="2032">2032</a>
+<a href="#2033" id="2033">2033</a>
+<a href="#2034" id="2034">2034</a>
+<a href="#2035" id="2035">2035</a>
+<a href="#2036" id="2036">2036</a>
+<a href="#2037" id="2037">2037</a>
+<a href="#2038" id="2038">2038</a>
+<a href="#2039" id="2039">2039</a>
+<a href="#2040" id="2040">2040</a>
+<a href="#2041" id="2041">2041</a>
+<a href="#2042" id="2042">2042</a>
+<a href="#2043" id="2043">2043</a>
+<a href="#2044" id="2044">2044</a>
+<a href="#2045" id="2045">2045</a>
+<a href="#2046" id="2046">2046</a>
+<a href="#2047" id="2047">2047</a>
+<a href="#2048" id="2048">2048</a>
+<a href="#2049" id="2049">2049</a>
+<a href="#2050" id="2050">2050</a>
+<a href="#2051" id="2051">2051</a>
+<a href="#2052" id="2052">2052</a>
+<a href="#2053" id="2053">2053</a>
+<a href="#2054" id="2054">2054</a>
+<a href="#2055" id="2055">2055</a>
+<a href="#2056" id="2056">2056</a>
+<a href="#2057" id="2057">2057</a>
+<a href="#2058" id="2058">2058</a>
+<a href="#2059" id="2059">2059</a>
+<a href="#2060" id="2060">2060</a>
+<a href="#2061" id="2061">2061</a>
+<a href="#2062" id="2062">2062</a>
+<a href="#2063" id="2063">2063</a>
+<a href="#2064" id="2064">2064</a>
+<a href="#2065" id="2065">2065</a>
+<a href="#2066" id="2066">2066</a>
+<a href="#2067" id="2067">2067</a>
+<a href="#2068" id="2068">2068</a>
+<a href="#2069" id="2069">2069</a>
+<a href="#2070" id="2070">2070</a>
+<a href="#2071" id="2071">2071</a>
+<a href="#2072" id="2072">2072</a>
+<a href="#2073" id="2073">2073</a>
+<a href="#2074" id="2074">2074</a>
+<a href="#2075" id="2075">2075</a>
+<a href="#2076" id="2076">2076</a>
+<a href="#2077" id="2077">2077</a>
+<a href="#2078" id="2078">2078</a>
+<a href="#2079" id="2079">2079</a>
+<a href="#2080" id="2080">2080</a>
+<a href="#2081" id="2081">2081</a>
+<a href="#2082" id="2082">2082</a>
+<a href="#2083" id="2083">2083</a>
+<a href="#2084" id="2084">2084</a>
+<a href="#2085" id="2085">2085</a>
+<a href="#2086" id="2086">2086</a>
+<a href="#2087" id="2087">2087</a>
+<a href="#2088" id="2088">2088</a>
+<a href="#2089" id="2089">2089</a>
+<a href="#2090" id="2090">2090</a>
+<a href="#2091" id="2091">2091</a>
+<a href="#2092" id="2092">2092</a>
+<a href="#2093" id="2093">2093</a>
+<a href="#2094" id="2094">2094</a>
+<a href="#2095" id="2095">2095</a>
+<a href="#2096" id="2096">2096</a>
+<a href="#2097" id="2097">2097</a>
+<a href="#2098" id="2098">2098</a>
+<a href="#2099" id="2099">2099</a>
+<a href="#2100" id="2100">2100</a>
+<a href="#2101" id="2101">2101</a>
+<a href="#2102" id="2102">2102</a>
+<a href="#2103" id="2103">2103</a>
+<a href="#2104" id="2104">2104</a>
+<a href="#2105" id="2105">2105</a>
+<a href="#2106" id="2106">2106</a>
+<a href="#2107" id="2107">2107</a>
+<a href="#2108" id="2108">2108</a>
+<a href="#2109" id="2109">2109</a>
+<a href="#2110" id="2110">2110</a>
+<a href="#2111" id="2111">2111</a>
+<a href="#2112" id="2112">2112</a>
+<a href="#2113" id="2113">2113</a>
+<a href="#2114" id="2114">2114</a>
+<a href="#2115" id="2115">2115</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
+
+<span class="doccomment">/// The opcodes of the vm.
+</span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult, JsValue};
 
 <span class="comment">// Operation modules
 </span><span class="kw">mod </span>r#await;
@@ -1897,27 +2203,225 @@
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>value::<span class="kw-2">*</span>;
 
-<span class="macro">macro_rules! </span>generate_impl {
+<span class="kw">use super</span>::{code_block::Readable, GeneratorResumeKind};
+<span class="kw">use </span>thin_vec::ThinVec;
+
+<span class="doccomment">/// Read type T from code.
+///
+/// # Safety
+///
+/// Does not check if read happens out-of-bounds.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>read_unchecked&lt;T&gt;(bytes: <span class="kw-2">&amp;</span>[u8], offset: usize) -&gt; T
+<span class="kw">where
+    </span>T: Readable,
+{
+    <span class="comment">// Safety:
+    // The function caller must ensure that the read is in bounds.
+    //
+    // This has to be an unaligned read because we can&#39;t guarantee that
+    // the types are aligned.
+    </span><span class="kw">unsafe </span>{ bytes.as_ptr().add(offset).cast::&lt;T&gt;().read_unaligned() }
+}
+
+<span class="doccomment">/// Read type T from code.
+</span><span class="attr">#[track_caller]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>read&lt;T&gt;(bytes: <span class="kw-2">&amp;</span>[u8], offset: usize) -&gt; T
+<span class="kw">where
+    </span>T: Readable,
+{
+    <span class="macro">assert!</span>(offset + std::mem::size_of::&lt;T&gt;() - <span class="number">1 </span>&lt; bytes.len());
+
+    <span class="comment">// Safety: We checked that it is not an out-of-bounds read,
+    // so this is safe.
+    </span><span class="kw">unsafe </span>{ read_unchecked(bytes, offset) }
+}
+
+<span class="kw">trait </span>BytecodeConversion: Sized {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;);
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self</span>;
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>GeneratorResumeKind {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.push(<span class="kw-2">*</span><span class="self">self </span><span class="kw">as </span>u8);
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;u8&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        JsValue::from(value).to_generator_resume_kind()
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>bool {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.push(u8::from(<span class="kw-2">*</span><span class="self">self</span>));
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;u8&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value != <span class="number">0
+    </span>}
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>i8 {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.push(<span class="kw-2">*</span><span class="self">self </span><span class="kw">as </span>u8);
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;<span class="self">Self</span>&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>u8 {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.push(<span class="kw-2">*</span><span class="self">self</span>);
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;<span class="self">Self</span>&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>i16 {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.to_ne_bytes());
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;<span class="self">Self</span>&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>u16 {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.to_ne_bytes());
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;<span class="self">Self</span>&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>i32 {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.to_ne_bytes());
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;<span class="self">Self</span>&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>u32 {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.to_ne_bytes());
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;<span class="self">Self</span>&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>i64 {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.to_ne_bytes());
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;<span class="self">Self</span>&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>u64 {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.to_ne_bytes());
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;<span class="self">Self</span>&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>f32 {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.to_ne_bytes());
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;<span class="self">Self</span>&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>f64 {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.to_ne_bytes());
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>value = read::&lt;<span class="self">Self</span>&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;<span class="self">Self</span>&gt;();
+        value
+    }
+}
+
+<span class="kw">impl </span>BytecodeConversion <span class="kw">for </span>ThinVec&lt;u32&gt; {
+    <span class="kw">fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        bytes.extend_from_slice(<span class="kw-2">&amp;</span>(<span class="self">self</span>.len() <span class="kw">as </span>u32).to_ne_bytes());
+        <span class="kw">for </span>item <span class="kw">in </span><span class="self">self </span>{
+            bytes.extend_from_slice(<span class="kw-2">&amp;</span>item.to_ne_bytes());
+        }
+    }
+    <span class="kw">fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>count = read::&lt;u32&gt;(bytes, <span class="kw-2">*</span>pc);
+        <span class="kw-2">*</span>pc += std::mem::size_of::&lt;u32&gt;();
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">Self</span>::with_capacity(count <span class="kw">as </span>usize);
+        <span class="kw">for _ in </span><span class="number">0</span>..count {
+            <span class="kw">let </span>item = read::&lt;u32&gt;(bytes, <span class="kw-2">*</span>pc);
+            <span class="kw-2">*</span>pc += std::mem::size_of::&lt;u32&gt;();
+            result.push(item);
+        }
+        result
+    }
+}
+
+<span class="doccomment">/// Generate [`Opcode`]s and [`Instruction`]s enums.
+</span><span class="macro">macro_rules! </span>generate_opcodes {
     ( name <span class="macro-nonterminal">$name</span>:ident ) =&gt; { <span class="macro-nonterminal">$name </span>};
     ( name <span class="macro-nonterminal">$name</span>:ident =&gt; <span class="macro-nonterminal">$mapping</span>:ident ) =&gt; { <span class="macro-nonterminal">$mapping </span>};
 
+    <span class="comment">// If if-block is empty use else-block, use if-block otherwise.
+    </span>{ <span class="kw">if </span>{ $(<span class="macro-nonterminal">$</span><span class="kw">if</span>:<span class="macro-nonterminal">tt</span>)+ } <span class="kw">else </span>{ $(<span class="macro-nonterminal">$</span><span class="kw">else</span>:<span class="macro-nonterminal">tt</span>)* } } =&gt; { $(<span class="macro-nonterminal">$</span><span class="kw">if</span>)+ };
+    { <span class="kw">if </span>{ } <span class="kw">else </span>{ $(<span class="macro-nonterminal">$</span><span class="kw">else</span>:<span class="macro-nonterminal">tt</span>)* } } =&gt; { $(<span class="macro-nonterminal">$</span><span class="kw">else</span>)* };
+
     (
-        $(<span class="attr">#[<span class="macro-nonterminal">$outer</span>:meta]</span>)*
-        <span class="kw">pub enum </span><span class="macro-nonterminal">$Type</span>:ident {
-            $(
-                $(<span class="attr">#[<span class="macro-nonterminal">$inner</span>:ident $(<span class="macro-nonterminal">$args</span>:tt)<span class="kw-2">*</span>]</span>)*
-                <span class="macro-nonterminal">$Variant</span>:ident $(=&gt; <span class="macro-nonterminal">$mapping</span>:ident)<span class="question-mark">? </span>$(= <span class="macro-nonterminal">$index</span>:expr)*
-            ),*
-            $(,)<span class="question-mark">?
-        </span>}
-    ) =&gt; {
+        $(
+            $(<span class="attr">#[<span class="macro-nonterminal">$inner</span>:ident $(<span class="macro-nonterminal">$args</span>:tt)<span class="kw-2">*</span>]</span>)*
+            <span class="macro-nonterminal">$Variant</span>:ident $({
+                $(
+                    $(<span class="attr">#[<span class="macro-nonterminal">$fieldinner</span>:ident $(<span class="macro-nonterminal">$fieldargs</span>:tt)<span class="kw-2">*</span>]</span>)*
+                    <span class="macro-nonterminal">$FieldName</span>:ident : <span class="macro-nonterminal">$FieldType</span>:ty
+                ),*
+            })<span class="question-mark">? </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>:ident)<span class="question-mark">?
+        </span>),*
+        $(,)<span class="question-mark">?
+    </span>) =&gt; {
         <span class="doccomment">/// The opcodes of the vm.
-        </span>$(<span class="attr">#[<span class="macro-nonterminal">$outer</span>]</span>)*
-        <span class="kw">pub enum </span><span class="macro-nonterminal">$Type </span>{
+        </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        #[repr(u8)]
+        </span><span class="kw">pub enum </span>Opcode {
             $(
                 $(<span class="attr">#[<span class="macro-nonterminal">$inner </span>$(<span class="macro-nonterminal">$args</span>)<span class="kw-2">*</span>]</span>)*
-                <span class="macro-nonterminal">$Variant </span>$(= <span class="macro-nonterminal">$index</span>)*
-            ),*
+                <span class="macro-nonterminal">$Variant
+            </span>),*
         }
 
         <span class="kw">impl </span>From&lt;u8&gt; <span class="kw">for </span>Opcode {
@@ -1933,11 +2437,11 @@
             }
         }
 
-        <span class="kw">impl </span><span class="macro-nonterminal">$Type </span>{
+        <span class="kw">impl </span>Opcode {
             <span class="kw">const </span>MAX: usize = <span class="number">2usize</span>.pow(<span class="number">8</span>);
 
             <span class="kw">const </span>NAMES: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str; <span class="self">Self</span>::MAX] = [
-                $(&lt;<span class="macro">generate_impl!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::NAME),*
+                $(&lt;<span class="macro">generate_opcodes!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::NAME),*
             ];
 
             <span class="doccomment">/// Name of this opcode.
@@ -1947,7 +2451,7 @@
             }
 
             <span class="kw">const </span>INSTRUCTIONS: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str; <span class="self">Self</span>::MAX] = [
-                $(&lt;<span class="macro">generate_impl!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::INSTRUCTION),*
+                $(&lt;<span class="macro">generate_opcodes!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::INSTRUCTION),*
             ];
 
             <span class="doccomment">/// Name of the profiler event for this opcode.
@@ -1957,11 +2461,88 @@
             }
 
             <span class="kw">const </span>EXECUTE_FNS: [<span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;; <span class="self">Self</span>::MAX] = [
-                $(&lt;<span class="macro">generate_impl!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::execute),*
+                $(&lt;<span class="macro">generate_opcodes!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::execute),*
             ];
 
             <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
                 <span class="self">Self</span>::EXECUTE_FNS[<span class="self">self </span><span class="kw">as </span>usize](context)
+            }
+        }
+
+        <span class="doccomment">/// This represents a VM instruction, it contains both opcode and operands.
+        </span><span class="attr">#[derive(Debug, Clone, PartialEq)]
+        #[repr(u8)]
+        </span><span class="kw">pub enum </span>Instruction {
+            $(
+                $(<span class="attr">#[<span class="macro-nonterminal">$inner </span>$(<span class="macro-nonterminal">$args</span>)<span class="kw-2">*</span>]</span>)*
+                <span class="macro-nonterminal">$Variant </span>$({
+                    $(
+                        $(<span class="attr">#[<span class="macro-nonterminal">$fieldinner </span>$(<span class="macro-nonterminal">$fieldargs</span>)<span class="kw-2">*</span>]</span>)*
+                        <span class="attr">#[allow(missing_docs)]
+                        </span><span class="macro-nonterminal">$FieldName </span>: <span class="macro-nonterminal">$FieldType
+                    </span>),*
+                })<span class="question-mark">?
+            </span>),*
+        }
+
+        <span class="kw">impl </span>Instruction {
+            <span class="doccomment">/// Convert [`Instruction`] to compact bytecode.
+            </span><span class="attr">#[inline]
+            </span><span class="kw">pub fn </span>to_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+                <span class="kw">match </span><span class="self">self </span>{
+                    $(
+                        <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>$({
+                            $( <span class="macro-nonterminal">$FieldName </span>),*
+                        })<span class="question-mark">? </span>=&gt; {
+                            bytes.push(Opcode::<span class="macro-nonterminal">$Variant </span><span class="kw">as </span>u8);
+                            $({
+                                $( BytecodeConversion::to_bytecode(<span class="macro-nonterminal">$FieldName</span>, bytes); )*
+                            })<span class="question-mark">?
+                        </span>}
+                    ),*
+                }
+            }
+
+            <span class="doccomment">/// Convert compact bytecode to [`Instruction`].
+            ///
+            /// # Panics
+            ///
+            /// If the provided bytecode is not valid.
+            </span><span class="attr">#[inline]
+            #[must_use]
+            </span><span class="kw">pub fn </span>from_bytecode(bytes: <span class="kw-2">&amp;</span>[u8], pc: <span class="kw-2">&amp;mut </span>usize) -&gt; <span class="self">Self </span>{
+                <span class="kw">let </span>opcode = bytes[<span class="kw-2">*</span>pc].into();
+                <span class="kw-2">*</span>pc += <span class="number">1</span>;
+                <span class="kw">match </span>opcode {
+                    $(
+                        Opcode::<span class="macro-nonterminal">$Variant </span>=&gt; {
+                            <span class="macro">generate_opcodes!</span>(
+                                <span class="kw">if </span>{
+                                    $({
+                                        <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>{
+                                            $(
+                                                <span class="macro-nonterminal">$FieldName</span>: BytecodeConversion::from_bytecode(bytes, pc)
+                                            ),*
+                                        }
+                                    })<span class="question-mark">?
+                                </span>} <span class="kw">else </span>{
+                                    <span class="self">Self</span>::<span class="macro-nonterminal">$Variant
+                                </span>}
+                            )
+                        }
+                    ),*
+                }
+            }
+
+            <span class="doccomment">/// Get the [`Opcode`] of the [`Instruction`].
+            </span><span class="attr">#[inline]
+            #[must_use]
+            </span><span class="kw">pub const fn </span>opcode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Opcode {
+                <span class="kw">match </span><span class="self">self </span>{
+                    $(
+                        <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>$({ $( <span class="macro-nonterminal">$FieldName</span>: <span class="kw">_ </span>),* })<span class="question-mark">? </span>=&gt; Opcode::<span class="macro-nonterminal">$Variant
+                    </span>),*
+                }
             }
         }
     };
@@ -1980,1633 +2561,1629 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;;
 }
 
-<span class="macro">generate_impl! </span>{
-    <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    #[repr(u8)]
-    </span><span class="kw">pub enum </span>Opcode {
-        <span class="doccomment">/// Pop the top value from the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;**
-        </span>Pop = <span class="number">0</span>,
-
-        <span class="doccomment">/// Push a copy of the top value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** value, value
-        </span>Dup,
-
-        <span class="doccomment">/// Swap the top two values on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: second, first **=&gt;** first, second
-        </span>Swap,
-
-        <span class="doccomment">/// Rotates the top `n` values of the stack to the left by `1`.
-        ///
-        /// Equivalent to calling [`slice::rotate_left`] with argument `1` on the top `n` values of the
-        /// stack.
-        ///
-        /// Operands: n: `u8`
-        ///
-        /// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=&gt;** v\[n-1\], ... , v\[1\], v\[0\], v\[n\]
-        </span>RotateLeft,
-
-        <span class="doccomment">/// Rotates the top `n` values of the stack to the right by `1`.
-        ///
-        /// Equivalent to calling [`slice::rotate_right`] with argument `1` on the top `n` values of the
-        /// stack.
-        ///
-        /// Operands: n: `u8`
-        ///
-        /// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=&gt;** v\[0\], v\[n\], v\[n-1\], ... , v\[1\]
-        </span>RotateRight,
-
-        <span class="doccomment">/// Push integer `0` on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `0`
-        </span>PushZero,
-
-        <span class="doccomment">/// Push integer `1` on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `1`
-        </span>PushOne,
-
-        <span class="doccomment">/// Push `i8` value on the stack.
-        ///
-        /// Operands: value: `i8`
-        ///
-        /// Stack: **=&gt;** value
-        </span>PushInt8,
-
-        <span class="doccomment">/// Push i16 value on the stack.
-        ///
-        /// Operands: value: `i16`
-        ///
-        /// Stack: **=&gt;** value
-        </span>PushInt16,
-
-        <span class="doccomment">/// Push i32 value on the stack.
-        ///
-        /// Operands: value: `i32`
-        ///
-        /// Stack: **=&gt;** value
-        </span>PushInt32,
-
-        <span class="doccomment">/// Push `f32` value on the stack.
-        ///
-        /// Operands: value: `f32`
-        ///
-        /// Stack: **=&gt;** value
-        </span>PushFloat,
-
-        <span class="doccomment">/// Push `f64` value on the stack.
-        ///
-        /// Operands: value: `f64`
-        ///
-        /// Stack: **=&gt;** value
-        </span>PushDouble,
-
-        <span class="doccomment">/// Push `NaN` integer on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `NaN`
-        </span>PushNaN,
-
-        <span class="doccomment">/// Push `Infinity` value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `Infinity`
-        </span>PushPositiveInfinity,
-
-        <span class="doccomment">/// Push `-Infinity` value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `-Infinity`
-        </span>PushNegativeInfinity,
-
-        <span class="doccomment">/// Push `null` value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `null`
-        </span>PushNull,
-
-        <span class="doccomment">/// Push `true` value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `true`
-        </span>PushTrue,
-
-        <span class="doccomment">/// Push `false` value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `false`
-        </span>PushFalse,
-
-        <span class="doccomment">/// Push `undefined` value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `undefined`
-        </span>PushUndefined,
-
-        <span class="doccomment">/// Push literal value on the stack.
-        ///
-        /// Like strings and bigints. The index operand is used to index into the `literals`
-        /// array to get the value.
-        ///
-        /// Operands: index: `u32`
-        ///
-        /// Stack: **=&gt;** (`literals[index]`)
-        </span>PushLiteral,
-
-        <span class="doccomment">/// Push empty object `{}` value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `{}`
-        </span>PushEmptyObject,
-
-        <span class="doccomment">/// Get the prototype of a superclass and push it on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: class, superclass **=&gt;** class, superclass.prototype
-        </span>PushClassPrototype,
-
-        <span class="doccomment">/// Set the prototype of a class object.
-        ///
-        /// Operands:
-        ///
-        /// Stack: class, prototype **=&gt;** class.prototype
-        </span>SetClassPrototype,
-
-        <span class="doccomment">/// Set home object internal slot of an object literal method.
-        ///
-        /// Operands:
-        ///
-        /// Stack: home, function **=&gt;** home, function
-        </span>SetHomeObject,
-
-        <span class="doccomment">/// Set home object internal slot of a class method.
-        ///
-        /// Operands:
-        ///
-        /// Stack: home, function **=&gt;** home, function
-        </span>SetHomeObjectClass,
-
-        <span class="doccomment">/// Set the prototype of an object if the value is an object or null.
-        ///
-        /// Operands:
-        ///
-        /// Stack: object, value **=&gt;**
-        </span>SetPrototype,
-
-        <span class="doccomment">/// Push an empty array value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `[]`
-        </span>PushNewArray,
-
-        <span class="doccomment">/// Push a value to an array.
-        ///
-        /// Operands:
-        ///
-        /// Stack: array, value **=&gt;** array
-        </span>PushValueToArray,
-
-        <span class="doccomment">/// Push an empty element/hole to an array.
-        ///
-        /// Operands:
-        ///
-        /// Stack: array **=&gt;** array
-        </span>PushElisionToArray,
-
-        <span class="doccomment">/// Push all iterator values to an array.
-        ///
-        /// Operands:
-        ///
-        /// Stack: array, iterator, next_method **=&gt;** array
-        </span>PushIteratorToArray,
-
-        <span class="doccomment">/// Binary `+` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs + rhs)
-        </span>Add,
-
-        <span class="doccomment">/// Binary `-` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs - rhs)
-        </span>Sub,
-
-        <span class="doccomment">/// Binary `/` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs / rhs)
-        </span>Div,
-
-        <span class="doccomment">/// Binary `*` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs * rhs)
-        </span>Mul,
-
-        <span class="doccomment">/// Binary `%` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs % rhs)
-        </span>Mod,
-
-        <span class="doccomment">/// Binary `**` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs ** rhs)
-        </span>Pow,
-
-        <span class="doccomment">/// Binary `&gt;&gt;` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs &gt;&gt; rhs)
-        </span>ShiftRight,
-
-        <span class="doccomment">/// Binary `&lt;&lt;` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** `(lhs &lt;&lt; rhs)`
-        </span>ShiftLeft,
-
-        <span class="doccomment">/// Binary `&gt;&gt;&gt;` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs &gt;&gt;&gt; rhs)
-        </span>UnsignedShiftRight,
-
-        <span class="doccomment">/// Binary bitwise `|` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs | rhs)
-        </span>BitOr,
-
-        <span class="doccomment">/// Binary bitwise `&amp;` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs &amp; rhs)
-        </span>BitAnd,
-
-        <span class="doccomment">/// Binary bitwise `^` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs ^ rhs)
-        </span>BitXor,
-
-        <span class="doccomment">/// Unary bitwise `~` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** ~value
-        </span>BitNot,
-
-        <span class="doccomment">/// Binary `in` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs `in` rhs)
-        </span>In,
-
-        <span class="doccomment">/// Binary `in` operator for private names.
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: rhs **=&gt;** (private_name `in` rhs)
-        </span>InPrivate,
-
-        <span class="doccomment">/// Binary `==` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs `==` rhs)
-        </span>Eq,
-
-        <span class="doccomment">/// Binary `===` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs `===` rhs)
-        </span>StrictEq,
-
-        <span class="doccomment">/// Binary `!=` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs `!=` rhs)
-        </span>NotEq,
-
-        <span class="doccomment">/// Binary `!==` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs `!==` rhs)
-        </span>StrictNotEq,
-
-        <span class="doccomment">/// Binary `&gt;` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs &gt; rhs)
-        </span>GreaterThan,
-
-        <span class="doccomment">/// Binary `&gt;=` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs &gt;= rhs)
-        </span>GreaterThanOrEq,
-
-        <span class="doccomment">/// Binary `&lt;` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** `(lhs &lt; rhs)`
-        </span>LessThan,
-
-        <span class="doccomment">/// Binary `&lt;=` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** `(lhs &lt;= rhs)`
-        </span>LessThanOrEq,
-
-        <span class="doccomment">/// Binary `instanceof` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs instanceof rhs)
-        </span>InstanceOf,
-
-        <span class="doccomment">/// Binary logical `&amp;&amp;` operator.
-        ///
-        /// This is a short-circuit operator, if the `lhs` value is `false`, then it jumps to `exit` address.
-        ///
-        /// Operands: exit: `u32`
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs &amp;&amp; rhs)
-        </span>LogicalAnd,
-
-        <span class="doccomment">/// Binary logical `||` operator.
-        ///
-        /// This is a short-circuit operator, if the `lhs` value is `true`, then it jumps to `exit` address.
-        ///
-        /// Operands: exit: `u32`
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs || rhs)
-        </span>LogicalOr,
-
-        <span class="doccomment">/// Binary `??` operator.
-        ///
-        /// This is a short-circuit operator, if the `lhs` value is **not** `null` or `undefined`,
-        /// then it jumps to `exit` address.
-        ///
-        /// Operands: exit: `u32`
-        ///
-        /// Stack: lhs, rhs **=&gt;** (lhs ?? rhs)
-        </span>Coalesce,
-
-        <span class="doccomment">/// Unary `typeof` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** (`typeof` value)
-        </span>TypeOf,
-
-        <span class="doccomment">/// Unary `void` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** `undefined`
-        </span>Void,
-
-        <span class="doccomment">/// Unary logical `!` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** (!value)
-        </span>LogicalNot,
-
-        <span class="doccomment">/// Unary `+` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** (+value)
-        </span>Pos,
-
-        <span class="doccomment">/// Unary `-` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** (-value)
-        </span>Neg,
-
-        <span class="doccomment">/// Unary `++` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** (value + 1)
-        </span>Inc,
-
-        <span class="doccomment">/// Unary postfix `++` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** (ToNumeric(value)), (value + 1)
-        </span>IncPost,
-
-        <span class="doccomment">/// Unary `--` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** (value - 1)
-        </span>Dec,
-
-        <span class="doccomment">/// Unary postfix `--` operator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** (ToNumeric(value)), (value - 1)
-        </span>DecPost,
-
-        <span class="doccomment">/// Declare `var` type variable.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: **=&gt;**
-        </span>DefVar,
-
-        <span class="doccomment">/// Declare and initialize `var` type variable.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: value **=&gt;**
-        </span>DefInitVar,
-
-        <span class="doccomment">/// Initialize a lexical binding.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: value **=&gt;**
-        </span>PutLexicalValue,
-
-        <span class="doccomment">/// Throws an error because the binding access is illegal.
-        ///
-        /// Operands: binding_index: `u32`
-        ///
-        /// Stack: **=&gt;**
-        </span>ThrowMutateImmutable,
-
-        <span class="doccomment">/// Find a binding on the environment chain and push its value.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: **=&gt;** value
-        </span>GetName,
-
-        <span class="doccomment">/// Find a binding on the environment and set the `current_binding` of the current frame.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: **=&gt;**
-        </span>GetLocator,
-
-        <span class="doccomment">/// Find a binding on the environment chain and push its value to the stack and its
-        /// `BindingLocator` to the `bindings_stack`.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: **=&gt;** value
-        </span>GetNameAndLocator,
-
-        <span class="doccomment">/// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: **=&gt;** value
-        </span>GetNameOrUndefined,
-
-        <span class="doccomment">/// Find a binding on the environment chain and assign its value.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: value **=&gt;**
-        </span>SetName,
-
-        <span class="doccomment">/// Assigns a value to the binding pointed by the top of the `bindings_stack`.
-        ///
-        /// Stack: value **=&gt;**
-        </span>SetNameByLocator,
-
-        <span class="doccomment">/// Deletes a property of the global object.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: **=&gt;** deleted
-        </span>DeleteName,
-
-        <span class="doccomment">/// Get a property by name from an object an push it on the stack.
-        ///
-        /// Like `object.name`
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: object, receiver **=&gt;** value
-        </span>GetPropertyByName,
-
-        <span class="doccomment">/// Get a property method or undefined if the property is null or undefined.
-        ///
-        /// Throws if the method is not a callable object.
-        ///
-        /// Operands: name_index: `u32`
-        /// Stack: object **=&gt;** object, method
-        </span>GetMethod,
-
-        <span class="doccomment">/// Get a property by value from an object an push it on the stack.
-        ///
-        /// Like `object[key]`
-        ///
-        /// Operands:
-        ///
-        /// Stack: object, receiver, key **=&gt;** value
-        </span>GetPropertyByValue,
-
-        <span class="doccomment">/// Get a property by value from an object an push the key and value on the stack.
-        ///
-        /// Like `object[key]`
-        ///
-        /// Operands:
-        ///
-        /// Stack: object, receiver, key **=&gt;** key, value
-        </span>GetPropertyByValuePush,
-
-        <span class="doccomment">/// Sets a property by name of an object.
-        ///
-        /// Like `object.name = value`
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: object, receiver, value **=&gt;** value
-        </span>SetPropertyByName,
-
-        <span class="doccomment">/// Sets the name of a function object.
-        ///
-        /// This operation is corresponds to the `SetFunctionName` abstract operation in the [spec].
-        ///
-        ///  The prefix operand is mapped as follows:
-        /// * 0 -&gt; no prefix
-        /// * 1 -&gt; &quot;get &quot;
-        /// * 2 -&gt; &quot;set &quot;
-        ///
-        ///  Operands: prefix: `u8`
-        ///
-        /// Stack: name, function **=&gt;** function
-        ///
-        /// [spec]: https://tc39.es/ecma262/#sec-setfunctionname
-        </span>SetFunctionName,
-
-        <span class="doccomment">/// Defines a own property of an object by name.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: object, value **=&gt;**
-        </span>DefineOwnPropertyByName,
-
-        <span class="doccomment">/// Defines a static class method by name.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: class, function **=&gt;**
-        </span>DefineClassStaticMethodByName,
-
-        <span class="doccomment">/// Defines a class method by name.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: class_proto, function **=&gt;**
-        </span>DefineClassMethodByName,
-
-        <span class="doccomment">/// Sets a property by value of an object.
-        ///
-        /// Like `object[key] = value`
-        ///
-        /// Operands:
-        ///
-        /// Stack: object, receiver, key, value **=&gt;** value
-        </span>SetPropertyByValue,
-
-        <span class="doccomment">/// Defines a own property of an object by value.
-        ///
-        /// Operands:
-        ///
-        /// Stack: object, key, value **=&gt;**
-        </span>DefineOwnPropertyByValue,
-
-        <span class="doccomment">/// Defines a static class method by value.
-        ///
-        /// Operands:
-        ///
-        /// Stack: class, key, function **=&gt;**
-        </span>DefineClassStaticMethodByValue,
-
-        <span class="doccomment">/// Defines a class method by value.
-        ///
-        /// Operands:
-        ///
-        /// Stack: class_proto, key, function **=&gt;**
-        </span>DefineClassMethodByValue,
-
-        <span class="doccomment">/// Sets a getter property by name of an object.
-        ///
-        /// Like `get name() value`
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: object, value **=&gt;**
-        </span>SetPropertyGetterByName,
-
-        <span class="doccomment">/// Defines a static getter class method by name.
-        ///
-        /// Like `static get name() value`
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: class, function **=&gt;**
-        </span>DefineClassStaticGetterByName,
-
-        <span class="doccomment">/// Defines a getter class method by name.
-        ///
-        /// Like `get name() value`
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: class_proto, function **=&gt;** class
-        </span>DefineClassGetterByName,
-
-        <span class="doccomment">/// Sets a getter property by value of an object.
-        ///
-        /// Like `get [key]() value`
-        ///
-        /// Operands:
-        ///
-        /// Stack: object, key, value **=&gt;**
-        </span>SetPropertyGetterByValue,
-
-        <span class="doccomment">/// Defines a static getter class method by value.
-        ///
-        /// Like `static get [key]() value`
-        ///
-        /// Operands:
-        ///
-        /// Stack: class, key, function **=&gt;**
-        </span>DefineClassStaticGetterByValue,
-
-        <span class="doccomment">/// Defines a getter class method by value.
-        ///
-        /// Like `get [key]() value`
-        ///
-        /// Operands:
-        ///
-        /// Stack: class_proto, key, function **=&gt;**
-        </span>DefineClassGetterByValue,
-
-        <span class="doccomment">/// Sets a setter property by name of an object.
-        ///
-        /// Like `set name() value`
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: object, value **=&gt;**
-        </span>SetPropertySetterByName,
-
-        <span class="doccomment">/// Defines a static setter class method by name.
-        ///
-        /// Like `static set name() value`
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: class, function **=&gt;**
-        </span>DefineClassStaticSetterByName,
-
-        <span class="doccomment">/// Defines a setter class method by name.
-        ///
-        /// Like `set name() value`
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: class_proto, function **=&gt;**
-        </span>DefineClassSetterByName,
-
-        <span class="doccomment">/// Sets a setter property by value of an object.
-        ///
-        /// Like `set [key]() value`
-        ///
-        /// Operands:
-        ///
-        /// Stack: object, key, value **=&gt;**
-        </span>SetPropertySetterByValue,
-
-        <span class="doccomment">/// Defines a static setter class method by value.
-        ///
-        /// Like `static set [key]() value`
-        ///
-        /// Operands:
-        ///
-        /// Stack: class, key, function **=&gt;**
-        </span>DefineClassStaticSetterByValue,
-
-        <span class="doccomment">/// Defines a setter class method by value.
-        ///
-        /// Like `set [key]() value`
-        ///
-        /// Operands:
-        ///
-        /// Stack: class_proto, key, function **=&gt;**
-        </span>DefineClassSetterByValue,
-
-        <span class="doccomment">/// Set the value of a private property of an object by it&#39;s name.
-        ///
-        /// Like `obj.#name = value`
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: object, value **=&gt;** value
-        </span>SetPrivateField,
-
-        <span class="doccomment">/// Define a private property of a class constructor by it&#39;s name.
-        ///
-        /// Like `#name = value`
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: object, value **=&gt;**
-        </span>DefinePrivateField,
-
-        <span class="doccomment">/// Set a private method of a class constructor by it&#39;s name.
-        ///
-        /// Like `#name() {}`
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: object, value **=&gt;**
-        </span>SetPrivateMethod,
-
-        <span class="doccomment">/// Set a private setter property of a class constructor by it&#39;s name.
-        ///
-        /// Like `set #name() {}`
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: object, value **=&gt;**
-        </span>SetPrivateSetter,
-
-        <span class="doccomment">/// Set a private getter property of a class constructor by it&#39;s name.
-        ///
-        /// Like `get #name() {}`
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: object, value **=&gt;**
-        </span>SetPrivateGetter,
-
-        <span class="doccomment">/// Get a private property by name from an object an push it on the stack.
-        ///
-        /// Like `object.#name`
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: object **=&gt;** value
-        </span>GetPrivateField,
-
-        <span class="doccomment">/// Push a field to a class.
-        ///
-        /// Operands:
-        ///
-        /// Stack: class, field_name, field_function **=&gt;**
-        </span>PushClassField,
-
-        <span class="doccomment">/// Push a private field to the class.
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: class, field_function **=&gt;**
-        </span>PushClassFieldPrivate,
-
-        <span class="doccomment">/// Push a private getter to the class.
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: class, getter **=&gt;**
-        </span>PushClassPrivateGetter,
-
-        <span class="doccomment">/// Push a private setter to the class.
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: class, setter **=&gt;**
-        </span>PushClassPrivateSetter,
-
-        <span class="doccomment">/// Push a private method to the class.
-        ///
-        /// Operands: private_name_index: `u32`
-        ///
-        /// Stack: class, method **=&gt;**
-        </span>PushClassPrivateMethod,
-
-        <span class="doccomment">/// Deletes a property by name of an object.
-        ///
-        /// Like `delete object.key`
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: object **=&gt;**
-        </span>DeletePropertyByName,
-
-        <span class="doccomment">/// Deletes a property by value of an object.
-        ///
-        /// Like `delete object[key]`
-        ///
-        /// Operands:
-        ///
-        /// Stack: object, key **=&gt;**
-        </span>DeletePropertyByValue,
-
-        <span class="doccomment">/// Throws an error when trying to delete a property of `super`
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>DeleteSuperThrow,
-
-        <span class="doccomment">/// Copy all properties of one object to another object.
-        ///
-        /// Operands: excluded_key_count: `u32`, excluded_key_count_computed: `u32`
-        ///
-        /// Stack: excluded_key_computed_0 ... excluded_key_computed_n, source, value, excluded_key_0 ... excluded_key_n **=&gt;** value
-        </span>CopyDataProperties,
-
-        <span class="doccomment">/// Call ToPropertyKey on the value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** key
-        </span>ToPropertyKey,
-
-        <span class="doccomment">/// Unconditional jump to address.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: **=&gt;**
-        </span>Jump,
-
-        <span class="doccomment">/// Conditional jump to address.
-        ///
-        /// If the value popped is [`truthy`][truthy] then jump to `address`.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: cond **=&gt;**
-        ///
-        /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
-        </span>JumpIfTrue,
-
-        <span class="doccomment">/// Conditional jump to address.
-        ///
-        /// If the value popped is [`falsy`][falsy] then jump to `address`.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: cond **=&gt;**
-        ///
-        /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy
-        </span>JumpIfFalse,
-
-        <span class="doccomment">/// Conditional jump to address.
-        ///
-        /// If the value popped is not undefined jump to `address`.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: value **=&gt;** value
-        </span>JumpIfNotUndefined,
-
-        <span class="doccomment">/// Conditional jump to address.
-        ///
-        /// If the value popped is undefined jump to `address`.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: value **=&gt;** value
-        </span>JumpIfNullOrUndefined,
-
-        <span class="doccomment">/// Jump table that jumps depending on top value of the stack.
-        ///
-        /// This is used to handle special cases when we call `continue`, `break` or `return` in a try block,
-        /// that has finally block.
-        ///
-        /// Operands: count: `u32`, default: `u32`, address: `u32` * count
-        ///
-        /// Stack: value: [`i32`] **=&gt;**
-        </span>JumpTable,
-
-        <span class="doccomment">/// Throw exception.
-        ///
-        /// This sets pending exception and searches for an exception handler.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;**
-        </span>Throw,
-
-        <span class="doccomment">/// Rethrow thrown exception.
-        ///
-        /// This is also used to handle generator `return()` call, we throw an empty exception, by setting pending exception to [`None`],
-        /// propagating it and calling finally code until there is no exception handler left, in that case we consume the empty exception and return
-        /// from the generator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>ReThrow,
-
-        <span class="doccomment">/// Get the thrown pending exception (if it&#39;s set) and push on the stack.
-        ///
-        /// If there is no pending exception, which can happend if we are handling `return()` call on generator,
-        /// then we rethrow the empty exception. See [`Opcode::ReThrow`].
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** exception
-        </span>Exception,
-
-        <span class="doccomment">/// Get the thrown pending exception if it&#39;s set and push `true`, otherwise push only `false`.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** (`true`, exception) or `false`
-        </span>MaybeException,
-
-        <span class="doccomment">/// Throw a new `TypeError` exception
-        ///
-        /// Operands: message: u32
-        ///
-        /// Stack: **=&gt;**
-        </span>ThrowNewTypeError,
-
-        <span class="doccomment">/// Pops value converts it to boolean and pushes it back.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** (`ToBoolean(value)`)
-        </span>ToBoolean,
-
-        <span class="doccomment">/// Pushes `this` value
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** this
-        </span>This,
-
-        <span class="doccomment">/// Pushes the current `super` value to the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** super
-        </span>Super,
-
-        <span class="doccomment">/// Get the super constructor and the new target of the current environment.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** super_constructor, new_target
-        </span>SuperCallPrepare,
-
-        <span class="doccomment">/// Execute the `super()` method.
-        ///
-        /// Operands: argument_count: `u32`
-        ///
-        /// Stack: super_constructor, new_target, argument_1, ... argument_n **=&gt;**
-        </span>SuperCall,
-
-        <span class="doccomment">/// Execute the `super()` method where the arguments contain spreads.
-        ///
-        /// Operands:
-        ///
-        /// Stack: super_constructor, new_target, arguments_array **=&gt;**
-        </span>SuperCallSpread,
-
-        <span class="doccomment">/// Execute the `super()` method when no constructor of the class is defined.
-        ///
-        /// Operands:
-        ///
-        /// Stack: argument_n, ... argument_1 **=&gt;**
-        </span>SuperCallDerived,
-
-        <span class="doccomment">/// Dynamically import a module.
-        ///
-        /// Operands:
-        ///
-        /// Stack: specifier **=&gt;** promise
-        </span>ImportCall,
-
-        <span class="doccomment">/// Pop the two values of the stack, strict equal compares the two values,
-        /// if true jumps to address, otherwise push the second pop&#39;ed value.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: value, cond **=&gt;** cond (if `cond !== value`).
-        </span>Case,
-
-        <span class="doccomment">/// Pops the top of stack and jump to address.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: `value` **=&gt;**
-        </span>Default,
-
-        <span class="doccomment">/// Get arrow function from the pre-compiled inner functions.
-        ///
-        /// Operands: address: `u32`, method: `u8`
-        ///
-        /// Stack: **=&gt;** func
-        </span>GetArrowFunction,
-
-        <span class="doccomment">/// Get async arrow function from the pre-compiled inner functions.
-        ///
-        /// Operands: address: `u32`, method: `u8`
-        ///
-        /// Stack: **=&gt;** func
-        </span>GetAsyncArrowFunction,
-
-        <span class="doccomment">/// Get function from the pre-compiled inner functions.
-        ///
-        /// Operands: address: `u32`, is_method: `u8`
-        ///
-        /// Stack: **=&gt;** func
-        </span>GetFunction,
-
-        <span class="doccomment">/// Get async function from the pre-compiled inner functions.
-        ///
-        /// Operands: address: `u32`, method: `u8`
-        ///
-        /// Stack: **=&gt;** func
-        </span>GetFunctionAsync,
-
-        <span class="doccomment">/// Get generator function from the pre-compiled inner functions.
-        ///
-        /// Operands: address: `u32`,
-        ///
-        /// Stack: **=&gt;** func
-        </span>GetGenerator,
-
-        <span class="doccomment">/// Get async generator function from the pre-compiled inner functions.
-        ///
-        /// Operands: address: `u32`,
-        ///
-        /// Stack: **=&gt;** func
-        </span>GetGeneratorAsync,
-
-        <span class="doccomment">/// Call a function named &quot;eval&quot;.
-        ///
-        /// Operands: argument_count: `u32`
-        ///
-        /// Stack: this, func, argument_1, ... argument_n **=&gt;** result
-        </span>CallEval,
-
-        <span class="doccomment">/// Call a function named &quot;eval&quot; where the arguments contain spreads.
-        ///
-        /// Operands:
-        ///
-        /// Stack: this, func, arguments_array **=&gt;** result
-        </span>CallEvalSpread,
-
-        <span class="doccomment">/// Call a function.
-        ///
-        /// Operands: argument_count: `u32`
-        ///
-        /// Stack: this, func, argument_1, ... argument_n **=&gt;** result
-        </span>Call,
-
-        <span class="doccomment">/// Call a function where the arguments contain spreads.
-        ///
-        /// Operands:
-        ///
-        /// Stack: this, func, arguments_array **=&gt;** result
-        </span>CallSpread,
-
-        <span class="doccomment">/// Call construct on a function.
-        ///
-        /// Operands: argument_count: `u32`
-        ///
-        /// Stack: func, argument_1, ... argument_n **=&gt;** result
-        </span>New,
-
-        <span class="doccomment">/// Call construct on a function where the arguments contain spreads.
-        ///
-        /// Operands:
-        ///
-        /// Stack: arguments_array, func **=&gt;** result
-        </span>NewSpread,
-
-        <span class="doccomment">/// Return from a function.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>Return,
-
-        <span class="doccomment">/// Close an async generator function.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>AsyncGeneratorClose,
-
-        <span class="doccomment">/// Creates the generator object and yields.
-        ///
-        /// Operands: async: `u8`
-        ///
-        /// Stack: **=&gt;** resume_kind
-        </span>Generator,
-
-        <span class="doccomment">/// Get return value of a function.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** value
-        </span>GetReturnValue,
-
-        <span class="doccomment">/// Set return value of a function.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;**
-        </span>SetReturnValue,
-
-        <span class="doccomment">/// Push a declarative environment.
-        ///
-        /// Operands: compile_environments_index: `u32`
-        ///
-        /// Stack: **=&gt;**
-        </span>PushDeclarativeEnvironment,
-
-        <span class="doccomment">/// Push an object environment.
-        ///
-        /// Operands:
-        ///
-        /// Stack: object **=&gt;**
-        </span>PushObjectEnvironment,
-
-        <span class="doccomment">/// Push a function environment.
-        ///
-        /// Operands: compile_environments_index: `u32`
-        ///
-        /// Stack: **=&gt;**
-        </span>PushFunctionEnvironment,
-
-        <span class="doccomment">/// Pop the current environment.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>PopEnvironment,
-
-        <span class="doccomment">/// Increment loop itearation count.
-        ///
-        /// Used for limiting the loop iteration.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>IncrementLoopIteration,
-
-        <span class="doccomment">/// Creates the ForInIterator of an object.
-        ///
-        /// Stack: object **=&gt;**
-        ///
-        /// Iterator Stack: `iterator`
-        </span>CreateForInIterator,
-
-        <span class="doccomment">/// Gets the iterator of an object.
-        ///
-        /// Operands:
-        ///
-        /// Stack: object **=&gt;**
-        ///
-        /// Iterator Stack: `iterator`
-        </span>GetIterator,
-
-        <span class="doccomment">/// Gets the async iterator of an object.
-        ///
-        /// Operands:
-        ///
-        /// Stack: object **=&gt;**
-        ///
-        /// Iterator Stack: `iterator`
-        </span>GetAsyncIterator,
-
-        <span class="doccomment">/// Calls the `next` method of `iterator`, updating its record with the next value.
-        ///
-        /// Operands:
-        ///
-        /// Iterator Stack: `iterator` **=&gt;** `iterator`
-        </span>IteratorNext,
-
-        <span class="doccomment">/// Calls the `next` method of `iterator`, updating its record with the next value.
-        ///
-        /// Operands:
-        ///
-        /// Iterator Stack: `iterator` **=&gt;** `iterator`
-        </span>IteratorNextWithoutPop,
-
-        <span class="doccomment">/// Returns `true` if the current iterator is done, or `false` otherwise
-        ///
-        /// Stack: **=&gt;** done
-        ///
-        /// Iterator Stack: `iterator` **=&gt;** `iterator`
-        </span>IteratorDone,
-
-        <span class="doccomment">/// Finishes the call to `Opcode::IteratorNext` within a `for await` loop by setting the current
-        /// result of the current iterator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: `next_result`, `resume_kind` **=&gt;** `resume_kind`
-        ///
-        /// Iterator Stack: iterator **=&gt;** iterator
-        </span>IteratorFinishAsyncNext,
-
-        <span class="doccomment">/// Gets the `value` property of the current iterator record.
-        ///
-        /// Stack: **=&gt;** `value`
-        ///
-        /// Iterator Stack: `iterator` **=&gt;** `iterator`
-        </span>IteratorValue,
-
-        <span class="doccomment">/// Gets the `value` property of the current iterator record.
-        ///
-        /// Stack: **=&gt;** `value`
-        ///
-        /// Iterator Stack: `iterator` **=&gt;** `iterator`
-        </span>IteratorValueWithoutPop,
-
-        <span class="doccomment">/// Gets the last iteration result of the current iterator record.
-        ///
-        /// Stack: **=&gt;** `result`
-        ///
-        /// Iterator Stack: `iterator` **=&gt;** `iterator`
-        </span>IteratorResult,
-
-        <span class="doccomment">/// Consume the iterator and construct and array with all the values.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** array
-        ///
-        /// Iterator Stack: `iterator` **=&gt;** `iterator`
-        </span>IteratorToArray,
-
-        <span class="doccomment">/// Pop an iterator from the call frame close iterator stack.
-        ///
-        /// Iterator Stack:
-        /// - `iterator` **=&gt;**
-        </span>IteratorPop,
-
-        <span class="doccomment">/// Pushes `true` to the stack if the iterator stack is empty.
-        ///
-        /// Stack:
-        /// - **=&gt;** `is_empty`
-        ///
-        /// Iterator Stack:
-        /// - **=&gt;**
-        </span>IteratorStackEmpty,
-
-        <span class="doccomment">/// Creates a new iterator result object.
-        ///
-        /// Operands:
-        /// - done: bool (codified as u8 with `0` -&gt; `false` and `!0` -&gt; `true`)
-        ///
-        /// Stack:
-        /// - value **=&gt;**
-        ///
-        </span>CreateIteratorResult,
-
-        <span class="doccomment">/// Calls `return` on the current iterator and returns the result.
-        ///
-        /// Stack: **=&gt;** return_val (if return is a method), is_return_method
-        ///
-        /// Iterator Stack: `iterator` **=&gt;**
-        </span>IteratorReturn,
-
-        <span class="doccomment">/// Concat multiple stack objects into a string.
-        ///
-        /// Operands: value_count: `u32`
-        ///
-        /// Stack: `value_1`,...`value_n` **=&gt;** `string`
-        </span>ConcatToString,
-
-        <span class="doccomment">/// Call RequireObjectCoercible on the stack value.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** value
-        </span>RequireObjectCoercible,
-
-        <span class="doccomment">/// Require the stack value to be neither null nor undefined.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** value
-        </span>ValueNotNullOrUndefined,
-
-        <span class="doccomment">/// Initialize the rest parameter value of a function from the remaining arguments.
-        ///
-        /// Operands:
-        ///
-        /// Stack: `argument_1` .. `argument_n` **=&gt;** `array`
-        </span>RestParameterInit,
-
-        <span class="doccomment">/// Pop the remaining arguments of a function.
-        ///
-        /// Operands:
-        ///
-        /// Stack: `argument_1` .. `argument_n` **=&gt;**
-        </span>RestParameterPop,
-
-        <span class="doccomment">/// Yields from the current generator execution.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** resume_kind, received
-        </span>GeneratorYield,
-
-        <span class="doccomment">/// Resumes the current generator function.
-        ///
-        /// If the `resume_kind` is `Throw`, then the value is poped and thrown, otherwise if `Return`
-        /// we pop the value, set it as the return value and throw and empty exception. See [`Opcode::ReThrow`].
-        ///
-        /// Operands:
-        ///
-        /// Stack: `resume_kind`, value **=&gt;** value
-        </span>GeneratorNext,
-
-        <span class="doccomment">/// Yields from the current async generator execution.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** received
-        </span>AsyncGeneratorYield,
-
-        <span class="doccomment">/// Create a promise capacity for an async function, if not already set.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>CreatePromiseCapability,
-
-        <span class="doccomment">/// Resolves or rejects the promise capability of an async function.
-        ///
-        /// If the pending exception is set, reject and rethrow the exception, otherwise resolve.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>CompletePromiseCapability,
-
-        <span class="doccomment">/// Jumps to the specified address if the resume kind is not equal.
-        ///
-        /// Operands: `exit`: `u32`, `resume_kind`: `u8`.
-        ///
-        /// Stack: `resume_kind` **=&gt;** `resume_kind`
-        </span>JumpIfNotResumeKind,
-
-        <span class="doccomment">/// Delegates the current async generator function to another iterator.
-        ///
-        /// Operands: throw_method_undefined: `u32`, return_method_undefined: `u32`
-        ///
-        /// Stack: received **=&gt;** result
-        </span>GeneratorDelegateNext,
-
-        <span class="doccomment">/// Resume the async generator with yield delegate logic after it awaits a value.
-        ///
-        /// Operands: return: `u32`, exit: `u32`
-        ///
-        /// Stack: is_return, received **=&gt;** value
-        </span>GeneratorDelegateResume,
-
-        <span class="doccomment">/// Stops the current async function and schedules it to resume later.
-        ///
-        /// Operands:
-        ///
-        /// Stack: promise **=&gt;** received
-        </span>Await,
-
-        <span class="doccomment">/// Push the current new target to the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `new.target`
-        </span>NewTarget,
-
-        <span class="doccomment">/// Push the current `import.meta` to the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;** `import.meta`
-        </span>ImportMeta,
-
-        <span class="doccomment">/// Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
-        ///
-        /// Operands:
-        ///
-        /// Stack: value **=&gt;** is_object
-        </span>IsObject,
-
-        <span class="doccomment">/// Lookup if a tagged template object is cached and skip the creation if it is.
-        ///
-        /// Operands: jump: `u32`, site: `u64`
-        ///
-        /// Stack: **=&gt;** template (if cached)
-        </span>TemplateLookup,
-
-        <span class="doccomment">/// Create a new tagged template object and cache it.
-        ///
-        /// Operands: count: `u32`, site: `u64`
-        ///
-        /// Stack: count * (cooked_value, raw_value) **=&gt;** template
-        </span>TemplateCreate,
-
-        <span class="doccomment">/// Push a private environment.
-        ///
-        /// Operands: count: `u32`, count * private_name_index: `u32`
-        ///
-        /// Stack: class **=&gt;** class
-        </span>PushPrivateEnvironment,
-
-        <span class="doccomment">/// Pop a private environment.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>PopPrivateEnvironment,
-
-        <span class="doccomment">/// No-operation instruction, does nothing.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=&gt;**
-        </span>Nop,
-
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved1 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved2 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved3 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved4 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved5 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved6 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved7 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved8 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved9 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved10 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved11 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved12 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved13 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved14 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved15 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved16 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved17 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved18 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved19 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved20 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved21 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved22 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved23 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved24 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved25 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved26 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved27 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved28 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved29 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved30 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved31 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved32 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved33 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved34 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved35 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved36 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved37 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved38 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved39 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved40 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved41 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved42 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved43 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved44 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved45 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved46 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved47 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved48 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved49 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved50 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved51 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved52 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved53 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved54 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved55 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved56 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved57 =&gt; Reserved,
-        <span class="doccomment">/// Reserved [`Opcode`].
-        </span>Reserved58 =&gt; Reserved,
-    }
+<span class="macro">generate_opcodes! </span>{
+    <span class="doccomment">/// Pop the top value from the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;**
+    </span>Pop,
+
+    <span class="doccomment">/// Push a copy of the top value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** value, value
+    </span>Dup,
+
+    <span class="doccomment">/// Swap the top two values on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: second, first **=&gt;** first, second
+    </span>Swap,
+
+    <span class="doccomment">/// Rotates the top `n` values of the stack to the left by `1`.
+    ///
+    /// Equivalent to calling [`slice::rotate_left`] with argument `1` on the top `n` values of the
+    /// stack.
+    ///
+    /// Operands: n: `u8`
+    ///
+    /// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=&gt;** v\[n-1\], ... , v\[1\], v\[0\], v\[n\]
+    </span>RotateLeft { n: u8 },
+
+    <span class="doccomment">/// Rotates the top `n` values of the stack to the right by `1`.
+    ///
+    /// Equivalent to calling [`slice::rotate_right`] with argument `1` on the top `n` values of the
+    /// stack.
+    ///
+    /// Operands: n: `u8`
+    ///
+    /// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=&gt;** v\[0\], v\[n\], v\[n-1\], ... , v\[1\]
+    </span>RotateRight { n: u8 },
+
+    <span class="doccomment">/// Push integer `0` on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `0`
+    </span>PushZero,
+
+    <span class="doccomment">/// Push integer `1` on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `1`
+    </span>PushOne,
+
+    <span class="doccomment">/// Push `i8` value on the stack.
+    ///
+    /// Operands: value: `i8`
+    ///
+    /// Stack: **=&gt;** value
+    </span>PushInt8 { value: i8 },
+
+    <span class="doccomment">/// Push i16 value on the stack.
+    ///
+    /// Operands: value: `i16`
+    ///
+    /// Stack: **=&gt;** value
+    </span>PushInt16 { value: i16 },
+
+    <span class="doccomment">/// Push i32 value on the stack.
+    ///
+    /// Operands: value: `i32`
+    ///
+    /// Stack: **=&gt;** value
+    </span>PushInt32 { value: i32 },
+
+    <span class="doccomment">/// Push `f32` value on the stack.
+    ///
+    /// Operands: value: `f32`
+    ///
+    /// Stack: **=&gt;** value
+    </span>PushFloat { value: f32 },
+
+    <span class="doccomment">/// Push `f64` value on the stack.
+    ///
+    /// Operands: value: `f64`
+    ///
+    /// Stack: **=&gt;** value
+    </span>PushDouble { value: f64 },
+
+    <span class="doccomment">/// Push `NaN` integer on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `NaN`
+    </span>PushNaN,
+
+    <span class="doccomment">/// Push `Infinity` value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `Infinity`
+    </span>PushPositiveInfinity,
+
+    <span class="doccomment">/// Push `-Infinity` value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `-Infinity`
+    </span>PushNegativeInfinity,
+
+    <span class="doccomment">/// Push `null` value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `null`
+    </span>PushNull,
+
+    <span class="doccomment">/// Push `true` value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `true`
+    </span>PushTrue,
+
+    <span class="doccomment">/// Push `false` value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `false`
+    </span>PushFalse,
+
+    <span class="doccomment">/// Push `undefined` value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `undefined`
+    </span>PushUndefined,
+
+    <span class="doccomment">/// Push literal value on the stack.
+    ///
+    /// Like strings and bigints. The index operand is used to index into the `literals`
+    /// array to get the value.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: **=&gt;** (`literals[index]`)
+    </span>PushLiteral { index: u32 },
+
+    <span class="doccomment">/// Push empty object `{}` value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `{}`
+    </span>PushEmptyObject,
+
+    <span class="doccomment">/// Get the prototype of a superclass and push it on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: class, superclass **=&gt;** class, superclass.prototype
+    </span>PushClassPrototype,
+
+    <span class="doccomment">/// Set the prototype of a class object.
+    ///
+    /// Operands:
+    ///
+    /// Stack: class, prototype **=&gt;** class.prototype
+    </span>SetClassPrototype,
+
+    <span class="doccomment">/// Set home object internal slot of an object literal method.
+    ///
+    /// Operands:
+    ///
+    /// Stack: home, function **=&gt;** home, function
+    </span>SetHomeObject,
+
+    <span class="doccomment">/// Set home object internal slot of a class method.
+    ///
+    /// Operands:
+    ///
+    /// Stack: home, function **=&gt;** home, function
+    </span>SetHomeObjectClass,
+
+    <span class="doccomment">/// Set the prototype of an object if the value is an object or null.
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, value **=&gt;**
+    </span>SetPrototype,
+
+    <span class="doccomment">/// Push an empty array value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `[]`
+    </span>PushNewArray,
+
+    <span class="doccomment">/// Push a value to an array.
+    ///
+    /// Operands:
+    ///
+    /// Stack: array, value **=&gt;** array
+    </span>PushValueToArray,
+
+    <span class="doccomment">/// Push an empty element/hole to an array.
+    ///
+    /// Operands:
+    ///
+    /// Stack: array **=&gt;** array
+    </span>PushElisionToArray,
+
+    <span class="doccomment">/// Push all iterator values to an array.
+    ///
+    /// Operands:
+    ///
+    /// Stack: array, iterator, next_method **=&gt;** array
+    </span>PushIteratorToArray,
+
+    <span class="doccomment">/// Binary `+` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs + rhs)
+    </span>Add,
+
+    <span class="doccomment">/// Binary `-` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs - rhs)
+    </span>Sub,
+
+    <span class="doccomment">/// Binary `/` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs / rhs)
+    </span>Div,
+
+    <span class="doccomment">/// Binary `*` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs * rhs)
+    </span>Mul,
+
+    <span class="doccomment">/// Binary `%` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs % rhs)
+    </span>Mod,
+
+    <span class="doccomment">/// Binary `**` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs ** rhs)
+    </span>Pow,
+
+    <span class="doccomment">/// Binary `&gt;&gt;` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs &gt;&gt; rhs)
+    </span>ShiftRight,
+
+    <span class="doccomment">/// Binary `&lt;&lt;` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** `(lhs &lt;&lt; rhs)`
+    </span>ShiftLeft,
+
+    <span class="doccomment">/// Binary `&gt;&gt;&gt;` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs &gt;&gt;&gt; rhs)
+    </span>UnsignedShiftRight,
+
+    <span class="doccomment">/// Binary bitwise `|` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs | rhs)
+    </span>BitOr,
+
+    <span class="doccomment">/// Binary bitwise `&amp;` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs &amp; rhs)
+    </span>BitAnd,
+
+    <span class="doccomment">/// Binary bitwise `^` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs ^ rhs)
+    </span>BitXor,
+
+    <span class="doccomment">/// Unary bitwise `~` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** ~value
+    </span>BitNot,
+
+    <span class="doccomment">/// Binary `in` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs `in` rhs)
+    </span>In,
+
+    <span class="doccomment">/// Binary `in` operator for private names.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: rhs **=&gt;** (private_name `in` rhs)
+    </span>InPrivate { index: u32 },
+
+    <span class="doccomment">/// Binary `==` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs `==` rhs)
+    </span>Eq,
+
+    <span class="doccomment">/// Binary `===` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs `===` rhs)
+    </span>StrictEq,
+
+    <span class="doccomment">/// Binary `!=` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs `!=` rhs)
+    </span>NotEq,
+
+    <span class="doccomment">/// Binary `!==` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs `!==` rhs)
+    </span>StrictNotEq,
+
+    <span class="doccomment">/// Binary `&gt;` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs &gt; rhs)
+    </span>GreaterThan,
+
+    <span class="doccomment">/// Binary `&gt;=` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs &gt;= rhs)
+    </span>GreaterThanOrEq,
+
+    <span class="doccomment">/// Binary `&lt;` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** `(lhs &lt; rhs)`
+    </span>LessThan,
+
+    <span class="doccomment">/// Binary `&lt;=` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** `(lhs &lt;= rhs)`
+    </span>LessThanOrEq,
+
+    <span class="doccomment">/// Binary `instanceof` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs instanceof rhs)
+    </span>InstanceOf,
+
+    <span class="doccomment">/// Binary logical `&amp;&amp;` operator.
+    ///
+    /// This is a short-circuit operator, if the `lhs` value is `false`, then it jumps to `exit` address.
+    ///
+    /// Operands: exit: `u32`
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs &amp;&amp; rhs)
+    </span>LogicalAnd { exit: u32 },
+
+    <span class="doccomment">/// Binary logical `||` operator.
+    ///
+    /// This is a short-circuit operator, if the `lhs` value is `true`, then it jumps to `exit` address.
+    ///
+    /// Operands: exit: `u32`
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs || rhs)
+    </span>LogicalOr { exit: u32 },
+
+    <span class="doccomment">/// Binary `??` operator.
+    ///
+    /// This is a short-circuit operator, if the `lhs` value is **not** `null` or `undefined`,
+    /// then it jumps to `exit` address.
+    ///
+    /// Operands: exit: `u32`
+    ///
+    /// Stack: lhs, rhs **=&gt;** (lhs ?? rhs)
+    </span>Coalesce { exit: u32 },
+
+    <span class="doccomment">/// Unary `typeof` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** (`typeof` value)
+    </span>TypeOf,
+
+    <span class="doccomment">/// Unary `void` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** `undefined`
+    </span>Void,
+
+    <span class="doccomment">/// Unary logical `!` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** (!value)
+    </span>LogicalNot,
+
+    <span class="doccomment">/// Unary `+` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** (+value)
+    </span>Pos,
+
+    <span class="doccomment">/// Unary `-` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** (-value)
+    </span>Neg,
+
+    <span class="doccomment">/// Unary `++` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** (value + 1)
+    </span>Inc,
+
+    <span class="doccomment">/// Unary postfix `++` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** (ToNumeric(value)), (value + 1)
+    </span>IncPost,
+
+    <span class="doccomment">/// Unary `--` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** (value - 1)
+    </span>Dec,
+
+    <span class="doccomment">/// Unary postfix `--` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** (ToNumeric(value)), (value - 1)
+    </span>DecPost,
+
+    <span class="doccomment">/// Declare `var` type variable.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: **=&gt;**
+    </span>DefVar { index: u32 },
+
+    <span class="doccomment">/// Declare and initialize `var` type variable.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: value **=&gt;**
+    </span>DefInitVar { index: u32 },
+
+    <span class="doccomment">/// Initialize a lexical binding.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: value **=&gt;**
+    </span>PutLexicalValue { index: u32 },
+
+    <span class="doccomment">/// Throws an error because the binding access is illegal.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: **=&gt;**
+    </span>ThrowMutateImmutable { index: u32 },
+
+    <span class="doccomment">/// Find a binding on the environment chain and push its value.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: **=&gt;** value
+    </span>GetName { index: u32 },
+
+    <span class="doccomment">/// Find a binding on the environment and set the `current_binding` of the current frame.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: **=&gt;**
+    </span>GetLocator { index: u32 },
+
+    <span class="doccomment">/// Find a binding on the environment chain and push its value to the stack and its
+    /// `BindingLocator` to the `bindings_stack`.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: **=&gt;** value
+    </span>GetNameAndLocator { index: u32 },
+
+    <span class="doccomment">/// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: **=&gt;** value
+    </span>GetNameOrUndefined { index: u32 },
+
+    <span class="doccomment">/// Find a binding on the environment chain and assign its value.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: value **=&gt;**
+    </span>SetName { index: u32 },
+
+    <span class="doccomment">/// Assigns a value to the binding pointed by the top of the `bindings_stack`.
+    ///
+    /// Stack: value **=&gt;**
+    </span>SetNameByLocator,
+
+    <span class="doccomment">/// Deletes a property of the global object.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: **=&gt;** deleted
+    </span>DeleteName { index: u32 },
+
+    <span class="doccomment">/// Get a property by name from an object an push it on the stack.
+    ///
+    /// Like `object.name`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object, receiver **=&gt;** value
+    </span>GetPropertyByName { index: u32 },
+
+    <span class="doccomment">/// Get a property method or undefined if the property is null or undefined.
+    ///
+    /// Throws if the method is not a callable object.
+    ///
+    /// Operands: index: `u32`
+    /// Stack: object **=&gt;** object, method
+    </span>GetMethod { index: u32 },
+
+    <span class="doccomment">/// Get a property by value from an object an push it on the stack.
+    ///
+    /// Like `object[key]`
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, receiver, key **=&gt;** value
+    </span>GetPropertyByValue,
+
+    <span class="doccomment">/// Get a property by value from an object an push the key and value on the stack.
+    ///
+    /// Like `object[key]`
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, receiver, key **=&gt;** key, value
+    </span>GetPropertyByValuePush,
+
+    <span class="doccomment">/// Sets a property by name of an object.
+    ///
+    /// Like `object.name = value`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object, receiver, value **=&gt;** value
+    </span>SetPropertyByName { index: u32 },
+
+    <span class="doccomment">/// Sets the name of a function object.
+    ///
+    /// This operation is corresponds to the `SetFunctionName` abstract operation in the [spec].
+    ///
+    ///  The prefix operand is mapped as follows:
+    /// * 0 -&gt; no prefix
+    /// * 1 -&gt; &quot;get &quot;
+    /// * 2 -&gt; &quot;set &quot;
+    ///
+    /// Operands: prefix: `u8`
+    ///
+    /// Stack: name, function **=&gt;** function
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-setfunctionname
+    </span>SetFunctionName { prefix: u8 },
+
+    <span class="doccomment">/// Defines a own property of an object by name.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object, value **=&gt;**
+    </span>DefineOwnPropertyByName { index: u32 },
+
+    <span class="doccomment">/// Defines a static class method by name.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: class, function **=&gt;**
+    </span>DefineClassStaticMethodByName { index: u32 },
+
+    <span class="doccomment">/// Defines a class method by name.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: class_proto, function **=&gt;**
+    </span>DefineClassMethodByName { index: u32 },
+
+    <span class="doccomment">/// Sets a property by value of an object.
+    ///
+    /// Like `object[key] = value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, receiver, key, value **=&gt;** value
+    </span>SetPropertyByValue,
+
+    <span class="doccomment">/// Defines a own property of an object by value.
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key, value **=&gt;**
+    </span>DefineOwnPropertyByValue,
+
+    <span class="doccomment">/// Defines a static class method by value.
+    ///
+    /// Operands:
+    ///
+    /// Stack: class, key, function **=&gt;**
+    </span>DefineClassStaticMethodByValue,
+
+    <span class="doccomment">/// Defines a class method by value.
+    ///
+    /// Operands:
+    ///
+    /// Stack: class_proto, key, function **=&gt;**
+    </span>DefineClassMethodByValue,
+
+    <span class="doccomment">/// Sets a getter property by name of an object.
+    ///
+    /// Like `get name() value`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object, value **=&gt;**
+    </span>SetPropertyGetterByName { index: u32 },
+
+    <span class="doccomment">/// Defines a static getter class method by name.
+    ///
+    /// Like `static get name() value`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: class, binding_function **=&gt;**
+    </span>DefineClassStaticGetterByName { index: u32 },
+
+    <span class="doccomment">/// Defines a getter class method by name.
+    ///
+    /// Like `get name() value`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: class_proto, function **=&gt;** class
+    </span>DefineClassGetterByName { index: u32 },
+
+    <span class="doccomment">/// Sets a getter property by value of an object.
+    ///
+    /// Like `get [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key, value **=&gt;**
+    </span>SetPropertyGetterByValue,
+
+    <span class="doccomment">/// Defines a static getter class method by value.
+    ///
+    /// Like `static get [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: class, key, function **=&gt;**
+    </span>DefineClassStaticGetterByValue,
+
+    <span class="doccomment">/// Defines a getter class method by value.
+    ///
+    /// Like `get [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: class_proto, key, function **=&gt;**
+    </span>DefineClassGetterByValue,
+
+    <span class="doccomment">/// Sets a setter property by name of an object.
+    ///
+    /// Like `set name() value`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object, value **=&gt;**
+    </span>SetPropertySetterByName { index: u32 },
+
+    <span class="doccomment">/// Defines a static setter class method by name.
+    ///
+    /// Like `static set name() value`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: class, function **=&gt;**
+    </span>DefineClassStaticSetterByName { index: u32 },
+
+    <span class="doccomment">/// Defines a setter class method by name.
+    ///
+    /// Like `set name() value`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: class_proto, function **=&gt;**
+    </span>DefineClassSetterByName { index: u32 },
+
+    <span class="doccomment">/// Sets a setter property by value of an object.
+    ///
+    /// Like `set [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key, value **=&gt;**
+    </span>SetPropertySetterByValue,
+
+    <span class="doccomment">/// Defines a static setter class method by value.
+    ///
+    /// Like `static set [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: class, key, function **=&gt;**
+    </span>DefineClassStaticSetterByValue,
+
+    <span class="doccomment">/// Defines a setter class method by value.
+    ///
+    /// Like `set [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: class_proto, key, function **=&gt;**
+    </span>DefineClassSetterByValue,
+
+    <span class="doccomment">/// Set the value of a private property of an object by it&#39;s name.
+    ///
+    /// Like `obj.#name = value`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object, value **=&gt;** value
+    </span>SetPrivateField { index: u32 },
+
+    <span class="doccomment">/// Define a private property of a class constructor by it&#39;s name.
+    ///
+    /// Like `#name = value`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object, value **=&gt;**
+    </span>DefinePrivateField { index: u32 },
+
+    <span class="doccomment">/// Set a private method of a class constructor by it&#39;s name.
+    ///
+    /// Like `#name() {}`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object, value **=&gt;**
+    </span>SetPrivateMethod { index: u32 },
+
+    <span class="doccomment">/// Set a private setter property of a class constructor by it&#39;s name.
+    ///
+    /// Like `set #name() {}`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object, value **=&gt;**
+    </span>SetPrivateSetter { index: u32 },
+
+    <span class="doccomment">/// Set a private getter property of a class constructor by it&#39;s name.
+    ///
+    /// Like `get #name() {}`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object, value **=&gt;**
+    </span>SetPrivateGetter { index: u32 },
+
+    <span class="doccomment">/// Get a private property by name from an object an push it on the stack.
+    ///
+    /// Like `object.#name`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object **=&gt;** value
+    </span>GetPrivateField { index: u32 },
+
+    <span class="doccomment">/// Push a field to a class.
+    ///
+    /// Operands:
+    ///
+    /// Stack: class, field_name, field_function **=&gt;**
+    </span>PushClassField,
+
+    <span class="doccomment">/// Push a private field to the class.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: class, field_function **=&gt;**
+    </span>PushClassFieldPrivate { index: u32 },
+
+    <span class="doccomment">/// Push a private getter to the class.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: class, getter **=&gt;**
+    </span>PushClassPrivateGetter { index: u32 },
+
+    <span class="doccomment">/// Push a private setter to the class.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: class, setter **=&gt;**
+    </span>PushClassPrivateSetter { index: u32 },
+
+    <span class="doccomment">/// Push a private method to the class.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: class, method **=&gt;**
+    </span>PushClassPrivateMethod { index: u32 },
+
+    <span class="doccomment">/// Deletes a property by name of an object.
+    ///
+    /// Like `delete object.key`
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: object **=&gt;**
+    </span>DeletePropertyByName { index: u32 },
+
+    <span class="doccomment">/// Deletes a property by value of an object.
+    ///
+    /// Like `delete object[key]`
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key **=&gt;**
+    </span>DeletePropertyByValue,
+
+    <span class="doccomment">/// Throws an error when trying to delete a property of `super`
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;**
+    </span>DeleteSuperThrow,
+
+    <span class="doccomment">/// Copy all properties of one object to another object.
+    ///
+    /// Operands: excluded_key_count: `u32`, excluded_key_count_computed: `u32`
+    ///
+    /// Stack: excluded_key_computed_0 ... excluded_key_computed_n, source, value, excluded_key_0 ... excluded_key_n **=&gt;** value
+    </span>CopyDataProperties { excluded_key_count: u32, excluded_key_count_computed: u32 },
+
+    <span class="doccomment">/// Call ToPropertyKey on the value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** key
+    </span>ToPropertyKey,
+
+    <span class="doccomment">/// Unconditional jump to address.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: **=&gt;**
+    </span>Jump { address: u32 },
+
+    <span class="doccomment">/// Conditional jump to address.
+    ///
+    /// If the value popped is [`truthy`][truthy] then jump to `address`.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: cond **=&gt;**
+    ///
+    /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
+    </span>JumpIfTrue { address: u32 },
+
+    <span class="doccomment">/// Conditional jump to address.
+    ///
+    /// If the value popped is [`falsy`][falsy] then jump to `address`.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: cond **=&gt;**
+    ///
+    /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy
+    </span>JumpIfFalse { address: u32 },
+
+    <span class="doccomment">/// Conditional jump to address.
+    ///
+    /// If the value popped is not undefined jump to `address`.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: value **=&gt;** value
+    </span>JumpIfNotUndefined { address: u32 },
+
+    <span class="doccomment">/// Conditional jump to address.
+    ///
+    /// If the value popped is undefined jump to `address`.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: value **=&gt;** value
+    </span>JumpIfNullOrUndefined { address: u32 },
+
+    <span class="doccomment">/// Jump table that jumps depending on top value of the stack.
+    ///
+    /// This is used to handle special cases when we call `continue`, `break` or `return` in a try block,
+    /// that has finally block.
+    ///
+    /// Operands: default: `u32`, count: `u32`, address: `u32` * count
+    ///
+    /// Stack: value: [`i32`] **=&gt;**
+    </span>JumpTable { default: u32, addresses: ThinVec&lt;u32&gt; },
+
+    <span class="doccomment">/// Throw exception.
+    ///
+    /// This sets pending exception and searches for an exception handler.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;**
+    </span>Throw,
+
+    <span class="doccomment">/// Rethrow thrown exception.
+    ///
+    /// This is also used to handle generator `return()` call, we throw an empty exception, by setting pending exception to [`None`],
+    /// propagating it and calling finally code until there is no exception handler left, in that case we consume the empty exception and return
+    /// from the generator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;**
+    </span>ReThrow,
+
+    <span class="doccomment">/// Get the thrown pending exception (if it&#39;s set) and push on the stack.
+    ///
+    /// If there is no pending exception, which can happend if we are handling `return()` call on generator,
+    /// then we rethrow the empty exception. See [`Opcode::ReThrow`].
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** exception
+    </span>Exception,
+
+    <span class="doccomment">/// Get the thrown pending exception if it&#39;s set and push `true`, otherwise push only `false`.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** (`true`, exception) or `false`
+    </span>MaybeException,
+
+    <span class="doccomment">/// Throw a new `TypeError` exception
+    ///
+    /// Operands: message: u32
+    ///
+    /// Stack: **=&gt;**
+    </span>ThrowNewTypeError { message: u32 },
+
+    <span class="doccomment">/// Pops value converts it to boolean and pushes it back.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** (`ToBoolean(value)`)
+    </span>ToBoolean,
+
+    <span class="doccomment">/// Pushes `this` value
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** this
+    </span>This,
+
+    <span class="doccomment">/// Pushes the current `super` value to the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** super
+    </span>Super,
+
+    <span class="doccomment">/// Get the super constructor and the new target of the current environment.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** super_constructor, new_target
+    </span>SuperCallPrepare,
+
+    <span class="doccomment">/// Execute the `super()` method.
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: super_constructor, new_target, argument_1, ... argument_n **=&gt;**
+    </span>SuperCall { argument_count: u32 },
+
+    <span class="doccomment">/// Execute the `super()` method where the arguments contain spreads.
+    ///
+    /// Operands:
+    ///
+    /// Stack: super_constructor, new_target, arguments_array **=&gt;**
+    </span>SuperCallSpread,
+
+    <span class="doccomment">/// Execute the `super()` method when no constructor of the class is defined.
+    ///
+    /// Operands:
+    ///
+    /// Stack: argument_n, ... argument_1 **=&gt;**
+    </span>SuperCallDerived,
+
+    <span class="doccomment">/// Dynamically import a module.
+    ///
+    /// Operands:
+    ///
+    /// Stack: specifier **=&gt;** promise
+    </span>ImportCall,
+
+    <span class="doccomment">/// Pop the two values of the stack, strict equal compares the two values,
+    /// if true jumps to address, otherwise push the second pop&#39;ed value.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: value, cond **=&gt;** cond (if `cond !== value`).
+    </span>Case { address: u32 },
+
+    <span class="doccomment">/// Pops the top of stack and jump to address.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: `value` **=&gt;**
+    </span>Default { address: u32 },
+
+    <span class="doccomment">/// Get arrow function from the pre-compiled inner functions.
+    ///
+    /// Operands: address: `u32`, method: `u8`
+    ///
+    /// Stack: **=&gt;** func
+    </span>GetArrowFunction { index: u32, method: bool },
+
+    <span class="doccomment">/// Get async arrow function from the pre-compiled inner functions.
+    ///
+    /// Operands: index: `u32`, method: `u8`
+    ///
+    /// Stack: **=&gt;** func
+    </span>GetAsyncArrowFunction { index: u32, method: bool },
+
+    <span class="doccomment">/// Get function from the pre-compiled inner functions.
+    ///
+    /// Operands: index: `u32`, is_method: `u8`
+    ///
+    /// Stack: **=&gt;** func
+    </span>GetFunction { index: u32, method: bool },
+
+    <span class="doccomment">/// Get async function from the pre-compiled inner functions.
+    ///
+    /// Operands: index: `u32`, method: `u8`
+    ///
+    /// Stack: **=&gt;** func
+    </span>GetFunctionAsync { index: u32, method: bool },
+
+    <span class="doccomment">/// Get generator function from the pre-compiled inner functions.
+    ///
+    /// Operands: index: `u32`,
+    ///
+    /// Stack: **=&gt;** func
+    </span>GetGenerator { index: u32 },
+
+    <span class="doccomment">/// Get async generator function from the pre-compiled inner functions.
+    ///
+    /// Operands: index: `u32`,
+    ///
+    /// Stack: **=&gt;** func
+    </span>GetGeneratorAsync { index: u32 },
+
+    <span class="doccomment">/// Call a function named &quot;eval&quot;.
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: this, func, argument_1, ... argument_n **=&gt;** result
+    </span>CallEval { argument_count: u32 },
+
+    <span class="doccomment">/// Call a function named &quot;eval&quot; where the arguments contain spreads.
+    ///
+    /// Operands:
+    ///
+    /// Stack: this, func, arguments_array **=&gt;** result
+    </span>CallEvalSpread,
+
+    <span class="doccomment">/// Call a function.
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: this, func, argument_1, ... argument_n **=&gt;** result
+    </span>Call { argument_count: u32 },
+
+    <span class="doccomment">/// Call a function where the arguments contain spreads.
+    ///
+    /// Operands:
+    ///
+    /// Stack: this, func, arguments_array **=&gt;** result
+    </span>CallSpread,
+
+    <span class="doccomment">/// Call construct on a function.
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: func, argument_1, ... argument_n **=&gt;** result
+    </span>New { argument_count: u32 },
+
+    <span class="doccomment">/// Call construct on a function where the arguments contain spreads.
+    ///
+    /// Operands:
+    ///
+    /// Stack: arguments_array, func **=&gt;** result
+    </span>NewSpread,
+
+    <span class="doccomment">/// Return from a function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;**
+    </span>Return,
+
+    <span class="doccomment">/// Close an async generator function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;**
+    </span>AsyncGeneratorClose,
+
+    <span class="doccomment">/// Creates the generator object and yields.
+    ///
+    /// Operands: async: `u8`
+    ///
+    /// Stack: **=&gt;** resume_kind
+    </span>Generator { r#async: bool },
+
+    <span class="doccomment">/// Get return value of a function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** value
+    </span>GetReturnValue,
+
+    <span class="doccomment">/// Set return value of a function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;**
+    </span>SetReturnValue,
+
+    <span class="doccomment">/// Push a declarative environment.
+    ///
+    /// Operands: compile_environments_index: `u32`
+    ///
+    /// Stack: **=&gt;**
+    </span>PushDeclarativeEnvironment { compile_environments_index: u32 },
+
+    <span class="doccomment">/// Push an object environment.
+    ///
+    /// Operands:
+    ///
+    /// Stack: object **=&gt;**
+    </span>PushObjectEnvironment,
+
+    <span class="doccomment">/// Push a function environment.
+    ///
+    /// Operands: compile_environments_index: `u32`
+    ///
+    /// Stack: **=&gt;**
+    </span>PushFunctionEnvironment { compile_environments_index: u32 },
+
+    <span class="doccomment">/// Pop the current environment.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;**
+    </span>PopEnvironment,
+
+    <span class="doccomment">/// Increment loop itearation count.
+    ///
+    /// Used for limiting the loop iteration.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;**
+    </span>IncrementLoopIteration,
+
+    <span class="doccomment">/// Creates the ForInIterator of an object.
+    ///
+    /// Stack: object **=&gt;**
+    ///
+    /// Iterator Stack: `iterator`
+    </span>CreateForInIterator,
+
+    <span class="doccomment">/// Gets the iterator of an object.
+    ///
+    /// Operands:
+    ///
+    /// Stack: object **=&gt;**
+    ///
+    /// Iterator Stack: `iterator`
+    </span>GetIterator,
+
+    <span class="doccomment">/// Gets the async iterator of an object.
+    ///
+    /// Operands:
+    ///
+    /// Stack: object **=&gt;**
+    ///
+    /// Iterator Stack: `iterator`
+    </span>GetAsyncIterator,
+
+    <span class="doccomment">/// Calls the `next` method of `iterator`, updating its record with the next value.
+    ///
+    /// Operands:
+    ///
+    /// Iterator Stack: `iterator` **=&gt;** `iterator`
+    </span>IteratorNext,
+
+    <span class="doccomment">/// Calls the `next` method of `iterator`, updating its record with the next value.
+    ///
+    /// Operands:
+    ///
+    /// Iterator Stack: `iterator` **=&gt;** `iterator`
+    </span>IteratorNextWithoutPop,
+
+    <span class="doccomment">/// Returns `true` if the current iterator is done, or `false` otherwise
+    ///
+    /// Stack: **=&gt;** done
+    ///
+    /// Iterator Stack: `iterator` **=&gt;** `iterator`
+    </span>IteratorDone,
+
+    <span class="doccomment">/// Finishes the call to `Opcode::IteratorNext` within a `for await` loop by setting the current
+    /// result of the current iterator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: `next_result`, `resume_kind` **=&gt;** `resume_kind`
+    ///
+    /// Iterator Stack: iterator **=&gt;** iterator
+    </span>IteratorFinishAsyncNext,
+
+    <span class="doccomment">/// Gets the `value` property of the current iterator record.
+    ///
+    /// Stack: **=&gt;** `value`
+    ///
+    /// Iterator Stack: `iterator` **=&gt;** `iterator`
+    </span>IteratorValue,
+
+    <span class="doccomment">/// Gets the `value` property of the current iterator record.
+    ///
+    /// Stack: **=&gt;** `value`
+    ///
+    /// Iterator Stack: `iterator` **=&gt;** `iterator`
+    </span>IteratorValueWithoutPop,
+
+    <span class="doccomment">/// Gets the last iteration result of the current iterator record.
+    ///
+    /// Stack: **=&gt;** `result`
+    ///
+    /// Iterator Stack: `iterator` **=&gt;** `iterator`
+    </span>IteratorResult,
+
+    <span class="doccomment">/// Consume the iterator and construct and array with all the values.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** array
+    ///
+    /// Iterator Stack: `iterator` **=&gt;** `iterator`
+    </span>IteratorToArray,
+
+    <span class="doccomment">/// Pop an iterator from the call frame close iterator stack.
+    ///
+    /// Iterator Stack:
+    /// - `iterator` **=&gt;**
+    </span>IteratorPop,
+
+    <span class="doccomment">/// Pushes `true` to the stack if the iterator stack is empty.
+    ///
+    /// Stack:
+    /// - **=&gt;** `is_empty`
+    ///
+    /// Iterator Stack:
+    /// - **=&gt;**
+    </span>IteratorStackEmpty,
+
+    <span class="doccomment">/// Creates a new iterator result object.
+    ///
+    /// Operands:
+    /// - done: bool (codified as u8 with `0` -&gt; `false` and `!0` -&gt; `true`)
+    ///
+    /// Stack:
+    /// - value **=&gt;**
+    ///
+    </span>CreateIteratorResult { done: bool },
+
+    <span class="doccomment">/// Calls `return` on the current iterator and returns the result.
+    ///
+    /// Stack: **=&gt;** return_val (if return is a method), is_return_method
+    ///
+    /// Iterator Stack: `iterator` **=&gt;**
+    </span>IteratorReturn,
+
+    <span class="doccomment">/// Concat multiple stack objects into a string.
+    ///
+    /// Operands: value_count: `u32`
+    ///
+    /// Stack: `value_1`,...`value_n` **=&gt;** `string`
+    </span>ConcatToString { value_count: u32 },
+
+    <span class="doccomment">/// Call RequireObjectCoercible on the stack value.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** value
+    </span>RequireObjectCoercible,
+
+    <span class="doccomment">/// Require the stack value to be neither null nor undefined.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** value
+    </span>ValueNotNullOrUndefined,
+
+    <span class="doccomment">/// Initialize the rest parameter value of a function from the remaining arguments.
+    ///
+    /// Operands:
+    ///
+    /// Stack: `argument_1` .. `argument_n` **=&gt;** `array`
+    </span>RestParameterInit,
+
+    <span class="doccomment">/// Pop the remaining arguments of a function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: `argument_1` .. `argument_n` **=&gt;**
+    </span>RestParameterPop,
+
+    <span class="doccomment">/// Yields from the current generator execution.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** resume_kind, received
+    </span>GeneratorYield,
+
+    <span class="doccomment">/// Resumes the current generator function.
+    ///
+    /// If the `resume_kind` is `Throw`, then the value is poped and thrown, otherwise if `Return`
+    /// we pop the value, set it as the return value and throw and empty exception. See [`Opcode::ReThrow`].
+    ///
+    /// Operands:
+    ///
+    /// Stack: `resume_kind`, value **=&gt;** value
+    </span>GeneratorNext,
+
+    <span class="doccomment">/// Yields from the current async generator execution.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** received
+    </span>AsyncGeneratorYield,
+
+    <span class="doccomment">/// Create a promise capacity for an async function, if not already set.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;**
+    </span>CreatePromiseCapability,
+
+    <span class="doccomment">/// Resolves or rejects the promise capability of an async function.
+    ///
+    /// If the pending exception is set, reject and rethrow the exception, otherwise resolve.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;**
+    </span>CompletePromiseCapability,
+
+    <span class="doccomment">/// Jumps to the specified address if the resume kind is not equal.
+    ///
+    /// Operands: `exit`: `u32`, `resume_kind`: `u8`.
+    ///
+    /// Stack: `resume_kind` **=&gt;** `resume_kind`
+    </span>JumpIfNotResumeKind { exit: u32, resume_kind: GeneratorResumeKind },
+
+    <span class="doccomment">/// Delegates the current async generator function to another iterator.
+    ///
+    /// Operands: throw_method_undefined: `u32`, return_method_undefined: `u32`
+    ///
+    /// Stack: received **=&gt;** result
+    </span>GeneratorDelegateNext { throw_method_undefined: u32, return_method_undefined: u32 },
+
+    <span class="doccomment">/// Resume the async generator with yield delegate logic after it awaits a value.
+    ///
+    /// Operands: return: `u32`, exit: `u32`
+    ///
+    /// Stack: is_return, received **=&gt;** value
+    </span>GeneratorDelegateResume { r#return: u32, exit: u32 },
+
+    <span class="doccomment">/// Stops the current async function and schedules it to resume later.
+    ///
+    /// Operands:
+    ///
+    /// Stack: promise **=&gt;** received
+    </span>Await,
+
+    <span class="doccomment">/// Push the current new target to the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `new.target`
+    </span>NewTarget,
+
+    <span class="doccomment">/// Push the current `import.meta` to the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `import.meta`
+    </span>ImportMeta,
+
+    <span class="doccomment">/// Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=&gt;** is_object
+    </span>IsObject,
+
+    <span class="doccomment">/// Lookup if a tagged template object is cached and skip the creation if it is.
+    ///
+    /// Operands: exit: `u32`, site: `u64`
+    ///
+    /// Stack: **=&gt;** template (if cached)
+    </span>TemplateLookup { exit: u32, site: u64 },
+
+    <span class="doccomment">/// Create a new tagged template object and cache it.
+    ///
+    /// Operands: count: `u32`, site: `u64`
+    ///
+    /// Stack: count * (cooked_value, raw_value) **=&gt;** template
+    </span>TemplateCreate { count: u32, site: u64 },
+
+    <span class="doccomment">/// Push a private environment.
+    ///
+    /// Operands: count: `u32`, count * name_index: `u32`
+    ///
+    /// Stack: class **=&gt;** class
+    </span>PushPrivateEnvironment { name_indices: ThinVec&lt;u32&gt; },
+
+    <span class="doccomment">/// Pop a private environment.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;**
+    </span>PopPrivateEnvironment,
+
+    <span class="doccomment">/// No-operation instruction, does nothing.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;**
+    </span>Nop,
+
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved1 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved2 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved3 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved4 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved5 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved6 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved7 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved8 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved9 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved10 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved11 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved12 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved13 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved14 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved15 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved16 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved17 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved18 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved19 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved20 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved21 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved22 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved23 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved24 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved25 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved26 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved27 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved28 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved29 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved30 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved31 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved32 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved33 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved34 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved35 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved36 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved37 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved38 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved39 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved40 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved41 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved42 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved43 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved44 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved45 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved46 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved47 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved48 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved49 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved50 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved51 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved52 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved53 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved54 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved55 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved56 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved57 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved58 =&gt; Reserved,
 }
 
 <span class="doccomment">/// Specific opcodes for bindings.
@@ -3620,4 +4197,35 @@
     InitConst,
     SetName,
 }
+
+<span class="doccomment">/// Iterator over the instructions in the compact bytecode.
+</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>InstructionIterator&lt;<span class="lifetime">&#39;bytecode</span>&gt; {
+    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bytecode </span>[u8],
+    pc: usize,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;bytecode</span>&gt; InstructionIterator&lt;<span class="lifetime">&#39;bytecode</span>&gt; {
+    <span class="doccomment">/// Create a new [`InstructionIterator`] from bytecode array.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bytecode </span>[u8]) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ bytes, pc: <span class="number">0 </span>}
+    }
+}
+
+<span class="kw">impl </span>Iterator <span class="kw">for </span>InstructionIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span>Item = Instruction;
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">if </span><span class="self">self</span>.pc &gt;= <span class="self">self</span>.bytes.len() {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
+
+        <span class="prelude-val">Some</span>(Instruction::from_bytecode(<span class="self">self</span>.bytes, <span class="kw-2">&amp;mut </span><span class="self">self</span>.pc))
+    }
+}
+
+<span class="kw">impl </span>FusedIterator <span class="kw">for </span>InstructionIterator&lt;<span class="lifetime">&#39;_</span>&gt; {}
 </code></pre></div></section></main></body></html>

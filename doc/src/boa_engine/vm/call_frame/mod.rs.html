@@ -122,6 +122,7 @@
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -211,9 +212,10 @@
 }
 
 <span class="doccomment">/// Indicates how a generator function that has been called/resumed should return.
-</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Default)]
+</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 #[repr(u8)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>GeneratorResumeKind {
+#[allow(missing_docs)]
+</span><span class="kw">pub enum </span>GeneratorResumeKind {
     <span class="attr">#[default]
     </span>Normal = <span class="number">0</span>,
     Throw,

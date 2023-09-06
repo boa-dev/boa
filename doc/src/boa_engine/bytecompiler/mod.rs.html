@@ -2128,9 +2128,9 @@
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.emit(
             Opcode::JumpTable,
-            <span class="kw-2">&amp;</span>[Operand::U32(count), Operand::U32(<span class="self">Self</span>::DUMMY_ADDRESS)],
+            <span class="kw-2">&amp;</span>[Operand::U32(<span class="self">Self</span>::DUMMY_ADDRESS), Operand::U32(count)],
         );
-        <span class="kw">let </span>default = Label { index: index + <span class="number">4 </span>};
+        <span class="kw">let </span>default = Label { index };
         <span class="kw">let </span><span class="kw-2">mut </span>labels = Vec::with_capacity(count <span class="kw">as </span>usize);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..count {
             labels.push(Label {

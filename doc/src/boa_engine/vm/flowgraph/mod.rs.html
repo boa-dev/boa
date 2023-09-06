@@ -538,101 +538,11 @@
 <a href="#538" id="538">538</a>
 <a href="#539" id="539">539</a>
 <a href="#540" id="540">540</a>
-<a href="#541" id="541">541</a>
-<a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a>
-<a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
-<a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
-<a href="#574" id="574">574</a>
-<a href="#575" id="575">575</a>
-<a href="#576" id="576">576</a>
-<a href="#577" id="577">577</a>
-<a href="#578" id="578">578</a>
-<a href="#579" id="579">579</a>
-<a href="#580" id="580">580</a>
-<a href="#581" id="581">581</a>
-<a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
-<a href="#584" id="584">584</a>
-<a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
+</span><span class="kw">use </span><span class="kw">crate</span>::vm::CodeBlock;
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_macros::utf16;
-<span class="kw">use </span>std::mem::size_of;
 
 <span class="kw">mod </span>color;
 <span class="kw">mod </span>edge;
@@ -643,6 +553,8 @@
 <span class="kw">pub use </span>edge::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>graph::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>node::<span class="kw-2">*</span>;
+
+<span class="kw">use </span><span class="kw">super</span>::Instruction;
 
 <span class="kw">impl </span>CodeBlock {
     <span class="doccomment">/// Output the [`CodeBlock`] VM instructions into a [`Graph`].
@@ -659,104 +571,78 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="number">0</span>;
         <span class="kw">while </span>pc &lt; <span class="self">self</span>.bytecode.len() {
-            <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[pc].into();
-            <span class="kw">let </span>opcode_str = opcode.as_str();
             <span class="kw">let </span>previous_pc = pc;
+            <span class="kw">let </span>instruction = Instruction::from_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>.bytecode, <span class="kw-2">&amp;mut </span>pc);
+            <span class="kw">let </span>opcode = instruction.opcode();
+            <span class="kw">let </span>opcode_str = opcode.as_str();
 
-            <span class="kw">let </span><span class="kw-2">mut </span>tmp = pc;
+            <span class="kw">let </span><span class="kw-2">mut </span>tmp = previous_pc;
             <span class="kw">let </span>label = <span class="macro">format!</span>(
                 <span class="string">&quot;{opcode_str} {}&quot;</span>,
                 <span class="self">self</span>.instruction_operands(<span class="kw-2">&amp;mut </span>tmp, interner)
             );
 
-            pc += size_of::&lt;Opcode&gt;();
-            <span class="kw">match </span>opcode {
-                Opcode::SetFunctionName =&gt; {
-                    <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u8&gt;(pc);
-                    pc += size_of::&lt;u8&gt;();
-                    <span class="kw">let </span>label = <span class="macro">format!</span>(
-                        <span class="string">&quot;{opcode_str} {}&quot;</span>,
-                        <span class="kw">match </span>operand {
-                            <span class="number">0 </span>=&gt; <span class="string">&quot;prefix: none&quot;</span>,
-                            <span class="number">1 </span>=&gt; <span class="string">&quot;prefix: get&quot;</span>,
-                            <span class="number">2 </span>=&gt; <span class="string">&quot;prefix: set&quot;</span>,
-                            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-                        }
-                    );
+            <span class="kw">match </span>instruction {
+                Instruction::SetFunctionName { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::RotateLeft | Opcode::RotateRight | Opcode::CreateIteratorResult =&gt; {
-                    pc += size_of::&lt;u8&gt;();
+                Instruction::RotateLeft { .. }
+                | Instruction::RotateRight { .. }
+                | Instruction::CreateIteratorResult { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::Generator =&gt; {
-                    pc += size_of::&lt;u8&gt;();
-
+                Instruction::Generator { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::PushInt8 =&gt; {
-                    pc += size_of::&lt;i8&gt;();
-
+                Instruction::PushInt8 { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::PushInt16 =&gt; {
-                    pc += size_of::&lt;i16&gt;();
+                Instruction::PushInt16 { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::PushInt32 =&gt; {
-                    pc += size_of::&lt;i32&gt;();
+                Instruction::PushInt32 { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::PushFloat =&gt; {
-                    pc += size_of::&lt;f32&gt;();
-
+                Instruction::PushFloat { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::PushDouble =&gt; {
-                    pc += size_of::&lt;f64&gt;();
-
+                Instruction::PushDouble { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::PushLiteral =&gt; {
-                    <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
-                    <span class="kw">let </span>operand_str = <span class="self">self</span>.literals[operand <span class="kw">as </span>usize].display().to_string();
+                Instruction::PushLiteral { index } =&gt; {
+                    <span class="kw">let </span>operand_str = <span class="self">self</span>.literals[index <span class="kw">as </span>usize].display().to_string();
                     <span class="kw">let </span>operand_str = operand_str.escape_debug();
                     <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{opcode_str} {operand_str}&quot;</span>);
 
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::Jump =&gt; {
-                    <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
+                Instruction::Jump { address } =&gt; {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
-                        operand <span class="kw">as </span>usize,
+                        address <span class="kw">as </span>usize,
                         <span class="prelude-val">None</span>,
                         Color::None,
                         EdgeStyle::Line,
                     );
                 }
-                Opcode::JumpIfFalse
-                | Opcode::JumpIfTrue
-                | Opcode::JumpIfNotUndefined
-                | Opcode::JumpIfNullOrUndefined =&gt; {
-                    <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
+                Instruction::JumpIfFalse { address }
+                | Instruction::JumpIfTrue { address }
+                | Instruction::JumpIfNotUndefined { address }
+                | Instruction::JumpIfNullOrUndefined { address } =&gt; {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
-                        operand <span class="kw">as </span>usize,
+                        address <span class="kw">as </span>usize,
                         <span class="prelude-val">Some</span>(<span class="string">&quot;YES&quot;</span>.into()),
                         Color::Green,
                         EdgeStyle::Line,
@@ -769,19 +655,13 @@
                         EdgeStyle::Line,
                     );
                 }
-                Opcode::TemplateLookup | Opcode::TemplateCreate =&gt; {
-                    <span class="kw">let </span>start_address = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
-                    <span class="kw">let </span>end_address = <span class="self">self</span>.read::&lt;u64&gt;(pc);
-                    pc += size_of::&lt;u64&gt;();
-
-                    <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{opcode_str} {start_address}, {end_address}&quot;</span>);
+                Instruction::TemplateLookup { .. } | Instruction::TemplateCreate { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::LogicalAnd | Opcode::LogicalOr | Opcode::Coalesce =&gt; {
-                    <span class="kw">let </span>exit = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
+                Instruction::LogicalAnd { exit }
+                | Instruction::LogicalOr { exit }
+                | Instruction::Coalesce { exit } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                     graph.add_edge(
@@ -792,9 +672,7 @@
                         EdgeStyle::Line,
                     );
                 }
-                Opcode::Case =&gt; {
-                    <span class="kw">let </span>address = <span class="self">self</span>.read::&lt;u32&gt;(pc) <span class="kw">as </span>usize;
-                    pc += size_of::&lt;u32&gt;();
+                Instruction::Case { address } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
@@ -805,23 +683,26 @@
                     );
                     graph.add_edge(
                         previous_pc,
-                        address,
+                        address <span class="kw">as </span>usize,
                         <span class="prelude-val">Some</span>(<span class="string">&quot;YES&quot;</span>.into()),
                         Color::Green,
                         EdgeStyle::Line,
                     );
                 }
-                Opcode::Default =&gt; {
-                    <span class="kw">let </span>address = <span class="self">self</span>.read::&lt;u32&gt;(pc) <span class="kw">as </span>usize;
-                    pc += size_of::&lt;u32&gt;();
+                Instruction::Default { address } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, address, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
+                    graph.add_edge(
+                        previous_pc,
+                        address <span class="kw">as </span>usize,
+                        <span class="prelude-val">None</span>,
+                        Color::None,
+                        EdgeStyle::Line,
+                    );
                 }
-                Opcode::GeneratorDelegateNext =&gt; {
-                    <span class="kw">let </span>throw_method_undefined = <span class="self">self</span>.read::&lt;u32&gt;(pc) <span class="kw">as </span>usize;
-                    pc += size_of::&lt;u32&gt;();
-                    <span class="kw">let </span>return_method_undefined = <span class="self">self</span>.read::&lt;u32&gt;(pc) <span class="kw">as </span>usize;
-                    pc += size_of::&lt;u32&gt;();
+                Instruction::GeneratorDelegateNext {
+                    return_method_undefined,
+                    throw_method_undefined,
+                } =&gt; {
                     graph.add_node(
                         previous_pc,
                         NodeShape::Diamond,
@@ -831,24 +712,20 @@
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
-                        throw_method_undefined,
+                        throw_method_undefined <span class="kw">as </span>usize,
                         <span class="prelude-val">Some</span>(<span class="string">&quot;`throw` undefined&quot;</span>.into()),
                         Color::Red,
                         EdgeStyle::Line,
                     );
                     graph.add_edge(
                         previous_pc,
-                        return_method_undefined,
+                        return_method_undefined <span class="kw">as </span>usize,
                         <span class="prelude-val">Some</span>(<span class="string">&quot;`return` undefined&quot;</span>.into()),
                         Color::Blue,
                         EdgeStyle::Line,
                     );
                 }
-                Opcode::GeneratorDelegateResume =&gt; {
-                    <span class="kw">let </span>return_gen = <span class="self">self</span>.read::&lt;u32&gt;(pc) <span class="kw">as </span>usize;
-                    pc += size_of::&lt;u32&gt;();
-                    <span class="kw">let </span>exit = <span class="self">self</span>.read::&lt;u32&gt;(pc) <span class="kw">as </span>usize;
-                    pc += size_of::&lt;u32&gt;();
+                Instruction::GeneratorDelegateResume { r#return, exit } =&gt; {
                     graph.add_node(
                         previous_pc,
                         NodeShape::Diamond,
@@ -858,35 +735,28 @@
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
-                        return_gen,
+                        r#return <span class="kw">as </span>usize,
                         <span class="prelude-val">Some</span>(<span class="string">&quot;return&quot;</span>.into()),
                         Color::Yellow,
                         EdgeStyle::Line,
                     );
                     graph.add_edge(
                         previous_pc,
-                        exit,
+                        exit <span class="kw">as </span>usize,
                         <span class="prelude-val">Some</span>(<span class="string">&quot;done&quot;</span>.into()),
                         Color::Blue,
                         EdgeStyle::Line,
                     );
                 }
-                Opcode::CallEval
-                | Opcode::Call
-                | Opcode::New
-                | Opcode::SuperCall
-                | Opcode::ConcatToString =&gt; {
-                    pc += size_of::&lt;u32&gt;();
+                Instruction::CallEval { .. }
+                | Instruction::Call { .. }
+                | Instruction::New { .. }
+                | Instruction::SuperCall { .. }
+                | Instruction::ConcatToString { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::JumpIfNotResumeKind =&gt; {
-                    <span class="kw">let </span>exit = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
-
-                    <span class="kw">let </span>_resume_kind = <span class="self">self</span>.read::&lt;u8&gt;(pc);
-                    pc += size_of::&lt;u8&gt;();
-
+                Instruction::JumpIfNotResumeKind { exit, .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
@@ -897,20 +767,13 @@
                     );
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::Green, EdgeStyle::Line);
                 }
-                Opcode::CopyDataProperties =&gt; {
-                    <span class="kw">let </span>operand1 = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
-                    <span class="kw">let </span>operand2 = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
-
-                    <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{opcode_str} {operand1}, {operand2}&quot;</span>);
+                Instruction::CopyDataProperties { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::PushDeclarativeEnvironment | Opcode::PushFunctionEnvironment =&gt; {
+                Instruction::PushDeclarativeEnvironment { .. }
+                | Instruction::PushFunctionEnvironment { .. } =&gt; {
                     <span class="kw">let </span>random = rand::random();
-
-                    pc += size_of::&lt;u32&gt;();
 
                     graph.add_node(
                         previous_pc,
@@ -920,93 +783,62 @@
                     );
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::PopEnvironment =&gt; {
+                Instruction::PopEnvironment =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::GetArrowFunction
-                | Opcode::GetAsyncArrowFunction
-                | Opcode::GetFunction
-                | Opcode::GetFunctionAsync =&gt; {
-                    <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    <span class="kw">let </span>fn_name = <span class="self">self</span>.functions[operand <span class="kw">as </span>usize]
-                        .name()
-                        .to_std_string_escaped();
-                    pc += size_of::&lt;u32&gt;() + size_of::&lt;u8&gt;();
-                    <span class="kw">let </span>label = <span class="macro">format!</span>(
-                        <span class="string">&quot;{opcode_str} &#39;{fn_name}&#39; (length: {})&quot;</span>,
-                        <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length
-                    );
+                Instruction::GetArrowFunction { .. }
+                | Instruction::GetAsyncArrowFunction { .. }
+                | Instruction::GetFunction { .. }
+                | Instruction::GetFunctionAsync { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::GetGenerator | Opcode::GetGeneratorAsync =&gt; {
-                    <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    <span class="kw">let </span>fn_name = <span class="self">self</span>.functions[operand <span class="kw">as </span>usize]
-                        .name()
-                        .to_std_string_escaped();
-                    <span class="kw">let </span>label = <span class="macro">format!</span>(
-                        <span class="string">&quot;{opcode_str} &#39;{fn_name}&#39; (length: {})&quot;</span>,
-                        <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length
-                    );
+                Instruction::GetGenerator { .. } | Instruction::GetGeneratorAsync { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::DefVar
-                | Opcode::DefInitVar
-                | Opcode::PutLexicalValue
-                | Opcode::GetName
-                | Opcode::GetLocator
-                | Opcode::GetNameAndLocator
-                | Opcode::GetNameOrUndefined
-                | Opcode::SetName
-                | Opcode::DeleteName =&gt; {
-                    <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
-                    <span class="kw">let </span>label = <span class="macro">format!</span>(
-                        <span class="string">&quot;{opcode_str} &#39;{}&#39;&quot;</span>,
-                        interner.resolve_expect(<span class="self">self</span>.bindings[operand <span class="kw">as </span>usize].name().sym()),
-                    );
+                Instruction::DefVar { .. }
+                | Instruction::DefInitVar { .. }
+                | Instruction::PutLexicalValue { .. }
+                | Instruction::GetName { .. }
+                | Instruction::GetLocator { .. }
+                | Instruction::GetNameAndLocator { .. }
+                | Instruction::GetNameOrUndefined { .. }
+                | Instruction::SetName { .. }
+                | Instruction::DeleteName { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::GetPropertyByName
-                | Opcode::GetMethod
-                | Opcode::SetPropertyByName
-                | Opcode::DefineOwnPropertyByName
-                | Opcode::DefineClassStaticMethodByName
-                | Opcode::DefineClassMethodByName
-                | Opcode::SetPropertyGetterByName
-                | Opcode::DefineClassStaticGetterByName
-                | Opcode::DefineClassGetterByName
-                | Opcode::SetPropertySetterByName
-                | Opcode::DefineClassStaticSetterByName
-                | Opcode::DefineClassSetterByName
-                | Opcode::SetPrivateField
-                | Opcode::DefinePrivateField
-                | Opcode::SetPrivateMethod
-                | Opcode::SetPrivateSetter
-                | Opcode::SetPrivateGetter
-                | Opcode::GetPrivateField
-                | Opcode::DeletePropertyByName
-                | Opcode::PushClassFieldPrivate
-                | Opcode::PushClassPrivateGetter
-                | Opcode::PushClassPrivateSetter
-                | Opcode::PushClassPrivateMethod
-                | Opcode::InPrivate
-                | Opcode::ThrowMutateImmutable =&gt; {
-                    <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
-                    <span class="kw">let </span>label = <span class="macro">format!</span>(
-                        <span class="string">&quot;{opcode_str} &#39;{}&#39;&quot;</span>,
-                        <span class="self">self</span>.names[operand <span class="kw">as </span>usize].to_std_string_escaped(),
-                    );
+                Instruction::GetPropertyByName { .. }
+                | Instruction::GetMethod { .. }
+                | Instruction::SetPropertyByName { .. }
+                | Instruction::DefineOwnPropertyByName { .. }
+                | Instruction::DefineClassStaticMethodByName { .. }
+                | Instruction::DefineClassMethodByName { .. }
+                | Instruction::SetPropertyGetterByName { .. }
+                | Instruction::DefineClassStaticGetterByName { .. }
+                | Instruction::DefineClassGetterByName { .. }
+                | Instruction::SetPropertySetterByName { .. }
+                | Instruction::DefineClassStaticSetterByName { .. }
+                | Instruction::DefineClassSetterByName { .. }
+                | Instruction::SetPrivateField { .. }
+                | Instruction::DefinePrivateField { .. }
+                | Instruction::SetPrivateMethod { .. }
+                | Instruction::SetPrivateSetter { .. }
+                | Instruction::SetPrivateGetter { .. }
+                | Instruction::GetPrivateField { .. }
+                | Instruction::DeletePropertyByName { .. }
+                | Instruction::PushClassFieldPrivate { .. }
+                | Instruction::PushClassPrivateGetter { .. }
+                | Instruction::PushClassPrivateSetter { .. }
+                | Instruction::PushClassPrivateMethod { .. }
+                | Instruction::InPrivate { .. }
+                | Instruction::ThrowMutateImmutable { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::ThrowNewTypeError =&gt; {
-                    pc += size_of::&lt;u32&gt;();
-
+                Instruction::ThrowNewTypeError { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>((i, handler)) = <span class="self">self</span>.find_handler(previous_pc <span class="kw">as </span>u32) {
                         graph.add_edge(
@@ -1018,7 +850,7 @@
                         );
                     }
                 }
-                Opcode::Throw | Opcode::ReThrow =&gt; {
+                Instruction::Throw | Instruction::ReThrow =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>((i, handler)) = <span class="self">self</span>.find_handler(previous_pc <span class="kw">as </span>u32) {
                         graph.add_node(previous_pc, NodeShape::Record, label.into(), Color::None);
                         graph.add_edge(
@@ -1032,18 +864,11 @@
                         graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     }
                 }
-                Opcode::PushPrivateEnvironment =&gt; {
-                    <span class="kw">let </span>count = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;() * (count <span class="kw">as </span>usize + <span class="number">1</span>);
+                Instruction::PushPrivateEnvironment { .. } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::JumpTable =&gt; {
-                    <span class="kw">let </span>count = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
-                    <span class="kw">let </span>default = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                    pc += size_of::&lt;u32&gt;();
-
+                Instruction::JumpTable { default, addresses } =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
@@ -1053,200 +878,197 @@
                         EdgeStyle::Line,
                     );
 
-                    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..count {
-                        <span class="kw">let </span>address = <span class="self">self</span>.read::&lt;u32&gt;(pc);
-                        pc += size_of::&lt;u32&gt;();
-
+                    <span class="kw">for </span>(i, address) <span class="kw">in </span>addresses.iter().enumerate() {
                         graph.add_edge(
                             previous_pc,
-                            address <span class="kw">as </span>usize,
+                            <span class="kw-2">*</span>address <span class="kw">as </span>usize,
                             <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Index: {i}&quot;</span>).into()),
                             Color::None,
                             EdgeStyle::Line,
                         );
                     }
                 }
-                Opcode::Pop
-                | Opcode::Dup
-                | Opcode::Swap
-                | Opcode::PushZero
-                | Opcode::PushOne
-                | Opcode::PushNaN
-                | Opcode::PushPositiveInfinity
-                | Opcode::PushNegativeInfinity
-                | Opcode::PushNull
-                | Opcode::PushTrue
-                | Opcode::PushFalse
-                | Opcode::PushUndefined
-                | Opcode::PushEmptyObject
-                | Opcode::PushClassPrototype
-                | Opcode::SetClassPrototype
-                | Opcode::SetHomeObject
-                | Opcode::SetHomeObjectClass
-                | Opcode::Add
-                | Opcode::Sub
-                | Opcode::Div
-                | Opcode::Mul
-                | Opcode::Mod
-                | Opcode::Pow
-                | Opcode::ShiftRight
-                | Opcode::ShiftLeft
-                | Opcode::UnsignedShiftRight
-                | Opcode::BitOr
-                | Opcode::BitAnd
-                | Opcode::BitXor
-                | Opcode::BitNot
-                | Opcode::In
-                | Opcode::Eq
-                | Opcode::StrictEq
-                | Opcode::NotEq
-                | Opcode::StrictNotEq
-                | Opcode::GreaterThan
-                | Opcode::GreaterThanOrEq
-                | Opcode::LessThan
-                | Opcode::LessThanOrEq
-                | Opcode::InstanceOf
-                | Opcode::TypeOf
-                | Opcode::Void
-                | Opcode::LogicalNot
-                | Opcode::Pos
-                | Opcode::Neg
-                | Opcode::Inc
-                | Opcode::IncPost
-                | Opcode::Dec
-                | Opcode::DecPost
-                | Opcode::GetPropertyByValue
-                | Opcode::GetPropertyByValuePush
-                | Opcode::SetPropertyByValue
-                | Opcode::DefineOwnPropertyByValue
-                | Opcode::DefineClassStaticMethodByValue
-                | Opcode::DefineClassMethodByValue
-                | Opcode::SetPropertyGetterByValue
-                | Opcode::DefineClassStaticGetterByValue
-                | Opcode::DefineClassGetterByValue
-                | Opcode::SetPropertySetterByValue
-                | Opcode::DefineClassStaticSetterByValue
-                | Opcode::DefineClassSetterByValue
-                | Opcode::DeletePropertyByValue
-                | Opcode::DeleteSuperThrow
-                | Opcode::ToPropertyKey
-                | Opcode::ToBoolean
-                | Opcode::This
-                | Opcode::Super
-                | Opcode::IncrementLoopIteration
-                | Opcode::CreateForInIterator
-                | Opcode::GetIterator
-                | Opcode::GetAsyncIterator
-                | Opcode::IteratorNext
-                | Opcode::IteratorNextWithoutPop
-                | Opcode::IteratorFinishAsyncNext
-                | Opcode::IteratorValue
-                | Opcode::IteratorValueWithoutPop
-                | Opcode::IteratorResult
-                | Opcode::IteratorDone
-                | Opcode::IteratorToArray
-                | Opcode::IteratorPop
-                | Opcode::IteratorReturn
-                | Opcode::IteratorStackEmpty
-                | Opcode::RequireObjectCoercible
-                | Opcode::ValueNotNullOrUndefined
-                | Opcode::RestParameterInit
-                | Opcode::RestParameterPop
-                | Opcode::PushValueToArray
-                | Opcode::PushElisionToArray
-                | Opcode::PushIteratorToArray
-                | Opcode::PushNewArray
-                | Opcode::GeneratorYield
-                | Opcode::AsyncGeneratorYield
-                | Opcode::AsyncGeneratorClose
-                | Opcode::CreatePromiseCapability
-                | Opcode::CompletePromiseCapability
-                | Opcode::GeneratorNext
-                | Opcode::PushClassField
-                | Opcode::SuperCallDerived
-                | Opcode::Await
-                | Opcode::NewTarget
-                | Opcode::ImportMeta
-                | Opcode::CallEvalSpread
-                | Opcode::CallSpread
-                | Opcode::NewSpread
-                | Opcode::SuperCallSpread
-                | Opcode::SuperCallPrepare
-                | Opcode::SetPrototype
-                | Opcode::IsObject
-                | Opcode::SetNameByLocator
-                | Opcode::PushObjectEnvironment
-                | Opcode::PopPrivateEnvironment
-                | Opcode::ImportCall
-                | Opcode::GetReturnValue
-                | Opcode::SetReturnValue
-                | Opcode::Exception
-                | Opcode::MaybeException
-                | Opcode::Nop =&gt; {
+                Instruction::Pop
+                | Instruction::Dup
+                | Instruction::Swap
+                | Instruction::PushZero
+                | Instruction::PushOne
+                | Instruction::PushNaN
+                | Instruction::PushPositiveInfinity
+                | Instruction::PushNegativeInfinity
+                | Instruction::PushNull
+                | Instruction::PushTrue
+                | Instruction::PushFalse
+                | Instruction::PushUndefined
+                | Instruction::PushEmptyObject
+                | Instruction::PushClassPrototype
+                | Instruction::SetClassPrototype
+                | Instruction::SetHomeObject
+                | Instruction::SetHomeObjectClass
+                | Instruction::Add
+                | Instruction::Sub
+                | Instruction::Div
+                | Instruction::Mul
+                | Instruction::Mod
+                | Instruction::Pow
+                | Instruction::ShiftRight
+                | Instruction::ShiftLeft
+                | Instruction::UnsignedShiftRight
+                | Instruction::BitOr
+                | Instruction::BitAnd
+                | Instruction::BitXor
+                | Instruction::BitNot
+                | Instruction::In
+                | Instruction::Eq
+                | Instruction::StrictEq
+                | Instruction::NotEq
+                | Instruction::StrictNotEq
+                | Instruction::GreaterThan
+                | Instruction::GreaterThanOrEq
+                | Instruction::LessThan
+                | Instruction::LessThanOrEq
+                | Instruction::InstanceOf
+                | Instruction::TypeOf
+                | Instruction::Void
+                | Instruction::LogicalNot
+                | Instruction::Pos
+                | Instruction::Neg
+                | Instruction::Inc
+                | Instruction::IncPost
+                | Instruction::Dec
+                | Instruction::DecPost
+                | Instruction::GetPropertyByValue
+                | Instruction::GetPropertyByValuePush
+                | Instruction::SetPropertyByValue
+                | Instruction::DefineOwnPropertyByValue
+                | Instruction::DefineClassStaticMethodByValue
+                | Instruction::DefineClassMethodByValue
+                | Instruction::SetPropertyGetterByValue
+                | Instruction::DefineClassStaticGetterByValue
+                | Instruction::DefineClassGetterByValue
+                | Instruction::SetPropertySetterByValue
+                | Instruction::DefineClassStaticSetterByValue
+                | Instruction::DefineClassSetterByValue
+                | Instruction::DeletePropertyByValue
+                | Instruction::DeleteSuperThrow
+                | Instruction::ToPropertyKey
+                | Instruction::ToBoolean
+                | Instruction::This
+                | Instruction::Super
+                | Instruction::IncrementLoopIteration
+                | Instruction::CreateForInIterator
+                | Instruction::GetIterator
+                | Instruction::GetAsyncIterator
+                | Instruction::IteratorNext
+                | Instruction::IteratorNextWithoutPop
+                | Instruction::IteratorFinishAsyncNext
+                | Instruction::IteratorValue
+                | Instruction::IteratorValueWithoutPop
+                | Instruction::IteratorResult
+                | Instruction::IteratorDone
+                | Instruction::IteratorToArray
+                | Instruction::IteratorPop
+                | Instruction::IteratorReturn
+                | Instruction::IteratorStackEmpty
+                | Instruction::RequireObjectCoercible
+                | Instruction::ValueNotNullOrUndefined
+                | Instruction::RestParameterInit
+                | Instruction::RestParameterPop
+                | Instruction::PushValueToArray
+                | Instruction::PushElisionToArray
+                | Instruction::PushIteratorToArray
+                | Instruction::PushNewArray
+                | Instruction::GeneratorYield
+                | Instruction::AsyncGeneratorYield
+                | Instruction::AsyncGeneratorClose
+                | Instruction::CreatePromiseCapability
+                | Instruction::CompletePromiseCapability
+                | Instruction::GeneratorNext
+                | Instruction::PushClassField
+                | Instruction::SuperCallDerived
+                | Instruction::Await
+                | Instruction::NewTarget
+                | Instruction::ImportMeta
+                | Instruction::CallEvalSpread
+                | Instruction::CallSpread
+                | Instruction::NewSpread
+                | Instruction::SuperCallSpread
+                | Instruction::SuperCallPrepare
+                | Instruction::SetPrototype
+                | Instruction::IsObject
+                | Instruction::SetNameByLocator
+                | Instruction::PushObjectEnvironment
+                | Instruction::PopPrivateEnvironment
+                | Instruction::ImportCall
+                | Instruction::GetReturnValue
+                | Instruction::SetReturnValue
+                | Instruction::Exception
+                | Instruction::MaybeException
+                | Instruction::Nop =&gt; {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::Return =&gt; {
+                Instruction::Return =&gt; {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::Red);
                 }
-                Opcode::Reserved1
-                | Opcode::Reserved2
-                | Opcode::Reserved3
-                | Opcode::Reserved4
-                | Opcode::Reserved5
-                | Opcode::Reserved6
-                | Opcode::Reserved7
-                | Opcode::Reserved8
-                | Opcode::Reserved9
-                | Opcode::Reserved10
-                | Opcode::Reserved11
-                | Opcode::Reserved12
-                | Opcode::Reserved13
-                | Opcode::Reserved14
-                | Opcode::Reserved15
-                | Opcode::Reserved16
-                | Opcode::Reserved17
-                | Opcode::Reserved18
-                | Opcode::Reserved19
-                | Opcode::Reserved20
-                | Opcode::Reserved21
-                | Opcode::Reserved22
-                | Opcode::Reserved23
-                | Opcode::Reserved24
-                | Opcode::Reserved25
-                | Opcode::Reserved26
-                | Opcode::Reserved27
-                | Opcode::Reserved28
-                | Opcode::Reserved29
-                | Opcode::Reserved30
-                | Opcode::Reserved31
-                | Opcode::Reserved32
-                | Opcode::Reserved33
-                | Opcode::Reserved34
-                | Opcode::Reserved35
-                | Opcode::Reserved36
-                | Opcode::Reserved37
-                | Opcode::Reserved38
-                | Opcode::Reserved39
-                | Opcode::Reserved40
-                | Opcode::Reserved41
-                | Opcode::Reserved42
-                | Opcode::Reserved43
-                | Opcode::Reserved44
-                | Opcode::Reserved45
-                | Opcode::Reserved46
-                | Opcode::Reserved47
-                | Opcode::Reserved48
-                | Opcode::Reserved49
-                | Opcode::Reserved50
-                | Opcode::Reserved51
-                | Opcode::Reserved52
-                | Opcode::Reserved53
-                | Opcode::Reserved54
-                | Opcode::Reserved55
-                | Opcode::Reserved56
-                | Opcode::Reserved57
-                | Opcode::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+                Instruction::Reserved1
+                | Instruction::Reserved2
+                | Instruction::Reserved3
+                | Instruction::Reserved4
+                | Instruction::Reserved5
+                | Instruction::Reserved6
+                | Instruction::Reserved7
+                | Instruction::Reserved8
+                | Instruction::Reserved9
+                | Instruction::Reserved10
+                | Instruction::Reserved11
+                | Instruction::Reserved12
+                | Instruction::Reserved13
+                | Instruction::Reserved14
+                | Instruction::Reserved15
+                | Instruction::Reserved16
+                | Instruction::Reserved17
+                | Instruction::Reserved18
+                | Instruction::Reserved19
+                | Instruction::Reserved20
+                | Instruction::Reserved21
+                | Instruction::Reserved22
+                | Instruction::Reserved23
+                | Instruction::Reserved24
+                | Instruction::Reserved25
+                | Instruction::Reserved26
+                | Instruction::Reserved27
+                | Instruction::Reserved28
+                | Instruction::Reserved29
+                | Instruction::Reserved30
+                | Instruction::Reserved31
+                | Instruction::Reserved32
+                | Instruction::Reserved33
+                | Instruction::Reserved34
+                | Instruction::Reserved35
+                | Instruction::Reserved36
+                | Instruction::Reserved37
+                | Instruction::Reserved38
+                | Instruction::Reserved39
+                | Instruction::Reserved40
+                | Instruction::Reserved41
+                | Instruction::Reserved42
+                | Instruction::Reserved43
+                | Instruction::Reserved44
+                | Instruction::Reserved45
+                | Instruction::Reserved46
+                | Instruction::Reserved47
+                | Instruction::Reserved48
+                | Instruction::Reserved49
+                | Instruction::Reserved50
+                | Instruction::Reserved51
+                | Instruction::Reserved52
+                | Instruction::Reserved53
+                | Instruction::Reserved54
+                | Instruction::Reserved55
+                | Instruction::Reserved56
+                | Instruction::Reserved57
+                | Instruction::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
             }
         }
 

@@ -387,6 +387,9 @@
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -422,10 +425,13 @@
 </span><span class="kw">pub mod </span>flowgraph;
 
 <span class="kw">pub use </span>runtime_limits::RuntimeLimits;
-<span class="kw">pub use </span>{call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
+<span class="kw">pub use </span>{
+    call_frame::{CallFrame, GeneratorResumeKind},
+    code_block::CodeBlock,
+    opcode::{Instruction, InstructionIterator, Opcode},
+};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>{
-    call_frame::GeneratorResumeKind,
     code_block::{
         create_function_object, create_function_object_fast, create_generator_function_object,
         CodeBlockFlags, Handler,

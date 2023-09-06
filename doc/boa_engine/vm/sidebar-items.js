@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ActiveRunnable","CompletionType","Opcode"],"mod":["call_frame","code_block","completion_record","flowgraph","opcode","runtime_limits"],"struct":["CallFrame","CodeBlock","RuntimeLimits","Vm"]};
+window.SIDEBAR_ITEMS = {"enum":["ActiveRunnable","CompletionType","GeneratorResumeKind","Instruction","Opcode"],"mod":["call_frame","code_block","completion_record","flowgraph","opcode","runtime_limits"],"struct":["CallFrame","CodeBlock","InstructionIterator","RuntimeLimits","Vm"]};
