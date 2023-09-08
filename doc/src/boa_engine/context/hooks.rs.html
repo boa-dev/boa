@@ -211,6 +211,17 @@
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::promise::OperationType,
     job::JobCallback,
@@ -387,7 +398,7 @@
 
     <span class="doccomment">/// Gets the current UTC time of the host.
     ///
-    /// Defaults to using [`Utc::now`] on all targets, which can cause panics if your platform
+    /// Defaults to using [`Utc::now`] on all targets, which can cause panics if the target
     /// doesn&#39;t support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
@@ -397,25 +408,36 @@
 
     <span class="doccomment">/// Converts the naive datetime `utc` to the corresponding local datetime.
     ///
-    /// Defaults to using [`Local`] on all targets, which can cause panics if your platform
+    /// Defaults to using [`Local`] on all targets, which can cause panics if the taget
     /// doesn&#39;t support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
     </span><span class="kw">fn </span>local_from_utc(<span class="kw-2">&amp;</span><span class="self">self</span>, utc: NaiveDateTime) -&gt; DateTime&lt;FixedOffset&gt; {
         <span class="kw">let </span>offset = Local.offset_from_utc_datetime(<span class="kw-2">&amp;</span>utc);
-        DateTime::from_utc(utc, offset)
+        offset.from_utc_datetime(<span class="kw-2">&amp;</span>utc)
     }
 
     <span class="doccomment">/// Converts the naive local datetime `local` to a local timezone datetime.
     ///
-    /// Defaults to using [`Local`] on all targets, which can cause panics if your platform
+    /// Defaults to using [`Local`] on all targets, which can cause panics if the target
     /// doesn&#39;t support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
     </span><span class="kw">fn </span>local_from_naive_local(<span class="kw-2">&amp;</span><span class="self">self</span>, local: NaiveDateTime) -&gt; LocalResult&lt;DateTime&lt;FixedOffset&gt;&gt; {
-        Local
-            .offset_from_local_datetime(<span class="kw-2">&amp;</span>local)
-            .map(|offset| DateTime::from_local(local, offset))
+        <span class="kw">match </span>Local.offset_from_local_datetime(<span class="kw-2">&amp;</span>local) {
+            LocalResult::None =&gt; LocalResult::None,
+            LocalResult::Single(offset) =&gt; offset.from_local_datetime(<span class="kw-2">&amp;</span>local),
+            LocalResult::Ambiguous(earliest, latest) =&gt; {
+                <span class="kw">match </span>(
+                    earliest.from_local_datetime(<span class="kw-2">&amp;</span>local).earliest(),
+                    latest.from_local_datetime(<span class="kw-2">&amp;</span>local).latest(),
+                ) {
+                    (<span class="prelude-val">Some</span>(earliest), <span class="prelude-val">Some</span>(latest)) =&gt; LocalResult::Ambiguous(earliest, latest),
+                    (<span class="prelude-val">Some</span>(dt), <span class="prelude-val">None</span>) | (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(dt)) =&gt; LocalResult::Single(dt),
+                    (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; LocalResult::None,
+                }
+            }
+        }
     }
 }
 
