@@ -16,7 +16,7 @@ jobs:
           profile: minimal
           override: true
       - name: Install wasm-pack
-        uses: baptiste0928/cargo-install@v2.1.0
+        uses: baptiste0928/cargo-install@v2.2.0
         with:
           crate: wasm-pack
       - uses: actions/setup-node@v3

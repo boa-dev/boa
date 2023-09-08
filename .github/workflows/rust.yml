@@ -23,7 +23,7 @@ jobs:
           override: true
           profile: minimal
       - name: Install cargo-tarpaulin
-        uses: baptiste0928/cargo-install@v2.1.0
+        uses: baptiste0928/cargo-install@v2.2.0
         with:
           crate: cargo-tarpaulin
       - uses: Swatinem/rust-cache@v2
