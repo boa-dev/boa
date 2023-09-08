@@ -174,7 +174,7 @@ pub trait HostHooks {
 
     /// Gets the current UTC time of the host.
     ///
-    /// Defaults to using [`Utc::now`] on all targets, which can cause panics if your platform
+    /// Defaults to using [`Utc::now`] on all targets, which can cause panics if the target
     /// doesn't support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
@@ -184,25 +184,36 @@ pub trait HostHooks {
 
     /// Converts the naive datetime `utc` to the corresponding local datetime.
     ///
-    /// Defaults to using [`Local`] on all targets, which can cause panics if your platform
+    /// Defaults to using [`Local`] on all targets, which can cause panics if the taget
     /// doesn't support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
     fn local_from_utc(&self, utc: NaiveDateTime) -> DateTime<FixedOffset> {
         let offset = Local.offset_from_utc_datetime(&utc);
-        DateTime::from_utc(utc, offset)
+        offset.from_utc_datetime(&utc)
     }
 
     /// Converts the naive local datetime `local` to a local timezone datetime.
     ///
-    /// Defaults to using [`Local`] on all targets, which can cause panics if your platform
+    /// Defaults to using [`Local`] on all targets, which can cause panics if the target
     /// doesn't support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
     fn local_from_naive_local(&self, local: NaiveDateTime) -> LocalResult<DateTime<FixedOffset>> {
-        Local
-            .offset_from_local_datetime(&local)
-            .map(|offset| DateTime::from_local(local, offset))
+        match Local.offset_from_local_datetime(&local) {
+            LocalResult::None => LocalResult::None,
+            LocalResult::Single(offset) => offset.from_local_datetime(&local),
+            LocalResult::Ambiguous(earliest, latest) => {
+                match (
+                    earliest.from_local_datetime(&local).earliest(),
+                    latest.from_local_datetime(&local).latest(),
+                ) {
+                    (Some(earliest), Some(latest)) => LocalResult::Ambiguous(earliest, latest),
+                    (Some(dt), None) | (None, Some(dt)) => LocalResult::Single(dt),
+                    (None, None) => LocalResult::None,
+                }
+            }
+        }
     }
 }
 
