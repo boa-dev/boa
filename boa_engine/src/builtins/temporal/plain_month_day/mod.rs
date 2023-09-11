@@ -52,7 +52,7 @@ impl BuiltInConstructor for PlainMonthDay {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::range().with_message("Not yet implemented.").into())
     }
 }
 

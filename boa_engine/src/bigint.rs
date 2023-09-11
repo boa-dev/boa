@@ -437,24 +437,6 @@ impl From<usize> for JsBigInt {
     }
 }
 
-impl From<u128> for JsBigInt {
-    #[inline]
-    fn from(value: u128) -> Self {
-        Self {
-            inner: Rc::new(RawBigInt::from(value)),
-        }
-    }
-}
-
-impl From<i128> for JsBigInt {
-    #[inline]
-    fn from(value: i128) -> Self {
-        Self {
-            inner: Rc::new(RawBigInt::from(value)),
-        }
-    }
-}
-
 /// The error indicates that the conversion from [`f64`] to [`JsBigInt`] failed.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct TryFromF64Error;

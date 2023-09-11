@@ -71,11 +71,11 @@ pub trait BuiltinCalendar {
     fn days_in_year(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
     /// Returns the months in a year for a given calendar.
     fn months_in_year(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
-    /// TODO: Docs
+    /// Returns whether a value is within a leap year according to the designated calendar.
     fn in_leap_year(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
-    /// TODO: Docs
+    /// Returns the fields of the implemented calendar
     fn fields(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
-    /// TODO: Docs
+    /// Merges provided fields.
     fn merge_fields(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
 }
 
@@ -896,9 +896,9 @@ pub(crate) fn calendar_fields(
     )?;
 
     // 3. Let iteratorRecord be ? GetIterator(fieldsArray, sync).
-    let iterator_record = fields_array.get_iterator(context, Some(IteratorHint::Sync), None)?;
+    let mut iterator_record = fields_array.get_iterator(context, Some(IteratorHint::Sync), None)?;
     // 4. Return ? IteratorToListOfType(iteratorRecord, « String »).
-    super::iterator_to_list_of_types(&iterator_record, &[crate::value::Type::String], context)
+    super::iterator_to_list_of_types(&mut iterator_record, &[crate::value::Type::String], context)
 }
 
 /// 12.2.3 CalendarMergeFields ( calendar, fields, additionalFields )

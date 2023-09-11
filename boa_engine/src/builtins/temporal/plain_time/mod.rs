@@ -4,7 +4,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     realm::Realm,
-    Context, JsObject, JsResult, JsSymbol, JsValue,
+    Context, JsObject, JsResult, JsSymbol, JsValue, JsNativeError,
 };
 use boa_profiler::Profiler;
 
@@ -52,6 +52,6 @@ impl BuiltInConstructor for PlainTime {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::range().with_message("Not yet implemented.").into())
     }
 }

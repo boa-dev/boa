@@ -241,7 +241,7 @@ fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
 
 // TODO: 13.1 IteratorToListOfType
 pub(crate) fn iterator_to_list_of_types(
-    iterator: &IteratorRecord,
+    iterator: &mut IteratorRecord,
     element_types: &[Type],
     context: &mut Context<'_>,
 ) -> JsResult<Vec<JsValue>> {
@@ -252,9 +252,9 @@ pub(crate) fn iterator_to_list_of_types(
     // 3. Repeat, while next is not false,
     // a. Set next to ? IteratorStep(iteratorRecord).
     // b. If next is not false, then
-    while let Some(next) = iterator.step(context)? {
+    while iterator.step(context)? {
         // i. Let nextValue be ? IteratorValue(next).
-        let next_value = next.value(context)?;
+        let next_value = iterator.value(context)?;
         // ii. If Type(nextValue) is not an element of elementTypes, then
         if element_types.contains(&next_value.get_type()) {
             // 1. Let completion be ThrowCompletion(a newly created TypeError object).
