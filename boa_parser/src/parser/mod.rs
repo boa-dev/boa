@@ -3,8 +3,6 @@
 mod cursor;
 mod expression;
 mod statement;
-#[cfg(feature = "temporal")]
-pub mod temporal;
 
 pub(crate) mod function;
 
@@ -33,8 +31,6 @@ use std::{io::Read, path::Path};
 use self::statement::ModuleItemList;
 
 pub use self::cursor::Cursor;
-#[cfg(feature = "temporal")]
-pub use self::temporal::UTCOffset;
 
 /// Trait implemented by parsers.
 ///

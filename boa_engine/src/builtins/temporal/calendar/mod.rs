@@ -981,41 +981,65 @@ pub(crate) fn calendar_date_until(
     // b. Return ? Call(%Temporal.Calendar.prototype.dateUntil%, calendar, « one, two, options »).
     // 2. If dateUntil is not present, set dateUntil to ? GetMethod(calendar, "dateUntil").
     // 3. Let duration be ? Call(dateUntil, calendar, « one, two, options »).
-    let duration = call_method_on_abstract_calendar(calendar, &JsString::from("dateUntil"), &[one.clone().into(), two.clone().into(), options.clone()], context)?;
+    let duration = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("dateUntil"),
+        &[one.clone().into(), two.clone().into(), options.clone()],
+        context,
+    )?;
 
     // 4. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
     // 5. Return duration.
     match duration {
-        JsValue::Object(o) if o.is_duration()=>{
+        JsValue::Object(o) if o.is_duration() => {
             let obj = o.borrow();
-            let dur = obj.as_duration().expect("Value is confirmed to be a duration.");
+            let dur = obj
+                .as_duration()
+                .expect("Value is confirmed to be a duration.");
             let record = dur.inner;
             drop(obj);
-            return Ok(record)
-        },
-        _=> Err(JsNativeError::typ().with_message("Calendar dateUntil must return a Duration").into())
+            return Ok(record);
+        }
+        _ => Err(JsNativeError::typ()
+            .with_message("Calendar dateUntil must return a Duration")
+            .into()),
     }
 }
 
 /// 12.2.6 CalendarYear ( calendar, dateLike )
 ///
 /// Returns either a normal completion containing an integer, or an abrupt completion.
-pub(crate) fn calendar_year(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_year(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.year%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "year", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("year"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("year"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarYear result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarYear result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarYear was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarYear was not integral.")
+            .into());
     }
 
     // 5. Return ℝ(result).
@@ -1023,27 +1047,44 @@ pub(crate) fn calendar_year(calendar: &JsValue, datelike: &JsValue, context: &mu
 }
 
 /// 12.2.7 CalendarMonth ( calendar, dateLike )
-pub(crate) fn calendar_month(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_month(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.month%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "month", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("month"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("month"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarYear result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarYear result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarMonth was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarMonth was not integral.")
+            .into());
     }
 
     // 5. If result < 1𝔽, throw a RangeError exception.
     if number < 1.0 {
-        return Err(JsNativeError::range().with_message("month must be 1 or greater.").into())
+        return Err(JsNativeError::range()
+            .with_message("month must be 1 or greater.")
+            .into());
     }
 
     // 6. Return ℝ(result).
@@ -1051,43 +1092,71 @@ pub(crate) fn calendar_month(calendar: &JsValue, datelike: &JsValue, context: &m
 }
 
 /// 12.2.8 CalendarMonthCode ( calendar, dateLike )
-pub(crate) fn calendar_month_code(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<JsString> {
+pub(crate) fn calendar_month_code(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<JsString> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.monthCode%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "monthCode", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("monthCode"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("monthCode"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not String, throw a TypeError exception.
     // 4. Return result.
     match result {
-        JsValue::String(s)=> Ok(s),
-        _=> Err(JsNativeError::typ().with_message("monthCode must be a String.").into())
+        JsValue::String(s) => Ok(s),
+        _ => Err(JsNativeError::typ()
+            .with_message("monthCode must be a String.")
+            .into()),
     }
 }
 
 /// 12.2.9 CalendarDay ( calendar, dateLike )
-pub(crate) fn calendar_day(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_day(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.day%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "day", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("day"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("day"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarYear result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarYear result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarDay was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarDay was not integral.")
+            .into());
     }
 
     // 5. If result < 1𝔽, throw a RangeError exception.
     if number < 1.0 {
-        return Err(JsNativeError::range().with_message("day must be 1 or greater.").into())
+        return Err(JsNativeError::range()
+            .with_message("day must be 1 or greater.")
+            .into());
     }
 
     // 6. Return ℝ(result).
@@ -1095,27 +1164,44 @@ pub(crate) fn calendar_day(calendar: &JsValue, datelike: &JsValue, context: &mut
 }
 
 /// 12.2.10 CalendarDayOfWeek ( calendar, dateLike )
-pub(crate) fn calendar_day_of_week(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_day_of_week(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.dayOfWeek%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "dayOfWeek", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("dayOfWeek"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("dayOfWeek"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarDayOfWeek result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarDayOfWeek result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarDayOfWeek was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarDayOfWeek was not integral.")
+            .into());
     }
 
     // 5. If result < 1𝔽, throw a RangeError exception.
     if number < 1.0 {
-        return Err(JsNativeError::range().with_message("dayOfWeek must be 1 or greater.").into())
+        return Err(JsNativeError::range()
+            .with_message("dayOfWeek must be 1 or greater.")
+            .into());
     }
 
     // 6. Return ℝ(result).
@@ -1123,27 +1209,44 @@ pub(crate) fn calendar_day_of_week(calendar: &JsValue, datelike: &JsValue, conte
 }
 
 /// 12.2.11 CalendarDayOfYear ( calendar, dateLike )
-pub(crate) fn calendar_day_of_year(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_day_of_year(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.dayOfYear%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "dayOfYear", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("dayOfYear"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("dayOfYear"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarDayOfYear result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarDayOfYear result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarDayOfYear was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarDayOfYear was not integral.")
+            .into());
     }
 
     // 5. If result < 1𝔽, throw a RangeError exception.
     if number < 1.0 {
-        return Err(JsNativeError::range().with_message("dayOfYear must be 1 or greater.").into())
+        return Err(JsNativeError::range()
+            .with_message("dayOfYear must be 1 or greater.")
+            .into());
     }
 
     // 6. Return ℝ(result).
@@ -1151,27 +1254,44 @@ pub(crate) fn calendar_day_of_year(calendar: &JsValue, datelike: &JsValue, conte
 }
 
 /// 12.2.12 CalendarWeekOfYear ( calendar, dateLike )
-pub(crate) fn calendar_week_of_year(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_week_of_year(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.weekOfYear%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "weekOfYear", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("weekOfYear"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("weekOfYear"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarWeekOfYear result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarWeekOfYear result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarWeekOfYear was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarWeekOfYear was not integral.")
+            .into());
     }
 
     // 5. If result < 1𝔽, throw a RangeError exception.
     if number < 1.0 {
-        return Err(JsNativeError::range().with_message("weekOfYear must be 1 or greater.").into())
+        return Err(JsNativeError::range()
+            .with_message("weekOfYear must be 1 or greater.")
+            .into());
     }
 
     // 6. Return ℝ(result).
@@ -1179,22 +1299,37 @@ pub(crate) fn calendar_week_of_year(calendar: &JsValue, datelike: &JsValue, cont
 }
 
 /// 12.2.13 CalendarYearOfWeek ( calendar, dateLike )
-pub(crate) fn calendar_year_of_week(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_year_of_week(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.yearOfWeek%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "yearOfWeek", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("yearOfWeek"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("yearOfWeek"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarYearOfWeek result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarYearOfWeek result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarYearOfWeek was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarYearOfWeek was not integral.")
+            .into());
     }
 
     // 5. Return ℝ(result).
@@ -1202,27 +1337,44 @@ pub(crate) fn calendar_year_of_week(calendar: &JsValue, datelike: &JsValue, cont
 }
 
 /// 12.2.14 CalendarDaysInWeek ( calendar, dateLike )
-pub(crate) fn calendar_days_in_week(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_days_in_week(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.daysInWeek%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "daysInWeek", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("daysInWeek"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("daysInWeek"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarDaysInWeek result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarDaysInWeek result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarDaysInWeek was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarDaysInWeek was not integral.")
+            .into());
     }
 
     // 5. If result < 1𝔽, throw a RangeError exception.
     if number < 1.0 {
-        return Err(JsNativeError::range().with_message("daysInWeek must be 1 or greater.").into())
+        return Err(JsNativeError::range()
+            .with_message("daysInWeek must be 1 or greater.")
+            .into());
     }
 
     // 6. Return ℝ(result).
@@ -1230,27 +1382,44 @@ pub(crate) fn calendar_days_in_week(calendar: &JsValue, datelike: &JsValue, cont
 }
 
 /// 12.2.15 CalendarDaysInMonth ( calendar, dateLike )
-pub(crate) fn calendar_days_in_month(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_days_in_month(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.daysInMonth%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "daysInMonth", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("daysInMonth"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("daysInMonth"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarDaysInMonth result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarDaysInMonth result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarDaysInMonth was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarDaysInMonth was not integral.")
+            .into());
     }
 
     // 5. If result < 1𝔽, throw a RangeError exception.
     if number < 1.0 {
-        return Err(JsNativeError::range().with_message("daysInMonth must be 1 or greater.").into())
+        return Err(JsNativeError::range()
+            .with_message("daysInMonth must be 1 or greater.")
+            .into());
     }
 
     // 6. Return ℝ(result).
@@ -1258,27 +1427,44 @@ pub(crate) fn calendar_days_in_month(calendar: &JsValue, datelike: &JsValue, con
 }
 
 /// 12.2.16 CalendarDaysInYear ( calendar, dateLike )
-pub(crate) fn calendar_days_in_year(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_days_in_year(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.daysInYear%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "daysInYear", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("daysInYear"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("daysInYear"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarDaysInYear result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarDaysInYear result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarDaysInYear was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarDaysInYear was not integral.")
+            .into());
     }
 
     // 5. If result < 1𝔽, throw a RangeError exception.
     if number < 1.0 {
-        return Err(JsNativeError::range().with_message("daysInYear must be 1 or greater.").into())
+        return Err(JsNativeError::range()
+            .with_message("daysInYear must be 1 or greater.")
+            .into());
     }
 
     // 6. Return ℝ(result).
@@ -1286,27 +1472,44 @@ pub(crate) fn calendar_days_in_year(calendar: &JsValue, datelike: &JsValue, cont
 }
 
 /// 12.2.17 CalendarMonthsInYear ( calendar, dateLike )
-pub(crate) fn calendar_months_in_year(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<f64> {
+pub(crate) fn calendar_months_in_year(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.monthsInYear%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "monthsInYear", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("monthsInYear"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("monthsInYear"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
     let number = match result.as_number() {
-        Some(n)=> n,
-        None=>return Err(JsNativeError::typ().with_message("CalendarMonthsInYear result must be a number.").into())
+        Some(n) => n,
+        None => {
+            return Err(JsNativeError::typ()
+                .with_message("CalendarMonthsInYear result must be a number.")
+                .into())
+        }
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
     if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range().with_message("CalendarMonthsInYear was not integral.").into())
+        return Err(JsNativeError::range()
+            .with_message("CalendarMonthsInYear was not integral.")
+            .into());
     }
 
     // 5. If result < 1𝔽, throw a RangeError exception.
     if number < 1.0 {
-        return Err(JsNativeError::range().with_message("monthsInYear must be 1 or greater.").into())
+        return Err(JsNativeError::range()
+            .with_message("monthsInYear must be 1 or greater.")
+            .into());
     }
 
     // 6. Return ℝ(result).
@@ -1314,18 +1517,29 @@ pub(crate) fn calendar_months_in_year(calendar: &JsValue, datelike: &JsValue, co
 }
 
 /// 12.2.18 CalendarInLeapYear ( calendar, dateLike )
-pub(crate) fn calendar_in_lear_year(calendar: &JsValue, datelike: &JsValue, context: &mut Context<'_>) -> JsResult<bool> {
+pub(crate) fn calendar_in_lear_year(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<bool> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.inLeapYear%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "inLeapYear", « dateLike »).
-    let result = call_method_on_abstract_calendar(calendar, &JsString::from("inLeapYear"), &[datelike.clone()], context)?;
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("inLeapYear"),
+        &[datelike.clone()],
+        context,
+    )?;
 
     // 3. If Type(result) is not Boolean, throw a TypeError exception.
     // 4. Return result.
     match result {
-        JsValue::Boolean(b)=> Ok(b),
-        _=> Err(JsNativeError::typ().with_message("inLeapYear result must be a boolean.").into())
+        JsValue::Boolean(b) => Ok(b),
+        _ => Err(JsNativeError::typ()
+            .with_message("inLeapYear result must be a boolean.")
+            .into()),
     }
 }
 

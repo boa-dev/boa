@@ -900,7 +900,9 @@ pub(crate) fn to_temporal_duration(item: &JsValue, context: &mut Context<'_>) ->
 pub(crate) fn to_temporal_duration_record(
     _temporal_duration_like: &JsValue,
 ) -> JsResult<DurationRecord> {
-    Err(JsNativeError::range().with_message("Not yet implemented.").into())
+    Err(JsNativeError::range()
+        .with_message("Not yet implemented.")
+        .into())
 }
 
 /// 7.5.14 `CreateTemporalDuration ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds [ , newTarget ] )`

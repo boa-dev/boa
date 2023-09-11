@@ -580,7 +580,7 @@ pub(crate) fn to_temporal_date(
 
     // 5. If item is not a String, throw a TypeError exception.
     match item {
-        JsValue::String(s)=> {
+        JsValue::String(s) => {
             // 6. Let result be ? ParseTemporalDateString(item).
             // 7. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
             // 8. Let calendar be result.[[Calendar]].
@@ -593,13 +593,9 @@ pub(crate) fn to_temporal_date(
             Err(JsNativeError::range()
                 .with_message("Not yet implemented.")
                 .into())
-        },
-        _=> {
-            Err(JsNativeError::typ()
-                .with_message("ToTemporalDate item must be an object or string.")
-                .into())
-        },
+        }
+        _ => Err(JsNativeError::typ()
+            .with_message("ToTemporalDate item must be an object or string.")
+            .into()),
     }
-
-
 }

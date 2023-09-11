@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
-use boa_ast::{temporal::OffsetSign, UtcOffset};
-use boa_parser::parser::UTCOffset;
+use boa_ast::temporal::{UtcOffset, TzIdentifier};
 
 use crate::{
     builtins::{
@@ -334,36 +333,31 @@ pub(super) fn create_temporal_time_zone(
 /// [spec]: https://tc39.es/ecma262/#sec-parsetimezoneoffsetstring
 #[allow(clippy::unnecessary_wraps, unused)]
 fn parse_timezone_offset_string(offset_string: &str, context: &mut Context<'_>) -> JsResult<i64> {
-    use boa_parser::parser::{Cursor, TokenParser};
+    use boa_parser::temporal::{IsoCursor, TemporalTimeZoneString};
 
     // 1. Let parseResult be ParseText(StringToCodePoints(offsetString), UTCOffset).
-    let parse_result = UTCOffset
-        .parse(
-            &mut Cursor::new(offset_string.as_bytes()),
-            context.interner_mut(),
-        )
-        // 2. Assert: parseResult is not a List of errors.
-        .expect("must not fail as per the spec");
+    let parse_result = TemporalTimeZoneString::parse(&mut IsoCursor::new(offset_string.to_string()))?;
 
+    // 2. Assert: parseResult is not a List of errors.
     // 3. Assert: parseResult contains a TemporalSign Parse Node.
+    let utc_offset = match parse_result {
+        TzIdentifier::UtcOffset(utc)=>utc,
+        _=> return Err(JsNativeError::typ().with_message("Offset string was not a valid offset").into())
+    };
 
     // 4. Let parsedSign be the source text matched by the TemporalSign Parse Node contained within
     //    parseResult.
     // 5. If parsedSign is the single code point U+002D (HYPHEN-MINUS) or U+2212 (MINUS SIGN), then
-    let sign = if matches!(parse_result.sign, OffsetSign::Negative) {
+    let sign = utc_offset.sign;
         // a. Let sign be -1.
-        -1
-    } else {
         // 6. Else,
         // a. Let sign be 1.
-        1
-    };
 
     // 7. NOTE: Applications of StringToNumber below do not lose precision, since each of the parsed
     //    values is guaranteed to be a sufficiently short string of decimal digits.
     // 8. Assert: parseResult contains an Hour Parse Node.
     // 9. Let parsedHours be the source text matched by the Hour Parse Node contained within parseResult.
-    let parsed_hours = parse_result.hour;
+    let parsed_hours = utc_offset.hour;
 
     // 10. Let hours be ℝ(StringToNumber(CodePointsToString(parsedHours))).
     // 11. If parseResult does not contain a MinuteSecond Parse Node, then

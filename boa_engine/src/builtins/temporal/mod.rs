@@ -39,7 +39,7 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsNativeErrorKind, JsObject, JsResult, JsString, JsSymbol,
     JsValue, NativeFunction,
 };
-use boa_ast::temporal::{self, OffsetSign, UtcOffset};
+use boa_ast::temporal::{self, UtcOffset};
 use boa_profiler::Profiler;
 
 // Relavant numeric constants
