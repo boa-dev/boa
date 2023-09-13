@@ -319,12 +319,35 @@ function addSuite(suite, parentID, namespace, upstream) {
     return hasTests || hasSubSuites;
   }
 
+  function findStats(suite) {
+    if (esVersion >= 255) {
+      return suite.a;
+    }
+
+    const versioned_stats = suite.av;
+    if (!versioned_stats) {
+      return suite.a;
+    }
+
+    let version = esVersion;
+
+    while (version >= 5) {
+      if (versioned_stats["es" + version]) {
+        return versioned_stats["es" + version];
+      }
+
+      version -= 1;
+    }
+
+    return suite.a;
+  }
+
 
   if (!shouldDisplaySuite(suite)) {
     return;
   }
 
-  const stats = suite?.av?.["es" + esVersion] ?? suite.a;
+  const stats = findStats(suite);
   const tests = suite.t ? suite.t.filter(shouldDisplayTest) : [];
   const subSuites = suite.s ?? [];
 
