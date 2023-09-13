@@ -18,22 +18,22 @@ This is used to generate unique identifiers tagged template literals.</p>
 </div></details><section id="method.set_goal" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#67-69">source</a><h4 class="code-header">pub(super) fn <a href="#method.set_goal" class="fn">set_goal</a>(&amp;mut self, elm: <a class="enum" href="../../lexer/enum.InputElement.html" title="enum boa_parser::lexer::InputElement">InputElement</a>)</h4></section><section id="method.lex_regex" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#71-77">source</a><h4 class="code-header">pub(super) fn <a href="#method.lex_regex" class="fn">lex_regex</a>(
     &amp;mut self,
     start: <a class="struct" href="../../../boa_ast/position/struct.Position.html" title="struct boa_ast::position::Position">Position</a>,
-    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
+    interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="struct" href="../../lexer/token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>&gt;</h4></section><section id="method.lex_template" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#79-85">source</a><h4 class="code-header">pub(super) fn <a href="#method.lex_template" class="fn">lex_template</a>(
     &amp;mut self,
     start: <a class="struct" href="../../../boa_ast/position/struct.Position.html" title="struct boa_ast::position::Position">Position</a>,
-    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
+    interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="struct" href="../../lexer/token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>&gt;</h4></section><details class="toggle method-toggle" open><summary><section id="method.next" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#88-90">source</a><h4 class="code-header">pub(super) fn <a href="#method.next" class="fn">next</a>(
     &amp;mut self,
-    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
+    interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.72.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../lexer/token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>&gt;&gt;</h4></section></summary><div class="docblock"><p>Advances the cursor and returns the next token.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.advance" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#98-101">source</a><h4 class="code-header">pub(super) fn <a href="#method.advance" class="fn">advance</a>(&amp;mut self, interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>)</h4></section></summary><div class="docblock"><p>Advances the cursor without returning the next token.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.advance" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#98-101">source</a><h4 class="code-header">pub(super) fn <a href="#method.advance" class="fn">advance</a>(&amp;mut self, interner: &amp;mut Interner)</h4></section></summary><div class="docblock"><p>Advances the cursor without returning the next token.</p>
 <h5 id="panics"><a href="#panics">Panics</a></h5>
 <p>This function will panic if there is no further token in the cursor.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.peek" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#106-112">source</a><h4 class="code-header">pub(super) fn <a href="#method.peek" class="fn">peek</a>(
     &amp;mut self,
     skip_n: <a class="primitive" href="https://doc.rust-lang.org/1.72.0/std/primitive.usize.html">usize</a>,
-    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
+    interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.72.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="struct" href="../../lexer/token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>&gt;&gt;</h4></section></summary><div class="docblock"><p>Peeks a future token, without consuming it or advancing the cursor.</p>
 <p>You can skip some tokens with the <code>skip_n</code> option.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.strict" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#115-117">source</a><h4 class="code-header">pub(super) const fn <a href="#method.strict" class="fn">strict</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.72.0/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>Gets the current strict mode for the cursor.</p>
@@ -48,25 +48,25 @@ This is used to generate unique identifiers tagged template literals.</p>
     &amp;mut self,
     kind: K,
     context: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.72.0/std/primitive.str.html">str</a>,
-    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
+    interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="struct" href="../../lexer/token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>&gt;<span class="where fmt-newline">where
     K: <a class="trait" href="https://doc.rust-lang.org/1.72.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="enum" href="../../lexer/token/enum.TokenKind.html" title="enum boa_parser::lexer::token::TokenKind">TokenKind</a>&gt;,</span></h4></section></summary><div class="docblock"><p>Returns an error if the next token is not of kind <code>kind</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.peek_semicolon" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#191-203">source</a><h4 class="code-header">pub(super) fn <a href="#method.peek_semicolon" class="fn">peek_semicolon</a>(
     &amp;mut self,
-    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
+    interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="enum" href="enum.SemicolonResult.html" title="enum boa_parser::parser::cursor::SemicolonResult">SemicolonResult</a>&lt;'_&gt;&gt;</h4></section></summary><div class="docblock"><p>It will peek for the next token, to see if it’s a semicolon.</p>
 <p>It will automatically insert a semicolon if needed, as specified in the <a href="https://tc39.es/ecma262/#sec-automatic-semicolon-insertion">spec</a>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.expect_semicolon" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#210-231">source</a><h4 class="code-header">pub(super) fn <a href="#method.expect_semicolon" class="fn">expect_semicolon</a>(
     &amp;mut self,
     context: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.72.0/std/primitive.str.html">str</a>,
-    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
+    interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.72.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p>Consumes the next token if it is a semicolon, or returns a <code>Errpr</code> if it’s not.</p>
 <p>It will automatically insert a semicolon if needed, as specified in the <a href="https://tc39.es/ecma262/#sec-automatic-semicolon-insertion">spec</a>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.peek_expect_no_lineterminator" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#239-259">source</a><h4 class="code-header">pub(super) fn <a href="#method.peek_expect_no_lineterminator" class="fn">peek_expect_no_lineterminator</a>(
     &amp;mut self,
     skip_n: <a class="primitive" href="https://doc.rust-lang.org/1.72.0/std/primitive.usize.html">usize</a>,
     context: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.72.0/std/primitive.str.html">str</a>,
-    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
+    interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;&amp;<a class="struct" href="../../lexer/token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>&gt;</h4></section></summary><div class="docblock"><p>It will make sure that the peeked token (skipping n tokens) is not a line terminator.</p>
 <p>It expects that the token stream does not end here.</p>
 <p>This is just syntatic sugar for a <code>.peek(skip_n)</code> call followed by a check that the result
@@ -74,12 +74,12 @@ is not a line terminator or <code>None</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.peek_is_line_terminator" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#262-272">source</a><h4 class="code-header">pub(super) fn <a href="#method.peek_is_line_terminator" class="fn">peek_is_line_terminator</a>(
     &amp;mut self,
     skip_n: <a class="primitive" href="https://doc.rust-lang.org/1.72.0/std/primitive.usize.html">usize</a>,
-    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
+    interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.72.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.72.0/std/primitive.bool.html">bool</a>&gt;&gt;</h4></section></summary><div class="docblock"><p>Check if the peeked token is a line terminator.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.next_if" class="method"><a class="srclink rightside" href="../../../src/boa_parser/parser/cursor/mod.rs.html#279-296">source</a><h4 class="code-header">pub(super) fn <a href="#method.next_if" class="fn">next_if</a>&lt;K&gt;(
     &amp;mut self,
     kind: K,
-    interner: &amp;mut <a class="struct" href="../../../boa_interner/struct.Interner.html" title="struct boa_interner::Interner">Interner</a>
+    interner: &amp;mut Interner
 ) -&gt; <a class="type" href="../../error/type.ParseResult.html" title="type boa_parser::error::ParseResult">ParseResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.72.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../lexer/token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>&gt;&gt;<span class="where fmt-newline">where
     K: <a class="trait" href="https://doc.rust-lang.org/1.72.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="enum" href="../../lexer/token/enum.TokenKind.html" title="enum boa_parser::lexer::token::TokenKind">TokenKind</a>&gt;,</span></h4></section></summary><div class="docblock"><p>Advance the cursor to the next token and retrieve it, only if it’s of <code>kind</code> type.</p>
 <p>When the next token is a <code>kind</code> token, get the token, otherwise return <code>None</code>.</p>
