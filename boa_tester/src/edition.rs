@@ -87,7 +87,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "String.prototype.toWellFormed" => SpecEdition::ESNext,
 
     // Standard language features
-
     "AggregateError" => SpecEdition::ES12,
     "align-detached-buffer-semantics-with-web-reality" => SpecEdition::ES12,
     "arbitrary-module-namespace-names" => SpecEdition::ES13,
