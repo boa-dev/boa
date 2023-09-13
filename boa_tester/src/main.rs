@@ -434,7 +434,7 @@ impl AddAssign for Statistics {
 }
 
 /// Represents tests statistics separated by ECMAScript edition
-#[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Copy, Clone, Serialize)]
 struct VersionedStats {
     es5: Statistics,
     es6: Statistics,
@@ -445,6 +445,58 @@ struct VersionedStats {
     es11: Statistics,
     es12: Statistics,
     es13: Statistics,
+    es14: Statistics,
+}
+
+impl<'de> Deserialize<'de> for VersionedStats {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct Inner {
+            es5: Statistics,
+            es6: Statistics,
+            es7: Statistics,
+            es8: Statistics,
+            es9: Statistics,
+            es10: Statistics,
+            es11: Statistics,
+            es12: Statistics,
+            es13: Statistics,
+            #[serde(default)]
+            es14: Option<Statistics>,
+        }
+
+        let inner = Inner::deserialize(deserializer)?;
+
+        let Inner {
+            es5,
+            es6,
+            es7,
+            es8,
+            es9,
+            es10,
+            es11,
+            es12,
+            es13,
+            es14,
+        } = inner;
+        let es14 = es14.unwrap_or(es13);
+
+        Ok(Self {
+            es5,
+            es6,
+            es7,
+            es8,
+            es9,
+            es10,
+            es11,
+            es12,
+            es13,
+            es14,
+        })
+    }
 }
 
 impl VersionedStats {
@@ -471,6 +523,7 @@ impl VersionedStats {
             SpecEdition::ES11 => self.es11,
             SpecEdition::ES12 => self.es12,
             SpecEdition::ES13 => self.es13,
+            SpecEdition::ES14 => self.es14,
             SpecEdition::ESNext => return None,
         };
         Some(stats)
@@ -489,6 +542,7 @@ impl VersionedStats {
             SpecEdition::ES11 => &mut self.es11,
             SpecEdition::ES12 => &mut self.es12,
             SpecEdition::ES13 => &mut self.es13,
+            SpecEdition::ES14 => &mut self.es14,
             SpecEdition::ESNext => return None,
         };
         Some(stats)
@@ -509,6 +563,7 @@ impl Add for VersionedStats {
             es11: self.es11 + rhs.es11,
             es12: self.es12 + rhs.es12,
             es13: self.es13 + rhs.es13,
+            es14: self.es14 + rhs.es14,
         }
     }
 }
@@ -524,6 +579,7 @@ impl AddAssign for VersionedStats {
         self.es11 += rhs.es11;
         self.es12 += rhs.es12;
         self.es13 += rhs.es13;
+        self.es14 += rhs.es14;
     }
 }
 

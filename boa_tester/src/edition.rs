@@ -80,23 +80,18 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-iterator-helpers
     "iterator-helpers" => SpecEdition::ESNext,
 
-    // Part of the next ES14 edition
+    // Part of the next ES15 edition
     "Atomics.waitAsync"  => SpecEdition::ESNext,
-    "array-find-from-last" => SpecEdition::ESNext,
-    "change-array-by-copy" => SpecEdition::ESNext,
-    "hashbang" => SpecEdition::ESNext,
-    "Intl-enumeration" => SpecEdition::ESNext,
     "regexp-v-flag" => SpecEdition::ESNext,
     "String.prototype.isWellFormed" => SpecEdition::ESNext,
     "String.prototype.toWellFormed" => SpecEdition::ESNext,
-    "symbols-as-weakmap-keys" => SpecEdition::ESNext,
 
     // Standard language features
-
     "AggregateError" => SpecEdition::ES12,
     "align-detached-buffer-semantics-with-web-reality" => SpecEdition::ES12,
     "arbitrary-module-namespace-names" => SpecEdition::ES13,
     "ArrayBuffer" => SpecEdition::ES6,
+    "array-find-from-last" => SpecEdition::ES14,
     "Array.prototype.at" => SpecEdition::ES13,
     "Array.prototype.flat" => SpecEdition::ES10,
     "Array.prototype.flatMap" => SpecEdition::ES10,
@@ -108,6 +103,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "Atomics" => SpecEdition::ES8,
     "BigInt" => SpecEdition::ES11,
     "caller" => SpecEdition::ES5,
+    "change-array-by-copy" => SpecEdition::ES14,
     "class" => SpecEdition::ES6,
     "class-fields-private" => SpecEdition::ES13,
     "class-fields-private-in" => SpecEdition::ES13,
@@ -144,10 +140,12 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "Float64Array" => SpecEdition::ES6,
     "generators" => SpecEdition::ES6,
     "globalThis" => SpecEdition::ES11,
+    "hashbang" => SpecEdition::ES14,
     "import.meta" => SpecEdition::ES11,
     "Int8Array" => SpecEdition::ES6,
     "Int16Array" => SpecEdition::ES6,
     "Int32Array" => SpecEdition::ES6,
+    "Intl-enumeration" => SpecEdition::ES14,
     "intl-normative-optional" => SpecEdition::ES8,
     "Intl.DateTimeFormat-datetimestyle" => SpecEdition::ES12,
     "Intl.DateTimeFormat-dayPeriod" => SpecEdition::ES8,
@@ -203,6 +201,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "String.prototype.trimStart" => SpecEdition::ES10,
     "super" => SpecEdition::ES6,
     "Symbol" => SpecEdition::ES6,
+    "symbols-as-weakmap-keys" => SpecEdition::ES14,
     "Symbol.asyncIterator" => SpecEdition::ES9,
     "Symbol.hasInstance" => SpecEdition::ES6,
     "Symbol.isConcatSpreadable" => SpecEdition::ES6,
@@ -293,11 +292,15 @@ pub(crate) enum SpecEdition {
     ///
     /// <https://262.ecma-international.org/13.0>
     ES13,
+    /// ECMAScript 14th Edition
+    ///
+    /// <https://262.ecma-international.org/14.0>
+    ES14,
     /// The edition being worked on right now.
     ///
     /// A draft is currently available [here](https://tc39.es/ecma262).
     #[default]
-    ESNext,
+    ESNext = 255,
 }
 
 impl Display for SpecEdition {
@@ -355,6 +358,7 @@ impl SpecEdition {
             Self::ES11,
             Self::ES12,
             Self::ES13,
+            Self::ES14,
             Self::ESNext,
         ]
         .into_iter()
