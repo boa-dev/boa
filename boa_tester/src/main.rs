@@ -484,7 +484,7 @@ impl<'de> Deserialize<'de> for VersionedStats {
         } = inner;
         let es14 = es14.unwrap_or(es13);
 
-        Ok(VersionedStats {
+        Ok(Self {
             es5,
             es6,
             es7,
