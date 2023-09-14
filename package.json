@@ -6,7 +6,7 @@
     "build:prod": "webpack --mode=production"
   },
   "devDependencies": {
-    "@playwright/test": "^1.37.1",
+    "@playwright/test": "^1.38.0",
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",
     "bootstrap": "^5.3.1",
     "clean-webpack-plugin": "^4.0.0",
