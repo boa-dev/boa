@@ -18,6 +18,7 @@ fn temporal_parser_basic() {
 }
 
 #[test]
+#[allow(clippy::cast_possible_truncation)]
 fn temporal_date_time_max() {
     use super::{IsoCursor, TemporalDateTimeString};
     // Fractions not accurate, but for testing purposes.
@@ -29,14 +30,14 @@ fn temporal_date_time_max() {
 
     assert_eq!(time_results.hour, 12);
     assert_eq!(time_results.minute, 28);
-    assert_eq!(time_results.second, 32.329402834);
+    assert_eq!(time_results.second.mul_add(f64::from(100_000), 0.0).trunc() as i64, 32.329_402_834_f64.mul_add(100_000_f64, 0.0).trunc() as i64);
 
     let offset_results = &result.offset.unwrap();
 
     assert_eq!(offset_results.sign, -1);
     assert_eq!(offset_results.hour, 3);
     assert_eq!(offset_results.minute, 0);
-    assert_eq!(offset_results.second, 0.123456789);
+    assert_eq!(offset_results.second.mul_add(f64::from(1_000_000), 0.0).trunc() as i64, 0.123_456_789_f64.mul_add(1_000_000_f64, 0.0).trunc() as i64);
 
     let tz = &result.tz_annotation.unwrap();
 
@@ -44,9 +45,9 @@ fn temporal_date_time_max() {
 
     match &tz.tz {
         boa_ast::temporal::TzIdentifier::TzIANAName(id) => {
-            assert_eq!(id, "America/Argentina/ComodRivadavia")
+            assert_eq!(id, "America/Argentina/ComodRivadavia");
         }
-        _ => unreachable!(),
+        boa_ast::temporal::TzIdentifier::UtcOffset(_) => unreachable!(),
     }
 
     let annotations = &result.annotations.unwrap();
@@ -82,9 +83,9 @@ fn temporal_annotated_date_time() {
     if let Some(tz) = &result.tz_annotation {
         match &tz.tz {
             boa_ast::temporal::TzIdentifier::TzIANAName(id) => {
-                assert_eq!(id, "America/Argentina/ComodRivadavia")
+                assert_eq!(id, "America/Argentina/ComodRivadavia");
             }
-            _ => unreachable!(),
+            boa_ast::temporal::TzIdentifier::UtcOffset(_) => unreachable!(),
         }
     }
 
@@ -93,7 +94,7 @@ fn temporal_annotated_date_time() {
         assert_eq!(
             annotations.get("u-ca"),
             Some(&(false, "iso8601".to_string()))
-        )
+        );
     }
 
     let omit_result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(omitted)).unwrap();
@@ -105,7 +106,7 @@ fn temporal_annotated_date_time() {
         assert_eq!(
             annotations.get("u-ca"),
             Some(&(false, "iso8601".to_string()))
-        )
+        );
     }
 }
 
@@ -130,7 +131,7 @@ fn temporal_year_month() {
         if let Some(annotation) = &result.tz_annotation {
             match &annotation.tz {
                 TzIdentifier::UtcOffset(utc) => assert_eq!(utc.hour, 4),
-                _ => unreachable!(),
+                TzIdentifier::TzIANAName(_) => unreachable!(),
             }
         }
     }
