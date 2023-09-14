@@ -693,15 +693,15 @@ pub(crate) fn create_temporal_calendar(
         identifier: identifier.clone(),
     };
     // 2. If newTarget is not provided, set newTarget to %Temporal.Calendar%.
-    let new_target = new_target.unwrap_or_else(||
+    let new_target = new_target.unwrap_or_else(|| {
         context
             .realm()
             .intrinsics()
             .constructors()
             .calendar()
             .constructor()
-            .into(),
-    );
+            .into()
+    });
 
     // 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Calendar.prototype%", « [[InitializedTemporalCalendar]], [[Identifier]] »).
     let proto =
@@ -1029,7 +1029,7 @@ pub(crate) fn calendar_year(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarYear result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1064,7 +1064,7 @@ pub(crate) fn calendar_month(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarYear result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1133,7 +1133,7 @@ pub(crate) fn calendar_day(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarYear result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1175,7 +1175,7 @@ pub(crate) fn calendar_day_of_week(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarDayOfWeek result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1217,7 +1217,7 @@ pub(crate) fn calendar_day_of_year(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarDayOfYear result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1259,7 +1259,7 @@ pub(crate) fn calendar_week_of_year(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarWeekOfYear result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1301,7 +1301,7 @@ pub(crate) fn calendar_year_of_week(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarYearOfWeek result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1336,7 +1336,7 @@ pub(crate) fn calendar_days_in_week(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarDaysInWeek result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1378,7 +1378,7 @@ pub(crate) fn calendar_days_in_month(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarDaysInMonth result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1420,7 +1420,7 @@ pub(crate) fn calendar_days_in_year(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarDaysInYear result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1462,7 +1462,7 @@ pub(crate) fn calendar_months_in_year(
     let Some(number) = result.as_number() else {
         return Err(JsNativeError::typ()
             .with_message("CalendarMonthsInYear result must be a number.")
-            .into())
+            .into());
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.

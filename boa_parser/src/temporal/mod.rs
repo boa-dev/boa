@@ -158,12 +158,20 @@ impl IsoCursor {
 
     /// Peek the value at the current position.
     fn peek(&self) -> Option<char> {
-        if self.pos < self.source.len() { Some(self.source[self.pos]) } else { None }
+        if self.pos < self.source.len() {
+            Some(self.source[self.pos])
+        } else {
+            None
+        }
     }
 
     /// Peek the value at n len from current.
     fn peek_n(&self, n: usize) -> Option<char> {
-        if self.pos + n < self.source.len() { Some(self.source[self.pos]) } else { None }
+        if self.pos + n < self.source.len() {
+            Some(self.source[self.pos + n])
+        } else {
+            None
+        }
     }
 
     /// Returns boolean if current position passes check.

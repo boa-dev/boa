@@ -727,20 +727,27 @@ fn add_or_subtract_duration_from_instant(
     let duration = super::to_temporal_duration_record(temporal_duration_like)?;
     // 3. If duration.[[Days]] is not 0, throw a RangeError exception.
     if duration.days() != 0_f64 {
-        return Err(JsNativeError::range().with_message("DurationDays cannot be 0").into())
+        return Err(JsNativeError::range()
+            .with_message("DurationDays cannot be 0")
+            .into());
     }
     // 4. If duration.[[Months]] is not 0, throw a RangeError exception.
     if duration.months() != 0_f64 {
-        return Err(JsNativeError::range().with_message("DurationMonths cannot be 0").into())
+        return Err(JsNativeError::range()
+            .with_message("DurationMonths cannot be 0")
+            .into());
     }
     // 5. If duration.[[Weeks]] is not 0, throw a RangeError exception.
     if duration.weeks() != 0_f64 {
-        return Err(JsNativeError::range().with_message("DurationWeeks cannot be 0").into())
-
+        return Err(JsNativeError::range()
+            .with_message("DurationWeeks cannot be 0")
+            .into());
     }
     // 6. If duration.[[Years]] is not 0, throw a RangeError exception.
     if duration.years() != 0_f64 {
-        return Err(JsNativeError::range().with_message("DurationYears cannot be 0").into())
+        return Err(JsNativeError::range()
+            .with_message("DurationYears cannot be 0")
+            .into());
     }
     // 7. Let ns be ? AddInstant(instant.[[Nanoseconds]], sign × duration.[[Hours]],
     // sign × duration.[[Minutes]], sign × duration.[[Seconds]], sign × duration.[[Milliseconds]],

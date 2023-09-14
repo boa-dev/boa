@@ -74,6 +74,12 @@ use crate::{
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
+#[cfg(feature = "temporal")]
+use crate::builtins::temporal::{
+    Calendar, Duration, Instant, PlainDate, PlainDateTime, PlainMonthDay, PlainTime,
+    PlainYearMonth, TimeZone, ZonedDateTime,
+};
+
 use boa_gc::{custom_trace, Finalize, Trace, WeakGc};
 use std::{
     any::{Any, TypeId},

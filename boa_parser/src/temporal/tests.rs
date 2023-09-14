@@ -4,12 +4,10 @@ fn temporal_parser_basic() {
     let basic = "20201108";
     let basic_separated = "2020-11-08";
 
-    let basic_result =
-        TemporalDateTimeString::parse(false, &mut IsoCursor::new(basic)).unwrap();
+    let basic_result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(basic)).unwrap();
 
     let sep_result =
-        TemporalDateTimeString::parse(false, &mut IsoCursor::new(basic_separated))
-            .unwrap();
+        TemporalDateTimeString::parse(false, &mut IsoCursor::new(basic_separated)).unwrap();
 
     assert_eq!(basic_result.date.year, 2020);
     assert_eq!(basic_result.date.month, 11);
@@ -25,8 +23,7 @@ fn temporal_date_time_max() {
     // Fractions not accurate, but for testing purposes.
     let date_time = "+002020-11-08T12:28:32.329402834-03:00:00.123456789[!America/Argentina/ComodRivadavia][!u-ca=iso8601]";
 
-    let result =
-        TemporalDateTimeString::parse(false, &mut IsoCursor::new(date_time)).unwrap();
+    let result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(date_time)).unwrap();
 
     let time_results = &result.time.unwrap();
 
@@ -67,12 +64,10 @@ fn temporal_year_parsing() {
     let long = "+002020-11-08";
     let bad_year = "-000000-11-08";
 
-    let result_good =
-        TemporalDateTimeString::parse(false, &mut IsoCursor::new(long)).unwrap();
+    let result_good = TemporalDateTimeString::parse(false, &mut IsoCursor::new(long)).unwrap();
     assert_eq!(result_good.date.year, 2020);
 
-    let err_result =
-        TemporalDateTimeString::parse(false, &mut IsoCursor::new(bad_year));
+    let err_result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(bad_year));
     assert!(err_result.is_err());
 }
 
@@ -82,8 +77,7 @@ fn temporal_annotated_date_time() {
     let basic = "2020-11-08[America/Argentina/ComodRivadavia][u-ca=iso8601][foo=bar]";
     let omitted = "+0020201108[u-ca=iso8601][f-1a2b=a0sa-2l4s]";
 
-    let result =
-        TemporalDateTimeString::parse(false, &mut IsoCursor::new(basic)).unwrap();
+    let result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(basic)).unwrap();
 
     if let Some(tz) = &result.tz_annotation {
         match &tz.tz {
@@ -102,8 +96,7 @@ fn temporal_annotated_date_time() {
         )
     }
 
-    let omit_result =
-        TemporalDateTimeString::parse(false, &mut IsoCursor::new(omitted)).unwrap();
+    let omit_result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(omitted)).unwrap();
 
     assert!(&omit_result.tz_annotation.is_none());
 

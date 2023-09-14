@@ -2,7 +2,10 @@
 use crate::{
     error::{Error, ParseResult},
     lexer::Error as LexError,
-    temporal::{grammar::{is_a_key_char, is_a_key_leading_char, is_annotation_value_component}, time_zone, IsoCursor},
+    temporal::{
+        grammar::{is_a_key_char, is_a_key_leading_char, is_annotation_value_component},
+        time_zone, IsoCursor,
+    },
 };
 
 use boa_ast::{

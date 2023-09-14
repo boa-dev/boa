@@ -975,7 +975,8 @@ pub(crate) fn get_diff_settings(
         Some(&fallback_smallest_unit.clone().into()),
         None,
         context,
-    )?.expect("smallestUnit must be a string as default value is not undefined.");
+    )?
+    .expect("smallestUnit must be a string as default value is not undefined.");
 
     // 8. If disallowedUnits contains smallestUnit, throw a RangeError exception.
     if disallowed_units.contains(&smallest_unit) {

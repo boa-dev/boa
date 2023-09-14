@@ -155,8 +155,7 @@ impl IsoDateRecord {
             return false;
         }
 
-        let days_in_month =
-            temporal::calendar::utils::iso_days_in_month(self.year, self.month);
+        let days_in_month = temporal::calendar::utils::iso_days_in_month(self.year, self.month);
 
         if self.day < 1 || self.day > days_in_month {
             return false;

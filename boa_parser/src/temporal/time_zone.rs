@@ -1,7 +1,10 @@
 //! ISO8601 parsing for Time Zone and Offset data.
 
 use super::{
-    grammar::{is_a_key_char, is_a_key_leading_char, is_decimal_separator, is_sign, is_tz_char, is_tz_leading_char, is_utc_designator},
+    grammar::{
+        is_a_key_char, is_a_key_leading_char, is_decimal_separator, is_sign, is_tz_char,
+        is_tz_leading_char, is_utc_designator,
+    },
     time::{parse_fraction, parse_hour, parse_minute_second},
     IsoCursor,
 };
@@ -57,13 +60,15 @@ pub(crate) fn parse_ambiguous_tz_annotation(
 
                 peek_pos += 1;
             }
-            return Err(Error::AbruptEnd)
+            return Err(Error::AbruptEnd);
         }
         let tz = parse_tz_annotation(cursor)?;
-        return Ok(Some(tz))
+        return Ok(Some(tz));
     }
 
-    if is_a_key_leading_char(leading_char) { return Ok(None) };
+    if is_a_key_leading_char(leading_char) {
+        return Ok(None);
+    };
 
     Err(Error::lex(LexError::syntax(
         "Unexpected character in ambiguous annotation.",

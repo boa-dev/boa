@@ -14,9 +14,7 @@ pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
     let hour = parse_hour(cursor)?;
     let mut separator = false;
 
-    if cursor
-        .check_or(false, |ch| ch == ':' || ch.is_ascii_digit())
-    {
+    if cursor.check_or(false, |ch| ch == ':' || ch.is_ascii_digit()) {
         if cursor.check_or(false, |ch| ch == ':') {
             separator = true;
             cursor.advance();
@@ -31,9 +29,7 @@ pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
 
     let minute = parse_minute_second(cursor, false)?;
 
-    if cursor
-        .check_or(false, |ch| ch == ':' || ch.is_ascii_digit())
-    {
+    if cursor.check_or(false, |ch| ch == ':' || ch.is_ascii_digit()) {
         let is_time_separator = cursor.check_or(false, |ch| ch == ':');
         if separator && is_time_separator {
             cursor.advance();
@@ -54,9 +50,7 @@ pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
 
     let second = parse_minute_second(cursor, true)?;
 
-    let double = if cursor
-        .check_or(false,is_decimal_separator)
-    {
+    let double = if cursor.check_or(false, is_decimal_separator) {
         f64::from(second) + parse_fraction(cursor)?
     } else {
         f64::from(second)

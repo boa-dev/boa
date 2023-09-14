@@ -15,7 +15,7 @@ use icu_datetime::provider::calendar;
 
 use self::iso::IsoDateRecord;
 
-use super::{get_options_object, to_temporal_overflow, plain_date_time};
+use super::{get_options_object, plain_date_time, to_temporal_overflow};
 
 pub(crate) mod iso;
 
@@ -308,77 +308,66 @@ impl PlainDate {
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     fn to_plain_month_day(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     fn get_iso_fields(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     fn get_calendar(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     fn add(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     fn subtract(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     fn with(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     fn with_calendar(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     fn until(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     fn since(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     fn equals(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
@@ -404,7 +393,9 @@ pub(crate) fn create_temporal_date(
             .into());
     };
 
-    let iso_date_time = plain_date_time::iso::IsoDateTimeRecord::default().with_date(iso_date.year(), iso_date.month(), iso_date.day()).with_time(12, 0, 0, 0, 0, 0);
+    let iso_date_time = plain_date_time::iso::IsoDateTimeRecord::default()
+        .with_date(iso_date.year(), iso_date.month(), iso_date.day())
+        .with_time(12, 0, 0, 0, 0, 0);
 
     // 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
     if iso_date_time.is_valid() {

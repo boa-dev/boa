@@ -1025,7 +1025,9 @@ impl DurationRecord {
             if relative_to_obj.is_zoned_date_time() {
                 // i. Set zonedRelativeTo to relativeTo.
                 // TODO: ii. Set relativeTo to ? ToTemporalDate(relativeTo).
-                return Err(JsNativeError::range().with_message("ZonedDateTime is not yet implemented.").into())
+                return Err(JsNativeError::range()
+                    .with_message("ZonedDateTime is not yet implemented.")
+                    .into());
                 // b. Else,
             };
 
@@ -1257,8 +1259,8 @@ impl DurationRecord {
             }
             // 10. Else if unit is "month", then
             "month" => {
-                let mut relative_to =
-                    relative_to.expect("relative_to must exist if unit is a month")
+                let mut relative_to = relative_to
+                    .expect("relative_to must exist if unit is a month")
                     .clone();
                 let calendar_obj = calendar.expect("calendar must exist at this point.");
 
@@ -1328,12 +1330,8 @@ impl DurationRecord {
                 )?;
 
                 // l. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
-                let move_result = super::move_relative_date(
-                    &calendar_obj,
-                    &relative_to,
-                    &one_month,
-                    context,
-                )?;
+                let move_result =
+                    super::move_relative_date(&calendar_obj, &relative_to, &one_month, context)?;
 
                 // m. Set relativeTo to moveResult.[[RelativeTo]].
                 relative_to = move_result.0;
@@ -1376,8 +1374,8 @@ impl DurationRecord {
             }
             // 11. Else if unit is "week", then
             "week" => {
-                let mut relative_to =
-                    relative_to.expect("relative_to must exist if unit is a month")
+                let mut relative_to = relative_to
+                    .expect("relative_to must exist if unit is a month")
                     .clone();
                 let calendar_obj = calendar.expect("calendar must exist at this point.");
                 // a. If days < 0, let sign be -1; else, let sign be 1.
@@ -1399,12 +1397,8 @@ impl DurationRecord {
                     .into();
 
                 // e. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
-                let move_result = super::move_relative_date(
-                    &calendar_obj,
-                    &relative_to,
-                    &one_week,
-                    context,
-                )?;
+                let move_result =
+                    super::move_relative_date(&calendar_obj, &relative_to, &one_week, context)?;
 
                 // f. Set relativeTo to moveResult.[[RelativeTo]].
                 relative_to = move_result.0;

@@ -3,7 +3,11 @@
 use crate::{
     error::{Error, ParseResult},
     lexer::Error as LexError,
-    temporal::{annotations, grammar::{is_date_time_separator, is_sign, is_utc_designator}, time, time_zone, IsoCursor},
+    temporal::{
+        annotations,
+        grammar::{is_date_time_separator, is_sign, is_utc_designator},
+        time, time_zone, IsoCursor,
+    },
 };
 
 use boa_ast::{

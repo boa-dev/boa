@@ -383,8 +383,7 @@ impl TemporalFields {
                 FieldMap::MONTH => {
                     obj.create_data_property_or_throw(
                         "month",
-                        self.month
-                            .map_or(JsValue::undefined(), JsValue::from),
+                        self.month.map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
@@ -400,8 +399,7 @@ impl TemporalFields {
                 FieldMap::DAY => {
                     obj.create_data_property(
                         "day",
-                        self.day()
-                            .map_or(JsValue::undefined(), JsValue::from),
+                        self.day().map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
@@ -444,8 +442,7 @@ impl TemporalFields {
                 FieldMap::ERA_YEAR => {
                     obj.create_data_property_or_throw(
                         "eraYear",
-                        self.era_year
-                            .map_or(JsValue::undefined(), JsValue::from),
+                        self.era_year.map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }

@@ -56,7 +56,8 @@ impl IsoDateTimeRecord {
         let ns = self.get_utc_epoch_ns(None).to_f64();
 
         if ns <= temporal::ns_min_instant().to_f64() - (temporal::NS_PER_DAY as f64)
-            || ns >= temporal::ns_max_instant().to_f64() + (temporal::NS_PER_DAY as f64) {
+            || ns >= temporal::ns_max_instant().to_f64() + (temporal::NS_PER_DAY as f64)
+        {
             return false;
         }
         true

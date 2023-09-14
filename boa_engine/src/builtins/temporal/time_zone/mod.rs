@@ -359,15 +359,14 @@ fn parse_timezone_offset_string(offset_string: &str, context: &mut Context<'_>) 
     use boa_parser::temporal::{IsoCursor, TemporalTimeZoneString};
 
     // 1. Let parseResult be ParseText(StringToCodePoints(offsetString), UTCOffset).
-    let parse_result =
-        TemporalTimeZoneString::parse(&mut IsoCursor::new(offset_string))?;
+    let parse_result = TemporalTimeZoneString::parse(&mut IsoCursor::new(offset_string))?;
 
     // 2. Assert: parseResult is not a List of errors.
     // 3. Assert: parseResult contains a TemporalSign Parse Node.
     let TzIdentifier::UtcOffset(utc_offset) = parse_result else {
         return Err(JsNativeError::typ()
             .with_message("Offset string was not a valid offset")
-            .into())
+            .into());
     };
 
     // 4. Let parsedSign be the source text matched by the TemporalSign Parse Node contained within
