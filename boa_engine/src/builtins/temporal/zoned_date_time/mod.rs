@@ -4,7 +4,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     realm::Realm,
-    Context, JsBigInt, JsObject, JsResult, JsSymbol, JsValue,
+    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -49,7 +49,10 @@ impl BuiltInConstructor for ZonedDateTime {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        todo!()
+        // TODO: Implement ZonedDateTime.
+        Err(JsNativeError::error()
+            .with_message("%ZonedDateTime% not yet implemented.")
+            .into())
     }
 }
 
@@ -75,7 +78,9 @@ pub(crate) fn add_zoned_date_time(
     // 9. Let intermediateDateTime be ? CreateTemporalDateTime(addedDate.[[ISOYear]], addedDate.[[ISOMonth]], addedDate.[[ISODay]], temporalDateTime.[[ISOHour]], temporalDateTime.[[ISOMinute]], temporalDateTime.[[ISOSecond]], temporalDateTime.[[ISOMillisecond]], temporalDateTime.[[ISOMicrosecond]], temporalDateTime.[[ISONanosecond]], calendar).
     // 10. Let intermediateInstant be ? GetInstantFor(timeZone, intermediateDateTime, "compatible").
     // 11. Return ? AddInstant(intermediateInstant.[[Nanoseconds]], hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
-    todo!()
+    Err(JsNativeError::error()
+        .with_message("%ZonedDateTime% not yet implemented.")
+        .into())
 }
 
 /// 6.5.7 `NanosecondsToDays ( nanoseconds, relativeTo )`
@@ -121,5 +126,7 @@ pub(crate) fn nanoseconds_to_days(
     // 22. If nanoseconds > 0 and sign = -1, throw a RangeError exception.
     // 23. Assert: The inequality abs(nanoseconds) < abs(dayLengthNs) holds.
     // 24. Return the Record { [[Days]]: days, [[Nanoseconds]]: nanoseconds, [[DayLength]]: abs(dayLengthNs) }.
-    todo!()
+    Err(JsNativeError::error()
+        .with_message("%ZonedDateTime% not yet implemented.")
+        .into())
 }

@@ -39,6 +39,9 @@ pub mod escape;
 #[cfg(feature = "intl")]
 pub mod intl;
 
+#[cfg(feature = "experimental")]
+pub mod temporal;
+
 // TODO: remove `cfg` when `Temporal` gets to stage 4.
 #[cfg(any(feature = "intl", feature = "experimental"))]
 pub(crate) mod options;
@@ -276,10 +279,11 @@ impl Realm {
             intl::PluralRules::init(self);
         }
 
-        #[cfg(feature = "temporal")]
+        #[cfg(feature = "experimental")]
         {
             temporal::TimeZone::init(self);
             temporal::Temporal::init(self);
+            temporal::Now::init(self);
             temporal::Instant::init(self);
             temporal::Duration::init(self);
             temporal::PlainDate::init(self);

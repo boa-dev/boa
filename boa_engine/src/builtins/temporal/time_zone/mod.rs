@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
-use boa_ast::temporal::{UtcOffset, TzIdentifier};
+use boa_ast::temporal::{TzIdentifier, UtcOffset};
+use chrono::format::parse;
 
 use crate::{
     builtins::{
@@ -148,10 +149,12 @@ impl TimeZone {
         let _i = args.get_or_undefined(0);
         // TODO: to_temporal_instant is abstract operation for Temporal.Instant objects.
         // let instant = to_temporal_instant(i)?;
-        todo!()
 
         // 4. If timeZone.[[OffsetNanoseconds]] is not undefined, return 𝔽(timeZone.[[OffsetNanoseconds]]).
         // 5. Return 𝔽(GetNamedTimeZoneOffsetNanoseconds(timeZone.[[Identifier]], instant.[[Nanoseconds]])).
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     pub(crate) fn get_offset_string_for(
@@ -175,7 +178,9 @@ impl TimeZone {
         let _i = args.get_or_undefined(0);
         // TODO: to_temporal_instant is abstract operation for Temporal.Instant objects.
         // let instant = to_temporal_instant(i)?;
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
 
         // 4. Return ? GetOffsetStringFor(timeZone, instant).
     }
@@ -185,7 +190,9 @@ impl TimeZone {
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     pub(crate) fn get_instant_for(
@@ -193,7 +200,9 @@ impl TimeZone {
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     pub(crate) fn get_possible_instants_for(
@@ -201,7 +210,9 @@ impl TimeZone {
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     pub(crate) fn get_next_transition(
@@ -209,7 +220,9 @@ impl TimeZone {
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     pub(crate) fn get_previous_transition(
@@ -217,7 +230,9 @@ impl TimeZone {
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     pub(crate) fn to_string(
@@ -280,7 +295,15 @@ pub(super) fn create_temporal_time_zone(
     context: &mut Context<'_>,
 ) -> JsResult<JsValue> {
     // 1. If newTarget is not present, set newTarget to %Temporal.TimeZone%.
-    let new_target = new_target.unwrap_or_else(|| todo!("%Temporal.TimeZone%"));
+    let new_target = new_target.unwrap_or_else(|| {
+        context
+            .realm()
+            .intrinsics()
+            .constructors()
+            .time_zone()
+            .prototype()
+            .into()
+    });
 
     // 2. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.TimeZone.prototype%", « [[InitializedTemporalTimeZone]], [[Identifier]], [[OffsetNanoseconds]] »).
     let prototype =
@@ -336,22 +359,24 @@ fn parse_timezone_offset_string(offset_string: &str, context: &mut Context<'_>) 
     use boa_parser::temporal::{IsoCursor, TemporalTimeZoneString};
 
     // 1. Let parseResult be ParseText(StringToCodePoints(offsetString), UTCOffset).
-    let parse_result = TemporalTimeZoneString::parse(&mut IsoCursor::new(offset_string.to_string()))?;
+    let parse_result =
+        TemporalTimeZoneString::parse(&mut IsoCursor::new(offset_string))?;
 
     // 2. Assert: parseResult is not a List of errors.
     // 3. Assert: parseResult contains a TemporalSign Parse Node.
-    let utc_offset = match parse_result {
-        TzIdentifier::UtcOffset(utc)=>utc,
-        _=> return Err(JsNativeError::typ().with_message("Offset string was not a valid offset").into())
+    let TzIdentifier::UtcOffset(utc_offset) = parse_result else {
+        return Err(JsNativeError::typ()
+            .with_message("Offset string was not a valid offset")
+            .into())
     };
 
     // 4. Let parsedSign be the source text matched by the TemporalSign Parse Node contained within
     //    parseResult.
     // 5. If parsedSign is the single code point U+002D (HYPHEN-MINUS) or U+2212 (MINUS SIGN), then
     let sign = utc_offset.sign;
-        // a. Let sign be -1.
-        // 6. Else,
-        // a. Let sign be 1.
+    // a. Let sign be -1.
+    // 6. Else,
+    // a. Let sign be 1.
 
     // 7. NOTE: Applications of StringToNumber below do not lose precision, since each of the parsed
     //    values is guaranteed to be a sufficiently short string of decimal digits.
@@ -379,7 +404,9 @@ fn parse_timezone_offset_string(offset_string: &str, context: &mut Context<'_>) 
     // d. Let nanoseconds be ℝ(StringToNumber(nanosecondsString)).
     // 17. Return sign × (((hours × 60 + minutes) × 60 + seconds) × 10^9 + nanoseconds).
 
-    todo!()
+    Err(JsNativeError::error()
+        .with_message("not yet implemented.")
+        .into())
 }
 
 /// Abstract operation `FormatTimeZoneOffsetString ( offsetNanoseconds )`

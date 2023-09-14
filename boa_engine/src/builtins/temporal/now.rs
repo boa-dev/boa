@@ -94,37 +94,51 @@ impl Now {
 
     /// `Temporal.Now.instant()`
     fn instant(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// `Temporal.Now.plainDateTime()`
     fn plain_date_time(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// `Temporal.Now.plainDateTimeISO`
     fn plain_date_time_iso(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// `Temporal.Now.zonedDateTime`
     fn zoned_date_time(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// `Temporal.Now.zonedDateTimeISO`
     fn zoned_date_time_iso(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// `Temporal.Now.plainDate()`
     fn plain_date(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// `Temporal.Now.plainDateISO`
     fn plain_date_iso(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        todo!()
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 }
 

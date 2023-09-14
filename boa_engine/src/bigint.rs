@@ -229,7 +229,7 @@ impl JsBigInt {
     #[inline]
     #[must_use]
     pub fn add_n(values: &[Self]) -> Self {
-        let mut result = JsBigInt::zero();
+        let mut result = Self::zero();
         for big_int in values {
             result = Self::add(&result, big_int);
         }

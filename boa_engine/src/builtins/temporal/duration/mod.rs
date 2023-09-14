@@ -266,7 +266,7 @@ impl Duration {
             DateTimeValues::Millisecond => Ok(JsValue::Rational(duration.inner.milliseconds())),
             DateTimeValues::Microsecond => Ok(JsValue::Rational(duration.inner.microseconds())),
             DateTimeValues::Nanosecond => Ok(JsValue::Rational(duration.inner.nanoseconds())),
-            _ => unreachable!(
+            DateTimeValues::MonthCode => unreachable!(
                 "Any other DateTimeValue fields on Duration would be an implementation error."
             ),
         }
@@ -424,60 +424,40 @@ impl Duration {
         // a. Let nanoseconds be duration.[[Nanoseconds]].
         // 24. Return ? CreateTemporalDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
 
-        todo!()
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// 7.3.16 `Temporal.Duration.prototype.negated ( )`
     pub(crate) fn negated(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("this value of Duration must be an object.")
-        })?;
-        let o = o.borrow();
-        let _duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message("the this object must be a Duration object.")
-        })?;
-
         // 3. Return ! CreateNegatedTemporalDuration(duration).
 
-        todo!()
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// 7.3.17 `Temporal.Duration.prototype.abs ( )`
     pub(crate) fn abs(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("this value of Duration must be an object.")
-        })?;
-        let o = o.borrow();
-        let _duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message("the this object must be a Duration object.")
-        })?;
-
         // 3. Return ! CreateTemporalDuration(abs(duration.[[Years]]), abs(duration.[[Months]]),
         //    abs(duration.[[Weeks]]), abs(duration.[[Days]]), abs(duration.[[Hours]]), abs(duration.[[Minutes]]),
         //    abs(duration.[[Seconds]]), abs(duration.[[Milliseconds]]), abs(duration.[[Microseconds]]), abs(duration.[[Nanoseconds]])).
 
-        todo!()
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// 7.3.18 `Temporal.Duration.prototype.add ( other [ , options ] )`
     pub(crate) fn add(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        // 1. Let duration be the this value.
-        // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("this value of Duration must be an object.")
-        })?;
-        let o = o.borrow();
-        let _duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message("the this object must be a Duration object.")
-        })?;
-
-        // 3. Return ? AddDurationToOrSubtractDurationFromDuration(add, duration, other, options).
-
-        todo!()
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// 7.3.19 `Temporal.Duration.prototype.subtract ( other [ , options ] )`
@@ -486,19 +466,9 @@ impl Duration {
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        // 1. Let duration be the this value.
-        // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("this value of Duration must be an object.")
-        })?;
-        let o = o.borrow();
-        let _duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message("the this object must be a Duration object.")
-        })?;
-
-        // 3. Return ? AddDurationToOrSubtractDurationFromDuration(subtract, duration, other, options).
-
-        todo!()
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// 7.3.20 `Temporal.Duration.prototype.round ( roundTo )`
@@ -587,16 +557,13 @@ impl Duration {
         )?;
 
         // 14. If smallestUnit is undefined, then
-        let smallest_unit = if smallest_unit.is_undefined() {
+        let smallest_unit = if let Some(unit) = smallest_unit {
+            unit
+        } else {
             // a. Set smallestUnitPresent to false.
             smallest_unit_present = false;
             // b. Set smallestUnit to "nanosecond".
             JsString::from("nanosecond")
-        } else {
-            smallest_unit
-                .as_string()
-                .expect("smallestUnit must be a string if it is not undefined.")
-                .clone()
         };
 
         // 15. Let defaultLargestUnit be ! DefaultTemporalLargestUnit(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]]).
@@ -608,19 +575,18 @@ impl Duration {
         let auto = JsString::from("auto");
         // 17. If largestUnit is undefined, then
         let largest_unit = match largest_unit {
-            JsValue::Undefined => {
+            None => {
                 // a. Set largestUnitPresent to false.
                 largest_unit_present = false;
                 // b. Set largestUnit to defaultLargestUnit.
                 default_largest_unit
             }
             // 18. Else if largestUnit is "auto", then
-            JsValue::String(s) if s == auto => {
+            Some(s) if s == auto => {
                 // a. Set largestUnit to defaultLargestUnit.
                 default_largest_unit
             }
-            JsValue::String(s) => s,
-            _ => unreachable!("largestUnit must be a string or undefined."),
+            Some(s) => s,
         };
 
         // 19. If smallestUnitPresent is false and largestUnitPresent is false, then
@@ -651,11 +617,13 @@ impl Duration {
         }
 
         let mut unbalance_duration = DurationRecord::from_date_duration(&duration.inner);
-        // 23. Let unbalanceResult be ? UnbalanceDurationRelative(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], largestUnit, relativeTo).
+
+        // 23. Let unbalanceResult be ? UnbalanceDateDurationRelative(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], largestUnit, relativeTo).
         unbalance_duration.unbalance_duration_relative(&largest_unit, &relative_to, context)?;
 
         let mut roundable_duration =
             DurationRecord::from_date_and_time_duration(&unbalance_duration, &duration.inner);
+
         // 24. Let roundResult be (? RoundDuration(unbalanceResult.[[Years]], unbalanceResult.[[Months]], unbalanceResult.[[Weeks]],
         //     unbalanceResult.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]],
         //     duration.[[Microseconds]], duration.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode, relativeTo)).[[DurationRecord]].
@@ -667,12 +635,29 @@ impl Duration {
             context,
         )?;
 
-        // 25. Let adjustResult be ? AdjustRoundedDurationDays(roundResult.[[Years]], roundResult.[[Months]], roundResult.[[Weeks]], roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode, relativeTo).
-        // 26. Let balanceResult be ? BalanceDuration(adjustResult.[[Days]], adjustResult.[[Hours]], adjustResult.[[Minutes]], adjustResult.[[Seconds]], adjustResult.[[Milliseconds]], adjustResult.[[Microseconds]], adjustResult.[[Nanoseconds]], largestUnit, relativeTo).
-        // 27. Let result be ? BalanceDurationRelative(adjustResult.[[Years]], adjustResult.[[Months]], adjustResult.[[Weeks]], balanceResult.[[Days]], largestUnit, relativeTo).
-        // 28. Return ! CreateTemporalDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], balanceResult.[[Hours]], balanceResult.[[Minutes]], balanceResult.[[Seconds]], balanceResult.[[Milliseconds]], balanceResult.[[Microseconds]], balanceResult.[[Nanoseconds]]).
+        // 25. Let roundResult be roundRecord.[[DurationRecord]].
+        // 26. If relativeTo is not undefined and relativeTo has an [[InitializedTemporalZonedDateTime]] internal slot, then
+        match relative_to {
+            JsValue::Object(o) if o.is_zoned_date_time() => {
+                // TODO: AdjustRoundedDurationDays requires 6.5.5 AddZonedDateTime.
+                // a. Set roundResult to ? AdjustRoundedDurationDays(roundResult.[[Years]], roundResult.[[Months]], roundResult.[[Weeks]], roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode, relativeTo).
+                // b. Let balanceResult be ? BalanceTimeDurationRelative(roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], largestUnit, relativeTo).
+                return Err(JsNativeError::range()
+                    .with_message("not yet implemented.")
+                    .into());
+            }
+            // 27. Else,
+            _ => {
+                // a. Let balanceResult be ? BalanceTimeDuration(roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], largestUnit).
+                roundable_duration.balance_time_duration(&largest_unit, None)?;
+            }
+        }
+        // 28. Let result be ? BalanceDateDurationRelative(roundResult.[[Years]], roundResult.[[Months]], roundResult.[[Weeks]], balanceResult.[[Days]], largestUnit, relativeTo).
+        // 29. Return ! CreateTemporalDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], balanceResult.[[Hours]], balanceResult.[[Minutes]], balanceResult.[[Seconds]], balanceResult.[[Milliseconds]], balanceResult.[[Microseconds]], balanceResult.[[Nanoseconds]]).
 
-        todo!()
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// 7.3.21 `Temporal.Duration.prototype.total ( totalOf )`
@@ -731,9 +716,7 @@ impl Duration {
             None,
             context,
         )?
-        .as_string()
-        .expect("GetTemporalUnit must return a string if default is required.")
-        .clone();
+        .expect("GetTemporalUnit must return a string if default is required.");
 
         let mut unbalance_duration = DurationRecord::default()
             .with_years(duration.inner.years())
@@ -754,7 +737,9 @@ impl Duration {
                 .is_zoned_date_time()
         {
             // a. Set intermediate to ? MoveRelativeZonedDateTime(relativeTo, unbalanceResult.[[Years]], unbalanceResult.[[Months]], unbalanceResult.[[Weeks]], 0).
-            todo!()
+            return Err(JsNativeError::error()
+                .with_message("not yet implemented.")
+                .into());
         }
 
         let mut balance_duration = DurationRecord::default()
@@ -849,35 +834,26 @@ impl Duration {
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("this value of Duration must be an object.")
-        })?;
-        let o = o.borrow();
-        let _duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message("the this object must be a Duration object.")
-        })?;
-
-        todo!()
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// 7.3.23 Temporal.Duration.prototype.toJSON ( )
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("this value of Duration must be an object.")
-        })?;
-        let o = o.borrow();
-        let _duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message("the this object must be a Duration object.")
-        })?;
-
-        todo!()
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
     }
 }
 
 // -- Duration Abstract Operations --
 
 /// 7.5.8 `ToTemporalDuration ( item )`
-pub(crate) fn to_temporal_duration(item: &JsValue, context: &mut Context<'_>) -> JsResult<JsValue> {
+pub(crate) fn to_temporal_duration(
+    item: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<Duration> {
     // 1a. If Type(item) is Object
     if item.is_object() {
         // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
@@ -886,14 +862,18 @@ pub(crate) fn to_temporal_duration(item: &JsValue, context: &mut Context<'_>) ->
             .expect("Value must be an object in this instance.");
         if o.is_duration() {
             // a. Return item.
-            return Ok(item.clone());
+            let obj = o.borrow();
+            let duration = obj.as_duration().expect("must be a duration.");
+            return Ok(Duration {
+                inner: duration.inner,
+            });
         }
     }
 
     // 2. Let result be ? ToTemporalDurationRecord(item).
     let result = to_temporal_duration_record(item)?;
     // 3. Return ! CreateTemporalDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], result.[[Hours]], result.[[Minutes]], result.[[Seconds]], result.[[Milliseconds]], result.[[Microseconds]], result.[[Nanoseconds]]).
-    Ok(create_temporal_duration(result, None, context)?.into())
+    Ok(Duration { inner: result })
 }
 
 /// 7.5.9 `ToTemporalDurationRecord ( temporalDurationLike )`
@@ -901,7 +881,7 @@ pub(crate) fn to_temporal_duration_record(
     _temporal_duration_like: &JsValue,
 ) -> JsResult<DurationRecord> {
     Err(JsNativeError::range()
-        .with_message("Not yet implemented.")
+        .with_message("Duration Parsing is not yet complete.")
         .into())
 }
 
@@ -955,7 +935,9 @@ pub(crate) fn create_temporal_duration(
     Ok(prototype)
 }
 
+// TODO: implement on `DurationRecord`
 // 7.5.17 `TotalDurationNanoseconds ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, offsetShift )`
+#[allow(clippy::too_many_arguments)]
 fn total_duration_nanoseconds(
     days: f64,
     hours: f64,
@@ -1008,10 +990,10 @@ fn days_until(earlier: &JsObject, later: &JsObject) -> i32 {
 fn move_relative_date(
     calendar: &JsValue,
     relative_to: &JsObject,
-    duration: JsObject,
+    duration: &JsObject,
     context: &mut Context<'_>,
 ) -> JsResult<(JsObject, f64)> {
-    let new_date = calendar::calendar_date_add(calendar, relative_to, &duration, None, context)?;
+    let new_date = calendar::calendar_date_add(calendar, relative_to, duration, None, context)?;
     let days = f64::from(days_until(relative_to, &new_date));
     Ok((new_date, days))
 }

@@ -742,8 +742,9 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     pub fn is_duration(&self) -> bool {
         self.borrow().is_duration()
     }
@@ -754,8 +755,9 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     pub fn is_time_zone(&self) -> bool {
         self.borrow().is_time_zone()
     }
@@ -766,8 +768,9 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     pub fn is_plain_date_time(&self) -> bool {
         self.borrow().is_plain_date_time()
     }
@@ -778,8 +781,9 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     pub fn is_plain_date(&self) -> bool {
         self.borrow().is_plain_date()
     }
@@ -790,8 +794,9 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     pub fn is_plain_year_month(&self) -> bool {
         self.borrow().is_plain_year_month()
     }
@@ -802,8 +807,9 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     pub fn is_plain_month_day(&self) -> bool {
         self.borrow().is_plain_month_day()
     }
@@ -814,8 +820,9 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     pub fn is_zoned_date_time(&self) -> bool {
         self.borrow().is_zoned_date_time()
     }
@@ -826,8 +833,9 @@ impl JsObject {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[must_use]
     #[track_caller]
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     pub fn is_calendar(&self) -> bool {
         self.borrow().is_calendar()
     }

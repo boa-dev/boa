@@ -18,7 +18,7 @@ pub(crate) struct IsoDateTimeRecord {
 }
 
 impl IsoDateTimeRecord {
-    pub(crate) fn iso_date(&self) -> IsoDateRecord {
+    pub(crate) const fn iso_date(&self) -> IsoDateRecord {
         self.iso_date
     }
 }
@@ -26,13 +26,13 @@ impl IsoDateTimeRecord {
 // ==== `IsoDateTimeRecord` methods ====
 
 impl IsoDateTimeRecord {
-    pub(crate) fn with_date(mut self, year: i32, month: i32, day: i32) -> Self {
+    pub(crate) const fn with_date(mut self, year: i32, month: i32, day: i32) -> Self {
         let iso_date = IsoDateRecord::new(year, month, day);
         self.iso_date = iso_date;
         self
     }
 
-    pub(crate) fn with_time(
+    pub(crate) const fn with_time(
         mut self,
         hour: i32,
         minute: i32,
@@ -50,19 +50,19 @@ impl IsoDateTimeRecord {
         self
     }
 
+    /// 5.5.1 `ISODateTimeWithinLimits ( year, month, day, hour, minute, second, millisecond, microsecond, nanosecond )`
     pub(crate) fn is_valid(&self) -> bool {
         self.iso_date.is_valid();
         let ns = self.get_utc_epoch_ns(None).to_f64();
 
-        if ns <= temporal::ns_min_instant().to_f64() - (temporal::NS_PER_DAY as f64) {
-            return false;
-        } else if ns >= temporal::ns_max_instant().to_f64() + (temporal::NS_PER_DAY as f64) {
+        if ns <= temporal::ns_min_instant().to_f64() - (temporal::NS_PER_DAY as f64)
+            || ns >= temporal::ns_max_instant().to_f64() + (temporal::NS_PER_DAY as f64) {
             return false;
         }
-        return true;
+        true
     }
 
-    /// 14.8.1 GetUTCEpochNanoseconds
+    /// 14.8.1 `GetUTCEpochNanoseconds`
     pub(crate) fn get_utc_epoch_ns(&self, offset_ns: Option<i64>) -> JsBigInt {
         let day = utils::make_day(
             i64::from(self.iso_date.year()),
@@ -82,13 +82,13 @@ impl IsoDateTimeRecord {
 
         let epoch_ns = match offset_ns {
             Some(offset) if offset != 0 => {
-                let ns = (i64::from(ms) * 1_000_000_i64)
+                let ns = (ms * 1_000_000_i64)
                     + (i64::from(self.microsecond) * 1_000_i64)
                     + i64::from(self.nanosecond);
                 ns - offset
             }
             _ => {
-                (i64::from(ms) * 1_000_000_i64)
+                (ms * 1_000_000_i64)
                     + (i64::from(self.microsecond) * 1_000_i64)
                     + i64::from(self.nanosecond)
             }

@@ -6,16 +6,33 @@ pub mod annotation;
 
 /// TBD...
 #[derive(Default, Debug)]
-pub struct AnnotatedDateTime {
+pub struct IsoParseRecord {
     /// Parsed Date Record
-    pub date_time: DateTimeRecord,
+    pub date: DateRecord,
+    /// Parsed Time
+    pub time: Option<TimeSpec>,
+    /// Parsed Offset
+    pub offset: Option<UtcOffset>,
     /// Parsed `TimeZoneAnnotation`
     pub tz_annotation: Option<TimeZoneAnnotation>,
     /// Parsed Annotations
     pub annotations: Option<FxHashMap<String, (bool, String)>>,
 }
 
-#[derive(Default, Debug, Clone,Copy)]
+impl IsoParseRecord {
+    /// Returns the a stored calendar value if it exists.
+    #[must_use]
+    pub fn calendar(&self) -> Option<String> {
+        if let Some(annotations) = &self.annotations {
+            if let Some(cal) = annotations.get("u-ca") {
+                return Some(cal.1.clone());
+            }
+        }
+        None
+    }
+}
+
+#[derive(Default, Debug, Clone, Copy)]
 /// The record of a parsed date.
 pub struct DateRecord {
     /// Date Year
@@ -27,7 +44,7 @@ pub struct DateRecord {
 }
 
 /// Parsed Time info
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 #[allow(dead_code)]
 pub struct TimeSpec {
     /// An hour
@@ -38,12 +55,12 @@ pub struct TimeSpec {
     pub second: f64,
 }
 
-/// TimeZone UTC Offset info.
+/// `TimeZone` UTC Offset info.
 #[derive(Debug, Clone, Copy)]
 pub struct DateTimeUtcOffset;
 
 #[derive(Debug, Default, Clone, Copy)]
-/// Boop
+/// A `DateTime` Parse Node that contains the date, time, and offset info.
 pub struct DateTimeRecord {
     /// Date
     pub date: DateRecord,
@@ -53,7 +70,7 @@ pub struct DateTimeRecord {
     pub offset: Option<UtcOffset>,
 }
 
-/// A TimeZoneAnnotation.
+/// A `TimeZoneAnnotation`.
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct TimeZoneAnnotation {
@@ -100,7 +117,7 @@ pub struct UtcOffset {
     pub second: f64,
 }
 
-/// A KeyValueAnnotation Parse Node.
+/// A `KeyValueAnnotation` Parse Node.
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct KeyValueAnnotation {

@@ -3,40 +3,35 @@
 use crate::{
     error::{Error, ParseResult},
     lexer::Error as LexError,
-    temporal::{
-        IsoCursor,
-        grammar::*,
-        time_zone,
-        time,
-        annotations,
-    }
+    temporal::{annotations, grammar::{is_date_time_separator, is_sign, is_utc_designator}, time, time_zone, IsoCursor},
 };
 
 use boa_ast::{
+    temporal::{DateRecord, DateTimeRecord, IsoParseRecord},
     Position, Span,
-    temporal::{AnnotatedDateTime, DateRecord,DateTimeRecord}
 };
 
 /// `AnnotatedDateTime`
 ///
 /// Defined in Temporal Proposal as follows:
 ///
-/// AnnotatedDateTime[Zoned] :
-///     [~Zoned] DateTime TimeZoneAnnotation(opt) Annotations(opt)
-///     [+Zoned] DateTime TimeZoneAnnotation Annotations(opt)
+/// `AnnotatedDateTime`[Zoned] :
+///     [~Zoned] `DateTime` `TimeZoneAnnotation`(opt) `Annotations`(opt)
+///     [+Zoned] `DateTime` `TimeZoneAnnotation` `Annotations`(opt)
+#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_annotated_date_time(
     zoned: bool,
     cursor: &mut IsoCursor,
-) -> ParseResult<AnnotatedDateTime> {
+) -> ParseResult<IsoParseRecord> {
     let date_time = parse_date_time(cursor)?;
 
     // Peek Annotation presence
     // Throw error if annotation does not exist and zoned is true, else return.
-    let annotation_check = cursor.peek().map(|ch| *ch == '[').unwrap_or(false);
+    let annotation_check = cursor.check_or(false, |ch| ch == '[');
     if !annotation_check {
         if zoned {
             return Err(Error::expected(
-            ["TimeZoneAnnotation".into()],
+                ["TimeZoneAnnotation".into()],
                 "No Annotation",
                 Span::new(
                     Position::new(1, (cursor.pos() + 1) as u32),
@@ -45,40 +40,32 @@ pub(crate) fn parse_annotated_date_time(
                 "iso8601 grammar",
             ));
         }
-        return Ok(AnnotatedDateTime { date_time, tz_annotation: None, annotations: None });
+        return Ok(IsoParseRecord {
+            date: date_time.date,
+            time: date_time.time,
+            offset: date_time.offset,
+            tz_annotation: None,
+            annotations: None,
+        });
     }
 
-    // Parse the first annotation.
-    let tz_annotation = time_zone::parse_ambiguous_tz_annotation(cursor)?;
+    let annotation_set = annotations::parse_annotation_set(zoned, cursor)?;
 
-    if tz_annotation.is_none() && zoned {
-        return Err(Error::unexpected(
-            "Annotation",
-            Span::new(Position::new(1, (cursor.pos() + 1) as u32), Position::new(1, (cursor.pos() + 2) as u32)),
-            "iso8601 ZonedDateTime requires a TimeZoneAnnotation.",
-        ));
-    }
-
-    // Parse any `Annotations`
-    let annotations = cursor.peek().map(|ch| *ch == '[').unwrap_or(false);
-
-    if annotations {
-        let annotations = annotations::parse_annotations(cursor)?;
-        return Ok(AnnotatedDateTime { date_time, tz_annotation, annotations: Some(annotations) })
-    }
-
-    Ok(AnnotatedDateTime { date_time, tz_annotation, annotations: None })
+    Ok(IsoParseRecord {
+        date: date_time.date,
+        time: date_time.time,
+        offset: date_time.offset,
+        tz_annotation: annotation_set.tz,
+        annotations: annotation_set.annotations,
+    })
 }
 
+/// Parses a `DateTime` record.
 fn parse_date_time(cursor: &mut IsoCursor) -> ParseResult<DateTimeRecord> {
     let date = parse_date(cursor)?;
 
     // If there is no `DateTimeSeparator`, return date early.
-    if !cursor
-        .peek()
-        .map(|c| is_date_time_separator(c))
-        .unwrap_or(false)
-    {
+    if !cursor.check_or(false, is_date_time_separator) {
         return Ok(DateTimeRecord {
             date,
             time: None,
@@ -91,8 +78,7 @@ fn parse_date_time(cursor: &mut IsoCursor) -> ParseResult<DateTimeRecord> {
     let time = time::parse_time_spec(cursor)?;
 
     let offset = if cursor
-        .peek()
-        .map(|ch| is_sign(ch) || is_utc_designator(ch))
+        .check(|ch| is_sign(ch) || is_utc_designator(ch))
         .unwrap_or(false)
     {
         Some(time_zone::parse_date_time_utc(cursor)?)
@@ -100,16 +86,19 @@ fn parse_date_time(cursor: &mut IsoCursor) -> ParseResult<DateTimeRecord> {
         None
     };
 
-    Ok(DateTimeRecord { date, time: Some(time), offset })
+    Ok(DateTimeRecord {
+        date,
+        time: Some(time),
+        offset,
+    })
 }
 
-
-/// Parse `Date`
+/// Parses `Date` record.
+#[allow(clippy::cast_possible_truncation)]
 fn parse_date(cursor: &mut IsoCursor) -> ParseResult<DateRecord> {
     let year = parse_date_year(cursor)?;
     let divided = cursor
-        .peek()
-        .map(|ch| *ch == '-')
+        .check(|ch| ch == '-')
         .ok_or_else(|| Error::AbruptEnd)?;
 
     if divided {
@@ -118,12 +107,13 @@ fn parse_date(cursor: &mut IsoCursor) -> ParseResult<DateRecord> {
 
     let month = parse_date_month(cursor)?;
 
-    if cursor.peek().map(|ch| *ch == '-').unwrap_or(false) {
+    if cursor.check_or(false, |ch| ch == '-') {
         if !divided {
             return Err(LexError::syntax(
                 "Invalid date separator",
                 Position::new(1, (cursor.pos() + 1) as u32),
-            ).into());
+            )
+            .into());
         }
         cursor.advance();
     }
@@ -133,13 +123,115 @@ fn parse_date(cursor: &mut IsoCursor) -> ParseResult<DateRecord> {
     Ok(DateRecord { year, month, day })
 }
 
-// ==== Unit Parsers ====
-// (referring to Year, month, day, hour, sec, etc...)
+/// Determines if the string can be parsed as a `DateSpecYearMonth`.
+pub(crate) fn peek_year_month(cursor: &mut IsoCursor) -> ParseResult<bool> {
+    let mut ym_peek = if is_sign(cursor.peek().ok_or_else(|| Error::AbruptEnd)?) {
+        7
+    } else {
+        4
+    };
 
+    if cursor
+        .peek_n(ym_peek)
+        .map(|ch| ch == '-')
+        .ok_or_else(|| Error::AbruptEnd)?
+    {
+        ym_peek += 1;
+    }
+
+    ym_peek += 2;
+
+    if cursor.peek_n(ym_peek).map_or(true, |ch| ch == '[') {
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
+/// Parses a `DateSpecYearMonth`
+pub(crate) fn parse_year_month(cursor: &mut IsoCursor) -> ParseResult<(i32, i32)> {
+    let year = parse_date_year(cursor)?;
+
+    if cursor.check_or(false, |ch| ch == '-') {
+        cursor.advance();
+    }
+
+    let month = parse_date_month(cursor)?;
+
+    Ok((year, month))
+}
+
+/// Determines if the string can be parsed as a `DateSpecYearMonth`.
+pub(crate) fn peek_month_day(cursor: &mut IsoCursor) -> ParseResult<bool> {
+    let mut md_peek = if cursor
+        .peek_n(1)
+        .map(|ch| ch == '-')
+        .ok_or_else(|| Error::AbruptEnd)?
+    {
+        4
+    } else {
+        2
+    };
+
+    if cursor
+        .peek_n(md_peek)
+        .map(|ch| ch == '-')
+        .ok_or_else(|| Error::AbruptEnd)?
+    {
+        md_peek += 1;
+    }
+
+    md_peek += 2;
+
+    if cursor.peek_n(md_peek).map_or(true, |ch| ch == '[') {
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
+/// Parses a `DateSpecMonthDay`
+#[allow(clippy::cast_possible_truncation)]
+pub(crate) fn parse_month_day(cursor: &mut IsoCursor) -> ParseResult<(i32, i32)> {
+    let dash_one = cursor
+        .check(|ch| ch == '-')
+        .ok_or_else(|| Error::AbruptEnd)?;
+    let dash_two = cursor
+        .peek_n(1)
+        .map(|ch| ch == '-')
+        .ok_or_else(|| Error::AbruptEnd)?;
+
+    if dash_two && dash_one {
+        cursor.advance_n(2);
+    } else if dash_two && !dash_one {
+        return Err(LexError::syntax(
+            "MonthDay requires two dashes",
+            Position::new(1, cursor.pos() as u32),
+        )
+        .into());
+    }
+
+    let month = parse_date_month(cursor)?;
+    if cursor.check_or(false, |ch| ch == '-') {
+        cursor.advance();
+    }
+
+    let day = parse_date_day(cursor)?;
+
+    Ok((month, day))
+}
+
+// ==== Unit Parsers ====
+
+#[allow(clippy::cast_possible_truncation)]
 fn parse_date_year(cursor: &mut IsoCursor) -> ParseResult<i32> {
     if is_sign(cursor.peek().ok_or_else(|| Error::AbruptEnd)?) {
         let year_start = cursor.pos();
-        let sign = if *cursor.peek().unwrap() == '+' { 1 } else { -1 };
+        let sign = if cursor.check_or(false, |ch| ch == '+') {
+            1
+        } else {
+            -1
+        };
 
         cursor.advance();
 
@@ -155,7 +247,9 @@ fn parse_date_year(cursor: &mut IsoCursor) -> ParseResult<i32> {
         }
 
         let year_string = cursor.slice(year_start + 1, cursor.pos());
-        let year_value = year_string.parse::<i32>().map_err(|e| Error::general(e.to_string(), Position::new(1, (year_start + 1) as u32)))?;
+        let year_value = year_string.parse::<i32>().map_err(|e| {
+            Error::general(e.to_string(), Position::new(1, (year_start + 1) as u32))
+        })?;
 
         // 13.30.1 Static Semantics: Early Errors
         //
@@ -178,17 +272,21 @@ fn parse_date_year(cursor: &mut IsoCursor) -> ParseResult<i32> {
             return Err(LexError::syntax(
                 "DateYear must contain digit",
                 Position::new(1, (cursor.pos() + 1) as u32),
-            ).into());
+            )
+            .into());
         }
         cursor.advance();
     }
 
     let year_string = cursor.slice(year_start, cursor.pos());
-    let year_value = year_string.parse::<i32>().map_err(|e| Error::general(e.to_string(), Position::new(1, (cursor.pos() + 1) as u32)))?;
+    let year_value = year_string
+        .parse::<i32>()
+        .map_err(|e| Error::general(e.to_string(), Position::new(1, (cursor.pos() + 1) as u32)))?;
 
-    return Ok(year_value);
+    Ok(year_value)
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn parse_date_month(cursor: &mut IsoCursor) -> ParseResult<i32> {
     let month_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
@@ -198,12 +296,14 @@ fn parse_date_month(cursor: &mut IsoCursor) -> ParseResult<i32> {
         return Err(LexError::syntax(
             "DateMonth must be in a range of 1-12",
             Position::new(1, (cursor.pos() + 1) as u32),
-        ).into());
+        )
+        .into());
     }
     cursor.advance_n(2);
     Ok(month_value)
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn parse_date_day(cursor: &mut IsoCursor) -> ParseResult<i32> {
     let day_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
@@ -213,7 +313,8 @@ fn parse_date_day(cursor: &mut IsoCursor) -> ParseResult<i32> {
         return Err(LexError::syntax(
             "DateDay must be in a range of 1-31",
             Position::new(1, (cursor.pos() + 1) as u32),
-        ).into());
+        )
+        .into());
     }
     cursor.advance_n(2);
     Ok(day_value)

@@ -1,8 +1,9 @@
 // use DurationRecord and Duration { inner: Duration }
 
 use crate::{
-    builtins::temporal, Context, JsArgs, JsError, JsNativeError, JsNativeErrorKind, JsObject,
-    JsResult, JsString, JsSymbol, JsValue,
+    builtins::temporal::{self, create_temporal_date, to_temporal_date},
+    Context, JsArgs, JsError, JsNativeError, JsNativeErrorKind, JsObject, JsResult, JsString,
+    JsSymbol, JsValue,
 };
 
 use super::super::{calendar, to_integer_if_integral, zoned_date_time};
@@ -25,6 +26,7 @@ pub(crate) struct DurationRecord {
 // ==== Initialization methods for `DurationRecord` ====
 
 impl DurationRecord {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) const fn new(
         years: f64,
         months: f64,
@@ -300,6 +302,10 @@ impl DurationRecord {
 
 // -- Abstract Operations implemented on `DurationRecord`
 impl DurationRecord {
+    fn as_object(&self, context: &mut Context<'_>) -> JsResult<JsObject> {
+        super::create_temporal_duration(*self, None, context)
+    }
+
     /// Returns the values of the current duration record as a vec.
     fn values(&self) -> Vec<f64> {
         vec![
@@ -345,7 +351,7 @@ impl DurationRecord {
 
     #[inline]
     pub(crate) fn is_negative_overflow(&self) -> bool {
-        !self.is_positive_overflow()
+        self.years().is_infinite() && self.years().is_sign_negative()
     }
 
     /// 7.5.2 Date Duration Records
@@ -443,8 +449,8 @@ impl DurationRecord {
         JsString::from("nanosecond")
     }
 
-    /// Abstract Operation 7.5.18 `BalanceDuration ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit [ , relativeTo ] )`
-    pub(crate) fn balance_duration(
+    /// Abstract Operation 7.5.18 `BalanceTimeDuration ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit [ , relativeTo ] )`
+    pub(crate) fn balance_time_duration(
         &mut self,
         largest_unit: &JsString,
         relative_to: Option<&JsValue>,
@@ -484,9 +490,10 @@ impl DurationRecord {
                 .expect("relative_to must be an object here.")
                 .is_zoned_date_time()
         {
+            // TODO
             // a. Let endNs be ? AddZonedDateTime(relativeTo.[[Nanoseconds]], relativeTo.[[TimeZone]], relativeTo.[[Calendar]], 0, 0, 0, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
             // b. Set nanoseconds to ℝ(endNs - relativeTo.[[Nanoseconds]]).
-            todo!()
+            self.set_nanoseconds(0_f64);
         // 3. Else,
         } else {
             // a. Set nanoseconds to ! TotalDurationNanoseconds(days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, 0).
@@ -502,9 +509,9 @@ impl DurationRecord {
             ));
         }
 
-        match largest_unit.as_slice() {
+        match largest_unit.to_std_string_escaped().as_str() {
             // 4. If largestUnit is one of "year", "month", "week", or "day", then
-            temporal::YEAR | temporal::MONTH | temporal::WEEK | temporal::DAY => {
+            "year" | "month" | "week" | "day" => {
                 // a. Let result be ? NanosecondsToDays(nanoseconds, relativeTo).
                 let result = temporal::zoned_date_time::nanoseconds_to_days(
                     self.nanoseconds(),
@@ -512,7 +519,9 @@ impl DurationRecord {
                 );
                 // b. Set days to result.[[Days]].
                 // c. Set nanoseconds to result.[[Nanoseconds]].
-                todo!()
+                return Err(JsNativeError::error()
+                    .with_message("not yet implemented.")
+                    .into());
             }
             // 5. Else,
             // a. Set days to 0.
@@ -629,7 +638,6 @@ impl DurationRecord {
         }
 
         // NOTE (nekevss): diviate from spec here as the current implementation with `DurationRecord` means that we create the record and than mutate values.
-        //
         // 16. Return ? CreateTimeDurationRecord(days, hours × sign, minutes × sign, seconds × sign, milliseconds × sign, microseconds × sign, nanoseconds × sign).
         self.set_hours(self.hours() * sign);
         self.set_minutes(self.minutes() * sign);
@@ -663,7 +671,7 @@ impl DurationRecord {
             && self.days() == 0_f64;
 
         // 3. If largestUnit is "year" or allZero is true, then
-        if largest_unit.as_slice() == temporal::YEAR || all_zero {
+        if largest_unit.to_std_string_escaped().as_str() == "year" || all_zero {
             // a. Return ! CreateDateDurationRecord(years, months, weeks, days).
             return Ok(());
         };
@@ -675,19 +683,19 @@ impl DurationRecord {
 
         // 6. Let oneYear be ! CreateTemporalDuration(sign, 0, 0, 0, 0, 0, 0, 0, 0, 0).
         let one_year = super::create_temporal_duration(
-            DurationRecord::default().with_years(self.years()),
+            Self::default().with_years(self.years()),
             None,
             context,
         )?;
         // 7. Let oneMonth be ! CreateTemporalDuration(0, sign, 0, 0, 0, 0, 0, 0, 0, 0).
         let one_month = super::create_temporal_duration(
-            DurationRecord::default().with_months(self.months()),
+            Self::default().with_months(self.months()),
             None,
             context,
         )?;
         // 8. Let oneWeek be ! CreateTemporalDuration(0, 0, sign, 0, 0, 0, 0, 0, 0, 0).
         let one_week = super::create_temporal_duration(
-            DurationRecord::default().with_weeks(self.weeks()),
+            Self::default().with_weeks(self.weeks()),
             None,
             context,
         )?;
@@ -699,7 +707,7 @@ impl DurationRecord {
             None
         } else {
             // a. Set relativeTo to ? ToTemporalDate(relativeTo).
-            let relative_to = temporal::plain_date::to_temporal_date(
+            let relative_to = to_temporal_date(
                 &relative_to
                     .as_object()
                     .expect("relative_to must be an object")
@@ -707,28 +715,11 @@ impl DurationRecord {
                     .into(),
                 None,
                 context,
-            )
-            .and_then(|date| {
-                Ok(date
-                    .as_object()
-                    .ok_or::<JsError>(
-                        JsNativeError::typ()
-                            .with_message("object did not return TemporalPlainDate.")
-                            .into(),
-                    )?
-                    .clone())
-            })?;
+            )?;
 
             // b. Let calendar be relativeTo.[[Calendar]].
-            let obj = relative_to.borrow_mut();
-            let date = obj.as_plain_date().ok_or::<JsError>(
-                JsNativeError::typ()
-                    .with_message("relativeTo was not a PlainDate.")
-                    .into(),
-            )?;
-            let calendar = date.calendar.clone();
+            let calendar = relative_to.calendar;
 
-            drop(obj);
             Some(calendar)
         };
 
@@ -791,7 +782,202 @@ impl DurationRecord {
         // 3. Set days to days + moveResult.[[Days]].
         // 4. Set weeks to weeks - sign.
         // 14. Return ? CreateDateDurationRecord(years, months, weeks, days).
-        Ok(())
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
+    }
+
+    /// `BalanceDateDurationRelative`
+    pub(crate) fn balance_date_duration_relative(
+        &mut self,
+        largest_unit: &JsString,
+        relative_to: &JsValue,
+        context: &mut Context<'_>,
+    ) -> JsResult<()> {
+        // 1. Let allZero be false.
+        // 2. If years = 0, and months = 0, and weeks = 0, and days = 0, set allZero to true.
+        let all_zero =
+            self.years == 0.0 && self.months == 0.0 && self.weeks == 0.0 && self.days == 0.0;
+
+        // 3. If largestUnit is not one of "year", "month", or "week", or allZero is true, then
+        match largest_unit.to_std_string_escaped().as_str() {
+            "year" | "month" | "week" if !all_zero => {}
+            _ => {
+                // a. Return ! CreateDateDurationRecord(years, months, weeks, days).
+                return Ok(());
+            }
+        }
+
+        // 4. If relativeTo is undefined, then
+        if relative_to.is_undefined() {
+            // a. Throw a RangeError exception.
+            return Err(JsNativeError::range()
+                .with_message("relativeTo cannot be undefined.")
+                .into());
+        }
+
+        // 5. Let sign be ! DurationSign(years, months, weeks, days, 0, 0, 0, 0, 0, 0).
+        // 6. Assert: sign ≠ 0.
+        let sign = self.duration_sign();
+
+        // 7. Let oneYear be ! CreateTemporalDuration(sign, 0, 0, 0, 0, 0, 0, 0, 0, 0).
+        let one_year = Self::default().with_years(f64::from(sign));
+        // 8. Let oneMonth be ! CreateTemporalDuration(0, sign, 0, 0, 0, 0, 0, 0, 0, 0).
+        let one_month = Self::default().with_months(f64::from(sign));
+        // 9. Let oneWeek be ! CreateTemporalDuration(0, 0, sign, 0, 0, 0, 0, 0, 0, 0).
+        let one_week = Self::default().with_weeks(f64::from(sign));
+
+        // 10. Set relativeTo to ? ToTemporalDate(relativeTo).
+        let date = to_temporal_date(relative_to, None, context)?;
+
+        // 11. Let calendar be relativeTo.[[Calendar]].
+        let calendar = &date.calendar.clone();
+
+        let relative_to = create_temporal_date(date.inner, date.calendar, None, context)?;
+
+        match largest_unit.to_std_string_escaped().as_str() {
+            // 12. If largestUnit is "year", then
+            "year" => {
+                // a. If calendar is an Object, then
+                // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
+                // b. Else,
+                // i. Let dateAdd be unused.
+                // c. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneYear, dateAdd).
+                let move_result = super::move_relative_date(
+                    calendar,
+                    &relative_to,
+                    &one_year.as_object(context)?,
+                    context,
+                )?;
+
+                // d. Let newRelativeTo be moveResult.[[RelativeTo]].
+                let mut new_relative = move_result.0;
+                // e. Let oneYearDays be moveResult.[[Days]].
+                let mut one_year_days = move_result.1;
+
+                // f. Repeat, while abs(days) ≥ abs(oneYearDays),
+                while self.days.abs() >= one_year_days.abs() {
+                    // i. Set days to days - oneYearDays.
+                    self.set_days(self.days - one_year_days);
+
+                    // ii. Set years to years + sign.
+                    self.set_years(self.years + f64::from(sign));
+
+                    // iii. Set relativeTo to newRelativeTo.
+                    let relative_to = new_relative;
+                    // iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneYear, dateAdd).
+                    let move_result = super::move_relative_date(
+                        calendar,
+                        &relative_to,
+                        &one_year.as_object(context)?,
+                        context,
+                    )?;
+
+                    // v. Set newRelativeTo to moveResult.[[RelativeTo]].
+                    new_relative = move_result.0;
+                    // vi. Set oneYearDays to moveResult.[[Days]].
+                    one_year_days = move_result.1;
+                }
+
+                // g. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
+                let move_result = super::move_relative_date(
+                    calendar,
+                    &relative_to,
+                    &one_month.as_object(context)?,
+                    context,
+                )?;
+
+                // h. Set newRelativeTo to moveResult.[[RelativeTo]].
+                let mut new_relative = move_result.0;
+                // i. Let oneMonthDays be moveResult.[[Days]].
+                let mut one_month_days = move_result.1;
+
+                // j. Repeat, while abs(days) ≥ abs(oneMonthDays),
+                while self.days.abs() >= one_month_days.abs() {
+                    // i. Set days to days - oneMonthDays.
+                    self.set_days(self.days - one_month_days);
+                    // ii. Set months to months + sign.
+                    self.set_months(self.months + f64::from(sign));
+                    // iii. Set relativeTo to newRelativeTo.
+
+                    let relative_to = new_relative;
+                    // iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
+                    let move_result = super::move_relative_date(
+                        calendar,
+                        &relative_to,
+                        &one_month.as_object(context)?,
+                        context,
+                    )?;
+
+                    // v. Set newRelativeTo to moveResult.[[RelativeTo]].
+                    new_relative = move_result.0;
+                    // vi. Set oneMonthDays to moveResult.[[Days]].
+                    one_month_days = move_result.1;
+                }
+
+                // k. Set newRelativeTo to ? CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd).
+                // l. If calendar is an Object, then
+                // i. Let dateUntil be ? GetMethod(calendar, "dateUntil").
+                // m. Else,
+                // i. Let dateUntil be unused.
+                // n. Let untilOptions be OrdinaryObjectCreate(null).
+                // o. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "month").
+                // p. Let untilResult be ? CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil).
+                // q. Let oneYearMonths be untilResult.[[Months]].
+                // r. Repeat, while abs(months) ≥ abs(oneYearMonths),
+                // i. Set months to months - oneYearMonths.
+                // ii. Set years to years + sign.
+                // iii. Set relativeTo to newRelativeTo.
+                // iv. Set newRelativeTo to ? CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd).
+                // v. Set untilOptions to OrdinaryObjectCreate(null).
+                // vi. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "month").
+                // vii. Set untilResult to ? CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil).
+                // viii. Set oneYearMonths to untilResult.[[Months]].
+            }
+            // 13. Else if largestUnit is "month", then
+            "month" => {
+                // a. If calendar is an Object, then
+                // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
+                // b. Else,
+                // i. Let dateAdd be unused.
+                // c. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
+                // d. Let newRelativeTo be moveResult.[[RelativeTo]].
+                // e. Let oneMonthDays be moveResult.[[Days]].
+                // f. Repeat, while abs(days) ≥ abs(oneMonthDays),
+                // i. Set days to days - oneMonthDays.
+                // ii. Set months to months + sign.
+                // iii. Set relativeTo to newRelativeTo.
+                // iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
+                // v. Set newRelativeTo to moveResult.[[RelativeTo]].
+                // vi. Set oneMonthDays to moveResult.[[Days]].
+            }
+            // 14. Else,
+            "week" => {
+                // a. Assert: largestUnit is "week".
+                // b. If calendar is an Object, then
+                // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
+                // c. Else,
+                // i. Let dateAdd be unused.
+                // d. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
+                // e. Let newRelativeTo be moveResult.[[RelativeTo]].
+                // f. Let oneWeekDays be moveResult.[[Days]].
+                // g. Repeat, while abs(days) ≥ abs(oneWeekDays),
+                // i. Set days to days - oneWeekDays.
+                // ii. Set weeks to weeks + sign.
+                // iii. Set relativeTo to newRelativeTo.
+                // iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
+                // v. Set newRelativeTo to moveResult.[[RelativeTo]].
+                // vi. Set oneWeekDays to moveResult.[[Days]].
+                todo!("week not implemented yet.")
+            }
+            _ => unreachable!(),
+        }
+
+        // 15. Return ! CreateDateDurationRecord(years, months, weeks, days).
+
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// Abstract Operation 7.5.26 `RoundDuration ( years, months, weeks, days, hours, minutes,
@@ -826,25 +1012,21 @@ impl DurationRecord {
                 .into());
         }
 
+        // TODO: Handle `ZonedDateTime`
         // 3. Let zonedRelativeTo be undefined.
-        let mut zoned_relative_to = JsValue::undefined();
+        let zoned_relative_to = JsValue::undefined();
 
         // 4. If relativeTo is not undefined, then
-        let (calendar, relative_to) = if !relative_to.is_undefined() {
+        let (calendar, relative_to) = if relative_to.is_object() {
             let relative_to_obj = relative_to.as_object().expect(
                 "relativeTo must be a Temporal.ZonedDateTime or Temporal.PlainDate object if defined.",
             );
             // a. If relativeTo has an [[InitializedTemporalZonedDateTime]] internal slot, then
-            let relative_to_obj = if relative_to_obj.is_zoned_date_time() {
+            if relative_to_obj.is_zoned_date_time() {
                 // i. Set zonedRelativeTo to relativeTo.
-                zoned_relative_to = relative_to.clone();
-
                 // TODO: ii. Set relativeTo to ? ToTemporalDate(relativeTo).
-                relative_to_obj.clone()
-            // b. Else,
-            } else {
-                // i. Assert: relativeTo has an [[InitializedTemporalDate]] internal slot.
-                relative_to_obj.clone()
+                return Err(JsNativeError::range().with_message("ZonedDateTime is not yet implemented.").into())
+                // b. Else,
             };
 
             let obj = relative_to_obj.borrow();
@@ -880,9 +1062,11 @@ impl DurationRecord {
                 // b. Let intermediate be undefined.
                 let intermediate = JsValue::undefined();
                 // c. If zonedRelativeTo is not undefined, then
-                if zoned_relative_to.is_undefined() {
+                if !zoned_relative_to.is_undefined() {
                     // i. Let intermediate be ? MoveRelativeZonedDateTime(zonedRelativeTo, years, months, weeks, days).
-                    todo!()
+                    return Err(JsNativeError::error()
+                        .with_message("not yet implemented.")
+                        .into());
                 }
                 // d. Let result be ? NanosecondsToDays(nanoseconds, intermediate).
                 let result = zoned_date_time::nanoseconds_to_days(nanoseconds, &intermediate)?;
@@ -925,7 +1109,7 @@ impl DurationRecord {
 
                 // a. Let yearsDuration be ! CreateTemporalDuration(years, 0, 0, 0, 0, 0, 0, 0, 0, 0).
                 let years_duration = super::create_temporal_duration(
-                    DurationRecord::default().with_years(self.years()),
+                    Self::default().with_years(self.years()),
                     None,
                     context,
                 )?;
@@ -943,7 +1127,7 @@ impl DurationRecord {
 
                 let years_later = calendar::calendar_date_add(
                     &calendar_obj,
-                    &relative_to,
+                    relative_to,
                     &years_duration,
                     None,
                     context,
@@ -951,7 +1135,7 @@ impl DurationRecord {
 
                 // e. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
                 let years_months_weeks = super::create_temporal_duration(
-                    DurationRecord::default()
+                    Self::default()
                         .with_years(self.years())
                         .with_months(self.months())
                         .with_weeks(self.weeks()),
@@ -962,7 +1146,7 @@ impl DurationRecord {
                 // f. Let yearsMonthsWeeksLater be ? CalendarDateAdd(calendar, relativeTo, yearsMonthsWeeks, undefined, dateAdd).
                 let years_months_weeks_later = calendar::calendar_date_add(
                     &calendar_obj,
-                    &relative_to,
+                    relative_to,
                     &years_months_weeks,
                     None,
                     context,
@@ -980,7 +1164,7 @@ impl DurationRecord {
 
                 // j. Let wholeDaysDuration be ? CreateTemporalDuration(0, 0, 0, truncate(days), 0, 0, 0, 0, 0, 0).
                 let whole_days_duration = super::create_temporal_duration(
-                    DurationRecord::default().with_days(self.days()),
+                    Self::default().with_days(self.days()),
                     None,
                     context,
                 )?;
@@ -1018,7 +1202,7 @@ impl DurationRecord {
 
                 // r. Let yearsDuration be ! CreateTemporalDuration(yearsPassed, 0, 0, 0, 0, 0, 0, 0, 0, 0).
                 let years_duration = super::create_temporal_duration(
-                    DurationRecord::default().with_years(years_passed),
+                    Self::default().with_years(years_passed),
                     None,
                     context,
                 )?;
@@ -1043,14 +1227,14 @@ impl DurationRecord {
 
                 // w. Let oneYear be ! CreateTemporalDuration(sign, 0, 0, 0, 0, 0, 0, 0, 0, 0).
                 let one_year = super::create_temporal_duration(
-                    DurationRecord::default().with_years(f64::from(sign)),
+                    Self::default().with_years(f64::from(sign)),
                     None,
                     context,
                 )?;
 
                 // x. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneYear, dateAdd).
                 let move_result =
-                    super::move_relative_date(&calendar_obj, &relative_to, one_year, context)?;
+                    super::move_relative_date(&calendar_obj, &relative_to, &one_year, context)?;
 
                 // y. Let oneYearDays be moveResult.[[Days]].
                 let one_year_days = move_result.1;
@@ -1074,12 +1258,13 @@ impl DurationRecord {
             // 10. Else if unit is "month", then
             "month" => {
                 let mut relative_to =
-                    relative_to.expect("relative_to must exist if unit is a month");
+                    relative_to.expect("relative_to must exist if unit is a month")
+                    .clone();
                 let calendar_obj = calendar.expect("calendar must exist at this point.");
 
                 // a. Let yearsMonths be ! CreateTemporalDuration(years, months, 0, 0, 0, 0, 0, 0, 0, 0).
                 let years_month = super::create_temporal_duration(
-                    DurationRecord::default()
+                    Self::default()
                         .with_years(self.years())
                         .with_months(self.months()),
                     None,
@@ -1106,7 +1291,7 @@ impl DurationRecord {
 
                 // e. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
                 let years_months_weeks = super::create_temporal_duration(
-                    DurationRecord::default()
+                    Self::default()
                         .with_years(self.years())
                         .with_months(self.months())
                         .with_weeks(self.weeks()),
@@ -1137,7 +1322,7 @@ impl DurationRecord {
 
                 // k. Let oneMonth be ! CreateTemporalDuration(0, sign, 0, 0, 0, 0, 0, 0, 0, 0).
                 let one_month = super::create_temporal_duration(
-                    DurationRecord::default().with_months(sign),
+                    Self::default().with_months(sign),
                     None,
                     context,
                 )?;
@@ -1146,7 +1331,7 @@ impl DurationRecord {
                 let move_result = super::move_relative_date(
                     &calendar_obj,
                     &relative_to,
-                    one_month.clone(),
+                    &one_month,
                     context,
                 )?;
 
@@ -1165,7 +1350,7 @@ impl DurationRecord {
                     let move_result = super::move_relative_date(
                         &calendar_obj,
                         &relative_to,
-                        one_month.clone(),
+                        &one_month.clone(),
                         context,
                     )?;
 
@@ -1192,13 +1377,14 @@ impl DurationRecord {
             // 11. Else if unit is "week", then
             "week" => {
                 let mut relative_to =
-                    relative_to.expect("relative_to must exist if unit is a month");
+                    relative_to.expect("relative_to must exist if unit is a month")
+                    .clone();
                 let calendar_obj = calendar.expect("calendar must exist at this point.");
                 // a. If days < 0, let sign be -1; else, let sign be 1.
                 let sign = if self.days() < 0_f64 { -1_f64 } else { 1_f64 };
                 // b. Let oneWeek be ! CreateTemporalDuration(0, 0, sign, 0, 0, 0, 0, 0, 0, 0).
                 let one_week = super::create_temporal_duration(
-                    DurationRecord::default().with_weeks(sign),
+                    Self::default().with_weeks(sign),
                     None,
                     context,
                 )?;
@@ -1216,7 +1402,7 @@ impl DurationRecord {
                 let move_result = super::move_relative_date(
                     &calendar_obj,
                     &relative_to,
-                    one_week.clone(),
+                    &one_week,
                     context,
                 )?;
 
@@ -1235,7 +1421,7 @@ impl DurationRecord {
                     let move_result = super::move_relative_date(
                         &calendar_obj,
                         &relative_to,
-                        one_week.clone(),
+                        &one_week.clone(),
                         context,
                     )?;
                     // iv. Set relativeTo to moveResult.[[RelativeTo]].
@@ -1402,11 +1588,11 @@ impl DurationRecord {
             {
                 let obj = rt.as_object().expect("This must be an object.");
                 let obj = obj.borrow();
+                // a. Return ! CreateDurationRecord(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
                 obj.as_zoned_date_time()
                     .expect("Object must be a ZonedDateTime.")
                     .clone()
             }
-            // a. Return ! CreateDurationRecord(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
             _ => return Ok(()),
         };
 
@@ -1441,6 +1627,7 @@ impl DurationRecord {
             1
         };
 
+        // TODO: 6.5.5 AddZonedDateTime
         // 6. Let dayStart be ? AddZonedDateTime(relativeTo.[[Nanoseconds]], relativeTo.[[TimeZone]], relativeTo.[[Calendar]], years, months, weeks, days, 0, 0, 0, 0, 0, 0).
         // 7. Let dayEnd be ? AddZonedDateTime(dayStart, relativeTo.[[TimeZone]], relativeTo.[[Calendar]], 0, 0, 0, direction, 0, 0, 0, 0, 0, 0).
         // 8. Let dayLengthNs be ℝ(dayEnd - dayStart).
@@ -1452,6 +1639,8 @@ impl DurationRecord {
         // 13. Return ! CreateDurationRecord(adjustedDateDuration.[[Years]], adjustedDateDuration.[[Months]], adjustedDateDuration.[[Weeks]],
         // adjustedDateDuration.[[Days]], adjustedTimeDuration.[[Hours]], adjustedTimeDuration.[[Minutes]], adjustedTimeDuration.[[Seconds]],
         // adjustedTimeDuration.[[Milliseconds]], adjustedTimeDuration.[[Microseconds]], adjustedTimeDuration.[[Nanoseconds]]).
-        Ok(())
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
     }
 }

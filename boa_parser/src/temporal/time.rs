@@ -1,54 +1,75 @@
 //! Parsing of ISO8601 Time Values
 
+use super::{grammar::is_decimal_separator, IsoCursor};
 use crate::{
     error::{Error, ParseResult},
     lexer::Error as LexError,
 };
-use super::{IsoCursor, grammar::*};
 
-use boa_ast::{
-    Position,
-    temporal::TimeSpec
-};
+use boa_ast::{temporal::TimeSpec, Position};
 
 /// Parse `TimeSpec`
+#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
     let hour = parse_hour(cursor)?;
     let mut separator = false;
 
-    if cursor.peek().map(|ch| *ch == ':' || ch.is_ascii_digit()).unwrap_or(false) {
-        if cursor.peek().map(|ch| *ch == ':').unwrap_or(false) {
+    if cursor
+        .check_or(false, |ch| ch == ':' || ch.is_ascii_digit())
+    {
+        if cursor.check_or(false, |ch| ch == ':') {
             separator = true;
             cursor.advance();
         }
     } else {
-        return Ok(TimeSpec{ hour, minute: 0, second: 0.0 })
+        return Ok(TimeSpec {
+            hour,
+            minute: 0,
+            second: 0.0,
+        });
     }
 
     let minute = parse_minute_second(cursor, false)?;
 
-    if cursor.peek().map(|ch| *ch == ':' || ch.is_ascii_digit()).unwrap_or(false) {
-        let is_time_separator = cursor.peek().map(|ch| *ch == ':').unwrap_or(false);
+    if cursor
+        .check_or(false, |ch| ch == ':' || ch.is_ascii_digit())
+    {
+        let is_time_separator = cursor.check_or(false, |ch| ch == ':');
         if separator && is_time_separator {
             cursor.advance();
         } else if is_time_separator {
-            return Err(LexError::syntax("Invalid TimeSeparator", Position::new(1, cursor.pos() as u32)).into());
+            return Err(LexError::syntax(
+                "Invalid TimeSeparator",
+                Position::new(1, cursor.pos() as u32),
+            )
+            .into());
         }
     } else {
-        return Ok(TimeSpec{ hour, minute, second: 0.0 })
+        return Ok(TimeSpec {
+            hour,
+            minute,
+            second: 0.0,
+        });
     }
 
     let second = parse_minute_second(cursor, true)?;
 
-    let double = if cursor.peek().map(|ch| is_decimal_separator(ch)).unwrap_or(false) {
+    let double = if cursor
+        .check_or(false,is_decimal_separator)
+    {
         f64::from(second) + parse_fraction(cursor)?
     } else {
         f64::from(second)
     };
 
-    Ok(TimeSpec { hour, minute, second: double })
+    Ok(TimeSpec {
+        hour,
+        minute,
+        second: double,
+    })
 }
 
+#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_hour(cursor: &mut IsoCursor) -> ParseResult<i8> {
     let hour_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
@@ -58,7 +79,8 @@ pub(crate) fn parse_hour(cursor: &mut IsoCursor) -> ParseResult<i8> {
         return Err(LexError::syntax(
             "Hour must be in a range of 0-23",
             Position::new(1, (cursor.pos() + 1) as u32),
-        ).into());
+        )
+        .into());
     }
     cursor.advance_n(2);
     Ok(hour_value)
@@ -66,6 +88,7 @@ pub(crate) fn parse_hour(cursor: &mut IsoCursor) -> ParseResult<i8> {
 
 // NOTE: `TimeSecond` is a 60 inclusive `MinuteSecond`.
 /// Parse `MinuteSecond`
+#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_minute_second(cursor: &mut IsoCursor, inclusive: bool) -> ParseResult<i8> {
     let min_sec_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
@@ -76,7 +99,8 @@ pub(crate) fn parse_minute_second(cursor: &mut IsoCursor, inclusive: bool) -> Pa
         return Err(LexError::syntax(
             "MinuteSecond must be in a range of 0-59",
             Position::new(1, (cursor.pos() + 1) as u32),
-        ).into());
+        )
+        .into());
     }
     cursor.advance_n(2);
     Ok(min_sec_value)
@@ -86,6 +110,7 @@ pub(crate) fn parse_minute_second(cursor: &mut IsoCursor, inclusive: bool) -> Pa
 ///
 /// This is primarily used in ISO8601 to add percision past
 /// a second.
+#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_fraction(cursor: &mut IsoCursor) -> ParseResult<f64> {
     let fraction_start = cursor.pos();
     cursor.advance();
@@ -96,10 +121,12 @@ pub(crate) fn parse_fraction(cursor: &mut IsoCursor) -> ParseResult<f64> {
             let frac = cursor
                 .slice(fraction_start, cursor.pos())
                 .parse::<f64>()
-                .map_err(|e| Error::general(e.to_string(), Position::new(1, (cursor.pos() - 1) as u32)))?;
-            return Ok(frac)
+                .map_err(|e| {
+                    Error::general(e.to_string(), Position::new(1, (cursor.pos() - 1) as u32))
+                })?;
+            return Ok(frac);
         }
     }
 
-    return Err(Error::AbruptEnd)
+    Err(Error::AbruptEnd)
 }

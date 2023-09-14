@@ -875,6 +875,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant
     #[inline]
+    #[must_use]
     #[cfg(feature = "temporal")]
     pub const fn instant(&self) -> &StandardConstructor {
         &self.instant
@@ -887,6 +888,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime
     #[inline]
+    #[must_use]
     #[cfg(feature = "temporal")]
     pub const fn plain_date_time(&self) -> &StandardConstructor {
         &self.plain_date_time
@@ -899,6 +901,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate
     #[inline]
+    #[must_use]
     #[cfg(feature = "temporal")]
     pub const fn plain_date(&self) -> &StandardConstructor {
         &self.plain_date
@@ -911,6 +914,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime
     #[inline]
+    #[must_use]
     #[cfg(feature = "temporal")]
     pub const fn plain_time(&self) -> &StandardConstructor {
         &self.plain_time
@@ -923,6 +927,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth
     #[inline]
+    #[must_use]
     #[cfg(feature = "temporal")]
     pub const fn plain_year_month(&self) -> &StandardConstructor {
         &self.plain_year_month
@@ -935,6 +940,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plainmonthday-constructor
     #[inline]
+    #[must_use]
     #[cfg(feature = "temporal")]
     pub const fn plain_month_day(&self) -> &StandardConstructor {
         &self.plain_month_day
@@ -947,6 +953,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal=timezone-constructor
     #[inline]
+    #[must_use]
     #[cfg(feature = "temporal")]
     pub const fn time_zone(&self) -> &StandardConstructor {
         &self.time_zone
@@ -959,6 +966,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-duration-constructor
     #[inline]
+    #[must_use]
     #[cfg(feature = "temporal")]
     pub const fn duration(&self) -> &StandardConstructor {
         &self.duration
@@ -971,6 +979,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-zoneddatetime-constructor
     #[inline]
+    #[must_use]
     #[cfg(feature = "temporal")]
     pub const fn zoned_date_time(&self) -> &StandardConstructor {
         &self.zoned_date_time
@@ -983,6 +992,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-zoneddatetime-constructor
     #[inline]
+    #[must_use]
     #[cfg(feature = "temporal")]
     pub const fn calendar(&self) -> &StandardConstructor {
         &self.calendar
@@ -1265,6 +1275,7 @@ impl IntrinsicObjects {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-objects
     #[cfg(feature = "temporal")]
+    #[must_use]
     #[inline]
     pub fn temporal(&self) -> JsObject {
         self.temporal.clone()

@@ -19,6 +19,8 @@ mod plain_year_month;
 mod time_zone;
 mod zoned_date_time;
 
+use std::ops::Mul;
+
 pub(crate) use fields::TemporalFields;
 
 use self::date_equations::mathematical_days_in_year;
@@ -56,6 +58,7 @@ pub(crate) fn ns_min_instant() -> JsBigInt {
 }
 
 // Relavant datetime utf16 constants.
+/*
 pub(crate) const YEAR: &[u16] = utf16!("year");
 pub(crate) const MONTH: &[u16] = utf16!("month");
 pub(crate) const MONTH_CODE: &[u16] = utf16!("monthCode");
@@ -71,6 +74,7 @@ pub(crate) const OFFSET: &[u16] = utf16!("offset");
 pub(crate) const ERA: &[u16] = utf16!("era");
 pub(crate) const ERA_YEAR: &[u16] = utf16!("eraYear");
 pub(crate) const TZ: &[u16] = utf16!("timeZone");
+*/
 
 // An enum representing common fields across `Temporal` objects.
 pub(crate) enum DateTimeValues {
@@ -107,16 +111,16 @@ pub struct TemporalUnits {
 impl Default for TemporalUnits {
     fn default() -> Self {
         Self {
-            year: (YEAR, utf16!("years")),
-            month: (MONTH, utf16!("months")),
-            week: (WEEK, utf16!("weeks")),
-            day: (DAY, utf16!("days")),
-            hour: (HOUR, utf16!("hours")),
-            minute: (MINUTE, utf16!("minutes")),
-            second: (SECOND, utf16!("seconds")),
-            millisecond: (MILLISECOND, utf16!("milliseconds")),
-            microsecond: (MICROSECOND, utf16!("microseconds")),
-            nanosecond: (NANOSECOND, utf16!("nanoseconds")),
+            year: (utf16!("year"), utf16!("years")),
+            month: (utf16!("month"), utf16!("months")),
+            week: (utf16!("week"), utf16!("weeks")),
+            day: (utf16!("day"), utf16!("days")),
+            hour: (utf16!("hour"), utf16!("hours")),
+            minute: (utf16!("minute"), utf16!("minutes")),
+            second: (utf16!("second"), utf16!("seconds")),
+            millisecond: (utf16!("millisecond"), utf16!("milliseconds")),
+            microsecond: (utf16!("microsecond"), utf16!("microseconds")),
+            nanosecond: (utf16!("nanosecond"), utf16!("nanoseconds")),
         }
     }
 }
@@ -151,6 +155,7 @@ impl TemporalUnits {
         output
     }
 
+    /// Return a vector of all stored singular and plural `TemporalUnits`.
     fn all(&self) -> Vec<(&'static [u16], &'static [u16])> {
         vec![
             self.year,
@@ -239,7 +244,7 @@ fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
     format!("{n:0min_length$}")
 }
 
-// TODO: 13.1 IteratorToListOfType
+// TODO: 13.1 `IteratorToListOfType`
 pub(crate) fn iterator_to_list_of_types(
     iterator: &mut IteratorRecord,
     element_types: &[Type],
@@ -276,9 +281,9 @@ pub(crate) fn iterator_to_list_of_types(
 /// 13.2 `ISODateToEpochDays ( year, month, date )`
 // Note: implemented on IsoDateRecord.
 
-// TODO: 13.3 EpochDaysToEpochMs
+// TODO: 13.3 `EpochDaysToEpochMs`
 pub(crate) fn epoch_days_to_epoch_ms(day: i32, time: i32) -> f64 {
-    f64::from(day) * (MILLI_PER_DAY as f64) + f64::from(time)
+    f64::from(day).mul_add(MILLI_PER_DAY as f64, f64::from(time))
 }
 
 // TODO: 13.4 Date Equations -> See ./date_equations.rs
@@ -392,7 +397,7 @@ pub(crate) fn get_option(
     Ok(value)
 }
 
-/// 13.7 `ToTemporalOverflow (options)
+/// 13.7 `ToTemporalOverflow (options)`
 pub(crate) fn to_temporal_overflow(
     options: &JsObject,
     context: &mut Context<'_>,
@@ -543,7 +548,7 @@ pub(crate) fn get_temporal_unit(
     default: Option<&JsValue>,           // Must be required (none), undefined, or JsString.
     extra_values: Option<Vec<JsString>>, // Vec<JsString>
     context: &mut Context<'_>,
-) -> JsResult<JsValue> {
+) -> JsResult<Option<JsString>> {
     // 1. Let singularNames be a new empty List.
     let temporal_units = TemporalUnits::default();
     // 2. For each row of Table 13, except the header row, in table order, do
@@ -611,8 +616,8 @@ pub(crate) fn get_temporal_unit(
     // a. Set value to the value in the Singular column of the corresponding row.
     // 12. Return value.
     match value {
-        JsValue::String(lookup_value) => Ok(temporal_units.plural_lookup(&lookup_value).into()),
-        JsValue::Undefined => Ok(JsValue::undefined()),
+        JsValue::String(lookup_value) => Ok(Some(temporal_units.plural_lookup(&lookup_value))),
+        JsValue::Undefined => Ok(None),
         // TODO: verify that this is correct to specification, i.e. is it possible for default value to exist and value to be undefined?
         _ => unreachable!("The value returned from getTemporalUnit must be a string or undefined"),
     }
@@ -679,7 +684,9 @@ pub(crate) fn to_relative_temporal_object(
     // a. Let offsetNs be 0.
     // 11. Let epochNanoseconds be ? InterpretISODateTimeOffset(result.[[Year]], result.[[Month]], result.[[Day]], result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]], offsetBehaviour, offsetNs, timeZone, "compatible", "reject", matchBehaviour).
     // 12. Return ! CreateTemporalZonedDateTime(epochNanoseconds, timeZone, calendar).
-    todo!()
+    Err(JsNativeError::range()
+        .with_message("not yet implemented.")
+        .into())
 }
 
 /// 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`
@@ -864,7 +871,7 @@ pub(crate) fn round_to_increment_as_if_positive(
     Ok(JsBigInt::mul(&rounded, &JsBigInt::from(increment)))
 }
 
-/// 13.43 ToPositiveIntegerWithTruncation ( argument )
+/// 13.43 `ToPositiveIntegerWithTruncation ( argument )`
 #[inline]
 pub(crate) fn to_positive_integer_with_trunc(
     value: &JsValue,
@@ -915,7 +922,7 @@ pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -
     arg.to_i32(context)
 }
 
-// 13.46 PrepareTemporalFields ( fields, fieldNames, requiredFields [ , duplicateBehaviour ] )
+// 13.46 `PrepareTemporalFields ( fields, fieldNames, requiredFields [ , duplicateBehaviour ] )`
 // See fields.rs
 
 // IMPLEMENTATION NOTE: op -> true == until | false == since
@@ -940,9 +947,7 @@ pub(crate) fn get_diff_settings(
         None,
         context,
     )?
-    .as_string()
-    .expect("GetTemporalUnit cannot return undefined as the default value is not Undefined.")
-    .clone();
+    .expect("GetTemporalUnit cannot return undefined as the default value is not Undefined.");
 
     // 3. If disallowedUnits contains largestUnit, throw a RangeError exception.
     if disallowed_units.contains(&largest_unit) {
@@ -970,10 +975,7 @@ pub(crate) fn get_diff_settings(
         Some(&fallback_smallest_unit.clone().into()),
         None,
         context,
-    )?
-    .as_string()
-    .expect("smallestUnit must be a string as default value is not undefined.")
-    .clone();
+    )?.expect("smallestUnit must be a string as default value is not undefined.");
 
     // 8. If disallowedUnits contains smallestUnit, throw a RangeError exception.
     if disallowed_units.contains(&smallest_unit) {

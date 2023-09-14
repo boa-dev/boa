@@ -1,16 +1,14 @@
 //! Implementation of ISO8601 grammar lexing/parsing
-#[allow(unused_variables)]
-
 use crate::error::ParseResult;
 
+mod annotations;
+mod date_time;
+mod grammar;
 mod tests;
 mod time;
 mod time_zone;
-mod grammar;
-mod date_time;
-mod annotations;
 
-use boa_ast::temporal::{AnnotatedDateTime, TzIdentifier};
+use boa_ast::temporal::{DateRecord, IsoParseRecord, TzIdentifier};
 
 // TODO: optimize where possible.
 //
@@ -24,8 +22,13 @@ use boa_ast::temporal::{AnnotatedDateTime, TzIdentifier};
 pub struct TemporalDateTimeString;
 
 impl TemporalDateTimeString {
-    /// Parses a targeted `DateTimeString`.
-    pub fn parse(zoned: bool, cursor: &mut IsoCursor) -> ParseResult<AnnotatedDateTime> {
+    /// Parses a targeted `DateTimeString`
+    ///
+    /// # Errors
+    ///
+    /// The parse will error if the provided target is not valid
+    /// ISO8601 grammar..
+    pub fn parse(zoned: bool, cursor: &mut IsoCursor) -> ParseResult<IsoParseRecord> {
         date_time::parse_annotated_date_time(zoned, cursor)
     }
 }
@@ -35,9 +38,92 @@ impl TemporalDateTimeString {
 pub struct TemporalTimeZoneString;
 
 impl TemporalTimeZoneString {
-    /// Parses a targeted `TimeZoneString`.
+    /// Parses a targeted `TimeZoneString`
+    ///
+    /// # Errors
+    ///
+    /// The parse will error if the provided target is not valid
+    /// ISO8601 grammar..
     pub fn parse(cursor: &mut IsoCursor) -> ParseResult<TzIdentifier> {
         time_zone::parse_tz_identifier(cursor)
+    }
+}
+
+/// Parse a `TemporalYearMonthString`
+#[derive(Debug, Clone, Copy)]
+pub struct TemporalYearMonthString;
+
+impl TemporalYearMonthString {
+    /// Parses a targeted `YearMonthString`.
+    ///
+    /// # Errors
+    ///
+    /// The parse will error if the provided target is not valid
+    /// ISO8601 grammar.
+    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<IsoParseRecord> {
+        if date_time::peek_year_month(cursor)? {
+            let ym = date_time::parse_year_month(cursor)?;
+
+            let (tz_annotation, annotations) = if cursor.check_or(false, |ch| ch == '[') {
+                let set = annotations::parse_annotation_set(false, cursor)?;
+                (set.tz, set.annotations)
+            } else {
+                (None, None)
+            };
+
+            return Ok(IsoParseRecord {
+                date: DateRecord {
+                    year: ym.0,
+                    month: ym.1,
+                    day: 0,
+                },
+                time: None,
+                offset: None,
+                tz_annotation,
+                annotations,
+            });
+        }
+
+        date_time::parse_annotated_date_time(false, cursor)
+    }
+}
+
+/// Parse a `TemporalMonthDayString`
+#[derive(Debug, Clone, Copy)]
+pub struct TemporalMonthDayString;
+
+impl TemporalMonthDayString {
+    /// Parses a targeted `MonthDayString`.
+    ///
+    /// # Errors
+    ///
+    /// The parse will error if the provided target is not valid
+    /// ISO8601 grammar.
+    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<IsoParseRecord> {
+        if date_time::peek_month_day(cursor)? {
+            let md = date_time::parse_month_day(cursor)?;
+
+            let (tz_annotation, annotations) = if cursor.check_or(false, |ch| ch == '[') {
+                let set = annotations::parse_annotation_set(false, cursor)?;
+                (set.tz, set.annotations)
+            } else {
+                (None, None)
+            };
+
+            return Ok(IsoParseRecord {
+                date: DateRecord {
+                    year: 0,
+                    month: md.0,
+                    day: md.1,
+                },
+                time: None,
+                offset: None,
+                tz_annotation,
+                annotations,
+            });
+        }
+
+        date_time::parse_annotated_date_time(false, cursor)
     }
 }
 
@@ -52,7 +138,8 @@ pub struct IsoCursor {
 
 impl IsoCursor {
     /// Create a new cursor from a source `String` value.
-    pub fn new(source: String) -> Self {
+    #[must_use]
+    pub fn new(source: &str) -> Self {
         Self {
             pos: 0,
             source: source.chars().collect(),
@@ -61,7 +148,7 @@ impl IsoCursor {
 
     /// Returns a string value from a slice of the cursor.
     fn slice(&self, start: usize, end: usize) -> String {
-        self.source[start..end].into_iter().collect()
+        self.source[start..end].iter().collect()
     }
 
     /// Get current position
@@ -70,19 +157,34 @@ impl IsoCursor {
     }
 
     /// Peek the value at the current position.
-    fn peek(&self) -> Option<&char> {
-        self.source.get(self.pos)
+    fn peek(&self) -> Option<char> {
+        if self.pos < self.source.len() { Some(self.source[self.pos]) } else { None }
     }
 
     /// Peek the value at n len from current.
-    fn peek_n(&self, n: usize) -> Option<&char> {
-        self.source.get(self.pos + n)
+    fn peek_n(&self, n: usize) -> Option<char> {
+        if self.pos + n < self.source.len() { Some(self.source[self.pos]) } else { None }
     }
 
+    /// Returns boolean if current position passes check.
+    fn check<F>(&self, f: F) -> Option<bool>
+    where
+        F: FnOnce(char) -> bool,
+    {
+        self.peek().map(f)
+    }
+
+    /// Returns boolean if current position passes check or default if None.
+    fn check_or<F>(&self, default: bool, f: F) -> bool
+    where
+        F: FnOnce(char) -> bool,
+    {
+        self.peek().map_or(default, f)
+    }
     /// Advances the cursor's position and returns the new character.
-    fn next(&mut self) -> Option<&char> {
+    fn next(&mut self) -> Option<char> {
         self.advance();
-        self.source.get(self.pos)
+        self.peek()
     }
 
     /// Advances the cursor's position by 1.

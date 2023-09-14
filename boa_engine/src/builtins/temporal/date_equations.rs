@@ -22,12 +22,12 @@ pub(crate) fn mathematical_days_in_year(y: i32) -> i32 {
     }
 }
 
-pub(crate) fn epoch_day_number_for_year(y: i32) -> i32 {
+pub(crate) const fn epoch_day_number_for_year(y: i32) -> i32 {
     365 * (y - 1970) + ((y - 1970) / 4) - ((y - 1901) / 100) + ((y - 1601) / 400)
 }
 
 pub(crate) fn epoch_time_for_year(y: i32) -> f64 {
-    super::NS_PER_DAY as f64 * epoch_day_number_for_year(y) as f64
+    super::NS_PER_DAY as f64 * f64::from(epoch_day_number_for_year(y))
 }
 
 pub(crate) fn epoch_time_to_epoch_year(t: f64) -> i32 {

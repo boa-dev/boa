@@ -53,7 +53,9 @@ impl BuiltInConstructor for PlainDateTime {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        Err(JsNativeError::range().with_message("Not yet implemented.").into())
+        Err(JsNativeError::range()
+            .with_message("Not yet implemented.")
+            .into())
     }
 }
 
@@ -141,59 +143,4 @@ impl PlainDateTime {
 
 // ==== `PlainDateTime` Abstract Operations` ====
 
-fn get_utc_epoch_nanos(
-    y: i64,
-    mo: i64,
-    d: i64,
-    h: i64,
-    m: i64,
-    sec: i64,
-    ms: i64,
-    mis: i64,
-    ns: i64,
-) -> JsBigInt {
-    // NOTE(nekevss): specification calls to assert that the number is integral,
-    // the unwraps primarily function as that assertion, although admittedly clunkily.
-    let day = utils::make_day(y, mo, d).expect("must be valid number.");
-    let time = utils::make_time(h, m, sec, ms).expect("must be valid number.");
-
-    let ms = utils::make_date(day, time).expect("must be valid number.");
-
-    JsBigInt::from((ms * 1_000_000) + (mis * 1_000) + ns)
-}
-
-// -- `PlainDateTime` Abstract Operations --
-
-/// 5.5.1 `ISODateTimeWithinLimits ( year, month, day, hour, minute, second, millisecond, microsecond, nanosecond )`
-pub(crate) fn iso_datetime_within_limits(
-    y: i32,
-    mo: i32,
-    d: i32,
-    h: i32,
-    m: i32,
-    sec: i32,
-    ms: i32,
-    mis: i32,
-    ns: i32,
-) -> bool {
-    let iso = super::plain_date::iso::IsoDateRecord::new(y, mo, d);
-    assert!(iso.is_valid());
-
-    let ns = get_utc_epoch_nanos(
-        i64::from(y),
-        i64::from(mo),
-        i64::from(d),
-        i64::from(h),
-        i64::from(m),
-        i64::from(sec),
-        i64::from(ms),
-        i64::from(mis),
-        i64::from(ns),
-    )
-    .to_f64();
-
-    let iso_min = super::ns_min_instant().to_f64() - super::NS_PER_DAY as f64;
-    let iso_max = super::ns_max_instant().to_f64() + super::NS_PER_DAY as f64;
-
-    (iso_min..=iso_max).contains(&ns)
-}
+// See `IsoDateTimeRecord`

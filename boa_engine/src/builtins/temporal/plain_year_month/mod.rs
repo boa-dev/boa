@@ -21,7 +21,17 @@ pub(crate) struct IsoYearMonthRecord {
 }
 
 impl IsoYearMonthRecord {
-    pub(crate) fn new(year: i32, month: i32, ref_day: i32) -> Self {
+    pub(crate) const fn year(&self) -> i32 {
+        self.year
+    }
+
+    pub(crate) const fn month(&self) -> i32 {
+        self.month
+    }
+}
+
+impl IsoYearMonthRecord {
+    pub(crate) const fn new(year: i32, month: i32, ref_day: i32) -> Self {
         Self {
             year,
             month,
@@ -60,7 +70,7 @@ impl IsoYearMonthRecord {
                 })
             }
             "reject" => {
-                if month < 1 || month > 12 {
+                if !(1..=12).contains(&month) {
                     return Err(JsNativeError::range()
                         .with_message("month is not within the valid range.")
                         .into());
@@ -76,38 +86,38 @@ impl IsoYearMonthRecord {
         }
     }
 
-    pub(crate) fn within_limits(&self) -> bool {
-        if self.year < -271821 || self.year > 275760 {
+    pub(crate) const fn within_limits(&self) -> bool {
+        if self.year < -271_821 || self.year > 275_760 {
             return false;
         }
 
-        if self.year == -271821 && self.month < 4 {
+        if self.year == -271_821 && self.month < 4 {
             return false;
         }
 
-        if self.year == 275760 && self.month > 9 {
+        if self.year == 275_760 && self.month > 9 {
             return true;
         }
 
-        return true;
+        true
     }
 
     fn is_valid_iso_date(&self) -> bool {
-        if self.month < 1 || self.month > 12 {
+        if !(1..=12).contains(&self.month) {
             return false;
         }
 
         let days_in_month = super::calendar::utils::iso_days_in_month(self.year, self.month);
 
-        if self.ref_day < 1 || self.ref_day > days_in_month {
+        if !(1..=days_in_month).contains(&self.ref_day) {
             return false;
         }
         true
     }
 
-    /// 9.5.4 BalanceISOYearMonth ( year, month )
+    /// 9.5.4 `BalanceISOYearMonth ( year, month )`
     pub(crate) fn balance(&mut self) {
-        self.year = self.year + ((self.month - 1) / 12);
+        self.year += (self.month - 1) / 12;
         self.month = ((self.month - 1) % 12) + 1;
     }
 }
@@ -354,7 +364,7 @@ impl PlainYearMonth {
 
 // ==== Abstract Operations ====
 
-// 9.5.2 RegulateISOYearMonth ( year, month, overflow )
+// 9.5.2 `RegulateISOYearMonth ( year, month, overflow )`
 pub(crate) fn regulate_iso_year_month(
     year: i32,
     month: i32,
@@ -372,7 +382,7 @@ pub(crate) fn regulate_iso_year_month(
         "reject" => {
             // a. Assert: overflow is "reject".
             // b. If month < 1 or month > 12, throw a RangeError exception.
-            if month < 1 || month > 12 {
+            if !(1..=12).contains(&month) {
                 return Err(JsNativeError::range()
                     .with_message("month is not within the valid range.")
                     .into());
@@ -386,7 +396,7 @@ pub(crate) fn regulate_iso_year_month(
     Ok((year, month))
 }
 
-// 9.5.5 CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )
+// 9.5.5 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
 pub(crate) fn create_temporal_year_month(
     year_month_record: IsoYearMonthRecord,
     calendar: JsValue,

@@ -17,7 +17,7 @@ pub(crate) fn iso_days_in_month(year: i32, month: i32) -> i32 {
     }
 }
 
-/// 12.2.32 ToISOWeekOfYear ( year, month, day )
+/// 12.2.32 `ToISOWeekOfYear ( year, month, day )`
 fn to_iso_week_of_year(year: i32, month: i32, day: i32) -> (i32, i32) {
     // Function constants
     // 2. Let wednesday be 3.
@@ -53,7 +53,7 @@ fn to_iso_week_of_year(year: i32, month: i32, day: i32) -> (i32, i32) {
     (week, year)
 }
 
-/// 12.2.33 ISOMonthCode ( month )
+/// 12.2.33 `ISOMonthCode ( month )`
 fn iso_month_code(month: i32) -> JsString {
     // TODO: optimize
     if month < 10 {
@@ -63,7 +63,7 @@ fn iso_month_code(month: i32) -> JsString {
     }
 }
 
-// 12.2.34 ISOResolveMonth ( fields )
+// 12.2.34 `ISOResolveMonth ( fields )`
 // Note: currently implemented on TemporalFields -> implement in this mod?
 
 // 12.2.35 ISODateFromFields ( fields, overflow )
@@ -78,7 +78,7 @@ fn iso_month_code(month: i32) -> JsString {
 // 12.2.38 IsoFieldKeysToIgnore
 // TODO: determine usefulness.
 
-/// 12.2.39 ToISODayOfYear ( year, month, day )
+/// 12.2.39 `ToISODayOfYear ( year, month, day )`
 fn to_iso_day_of_year(year: i32, month: i32, day: i32) -> i32 {
     // TODO: update fn parameter to take IsoDateRecord.
     let iso = IsoDateRecord::new(year, month - 1, day);
@@ -86,7 +86,7 @@ fn to_iso_day_of_year(year: i32, month: i32, day: i32) -> i32 {
     date_equations::epoch_time_to_day_in_year(temporal::epoch_days_to_epoch_ms(epoch_days, 0)) + 1
 }
 
-/// 12.2.40 ToISODayOfWeek ( year, month, day )
+/// 12.2.40 `ToISODayOfWeek ( year, month, day )`
 fn to_iso_day_of_week(year: i32, month: i32, day: i32) -> i32 {
     let iso = IsoDateRecord::new(year, month - 1, day);
     let epoch_days = iso.as_epoch_days();

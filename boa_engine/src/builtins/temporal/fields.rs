@@ -12,20 +12,20 @@ use rustc_hash::FxHashSet;
 bitflags! {
     #[derive(PartialEq, Eq)]
     pub struct FieldMap: u16 {
-        const YEAR = 0b00000000_00000001;
-        const MONTH = 0b00000000_00000010;
-        const MONTH_CODE = 0b00000000_00000100;
-        const DAY = 0b00000000_00001000;
-        const HOUR = 0b00000000_00010000;
-        const MINUTE = 0b00000000_00100000;
-        const SECOND = 0b00000000_01000000;
-        const MILLISECOND = 0b00000000_10000000;
-        const MICROSECOND = 0b00000001_00000000;
-        const NANOSECOND = 0b00000010_00000000;
-        const OFFSET = 0b00000100_00000000;
-        const ERA = 0b00001000_00000000;
-        const ERA_YEAR = 0b00010000_00000000;
-        const TIME_ZONE = 0b00100000_00000000;
+        const YEAR = 0b0000_0000_0000_0001;
+        const MONTH = 0b0000_0000_0000_0010;
+        const MONTH_CODE = 0b0000_0000_0000_0100;
+        const DAY = 0b0000_0000_0000_1000;
+        const HOUR = 0b0000_0000_0001_0000;
+        const MINUTE = 0b0000_0000_0010_0000;
+        const SECOND = 0b0000_0000_0100_0000;
+        const MILLISECOND = 0b0000_0000_1000_0000;
+        const MICROSECOND = 0b0000_0001_0000_0000;
+        const NANOSECOND = 0b0000_0010_0000_0000;
+        const OFFSET = 0b0000_0100_0000_0000;
+        const ERA = 0b0000_1000_0000_0000;
+        const ERA_YEAR = 0b0001_0000_0000_0000;
+        const TIME_ZONE = 0b0010_0000_0000_0000;
     }
 }
 
@@ -40,19 +40,19 @@ bitflags! {
 ///
 /// |   Property   |           Conversion            |  Default   |
 /// | -------------|---------------------------------|------------|
-/// | "year"	   |     ToIntegerWithTruncation     | undefined  |
-/// | "month"	   | ToPositiveIntegerWithTruncation | undefined  |
-/// | "monthCode"  |   ToPrimitiveAndRequireString   | undefined  |
-/// | "day"        | ToPositiveIntegerWithTruncation | undefined  |
-/// | "hour"       |     ToIntegerWithTruncation     |    +0𝔽     |
-/// | "minute"	   |     ToIntegerWithTruncation     |    +0𝔽     |
-/// | "second"     |     ToIntegerWithTruncation	 |    +0𝔽     |
-/// | "millisecond"|     ToIntegerWithTruncation     |    +0𝔽     |
-/// | "microsecond"|     ToIntegerWithTruncation     |    +0𝔽     |
-/// | "nanosecond" |     ToIntegerWithTruncation     |    +0𝔽     |
-/// | "offset"     |   ToPrimitiveAndRequireString   | undefined  |
-/// | "era"        |   ToPrimitiveAndRequireString   | undefined  |
-/// | "eraYear"    |     ToIntegerWithTruncation     | undefined  |
+/// | "year"       |     `ToIntegerWithTruncation`     | undefined  |
+/// | "month"      | `ToPositiveIntegerWithTruncation` | undefined  |
+/// | "monthCode"  |   `ToPrimitiveAndRequireString`   | undefined  |
+/// | "day"        | `ToPositiveIntegerWithTruncation` | undefined  |
+/// | "hour"       |     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "minute"     |     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "second"     |     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "millisecond"|     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "microsecond"|     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "nanosecond" |     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "offset"     |   `ToPrimitiveAndRequireString`   | undefined  |
+/// | "era"        |   `ToPrimitiveAndRequireString`   | undefined  |
+/// | "eraYear"    |     `ToIntegerWithTruncation`     | undefined  |
 /// | "timeZone"   |                                 | undefined  |
 ///
 pub(crate) struct TemporalFields {
@@ -96,15 +96,15 @@ impl Default for TemporalFields {
 }
 
 impl TemporalFields {
-    pub(crate) fn year(&self) -> Option<i32> {
+    pub(crate) const fn year(&self) -> Option<i32> {
         self.year
     }
 
-    pub(crate) fn month(&self) -> Option<i32> {
+    pub(crate) const fn month(&self) -> Option<i32> {
         self.month
     }
 
-    pub(crate) fn day(&self) -> Option<i32> {
+    pub(crate) const fn day(&self) -> Option<i32> {
         self.day
     }
 }
@@ -117,21 +117,21 @@ impl TemporalFields {
         value: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<()> {
-        match field.as_ref() {
-            super::YEAR => self.set_year(value, context)?,
-            super::MONTH => self.set_month(value, context)?,
-            super::MONTH_CODE => self.set_month_code(value, context)?,
-            super::DAY => self.set_day(value, context)?,
-            super::HOUR => self.set_hour(value, context)?,
-            super::MINUTE => self.set_minute(value, context)?,
-            super::SECOND => self.set_second(value, context)?,
-            super::MILLISECOND => self.set_milli(value, context)?,
-            super::MICROSECOND => self.set_micro(value, context)?,
-            super::NANOSECOND => self.set_nano(value, context)?,
-            super::OFFSET => self.set_nano(value, context)?,
-            super::ERA => self.set_era(value, context)?,
-            super::ERA_YEAR => self.set_era_year(value, context)?,
-            super::TZ => self.set_time_zone(value)?,
+        match field.to_std_string_escaped().as_str() {
+            "year" => self.set_year(value, context)?,
+            "month" => self.set_month(value, context)?,
+            "monthCode" => self.set_month_code(value, context)?,
+            "day" => self.set_day(value, context)?,
+            "hour" => self.set_hour(value, context)?,
+            "minute" => self.set_minute(value, context)?,
+            "second" => self.set_second(value, context)?,
+            "millisecond" => self.set_milli(value, context)?,
+            "microsecond" => self.set_micro(value, context)?,
+            "nanosecond" => self.set_nano(value, context)?,
+            "offset" => self.set_offset(value, context)?,
+            "era" => self.set_era(value, context)?,
+            "eraYear" => self.set_era_year(value, context)?,
+            "timeZone" => self.set_time_zone(value),
             _ => unreachable!(),
         }
 
@@ -158,7 +158,7 @@ impl TemporalFields {
     fn set_month_code(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let mc = value.to_primitive(context, PreferredType::String)?;
         if let Some(string) = mc.as_string() {
-            self.month_code = Some(string.clone())
+            self.month_code = Some(string.clone());
         } else {
             return Err(JsNativeError::typ()
                 .with_message("ToPrimativeAndRequireString must be of type String.")
@@ -230,7 +230,7 @@ impl TemporalFields {
     fn set_offset(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let mc = value.to_primitive(context, PreferredType::String)?;
         if let Some(string) = mc.as_string() {
-            self.offset = Some(string.clone())
+            self.offset = Some(string.clone());
         } else {
             return Err(JsNativeError::typ()
                 .with_message("ToPrimativeAndRequireString must be of type String.")
@@ -245,7 +245,7 @@ impl TemporalFields {
     fn set_era(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
         let mc = value.to_primitive(context, PreferredType::String)?;
         if let Some(string) = mc.as_string() {
-            self.era = Some(string.clone())
+            self.era = Some(string.clone());
         } else {
             return Err(JsNativeError::typ()
                 .with_message("ToPrimativeAndRequireString must be of type String.")
@@ -265,17 +265,17 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_time_zone(&mut self, value: &JsValue) -> JsResult<()> {
-        let tz = value.as_string().map(|s| s.clone());
+    fn set_time_zone(&mut self, value: &JsValue) {
+        let tz = value.as_string().cloned();
         self.time_zone = tz;
         self.bit_map.set(FieldMap::TIME_ZONE, true);
-        Ok(())
     }
 }
 
 impl TemporalFields {
     // NOTE: required_fields should be None when it is set to Partial.
-    /// The equivalant function to PrepareTemporalFields
+    ///
+    /// The equivalant function to 13.46 `PrepareTemporalFields`
     pub(crate) fn from_js_object(
         fields: &JsObject,
         field_names: &[JsString],
@@ -284,7 +284,7 @@ impl TemporalFields {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         // 1. If duplicateBehaviour is not present, set duplicateBehaviour to throw.
-        let dup_option = dup_behaviour.unwrap_or(js_string!("throw"));
+        let dup_option = dup_behaviour.unwrap_or_else(|| js_string!("throw"));
 
         // 2. Let result be OrdinaryObjectCreate(null).
         let mut result = Self::default();
@@ -329,11 +329,11 @@ impl TemporalFields {
                     // iii. Set value to ? ToPrimitive(value, string).
                     // iv. If value is not a String, throw a TypeError exception.
                     // 3. Perform ! CreateDataPropertyOrThrow(result, property, value).
-                    result.set_field_value(field, &value, context)?
+                    result.set_field_value(field, &value, context)?;
                 // iii. Else if requiredFields is a List, then
                 } else if let Some(list) = required_fields {
                     // 1. If requiredFields contains property, then
-                    if list.contains(&field) {
+                    if list.contains(field) {
                         // a. Throw a TypeError exception.
                         return Err(JsNativeError::typ()
                             .with_message("A required temporal field was not provided.")
@@ -367,6 +367,7 @@ impl TemporalFields {
         Ok(result)
     }
 
+    /// Convert a `TemporalFields` struct into a `JsObject`.
     pub(crate) fn as_object(&self, context: &mut Context<'_>) -> JsResult<JsObject> {
         let obj = JsObject::with_null_proto();
 
@@ -375,7 +376,7 @@ impl TemporalFields {
                 FieldMap::YEAR => {
                     obj.create_data_property_or_throw(
                         "year",
-                        self.year.map(JsValue::from).unwrap_or(JsValue::undefined()),
+                        self.year.map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
@@ -383,8 +384,7 @@ impl TemporalFields {
                     obj.create_data_property_or_throw(
                         "month",
                         self.month
-                            .map(JsValue::from)
-                            .unwrap_or(JsValue::undefined()),
+                            .map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
@@ -393,8 +393,7 @@ impl TemporalFields {
                         "monthCode",
                         self.month_code
                             .as_ref()
-                            .map(|f| f.clone().into())
-                            .unwrap_or(JsValue::undefined()),
+                            .map_or(JsValue::undefined(), |f| f.clone().into()),
                         context,
                     )?;
                 }
@@ -402,8 +401,7 @@ impl TemporalFields {
                     obj.create_data_property(
                         "day",
                         self.day()
-                            .map(JsValue::from)
-                            .unwrap_or(JsValue::undefined()),
+                            .map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
@@ -430,8 +428,7 @@ impl TemporalFields {
                         "offset",
                         self.offset
                             .as_ref()
-                            .map(|s| s.clone().into())
-                            .unwrap_or(JsValue::undefined()),
+                            .map_or(JsValue::undefined(), |s| s.clone().into()),
                         context,
                     )?;
                 }
@@ -440,8 +437,7 @@ impl TemporalFields {
                         "era",
                         self.era
                             .as_ref()
-                            .map(|s| s.clone().into())
-                            .unwrap_or(JsValue::undefined()),
+                            .map_or(JsValue::undefined(), |s| s.clone().into()),
                         context,
                     )?;
                 }
@@ -449,8 +445,7 @@ impl TemporalFields {
                     obj.create_data_property_or_throw(
                         "eraYear",
                         self.era_year
-                            .map(JsValue::from)
-                            .unwrap_or(JsValue::undefined()),
+                            .map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
@@ -459,8 +454,7 @@ impl TemporalFields {
                         "timeZone",
                         self.time_zone
                             .as_ref()
-                            .map(|s| s.clone().into())
-                            .unwrap_or(JsValue::undefined()),
+                            .map_or(JsValue::undefined(), |s| s.clone().into()),
                         context,
                     )?;
                 }
@@ -468,25 +462,10 @@ impl TemporalFields {
             }
         }
 
-        if self.bit_map.contains(FieldMap::YEAR) {
-            let value = self
-                .year()
-                .map(JsValue::from)
-                .unwrap_or(JsValue::undefined());
-            obj.create_data_property_or_throw(PropertyKey::from("year"), value, context)?;
-        }
-
-        if self.bit_map.contains(FieldMap::MONTH) {
-            let value = self
-                .month()
-                .map(JsValue::from)
-                .unwrap_or(JsValue::undefined());
-            obj.create_data_property_or_throw(PropertyKey::from("month"), value, context)?;
-        }
-
         Ok(obj)
     }
 
+    /// Resolve the month and monthCode on this `TemporalFields`.
     pub(crate) fn resolve_month(&mut self) -> JsResult<()> {
         if self.month_code.is_none() {
             if self.month.is_some() {

@@ -81,7 +81,7 @@ pub trait BuiltinCalendar {
 
 impl core::fmt::Debug for dyn BuiltinCalendar {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", "Builtin Calendar Protocol")
+        write!(f, "Builtin Calendar Protocol")
     }
 }
 
@@ -99,7 +99,7 @@ fn available_calendars() -> FxHashMap<&'static str, Box<dyn BuiltinCalendar>> {
 }
 
 // Returns if an identifier is a builtin calendar.
-fn is_builtin_calendar(identifier: String) -> bool {
+pub(crate) fn is_builtin_calendar(identifier: &str) -> bool {
     let calendars = available_calendars();
     calendars.contains_key(identifier.to_ascii_lowercase().as_str())
 }
@@ -183,7 +183,7 @@ impl BuiltInConstructor for Calendar {
         // 2. If id is not a String, throw a TypeError exception.
         if let Some(id) = identifier.as_string() {
             // 3. If IsBuiltinCalendar(id) is false, then
-            if !is_builtin_calendar(id.to_std_string_escaped()) {
+            if !is_builtin_calendar(&id.to_std_string_escaped()) {
                 // a. Throw a RangeError exception.
                 return Err(JsNativeError::range()
                     .with_message("Calendar ID must be a valid builtin calendar.")
@@ -214,7 +214,7 @@ impl Calendar {
         Ok(calendar.identifier.clone().into())
     }
 
-    /// 15.8.2.1 Temporal.Calendar.prototype.dateFromFields ( fields [ , options ] ) - Supercedes 12.5.4
+    /// 15.8.2.1 `Temporal.Calendar.prototype.dateFromFields ( fields [ , options ] )` - Supercedes 12.5.4
     fn date_from_fields(
         this: &JsValue,
         args: &[JsValue],
@@ -237,7 +237,7 @@ impl Calendar {
         this_protocol.date_from_fields(args, context)
     }
 
-    /// 15.8.2.2 Temporal.Calendar.prototype.yearMonthFromFields ( fields [ , options ] ) - Supercedes 12.5.5
+    /// 15.8.2.2 `Temporal.Calendar.prototype.yearMonthFromFields ( fields [ , options ] )` - Supercedes 12.5.5
     fn year_month_from_fields(
         this: &JsValue,
         args: &[JsValue],
@@ -260,7 +260,7 @@ impl Calendar {
         this_protocol.year_month_from_fields(args, context)
     }
 
-    /// 15.8.2.3 Temporal.Calendar.prototype.monthDayFromFields ( fields [ , options ] ) - Supercedes 12.5.6
+    /// 15.8.2.3 `Temporal.Calendar.prototype.monthDayFromFields ( fields [ , options ] )` - Supercedes 12.5.6
     fn month_day_from_fields(
         this: &JsValue,
         args: &[JsValue],
@@ -283,7 +283,7 @@ impl Calendar {
         this_protocol.month_day_from_fields(args, context)
     }
 
-    /// 15.8.2.4 Temporal.Calendar.prototype.dateAdd ( date, duration [ , options ] ) - supercedes 12.5.7
+    /// 15.8.2.4 `Temporal.Calendar.prototype.dateAdd ( date, duration [ , options ] )` - supercedes 12.5.7
     fn date_add(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
@@ -302,7 +302,7 @@ impl Calendar {
         this_protocol.date_add(args, context)
     }
 
-    ///15.8.2.5 Temporal.Calendar.prototype.dateUntil ( one, two [ , options ] ) - Supercedes 12.5.8
+    ///15.8.2.5 `Temporal.Calendar.prototype.dateUntil ( one, two [ , options ] )` - Supercedes 12.5.8
     fn date_until(
         this: &JsValue,
         args: &[JsValue],
@@ -325,7 +325,7 @@ impl Calendar {
         this_protocol.date_until(args, context)
     }
 
-    /// 15.8.2.6 Temporal.Calendar.prototype.era ( temporalDateLike )
+    /// 15.8.2.6 `Temporal.Calendar.prototype.era ( temporalDateLike )`
     fn era(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
@@ -344,7 +344,7 @@ impl Calendar {
         this_protocol.era(args, context)
     }
 
-    /// 15.8.2.7 Temporal.Calendar.prototype.eraYear ( temporalDateLike )
+    /// 15.8.2.7 `Temporal.Calendar.prototype.eraYear ( temporalDateLike )`
     fn era_year(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
@@ -687,13 +687,13 @@ pub(crate) fn create_temporal_calendar(
     context: &mut Context<'_>,
 ) -> JsResult<JsValue> {
     // 1. Assert: IsBuiltinCalendar(identifier) is true.
-    assert!(is_builtin_calendar(identifier.to_std_string_escaped()));
+    assert!(is_builtin_calendar(&identifier.to_std_string_escaped()));
 
     let calendar = Calendar {
         identifier: identifier.clone(),
     };
     // 2. If newTarget is not provided, set newTarget to %Temporal.Calendar%.
-    let new_target = new_target.unwrap_or(
+    let new_target = new_target.unwrap_or_else(||
         context
             .realm()
             .intrinsics()
@@ -714,7 +714,7 @@ pub(crate) fn create_temporal_calendar(
     Ok(obj.into())
 }
 
-/// 12.2.21 GetTemporalCalendarSlotValueWithISODefault ( item )
+/// 12.2.21 `GetTemporalCalendarSlotValueWithISODefault ( item )`
 pub(crate) fn get_temporal_calendar_slot_value_with_default(
     item: &JsObject,
     context: &mut Context<'_>,
@@ -774,7 +774,7 @@ fn to_temporal_calendar_slot_value(
     if calendar_like.is_undefined() {
         if let Some(default) = default {
             // a. Assert: IsBuiltinCalendar(default) is true.
-            if is_builtin_calendar(default.to_std_string_escaped()) {
+            if is_builtin_calendar(&default.to_std_string_escaped()) {
                 // b. Return default.
                 return Ok(default.into());
             }
@@ -838,7 +838,7 @@ fn to_temporal_calendar_slot_value(
     // 4. Let identifier be ? ParseTemporalCalendarString(temporalCalendarLike).
     // 5. If IsBuiltinCalendar(identifier) is false, throw a RangeError exception.
     // 6. Return the ASCII-lowercase of identifier.
-    return Ok("iso8601".into());
+    Ok("iso8601".into())
 }
 
 // ---------------------------- AbstractCalendar Methods ----------------------------
@@ -874,7 +874,7 @@ fn call_method_on_abstract_calendar(
     method.call(&this_calendar.into(), args, context)
 }
 
-/// 12.2.2 CalendarFields ( calendar, fieldNames )
+/// 12.2.2 `CalendarFields ( calendar, fieldNames )`
 ///
 /// Returns either a normal completion containing a List of Strings, or a throw completion.
 pub(crate) fn calendar_fields(
@@ -901,7 +901,7 @@ pub(crate) fn calendar_fields(
     super::iterator_to_list_of_types(&mut iterator_record, &[crate::value::Type::String], context)
 }
 
-/// 12.2.3 CalendarMergeFields ( calendar, fields, additionalFields )
+/// 12.2.3 `CalendarMergeFields ( calendar, fields, additionalFields )`
 ///
 /// Returns either a normal completion containing an Object, or a throw completion.
 pub(crate) fn calendar_merge_fields(
@@ -998,7 +998,7 @@ pub(crate) fn calendar_date_until(
                 .expect("Value is confirmed to be a duration.");
             let record = dur.inner;
             drop(obj);
-            return Ok(record);
+            Ok(record)
         }
         _ => Err(JsNativeError::typ()
             .with_message("Calendar dateUntil must return a Duration")
@@ -1006,7 +1006,7 @@ pub(crate) fn calendar_date_until(
     }
 }
 
-/// 12.2.6 CalendarYear ( calendar, dateLike )
+/// 12.2.6 `CalendarYear ( calendar, dateLike )`
 ///
 /// Returns either a normal completion containing an integer, or an abrupt completion.
 pub(crate) fn calendar_year(
@@ -1026,13 +1026,10 @@ pub(crate) fn calendar_year(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarYear result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarYear result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1046,7 +1043,7 @@ pub(crate) fn calendar_year(
     Ok(number)
 }
 
-/// 12.2.7 CalendarMonth ( calendar, dateLike )
+/// 12.2.7 `CalendarMonth ( calendar, dateLike )`
 pub(crate) fn calendar_month(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1064,13 +1061,10 @@ pub(crate) fn calendar_month(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarYear result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarYear result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1091,7 +1085,7 @@ pub(crate) fn calendar_month(
     Ok(number)
 }
 
-/// 12.2.8 CalendarMonthCode ( calendar, dateLike )
+/// 12.2.8 `CalendarMonthCode ( calendar, dateLike )`
 pub(crate) fn calendar_month_code(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1118,7 +1112,7 @@ pub(crate) fn calendar_month_code(
     }
 }
 
-/// 12.2.9 CalendarDay ( calendar, dateLike )
+/// 12.2.9 `CalendarDay ( calendar, dateLike )`
 pub(crate) fn calendar_day(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1136,13 +1130,10 @@ pub(crate) fn calendar_day(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarYear result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarYear result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1163,7 +1154,7 @@ pub(crate) fn calendar_day(
     Ok(number)
 }
 
-/// 12.2.10 CalendarDayOfWeek ( calendar, dateLike )
+/// 12.2.10 `CalendarDayOfWeek ( calendar, dateLike )`
 pub(crate) fn calendar_day_of_week(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1181,13 +1172,10 @@ pub(crate) fn calendar_day_of_week(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarDayOfWeek result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarDayOfWeek result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1208,7 +1196,7 @@ pub(crate) fn calendar_day_of_week(
     Ok(number)
 }
 
-/// 12.2.11 CalendarDayOfYear ( calendar, dateLike )
+/// 12.2.11 `CalendarDayOfYear ( calendar, dateLike )`
 pub(crate) fn calendar_day_of_year(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1226,13 +1214,10 @@ pub(crate) fn calendar_day_of_year(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarDayOfYear result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarDayOfYear result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1253,7 +1238,7 @@ pub(crate) fn calendar_day_of_year(
     Ok(number)
 }
 
-/// 12.2.12 CalendarWeekOfYear ( calendar, dateLike )
+/// 12.2.12 `CalendarWeekOfYear ( calendar, dateLike )`
 pub(crate) fn calendar_week_of_year(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1271,13 +1256,10 @@ pub(crate) fn calendar_week_of_year(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarWeekOfYear result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarWeekOfYear result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1298,7 +1280,7 @@ pub(crate) fn calendar_week_of_year(
     Ok(number)
 }
 
-/// 12.2.13 CalendarYearOfWeek ( calendar, dateLike )
+/// 12.2.13 `CalendarYearOfWeek ( calendar, dateLike )`
 pub(crate) fn calendar_year_of_week(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1316,13 +1298,10 @@ pub(crate) fn calendar_year_of_week(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarYearOfWeek result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarYearOfWeek result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1336,7 +1315,7 @@ pub(crate) fn calendar_year_of_week(
     Ok(number)
 }
 
-/// 12.2.14 CalendarDaysInWeek ( calendar, dateLike )
+/// 12.2.14 `CalendarDaysInWeek ( calendar, dateLike )`
 pub(crate) fn calendar_days_in_week(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1354,13 +1333,10 @@ pub(crate) fn calendar_days_in_week(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarDaysInWeek result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarDaysInWeek result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1381,7 +1357,7 @@ pub(crate) fn calendar_days_in_week(
     Ok(number)
 }
 
-/// 12.2.15 CalendarDaysInMonth ( calendar, dateLike )
+/// 12.2.15 `CalendarDaysInMonth ( calendar, dateLike )`
 pub(crate) fn calendar_days_in_month(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1399,13 +1375,10 @@ pub(crate) fn calendar_days_in_month(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarDaysInMonth result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarDaysInMonth result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1426,7 +1399,7 @@ pub(crate) fn calendar_days_in_month(
     Ok(number)
 }
 
-/// 12.2.16 CalendarDaysInYear ( calendar, dateLike )
+/// 12.2.16 `CalendarDaysInYear ( calendar, dateLike )`
 pub(crate) fn calendar_days_in_year(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1444,13 +1417,10 @@ pub(crate) fn calendar_days_in_year(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarDaysInYear result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarDaysInYear result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1471,7 +1441,7 @@ pub(crate) fn calendar_days_in_year(
     Ok(number)
 }
 
-/// 12.2.17 CalendarMonthsInYear ( calendar, dateLike )
+/// 12.2.17 `CalendarMonthsInYear ( calendar, dateLike )`
 pub(crate) fn calendar_months_in_year(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1489,13 +1459,10 @@ pub(crate) fn calendar_months_in_year(
     )?;
 
     // 3. If Type(result) is not Number, throw a TypeError exception.
-    let number = match result.as_number() {
-        Some(n) => n,
-        None => {
-            return Err(JsNativeError::typ()
-                .with_message("CalendarMonthsInYear result must be a number.")
-                .into())
-        }
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarMonthsInYear result must be a number.")
+            .into())
     };
 
     // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
@@ -1516,7 +1483,7 @@ pub(crate) fn calendar_months_in_year(
     Ok(number)
 }
 
-/// 12.2.18 CalendarInLeapYear ( calendar, dateLike )
+/// 12.2.18 `CalendarInLeapYear ( calendar, dateLike )`
 pub(crate) fn calendar_in_lear_year(
     calendar: &JsValue,
     datelike: &JsValue,
@@ -1543,7 +1510,7 @@ pub(crate) fn calendar_in_lear_year(
     }
 }
 
-/// 12.2.24 CalendarDateFromFields ( calendar, fields [ , options [ , dateFromFields ] ] )
+/// 12.2.24 `CalendarDateFromFields ( calendar, fields [ , options [ , dateFromFields ] ] )`
 pub(crate) fn calendar_date_from_fields(
     calendar: &JsValue,
     fields: &JsObject,

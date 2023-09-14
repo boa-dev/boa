@@ -16,10 +16,7 @@ use boa_profiler::Profiler;
 use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
 
-use super::{
-    duration, ns_max_instant, ns_min_instant, HOUR, MICROSECOND, MICRO_PER_DAY, MILLISECOND,
-    MILLI_PER_DAY, MINUTE, NANOSECOND, NS_PER_DAY, SECOND,
-};
+use super::{duration, ns_max_instant, ns_min_instant, MICRO_PER_DAY, MILLI_PER_DAY, NS_PER_DAY};
 
 const NANOSECONDS_PER_SECOND: i64 = 10_000_000_000;
 const NANOSECONDS_PER_MINUTE: i64 = 600_000_000_000;
@@ -377,7 +374,6 @@ impl Instant {
         )?;
 
         let smallest_unit = smallest_unit
-            .as_string()
             .expect("GetTemporalUnit cannot return Undefined when default is required.");
         let maximum = match smallest_unit.to_std_string_escaped().as_str() {
             // 10. If smallestUnit is "hour", then
@@ -410,7 +406,7 @@ impl Instant {
         let rounded_ns = round_temporal_instant(
             &instant.nanoseconds,
             rounding_increment,
-            smallest_unit,
+            &smallest_unit,
             &rounding_mode,
         )?;
 
@@ -523,7 +519,10 @@ fn create_temporal_instant(
 /// 8.5.3 `ToTemporalInstant ( item )`
 #[inline]
 fn to_temporal_instant(_: &JsValue) -> JsResult<Instant> {
-    todo!()
+    // TODO: Need to implement parsing.
+    Err(JsNativeError::error()
+        .with_message("Instant parsing is not yet implemented.")
+        .into())
 }
 
 /// 8.5.6 `AddInstant ( epochNanoseconds, hours, minutes, seconds, milliseconds, microseconds, nanoseconds )`
@@ -607,10 +606,10 @@ fn diff_instant(
     // 7. Assert: roundResult.[[Days]] is 0.
     assert_eq!(roundable_duration.days() as i32, 0);
 
-    // 8. Return ! BalanceDuration(0, roundResult.[[Hours]], roundResult.[[Minutes]],
+    // 8. Return ! BalanceTimeDuration(0, roundResult.[[Hours]], roundResult.[[Minutes]],
     //    roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]],
     //    roundResult.[[Nanoseconds]], largestUnit).
-    roundable_duration.balance_duration(largest_unit, None)?;
+    roundable_duration.balance_time_duration(largest_unit, None)?;
 
     Ok(roundable_duration)
 }
@@ -623,34 +622,34 @@ fn round_temporal_instant(
     unit: &JsString,
     rounding_mode: &JsString,
 ) -> JsResult<JsBigInt> {
-    let increment_ns = match unit.as_slice() {
+    let increment_ns = match unit.to_std_string_escaped().as_str() {
         // 1. If unit is "hour", then
-        HOUR => {
+        "hour" => {
             // a. Let incrementNs be increment × 3.6 × 10^12.
             increment as i64 * NANOSECONDS_PER_HOUR
         }
         // 2. Else if unit is "minute", then
-        MINUTE => {
+        "minute" => {
             // a. Let incrementNs be increment × 6 × 10^10.
             increment as i64 * NANOSECONDS_PER_MINUTE
         }
         // 3. Else if unit is "second", then
-        SECOND => {
+        "second" => {
             // a. Let incrementNs be increment × 10^9.
             increment as i64 * NANOSECONDS_PER_SECOND
         }
         // 4. Else if unit is "millisecond", then
-        MILLISECOND => {
+        "millisecond" => {
             // a. Let incrementNs be increment × 10^6.
             increment as i64 * 1_000_000
         }
         // 5. Else if unit is "microsecond", then
-        MICROSECOND => {
+        "microsecond" => {
             // a. Let incrementNs be increment × 10^3.
             increment as i64 * 1000
         }
         // 6. Else,
-        NANOSECOND => {
+        "nanosecond" => {
             // NOTE: We shouldn't have to assert here as `unreachable` asserts instead.
             // a. Assert: unit is "nanosecond".
             // b. Let incrementNs be increment.
@@ -727,13 +726,22 @@ fn add_or_subtract_duration_from_instant(
     // 2. Let duration be ? ToTemporalDurationRecord(temporalDurationLike).
     let duration = super::to_temporal_duration_record(temporal_duration_like)?;
     // 3. If duration.[[Days]] is not 0, throw a RangeError exception.
-    if duration.days() != 0_f64 {}
+    if duration.days() != 0_f64 {
+        return Err(JsNativeError::range().with_message("DurationDays cannot be 0").into())
+    }
     // 4. If duration.[[Months]] is not 0, throw a RangeError exception.
-    if duration.months() != 0_f64 {}
+    if duration.months() != 0_f64 {
+        return Err(JsNativeError::range().with_message("DurationMonths cannot be 0").into())
+    }
     // 5. If duration.[[Weeks]] is not 0, throw a RangeError exception.
-    if duration.weeks() != 0_f64 {}
+    if duration.weeks() != 0_f64 {
+        return Err(JsNativeError::range().with_message("DurationWeeks cannot be 0").into())
+
+    }
     // 6. If duration.[[Years]] is not 0, throw a RangeError exception.
-    if duration.years() != 0_f64 {}
+    if duration.years() != 0_f64 {
+        return Err(JsNativeError::range().with_message("DurationYears cannot be 0").into())
+    }
     // 7. Let ns be ? AddInstant(instant.[[Nanoseconds]], sign × duration.[[Hours]],
     // sign × duration.[[Minutes]], sign × duration.[[Seconds]], sign × duration.[[Milliseconds]],
     // sign × duration.[[Microseconds]], sign × duration.[[Nanoseconds]]).
