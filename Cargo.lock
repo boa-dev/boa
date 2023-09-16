@@ -2566,8 +2566,7 @@ checksum = "1ad4cc8da4ef723ed60bced201181d83791ad433213d8c24efffda1eec85d741"
 [[package]]
 name = "ryu-js"
 version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6518fc26bced4d53678a22d6e423e9d8716377def84545fe328236e3af070e7f"
+source = "git+https://github.com/boa-dev/ryu-js.git?branch=feature/to-fixed#ccbc568d312531d6afb9fce382a7567397d466ae"
 
 [[package]]
 name = "same-file"
