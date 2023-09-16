@@ -27,7 +27,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     script::Script,
-    vm::{CallFrame, Vm},
+    vm::{ActiveRunnable, CallFrame, Vm},
     JsResult, JsValue, Source,
 };
 use boa_ast::{expression::Identifier, StatementList};
@@ -705,6 +705,41 @@ impl Context<'_> {
     /// Returns `true` if this context is in strict mode.
     pub(crate) const fn is_strict(&self) -> bool {
         self.strict
+    }
+
+    /// `9.4.1 GetActiveScriptOrModule ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getactivescriptormodule
+    pub(crate) fn get_active_script_or_module(&self) -> Option<ActiveRunnable> {
+        // 1. If the execution context stack is empty, return null.
+        // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
+        // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
+        self.vm
+            .frames
+            .iter()
+            .rev()
+            .find_map(|frame| frame.active_runnable.clone())
+    }
+
+    /// Get `active function object`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#active-function-object
+    pub(crate) fn active_function_object(&self) -> Option<JsObject> {
+        if self.vm.native_active_function.is_some() {
+            return self.vm.native_active_function.clone();
+        }
+
+        if let Some(frame) = self.vm.frames.last() {
+            return frame.active_function.clone();
+        }
+
+        None
     }
 }
 

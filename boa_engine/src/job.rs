@@ -22,7 +22,6 @@ use std::{any::Any, cell::RefCell, collections::VecDeque, fmt::Debug, future::Fu
 use crate::{
     object::{JsFunction, NativeObject},
     realm::Realm,
-    vm::ActiveRunnable,
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -69,7 +68,6 @@ pub struct NativeJob {
     #[allow(clippy::type_complexity)]
     f: Box<dyn FnOnce(&mut Context<'_>) -> JsResult<JsValue>>,
     realm: Option<Realm>,
-    active_runnable: Option<ActiveRunnable>,
 }
 
 impl Debug for NativeJob {
@@ -87,19 +85,17 @@ impl NativeJob {
         Self {
             f: Box::new(f),
             realm: None,
-            active_runnable: None,
         }
     }
 
     /// Creates a new `NativeJob` from a closure and an execution realm.
-    pub fn with_realm<F>(f: F, realm: Realm, context: &mut Context<'_>) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm, _context: &mut Context<'_>) -> Self
     where
         F: FnOnce(&mut Context<'_>) -> JsResult<JsValue> + 'static,
     {
         Self {
             f: Box::new(f),
             realm: Some(realm),
-            active_runnable: context.vm.active_runnable.clone(),
         }
     }
 
@@ -115,7 +111,7 @@ impl NativeJob {
     ///
     /// If the native job has an execution realm defined, this sets the running execution
     /// context to the realm's before calling the inner closure, and resets it after execution.
-    pub fn call(mut self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn call(self, context: &mut Context<'_>) -> JsResult<JsValue> {
         // If realm is not null, each time job is invoked the implementation must perform
         // implementation-defined steps such that execution is prepared to evaluate ECMAScript
         // code at the time of job's invocation.
@@ -126,12 +122,9 @@ impl NativeJob {
             // invoked. If realm is not null, each time job is invoked the implementation must
             // perform implementation-defined steps such that scriptOrModule is the active script or
             // module at the time of job's invocation.
-            std::mem::swap(&mut context.vm.active_runnable, &mut self.active_runnable);
-
             let result = (self.f)(context);
 
             context.enter_realm(old_realm);
-            std::mem::swap(&mut context.vm.active_runnable, &mut self.active_runnable);
 
             result
         } else {

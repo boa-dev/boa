@@ -758,7 +758,7 @@ pub(crate) fn create_function_object(
     let name: JsValue = code.name().clone().into();
     let length: JsValue = code.length.into();
 
-    let script_or_module = context.vm.active_runnable.clone();
+    let script_or_module = context.get_active_script_or_module();
 
     let function = if r#async {
         Function::new(
@@ -838,7 +838,7 @@ pub(crate) fn create_function_object_fast(
     let name: JsValue = code.name().clone().into();
     let length: JsValue = code.length.into();
 
-    let script_or_module = context.vm.active_runnable.clone();
+    let script_or_module = context.get_active_script_or_module();
 
     let function = if r#async {
         FunctionKind::Async {
@@ -943,7 +943,7 @@ pub(crate) fn create_generator_function_object(
         ObjectData::ordinary(),
     );
 
-    let script_or_module = context.vm.active_runnable.clone();
+    let script_or_module = context.get_active_script_or_module();
 
     let constructor = if r#async {
         let function = Function::new(
@@ -1007,87 +1007,89 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let old_realm = context.realm().clone();
-        let old_active_fn = context.vm.active_function.clone();
 
         let context = &mut context.guard(move |ctx| {
             ctx.enter_realm(old_realm);
-            ctx.vm.active_function = old_active_fn;
         });
 
         let this_function_object = self.clone();
-        let active_function = self.clone();
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
         let realm = function_object.realm().clone();
 
         context.enter_realm(realm);
-        context.vm.active_function = Some(active_function);
 
-        let (code, mut environments, class_object, mut script_or_module) =
-            match function_object.kind() {
-                FunctionKind::Native {
-                    function,
-                    constructor,
-                } => {
-                    let function = function.clone();
-                    let constructor = *constructor;
-                    drop(object);
+        let (code, mut environments, class_object, script_or_module) = match function_object.kind()
+        {
+            FunctionKind::Native {
+                function,
+                constructor,
+            } => {
+                let function = function.clone();
+                let constructor = *constructor;
+                drop(object);
 
-                    return if constructor.is_some() {
-                        function.call(&JsValue::undefined(), args, context)
-                    } else {
-                        function.call(this, args, context)
-                    }
-                    .map_err(|err| err.inject_realm(context.realm().clone()));
+                context.vm.native_active_function = Some(this_function_object);
+
+                let result = if constructor.is_some() {
+                    function.call(&JsValue::undefined(), args, context)
+                } else {
+                    function.call(this, args, context)
                 }
-                FunctionKind::Ordinary {
-                    code,
-                    environments,
-                    class_object,
-                    script_or_module,
-                    ..
-                } => {
-                    let code = code.clone();
-                    if code.is_class_constructor() {
-                        return Err(JsNativeError::typ()
-                            .with_message("class constructor cannot be invoked without 'new'")
-                            .with_realm(context.realm().clone())
-                            .into());
-                    }
-                    (
-                        code,
-                        environments.clone(),
-                        class_object.clone(),
-                        script_or_module.clone(),
-                    )
+                .map_err(|err| err.inject_realm(context.realm().clone()));
+
+                context.vm.native_active_function = None;
+
+                return result;
+            }
+            FunctionKind::Ordinary {
+                code,
+                environments,
+                class_object,
+                script_or_module,
+                ..
+            } => {
+                let code = code.clone();
+                if code.is_class_constructor() {
+                    return Err(JsNativeError::typ()
+                        .with_message("class constructor cannot be invoked without 'new'")
+                        .with_realm(context.realm().clone())
+                        .into());
                 }
-                FunctionKind::Async {
+                (
                     code,
-                    environments,
-                    class_object,
-                    script_or_module,
-                    ..
-                }
-                | FunctionKind::Generator {
-                    code,
-                    environments,
-                    class_object,
-                    script_or_module,
-                    ..
-                }
-                | FunctionKind::AsyncGenerator {
-                    code,
-                    environments,
-                    class_object,
-                    script_or_module,
-                    ..
-                } => (
-                    code.clone(),
                     environments.clone(),
                     class_object.clone(),
                     script_or_module.clone(),
-                ),
-            };
+                )
+            }
+            FunctionKind::Async {
+                code,
+                environments,
+                class_object,
+                script_or_module,
+                ..
+            }
+            | FunctionKind::Generator {
+                code,
+                environments,
+                class_object,
+                script_or_module,
+                ..
+            }
+            | FunctionKind::AsyncGenerator {
+                code,
+                environments,
+                class_object,
+                script_or_module,
+                ..
+            } => (
+                code.clone(),
+                environments.clone(),
+                class_object.clone(),
+                script_or_module.clone(),
+            ),
+        };
 
         drop(object);
 
@@ -1185,11 +1187,9 @@ impl JsObject {
         let argument_count = args.len();
         let parameters_count = code.params.as_ref().len();
 
-        let frame = CallFrame::new(code)
+        let frame = CallFrame::new(code, script_or_module, Some(self.clone()))
             .with_argument_count(argument_count as u32)
             .with_env_fp(env_fp);
-
-        std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
 
         context.vm.push_frame(frame);
 
@@ -1206,7 +1206,6 @@ impl JsObject {
 
         context.vm.pop_frame().expect("frame must exist");
         std::mem::swap(&mut environments, &mut context.vm.environments);
-        std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
 
         result
     }
@@ -1218,20 +1217,16 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let old_realm = context.realm().clone();
-        let old_active_fn = context.vm.active_function.clone();
         let context = &mut context.guard(move |ctx| {
             ctx.enter_realm(old_realm);
-            ctx.vm.active_function = old_active_fn;
         });
 
         let this_function_object = self.clone();
-        let active_function = self.clone();
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
         let realm = function_object.realm().clone();
 
         context.enter_realm(realm);
-        context.vm.active_function = Some(active_function);
 
         match function_object.kind() {
             FunctionKind::Native {
@@ -1243,7 +1238,9 @@ impl JsObject {
                 let constructor = *constructor;
                 drop(object);
 
-                function
+                context.vm.native_active_function = Some(this_function_object);
+
+                let result = function
                     .call(this_target, args, context)
                     .map_err(|err| err.inject_realm(context.realm().clone()))
                     .and_then(|v| match v {
@@ -1270,7 +1267,11 @@ impl JsObject {
                                 .into())
                             }
                         }
-                    })
+                    });
+
+                context.vm.native_active_function = None;
+
+                result
             }
             FunctionKind::Ordinary {
                 code,
@@ -1281,7 +1282,7 @@ impl JsObject {
             } => {
                 let code = code.clone();
                 let mut environments = environments.clone();
-                let mut script_or_module = script_or_module.clone();
+                let script_or_module = script_or_module.clone();
                 let constructor_kind = *constructor_kind;
                 drop(object);
 
@@ -1384,10 +1385,8 @@ impl JsObject {
 
                 let has_binding_identifier = code.has_binding_identifier();
 
-                std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
-
                 context.vm.push_frame(
-                    CallFrame::new(code)
+                    CallFrame::new(code, script_or_module, Some(self.clone()))
                         .with_argument_count(argument_count as u32)
                         .with_env_fp(environments_len as u32),
                 );
@@ -1403,7 +1402,6 @@ impl JsObject {
                 context.vm.pop_frame();
 
                 std::mem::swap(&mut environments, &mut context.vm.environments);
-                std::mem::swap(&mut context.vm.active_runnable, &mut script_or_module);
 
                 let environment = if has_binding_identifier {
                     environments.truncate(environments_len + 2);
