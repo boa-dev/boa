@@ -1983,12 +1983,6 @@
 <a href="#1983" id="1983">1983</a>
 <a href="#1984" id="1984">1984</a>
 <a href="#1985" id="1985">1985</a>
-<a href="#1986" id="1986">1986</a>
-<a href="#1987" id="1987">1987</a>
-<a href="#1988" id="1988">1988</a>
-<a href="#1989" id="1989">1989</a>
-<a href="#1990" id="1990">1990</a>
-<a href="#1991" id="1991">1991</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -3598,20 +3592,19 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>envs = EnvironmentStack::new(global_env);
         envs.push_module(module_compile_env);
 
-        <span class="comment">// 12. Set the ScriptOrModule of moduleContext to module.
-        </span><span class="kw">let </span>active_runnable = context
-            .vm
-            .active_runnable
-            .replace(ActiveRunnable::Module(parent.clone()));
+        <span class="comment">// 9. Set the Function of moduleContext to null.
+        // 12. Set the ScriptOrModule of moduleContext to module.
+        </span><span class="kw">let </span>call_frame = CallFrame::new(
+            codeblock.clone(),
+            <span class="prelude-val">Some</span>(ActiveRunnable::Module(parent.clone())),
+            <span class="prelude-val">None</span>,
+        );
+        context.vm.push_frame(call_frame);
 
         <span class="comment">// 13. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 14. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
         // 15. Set the PrivateEnvironment of moduleContext to null.
         </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>envs);
-        <span class="kw">let </span>stack = std::mem::take(<span class="kw-2">&amp;mut </span>context.vm.stack);
-
-        <span class="comment">// 9. Set the Function of moduleContext to null.
-        </span><span class="kw">let </span>active_function = context.vm.active_function.take();
 
         <span class="comment">// 10. Assert: module.[[Realm]] is not undefined.
         // 11. Set the Realm of moduleContext to module.[[Realm]].
@@ -3673,10 +3666,11 @@
         }
 
         <span class="comment">// 25. Remove moduleContext from the execution context stack.
-        </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>envs);
-        context.vm.stack = stack;
-        context.vm.active_function = active_function;
-        context.vm.active_runnable = active_runnable;
+        </span>context
+            .vm
+            .pop_frame()
+            .expect(<span class="string">&quot;There should be a call frame&quot;</span>);
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>envs);
         context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
 
         <span class="macro">debug_assert!</span>(envs.current().as_declarative().is_some());
@@ -3724,22 +3718,18 @@
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;`execute` should only be called for evaluating modules.&quot;</span>),
         };
 
-        <span class="kw">let </span>env_fp = environments.len() <span class="kw">as </span>u32;
-        <span class="kw">let </span><span class="kw-2">mut </span>callframe = CallFrame::new(codeblock).with_env_fp(env_fp);
+        <span class="comment">// 2. Set the Function of moduleContext to null.
+        // 4. Set the ScriptOrModule of moduleContext to module.
+        </span><span class="kw">let </span>env_fp = environments.len() <span class="kw">as </span>u32;
+        <span class="kw">let </span><span class="kw-2">mut </span>callframe =
+            CallFrame::new(codeblock, <span class="prelude-val">Some</span>(ActiveRunnable::Module(<span class="self">self</span>.parent())), <span class="prelude-val">None</span>)
+                .with_env_fp(env_fp);
         callframe.promise_capability = capability;
-
-        <span class="comment">// 4. Set the ScriptOrModule of moduleContext to module.
-        </span><span class="kw">let </span>active_runnable = context
-            .vm
-            .active_runnable
-            .replace(ActiveRunnable::Module(<span class="self">self</span>.parent()));
 
         <span class="comment">// 5. Assert: module has been linked and declarations in its module environment have been instantiated.
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 7. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
         </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>environments);
-        <span class="comment">// 2. Set the Function of moduleContext to null.
-        </span><span class="kw">let </span>function = context.vm.active_function.take();
         <span class="comment">// 3. Set the Realm of moduleContext to module.[[Realm]].
         </span>context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
         <span class="comment">// 8. Suspend the running execution context.
@@ -3757,8 +3747,6 @@
         </span><span class="kw">let </span>result = context.run();
 
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>environments);
-        context.vm.active_function = function;
-        context.vm.active_runnable = active_runnable;
         context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
         context.vm.pop_frame();
 

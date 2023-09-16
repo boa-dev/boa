@@ -584,8 +584,6 @@
 <a href="#584" id="584">584</a>
 <a href="#585" id="585">585</a>
 <a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::{
@@ -804,9 +802,7 @@
         <span class="comment">// 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
         </span><span class="kw">let </span>new_target = <span class="kw-2">&amp;</span><span class="kw">if </span>new_target.is_undefined() {
             context
-                .vm
-                .active_function
-                .clone()
+                .active_function_object()
                 .unwrap_or_else(|| context.intrinsics().constructors().collator().constructor())
                 .into()
         } <span class="kw">else </span>{

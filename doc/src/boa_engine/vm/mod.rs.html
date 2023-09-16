@@ -390,6 +390,7 @@
 <a href="#390" id="390">390</a>
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -461,8 +462,10 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) pending_exception: <span class="prelude-ty">Option</span>&lt;JsError&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) environments: EnvironmentStack,
     <span class="kw">pub</span>(<span class="kw">crate</span>) runtime_limits: RuntimeLimits,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) active_runnable: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
+
+    <span class="doccomment">/// This is used to assign a native (rust) function as the active function,
+    /// because we don&#39;t push a frame for them.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) native_active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) trace: bool,
@@ -494,8 +497,7 @@
             environments: EnvironmentStack::new(global),
             pending_exception: <span class="prelude-val">None</span>,
             runtime_limits: RuntimeLimits::default(),
-            active_function: <span class="prelude-val">None</span>,
-            active_runnable: <span class="prelude-val">None</span>,
+            native_active_function: <span class="prelude-val">None</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
             </span>trace: <span class="bool-val">false</span>,
         }

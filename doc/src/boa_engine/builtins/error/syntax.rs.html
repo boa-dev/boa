@@ -106,8 +106,6 @@
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the global `SyntaxError` object.
 //!
 //! The `SyntaxError` object represents an error when trying to interpret syntactically invalid code.
@@ -175,9 +173,7 @@
         <span class="comment">// 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         </span><span class="kw">let </span>new_target = <span class="kw-2">&amp;</span><span class="kw">if </span>new_target.is_undefined() {
             context
-                .vm
-                .active_function
-                .clone()
+                .active_function_object()
                 .unwrap_or_else(|| {
                     context
                         .intrinsics()

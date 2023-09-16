@@ -148,8 +148,6 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypeError` object.
 //!
 //! The `TypeError` object represents an error when an operation could not be performed,
@@ -225,9 +223,7 @@
         <span class="comment">// 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         </span><span class="kw">let </span>new_target = <span class="kw-2">&amp;</span><span class="kw">if </span>new_target.is_undefined() {
             context
-                .vm
-                .active_function
-                .clone()
+                .active_function_object()
                 .unwrap_or_else(|| {
                     context
                         .intrinsics()

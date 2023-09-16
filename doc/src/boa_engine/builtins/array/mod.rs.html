@@ -3104,8 +3104,6 @@
 <a href="#3104" id="3104">3104</a>
 <a href="#3105" id="3105">3105</a>
 <a href="#3106" id="3106">3106</a>
-<a href="#3107" id="3107">3107</a>
-<a href="#3108" id="3108">3108</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3282,9 +3280,7 @@
         <span class="comment">// If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         </span><span class="kw">let </span>new_target = <span class="kw-2">&amp;</span><span class="kw">if </span>new_target.is_undefined() {
             context
-                .vm
-                .active_function
-                .clone()
+                .active_function_object()
                 .unwrap_or_else(|| context.intrinsics().constructors().array().constructor())
                 .into()
         } <span class="kw">else </span>{

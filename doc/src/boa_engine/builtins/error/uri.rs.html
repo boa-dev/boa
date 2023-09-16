@@ -102,8 +102,6 @@
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the global `URIError` object.
 //!
 //! The `URIError` object represents an error when a global URI handling
@@ -170,9 +168,7 @@
         <span class="comment">// 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         </span><span class="kw">let </span>new_target = <span class="kw-2">&amp;</span><span class="kw">if </span>new_target.is_undefined() {
             context
-                .vm
-                .active_function
-                .clone()
+                .active_function_object()
                 .unwrap_or_else(|| {
                     context
                         .intrinsics()

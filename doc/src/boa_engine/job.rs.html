@@ -313,13 +313,6 @@
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
 <a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s API to create and customize `ECMAScript` jobs and job queues.
 //!
 //! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
@@ -344,7 +337,6 @@
 <span class="kw">use crate</span>::{
     object::{JsFunction, NativeObject},
     realm::Realm,
-    vm::ActiveRunnable,
     Context, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -391,7 +383,6 @@
     <span class="attr">#[allow(clippy::type_complexity)]
     </span>f: Box&lt;<span class="kw">dyn </span>FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;&gt;,
     realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
-    active_runnable: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>NativeJob {
@@ -409,19 +400,17 @@
         <span class="self">Self </span>{
             f: Box::new(f),
             realm: <span class="prelude-val">None</span>,
-            active_runnable: <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Creates a new `NativeJob` from a closure and an execution realm.
-    </span><span class="kw">pub fn </span>with_realm&lt;F&gt;(f: F, realm: Realm, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>with_realm&lt;F&gt;(f: F, realm: Realm, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
     {
         <span class="self">Self </span>{
             f: Box::new(f),
             realm: <span class="prelude-val">Some</span>(realm),
-            active_runnable: context.vm.active_runnable.clone(),
         }
     }
 
@@ -437,7 +426,7 @@
     ///
     /// If the native job has an execution realm defined, this sets the running execution
     /// context to the realm&#39;s before calling the inner closure, and resets it after execution.
-    </span><span class="kw">pub fn </span>call(<span class="kw-2">mut </span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>call(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// If realm is not null, each time job is invoked the implementation must perform
         // implementation-defined steps such that execution is prepared to evaluate ECMAScript
         // code at the time of job&#39;s invocation.
@@ -448,12 +437,9 @@
             // invoked. If realm is not null, each time job is invoked the implementation must
             // perform implementation-defined steps such that scriptOrModule is the active script or
             // module at the time of job&#39;s invocation.
-            </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span><span class="self">self</span>.active_runnable);
-
-            <span class="kw">let </span>result = (<span class="self">self</span>.f)(context);
+            </span><span class="kw">let </span>result = (<span class="self">self</span>.f)(context);
 
             context.enter_realm(old_realm);
-            std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_runnable, <span class="kw-2">&amp;mut </span><span class="self">self</span>.active_runnable);
 
             result
         } <span class="kw">else </span>{

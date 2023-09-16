@@ -1890,8 +1890,6 @@
 <a href="#1890" id="1890">1890</a>
 <a href="#1891" id="1891">1891</a>
 <a href="#1892" id="1892">1892</a>
-<a href="#1893" id="1893">1893</a>
-<a href="#1894" id="1894">1894</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -2066,9 +2064,7 @@
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="comment">// a. Let newTarget be the active function object.
             </span><span class="kw">let </span>new_target = context
-                .vm
-                .active_function
-                .clone()
+                .active_function_object()
                 .map_or(JsValue::undefined(), JsValue::new);
 
             <span class="comment">// b. If patternIsRegExp is true and flags is undefined, then

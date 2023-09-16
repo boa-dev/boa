@@ -523,7 +523,7 @@
         <span class="kw">let </span>env_fp = context.vm.environments.len() <span class="kw">as </span>u32;
         context
             .vm
-            .push_frame(CallFrame::new(code_block).with_env_fp(env_fp));
+            .push_frame(CallFrame::new(code_block, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>).with_env_fp(env_fp));
         context.realm().resize_global_env();
 
         <span class="kw">let </span>record = context.run();

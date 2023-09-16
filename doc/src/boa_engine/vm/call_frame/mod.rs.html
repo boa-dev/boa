@@ -123,6 +123,19 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -136,6 +149,8 @@
 };
 <span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
 <span class="kw">use </span>thin_vec::ThinVec;
+
+<span class="kw">use </span><span class="kw">super</span>::ActiveRunnable;
 
 <span class="doccomment">/// A `CallFrame` holds the state of a function call.
 </span><span class="attr">#[derive(Clone, Debug, Finalize, Trace)]
@@ -161,6 +176,11 @@
 
     <span class="doccomment">/// How many iterations a loop has done.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) loop_iteration_count: u64,
+
+    <span class="doccomment">/// \[\[ScriptOrModule\]\]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) active_runnable: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 }
 
 <span class="doccomment">/// ---- `CallFrame` public API ----
@@ -176,7 +196,11 @@
 <span class="doccomment">/// ---- `CallFrame` creation methods ----
 </span><span class="kw">impl </span>CallFrame {
     <span class="doccomment">/// Creates a new `CallFrame` with the provided `CodeBlock`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(code_block: Gc&lt;CodeBlock&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        code_block: Gc&lt;CodeBlock&gt;,
+        active_runnable: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
+        active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             code_block,
             pc: <span class="number">0</span>,
@@ -188,6 +212,8 @@
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
             loop_iteration_count: <span class="number">0</span>,
+            active_runnable,
+            active_function,
         }
     }
 
