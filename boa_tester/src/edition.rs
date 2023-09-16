@@ -80,6 +80,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-iterator-helpers
     "iterator-helpers" => SpecEdition::ESNext,
 
+    // Promise.withResolvers
+    // https://github.com/tc39/proposal-promise-with-resolvers
+    "promise-with-resolvers" => SpecEdition::ESNext,
+
     // Part of the next ES15 edition
     "Atomics.waitAsync"  => SpecEdition::ESNext,
     "regexp-v-flag" => SpecEdition::ESNext,
