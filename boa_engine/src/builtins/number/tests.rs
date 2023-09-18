@@ -48,6 +48,122 @@ fn to_fixed() {
             "Number('I am also not a number').toFixed()",
             js_string!("NaN"),
         ),
+        TestAction::assert_eq("(1.35).toFixed(1)", js_string!("1.4")),
+        // Test cases from https://source.chromium.org/chromium/chromium/src/+/main:v8/test/mjsunit/number-tostring-func.js;l=157-240;drc=aa3518a0f37245ebe8f062dce97ee492e2a41652
+        TestAction::assert_eq("(NaN).toFixed(2)", js_string!("NaN")),
+        TestAction::assert_eq("(1/0).toFixed(2)", js_string!("Infinity")),
+        TestAction::assert_eq("(-1/0).toFixed(2)", js_string!("-Infinity")),
+        TestAction::assert_eq(
+            "(1111111111111111111111).toFixed(8)",
+            js_string!("1.1111111111111111e+21"),
+        ),
+        TestAction::assert_eq("(0.1).toFixed(1)", js_string!("0.1")),
+        TestAction::assert_eq("(0.1).toFixed(2)", js_string!("0.10")),
+        TestAction::assert_eq("(0.1).toFixed(3)", js_string!("0.100")),
+        TestAction::assert_eq("(0.01).toFixed(2)", js_string!("0.01")),
+        TestAction::assert_eq("(0.01).toFixed(3)", js_string!("0.010")),
+        TestAction::assert_eq("(0.01).toFixed(4)", js_string!("0.0100")),
+        TestAction::assert_eq("(0.001).toFixed(2)", js_string!("0.00")),
+        TestAction::assert_eq("(0.001).toFixed(3)", js_string!("0.001")),
+        TestAction::assert_eq("(0.001).toFixed(4)", js_string!("0.0010")),
+        TestAction::assert_eq("(1).toFixed(4)", js_string!("1.0000")),
+        TestAction::assert_eq("(1).toFixed(1)", js_string!("1.0")),
+        TestAction::assert_eq("(1).toFixed(0)", js_string!("1")),
+        TestAction::assert_eq("(12).toFixed(0)", js_string!("12")),
+        TestAction::assert_eq("(1.1).toFixed(0)", js_string!("1")),
+        TestAction::assert_eq("(12.1).toFixed(0)", js_string!("12")),
+        TestAction::assert_eq("(1.12).toFixed(0)", js_string!("1")),
+        TestAction::assert_eq("(12.12).toFixed(0)", js_string!("12")),
+        TestAction::assert_eq("(0.0000006).toFixed(7)", js_string!("0.0000006")),
+        TestAction::assert_eq("(0.00000006).toFixed(8)", js_string!("0.00000006")),
+        TestAction::assert_eq("(0.00000006).toFixed(9)", js_string!("0.000000060")),
+        TestAction::assert_eq("(0.00000006).toFixed(10)", js_string!("0.0000000600")),
+        TestAction::assert_eq("(0).toFixed(0)", js_string!("0")),
+        TestAction::assert_eq("(0).toFixed(1)", js_string!("0.0")),
+        TestAction::assert_eq("(0).toFixed(2)", js_string!("0.00")),
+        TestAction::assert_eq(
+            "(-1111111111111111111111).toFixed(8)",
+            js_string!("-1.1111111111111111e+21"),
+        ),
+        TestAction::assert_eq("(-0.1).toFixed(1)", js_string!("-0.1")),
+        TestAction::assert_eq("(-0.1).toFixed(2)", js_string!("-0.10")),
+        TestAction::assert_eq("(-0.1).toFixed(3)", js_string!("-0.100")),
+        TestAction::assert_eq("(-0.01).toFixed(2)", js_string!("-0.01")),
+        TestAction::assert_eq("(-0.01).toFixed(3)", js_string!("-0.010")),
+        TestAction::assert_eq("(-0.01).toFixed(4)", js_string!("-0.0100")),
+        TestAction::assert_eq("(-0.001).toFixed(2)", js_string!("-0.00")),
+        TestAction::assert_eq("(-0.001).toFixed(3)", js_string!("-0.001")),
+        TestAction::assert_eq("(-0.001).toFixed(4)", js_string!("-0.0010")),
+        TestAction::assert_eq("(-1).toFixed(4)", js_string!("-1.0000")),
+        TestAction::assert_eq("(-1).toFixed(1)", js_string!("-1.0")),
+        TestAction::assert_eq("(-1).toFixed(0)", js_string!("-1")),
+        TestAction::assert_eq("(-1.1).toFixed(0)", js_string!("-1")),
+        TestAction::assert_eq("(-12.1).toFixed(0)", js_string!("-12")),
+        TestAction::assert_eq("(-1.12).toFixed(0)", js_string!("-1")),
+        TestAction::assert_eq("(-12.12).toFixed(0)", js_string!("-12")),
+        TestAction::assert_eq("(-0.0000006).toFixed(7)", js_string!("-0.0000006")),
+        TestAction::assert_eq("(-0.00000006).toFixed(8)", js_string!("-0.00000006")),
+        TestAction::assert_eq("(-0.00000006).toFixed(9)", js_string!("-0.000000060")),
+        TestAction::assert_eq("(-0.00000006).toFixed(10)", js_string!("-0.0000000600")),
+        TestAction::assert_eq("(-0).toFixed(0)", js_string!("0")),
+        TestAction::assert_eq("(-0).toFixed(1)", js_string!("0.0")),
+        TestAction::assert_eq("(-0).toFixed(2)", js_string!("0.00")),
+        TestAction::assert_eq("(0.00001).toFixed(5)", js_string!("0.00001")),
+        TestAction::assert_eq(
+            "(0.0000000000000000001).toFixed(20)",
+            js_string!("0.00000000000000000010"),
+        ),
+        TestAction::assert_eq("(0.00001).toFixed(17)", js_string!("0.00001000000000000")),
+        TestAction::assert_eq("(1).toFixed(17)", js_string!("1.00000000000000000")),
+        TestAction::assert_eq(
+            "(100000000000000128).toFixed(1)",
+            js_string!("100000000000000128.0"),
+        ),
+        TestAction::assert_eq(
+            "(10000000000000128).toFixed(2)",
+            js_string!("10000000000000128.00"),
+        ),
+        TestAction::assert_eq(
+            "(10000000000000128).toFixed(20)",
+            js_string!("10000000000000128.00000000000000000000"),
+        ),
+        TestAction::assert_eq("(-42).toFixed(3)", js_string!("-42.000")),
+        TestAction::assert_eq(
+            "(-0.0000000000000000001).toFixed(20)",
+            js_string!("-0.00000000000000000010"),
+        ),
+        TestAction::assert_eq(
+            "(0.123123123123123).toFixed(20)",
+            js_string!("0.12312312312312299889"),
+        ),
+        TestAction::assert_eq(
+            "(-1000000000000000128).toFixed()",
+            js_string!("-1000000000000000128"),
+        ),
+        TestAction::assert_eq("(0).toFixed()", js_string!("0")),
+        TestAction::assert_eq(
+            "(1000000000000000128).toFixed()",
+            js_string!("1000000000000000128"),
+        ),
+        TestAction::assert_eq("(1000).toFixed()", js_string!("1000")),
+        TestAction::assert_eq("(0.00001).toFixed()", js_string!("0")),
+        // Test that we round up even when the last digit generated is even.
+        // dtoa does not do this in its original form.
+        TestAction::assert_eq("(0.5).toFixed(0)", js_string!("1")),
+        TestAction::assert_eq("(-0.5).toFixed(0)", js_string!("-1")),
+        TestAction::assert_eq("(1.25).toFixed(1)", js_string!("1.3")),
+        // This is bizare, but Spidermonkey and KJS behave the same.
+        TestAction::assert_eq("(234.2040).toFixed(4)", js_string!("234.2040")),
+        TestAction::assert_eq("(234.2040506).toFixed(4)", js_string!("234.2041")),
+    ]);
+}
+
+// https://github.com/boa-dev/boa/issues/2609
+#[test]
+fn issue_2609() {
+    run_test_actions([
+        TestAction::assert_eq("(1.25).toFixed(1)", js_string!("1.3")),
+        TestAction::assert_eq("(1.35).toFixed(1)", js_string!("1.4")),
     ]);
 }
 
@@ -532,14 +648,5 @@ fn issue_2717() {
             "(0.23046743672210102).toString(36)",
             js_string!("0.8aoosla2phj"),
         ),
-    ]);
-}
-
-// https://github.com/boa-dev/boa/issues/2609
-#[test]
-fn issue_2609() {
-    run_test_actions([
-        TestAction::assert_eq("(1.25).toFixed(1)", js_string!("1.3")),
-        TestAction::assert_eq("(1.35).toFixed(1)", js_string!("1.4")),
     ]);
 }
