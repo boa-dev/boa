@@ -64,7 +64,7 @@ num-integer = "0.1.45"
 bitflags = "2.4.0"
 indexmap = "2.0.0"
 ryu-js = "0.2.2"
-chrono = { version = "0.4.30", default-features = false, features = ["clock", "std"] }
+chrono = { version = "0.4.31", default-features = false, features = ["clock", "std"] }
 fast-float = "0.2.0"
 once_cell = "1.18.0"
 tap = "1.0.1"
