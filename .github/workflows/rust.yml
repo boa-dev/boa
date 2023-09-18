@@ -33,7 +33,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
-          args: --workspace --features intl --ignore-tests --engine llvm --out Xml
+          args: --workspace --features intl --ignore-tests --engine llvm --out xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
 
