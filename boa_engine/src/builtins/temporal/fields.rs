@@ -6,11 +6,10 @@ use crate::{
 use super::plain_date::iso::IsoDateRecord;
 
 use bitflags::{bitflags, iter::Iter, Flags};
-use icu_datetime::fields::Field;
 use rustc_hash::FxHashSet;
 
 bitflags! {
-    #[derive(PartialEq, Eq)]
+    #[derive(Debug, PartialEq, Eq)]
     pub struct FieldMap: u16 {
         const YEAR = 0b0000_0000_0000_0001;
         const MONTH = 0b0000_0000_0000_0010;
@@ -55,6 +54,7 @@ bitflags! {
 /// | "eraYear"    |     `ToIntegerWithTruncation`     | undefined  |
 /// | "timeZone"   |                                 | undefined  |
 ///
+#[derive(Debug)]
 pub(crate) struct TemporalFields {
     bit_map: FieldMap,
     year: Option<i32>,
@@ -113,11 +113,11 @@ impl TemporalFields {
     #[inline]
     fn set_field_value(
         &mut self,
-        field: &JsString,
+        field: &str,
         value: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<()> {
-        match field.to_std_string_escaped().as_str() {
+        match field {
             "year" => self.set_year(value, context)?,
             "month" => self.set_month(value, context)?,
             "monthCode" => self.set_month_code(value, context)?,
@@ -273,13 +273,16 @@ impl TemporalFields {
 }
 
 impl TemporalFields {
-    // NOTE: required_fields should be None when it is set to Partial.
+    /// A method for creating a Native representation for `TemporalFields` from
+    /// a `JsObject`.
     ///
-    /// The equivalant function to 13.46 `PrepareTemporalFields`
+    /// This is the equivalant to Abstract Operation 13.46 `PrepareTemporalFields`
     pub(crate) fn from_js_object(
         fields: &JsObject,
-        field_names: &[JsString],
-        required_fields: Option<&[JsString]>,
+        field_names: &mut Vec<String>,
+        required_fields: &mut Vec<String>, // None when Partial
+        extended_fields: Option<Vec<(String, bool)>>,
+        partial: bool,
         dup_behaviour: Option<JsString>,
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
@@ -291,30 +294,47 @@ impl TemporalFields {
 
         // 3. Let any be false.
         let mut any = false;
-        // 4. Let sortedFieldNames be SortStringListByCodeUnit(fieldNames).
-        // 5. Let previousProperty be undefined.
+        // 4. If extraFieldDescriptors is present, then
+        if let Some(extra_fields) = extended_fields {
+            for (field_name, required) in extra_fields {
+                // a. For each Calendar Field Descriptor Record desc of extraFieldDescriptors, do
+                // i. Assert: fieldNames does not contain desc.[[Property]].
+                // ii. Append desc.[[Property]] to fieldNames.
+                field_names.push(field_name.clone());
+
+                // iii. If desc.[[Required]] is true and requiredFields is a List, then
+                if required && !partial {
+                    // 1. Append desc.[[Property]] to requiredFields.
+                    required_fields.push(field_name);
+                }
+            }
+        }
+
+        // 5. Let sortedFieldNames be SortStringListByCodeUnit(fieldNames).
+        // 6. Let previousProperty be undefined.
         let mut dups_map = FxHashSet::default();
 
-        // 6. For each property name property of sortedFieldNames, do
-        for field in field_names {
+        // 7. For each property name property of sortedFieldNames, do
+        for field in &*field_names {
             // a. If property is one of "constructor" or "__proto__", then
-            if field.as_ref() == utf16!("constructor") || field.as_ref() == utf16!("__proto__") {
+            if field.as_str() == "constructor" || field.as_str() == "__proto__" {
                 // i. Throw a RangeError exception.
                 return Err(JsNativeError::range()
                     .with_message("constructor or proto is out of field range.")
                     .into());
             }
 
-            let new_value = dups_map.insert(field.to_std_string_escaped());
+            let new_value = dups_map.insert(field);
 
             // b. If property is not equal to previousProperty, then
             if new_value {
                 // i. Let value be ? Get(fields, property).
-                let value = fields.get(PropertyKey::from(field.as_ref()), context)?;
+                let value = fields.get(PropertyKey::from(field.clone()), context)?;
                 // ii. If value is not undefined, then
                 if !value.is_undefined() {
-                    any = true;
                     // 1. Set any to true.
+                    any = true;
+
                     // 2. If property is in the Property column of Table 17 and there is a Conversion value in the same row, then
                     // a. Let Conversion be the Conversion value of the same row.
                     // b. If Conversion is ToIntegerWithTruncation, then
@@ -331,12 +351,12 @@ impl TemporalFields {
                     // 3. Perform ! CreateDataPropertyOrThrow(result, property, value).
                     result.set_field_value(field, &value, context)?;
                 // iii. Else if requiredFields is a List, then
-                } else if let Some(list) = required_fields {
+                } else if !partial {
                     // 1. If requiredFields contains property, then
-                    if list.contains(field) {
+                    if required_fields.contains(field) {
                         // a. Throw a TypeError exception.
                         return Err(JsNativeError::typ()
-                            .with_message("A required temporal field was not provided.")
+                            .with_message("A required TemporalField was not provided.")
                             .into());
                     }
 
@@ -355,15 +375,15 @@ impl TemporalFields {
             // d. Set previousProperty to property.
         }
 
-        // 7. If requiredFields is partial and any is false, then
-        if required_fields.is_none() && !any {
+        // 8. If requiredFields is partial and any is false, then
+        if partial && !any {
             // a. Throw a TypeError exception.
             return Err(JsNativeError::range()
                 .with_message("requiredFields cannot be partial when any is false")
                 .into());
         }
 
-        // 8. Return result.
+        // 9. Return result.
         Ok(result)
     }
 
@@ -460,6 +480,31 @@ impl TemporalFields {
         }
 
         Ok(obj)
+    }
+
+    // Note placeholder until overflow is implemented on `ICU4x`'s Date<Iso>.
+    /// A function to regulate the current `TemporalFields` according to the overflow value
+    pub(crate) fn regulate(&mut self, overflow: &str) {
+        if let (Some(year), Some(month), Some(day)) = (self.year(), self.month(), self.day()) {
+            if overflow == "constrain" {
+                let m = month.clamp(1, 12);
+                let days_in_month = super::calendar::utils::iso_days_in_month(year, month);
+                let d = day.clamp(1, days_in_month);
+
+                self.month = Some(m);
+                self.day = Some(d);
+            }
+        }
+    }
+
+    pub(crate) fn regulate_year_month(&mut self, overflow: &str) {
+        match self.month {
+            Some(month) if overflow == "constrain" => {
+                let m = month.clamp(1, 12);
+                self.month = Some(m);
+            }
+            _ => {}
+        }
     }
 
     /// Resolve the month and monthCode on this `TemporalFields`.

@@ -1,12 +1,11 @@
-#![allow(dead_code, unused_variables)]
-use std::iter;
+//! An implementation of the `Temporal` proposal's Calendar builtin.
 
 use self::iso::IsoCalendar;
 
-use super::{PlainDate, TemporalFields};
+use super::{plain_date::iso::IsoDateRecord, PlainDate, TemporalFields};
 use crate::{
     builtins::{
-        iterable::IteratorHint, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
+        iterable::IteratorHint, temporal, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
         IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -24,64 +23,124 @@ mod iso;
 pub(crate) mod utils;
 
 /// A trait for implementing a Builtin Calendar's Calendar Protocol in Rust.
-pub trait BuiltinCalendar {
+pub(crate) trait BuiltinCalendar {
     /// Creates a `Temporal.PlainDate` object from provided fields.
-    fn date_from_fields(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn date_from_fields(
+        &self,
+        fields: &mut TemporalFields,
+        overflow: &str,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Creates a `Temporal.PlainYearMonth` object from the provided fields.
     fn year_month_from_fields(
         &self,
-        args: &[JsValue],
+        fields: &mut TemporalFields,
+        overflow: &str,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue>;
     /// Creates a `Temporal.PlainMonthDay` object from the provided fields.
     fn month_day_from_fields(
         &self,
-        args: &[JsValue],
+        fields: &mut TemporalFields,
+        overflow: &str,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue>;
     /// Returns a `Temporal.PlainDate` based off an added date.
-    fn date_add(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn date_add(
+        &self,
+        date: &PlainDate,
+        duration: &temporal::DurationRecord,
+        overflow: &str,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Returns a `Temporal.Duration` representing the duration between two dates.
-    fn date_until(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn date_until(
+        &self,
+        one: &PlainDate,
+        two: &PlainDate,
+        largest_unit: &str,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Returns the era for a given `temporaldatelike`.
-    fn era(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn era(&self, date_like: &IsoDateRecord, context: &mut Context<'_>) -> JsResult<JsValue>;
     /// Returns the era year for a given `temporaldatelike`
-    fn era_year(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn era_year(&self, date_like: &IsoDateRecord, context: &mut Context<'_>) -> JsResult<JsValue>;
     /// Returns the `year` for a given `temporaldatelike`
-    fn year(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn year(&self, date_like: &IsoDateRecord, context: &mut Context<'_>) -> JsResult<JsValue>;
     /// Returns the `month` for a given `temporaldatelike`
-    fn month(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn month(&self, date_like: &IsoDateRecord, context: &mut Context<'_>) -> JsResult<JsValue>;
     /// Returns the `monthCode` for a given `temporaldatelike`
-    fn month_code(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn month_code(&self, date_like: &IsoDateRecord, context: &mut Context<'_>)
+        -> JsResult<JsValue>;
     /// Returns the `day` for a given `temporaldatelike`
-    fn day(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn day(&self, date_like: &IsoDateRecord, context: &mut Context<'_>) -> JsResult<JsValue>;
     /// Returns a value representing the day of the week for a date.
-    fn day_of_week(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn day_of_week(
+        &self,
+        date_like: &IsoDateRecord,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Returns a value representing the day of the year for a given calendar.
-    fn day_of_year(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn day_of_year(
+        &self,
+        date_like: &IsoDateRecord,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Returns a value representing the week of the year for a given calendar.
-    fn week_of_year(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn week_of_year(
+        &self,
+        date_like: &IsoDateRecord,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Returns the year of a given week.
-    fn year_of_week(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn year_of_week(
+        &self,
+        date_like: &IsoDateRecord,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Returns the days in a week for a given calendar.
-    fn days_in_week(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn days_in_week(
+        &self,
+        date_like: &IsoDateRecord,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Returns the days in a month for a given calendar.
-    fn days_in_month(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn days_in_month(
+        &self,
+        date_like: &IsoDateRecord,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Returns the days in a year for a given calendar.
-    fn days_in_year(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn days_in_year(
+        &self,
+        date_like: &IsoDateRecord,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Returns the months in a year for a given calendar.
-    fn months_in_year(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn months_in_year(
+        &self,
+        date_like: &IsoDateRecord,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
     /// Returns whether a value is within a leap year according to the designated calendar.
-    fn in_leap_year(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
-    /// Returns the fields of the implemented calendar
-    fn fields(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
-    /// Merges provided fields.
-    fn merge_fields(&self, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn in_leap_year(
+        &self,
+        date_like: &IsoDateRecord,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>;
+    /// Resolve the `TemporalFields` for the implemented Calendar
+    fn resolve_fields(&self, fields: &mut TemporalFields, r#type: &str) -> JsResult<()>;
+    /// Return this calendar's a fieldName and whether it is required depending on type (date, day-month).
+    fn field_descriptors(&self, r#type: &[String]) -> Vec<(String, bool)>;
+    /// Return the fields to ignore for this Calendar based on provided keys.
+    fn field_keys_to_ignore(&self, additional_keys: Vec<PropertyKey>) -> Vec<PropertyKey>;
+    /// Debug name
+    fn debug_name(&self) -> &str;
 }
 
 impl core::fmt::Debug for dyn BuiltinCalendar {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Builtin Calendar Protocol")
+        write!(f, "{}", self.debug_name())
     }
 }
 
@@ -158,7 +217,7 @@ impl IntrinsicObject for Calendar {
 }
 
 impl BuiltInConstructor for Calendar {
-    const LENGTH: usize = 0;
+    const LENGTH: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::calendar;
@@ -220,6 +279,8 @@ impl Calendar {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        // 1. Let calendar be the this value.
+        // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -229,12 +290,74 @@ impl Calendar {
                 .with_message("the this value of Calendar must be a Calendar object.")
         })?;
 
-        let available_calendars = available_calendars();
+        let identifier = calendar.identifier.to_std_string_escaped();
 
-        let this_protocol = available_calendars
-            .get(calendar.identifier.to_std_string_escaped().as_str())
+        drop(o);
+
+        // Retrieve the current CalendarProtocol.
+        let available_calendars = available_calendars();
+        let this_calendar = available_calendars
+            .get(identifier.as_str())
             .expect("builtin must exist");
-        this_protocol.date_from_fields(args, context)
+
+        // 3. If Type(fields) is not Object, throw a TypeError exception.
+        let fields = args.get_or_undefined(0);
+        let fields_obj = fields.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("fields parameter must be an object.")
+        })?;
+
+        // 4. Set options to ? GetOptionsObject(options).
+        let options = temporal::get_options_object(args.get_or_undefined(1))?;
+
+        // 5. Let relevantFieldNames be « "day", "month", "monthCode", "year" ».
+        let mut relevant_field_names = Vec::from([
+            "day".to_owned(),
+            "month".to_owned(),
+            "monthCode".to_owned(),
+            "year".to_owned(),
+        ]);
+
+        // 6. If calendar.[[Identifier]] is "iso8601", then
+        let mut fields = if identifier.as_str() == "iso8601" {
+            // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year", "day" »).
+            let mut required_fields = Vec::from(["year".to_owned(), "day".to_owned()]);
+            temporal::TemporalFields::from_js_object(
+                fields_obj,
+                &mut relevant_field_names,
+                &mut required_fields,
+                None,
+                false,
+                None,
+                context,
+            )?
+        // 7. Else,
+        } else {
+            // a. Let calendarRelevantFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], date).
+            let calendar_relevant_fields = this_calendar.field_descriptors(&["date".to_owned()]);
+            // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
+            temporal::TemporalFields::from_js_object(
+                fields_obj,
+                &mut relevant_field_names,
+                &mut Vec::new(),
+                Some(calendar_relevant_fields),
+                false,
+                None,
+                context,
+            )?
+        };
+
+        // 8. Let overflow be ? ToTemporalOverflow(options).
+        let overflow = temporal::to_temporal_overflow(&options, context)?;
+
+        // NOTE: implement the below on the calenar itself
+        // 9. If calendar.[[Identifier]] is "iso8601", then
+        // a. Perform ? ISOResolveMonth(fields).
+        // b. Let result be ? ISODateFromFields(fields, overflow).
+        // 10. Else,
+        // a. Perform ? CalendarResolveFields(calendar.[[Identifier]], fields, date).
+        // b. Let result be ? CalendarDateToISO(calendar.[[Identifier]], fields, overflow).
+
+        this_calendar.date_from_fields(&mut fields, &overflow.to_std_string_escaped(), context)
     }
 
     /// 15.8.2.2 `Temporal.Calendar.prototype.yearMonthFromFields ( fields [ , options ] )` - Supercedes 12.5.5
@@ -252,12 +375,70 @@ impl Calendar {
                 .with_message("the this value of Calendar must be a Calendar object.")
         })?;
 
+        let identifier = calendar.identifier.to_std_string_escaped();
+
+        drop(o);
+
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
-            .get(calendar.identifier.to_std_string_escaped().as_str())
+        let this_calendar = available_calendars
+            .get(identifier.as_str())
             .expect("builtin must exist");
-        this_protocol.year_month_from_fields(args, context)
+        let fields = args.get_or_undefined(0);
+        let fields_obj = fields.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("fields parameter must be an object.")
+        })?;
+
+        // 5. Set options to ? GetOptionsObject(options).
+        let options = temporal::get_options_object(args.get_or_undefined(1))?;
+
+        let mut relevant_field_names = Vec::from([
+            "year".to_owned(),
+            "month".to_owned(),
+            "monthCode".to_owned(),
+        ]);
+
+        // 6. Set fields to ? PrepareTemporalFields(fields, « "month", "monthCode", "year" », « "year" »).
+        let mut fields = if identifier.as_str() == "iso8601" {
+            // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year" »).
+            let mut required_fields = Vec::from(["year".to_owned()]);
+            temporal::TemporalFields::from_js_object(
+                fields_obj,
+                &mut relevant_field_names,
+                &mut required_fields,
+                None,
+                false,
+                None,
+                context,
+            )?
+        } else {
+            // a. Let calendarRelevantFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], year-month).
+            // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
+
+            let calendar_relevant_fields =
+                this_calendar.field_descriptors(&["year-month".to_owned()]);
+            temporal::TemporalFields::from_js_object(
+                fields_obj,
+                &mut relevant_field_names,
+                &mut Vec::new(),
+                Some(calendar_relevant_fields),
+                false,
+                None,
+                context,
+            )?
+            // TODO: figure out the below. Maybe a method on fields?
+            // c. Let firstDayIndex be the 1-based index of the first day of the month described by fields (i.e., 1 unless the month's first day is skipped by this calendar.)
+            // d. Perform ! CreateDataPropertyOrThrow(fields, "day", 𝔽(firstDayIndex)).
+        };
+
+        // 7. Let overflow be ? ToTemporalOverflow(options).
+        let overflow = temporal::to_temporal_overflow(&options, context)?;
+
+        this_calendar.year_month_from_fields(
+            &mut fields,
+            overflow.to_std_string_escaped().as_str(),
+            context,
+        )
     }
 
     /// 15.8.2.3 `Temporal.Calendar.prototype.monthDayFromFields ( fields [ , options ] )` - Supercedes 12.5.6
@@ -266,6 +447,8 @@ impl Calendar {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        // 1. Let calendar be the this value.
+        // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -275,16 +458,74 @@ impl Calendar {
                 .with_message("the this value of Calendar must be a Calendar object.")
         })?;
 
+        let identifier = calendar.identifier.to_std_string_escaped();
+
+        drop(o);
+
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
-            .get(calendar.identifier.to_std_string_escaped().as_str())
+        let this_calendar = available_calendars
+            .get(identifier.as_str())
             .expect("builtin must exist");
-        this_protocol.month_day_from_fields(args, context)
+
+        // 3. If Type(fields) is not Object, throw a TypeError exception.
+        let fields = args.get_or_undefined(0);
+        let fields_obj = fields.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("fields parameter must be an object.")
+        })?;
+
+        // 4. Set options to ? GetOptionsObject(options).
+        let options = temporal::get_options_object(args.get_or_undefined(1))?;
+
+        // 5. Let relevantFieldNames be « "day", "month", "monthCode", "year" ».
+        let mut relevant_field_names = Vec::from([
+            "day".to_owned(),
+            "month".to_owned(),
+            "monthCode".to_owned(),
+            "year".to_owned(),
+        ]);
+
+        // 6. If calendar.[[Identifier]] is "iso8601", then
+        let mut fields = if identifier.as_str() == "iso8601" {
+            // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "day" »).
+            let mut required_fields = Vec::from(["day".to_owned()]);
+            temporal::TemporalFields::from_js_object(
+                fields_obj,
+                &mut relevant_field_names,
+                &mut required_fields,
+                None,
+                false,
+                None,
+                context,
+            )?
+        // 7. Else,
+        } else {
+            // a. Let calendarRelevantFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], month-day).
+            let calendar_relevant_fields =
+                this_calendar.field_descriptors(&["month-day".to_owned()]);
+            // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
+            temporal::TemporalFields::from_js_object(
+                fields_obj,
+                &mut relevant_field_names,
+                &mut Vec::new(),
+                Some(calendar_relevant_fields),
+                false,
+                None,
+                context,
+            )?
+        };
+
+        // 8. Let overflow be ? ToTemporalOverflow(options).
+        let overflow = temporal::to_temporal_overflow(&options, context)?;
+
+        this_calendar.month_day_from_fields(&mut fields, &overflow.to_std_string_escaped(), context)
     }
 
     /// 15.8.2.4 `Temporal.Calendar.prototype.dateAdd ( date, duration [ , options ] )` - supercedes 12.5.7
     fn date_add(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+        // 1. Let calendar be the this value.
+        // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
+        // 3. Assert: calendar.[[Identifier]] is "iso8601".
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -294,12 +535,40 @@ impl Calendar {
                 .with_message("the this value of Calendar must be a Calendar object.")
         })?;
 
+        let identifier = calendar.identifier.to_std_string_escaped();
+
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
-            .get(calendar.identifier.to_std_string_escaped().as_str())
+        let this_calendar = available_calendars
+            .get(identifier.as_str())
             .expect("builtin must exist");
-        this_protocol.date_add(args, context)
+
+        // 4. Set date to ? ToTemporalDate(date).
+        let date_like = args.get_or_undefined(0);
+        let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+
+        // 5. Set duration to ? ToTemporalDuration(duration).
+        let duration_like = args.get_or_undefined(1);
+        let mut duration = temporal::duration::to_temporal_duration(duration_like, context)?;
+
+        // 6. Set options to ? GetOptionsObject(options).
+        let options = args.get_or_undefined(2);
+        let options_obj = temporal::get_options_object(options)?;
+
+        // 7. Let overflow be ? ToTemporalOverflow(options).
+        let overflow = temporal::to_temporal_overflow(&options_obj, context)?;
+
+        // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
+        duration
+            .inner
+            .balance_time_duration(&JsString::from("day"), None)?;
+
+        this_calendar.date_add(
+            &date,
+            &duration.inner,
+            &overflow.to_std_string_escaped(),
+            context,
+        )
     }
 
     ///15.8.2.5 `Temporal.Calendar.prototype.dateUntil ( one, two [ , options ] )` - Supercedes 12.5.8
@@ -308,6 +577,9 @@ impl Calendar {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        // 1. Let calendar be the this value.
+        // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
+        // 3. Assert: calendar.[[Identifier]] is "iso8601".
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -319,10 +591,37 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.date_until(args, context)
+
+        // 4. Set one to ? ToTemporalDate(one).
+        let one = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
+        // 5. Set two to ? ToTemporalDate(two).
+        let two = temporal::plain_date::to_temporal_date(args.get_or_undefined(1), None, context)?;
+
+        // 6. Set options to ? GetOptionsObject(options).
+        let options = temporal::get_options_object(args.get_or_undefined(2))?;
+
+        let auto: JsValue = "auto".into();
+        // 7. Let largestUnit be ? GetTemporalUnit(options, "largestUnit", date, "auto").
+        let retrieved_unit = temporal::get_temporal_unit(
+            &options,
+            "largestUnit".into(),
+            &JsString::from("date"),
+            Some(&auto),
+            None,
+            context,
+        )?
+        .expect("Return must be a string.");
+
+        // 8. If largestUnit is "auto", set largestUnit to "day".
+        let largest_unit = match retrieved_unit.to_std_string_escaped().as_str() {
+            "auto" => JsString::from("day"),
+            _ => retrieved_unit,
+        };
+
+        this_calendar.date_until(&one, &two, &largest_unit.to_std_string_escaped(), context)
     }
 
     /// 15.8.2.6 `Temporal.Calendar.prototype.era ( temporalDateLike )`
@@ -338,10 +637,38 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.era(args, context)
+
+        let date_like = args.get_or_undefined(0);
+
+        let date_info = match date_like {
+            JsValue::Object(o) if o.is_plain_date_time() => {
+                let obj = o.borrow();
+                let date_time = obj.as_plain_date_time().expect("obj must be a DateTime.");
+
+                date_time.inner.iso_date()
+            }
+            JsValue::Object(o) if o.is_plain_date() => {
+                let obj = o.borrow();
+                let date = obj.as_plain_date().expect("Must be a Date");
+
+                date.inner
+            }
+            JsValue::Object(o) if o.is_plain_year_month() => {
+                let obj = o.borrow();
+                let ym = obj.as_plain_year_month().expect("must be a YearMonth.");
+
+                ym.inner
+            }
+            _ => {
+                let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+                date.inner
+            }
+        };
+
+        this_calendar.era(&date_info, context)
     }
 
     /// 15.8.2.7 `Temporal.Calendar.prototype.eraYear ( temporalDateLike )`
@@ -357,10 +684,38 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.era_year(args, context)
+
+        let date_like = args.get_or_undefined(0);
+
+        let date_info = match date_like {
+            JsValue::Object(o) if o.is_plain_date_time() => {
+                let obj = o.borrow();
+                let date_time = obj.as_plain_date_time().expect("obj must be a DateTime.");
+
+                date_time.inner.iso_date()
+            }
+            JsValue::Object(o) if o.is_plain_date() => {
+                let obj = o.borrow();
+                let date = obj.as_plain_date().expect("Must be a Date");
+
+                date.inner
+            }
+            JsValue::Object(o) if o.is_plain_year_month() => {
+                let obj = o.borrow();
+                let ym = obj.as_plain_year_month().expect("must be a YearMonth.");
+
+                ym.inner
+            }
+            _ => {
+                let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+                date.inner
+            }
+        };
+
+        this_calendar.era_year(&date_info, context)
     }
 
     fn year(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
@@ -375,10 +730,38 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.year(args, context)
+
+        let date_like = args.get_or_undefined(0);
+
+        let date_record = match date_like {
+            JsValue::Object(o) if o.is_plain_date_time() => {
+                let obj = o.borrow();
+                let date_time = obj.as_plain_date_time().expect("obj must be a DateTime.");
+
+                date_time.inner.iso_date()
+            }
+            JsValue::Object(o) if o.is_plain_date() => {
+                let obj = o.borrow();
+                let date = obj.as_plain_date().expect("Must be a Date");
+
+                date.inner
+            }
+            JsValue::Object(o) if o.is_plain_year_month() => {
+                let obj = o.borrow();
+                let ym = obj.as_plain_year_month().expect("must be a YearMonth.");
+
+                ym.inner
+            }
+            _ => {
+                let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+                date.inner
+            }
+        };
+
+        this_calendar.year(&date_record, context)
     }
 
     fn month(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
@@ -393,10 +776,47 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.month(args, context)
+
+        let date_like = args.get_or_undefined(0);
+
+        // 3. If Type(temporalDateLike) is Object and temporalDateLike has an [[InitializedTemporalMonthDay]] internal slot, then
+        // 3.a. Throw a TypeError exception.
+        // 4. If Type(temporalDateLike) is not Object or temporalDateLike does not have an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], or [[InitializedTemporalYearMonth]] internal slot, then
+        // 4.a. Set temporalDateLike to ? ToTemporalDate(temporalDateLike).
+        let date_record = match date_like {
+            JsValue::Object(o) if o.is_plain_date_time() => {
+                let obj = o.borrow();
+                let date_time = obj.as_plain_date_time().expect("obj must be a DateTime.");
+
+                date_time.inner.iso_date()
+            }
+            JsValue::Object(o) if o.is_plain_date() => {
+                let obj = o.borrow();
+                let date = obj.as_plain_date().expect("Must be a Date");
+
+                date.inner
+            }
+            JsValue::Object(o) if o.is_plain_year_month() => {
+                let obj = o.borrow();
+                let ym = obj.as_plain_year_month().expect("must be a YearMonth.");
+
+                ym.inner
+            }
+            JsValue::Object(o) if o.is_plain_month_day() => {
+                return Err(JsNativeError::typ()
+                    .with_message("month cannot be called with PlainMonthDay object.")
+                    .into())
+            }
+            _ => {
+                let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+                date.inner
+            }
+        };
+
+        this_calendar.month(&date_record, context)
     }
 
     fn month_code(
@@ -415,10 +835,44 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.month_code(args, context)
+
+        let date_like = args.get_or_undefined(0);
+
+        let date_record = match date_like {
+            JsValue::Object(o) if o.is_plain_date_time() => {
+                let obj = o.borrow();
+                let date_time = obj.as_plain_date_time().expect("obj must be a DateTime.");
+
+                date_time.inner.iso_date()
+            }
+            JsValue::Object(o) if o.is_plain_date() => {
+                let obj = o.borrow();
+                let date = obj.as_plain_date().expect("Must be a Date");
+
+                date.inner
+            }
+            JsValue::Object(o) if o.is_plain_year_month() => {
+                let obj = o.borrow();
+                let ym = obj.as_plain_year_month().expect("must be a YearMonth.");
+
+                ym.inner
+            }
+            JsValue::Object(o) if o.is_plain_month_day() => {
+                let obj = o.borrow();
+                let md = obj.as_plain_month_day().expect("must be a MonthDay.");
+
+                md.inner
+            }
+            _ => {
+                let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+                date.inner
+            }
+        };
+
+        this_calendar.month_code(&date_record, context)
     }
 
     fn day(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
@@ -433,10 +887,38 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.day(args, context)
+
+        let date_like = args.get_or_undefined(0);
+
+        let date_record = match date_like {
+            JsValue::Object(o) if o.is_plain_date_time() => {
+                let obj = o.borrow();
+                let date_time = obj.as_plain_date_time().expect("obj must be a DateTime.");
+
+                date_time.inner.iso_date()
+            }
+            JsValue::Object(o) if o.is_plain_date() => {
+                let obj = o.borrow();
+                let date = obj.as_plain_date().expect("Must be a Date");
+
+                date.inner
+            }
+            JsValue::Object(o) if o.is_plain_month_day() => {
+                let obj = o.borrow();
+                let md = obj.as_plain_month_day().expect("must be a MonthDay.");
+
+                md.inner
+            }
+            _ => {
+                let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+                date.inner
+            }
+        };
+
+        this_calendar.day(&date_record, context)
     }
 
     fn day_of_week(
@@ -444,6 +926,8 @@ impl Calendar {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        // 1. Let calendar be the this value.
+        // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -455,10 +939,14 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.day_of_week(args, context)
+
+        // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
+        let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
+
+        this_calendar.day_of_week(&date.inner, context)
     }
 
     fn day_of_year(
@@ -477,10 +965,14 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.day_of_year(args, context)
+
+        // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
+        let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
+
+        this_calendar.day_of_year(&date.inner, context)
     }
 
     fn week_of_year(
@@ -499,10 +991,14 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.week_of_year(args, context)
+
+        // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
+        let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
+
+        this_calendar.week_of_year(&date.inner, context)
     }
 
     fn year_of_week(
@@ -521,10 +1017,14 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.year_of_week(args, context)
+
+        // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
+        let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
+
+        this_calendar.year_of_week(&date.inner, context)
     }
 
     fn days_in_week(
@@ -543,10 +1043,14 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.days_in_week(args, context)
+
+        // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
+        let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
+
+        this_calendar.days_in_week(&date.inner, context)
     }
 
     fn days_in_month(
@@ -565,10 +1069,38 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.days_in_month(args, context)
+
+        let date_like = args.get_or_undefined(0);
+
+        let date_record = match date_like {
+            JsValue::Object(o) if o.is_plain_date_time() => {
+                let obj = o.borrow();
+                let date_time = obj.as_plain_date_time().expect("obj must be a DateTime.");
+
+                date_time.inner.iso_date()
+            }
+            JsValue::Object(o) if o.is_plain_date() => {
+                let obj = o.borrow();
+                let date = obj.as_plain_date().expect("Must be a Date");
+
+                date.inner
+            }
+            JsValue::Object(o) if o.is_plain_year_month() => {
+                let obj = o.borrow();
+                let ym = obj.as_plain_year_month().expect("must be a YearMonth.");
+
+                ym.inner
+            }
+            _ => {
+                let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+                date.inner
+            }
+        };
+
+        this_calendar.days_in_month(&date_record, context)
     }
 
     fn days_in_year(
@@ -587,10 +1119,38 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.days_in_year(args, context)
+
+        let date_like = args.get_or_undefined(0);
+
+        let date_record = match date_like {
+            JsValue::Object(o) if o.is_plain_date_time() => {
+                let obj = o.borrow();
+                let date_time = obj.as_plain_date_time().expect("obj must be a DateTime.");
+
+                date_time.inner.iso_date()
+            }
+            JsValue::Object(o) if o.is_plain_date() => {
+                let obj = o.borrow();
+                let date = obj.as_plain_date().expect("Must be a Date");
+
+                date.inner
+            }
+            JsValue::Object(o) if o.is_plain_year_month() => {
+                let obj = o.borrow();
+                let ym = obj.as_plain_year_month().expect("must be a YearMonth.");
+
+                ym.inner
+            }
+            _ => {
+                let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+                date.inner
+            }
+        };
+
+        this_calendar.days_in_year(&date_record, context)
     }
 
     fn months_in_year(
@@ -609,10 +1169,38 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.months_in_year(args, context)
+
+        let date_like = args.get_or_undefined(0);
+
+        let date_record = match date_like {
+            JsValue::Object(o) if o.is_plain_date_time() => {
+                let obj = o.borrow();
+                let date_time = obj.as_plain_date_time().expect("obj must be a DateTime.");
+
+                date_time.inner.iso_date()
+            }
+            JsValue::Object(o) if o.is_plain_date() => {
+                let obj = o.borrow();
+                let date = obj.as_plain_date().expect("Must be a Date");
+
+                date.inner
+            }
+            JsValue::Object(o) if o.is_plain_year_month() => {
+                let obj = o.borrow();
+                let ym = obj.as_plain_year_month().expect("must be a YearMonth.");
+
+                ym.inner
+            }
+            _ => {
+                let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+                date.inner
+            }
+        };
+
+        this_calendar.months_in_year(&date_record, context)
     }
 
     fn in_leap_year(
@@ -631,13 +1219,43 @@ impl Calendar {
 
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
+        let this_calendar = available_calendars
             .get(calendar.identifier.to_std_string_escaped().as_str())
             .expect("builtin must exist");
-        this_protocol.in_leap_year(args, context)
+
+        let date_like = args.get_or_undefined(0);
+
+        let date_record = match date_like {
+            JsValue::Object(o) if o.is_plain_date_time() => {
+                let obj = o.borrow();
+                let date_time = obj.as_plain_date_time().expect("obj must be a DateTime.");
+
+                date_time.inner.iso_date()
+            }
+            JsValue::Object(o) if o.is_plain_date() => {
+                let obj = o.borrow();
+                let date = obj.as_plain_date().expect("Must be a Date");
+
+                date.inner
+            }
+            JsValue::Object(o) if o.is_plain_year_month() => {
+                let obj = o.borrow();
+                let ym = obj.as_plain_year_month().expect("must be a YearMonth.");
+
+                ym.inner
+            }
+            _ => {
+                let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
+                date.inner
+            }
+        };
+
+        this_calendar.in_leap_year(&date_record, context)
     }
 
     fn fields(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+        // 1. Let calendar be the this value.
+        // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -647,19 +1265,92 @@ impl Calendar {
                 .with_message("the this value of Calendar must be a Calendar object.")
         })?;
 
+        let identifier = calendar.identifier.to_std_string_escaped();
+        drop(o);
+
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
-            .get(calendar.identifier.to_std_string_escaped().as_str())
+        let this_calendar = available_calendars
+            .get(identifier.as_str())
             .expect("builtin must exist");
-        this_protocol.fields(args, context)
+
+        // 3. Let iteratorRecord be ? GetIterator(fields, sync).
+        let mut iterator_record =
+            args.get_or_undefined(0)
+                .get_iterator(context, Some(IteratorHint::Sync), None)?;
+
+        // 4. Let fieldNames be a new empty List.
+        let mut fields_names = Vec::new();
+
+        // 5. Let next be true.
+        // 6. Repeat, while next is not false,
+        while iterator_record.step(context)? {
+            // a. Set next to ? IteratorStep(iteratorRecord).
+            // b. If next is not false, then
+            // i. Let nextValue be ? IteratorValue(next).
+            let next_value = iterator_record.value(context)?;
+
+            // ii. If Type(nextValue) is not String, then
+            if let JsValue::String(value) = next_value {
+                // iii. If fieldNames contains nextValue, then
+                // 1. Let completion be ThrowCompletion(a newly created RangeError object).
+                // 2. Return ? IteratorClose(iteratorRecord, completion).
+                // iv. If nextValue is not one of "year", "month", "monthCode", or "day", then
+                // 1. Let completion be ThrowCompletion(a newly created RangeError object).
+                // 2. Return ? IteratorClose(iteratorRecord, completion).
+                // v. Append nextValue to the end of the List fieldNames.
+                let this_name = value.to_std_string_escaped();
+                match this_name.as_str() {
+                    "year" | "month" | "monthCode" | "day"
+                        if !fields_names.contains(&this_name) =>
+                    {
+                        fields_names.push(this_name);
+                    }
+                    _ => {
+                        let completion = Err(JsNativeError::range()
+                            .with_message("Invalid field name string.")
+                            .into());
+                        return iterator_record.close(completion, context);
+                    }
+                }
+            } else {
+                // 1. Let completion be ThrowCompletion(a newly created TypeError object).
+                let completion = Err(JsNativeError::typ()
+                    .with_message("field must be of type string")
+                    .into());
+                // 2. Return ? IteratorClose(iteratorRecord, completion).
+                return iterator_record.close(completion, context);
+            }
+        }
+
+        // 7. Let result be fieldNames.
+        // 8. If calendar.[[Identifier]] is not "iso8601", then
+        if identifier.as_str() != "iso8601" {
+            // a. NOTE: Every built-in calendar preserves all input field names in output.
+            // b. Let extraFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], fieldNames).
+            let extended_fields = this_calendar.field_descriptors(&fields_names);
+            // c. For each Calendar Field Descriptor Record desc of extraFieldDescriptors, do
+            for descriptor in extended_fields {
+                // i. Append desc.[[Property]] to result.
+                fields_names.push(descriptor.0);
+            }
+        }
+
+        // 9. Return CreateArrayFromList(result).
+        Ok(
+            Array::create_array_from_list(fields_names.iter().map(|s| s.clone().into()), context)
+                .into(),
+        )
     }
 
+    /// 15.8.2.22 `Temporal.Calendar.prototype.mergeFields ( fields, additionalFields )`
     fn merge_fields(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        // 1. Let calendar be the this value.
+        // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -669,12 +1360,82 @@ impl Calendar {
                 .with_message("the this value of Calendar must be a Calendar object.")
         })?;
 
+        let identifier = calendar.identifier.to_std_string_escaped();
+        drop(o);
+
         let available_calendars = available_calendars();
 
-        let this_protocol = available_calendars
-            .get(calendar.identifier.to_std_string_escaped().as_str())
+        let this_calendar = available_calendars
+            .get(identifier.as_str())
             .expect("builtin must exist");
-        this_protocol.merge_fields(args, context)
+
+        let fields = args.get_or_undefined(0).to_object(context)?;
+        let additional_fields = args.get_or_undefined(1).to_object(context)?;
+
+        // 3. Let fieldsCopy be ? SnapshotOwnProperties(? ToObject(fields), null, « », « undefined »).
+        let fields_copy = temporal::snapshot_own_properties(
+            &fields,
+            Some(Vec::new()),
+            Some(Vec::from([JsValue::undefined()])),
+            context,
+        )?;
+
+        // 4. Let additionalFieldsCopy be ? SnapshotOwnProperties(? ToObject(additionalFields), null, « », « undefined »).
+        let additional_fields_copy = temporal::snapshot_own_properties(
+            &additional_fields,
+            Some(Vec::new()),
+            Some(Vec::from([JsValue::undefined()])),
+            context,
+        )?;
+
+        // 5. NOTE: Every property of fieldsCopy and additionalFieldsCopy is an enumerable data property with non-undefined value, but some property keys may be Symbols.
+        // 6. Let additionalKeys be ! additionalFieldsCopy.[[OwnPropertyKeys]]().
+        let add_keys = additional_fields_copy.__own_property_keys__(context)?;
+
+        // 7. If calendar.[[Identifier]] is "iso8601", then
+        // a. Let overriddenKeys be ISOFieldKeysToIgnore(additionalKeys).
+        // 8. Else,
+        // a. Let overriddenKeys be CalendarFieldKeysToIgnore(calendar, additionalKeys).
+        let overridden_keys = this_calendar.field_keys_to_ignore(add_keys);
+
+        // 9. Let merged be OrdinaryObjectCreate(null).
+        let merged = JsObject::with_null_proto();
+
+        // 10. NOTE: The following steps ensure that property iteration order of merged
+        // matches that of fields as modified by omitting overridden properties and
+        // appending non-overlapping properties from additionalFields in iteration order.
+        // 11. Let fieldsKeys be ! fieldsCopy.[[OwnPropertyKeys]]().
+        let field_keys = fields_copy.__own_property_keys__(context)?;
+        // 12. For each element key of fieldsKeys, do
+        for key in field_keys {
+            // a. Let propValue be undefined.
+            // b. If overriddenKeys contains key, then
+            let prop_value = if overridden_keys.contains(&key) {
+                // i. Set propValue to ! Get(additionalFieldsCopy, key).
+                additional_fields_copy.get(key.clone(), context)?
+            // c. Else,
+            } else {
+                // i. Set propValue to ! Get(fieldsCopy, key).
+                fields_copy.get(key.clone(), context)?
+            };
+
+            // d. If propValue is not undefined, perform ! CreateDataPropertyOrThrow(merged, key, propValue).
+            if !prop_value.is_undefined() {
+                merged.create_data_property_or_throw(key, prop_value, context)?;
+            }
+        }
+
+        // 13. Perform ! CopyDataProperties(merged, additionalFieldsCopy, « »).
+        temporal::copy_data_properties(
+            &merged,
+            &additional_fields_copy.into(),
+            &Vec::new(),
+            None,
+            context,
+        )?;
+
+        // 14. Return merged.
+        Ok(merged.into())
     }
 }
 
@@ -788,7 +1549,6 @@ fn to_temporal_calendar_slot_value(
             let date = obj.as_plain_date();
             if let Some(date) = date {
                 let calendar = date.calendar.clone();
-                drop(obj);
                 return Ok(calendar);
             }
         } else if calendar_like.is_plain_date_time() {
@@ -796,7 +1556,6 @@ fn to_temporal_calendar_slot_value(
             let date_time = obj.as_plain_date_time();
             if let Some(dt) = date_time {
                 let calendar = dt.calendar.clone();
-                drop(obj);
                 return Ok(calendar);
             }
         } else if calendar_like.is_plain_year_month() {
@@ -804,7 +1563,6 @@ fn to_temporal_calendar_slot_value(
             let year_month = obj.as_plain_year_month();
             if let Some(ym) = year_month {
                 let calendar = ym.calendar.clone();
-                drop(obj);
                 return Ok(calendar);
             }
         } else if calendar_like.is_plain_month_day() {
@@ -812,7 +1570,6 @@ fn to_temporal_calendar_slot_value(
             let month_day = obj.as_plain_month_day();
             if let Some(md) = month_day {
                 let calendar = md.calendar.clone();
-                drop(obj);
                 return Ok(calendar);
             }
         } else if calendar_like.is_zoned_date_time() {
@@ -1512,12 +2269,12 @@ pub(crate) fn calendar_in_lear_year(
 
 /// 12.2.24 `CalendarDateFromFields ( calendar, fields [ , options [ , dateFromFields ] ] )`
 pub(crate) fn calendar_date_from_fields(
-    calendar: &JsValue,
-    fields: &JsObject,
+    _calendar: &JsValue,
+    _fields: &JsObject,
     options: Option<&JsValue>,
-    date_from_fields: Option<&JsObject>,
+    _date_from_fields: Option<&JsObject>,
 ) -> JsResult<PlainDate> {
-    let options = match options {
+    let _options = match options {
         Some(o) => o.clone(),
         _ => JsValue::undefined(),
     };

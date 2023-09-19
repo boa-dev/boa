@@ -1,6 +1,7 @@
+use super::{IsoCursor, TemporalDateTimeString, TemporalMonthDayString, TemporalYearMonthString};
+
 #[test]
 fn temporal_parser_basic() {
-    use super::{IsoCursor, TemporalDateTimeString};
     let basic = "20201108";
     let basic_separated = "2020-11-08";
 
@@ -20,7 +21,6 @@ fn temporal_parser_basic() {
 #[test]
 #[allow(clippy::cast_possible_truncation)]
 fn temporal_date_time_max() {
-    use super::{IsoCursor, TemporalDateTimeString};
     // Fractions not accurate, but for testing purposes.
     let date_time = "+002020-11-08T12:28:32.329402834-03:00:00.123456789[!America/Argentina/ComodRivadavia][!u-ca=iso8601]";
 
@@ -30,14 +30,23 @@ fn temporal_date_time_max() {
 
     assert_eq!(time_results.hour, 12);
     assert_eq!(time_results.minute, 28);
-    assert_eq!(time_results.second.mul_add(f64::from(100_000), 0.0).trunc() as i64, 32.329_402_834_f64.mul_add(100_000_f64, 0.0).trunc() as i64);
+    assert_eq!(
+        time_results.second.mul_add(f64::from(100_000), 0.0).trunc() as i64,
+        32.329_402_834_f64.mul_add(100_000_f64, 0.0).trunc() as i64
+    );
 
     let offset_results = &result.offset.unwrap();
 
     assert_eq!(offset_results.sign, -1);
     assert_eq!(offset_results.hour, 3);
     assert_eq!(offset_results.minute, 0);
-    assert_eq!(offset_results.second.mul_add(f64::from(1_000_000), 0.0).trunc() as i64, 0.123_456_789_f64.mul_add(1_000_000_f64, 0.0).trunc() as i64);
+    assert_eq!(
+        offset_results
+            .second
+            .mul_add(f64::from(1_000_000), 0.0)
+            .trunc() as i64,
+        0.123_456_789_f64.mul_add(1_000_000_f64, 0.0).trunc() as i64
+    );
 
     let tz = &result.tz_annotation.unwrap();
 
@@ -61,7 +70,6 @@ fn temporal_date_time_max() {
 
 #[test]
 fn temporal_year_parsing() {
-    use super::{IsoCursor, TemporalDateTimeString};
     let long = "+002020-11-08";
     let bad_year = "-000000-11-08";
 
@@ -74,7 +82,6 @@ fn temporal_year_parsing() {
 
 #[test]
 fn temporal_annotated_date_time() {
-    use super::{IsoCursor, TemporalDateTimeString};
     let basic = "2020-11-08[America/Argentina/ComodRivadavia][u-ca=iso8601][foo=bar]";
     let omitted = "+0020201108[u-ca=iso8601][f-1a2b=a0sa-2l4s]";
 
@@ -112,7 +119,6 @@ fn temporal_annotated_date_time() {
 
 #[test]
 fn temporal_year_month() {
-    use super::{IsoCursor, TemporalYearMonthString};
     use boa_ast::temporal::TzIdentifier;
 
     let possible_year_months = &[
@@ -139,7 +145,6 @@ fn temporal_year_month() {
 
 #[test]
 fn temporal_month_day() {
-    use super::{IsoCursor, TemporalMonthDayString};
     let possible_month_day = &["11-07", "1107[+04:00]", "--11-07", "--1107[+04:00]"];
 
     for md in possible_month_day {

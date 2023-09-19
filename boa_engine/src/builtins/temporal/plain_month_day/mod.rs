@@ -8,14 +8,13 @@ use crate::{
     Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use icu_datetime::input::DateInput;
 
 use super::{plain_date::iso::IsoDateRecord, plain_date_time::iso::IsoDateTimeRecord};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone)]
 pub struct PlainMonthDay {
-    iso_record: IsoDateRecord,
+    pub(crate) inner: IsoDateRecord,
     pub(crate) calendar: JsValue,
 }
 
@@ -113,7 +112,7 @@ pub(crate) fn create_temporal_month_day(
     // 6. Set object.[[ISODay]] to isoDay.
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISOYear]] to referenceISOYear.
-    month_day.iso_record = iso;
+    month_day.inner = iso;
     month_day.calendar = calendar;
 
     drop(obj);

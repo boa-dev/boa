@@ -11,11 +11,10 @@ use crate::{
 };
 use boa_parser::temporal::{IsoCursor, TemporalDateTimeString};
 use boa_profiler::Profiler;
-use icu_datetime::provider::calendar;
 
-use self::iso::IsoDateRecord;
-
-use super::{get_options_object, plain_date_time, to_temporal_overflow};
+use super::{
+    get_options_object, plain_date::iso::IsoDateRecord, plain_date_time, to_temporal_overflow,
+};
 
 pub(crate) mod iso;
 

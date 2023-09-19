@@ -26,6 +26,7 @@ pub(crate) const fn epoch_day_number_for_year(y: i32) -> i32 {
     365 * (y - 1970) + ((y - 1970) / 4) - ((y - 1901) / 100) + ((y - 1601) / 400)
 }
 
+// TODO: potentially inaccurate -> Need to further test this and epoch_day_number_for_year
 pub(crate) fn epoch_time_for_year(y: i32) -> f64 {
     super::NS_PER_DAY as f64 * f64::from(epoch_day_number_for_year(y))
 }
@@ -45,8 +46,9 @@ pub(crate) fn epoch_time_to_epoch_year(t: f64) -> i32 {
     year
 }
 
+/// Returns either 1 (true) or 0 (false)
 pub(crate) fn mathematical_in_leap_year(t: f64) -> i32 {
-    mathematical_days_in_year(epoch_time_to_epoch_year(t))
+    mathematical_days_in_year(epoch_time_to_epoch_year(t)) - 365
 }
 
 pub(crate) fn epoch_time_to_month_in_year(t: f64) -> i32 {

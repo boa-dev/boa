@@ -3,6 +3,15 @@ use crate::{
     JsNativeError, JsResult, JsString,
 };
 
+use icu_calendar::{Date, Iso};
+
+// TODO: Move ISODateRecord to a more generalized location.
+
+// TODO: shift month and day to u8's to better align with `ICU4x`.
+
+/// `IsoDateRecord` serves as an inner Record for the `Temporal.PlainDate`
+/// object, the `Temporal.YearMonth` object, and the `Temporal.MonthDay`
+/// object.
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) struct IsoDateRecord {
     year: i32,
@@ -20,6 +29,18 @@ impl IsoDateRecord {
     }
     pub(crate) const fn day(&self) -> i32 {
         self.day
+    }
+}
+
+impl IsoDateRecord {
+    // TODO: look into using Date<Iso> across the board...TBD.
+    /// Creates `[[ISOYear]]`, `[[isoMonth]]`, `[[isoDay]]` fields from `ICU4X`'s Date<Iso> struct.
+    pub(crate) fn from_date_iso(date: Date<Iso>) -> Self {
+        Self {
+            year: date.year().number,
+            month: date.month().ordinal as i32,
+            day: i32::from(date.days_in_month()),
+        }
     }
 }
 
@@ -89,6 +110,23 @@ impl IsoDateRecord {
                 overflow,
             ),
         }
+    }
+
+    /// Within `YearMonth` valid limits
+    pub(crate) const fn within_year_month_limits(&self) -> bool {
+        if self.year < -271_821 || self.year > 275_760 {
+            return false;
+        }
+
+        if self.year == -271_821 && self.month < 4 {
+            return false;
+        }
+
+        if self.year == 275_760 && self.month > 9 {
+            return true;
+        }
+
+        true
     }
 
     /// 3.5.5 `DifferenceISODate`

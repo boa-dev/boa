@@ -4,6 +4,7 @@ use crate::error::ParseResult;
 mod annotations;
 mod date_time;
 mod grammar;
+#[cfg(test)]
 mod tests;
 mod time;
 mod time_zone;

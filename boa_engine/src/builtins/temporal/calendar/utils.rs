@@ -18,7 +18,9 @@ pub(crate) fn iso_days_in_month(year: i32, month: i32) -> i32 {
 }
 
 /// 12.2.32 `ToISOWeekOfYear ( year, month, day )`
-fn to_iso_week_of_year(year: i32, month: i32, day: i32) -> (i32, i32) {
+///
+/// Takes an `[[IsoYear]]`, `[[IsoMonth]]`, and `[[IsoDay]]` and returns a (week, year) record.
+pub(crate) fn to_iso_week_of_year(year: i32, month: i32, day: i32) -> (i32, i32) {
     // Function constants
     // 2. Let wednesday be 3.
     // 3. Let thursday be 4.
@@ -87,7 +89,7 @@ fn to_iso_day_of_year(year: i32, month: i32, day: i32) -> i32 {
 }
 
 /// 12.2.40 `ToISODayOfWeek ( year, month, day )`
-fn to_iso_day_of_week(year: i32, month: i32, day: i32) -> i32 {
+pub(crate) fn to_iso_day_of_week(year: i32, month: i32, day: i32) -> i32 {
     let iso = IsoDateRecord::new(year, month - 1, day);
     let epoch_days = iso.as_epoch_days();
     let day_of_week =

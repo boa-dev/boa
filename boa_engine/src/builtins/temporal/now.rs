@@ -1,7 +1,10 @@
 //! Boa's implementation of `Temporal.Now` `EcmaScript` object.
 
 use crate::{
-    builtins::temporal::{create_temporal_time_zone, default_time_zone},
+    builtins::{
+        temporal::{create_temporal_time_zone, default_time_zone},
+        BuiltInBuilder, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
     property::Attribute,
@@ -30,50 +33,25 @@ impl Now {
         // is not a function object.
         // does not have a [[Construct]] internal method; it cannot be used as a constructor with the new operator.
         // does not have a [[Call]] internal method; it cannot be invoked as a function.
-        ObjectInitializer::new(realm.clone())
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .function(
-                NativeFunction::from_fn_ptr(Self::time_zone_id),
-                "timeZoneId",
-                0,
-            )
-            .function(NativeFunction::from_fn_ptr(Self::instant), "instant", 0)
-            .function(
-                NativeFunction::from_fn_ptr(Self::plain_date_time),
-                "plainDateTime",
-                2,
-            )
-            .function(
-                NativeFunction::from_fn_ptr(Self::plain_date_time_iso),
-                "plainDateTimeISO",
-                1,
-            )
-            .function(
-                NativeFunction::from_fn_ptr(Self::zoned_date_time),
-                "zonedDateTime",
-                2,
-            )
-            .function(
-                NativeFunction::from_fn_ptr(Self::zoned_date_time_iso),
-                "zonedDateTimeISO",
-                1,
-            )
-            .function(
-                NativeFunction::from_fn_ptr(Self::plain_date),
-                "plainDate",
-                2,
-            )
-            .function(
-                NativeFunction::from_fn_ptr(Self::plain_date_iso),
-                "plainDateISO",
-                1,
-            )
-            .build()
-            .into()
+            .static_method(Self::time_zone_id, "timeZoneId", 0)
+            .static_method(Self::instant, "instant", 0)
+            .static_method(Self::plain_date_time, "plainDateTime", 2)
+            .static_method(Self::plain_date_time_iso, "plainDateTimeISO", 1)
+            .static_method(Self::zoned_date_time, "zonedDateTime", 2)
+            .static_method(Self::zoned_date_time_iso, "zonedDateTimeISO", 1)
+            .static_method(Self::plain_date, "plainDate", 2)
+            .static_method(Self::plain_date_iso, "plainDateISO", 1)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().now()
     }
 
     /// `Temporal.Now.timeZoneId ( )`

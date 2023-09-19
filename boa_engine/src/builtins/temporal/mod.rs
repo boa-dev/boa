@@ -21,6 +21,10 @@ mod zoned_date_time;
 
 use std::ops::Mul;
 
+#[cfg(feature = "experimental")]
+#[cfg(test)]
+mod tests;
+
 pub(crate) use fields::TemporalFields;
 
 use self::date_equations::mathematical_days_in_year;
@@ -56,25 +60,6 @@ pub(crate) fn ns_max_instant() -> JsBigInt {
 pub(crate) fn ns_min_instant() -> JsBigInt {
     JsBigInt::from(i128::from(NS_PER_DAY) * -100_000_000_i128)
 }
-
-// Relavant datetime utf16 constants.
-/*
-pub(crate) const YEAR: &[u16] = utf16!("year");
-pub(crate) const MONTH: &[u16] = utf16!("month");
-pub(crate) const MONTH_CODE: &[u16] = utf16!("monthCode");
-pub(crate) const WEEK: &[u16] = utf16!("week");
-pub(crate) const DAY: &[u16] = utf16!("day");
-pub(crate) const HOUR: &[u16] = utf16!("hour");
-pub(crate) const MINUTE: &[u16] = utf16!("minute");
-pub(crate) const SECOND: &[u16] = utf16!("second");
-pub(crate) const MILLISECOND: &[u16] = utf16!("millisecond");
-pub(crate) const MICROSECOND: &[u16] = utf16!("microsecond");
-pub(crate) const NANOSECOND: &[u16] = utf16!("nanosecond");
-pub(crate) const OFFSET: &[u16] = utf16!("offset");
-pub(crate) const ERA: &[u16] = utf16!("era");
-pub(crate) const ERA_YEAR: &[u16] = utf16!("eraYear");
-pub(crate) const TZ: &[u16] = utf16!("timeZone");
-*/
 
 // An enum representing common fields across `Temporal` objects.
 pub(crate) enum DateTimeValues {
@@ -224,6 +209,56 @@ impl IntrinsicObject for Temporal {
             .static_property(
                 "Now",
                 Now::init(realm),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "Calendar",
+                realm.intrinsics().constructors().calendar().constructor(),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "Duration",
+                realm.intrinsics().constructors().duration().constructor(),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "Instant",
+                realm.intrinsics().constructors().instant().constructor(),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "PlainDate",
+                realm.intrinsics().constructors().plain_date().constructor(),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "PlainDateTime",
+                realm.intrinsics().constructors().plain_date_time().constructor(),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "PlainMonthDay",
+                realm.intrinsics().constructors().plain_month_day().constructor(),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "PlainTime",
+                realm.intrinsics().constructors().plain_time().constructor(),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "PlainYearMonth",
+                realm.intrinsics().constructors().plain_year_month().constructor(),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "TimeZone",
+                realm.intrinsics().constructors().time_zone().constructor(),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "ZonedDateTime",
+                realm.intrinsics().constructors().zoned_date_time().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .build();
@@ -1021,4 +1056,94 @@ pub(crate) fn get_diff_settings(
         rounding_mode,
         rounding_increment,
     ))
+}
+
+/// 14.6 `CopyDataProperties ( target, source, excludedKeys [ , excludedValues ] )`
+pub(crate) fn copy_data_properties(
+    target: &JsObject,
+    source: &JsValue,
+    excluded_keys: &Vec<JsString>,
+    excluded_values: Option<&Vec<JsValue>>,
+    context: &mut Context<'_>,
+) -> JsResult<()> {
+    // 1. If source is undefined or null, return unused.
+    if source.is_null_or_undefined() {
+        return Ok(());
+    }
+
+    // 2. Let from be ! ToObject(source).
+    let from = source.to_object(context)?;
+
+    // 3. Let keys be ? from.[[OwnPropertyKeys]]().
+    let keys = from.__own_property_keys__(context)?;
+
+    // 4. For each element nextKey of keys, do
+    for next_key in keys {
+        // a. Let excluded be false.
+        let mut excluded = false;
+        // b. For each element e of excludedItemsexcludedKeys, do
+        for e in excluded_keys {
+            // i. If SameValue(e, nextKey) is true, then
+            if next_key.to_string() == e.to_std_string_escaped() {
+                // 1. Set excluded to true.
+                excluded = true;
+            }
+        }
+
+        // c. If excluded is false, then
+        if !excluded {
+            // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
+            let desc = from.__get_own_property__(&next_key, context)?;
+            // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
+            match desc {
+                Some(d)
+                    if d.enumerable()
+                        .expect("enumerable field must be set per spec.") =>
+                {
+                    // 1. Let propValue be ? Get(from, nextKey).
+                    let prop_value = from.get(next_key.clone(), context)?;
+                    // 2. If excludedValues is present, then
+                    if let Some(values) = excluded_values {
+                        // a. For each element e of excludedValues, do
+                        for e in values {
+                            // i. If SameValue(e, propValue) is true, then
+                            if JsValue::same_value(e, &prop_value) {
+                                // i. Set excluded to true.
+                                excluded = true;
+                            }
+                        }
+                    }
+
+                    // 3. PerformIf excluded is false, perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
+                    if !excluded {
+                        target.create_data_property_or_throw(next_key, prop_value, context)?;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    // 5. Return unused.
+    Ok(())
+}
+
+// Note: Deviates from Proposal spec -> proto appears to be always null across the specification.
+/// 14.7 `SnapshotOwnProperties ( source, proto [ , excludedKeys [ , excludedValues ] ] )`
+fn snapshot_own_properties(
+    source: &JsObject,
+    excluded_keys: Option<Vec<JsString>>,
+    excluded_values: Option<Vec<JsValue>>,
+    context: &mut Context<'_>,
+) -> JsResult<JsObject> {
+    // 1. Let copy be OrdinaryObjectCreate(proto).
+    let copy = JsObject::with_null_proto();
+    // 2. If excludedKeys is not present, set excludedKeys to « ».
+    let keys = excluded_keys.unwrap_or_default();
+    // 3. If excludedValues is not present, set excludedValues to « ».
+    let values = excluded_values.unwrap_or_default();
+    // 4. Perform ? CopyDataProperties(copy, source, excludedKeys, excludedValues).
+    copy_data_properties(&copy, &source.clone().into(), &keys, Some(&values), context)?;
+    // 5. Return copy.
+    Ok(copy)
 }

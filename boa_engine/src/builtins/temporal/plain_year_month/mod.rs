@@ -11,7 +11,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::TemporalFields;
+use super::{plain_date::iso::IsoDateRecord, TemporalFields};
 
 #[derive(Debug, Clone)]
 pub(crate) struct IsoYearMonthRecord {
@@ -86,22 +86,6 @@ impl IsoYearMonthRecord {
         }
     }
 
-    pub(crate) const fn within_limits(&self) -> bool {
-        if self.year < -271_821 || self.year > 275_760 {
-            return false;
-        }
-
-        if self.year == -271_821 && self.month < 4 {
-            return false;
-        }
-
-        if self.year == 275_760 && self.month > 9 {
-            return true;
-        }
-
-        true
-    }
-
     fn is_valid_iso_date(&self) -> bool {
         if !(1..=12).contains(&self.month) {
             return false;
@@ -125,7 +109,7 @@ impl IsoYearMonthRecord {
 /// The `Temporal.PlainYearMonth` object.
 #[derive(Debug, Clone)]
 pub struct PlainYearMonth {
-    inner: IsoYearMonthRecord,
+    pub(crate) inner: IsoDateRecord,
     pub(crate) calendar: JsValue,
 }
 
@@ -265,7 +249,7 @@ impl BuiltInConstructor for PlainYearMonth {
         // 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
 
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
-        let record = IsoYearMonthRecord::new(y, m, ref_day);
+        let record = IsoDateRecord::new(y, m, ref_day);
         create_temporal_year_month(record, JsValue::from("iso8601"), Some(new_target), context)
     }
 }
@@ -398,20 +382,20 @@ pub(crate) fn regulate_iso_year_month(
 
 // 9.5.5 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
 pub(crate) fn create_temporal_year_month(
-    year_month_record: IsoYearMonthRecord,
+    year_month_record: IsoDateRecord,
     calendar: JsValue,
     new_target: Option<&JsValue>,
     context: &mut Context<'_>,
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(isoYear, isoMonth, referenceISODay) is false, throw a RangeError exception.
-    if !year_month_record.is_valid_iso_date() {
+    if !year_month_record.is_valid() {
         return Err(JsNativeError::range()
             .with_message("PlainYearMonth values are not a valid ISO date.")
             .into());
     }
 
     // 2. If ! ISOYearMonthWithinLimits(isoYear, isoMonth) is false, throw a RangeError exception.
-    if year_month_record.within_limits() {
+    if year_month_record.within_year_month_limits() {
         return Err(JsNativeError::range()
             .with_message("PlainYearMonth values are not a valid ISO date.")
             .into());
