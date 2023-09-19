@@ -264,7 +264,7 @@ impl CodeBlock {
     /// # Safety
     ///
     /// Does not check if read happens out-of-bounds.
-    pub(crate) unsafe fn read_unchecked<T>(&self, offset: usize) -> T
+    pub(crate) const unsafe fn read_unchecked<T>(&self, offset: usize) -> T
     where
         T: Readable,
     {
