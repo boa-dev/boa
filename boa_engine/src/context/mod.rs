@@ -513,6 +513,17 @@ impl<'host> Context<'host> {
         std::mem::replace(&mut self.realm, realm)
     }
 
+    /// Create a new Realm with the default global bindings.
+    pub fn create_realm(&mut self) -> JsResult<Realm> {
+        let realm = Realm::create(&*self.host_hooks, &self.root_shape);
+
+        let old_realm = self.enter_realm(realm);
+
+        builtins::set_default_global_bindings(self)?;
+
+        Ok(self.enter_realm(old_realm))
+    }
+
     /// Get the [`RootShape`].
     #[inline]
     #[must_use]
