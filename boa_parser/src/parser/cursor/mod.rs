@@ -22,7 +22,7 @@ pub(super) enum SemicolonResult<'s> {
 ///
 /// This internal structure gives basic testable operations to the parser.
 #[derive(Debug)]
-pub struct Cursor<R> {
+pub(super) struct Cursor<R> {
     buffered_lexer: BufferedLexer<R>,
 
     /// Tracks if the cursor is in a arrow function declaration.
@@ -44,7 +44,7 @@ where
     R: Read,
 {
     /// Creates a new cursor with the given reader.
-    pub fn new(reader: R) -> Self {
+    pub(super) fn new(reader: R) -> Self {
         Self {
             buffered_lexer: Lexer::new(reader).into(),
             arrow: false,

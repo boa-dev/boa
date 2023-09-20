@@ -3,7 +3,9 @@
 use crate::{
     builtins::temporal::{
         self, create_temporal_date, create_temporal_duration,
-        date_equations::{epoch_time_for_year, mathematical_in_leap_year, mathematical_days_in_year},
+        date_equations::{
+            epoch_time_for_year, mathematical_days_in_year, mathematical_in_leap_year,
+        },
         get_options_object, get_temporal_unit,
         plain_date::iso::IsoDateRecord,
         to_temporal_date, to_temporal_overflow, IsoYearMonthRecord,

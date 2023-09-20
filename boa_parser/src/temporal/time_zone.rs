@@ -20,7 +20,6 @@ use boa_ast::{
 
 // ==== Time Zone Annotation Parsing ====
 
-#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_ambiguous_tz_annotation(
     cursor: &mut IsoCursor,
 ) -> ParseResult<Option<TimeZoneAnnotation>> {
@@ -53,7 +52,7 @@ pub(crate) fn parse_ambiguous_tz_annotation(
                 } else if ch == ']' {
                     return Err(LexError::syntax(
                         "Invalid Annotation",
-                        Position::new(1, (peek_pos + 1) as u32),
+                        Position::new(1, peek_pos + 1),
                     )
                     .into());
                 }
@@ -72,11 +71,10 @@ pub(crate) fn parse_ambiguous_tz_annotation(
 
     Err(Error::lex(LexError::syntax(
         "Unexpected character in ambiguous annotation.",
-        Position::new(1, (cursor.pos() + 1) as u32),
+        Position::new(1, cursor.pos() + 1),
     )))
 }
 
-#[allow(clippy::cast_possible_truncation)]
 fn parse_tz_annotation(cursor: &mut IsoCursor) -> ParseResult<TimeZoneAnnotation> {
     assert!(cursor.peek().expect("annotation start") == '[');
 
@@ -92,7 +90,7 @@ fn parse_tz_annotation(cursor: &mut IsoCursor) -> ParseResult<TimeZoneAnnotation
     if !cursor.check_or(false, |ch| ch == ']') {
         return Err(LexError::syntax(
             "Invalid TimeZoneAnnotation.",
-            Position::new(1, (cursor.pos() + 1) as u32),
+            Position::new(1, cursor.pos() + 1),
         )
         .into());
     }
@@ -102,7 +100,6 @@ fn parse_tz_annotation(cursor: &mut IsoCursor) -> ParseResult<TimeZoneAnnotation
     Ok(TimeZoneAnnotation { critical, tz })
 }
 
-#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_tz_identifier(cursor: &mut IsoCursor) -> ParseResult<TzIdentifier> {
     let is_iana = cursor
         .check(is_tz_leading_char)
@@ -119,13 +116,12 @@ pub(crate) fn parse_tz_identifier(cursor: &mut IsoCursor) -> ParseResult<TzIdent
 
     Err(LexError::syntax(
         "Invalid leading character for a TimeZoneIdentifier",
-        Position::new(1, (cursor.pos() + 1) as u32),
+        Position::new(1, cursor.pos() + 1),
     )
     .into())
 }
 
 /// Parse a `TimeZoneIANAName` Parse Node
-#[allow(clippy::cast_possible_truncation)]
 fn parse_tz_iana_name(cursor: &mut IsoCursor) -> ParseResult<String> {
     let tz_name_start = cursor.pos();
     while let Some(potential_value_char) = cursor.next() {
@@ -133,7 +129,7 @@ fn parse_tz_iana_name(cursor: &mut IsoCursor) -> ParseResult<String> {
             if !cursor.peek_n(1).map_or(false, is_tz_char) {
                 return Err(LexError::syntax(
                     "Missing TimeZoneIANANameComponent after '/'",
-                    Position::new(1, (cursor.pos() + 2) as u32),
+                    Position::new(1, cursor.pos() + 2),
                 )
                 .into());
             }
@@ -152,7 +148,6 @@ fn parse_tz_iana_name(cursor: &mut IsoCursor) -> ParseResult<String> {
 // ==== Utc Offset Parsing ====
 
 /// Parse a full precision `UtcOffset`
-#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_date_time_utc(cursor: &mut IsoCursor) -> ParseResult<UtcOffset> {
     if cursor.check_or(false, is_utc_designator) {
         cursor.advance();
@@ -173,7 +168,7 @@ pub(crate) fn parse_date_time_utc(cursor: &mut IsoCursor) -> ParseResult<UtcOffs
         if !separated {
             return Err(LexError::syntax(
                 "Unexpected TimeSeparator",
-                Position::new(1, cursor.pos() as u32),
+                Position::new(1, cursor.pos()),
             )
             .into());
         }

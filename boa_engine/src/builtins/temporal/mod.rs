@@ -49,9 +49,12 @@ use boa_ast::temporal::{self, UtcOffset};
 use boa_profiler::Profiler;
 
 // Relavant numeric constants
+/// Nanoseconds per day constant: 8.64e+13
 pub(crate) const NS_PER_DAY: i64 = 86_400_000_000_000;
+/// Microseconds per day constant: 8.64e+10
 pub(crate) const MICRO_PER_DAY: i64 = 8_640_000_000;
-pub(crate) const MILLI_PER_DAY: i64 = 8_600_000;
+/// Milliseconds per day constant: 8.64e+7
+pub(crate) const MILLI_PER_DAY: i64 = 24 * 60 * 60 * 1000;
 
 pub(crate) fn ns_max_instant() -> JsBigInt {
     JsBigInt::from(i128::from(NS_PER_DAY) * 100_000_000_i128)
@@ -233,12 +236,20 @@ impl IntrinsicObject for Temporal {
             )
             .static_property(
                 "PlainDateTime",
-                realm.intrinsics().constructors().plain_date_time().constructor(),
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .plain_date_time()
+                    .constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 "PlainMonthDay",
-                realm.intrinsics().constructors().plain_month_day().constructor(),
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .plain_month_day()
+                    .constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
@@ -248,7 +259,11 @@ impl IntrinsicObject for Temporal {
             )
             .static_property(
                 "PlainYearMonth",
-                realm.intrinsics().constructors().plain_year_month().constructor(),
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .plain_year_month()
+                    .constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
@@ -258,7 +273,11 @@ impl IntrinsicObject for Temporal {
             )
             .static_property(
                 "ZonedDateTime",
-                realm.intrinsics().constructors().zoned_date_time().constructor(),
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .zoned_date_time()
+                    .constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .build();

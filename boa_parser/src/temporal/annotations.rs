@@ -13,16 +13,15 @@ use boa_ast::{
     Position, Span,
 };
 
-use rustc_hash::FxHashMap;
+use super::grammar::is_annotation_open;
 
 /// Strictly a Parsing Intermediary for the checking the common annotation backing.
 pub(crate) struct AnnotationSet {
     pub(crate) tz: Option<TimeZoneAnnotation>,
-    pub(crate) annotations: Option<FxHashMap<String, (bool, String)>>,
+    pub(crate) calendar: Option<String>,
 }
 
 /// Parse a `TimeZoneAnnotation` `Annotations` set
-#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_annotation_set(
     zoned: bool,
     cursor: &mut IsoCursor,
@@ -34,53 +33,69 @@ pub(crate) fn parse_annotation_set(
         return Err(Error::unexpected(
             "Annotation",
             Span::new(
-                Position::new(1, (cursor.pos() + 1) as u32),
-                Position::new(1, (cursor.pos() + 2) as u32),
+                Position::new(1, cursor.pos() + 1),
+                Position::new(1, cursor.pos() + 2),
             ),
             "iso8601 ZonedDateTime requires a TimeZoneAnnotation.",
         ));
     }
 
     // Parse any `Annotations`
-    let annotations = cursor.check_or(false, |ch| ch == '[');
+    let annotations = cursor.check_or(false, is_annotation_open);
 
     if annotations {
         let annotations = parse_annotations(cursor)?;
         return Ok(AnnotationSet {
             tz: tz_annotation,
-            annotations: Some(annotations),
+            calendar: annotations.calendar,
         });
     }
 
     Ok(AnnotationSet {
         tz: tz_annotation,
-        annotations: None,
+        calendar: None,
     })
 }
 
+/// An internal crate type to house any recognized annotations that are found.
+#[derive(Default)]
+pub(crate) struct RecognizedAnnotations {
+    pub(crate) calendar: Option<String>,
+}
+
 /// Parse any number of `KeyValueAnnotation`s
-pub(crate) fn parse_annotations(
-    cursor: &mut IsoCursor,
-) -> ParseResult<FxHashMap<String, (bool, String)>> {
-    let mut hash_map = FxHashMap::default();
-    while let Some(annotation_open) = cursor.peek() {
-        if annotation_open == '[' {
-            let kv = parse_kv_annotation(cursor)?;
-            if let std::collections::hash_map::Entry::Vacant(e) = hash_map.entry(kv.key) {
-                e.insert((kv.critical, kv.value));
+pub(crate) fn parse_annotations(cursor: &mut IsoCursor) -> ParseResult<RecognizedAnnotations> {
+    let mut annotations = RecognizedAnnotations::default();
+
+    let mut calendar_crit = false;
+    while cursor.check_or(false, is_annotation_open) {
+        let start = Position::new(1, cursor.pos() + 1);
+        let kv = parse_kv_annotation(cursor)?;
+
+        if &kv.key == "u-ca" {
+            if annotations.calendar.is_none() {
+                annotations.calendar = Some(kv.value);
+                calendar_crit = kv.critical;
+                continue;
             }
-        } else {
-            break;
+
+            if calendar_crit || kv.critical {
+                return Err(Error::general(
+                    "Cannot have critical flag with duplicate calendar annotations",
+                    start,
+                ));
+            }
+        } else if kv.critical {
+            return Err(Error::general("Unrecognized critical annotation.", start));
         }
     }
 
-    Ok(hash_map)
+    Ok(annotations)
 }
 
 /// Parse an annotation with an `AnnotationKey`=`AnnotationValue` pair.
-#[allow(clippy::cast_possible_truncation)]
 fn parse_kv_annotation(cursor: &mut IsoCursor) -> ParseResult<KeyValueAnnotation> {
-    debug_assert!(cursor.check_or(false, |ch| ch == '['));
+    debug_assert!(cursor.check_or(false, is_annotation_open));
 
     let potential_critical = cursor.next().ok_or_else(|| Error::AbruptEnd)?;
     let (leading_char, critical) = if potential_critical == '!' {
@@ -92,7 +107,7 @@ fn parse_kv_annotation(cursor: &mut IsoCursor) -> ParseResult<KeyValueAnnotation
     if !is_a_key_leading_char(leading_char) {
         return Err(LexError::syntax(
             "Invalid AnnotationKey leading character",
-            Position::new(1, (cursor.pos() + 1) as u32),
+            Position::new(1, cursor.pos() + 1),
         )
         .into());
     }
@@ -119,7 +134,6 @@ fn parse_kv_annotation(cursor: &mut IsoCursor) -> ParseResult<KeyValueAnnotation
 }
 
 /// Parse an `AnnotationKey`.
-#[allow(clippy::cast_possible_truncation)]
 fn parse_annotation_key(cursor: &mut IsoCursor) -> ParseResult<String> {
     let key_start = cursor.pos();
     while let Some(potential_key_char) = cursor.next() {
@@ -132,7 +146,7 @@ fn parse_annotation_key(cursor: &mut IsoCursor) -> ParseResult<String> {
         if !is_a_key_char(potential_key_char) {
             return Err(LexError::syntax(
                 "Invalid AnnotationKey Character",
-                Position::new(1, (cursor.pos() + 1) as u32),
+                Position::new(1, cursor.pos() + 1),
             )
             .into());
         }
@@ -142,7 +156,6 @@ fn parse_annotation_key(cursor: &mut IsoCursor) -> ParseResult<String> {
 }
 
 /// Parse an `AnnotationValue`.
-#[allow(clippy::cast_possible_truncation)]
 fn parse_annotation_value(cursor: &mut IsoCursor) -> ParseResult<String> {
     let value_start = cursor.pos();
     while let Some(potential_value_char) = cursor.next() {
@@ -158,7 +171,7 @@ fn parse_annotation_value(cursor: &mut IsoCursor) -> ParseResult<String> {
             {
                 return Err(LexError::syntax(
                     "Missing AttributeValueComponent after '-'",
-                    Position::new(1, (cursor.pos() + 1) as u32),
+                    Position::new(1, cursor.pos() + 1),
                 )
                 .into());
             }
@@ -169,7 +182,7 @@ fn parse_annotation_value(cursor: &mut IsoCursor) -> ParseResult<String> {
         if !is_annotation_value_component(potential_value_char) {
             return Err(LexError::syntax(
                 "Invalid character in AnnotationValue",
-                Position::new(1, (value_start + cursor.pos() + 1) as u32),
+                Position::new(1, value_start + cursor.pos() + 1),
             )
             .into());
         }

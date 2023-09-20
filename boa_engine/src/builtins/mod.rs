@@ -396,7 +396,6 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     #[cfg(feature = "temporal")]
     {
         global_binding::<temporal::Temporal>(context)?;
-        global_binding::<temporal::TimeZone>(context)?;
     }
 
     Ok(())

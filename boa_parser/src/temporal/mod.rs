@@ -65,9 +65,9 @@ impl TemporalYearMonthString {
         if date_time::peek_year_month(cursor)? {
             let ym = date_time::parse_year_month(cursor)?;
 
-            let (tz_annotation, annotations) = if cursor.check_or(false, |ch| ch == '[') {
+            let (tz_annotation, calendar) = if cursor.check_or(false, |ch| ch == '[') {
                 let set = annotations::parse_annotation_set(false, cursor)?;
-                (set.tz, set.annotations)
+                (set.tz, set.calendar)
             } else {
                 (None, None)
             };
@@ -81,7 +81,7 @@ impl TemporalYearMonthString {
                 time: None,
                 offset: None,
                 tz_annotation,
-                annotations,
+                calendar,
             });
         }
 
@@ -104,9 +104,9 @@ impl TemporalMonthDayString {
         if date_time::peek_month_day(cursor)? {
             let md = date_time::parse_month_day(cursor)?;
 
-            let (tz_annotation, annotations) = if cursor.check_or(false, |ch| ch == '[') {
+            let (tz_annotation, calendar) = if cursor.check_or(false, |ch| ch == '[') {
                 let set = annotations::parse_annotation_set(false, cursor)?;
-                (set.tz, set.annotations)
+                (set.tz, set.calendar)
             } else {
                 (None, None)
             };
@@ -120,7 +120,7 @@ impl TemporalMonthDayString {
                 time: None,
                 offset: None,
                 tz_annotation,
-                annotations,
+                calendar,
             });
         }
 
@@ -133,7 +133,7 @@ impl TemporalMonthDayString {
 /// `IsoCursor` is a small cursor implementation for parsing ISO8601 grammar.
 #[derive(Debug)]
 pub struct IsoCursor {
-    pos: usize,
+    pos: u32,
     source: Vec<char>,
 }
 
@@ -148,28 +148,29 @@ impl IsoCursor {
     }
 
     /// Returns a string value from a slice of the cursor.
-    fn slice(&self, start: usize, end: usize) -> String {
-        self.source[start..end].iter().collect()
+    fn slice(&self, start: u32, end: u32) -> String {
+        self.source[start as usize..end as usize].iter().collect()
     }
 
     /// Get current position
-    const fn pos(&self) -> usize {
+    const fn pos(&self) -> u32 {
         self.pos
     }
 
     /// Peek the value at the current position.
     fn peek(&self) -> Option<char> {
-        if self.pos < self.source.len() {
-            Some(self.source[self.pos])
+        if (self.pos as usize) < self.source.len() {
+            Some(self.source[self.pos as usize])
         } else {
             None
         }
     }
 
     /// Peek the value at n len from current.
-    fn peek_n(&self, n: usize) -> Option<char> {
-        if self.pos + n < self.source.len() {
-            Some(self.source[self.pos + n])
+    fn peek_n(&self, n: u32) -> Option<char> {
+        let target = (self.pos + n) as usize;
+        if target < self.source.len() {
+            Some(self.source[target])
         } else {
             None
         }
@@ -202,7 +203,7 @@ impl IsoCursor {
     }
 
     /// Advances the cursor's position by `n`.
-    fn advance_n(&mut self, n: usize) {
+    fn advance_n(&mut self, n: u32) {
         self.pos += n;
     }
 }

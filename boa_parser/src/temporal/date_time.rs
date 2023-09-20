@@ -22,7 +22,6 @@ use boa_ast::{
 /// `AnnotatedDateTime`[Zoned] :
 ///     [~Zoned] `DateTime` `TimeZoneAnnotation`(opt) `Annotations`(opt)
 ///     [+Zoned] `DateTime` `TimeZoneAnnotation` `Annotations`(opt)
-#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_annotated_date_time(
     zoned: bool,
     cursor: &mut IsoCursor,
@@ -38,8 +37,8 @@ pub(crate) fn parse_annotated_date_time(
                 ["TimeZoneAnnotation".into()],
                 "No Annotation",
                 Span::new(
-                    Position::new(1, (cursor.pos() + 1) as u32),
-                    Position::new(1, (cursor.pos() + 1) as u32),
+                    Position::new(1, cursor.pos() + 1),
+                    Position::new(1, cursor.pos() + 1),
                 ),
                 "iso8601 grammar",
             ));
@@ -49,7 +48,7 @@ pub(crate) fn parse_annotated_date_time(
             time: date_time.time,
             offset: date_time.offset,
             tz_annotation: None,
-            annotations: None,
+            calendar: None,
         });
     }
 
@@ -60,7 +59,7 @@ pub(crate) fn parse_annotated_date_time(
         time: date_time.time,
         offset: date_time.offset,
         tz_annotation: annotation_set.tz,
-        annotations: annotation_set.annotations,
+        calendar: annotation_set.calendar,
     })
 }
 
@@ -98,7 +97,6 @@ fn parse_date_time(cursor: &mut IsoCursor) -> ParseResult<DateTimeRecord> {
 }
 
 /// Parses `Date` record.
-#[allow(clippy::cast_possible_truncation)]
 fn parse_date(cursor: &mut IsoCursor) -> ParseResult<DateRecord> {
     let year = parse_date_year(cursor)?;
     let divided = cursor
@@ -115,7 +113,7 @@ fn parse_date(cursor: &mut IsoCursor) -> ParseResult<DateRecord> {
         if !divided {
             return Err(LexError::syntax(
                 "Invalid date separator",
-                Position::new(1, (cursor.pos() + 1) as u32),
+                Position::new(1, cursor.pos() + 1),
             )
             .into());
         }
@@ -195,7 +193,6 @@ pub(crate) fn peek_month_day(cursor: &mut IsoCursor) -> ParseResult<bool> {
 }
 
 /// Parses a `DateSpecMonthDay`
-#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_month_day(cursor: &mut IsoCursor) -> ParseResult<(i32, i32)> {
     let dash_one = cursor
         .check(|ch| ch == '-')
@@ -210,7 +207,7 @@ pub(crate) fn parse_month_day(cursor: &mut IsoCursor) -> ParseResult<(i32, i32)>
     } else if dash_two && !dash_one {
         return Err(LexError::syntax(
             "MonthDay requires two dashes",
-            Position::new(1, cursor.pos() as u32),
+            Position::new(1, cursor.pos()),
         )
         .into());
     }
@@ -227,7 +224,6 @@ pub(crate) fn parse_month_day(cursor: &mut IsoCursor) -> ParseResult<(i32, i32)>
 
 // ==== Unit Parsers ====
 
-#[allow(clippy::cast_possible_truncation)]
 fn parse_date_year(cursor: &mut IsoCursor) -> ParseResult<i32> {
     if is_sign(cursor.peek().ok_or_else(|| Error::AbruptEnd)?) {
         let year_start = cursor.pos();
@@ -244,16 +240,16 @@ fn parse_date_year(cursor: &mut IsoCursor) -> ParseResult<i32> {
             if !year_digit.is_ascii_digit() {
                 return Err(Error::lex(LexError::syntax(
                     "DateYear must contain digit",
-                    Position::new(1, (cursor.pos() + 1) as u32),
+                    Position::new(1, cursor.pos() + 1),
                 )));
             }
             cursor.advance();
         }
 
         let year_string = cursor.slice(year_start + 1, cursor.pos());
-        let year_value = year_string.parse::<i32>().map_err(|e| {
-            Error::general(e.to_string(), Position::new(1, (year_start + 1) as u32))
-        })?;
+        let year_value = year_string
+            .parse::<i32>()
+            .map_err(|e| Error::general(e.to_string(), Position::new(1, year_start + 1)))?;
 
         // 13.30.1 Static Semantics: Early Errors
         //
@@ -261,7 +257,7 @@ fn parse_date_year(cursor: &mut IsoCursor) -> ParseResult<i32> {
         if sign == -1 && year_value == 0 {
             return Err(Error::lex(LexError::syntax(
                 "Cannot have negative 0 years.",
-                Position::new(1, (year_start + 1) as u32),
+                Position::new(1, year_start + 1),
             )));
         }
 
@@ -275,7 +271,7 @@ fn parse_date_year(cursor: &mut IsoCursor) -> ParseResult<i32> {
         if !year_digit.is_ascii_digit() {
             return Err(LexError::syntax(
                 "DateYear must contain digit",
-                Position::new(1, (cursor.pos() + 1) as u32),
+                Position::new(1, cursor.pos() + 1),
             )
             .into());
         }
@@ -285,21 +281,20 @@ fn parse_date_year(cursor: &mut IsoCursor) -> ParseResult<i32> {
     let year_string = cursor.slice(year_start, cursor.pos());
     let year_value = year_string
         .parse::<i32>()
-        .map_err(|e| Error::general(e.to_string(), Position::new(1, (cursor.pos() + 1) as u32)))?;
+        .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos() + 1)))?;
 
     Ok(year_value)
 }
 
-#[allow(clippy::cast_possible_truncation)]
 fn parse_date_month(cursor: &mut IsoCursor) -> ParseResult<i32> {
     let month_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
         .parse::<i32>()
-        .map_err(|e| Error::general(e.to_string(), Position::new(1, (cursor.pos() + 1) as u32)))?;
+        .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos() + 1)))?;
     if !(1..=12).contains(&month_value) {
         return Err(LexError::syntax(
             "DateMonth must be in a range of 1-12",
-            Position::new(1, (cursor.pos() + 1) as u32),
+            Position::new(1, cursor.pos() + 1),
         )
         .into());
     }
@@ -307,16 +302,15 @@ fn parse_date_month(cursor: &mut IsoCursor) -> ParseResult<i32> {
     Ok(month_value)
 }
 
-#[allow(clippy::cast_possible_truncation)]
 fn parse_date_day(cursor: &mut IsoCursor) -> ParseResult<i32> {
     let day_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
         .parse::<i32>()
-        .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos() as u32)))?;
+        .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos())))?;
     if !(1..=31).contains(&day_value) {
         return Err(LexError::syntax(
             "DateDay must be in a range of 1-31",
-            Position::new(1, (cursor.pos() + 1) as u32),
+            Position::new(1, cursor.pos() + 1),
         )
         .into());
     }

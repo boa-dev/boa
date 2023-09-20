@@ -84,7 +84,7 @@ mod source;
 #[cfg(feature = "temporal")]
 pub mod temporal;
 
-pub use error::{Error, ParseResult};
+pub use error::Error;
 pub use lexer::Lexer;
 pub use parser::Parser;
 pub use source::Source;

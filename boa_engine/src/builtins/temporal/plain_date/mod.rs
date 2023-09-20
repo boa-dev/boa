@@ -509,12 +509,13 @@ pub(crate) fn to_temporal_date(
             let result = TemporalDateTimeString::parse(
                 false,
                 &mut IsoCursor::new(&s.to_std_string_escaped()),
-            )?;
+            )
+            .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
             // 7. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
             // 8. Let calendar be result.[[Calendar]].
             // 9. If calendar is undefined, set calendar to "iso8601".
-            let identifier = result.calendar().unwrap_or_else(|| "iso8601".to_string());
+            let identifier = result.calendar.unwrap_or_else(|| "iso8601".to_string());
 
             // 10. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
             if !super::calendar::is_builtin_calendar(&identifier) {

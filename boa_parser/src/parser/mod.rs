@@ -12,7 +12,10 @@ mod tests;
 use crate::{
     error::ParseResult,
     lexer::Error as LexError,
-    parser::function::{FormalParameters, FunctionStatementList},
+    parser::{
+        cursor::Cursor,
+        function::{FormalParameters, FunctionStatementList},
+    },
     Error, Source,
 };
 use boa_ast::{
@@ -30,12 +33,10 @@ use std::{io::Read, path::Path};
 
 use self::statement::ModuleItemList;
 
-pub use self::cursor::Cursor;
-
 /// Trait implemented by parsers.
 ///
 /// This makes it possible to abstract over the underlying implementation of a parser.
-pub trait TokenParser<R>: Sized
+trait TokenParser<R>: Sized
 where
     R: Read,
 {

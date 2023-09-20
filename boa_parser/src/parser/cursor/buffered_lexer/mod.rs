@@ -1,6 +1,7 @@
 use crate::{
     lexer::{InputElement, Lexer, Token, TokenKind},
-    Error, ParseResult,
+    parser::ParseResult,
+    Error,
 };
 use boa_ast::Position;
 use boa_interner::Interner;

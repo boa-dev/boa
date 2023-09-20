@@ -59,13 +59,7 @@ fn temporal_date_time_max() {
         boa_ast::temporal::TzIdentifier::UtcOffset(_) => unreachable!(),
     }
 
-    let annotations = &result.annotations.unwrap();
-
-    assert!(annotations.contains_key("u-ca"));
-    assert_eq!(
-        annotations.get("u-ca"),
-        Some(&(true, "iso8601".to_string()))
-    );
+    assert_eq!(&result.calendar, &Some("iso8601".to_string()));
 }
 
 #[test]
@@ -96,25 +90,13 @@ fn temporal_annotated_date_time() {
         }
     }
 
-    if let Some(annotations) = &result.annotations {
-        assert!(annotations.contains_key("u-ca"));
-        assert_eq!(
-            annotations.get("u-ca"),
-            Some(&(false, "iso8601".to_string()))
-        );
-    }
+    assert_eq!(&result.calendar, &Some("iso8601".to_string()));
 
     let omit_result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(omitted)).unwrap();
 
     assert!(&omit_result.tz_annotation.is_none());
 
-    if let Some(annotations) = &omit_result.annotations {
-        assert!(annotations.contains_key("u-ca"));
-        assert_eq!(
-            annotations.get("u-ca"),
-            Some(&(false, "iso8601".to_string()))
-        );
-    }
+    assert_eq!(&omit_result.calendar, &Some("iso8601".to_string()));
 }
 
 #[test]
@@ -145,12 +127,26 @@ fn temporal_year_month() {
 
 #[test]
 fn temporal_month_day() {
-    let possible_month_day = &["11-07", "1107[+04:00]", "--11-07", "--1107[+04:00]"];
+    let possible_month_day = ["11-07", "1107[+04:00]", "--11-07", "--1107[+04:00]"];
 
     for md in possible_month_day {
         let result = TemporalMonthDayString::parse(&mut IsoCursor::new(md)).unwrap();
 
         assert_eq!(result.date.month, 11);
         assert_eq!(result.date.day, 7);
+    }
+}
+
+#[test]
+fn temporal_invalid_annotations() {
+    let invalid_annotations = [
+        "2020-11-11[!u-ca=iso8601][u-ca=iso8601]",
+        "2020-11-11[u-ca=iso8601][!u-ca=iso8601]",
+        "2020-11-11[u-ca=iso8601][!rip=this-invalid-annotation]",
+    ];
+
+    for invalid in invalid_annotations {
+        let err_result = TemporalMonthDayString::parse(&mut IsoCursor::new(invalid));
+        assert!(err_result.is_err())
     }
 }

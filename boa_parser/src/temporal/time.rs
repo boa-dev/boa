@@ -9,7 +9,6 @@ use crate::{
 use boa_ast::{temporal::TimeSpec, Position};
 
 /// Parse `TimeSpec`
-#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
     let hour = parse_hour(cursor)?;
     let mut separator = false;
@@ -34,11 +33,9 @@ pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
         if separator && is_time_separator {
             cursor.advance();
         } else if is_time_separator {
-            return Err(LexError::syntax(
-                "Invalid TimeSeparator",
-                Position::new(1, cursor.pos() as u32),
-            )
-            .into());
+            return Err(
+                LexError::syntax("Invalid TimeSeparator", Position::new(1, cursor.pos())).into(),
+            );
         }
     } else {
         return Ok(TimeSpec {
@@ -63,16 +60,15 @@ pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
     })
 }
 
-#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_hour(cursor: &mut IsoCursor) -> ParseResult<i8> {
     let hour_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
         .parse::<i8>()
-        .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos() as u32)))?;
+        .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos())))?;
     if !(0..=23).contains(&hour_value) {
         return Err(LexError::syntax(
             "Hour must be in a range of 0-23",
-            Position::new(1, (cursor.pos() + 1) as u32),
+            Position::new(1, cursor.pos() + 1),
         )
         .into());
     }
@@ -82,17 +78,16 @@ pub(crate) fn parse_hour(cursor: &mut IsoCursor) -> ParseResult<i8> {
 
 // NOTE: `TimeSecond` is a 60 inclusive `MinuteSecond`.
 /// Parse `MinuteSecond`
-#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_minute_second(cursor: &mut IsoCursor, inclusive: bool) -> ParseResult<i8> {
     let min_sec_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
         .parse::<i8>()
-        .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos() as u32)))?;
+        .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos())))?;
     let valid_range = if inclusive { 0..=60 } else { 0..=59 };
     if !valid_range.contains(&min_sec_value) {
         return Err(LexError::syntax(
             "MinuteSecond must be in a range of 0-59",
-            Position::new(1, (cursor.pos() + 1) as u32),
+            Position::new(1, cursor.pos() + 1),
         )
         .into());
     }
@@ -104,7 +99,6 @@ pub(crate) fn parse_minute_second(cursor: &mut IsoCursor, inclusive: bool) -> Pa
 ///
 /// This is primarily used in ISO8601 to add percision past
 /// a second.
-#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn parse_fraction(cursor: &mut IsoCursor) -> ParseResult<f64> {
     let fraction_start = cursor.pos();
     cursor.advance();
@@ -115,9 +109,7 @@ pub(crate) fn parse_fraction(cursor: &mut IsoCursor) -> ParseResult<f64> {
             let frac = cursor
                 .slice(fraction_start, cursor.pos())
                 .parse::<f64>()
-                .map_err(|e| {
-                    Error::general(e.to_string(), Position::new(1, (cursor.pos() - 1) as u32))
-                })?;
+                .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos() - 1)))?;
             return Ok(frac);
         }
     }

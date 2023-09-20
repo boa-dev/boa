@@ -53,3 +53,8 @@ pub(crate) const fn is_utc_designator(ch: char) -> bool {
 pub(crate) const fn is_decimal_separator(ch: char) -> bool {
     ch == '.' || ch == ','
 }
+
+/// Checks if char is an `AnnotationOpen`.
+pub(crate) const fn is_annotation_open(ch: char) -> bool {
+    ch == '['
+}

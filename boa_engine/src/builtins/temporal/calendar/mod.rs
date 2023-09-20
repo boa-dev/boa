@@ -22,6 +22,11 @@ use rustc_hash::FxHashMap;
 mod iso;
 pub(crate) mod utils;
 
+// TODO: Determine how many methods actually need the context on them while using
+// `icu_calendar`.
+//
+// NOTE (re above's TODO): Most likely context is only going to be needed for `dateFromFields`,
+// `yearMonthFromFields`, `monthDayFromFields`, `dateAdd`, and `dateUntil`.
 /// A trait for implementing a Builtin Calendar's Calendar Protocol in Rust.
 pub(crate) trait BuiltinCalendar {
     /// Creates a `Temporal.PlainDate` object from provided fields.

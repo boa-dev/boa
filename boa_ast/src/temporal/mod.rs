@@ -1,9 +1,5 @@
 //! AST nodes for Temporal's implementation of ISO8601 grammar.
 
-use rustc_hash::FxHashMap;
-
-pub mod annotation;
-
 /// TBD...
 #[derive(Default, Debug)]
 pub struct IsoParseRecord {
@@ -16,20 +12,7 @@ pub struct IsoParseRecord {
     /// Parsed `TimeZoneAnnotation`
     pub tz_annotation: Option<TimeZoneAnnotation>,
     /// Parsed Annotations
-    pub annotations: Option<FxHashMap<String, (bool, String)>>,
-}
-
-impl IsoParseRecord {
-    /// Returns the a stored calendar value if it exists.
-    #[must_use]
-    pub fn calendar(&self) -> Option<String> {
-        if let Some(annotations) = &self.annotations {
-            if let Some(cal) = annotations.get("u-ca") {
-                return Some(cal.1.clone());
-            }
-        }
-        None
-    }
+    pub calendar: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, Copy)]
