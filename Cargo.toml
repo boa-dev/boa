@@ -20,7 +20,7 @@ members = [
 [workspace.package]
 edition = "2021"
 version = "0.17.0"
-rust-version = "1.66"
+rust-version = "1.71"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
 license = "Unlicense OR MIT"
