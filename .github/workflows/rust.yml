@@ -10,6 +10,12 @@ on:
   merge_group:
     types: [checks_requested]
 
+permissions:
+  contents: read
+
+env:
+  RUSTFLAGS: -Dwarnings
+
 jobs:
   coverage:
     name: Coverage
@@ -65,6 +71,17 @@ jobs:
         run: cargo nextest run --profile ci --cargo-profile ci --features intl
       - name: Test docs
         run: cargo test --doc --profile ci --features intl
+
+  miri:
+    name: Miri
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@miri
+      - run: cargo miri test miri
+        env:
+          MIRIFLAGS: -Zmiri-strict-provenance
 
   misc:
     name: Misc
