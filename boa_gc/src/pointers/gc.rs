@@ -52,8 +52,6 @@ impl<T: Trace> Gc<T> {
             Ephemeron::from_raw(Allocator::alloc_ephemeron(EphemeronBox::new_empty())).into()
         };
 
-        // If `data_fn` panics, `weak` will be dropped here, giving the GC an opportunity to
-        // deallocate it before exiting. This ensures unwind safety.
         let gc = Self::new(data_fn(&weak));
 
         // SAFETY:
