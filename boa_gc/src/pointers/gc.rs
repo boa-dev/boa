@@ -1,8 +1,8 @@
 use crate::{
     finalizer_safe,
-    internals::GcBox,
+    internals::{EphemeronBox, GcBox},
     trace::{Finalize, Trace},
-    Allocator,
+    Allocator, Ephemeron, WeakGc,
 };
 use std::{
     cmp::Ordering,
@@ -22,6 +22,7 @@ pub struct Gc<T: Trace + ?Sized + 'static> {
 
 impl<T: Trace> Gc<T> {
     /// Constructs a new `Gc<T>` with the given value.
+    #[must_use]
     pub fn new(value: T) -> Self {
         // Create GcBox and allocate it to heap.
         //
@@ -32,6 +33,37 @@ impl<T: Trace> Gc<T> {
             inner_ptr,
             marker: PhantomData,
         }
+    }
+
+    /// Constructs a new `Gc<T>` while giving you a `WeakGc<T>` to the allocation, to allow
+    /// constructing a T which holds a weak pointer to itself.
+    ///
+    /// Since the new `Gc<T>` is not fully-constructed until `Gc<T>::new_cyclic` returns, calling
+    /// [`upgrade`][WeakGc::upgrade]  on the weak reference inside the closure will fail and result
+    /// in a `None` value.
+    #[must_use]
+    pub fn new_cyclic<F>(data_fn: F) -> Self
+    where
+        F: FnOnce(&WeakGc<T>) -> T,
+    {
+        // SAFETY: The newly allocated ephemeron is only live here, meaning `Ephemeron` is the
+        // sole owner of the allocation after passing it to `from_raw`, making this operation safe.
+        let weak = unsafe {
+            Ephemeron::from_raw(Allocator::alloc_ephemeron(EphemeronBox::new_empty())).into()
+        };
+
+        // If `data_fn` panics, `weak` will be dropped here, giving the GC an opportunity to
+        // deallocate it before exiting. This ensures unwind safety.
+        let gc = Self::new(data_fn(&weak));
+
+        // SAFETY:
+        // - `as_mut`: `weak` is properly initialized by `alloc_ephemeron` and cannot escape the
+        //   `unsafe` block.
+        // - `set_kv`: `weak` is a newly created `EphemeronBox`, meaning it isn't possible to
+        //   collect it since `weak` is still live.
+        unsafe { weak.inner().inner_ptr().as_mut().set(&gc, gc.clone()) }
+
+        gc
     }
 
     /// Consumes the `Gc`, returning a wrapped raw pointer.
