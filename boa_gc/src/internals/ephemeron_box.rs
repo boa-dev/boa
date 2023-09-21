@@ -100,6 +100,7 @@ struct Data<K: Trace + 'static, V: Trace + 'static> {
 }
 
 impl<K: Trace, V: Trace> EphemeronBox<K, V> {
+    /// Creates a new `EphemeronBox` that tracks `key` and has `value` as its inner data.
     pub(crate) fn new(key: &Gc<K>, value: V) -> Self {
         Self {
             header: EphemeronBoxHeader::new(),
@@ -107,6 +108,14 @@ impl<K: Trace, V: Trace> EphemeronBox<K, V> {
                 key: key.inner_ptr(),
                 value,
             })),
+        }
+    }
+
+    /// Creates a new `EphemeronBox` with its inner data in the invalidated state.
+    pub(crate) fn new_empty() -> Self {
+        Self {
+            header: EphemeronBoxHeader::new(),
+            data: UnsafeCell::new(None),
         }
     }
 
@@ -121,8 +130,8 @@ impl<K: Trace, V: Trace> EphemeronBox<K, V> {
     ///
     /// # Safety
     ///
-    /// The garbage collector must not run between the call to this function and the eventual
-    /// drop of the returned reference, since that could free the inner value.
+    /// The caller must ensure there are no live mutable references to the ephemeron box's data
+    /// before calling this method.
     pub(crate) unsafe fn value(&self) -> Option<&V> {
         // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
         // finalization.
@@ -134,8 +143,8 @@ impl<K: Trace, V: Trace> EphemeronBox<K, V> {
     ///
     /// # Safety
     ///
-    /// The garbage collector must not run between the call to this function and the eventual
-    /// drop of the returned reference, since that could free the inner value.
+    /// The caller must ensure there are no live mutable references to the ephemeron box's data
+    /// before calling this method.
     pub(crate) unsafe fn key(&self) -> Option<&GcBox<K>> {
         // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
         // finalization.
@@ -151,6 +160,22 @@ impl<K: Trace, V: Trace> EphemeronBox<K, V> {
     /// does this, and it's called by the garbage collector on demand.
     pub(crate) unsafe fn mark(&self) {
         self.header.mark();
+    }
+
+    /// Sets the inner data of the `EphemeronBox` to the specified key and value.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure there are no live mutable references to the ephemeron box's data
+    /// before calling this method.
+    pub(crate) unsafe fn set(&self, key: &Gc<K>, value: V) {
+        // SAFETY: The caller must ensure setting the key and value of the ephemeron box is safe.
+        unsafe {
+            *self.data.get() = Some(Data {
+                key: key.inner_ptr(),
+                value,
+            });
+        }
     }
 
     #[inline]

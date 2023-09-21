@@ -44,6 +44,7 @@ impl<K: Trace, V: Trace + Clone> Ephemeron<K, V> {
 
 impl<K: Trace, V: Trace> Ephemeron<K, V> {
     /// Creates a new `Ephemeron`.
+    #[must_use]
     pub fn new(key: &Gc<K>, value: V) -> Self {
         let inner_ptr = Allocator::alloc_ephemeron(EphemeronBox::new(key, value));
         Self { inner_ptr }
@@ -72,7 +73,7 @@ impl<K: Trace, V: Trace> Ephemeron<K, V> {
     /// This function is unsafe because improper use may lead to memory corruption, double-free,
     /// or misbehaviour of the garbage collector.
     #[must_use]
-    const unsafe fn from_raw(inner_ptr: NonNull<EphemeronBox<K, V>>) -> Self {
+    pub(crate) const unsafe fn from_raw(inner_ptr: NonNull<EphemeronBox<K, V>>) -> Self {
         Self { inner_ptr }
     }
 }

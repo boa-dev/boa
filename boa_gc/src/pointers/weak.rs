@@ -20,7 +20,8 @@ impl<T: Trace> WeakGc<T> {
         }
     }
 
-    /// Upgrade returns a `Gc` pointer for the internal value if valid, or None if the value was already garbage collected.
+    /// Upgrade returns a `Gc` pointer for the internal value if the pointer is still live, or `None`
+    /// if the value was already garbage collected.
     #[must_use]
     pub fn upgrade(&self) -> Option<Gc<T>> {
         self.inner.value()
@@ -30,6 +31,11 @@ impl<T: Trace> WeakGc<T> {
     #[must_use]
     pub fn is_upgradable(&self) -> bool {
         self.inner.has_value()
+    }
+
+    #[must_use]
+    pub(crate) const fn inner(&self) -> &Ephemeron<T, Gc<T>> {
+        &self.inner
     }
 }
 
