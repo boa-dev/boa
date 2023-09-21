@@ -255,10 +255,10 @@ fn main() -> Result<()> {
                 toml::from_str(&input).wrap_err("could not decode tester config file")?
             };
 
-            let test262_commit = match (test262_commit.as_deref(), config.commit()) {
-                (Some("latest"), _) | (None, "" | "latest") => None,
-                (Some(commit), _) | (None, commit) => Some(commit),
-            };
+            let test262_commit = test262_commit
+                .as_deref()
+                .or_else(|| Some(config.commit()))
+                .filter(|s| !["", "latest"].contains(s));
 
             let test262_path = if let Some(path) = test262_path.as_deref() {
                 path
