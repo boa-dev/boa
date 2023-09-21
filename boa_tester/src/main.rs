@@ -99,17 +99,19 @@ use std::{
 /// Structure that contains the configuration of the tester.
 #[derive(Debug, Deserialize)]
 struct Config {
+    #[serde(default)]
     commit: String,
+    #[serde(default)]
     ignored: Ignored,
 }
 
 impl Config {
-    /// Get the `test262` repository commit.
+    /// Get the `Test262` repository commit.
     pub(crate) fn commit(&self) -> &str {
         &self.commit
     }
 
-    /// Get [`Ignored`] `test262` tests and features.
+    /// Get [`Ignored`] `Test262` tests and features.
     pub(crate) const fn ignored(&self) -> &Ignored {
         &self.ignored
     }
@@ -182,7 +184,7 @@ enum Cli {
         )]
         test262_path: Option<PathBuf>,
 
-        /// Specify the Test262 commit when cloning the repository. To checkout to the latest commit set to "latest".
+        /// Override config's Test262 commit. To checkout the latest commit set this to "latest".
         #[arg(long)]
         test262_commit: Option<String>,
 
@@ -253,10 +255,9 @@ fn main() -> Result<()> {
                 toml::from_str(&input).wrap_err("could not decode tester config file")?
             };
 
-            let test262_commit = match test262_commit.as_deref() {
-                Some("latest") => None,
-                Some(commit) => Some(commit),
-                None => Some(config.commit()),
+            let test262_commit = match (test262_commit.as_deref(), config.commit()) {
+                (Some("latest"), _) | (None, "" | "latest") => None,
+                (Some(commit), _) | (None, commit) => Some(commit),
             };
 
             let test262_path = if let Some(path) = test262_path.as_deref() {
