@@ -67,6 +67,12 @@
 <a href="#67" id="67">67</a>
 <a href="#68" id="68">68</a>
 <a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{Ephemeron, Finalize, Gc, Trace};
 <span class="kw">use </span>std::hash::{Hash, Hasher};
 
@@ -89,7 +95,8 @@
         }
     }
 
-    <span class="doccomment">/// Upgrade returns a `Gc` pointer for the internal value if valid, or None if the value was already garbage collected.
+    <span class="doccomment">/// Upgrade returns a `Gc` pointer for the internal value if the pointer is still live, or `None`
+    /// if the value was already garbage collected.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;T&gt;&gt; {
         <span class="self">self</span>.inner.value()
@@ -99,6 +106,11 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>is_upgradable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.inner.has_value()
+    }
+
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Ephemeron&lt;T, Gc&lt;T&gt;&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
 

@@ -123,6 +123,7 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     finalizer_safe,
     internals::EphemeronBox,
@@ -169,6 +170,7 @@
 
 <span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; Ephemeron&lt;K, V&gt; {
     <span class="doccomment">/// Creates a new `Ephemeron`.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new(key: <span class="kw-2">&amp;</span>Gc&lt;K&gt;, value: V) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>inner_ptr = Allocator::alloc_ephemeron(EphemeronBox::new(key, value));
         <span class="self">Self </span>{ inner_ptr }
@@ -197,7 +199,7 @@
     /// This function is unsafe because improper use may lead to memory corruption, double-free,
     /// or misbehaviour of the garbage collector.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">const unsafe fn </span>from_raw(inner_ptr: NonNull&lt;EphemeronBox&lt;K, V&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const unsafe fn </span>from_raw(inner_ptr: NonNull&lt;EphemeronBox&lt;K, V&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner_ptr }
     }
 }
