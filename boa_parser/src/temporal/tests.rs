@@ -150,7 +150,7 @@ fn temporal_invalid_annotations() {
 
     for invalid in invalid_annotations {
         let err_result = TemporalMonthDayString::parse(&mut IsoCursor::new(invalid));
-        assert!(err_result.is_err())
+        assert!(err_result.is_err());
     }
 }
 
@@ -169,6 +169,7 @@ fn temporal_valid_instant_strings() {
 }
 
 #[test]
+#[allow(clippy::cast_possible_truncation)]
 fn temporal_duration_parsing() {
     let durations = [
         "p1y1m1dt1h1m1s",
@@ -188,7 +189,7 @@ fn temporal_duration_parsing() {
     assert!(!test_result.sign);
     assert_eq!(test_result.date.years, 1);
     assert_eq!(test_result.date.weeks, 3);
-    assert_eq!(test_result.time.hours.mul_add(10.0, 0.0), 5.0);
+    assert_eq!(test_result.time.hours.mul_add(10.0, 0.0).trunc() as i32, 5);
 }
 
 #[test]

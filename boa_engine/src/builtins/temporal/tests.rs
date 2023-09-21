@@ -18,5 +18,5 @@ fn calendar_methods() {
         TestAction::assert_eq("iso.daysInYear('2021-11-20')", 365),
         TestAction::assert_eq("iso.monthsInYear('2021-11-20')", 12),
         TestAction::assert_eq("iso.daysInWeek('2021-11-20')", 7),
-    ])
+    ]);
 }
