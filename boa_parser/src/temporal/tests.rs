@@ -1,4 +1,7 @@
-use super::{IsoCursor, TemporalDateTimeString, TemporalMonthDayString, TemporalYearMonthString};
+use super::{
+    IsoCursor, TemporalDateTimeString, TemporalDurationString, TemporalInstantString,
+    TemporalMonthDayString, TemporalYearMonthString,
+};
 
 #[test]
 fn temporal_parser_basic() {
@@ -148,5 +151,57 @@ fn temporal_invalid_annotations() {
     for invalid in invalid_annotations {
         let err_result = TemporalMonthDayString::parse(&mut IsoCursor::new(invalid));
         assert!(err_result.is_err())
+    }
+}
+
+#[test]
+fn temporal_valid_instant_strings() {
+    let instants = [
+        "1970-01-01T00:00+00:00[!Africa/Abidjan]",
+        "1970-01-01T00:00+00:00[UTC]",
+        "1970-01-01T00:00Z[!Europe/Vienna]",
+    ];
+
+    for test in instants {
+        let result = TemporalInstantString::parse(&mut IsoCursor::new(test));
+        assert!(result.is_ok());
+    }
+}
+
+#[test]
+fn temporal_duration_parsing() {
+    let durations = [
+        "p1y1m1dt1h1m1s",
+        "P1Y1M1W1DT1H1M1.1S",
+        "P1Y1M1W1DT1H1M1.123456789S",
+        "-P1Y3wT0,5H",
+    ];
+
+    for dur in durations {
+        let _ok_result = TemporalDurationString::parse(&mut IsoCursor::new(dur)).unwrap();
+        //assert!(ok_result.is_ok())
+    }
+
+    let dur = durations[3];
+    let test_result = TemporalDurationString::parse(&mut IsoCursor::new(dur)).unwrap();
+
+    assert!(!test_result.sign);
+    assert_eq!(test_result.date.years, 1);
+    assert_eq!(test_result.date.weeks, 3);
+    assert_eq!(test_result.time.hours.mul_add(10.0, 0.0), 5.0);
+}
+
+#[test]
+fn temporal_invalid_durations() {
+    let invalids = [
+        "P1Y1M1W0,5D",
+        "P1Y1M1W1DT1H1M1.123456789123S",
+        "+PT",
+        "P1Y1M1W1DT1H0.5M0.5S",
+    ];
+
+    for test in invalids {
+        let err = TemporalDurationString::parse(&mut IsoCursor::new(test));
+        assert!(err.is_err());
     }
 }

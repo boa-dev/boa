@@ -111,3 +111,38 @@ pub struct KeyValueAnnotation {
     /// Whether the annotation was flagged as critical.
     pub critical: bool,
 }
+
+/// A ISO8601 `DurationRecord` Parse Node.
+#[derive(Debug, Clone, Copy)]
+pub struct DurationParseRecord {
+    /// Duration Sign
+    pub sign: bool,
+    /// A `DateDuration` record.
+    pub date: DateDuration,
+    /// A `TimeDuration` record.
+    pub time: TimeDuration,
+}
+
+/// A `DateDuration` Parse Node.
+#[derive(Default, Debug, Clone, Copy)]
+pub struct DateDuration {
+    /// Years value.
+    pub years: i32,
+    /// Months value.
+    pub months: i32,
+    /// Weeks value.
+    pub weeks: i32,
+    /// Days value.
+    pub days: i32,
+}
+
+/// A `TimeDuration` Parse Node
+#[derive(Default, Debug, Clone, Copy)]
+pub struct TimeDuration {
+    /// Hours value with fraction.
+    pub hours: f64,
+    /// Minutes value with fraction.
+    pub minutes: f64,
+    /// Seconds value with fraction.
+    pub seconds: f64,
+}

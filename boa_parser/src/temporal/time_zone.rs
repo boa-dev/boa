@@ -2,8 +2,10 @@
 
 use super::{
     grammar::{
-        is_a_key_char, is_a_key_leading_char, is_decimal_separator, is_sign, is_tz_char,
-        is_tz_leading_char, is_utc_designator,
+        is_a_key_char, is_a_key_leading_char, is_annotation_close,
+        is_annotation_key_value_separator, is_annotation_open, is_critical_flag,
+        is_decimal_separator, is_sign, is_time_separator, is_tz_char, is_tz_leading_char,
+        is_tz_name_separator, is_utc_designator,
     },
     time::{parse_fraction, parse_hour, parse_minute_second},
     IsoCursor,
@@ -27,7 +29,7 @@ pub(crate) fn parse_ambiguous_tz_annotation(
     let mut current_peek = 1;
     let critical = cursor
         .peek_n(current_peek)
-        .map(|ch| ch == '!')
+        .map(is_critical_flag)
         .ok_or_else(|| Error::AbruptEnd)?;
 
     // Advance cursor if critical flag present.
@@ -44,12 +46,14 @@ pub(crate) fn parse_ambiguous_tz_annotation(
         if is_a_key_leading_char(leading_char) {
             let mut peek_pos = current_peek + 1;
             while let Some(ch) = cursor.peek_n(peek_pos) {
-                if ch == '/' || (is_tz_char(ch) && !is_a_key_char(ch)) {
+                if is_tz_name_separator(ch) || (is_tz_char(ch) && !is_a_key_char(ch)) {
                     let tz = parse_tz_annotation(cursor)?;
                     return Ok(Some(tz));
-                } else if ch == '=' || (is_a_key_char(ch) && !is_tz_char(ch)) {
+                } else if is_annotation_key_value_separator(ch)
+                    || (is_a_key_char(ch) && !is_tz_char(ch))
+                {
                     return Ok(None);
-                } else if ch == ']' {
+                } else if is_annotation_close(ch) {
                     return Err(LexError::syntax(
                         "Invalid Annotation",
                         Position::new(1, peek_pos + 1),
@@ -76,10 +80,10 @@ pub(crate) fn parse_ambiguous_tz_annotation(
 }
 
 fn parse_tz_annotation(cursor: &mut IsoCursor) -> ParseResult<TimeZoneAnnotation> {
-    assert!(cursor.peek().expect("annotation start") == '[');
+    debug_assert!(is_annotation_open(cursor.peek().expect("annotation start")));
 
     let potential_critical = cursor.next().ok_or_else(|| Error::AbruptEnd)?;
-    let critical = potential_critical == '!';
+    let critical = is_critical_flag(potential_critical);
 
     if critical {
         cursor.advance();
@@ -87,7 +91,7 @@ fn parse_tz_annotation(cursor: &mut IsoCursor) -> ParseResult<TimeZoneAnnotation
 
     let tz = parse_tz_identifier(cursor)?;
 
-    if !cursor.check_or(false, |ch| ch == ']') {
+    if !cursor.check_or(false, is_annotation_close) {
         return Err(LexError::syntax(
             "Invalid TimeZoneAnnotation.",
             Position::new(1, cursor.pos() + 1),
@@ -125,7 +129,7 @@ pub(crate) fn parse_tz_identifier(cursor: &mut IsoCursor) -> ParseResult<TzIdent
 fn parse_tz_iana_name(cursor: &mut IsoCursor) -> ParseResult<String> {
     let tz_name_start = cursor.pos();
     while let Some(potential_value_char) = cursor.next() {
-        if potential_value_char == '/' {
+        if is_tz_name_separator(potential_value_char) {
             if !cursor.peek_n(1).map_or(false, is_tz_char) {
                 return Err(LexError::syntax(
                     "Missing TimeZoneIANANameComponent after '/'",
@@ -160,11 +164,11 @@ pub(crate) fn parse_date_time_utc(cursor: &mut IsoCursor) -> ParseResult<UtcOffs
         });
     }
 
-    let separated = cursor.peek_n(3).map_or(false, |ch| ch == ':');
+    let separated = cursor.peek_n(3).map_or(false, is_time_separator);
 
     let mut utc_to_minute = parse_utc_offset_minute_precision(cursor)?;
 
-    if cursor.check_or(false, |ch| ch == ':') {
+    if cursor.check_or(false, is_time_separator) {
         if !separated {
             return Err(LexError::syntax(
                 "Unexpected TimeSeparator",
@@ -175,6 +179,12 @@ pub(crate) fn parse_date_time_utc(cursor: &mut IsoCursor) -> ParseResult<UtcOffs
         cursor.advance();
     }
 
+    // Return early on None or next char an AnnotationOpen.
+    if cursor.check_or(true, is_annotation_open) {
+        return Ok(utc_to_minute);
+    }
+
+    // If `UtcOffsetWithSubMinuteComponents`, continue parsing.
     let sec = parse_minute_second(cursor, true)?;
 
     let double = if cursor.check_or(false, is_decimal_separator) {
@@ -202,7 +212,7 @@ pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut IsoCursor) -> Parse
 
     // If at the end of the utc, then return.
     if cursor
-        .check(|ch| !(ch.is_ascii_digit() || ch == ':'))
+        .check(|ch| !(ch.is_ascii_digit() || is_time_separator(ch)))
         .ok_or_else(|| Error::AbruptEnd)?
     {
         return Ok(UtcOffset {
@@ -215,7 +225,7 @@ pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut IsoCursor) -> Parse
     }
 
     // Advance cursor beyond any TimeSeparator
-    if cursor.check_or(false, |ch| ch == ':') {
+    if cursor.check_or(false, is_time_separator) {
         cursor.advance();
     }
 

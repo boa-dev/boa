@@ -3,7 +3,10 @@ use crate::{
     error::{Error, ParseResult},
     lexer::Error as LexError,
     temporal::{
-        grammar::{is_a_key_char, is_a_key_leading_char, is_annotation_value_component},
+        grammar::{
+            is_a_key_char, is_a_key_leading_char, is_annotation_close,
+            is_annotation_key_value_separator, is_annotation_value_component, is_critical_flag,
+        },
         time_zone, IsoCursor,
     },
 };
@@ -13,7 +16,7 @@ use boa_ast::{
     Position, Span,
 };
 
-use super::grammar::is_annotation_open;
+use super::grammar::{is_annotation_open, is_hyphen};
 
 /// Strictly a Parsing Intermediary for the checking the common annotation backing.
 pub(crate) struct AnnotationSet {
@@ -98,7 +101,7 @@ fn parse_kv_annotation(cursor: &mut IsoCursor) -> ParseResult<KeyValueAnnotation
     debug_assert!(cursor.check_or(false, is_annotation_open));
 
     let potential_critical = cursor.next().ok_or_else(|| Error::AbruptEnd)?;
-    let (leading_char, critical) = if potential_critical == '!' {
+    let (leading_char, critical) = if is_critical_flag(potential_critical) {
         (cursor.next().ok_or_else(|| Error::AbruptEnd)?, true)
     } else {
         (potential_critical, false)
@@ -115,7 +118,7 @@ fn parse_kv_annotation(cursor: &mut IsoCursor) -> ParseResult<KeyValueAnnotation
     // Parse AnnotationKey.
     let annotation_key = parse_annotation_key(cursor)?;
 
-    debug_assert!(cursor.check_or(false, |ch| ch == '='));
+    debug_assert!(cursor.check_or(false, is_annotation_key_value_separator));
     // Advance past the '=' character.
     cursor.advance();
 
@@ -123,7 +126,7 @@ fn parse_kv_annotation(cursor: &mut IsoCursor) -> ParseResult<KeyValueAnnotation
     let annotation_value = parse_annotation_value(cursor)?;
 
     // Assert that we are at the annotation close and advance cursor past annotation to close.
-    debug_assert!(cursor.check_or(false, |ch| ch == ']'));
+    debug_assert!(cursor.check_or(false, is_annotation_close));
     cursor.advance();
 
     Ok(KeyValueAnnotation {
@@ -138,7 +141,7 @@ fn parse_annotation_key(cursor: &mut IsoCursor) -> ParseResult<String> {
     let key_start = cursor.pos();
     while let Some(potential_key_char) = cursor.next() {
         // End of key.
-        if potential_key_char == '=' {
+        if is_annotation_key_value_separator(potential_key_char) {
             // Return found key
             return Ok(cursor.slice(key_start, cursor.pos()));
         }
@@ -159,12 +162,12 @@ fn parse_annotation_key(cursor: &mut IsoCursor) -> ParseResult<String> {
 fn parse_annotation_value(cursor: &mut IsoCursor) -> ParseResult<String> {
     let value_start = cursor.pos();
     while let Some(potential_value_char) = cursor.next() {
-        if potential_value_char == ']' {
+        if is_annotation_close(potential_value_char) {
             // Return the determined AnnotationValue.
             return Ok(cursor.slice(value_start, cursor.pos()));
         }
 
-        if potential_value_char == '-' {
+        if is_hyphen(potential_value_char) {
             if !cursor
                 .peek_n(1)
                 .map_or(false, is_annotation_value_component)

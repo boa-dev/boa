@@ -3,13 +3,14 @@ use crate::error::ParseResult;
 
 mod annotations;
 mod date_time;
+mod duration;
 mod grammar;
 #[cfg(test)]
 mod tests;
 mod time;
 mod time_zone;
 
-use boa_ast::temporal::{DateRecord, IsoParseRecord, TzIdentifier};
+use boa_ast::temporal::{DateRecord, DurationParseRecord, IsoParseRecord, TzIdentifier};
 
 // TODO: optimize where possible.
 //
@@ -30,7 +31,7 @@ impl TemporalDateTimeString {
     /// The parse will error if the provided target is not valid
     /// ISO8601 grammar..
     pub fn parse(zoned: bool, cursor: &mut IsoCursor) -> ParseResult<IsoParseRecord> {
-        date_time::parse_annotated_date_time(zoned, cursor)
+        date_time::parse_annotated_date_time(zoned, false, false, cursor)
     }
 }
 
@@ -85,7 +86,7 @@ impl TemporalYearMonthString {
             });
         }
 
-        date_time::parse_annotated_date_time(false, cursor)
+        date_time::parse_annotated_date_time(false, false, false, cursor)
     }
 }
 
@@ -124,7 +125,39 @@ impl TemporalMonthDayString {
             });
         }
 
-        date_time::parse_annotated_date_time(false, cursor)
+        date_time::parse_annotated_date_time(false, false, false, cursor)
+    }
+}
+
+/// Parser for a `Temporal.Instant` string.
+#[derive(Debug, Clone, Copy)]
+pub struct TemporalInstantString;
+
+impl TemporalInstantString {
+    /// Parses a targeted `Instant` String.
+    ///
+    /// # Errors
+    ///
+    /// The parse will error if the provided target is not valid
+    /// ISO8601 grammar.
+    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<IsoParseRecord> {
+        date_time::parse_annotated_date_time(false, true, true, cursor)
+    }
+}
+
+/// Parser for a `Temporal.Instant` string.
+#[derive(Debug, Clone, Copy)]
+pub struct TemporalDurationString;
+
+impl TemporalDurationString {
+    /// Parses a targeted `Instant` String.
+    ///
+    /// # Errors
+    ///
+    /// The parse will error if the provided target is not valid
+    /// ISO8601 grammar.
+    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<DurationParseRecord> {
+        duration::parse_duration(cursor)
     }
 }
 
