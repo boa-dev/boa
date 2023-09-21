@@ -8,7 +8,7 @@ use crate::{
         },
         get_options_object, get_temporal_unit,
         plain_date::iso::IsoDateRecord,
-        to_temporal_date, to_temporal_overflow, IsoYearMonthRecord,
+        to_temporal_date, to_temporal_overflow,
     },
     js_string,
     property::PropertyKey,

@@ -231,6 +231,13 @@ impl IsoDateRecord {
         self.day = temporal::date_equations::epoch_time_to_date(ms);
     }
 
+    // NOTE: Used in AddISODate only, so could possibly be deleted in the future.
+    /// 9.5.4 `BalanceISOYearMonth ( year, month )`
+    pub(crate) fn balance_year_month(&mut self) {
+        self.year += (self.month - 1) / 12;
+        self.month = ((self.month - 1) % 12) + 1;
+    }
+
     /// 3.5.11 `AddISODate ( year, month, day, years, months, weeks, days, overflow )`
     pub(crate) fn add_iso_date(
         &self,
@@ -242,14 +249,10 @@ impl IsoDateRecord {
     ) -> JsResult<Self> {
         // 1. Assert: year, month, day, years, months, weeks, and days are integers.
         // 2. Assert: overflow is either "constrain" or "reject".
-        let mut intermediate = temporal::plain_year_month::IsoYearMonthRecord::new(
-            self.year + years,
-            self.month + months,
-            0,
-        );
+        let mut intermediate = Self::new(self.year + years, self.month + months, 0);
 
         // 3. Let intermediate be ! BalanceISOYearMonth(year + years, month + months).
-        intermediate.balance();
+        intermediate.balance_year_month();
 
         // 4. Let intermediate be ? RegulateISODate(intermediate.[[Year]], intermediate.[[Month]], day, overflow).
         let mut new_date = Self::from_unregulated(
