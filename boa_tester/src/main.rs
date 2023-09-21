@@ -91,12 +91,29 @@ use serde::{
     Deserialize, Deserializer, Serialize,
 };
 use std::{
-    fs::{self, File},
-    io::Read,
     ops::{Add, AddAssign},
     path::{Path, PathBuf},
     process::Command,
 };
+
+/// Structure that contains the configuration of the tester.
+#[derive(Debug, Deserialize)]
+struct Config {
+    commit: String,
+    ignored: Ignored,
+}
+
+impl Config {
+    /// Get the `test262` repository commit.
+    pub(crate) fn commit(&self) -> &str {
+        &self.commit
+    }
+
+    /// Get [`Ignored`] `test262` tests and features.
+    pub(crate) const fn ignored(&self) -> &Ignored {
+        &self.ignored
+    }
+}
 
 /// Structure to allow defining ignored tests, features and files that should
 /// be ignored even when reading.
@@ -161,18 +178,13 @@ enum Cli {
         #[arg(
             long,
             value_hint = ValueHint::DirPath,
-            conflicts_with = "test262_update",
             conflicts_with = "test262_commit"
         )]
         test262_path: Option<PathBuf>,
 
-        /// Specify the Test262 commit when cloning the repository.
-        #[arg(long, conflicts_with = "test262_update")]
-        test262_commit: Option<String>,
-
-        /// Update Test262 commit of the repository.
+        /// Specify the Test262 commit when cloning the repository. To checkout to the latest commit set to "latest".
         #[arg(long)]
-        test262_update: bool,
+        test262_commit: Option<String>,
 
         /// Which specific test or test suite to run. Should be a path relative to the Test262 directory: e.g. "test/language/types/number"
         #[arg(short, long, default_value = "test", value_hint = ValueHint::AnyPath)]
@@ -190,9 +202,9 @@ enum Cli {
         #[arg(short, long)]
         disable_parallelism: bool,
 
-        /// Path to a TOML file with the ignored tests, features, flags and/or files.
-        #[arg(short, long, default_value = "test_ignore.toml", value_hint = ValueHint::FilePath)]
-        ignored: PathBuf,
+        /// Path to a TOML file containing tester config.
+        #[arg(short, long, default_value = "test262_config.toml", value_hint = ValueHint::FilePath)]
+        config: PathBuf,
 
         /// Maximum ECMAScript edition to test for.
         #[arg(long)]
@@ -228,30 +240,40 @@ fn main() -> Result<()> {
             verbose,
             test262_path,
             test262_commit,
-            test262_update,
             suite,
             output,
             optimize,
             disable_parallelism,
-            ignored: ignore,
+            config: config_path,
             edition,
             versioned,
         } => {
+            let config: Config = {
+                let input = std::fs::read_to_string(config_path)?;
+                toml::from_str(&input).wrap_err("could not decode tester config file")?
+            };
+
+            let test262_commit = match test262_commit.as_deref() {
+                Some("latest") => None,
+                Some(commit) => Some(commit),
+                None => Some(config.commit()),
+            };
+
             let test262_path = if let Some(path) = test262_path.as_deref() {
                 path
             } else {
-                clone_test262(test262_update, test262_commit.as_deref(), verbose)?;
+                clone_test262(test262_commit, verbose)?;
 
                 Path::new(DEFAULT_TEST262_DIRECTORY)
             };
 
             run_test_suite(
+                &config,
                 verbose,
                 !disable_parallelism,
                 test262_path,
                 suite.as_path(),
                 output.as_deref(),
-                ignore.as_path(),
                 edition.unwrap_or_default(),
                 versioned,
                 if optimize {
@@ -317,8 +339,10 @@ fn reset_test262_commit(commit: &str, verbose: u8) -> Result<()> {
     Ok(())
 }
 
-fn clone_test262(update: bool, commit: Option<&str>, verbose: u8) -> Result<()> {
+fn clone_test262(commit: Option<&str>, verbose: u8) -> Result<()> {
     const TEST262_REPOSITORY: &str = "https://github.com/tc39/test262";
+
+    let update = commit.is_none();
 
     if Path::new(DEFAULT_TEST262_DIRECTORY).is_dir() {
         if verbose != 0 {
@@ -355,7 +379,7 @@ fn clone_test262(update: bool, commit: Option<&str>, verbose: u8) -> Result<()> 
             if update {
                 println!("Updating Test262 repository:");
             } else {
-                println!("Warning Test262 repository is not in sync, use '--test262-update' to automatically update it:");
+                println!("Warning Test262 repository is not in sync, use '--test262-commit latest' to automatically update it:");
             }
 
             println!("    Current commit: {current_commit_hash} {current_commit_message}");
@@ -397,12 +421,12 @@ fn clone_test262(update: bool, commit: Option<&str>, verbose: u8) -> Result<()> 
 /// Runs the full test suite.
 #[allow(clippy::too_many_arguments)]
 fn run_test_suite(
+    config: &Config,
     verbose: u8,
     parallel: bool,
     test262_path: &Path,
     suite: &Path,
     output: Option<&Path>,
-    ignore: &Path,
     edition: SpecEdition,
     versioned: bool,
     optimizer_options: OptimizerOptions,
@@ -413,17 +437,9 @@ fn run_test_suite(
                 bail!("the output path must be a directory.");
             }
         } else {
-            fs::create_dir_all(path).wrap_err("could not create the output directory")?;
+            std::fs::create_dir_all(path).wrap_err("could not create the output directory")?;
         }
     }
-
-    let ignored = {
-        let mut input = String::new();
-        let mut f = File::open(ignore).wrap_err("could not open ignored tests file")?;
-        f.read_to_string(&mut input)
-            .wrap_err("could not read ignored tests file")?;
-        toml::from_str(&input).wrap_err("could not decode ignored tests file")?
-    };
 
     if verbose != 0 {
         println!("Loading the test suite...");
@@ -449,10 +465,11 @@ fn run_test_suite(
 
         println!();
     } else {
-        let suite = read_suite(&test262_path.join(suite), &ignored, false).wrap_err_with(|| {
-            let suite = suite.display();
-            format!("could not read the suite {suite}")
-        })?;
+        let suite =
+            read_suite(&test262_path.join(suite), config.ignored(), false).wrap_err_with(|| {
+                let suite = suite.display();
+                format!("could not read the suite {suite}")
+            })?;
 
         if verbose != 0 {
             println!("Test suite loaded, starting tests...");
