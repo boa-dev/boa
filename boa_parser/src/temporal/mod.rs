@@ -19,44 +19,51 @@ use boa_ast::temporal::{DateRecord, DurationParseRecord, IsoParseRecord, TzIdent
 // is ~100 characters (+10-20 for some calendars):
 // +001970-01-01T00:00:00.000000000+00:00:00.000000000[!America/Argentina/ComodRivadavia][!u-ca=iso8601]
 
-/// Parse a `TemporalDateTimeString`.
+/// Parse a [`TemporalDateTimeString`][proposal].
+///
+/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalDateTimeString
 #[derive(Debug, Clone, Copy)]
 pub struct TemporalDateTimeString;
 
 impl TemporalDateTimeString {
-    /// Parses a targeted `DateTimeString`
+    /// Parses a targeted string as a `DateTime`.
     ///
     /// # Errors
     ///
     /// The parse will error if the provided target is not valid
-    /// ISO8601 grammar..
+    /// ISO8601 grammar.
     pub fn parse(zoned: bool, cursor: &mut IsoCursor) -> ParseResult<IsoParseRecord> {
         date_time::parse_annotated_date_time(zoned, false, false, cursor)
     }
 }
 
-/// Parse a `TemporalTimeZoneString`
+/// Parse a [`TemporalTimeZoneString`][proposal].
+///
+/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalTimeZoneString
 #[derive(Debug, Clone, Copy)]
 pub struct TemporalTimeZoneString;
 
+// TODO: Return a IsoParseRecord instead of a `TzIdentifier`.
 impl TemporalTimeZoneString {
-    /// Parses a targeted `TimeZoneString`
+    /// Parses a targeted string as a `TimeZone`.
     ///
     /// # Errors
     ///
     /// The parse will error if the provided target is not valid
-    /// ISO8601 grammar..
+    /// ISO8601 grammar.
     pub fn parse(cursor: &mut IsoCursor) -> ParseResult<TzIdentifier> {
         time_zone::parse_tz_identifier(cursor)
     }
 }
 
-/// Parse a `TemporalYearMonthString`
+/// Parse a [`TemporalYearMonthString`][proposal]
+///
+/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalYearMonthString
 #[derive(Debug, Clone, Copy)]
 pub struct TemporalYearMonthString;
 
 impl TemporalYearMonthString {
-    /// Parses a targeted `YearMonthString`.
+    /// Parses a targeted string as a `YearMonth`
     ///
     /// # Errors
     ///
@@ -90,12 +97,14 @@ impl TemporalYearMonthString {
     }
 }
 
-/// Parse a `TemporalMonthDayString`
+/// Parse a [`TemporalMonthDayString`][proposal]
+///
+/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalMonthDayString
 #[derive(Debug, Clone, Copy)]
 pub struct TemporalMonthDayString;
 
 impl TemporalMonthDayString {
-    /// Parses a targeted `MonthDayString`.
+    /// Parses a targeted string as a `MonthDay`.
     ///
     /// # Errors
     ///
@@ -129,12 +138,14 @@ impl TemporalMonthDayString {
     }
 }
 
-/// Parser for a `Temporal.Instant` string.
+/// Parser for a [`TemporalInstantString`][proposal].
+///
+/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalInstantString
 #[derive(Debug, Clone, Copy)]
 pub struct TemporalInstantString;
 
 impl TemporalInstantString {
-    /// Parses a targeted `Instant` String.
+    /// Parses a targeted string as an `Instant`.
     ///
     /// # Errors
     ///
@@ -145,12 +156,16 @@ impl TemporalInstantString {
     }
 }
 
-/// Parser for a `Temporal.Instant` string.
+// TODO: implement TemporalTimeString.
+
+/// Parser for a [`TemporalDurationString`][proposal].
+///
+/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalDurationString
 #[derive(Debug, Clone, Copy)]
 pub struct TemporalDurationString;
 
 impl TemporalDurationString {
-    /// Parses a targeted `Instant` String.
+    /// Parses a targeted string as a `Duration`.
     ///
     /// # Errors
     ///

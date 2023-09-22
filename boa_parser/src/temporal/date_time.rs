@@ -17,13 +17,14 @@ use boa_ast::{
 
 use super::grammar::{is_annotation_open, is_hyphen};
 
-/// `AnnotatedDateTime`
+/// This function handles parsing for [`AnnotatedDateTime`][datetime],
+/// [`AnnotatedDateTimeTimeRequred`][time], and
+/// [`TemporalInstantString.`][instant] according to the requirements
+/// provided via Spec.
 ///
-/// Defined in Temporal Proposal as follows:
-///
-/// `AnnotatedDateTime`[Zoned] :
-///     [~Zoned] `DateTime` `TimeZoneAnnotation`(opt) `Annotations`(opt)
-///     [+Zoned] `DateTime` `TimeZoneAnnotation` `Annotations`(opt)
+/// [datetime]: https://tc39.es/proposal-temporal/#prod-AnnotatedDateTime
+/// [time]: https://tc39.es/proposal-temporal/#prod-AnnotatedDateTimeTimeRequired
+/// [instant]: https://tc39.es/proposal-temporal/#prod-TemporalInstantString
 pub(crate) fn parse_annotated_date_time(
     zoned: bool,
     time_required: bool,

@@ -34,7 +34,7 @@ impl IsoDateRecord {
 
 impl IsoDateRecord {
     // TODO: look into using Date<Iso> across the board...TBD.
-    /// Creates `[[ISOYear]]`, `[[isoMonth]]`, `[[isoDay]]` fields from `ICU4X`'s Date<Iso> struct.
+    /// Creates `[[ISOYear]]`, `[[isoMonth]]`, `[[isoDay]]` fields from `ICU4X`'s `Date<Iso>` struct.
     pub(crate) fn from_date_iso(date: Date<Iso>) -> Self {
         Self {
             year: date.year().number,
@@ -136,51 +136,7 @@ impl IsoDateRecord {
         largest_unit: &JsString,
     ) -> JsResult<temporal::duration::DurationRecord> {
         debug_assert!(self.is_valid());
-        // 1. Assert: IsValidISODate(y1, m1, d1) is true.
-        // 2. Assert: IsValidISODate(y2, m2, d2) is true.
-        // 3. If largestUnit is "year" or "month", then
-        // a. Let sign be -(! CompareISODate(y1, m1, d1, y2, m2, d2)).
-        // b. If sign is 0, return ! CreateDateDurationRecord(0, 0, 0, 0).
-        // c. Let start be the Record { [[Year]]: y1, [[Month]]: m1, [[Day]]: d1 }.
-        // d. Let end be the Record { [[Year]]: y2, [[Month]]: m2, [[Day]]: d2 }.
-        // e. Let years be end.[[Year]] - start.[[Year]].
-        // f. Let mid be ! AddISODate(y1, m1, d1, years, 0, 0, 0, "constrain").
-        // g. Let midSign be -(! CompareISODate(mid.[[Year]], mid.[[Month]], mid.[[Day]], y2, m2, d2)).
-        // h. If midSign is 0, then
-        // i. If largestUnit is "year", return ! CreateDateDurationRecord(years, 0, 0, 0).
-        // ii. Return ! CreateDateDurationRecord(0, years × 12, 0, 0).
-        // i. Let months be end.[[Month]] - start.[[Month]].
-        // j. If midSign is not equal to sign, then
-        // i. Set years to years - sign.
-        // ii. Set months to months + sign × 12.
-        // k. Set mid to ! AddISODate(y1, m1, d1, years, months, 0, 0, "constrain").
-        // l. Set midSign to -(! CompareISODate(mid.[[Year]], mid.[[Month]], mid.[[Day]], y2, m2, d2)).
-        // m. If midSign is 0, then
-        // i. If largestUnit is "year", return ! CreateDateDurationRecord(years, months, 0, 0).
-        // ii. Return ! CreateDateDurationRecord(0, months + years × 12, 0, 0).
-        // n. If midSign is not equal to sign, then
-        // i. Set months to months - sign.
-        // ii. Set mid to ! AddISODate(y1, m1, d1, years, months, 0, 0, "constrain").
-        // o. If mid.[[Month]] = end.[[Month]], then
-        // i. Assert: mid.[[Year]] = end.[[Year]].
-        // ii. Let days be end.[[Day]] - mid.[[Day]].
-        // p. Else,
-        // i. If sign < 0, let days be -mid.[[Day]] - (ISODaysInMonth(end.[[Year]], end.[[Month]]) - end.[[Day]]).
-        // q. Else, let days be end.[[Day]] + (ISODaysInMonth(mid.[[Year]], mid.[[Month]]) - mid.[[Day]]).
-        // r. If largestUnit is "month", then
-        // i. Set months to months + years × 12.
-        // ii. Set years to 0.
-        // s. Return ! CreateDateDurationRecord(years, months, 0, days).
-        // 4. Else,
-        // a. Assert: largestUnit is "day" or "week".
-        // b. Let epochDays1 be ISODateToEpochDays(y1, m1 - 1, d1).
-        // c. Let epochDays2 be ISODateToEpochDays(y2, m2 - 1, d2).
-        // d. Let days be epochDays2 - epochDays1.
-        // e. Let weeks be 0.
-        // f. If largestUnit is "week", then
-        // i. Set weeks to truncate(days / 7).
-        // ii. Set days to remainder(days, 7).
-        // g. Return ! CreateDateDurationRecord(0, 0, weeks, days).
+        // TODO: Implement on `ICU4X`.
 
         Err(JsNativeError::range()
             .with_message("not yet implemented.")

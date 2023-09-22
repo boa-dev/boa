@@ -828,7 +828,7 @@ impl Duration {
         Ok((whole + remainder).into())
     }
 
-    /// 7.3.22 Temporal.Duration.prototype.toString ( [ options ] )
+    /// 7.3.22 `Temporal.Duration.prototype.toString ( [ options ] )`
     pub(crate) fn to_string(
         this: &JsValue,
         _: &[JsValue],
@@ -839,7 +839,7 @@ impl Duration {
             .into())
     }
 
-    /// 7.3.23 Temporal.Duration.prototype.toJSON ( )
+    /// 7.3.23 `Temporal.Duration.prototype.toJSON ( )`
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("not yet implemented.")
