@@ -72,9 +72,13 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      # Get the rust_version from the Cargo.toml
+      - name: Get rust_version
+        id: rust_version
+        run: echo "::set-output name=rust_version::$(grep '^rust-version' Cargo.toml | cut -d' ' -f3 | tr -d '"')"
       - uses: actions-rs/toolchain@v1.0.7
         with:
-          toolchain: "1.71.0"
+          toolchain: ${{ steps.rust_version.outputs.rust_version }}
           override: true
           profile: minimal
       - name: Check compilation
