@@ -66,6 +66,24 @@ jobs:
       - name: Test docs
         run: cargo test --doc --profile ci --features intl
 
+  msrv:
+    name: Minimum supported Rust version
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      # Get the rust_version from the Cargo.toml
+      - name: Get rust_version
+        id: rust_version
+        run: echo "rust_version=$(grep '^rust-version' Cargo.toml | cut -d' ' -f3 | tr -d '"')" >> $GITHUB_OUTPUT
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: ${{ steps.rust_version.outputs.rust_version }}
+          override: true
+          profile: minimal
+      - name: Check compilation
+        run: cargo check --all-features --all-targets
+
   misc:
     name: Misc
     runs-on: ubuntu-latest
