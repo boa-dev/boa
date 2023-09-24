@@ -113,12 +113,14 @@ where
 
 /// Abstract operation [`CoerceOptionsToObject ( options )`][spec]
 ///
-/// Coerces `options` into a [`JsObject`] suitable for use with [`get_option`], defaulting to an empty
-/// `JsObject`.
+/// Coerces `options` into a [`JsObject`] suitable for use with [`get_option`], defaulting to an
+/// empty `JsObject`.
 /// Because it coerces non-null primitive values into objects, its use is discouraged for new
 /// functionality in favour of [`get_options_object`].
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-coerceoptionstoobject
+/// [`get_option`]: crate::builtins::options::get_option
+/// [`get_options_object`]: crate::builtins::options::get_options_object
 pub(super) fn coerce_options_to_object(
     options: &JsValue,
     context: &mut Context<'_>,
