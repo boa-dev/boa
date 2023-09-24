@@ -2,9 +2,12 @@ use boa_macros::utf16;
 use fixed_decimal::{FixedDecimal, FloatPrecision};
 
 use crate::{
-    builtins::intl::{
-        number_format::{Extrema, RoundingMode, RoundingType, TrailingZeroDisplay},
-        options::{default_number_option, get_number_option, get_option},
+    builtins::{
+        intl::{
+            number_format::{Extrema, RoundingType, TrailingZeroDisplay},
+            options::{default_number_option, get_number_option},
+        },
+        options::{get_option, RoundingMode},
     },
     Context, JsNativeError, JsObject, JsResult,
 };

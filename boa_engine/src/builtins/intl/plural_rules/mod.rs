@@ -10,7 +10,10 @@ use icu_plurals::{
 use icu_provider::DataLocale;
 
 use crate::{
-    builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::get_option, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
+        IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
@@ -25,7 +28,7 @@ use super::{
         f64_to_formatted_fixed_decimal, get_digit_format_options, DigitFormatOptions, Extrema,
         Notation,
     },
-    options::{coerce_options_to_object, get_option, IntlOptions, LocaleMatcher},
+    options::{coerce_options_to_object, IntlOptions, LocaleMatcher},
     Service,
 };
 

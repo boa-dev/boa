@@ -6,7 +6,10 @@ use icu_locid::Locale;
 use icu_provider::DataLocale;
 
 use crate::{
-    builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::{get_option, get_options_object},
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
@@ -18,7 +21,7 @@ use crate::{
 
 use super::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales},
-    options::{get_option, get_options_object, IntlOptions, LocaleMatcher},
+    options::{IntlOptions, LocaleMatcher},
     Service,
 };
 

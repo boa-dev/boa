@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::builtins::intl::options::OptionTypeParsable;
+use crate::builtins::options::{ParsableOptionType, RoundingMode};
 
 #[derive(Debug)]
 pub(crate) struct DigitFormatOptions {
@@ -44,7 +44,7 @@ impl std::str::FromStr for Notation {
     }
 }
 
-impl OptionTypeParsable for Notation {}
+impl ParsableOptionType for Notation {}
 
 #[derive(Debug, Copy, Clone, Default, Eq, PartialEq)]
 pub(crate) enum RoundingPriority {
@@ -76,7 +76,7 @@ impl std::str::FromStr for RoundingPriority {
     }
 }
 
-impl OptionTypeParsable for RoundingPriority {}
+impl ParsableOptionType for RoundingPriority {}
 
 impl fmt::Display for RoundingPriority {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -84,67 +84,6 @@ impl fmt::Display for RoundingPriority {
             Self::Auto => "auto",
             Self::MorePrecision => "morePrecision",
             Self::LessPrecision => "lessPrecision",
-        }
-        .fmt(f)
-    }
-}
-
-#[derive(Debug, Copy, Clone, Default)]
-pub(crate) enum RoundingMode {
-    Ceil,
-    Floor,
-    Expand,
-    Trunc,
-    HalfCeil,
-    HalfFloor,
-    #[default]
-    HalfExpand,
-    HalfTrunc,
-    HalfEven,
-}
-
-#[derive(Debug)]
-pub(crate) struct ParseRoundingModeError;
-
-impl fmt::Display for ParseRoundingModeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("provided string was not a valid rounding mode")
-    }
-}
-
-impl std::str::FromStr for RoundingMode {
-    type Err = ParseRoundingModeError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "ceil" => Ok(Self::Ceil),
-            "floor" => Ok(Self::Floor),
-            "expand" => Ok(Self::Expand),
-            "trunc" => Ok(Self::Trunc),
-            "halfCeil" => Ok(Self::HalfCeil),
-            "halfFloor" => Ok(Self::HalfFloor),
-            "halfExpand" => Ok(Self::HalfExpand),
-            "halfTrunc" => Ok(Self::HalfTrunc),
-            "halfEven" => Ok(Self::HalfEven),
-            _ => Err(ParseRoundingModeError),
-        }
-    }
-}
-
-impl OptionTypeParsable for RoundingMode {}
-
-impl fmt::Display for RoundingMode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Ceil => "ceil",
-            Self::Floor => "floor",
-            Self::Expand => "expand",
-            Self::Trunc => "trunc",
-            Self::HalfCeil => "halfCeil",
-            Self::HalfFloor => "halfFloor",
-            Self::HalfExpand => "halfExpand",
-            Self::HalfTrunc => "halfTrunc",
-            Self::HalfEven => "halfEven",
         }
         .fmt(f)
     }
@@ -178,7 +117,7 @@ impl std::str::FromStr for TrailingZeroDisplay {
     }
 }
 
-impl OptionTypeParsable for TrailingZeroDisplay {}
+impl ParsableOptionType for TrailingZeroDisplay {}
 
 impl fmt::Display for TrailingZeroDisplay {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -1,9 +1,10 @@
 use crate::{
     builtins::{
         intl::{
-            options::{coerce_options_to_object, get_option, IntlOptions, LocaleMatcher},
+            options::{coerce_options_to_object, IntlOptions, LocaleMatcher},
             Service,
         },
+        options::get_option,
         Array,
     },
     context::{icu::Icu, BoaProvider},

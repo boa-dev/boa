@@ -39,6 +39,10 @@ pub mod escape;
 #[cfg(feature = "intl")]
 pub mod intl;
 
+// TODO: remove `cfg` when `Temporal` gets to stage 4.
+#[cfg(any(feature = "intl", feature = "experimental"))]
+pub(crate) mod options;
+
 pub(crate) use self::{
     array::Array,
     async_function::AsyncFunction,

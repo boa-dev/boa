@@ -3,7 +3,7 @@ use std::str::FromStr;
 use icu_collator::{CaseFirst, CaseLevel, Strength};
 
 use crate::{
-    builtins::intl::options::{OptionType, OptionTypeParsable},
+    builtins::options::{OptionType, ParsableOptionType},
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -50,7 +50,7 @@ impl FromStr for Sensitivity {
     }
 }
 
-impl OptionTypeParsable for Sensitivity {}
+impl ParsableOptionType for Sensitivity {}
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum Usage {
@@ -80,7 +80,7 @@ impl FromStr for Usage {
     }
 }
 
-impl OptionTypeParsable for Usage {}
+impl ParsableOptionType for Usage {}
 
 impl OptionType for CaseFirst {
     fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {

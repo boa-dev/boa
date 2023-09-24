@@ -1,6 +1,6 @@
 use icu_plurals::PluralRuleType;
 
-use crate::{builtins::intl::options::OptionType, Context, JsNativeError, JsResult, JsValue};
+use crate::{builtins::options::OptionType, Context, JsNativeError, JsResult, JsValue};
 
 impl OptionType for PluralRuleType {
     fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {

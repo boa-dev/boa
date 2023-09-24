@@ -8,7 +8,9 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 use crate::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::OptionType, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -21,8 +23,6 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use icu_datetime::options::preferences::HourCycle;
-
-use super::options::OptionType;
 
 impl OptionType for HourCycle {
     fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {

@@ -6,7 +6,10 @@ use icu_locid::Locale;
 use icu_segmenter::provider::WordBreakDataV1Marker;
 
 use crate::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::{get_option, get_options_object},
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{
@@ -26,7 +29,7 @@ pub(crate) use segments::*;
 
 use super::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales},
-    options::{get_option, get_options_object, IntlOptions, LocaleMatcher},
+    options::{IntlOptions, LocaleMatcher},
     Service,
 };
 
