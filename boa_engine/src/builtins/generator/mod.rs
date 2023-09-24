@@ -172,7 +172,7 @@ impl IntrinsicObject for Generator {
 }
 
 impl Generator {
-    const NAME: &str = "Generator";
+    const NAME: &'static str = "Generator";
 
     /// `Generator.prototype.next ( value )`
     ///
