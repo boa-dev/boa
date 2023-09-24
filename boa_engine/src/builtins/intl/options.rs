@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use icu_collator::CaseFirst;
+use num_traits::FromPrimitive;
 
 use crate::{
     object::{JsObject, ObjectData},
@@ -91,19 +91,6 @@ impl FromStr for LocaleMatcher {
 
 impl OptionTypeParsable for LocaleMatcher {}
 
-impl OptionType for CaseFirst {
-    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
-        match value.to_string(context)?.to_std_string_escaped().as_str() {
-            "upper" => Ok(Self::UpperFirst),
-            "lower" => Ok(Self::LowerFirst),
-            "false" => Ok(Self::Off),
-            _ => Err(JsNativeError::range()
-                .with_message("provided string was not `upper`, `lower` or `false`")
-                .into()),
-        }
-    }
-}
-
 /// Abstract operation [`GetOption ( options, property, type, values, fallback )`][spec]
 ///
 /// Extracts the value of the property named `property` from the provided `options` object,
@@ -154,21 +141,22 @@ pub(super) fn get_option<T: OptionType>(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-getnumberoption
-#[allow(unused)]
-pub(super) fn get_number_option(
+pub(super) fn get_number_option<T>(
     options: &JsObject,
     property: &[u16],
-    minimum: f64,
-    maximum: f64,
-    fallback: Option<f64>,
+    minimum: T,
+    maximum: T,
     context: &mut Context<'_>,
-) -> JsResult<Option<f64>> {
+) -> JsResult<Option<T>>
+where
+    T: Into<f64> + FromPrimitive,
+{
     // 1. Assert: Type(options) is Object.
     // 2. Let value be ? Get(options, property).
     let value = options.get(property, context)?;
 
     // 3. Return ? DefaultNumberOption(value, minimum, maximum, fallback).
-    default_number_option(&value, minimum, maximum, fallback, context)
+    default_number_option(&value, minimum, maximum, context)
 }
 
 /// Abstract operation [`DefaultNumberOption ( value, minimum, maximum, fallback )`][spec]
@@ -177,31 +165,33 @@ pub(super) fn get_number_option(
 /// and fills in a `fallback` value if necessary.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-defaultnumberoption
-#[allow(unused)]
-pub(super) fn default_number_option(
+pub(super) fn default_number_option<T>(
     value: &JsValue,
-    minimum: f64,
-    maximum: f64,
-    fallback: Option<f64>,
+    minimum: T,
+    maximum: T,
     context: &mut Context<'_>,
-) -> JsResult<Option<f64>> {
+) -> JsResult<Option<T>>
+where
+    T: Into<f64> + FromPrimitive,
+{
     // 1. If value is undefined, return fallback.
     if value.is_undefined() {
-        return Ok(fallback);
+        return Ok(None);
     }
 
     // 2. Set value to ? ToNumber(value).
     let value = value.to_number(context)?;
 
     // 3. If value is NaN or less than minimum or greater than maximum, throw a RangeError exception.
-    if value.is_nan() || value < minimum || value > maximum {
+    if value.is_nan() || value < minimum.into() || value > maximum.into() {
         return Err(JsNativeError::range()
             .with_message("DefaultNumberOption: value is out of range.")
             .into());
     }
 
     // 4. Return floor(value).
-    Ok(Some(value.floor()))
+    // We already asserted the range of `value` with the conditional above.
+    Ok(T::from_f64(value))
 }
 
 /// Abstract operation [`GetOptionsObject ( options )`][spec]

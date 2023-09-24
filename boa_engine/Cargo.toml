@@ -32,6 +32,7 @@ intl = [
     "dep:sys-locale",
     "dep:yoke",
     "dep:zerofrom",
+    "dep:fixed_decimal",
 ]
 
 fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
@@ -93,6 +94,7 @@ writeable = { version = "0.5.2", optional = true }
 yoke = { version = "0.7.1", optional = true }
 zerofrom = { version = "0.1.2", optional = true }
 sys-locale = { version = "0.3.1", optional = true }
+fixed_decimal = { version = "0.5.4", features = ["ryu"], optional = true}
 
 [dev-dependencies]
 criterion = "0.5.1"

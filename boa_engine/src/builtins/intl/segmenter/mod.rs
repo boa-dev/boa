@@ -177,8 +177,8 @@ impl BuiltInConstructor for Segmenter {
 impl Segmenter {
     /// [`Intl.Segmenter.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
-    /// Returns an array containing those of the provided locales that are supported in list
-    /// formatting without having to fall back to the runtime's default locale.
+    /// Returns an array containing those of the provided locales that are supported in segmenting
+    /// without having to fall back to the runtime's default locale.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]

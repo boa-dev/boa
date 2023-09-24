@@ -17,14 +17,12 @@ features = [
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
     "Intl-enumeration",
+    "Intl.NumberFormat-v3",
 
     ### Pending proposals
 
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
-
-    # https://github.com/tc39/proposal-intl-numberformat-v3
-    "Intl.NumberFormat-v3",
 
     # https://github.com/tc39/proposal-regexp-legacy-features
     "legacy-regexp",
