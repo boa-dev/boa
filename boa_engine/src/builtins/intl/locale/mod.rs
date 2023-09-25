@@ -1,4 +1,4 @@
-use crate::{realm::Realm, string::utf16};
+use crate::{builtins::options::get_option, realm::Realm, string::utf16};
 use boa_profiler::Profiler;
 use icu_collator::CaseFirst;
 use icu_datetime::options::preferences::HourCycle;
@@ -26,7 +26,7 @@ use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
-use super::options::{coerce_options_to_object, get_option};
+use super::options::coerce_options_to_object;
 
 #[derive(Debug, Clone)]
 pub(crate) struct Locale;

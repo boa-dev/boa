@@ -155,6 +155,8 @@ pub struct StandardConstructors {
     locale: StandardConstructor,
     #[cfg(feature = "intl")]
     segmenter: StandardConstructor,
+    #[cfg(feature = "intl")]
+    plural_rules: StandardConstructor,
 }
 
 impl Default for StandardConstructors {
@@ -229,6 +231,8 @@ impl Default for StandardConstructors {
             locale: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             segmenter: StandardConstructor::default(),
+            #[cfg(feature = "intl")]
+            plural_rules: StandardConstructor::default(),
         }
     }
 }
@@ -800,6 +804,19 @@ impl StandardConstructors {
     #[cfg(feature = "intl")]
     pub const fn segmenter(&self) -> &StandardConstructor {
         &self.segmenter
+    }
+
+    /// Returns the `Intl.PluralRules` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl.pluralrules
+    #[inline]
+    #[must_use]
+    #[cfg(feature = "intl")]
+    pub const fn plural_rules(&self) -> &StandardConstructor {
+        &self.plural_rules
     }
 }
 

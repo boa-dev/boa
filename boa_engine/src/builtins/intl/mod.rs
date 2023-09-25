@@ -26,11 +26,13 @@ pub(crate) mod collator;
 pub(crate) mod date_time_format;
 pub(crate) mod list_format;
 pub(crate) mod locale;
+pub(crate) mod number_format;
+pub(crate) mod plural_rules;
 pub(crate) mod segmenter;
 
 pub(crate) use self::{
     collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat, locale::Locale,
-    segmenter::Segmenter,
+    plural_rules::PluralRules, segmenter::Segmenter,
 };
 
 mod options;
@@ -72,6 +74,15 @@ impl IntrinsicObject for Intl {
                 Segmenter::NAME,
                 realm.intrinsics().constructors().segmenter().constructor(),
                 Segmenter::ATTRIBUTE,
+            )
+            .static_property(
+                PluralRules::NAME,
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .plural_rules()
+                    .constructor(),
+                PluralRules::ATTRIBUTE,
             )
             .static_property(
                 DateTimeFormat::NAME,

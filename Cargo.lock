@@ -418,6 +418,7 @@ dependencies = [
  "criterion",
  "dashmap",
  "fast-float",
+ "fixed_decimal",
  "float-cmp",
  "futures-lite",
  "icu_calendar",
@@ -1413,11 +1414,12 @@ dependencies = [
 
 [[package]]
 name = "fixed_decimal"
-version = "0.5.3"
+version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c9eab2dd2aadbc55056ed228ccc4be42d07cd61aee72d48768f8ac2e4ab7d54"
+checksum = "5287d527037d0f35c8801880361eb38bb9bce194805350052c2a79538388faeb"
 dependencies = [
  "displaydoc",
+ "ryu",
  "smallvec",
  "writeable",
 ]

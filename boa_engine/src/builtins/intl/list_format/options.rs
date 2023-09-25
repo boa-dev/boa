@@ -3,7 +3,7 @@ use std::str::FromStr;
 use icu_list::ListLength;
 
 use crate::{
-    builtins::intl::options::{OptionType, OptionTypeParsable},
+    builtins::options::{OptionType, ParsableOptionType},
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -37,7 +37,7 @@ impl FromStr for ListFormatType {
     }
 }
 
-impl OptionTypeParsable for ListFormatType {}
+impl ParsableOptionType for ListFormatType {}
 
 impl OptionType for ListLength {
     fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {

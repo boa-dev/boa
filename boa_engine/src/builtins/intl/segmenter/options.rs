@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::builtins::intl::options::OptionTypeParsable;
+use crate::builtins::options::ParsableOptionType;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) enum Granularity {
@@ -43,4 +43,4 @@ impl std::str::FromStr for Granularity {
     }
 }
 
-impl OptionTypeParsable for Granularity {}
+impl ParsableOptionType for Granularity {}

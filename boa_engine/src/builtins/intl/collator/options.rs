@@ -1,8 +1,11 @@
 use std::str::FromStr;
 
-use icu_collator::{CaseLevel, Strength};
+use icu_collator::{CaseFirst, CaseLevel, Strength};
 
-use crate::builtins::intl::options::OptionTypeParsable;
+use crate::{
+    builtins::options::{OptionType, ParsableOptionType},
+    Context, JsNativeError, JsResult, JsValue,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Sensitivity {
@@ -47,7 +50,7 @@ impl FromStr for Sensitivity {
     }
 }
 
-impl OptionTypeParsable for Sensitivity {}
+impl ParsableOptionType for Sensitivity {}
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum Usage {
@@ -77,4 +80,17 @@ impl FromStr for Usage {
     }
 }
 
-impl OptionTypeParsable for Usage {}
+impl ParsableOptionType for Usage {}
+
+impl OptionType for CaseFirst {
+    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+        match value.to_string(context)?.to_std_string_escaped().as_str() {
+            "upper" => Ok(Self::UpperFirst),
+            "lower" => Ok(Self::LowerFirst),
+            "false" => Ok(Self::Off),
+            _ => Err(JsNativeError::range()
+                .with_message("provided string was not `upper`, `lower` or `false`")
+                .into()),
+        }
+    }
+}

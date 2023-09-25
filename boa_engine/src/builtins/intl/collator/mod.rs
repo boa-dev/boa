@@ -11,7 +11,9 @@ use icu_locid::{
 use icu_provider::DataLocale;
 
 use crate::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::get_option, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::{
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
         BoaProvider,
@@ -30,7 +32,7 @@ use crate::{
 
 use super::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales, validate_extension},
-    options::{coerce_options_to_object, get_option, IntlOptions, LocaleMatcher},
+    options::{coerce_options_to_object, IntlOptions, LocaleMatcher},
     Service,
 };
 

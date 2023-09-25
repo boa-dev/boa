@@ -32,6 +32,7 @@ use crate::builtins::intl::{
     collator::Collator,
     date_time_format::DateTimeFormat,
     list_format::ListFormat,
+    plural_rules::PluralRules,
     segmenter::{SegmentIterator, Segmenter, Segments},
 };
 use crate::{
@@ -356,6 +357,10 @@ pub enum ObjectKind {
     /// The `Segment Iterator` object kind.
     #[cfg(feature = "intl")]
     SegmentIterator(SegmentIterator),
+
+    /// The `PluralRules` object kind.
+    #[cfg(feature = "intl")]
+    PluralRules(PluralRules),
 }
 
 unsafe impl Trace for ObjectKind {
@@ -394,7 +399,10 @@ unsafe impl Trace for ObjectKind {
             #[cfg(feature = "intl")]
             Self::SegmentIterator(it) => mark(it),
             #[cfg(feature = "intl")]
-            Self::ListFormat(_) | Self::Locale(_) | Self::Segmenter(_) => {}
+            Self::ListFormat(_)
+            | Self::Locale(_)
+            | Self::Segmenter(_)
+            | Self::PluralRules(_) => {}
             Self::RegExp(_)
             | Self::BigInt(_)
             | Self::Boolean(_)
@@ -829,6 +837,16 @@ impl ObjectData {
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `PluralRules` object data
+    #[cfg(feature = "intl")]
+    #[must_use]
+    pub fn plural_rules(plural_rules: PluralRules) -> Self {
+        Self {
+            kind: ObjectKind::PluralRules(plural_rules),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
 }
 
 impl Debug for ObjectKind {
@@ -885,6 +903,8 @@ impl Debug for ObjectKind {
             Self::Segments(_) => "Segments",
             #[cfg(feature = "intl")]
             Self::SegmentIterator(_) => "SegmentIterator",
+            #[cfg(feature = "intl")]
+            Self::PluralRules(_) => "PluralRules",
         })
     }
 }
@@ -1786,6 +1806,27 @@ impl Object {
         }
     }
 
+    /// Gets the `PluralRules` data if the object is a `PluralRules`.
+    #[inline]
+    #[must_use]
+    #[cfg(feature = "intl")]
+    pub const fn as_plural_rules(&self) -> Option<&PluralRules> {
+        match &self.kind {
+            ObjectKind::PluralRules(it) => Some(it),
+            _ => None,
+        }
+    }
+
+    /// Gets a mutable reference to the `PluralRules` data if the object is a `PluralRules`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub fn as_plural_rules_mut(&mut self) -> Option<&mut PluralRules> {
+        match &mut self.kind {
+            ObjectKind::PluralRules(plural_rules) => Some(plural_rules),
+            _ => None,
+        }
+    }
+
     /// Return `true` if it is a native object and the native type is `T`.
     #[must_use]
     pub fn is<T>(&self) -> bool
@@ -2145,6 +2186,12 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
     #[inline]
     pub fn build(&mut self) -> JsObject {
         self.object.clone()
+    }
+
+    /// Gets the context used to create the object.
+    #[inline]
+    pub fn context(&mut self) -> &mut Context<'host> {
+        self.context
     }
 }
 

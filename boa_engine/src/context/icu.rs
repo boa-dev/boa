@@ -4,6 +4,7 @@ use icu_collator::{Collator, CollatorError, CollatorOptions};
 use icu_list::{ListError, ListFormatter, ListLength};
 use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer, NormalizerError};
+use icu_plurals::{PluralRuleType, PluralRules, PluralsError};
 use icu_provider::{
     AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
     DataError, DataLocale, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
@@ -153,6 +154,7 @@ impl BoaProvider<'_> {
         }
     }
 
+    /// Creates a [`StringNormalizers`] from the provided [`DataProvider`].
     pub(crate) fn try_new_string_normalizers(&self) -> Result<StringNormalizers, NormalizerError> {
         Ok(match *self {
             BoaProvider::Buffer(buf) => StringNormalizers {
@@ -168,6 +170,20 @@ impl BoaProvider<'_> {
                 nfkd: DecomposingNormalizer::try_new_nfkd_with_any_provider(any)?,
             },
         })
+    }
+
+    /// Creates a [`PluralRules`] from the provided [`DataProvider`] and options.
+    pub(crate) fn try_new_plural_rules(
+        &self,
+        locale: &DataLocale,
+        rule_type: PluralRuleType,
+    ) -> Result<PluralRules, PluralsError> {
+        match *self {
+            BoaProvider::Buffer(buf) => {
+                PluralRules::try_new_with_buffer_provider(buf, locale, rule_type)
+            }
+            BoaProvider::Any(any) => PluralRules::try_new_with_any_provider(any, locale, rule_type),
+        }
     }
 }
 

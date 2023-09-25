@@ -6,7 +6,10 @@ use icu_locid::Locale;
 use icu_segmenter::provider::WordBreakDataV1Marker;
 
 use crate::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::{get_option, get_options_object},
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{
@@ -26,7 +29,7 @@ pub(crate) use segments::*;
 
 use super::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales},
-    options::{get_option, get_options_object, IntlOptions, LocaleMatcher},
+    options::{IntlOptions, LocaleMatcher},
     Service,
 };
 
@@ -177,8 +180,8 @@ impl BuiltInConstructor for Segmenter {
 impl Segmenter {
     /// [`Intl.Segmenter.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
-    /// Returns an array containing those of the provided locales that are supported in list
-    /// formatting without having to fall back to the runtime's default locale.
+    /// Returns an array containing those of the provided locales that are supported in segmenting
+    /// without having to fall back to the runtime's default locale.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]
