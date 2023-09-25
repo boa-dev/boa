@@ -498,7 +498,7 @@ dependencies = [
  "log",
  "once_cell",
  "simple_logger",
- "zerovec",
+ "zerovec 0.10.0",
 ]
 
 [[package]]
@@ -1825,7 +1825,7 @@ dependencies = [
  "serde",
  "tinystr",
  "writeable",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -1841,7 +1841,7 @@ dependencies = [
  "icu_provider",
  "serde",
  "yoke",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -1874,7 +1874,7 @@ dependencies = [
  "smallvec",
  "utf16_iter",
  "utf8_iter",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -1888,7 +1888,7 @@ dependencies = [
  "serde",
  "yoke",
  "zerofrom",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -1905,7 +1905,7 @@ dependencies = [
  "icu_provider",
  "serde",
  "writeable",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -1958,7 +1958,7 @@ dependencies = [
  "tinystr",
  "toml 0.5.11",
  "writeable",
- "zerovec",
+ "zerovec 0.9.6",
  "zip",
 ]
 
@@ -1983,7 +1983,7 @@ dependencies = [
  "smallvec",
  "tinystr",
  "writeable",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2013,7 +2013,7 @@ dependencies = [
  "icu_provider",
  "serde",
  "tinystr",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2043,7 +2043,7 @@ dependencies = [
  "serde",
  "tinystr",
  "writeable",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2058,7 +2058,7 @@ dependencies = [
  "icu_provider",
  "serde",
  "tinystr",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2077,7 +2077,7 @@ dependencies = [
  "utf16_iter",
  "utf8_iter",
  "write16",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2092,7 +2092,7 @@ dependencies = [
  "icu_locid",
  "icu_provider",
  "serde",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2107,7 +2107,7 @@ dependencies = [
  "icu_provider",
  "serde",
  "tinystr",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2130,7 +2130,7 @@ dependencies = [
  "writeable",
  "yoke",
  "zerofrom",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2145,7 +2145,7 @@ dependencies = [
  "serde",
  "tinystr",
  "yoke",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2160,7 +2160,7 @@ dependencies = [
  "serde",
  "writeable",
  "yoke",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2206,7 +2206,7 @@ dependencies = [
  "icu_provider",
  "serde",
  "writeable",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2223,7 +2223,7 @@ dependencies = [
  "num-traits",
  "serde",
  "utf8_iter",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -2239,7 +2239,7 @@ dependencies = [
  "icu_provider",
  "serde",
  "tinystr",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -4127,7 +4127,7 @@ dependencies = [
  "databake",
  "displaydoc",
  "serde",
- "zerovec",
+ "zerovec 0.9.6",
 ]
 
 [[package]]
@@ -5165,15 +5165,24 @@ dependencies = [
 
 [[package]]
 name = "zerovec"
-version = "0.9.4"
+version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "198f54134cd865f437820aa3b43d0ad518af4e68ee161b444cdd15d8e567c8ea"
+checksum = "591691014119b87047ead4dcf3e6adfbf73cb7c38ab6980d4f18a32138f35d46"
 dependencies = [
  "databake",
  "serde",
  "yoke",
  "zerofrom",
  "zerovec-derive",
+]
+
+[[package]]
+name = "zerovec"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1194130c5b155bf8ae50ab16c86ab758cd695cf9ad176d2f870b744cbdbb572e"
+dependencies = [
+ "zerofrom",
 ]
 
 [[package]]
