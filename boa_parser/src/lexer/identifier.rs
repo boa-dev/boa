@@ -7,6 +7,7 @@ use boa_ast::{Keyword, Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use icu_properties::sets::{CodePointSetData, CodePointSetDataBorrowed};
+use icu_provider::serde::AsDeserializingBufferProvider;
 use once_cell::sync::Lazy;
 use std::io::Read;
 
@@ -21,11 +22,11 @@ struct PropertySets {
 /// Static `PropertySets` derived from Boa's default ICU4X data.
 static PROPERTY_SETS: Lazy<PropertySets> = Lazy::new(|| {
     static ID_START: Lazy<CodePointSetData> = Lazy::new(|| {
-        icu_properties::sets::load_id_start(&boa_icu_provider::minimal())
+        icu_properties::sets::load_id_start(&boa_icu_provider::minimal().as_deserializing())
             .expect("data should be valid")
     });
     static ID_CONTINUE: Lazy<CodePointSetData> = Lazy::new(|| {
-        icu_properties::sets::load_id_continue(&boa_icu_provider::minimal())
+        icu_properties::sets::load_id_continue(&boa_icu_provider::minimal().as_deserializing())
             .expect("data should be valid")
     });
 

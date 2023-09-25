@@ -492,7 +492,6 @@ dependencies = [
  "log",
  "once_cell",
  "simple_logger",
- "zerovec",
 ]
 
 [[package]]
@@ -542,6 +541,7 @@ dependencies = [
  "boa_profiler",
  "fast-float",
  "icu_properties",
+ "icu_provider",
  "num-bigint",
  "num-traits",
  "once_cell",

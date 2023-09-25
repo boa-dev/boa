@@ -2077,14 +2077,14 @@ impl String {
             {
                 use once_cell::sync::Lazy;
                 static NORMALIZERS: Lazy<StringNormalizers> = Lazy::new(|| {
-                    let provider = &boa_icu_provider::minimal();
-                    let nfc = ComposingNormalizer::try_new_nfc_unstable(provider)
+                    let provider = boa_icu_provider::minimal();
+                    let nfc = ComposingNormalizer::try_new_nfc_with_buffer_provider(provider)
                         .expect("minimal data should always be updated");
-                    let nfkc = ComposingNormalizer::try_new_nfkc_unstable(provider)
+                    let nfkc = ComposingNormalizer::try_new_nfkc_with_buffer_provider(provider)
                         .expect("minimal data should always be updated");
-                    let nfd = DecomposingNormalizer::try_new_nfd_unstable(provider)
+                    let nfd = DecomposingNormalizer::try_new_nfd_with_buffer_provider(provider)
                         .expect("minimal data should always be updated");
-                    let nfkd = DecomposingNormalizer::try_new_nfkd_unstable(provider)
+                    let nfkd = DecomposingNormalizer::try_new_nfkd_with_buffer_provider(provider)
                         .expect("minimal data should always be updated");
 
                     StringNormalizers {

@@ -70,6 +70,10 @@
 #![allow(elided_lifetimes_in_paths)]
 #![cfg_attr(not(feature = "bin"), no_std)]
 
+use icu_provider_adapters::fallback::LocaleFallbackProvider;
+use icu_provider_blob::BlobDataProvider;
+use once_cell::sync::Lazy;
+
 /// Gets the path to the directory where the generated data is stored.
 #[cfg(feature = "bin")]
 #[must_use]
@@ -80,11 +84,20 @@ pub fn data_root() -> std::path::PathBuf {
 
 /// Gets a minimal data provider that is used when the `intl` feature of `boa_engine` is
 /// disabled.
-// Could use `LocaleFallbackProvider` in the future, which would disallow the `const`.
 #[must_use]
 #[allow(clippy::missing_const_for_fn)]
-pub fn minimal() -> MinimalDataProvider {
-    MinimalDataProvider
+pub fn minimal() -> &'static impl icu_provider::BufferProvider {
+    static PROVIDER: Lazy<LocaleFallbackProvider<BlobDataProvider>> = Lazy::new(|| {
+        let blob = BlobDataProvider::try_new_from_static_blob(include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/data/normalization.postcard"
+        )))
+        .expect("The statically compiled data file should be valid.");
+        LocaleFallbackProvider::try_new_with_buffer_provider(blob)
+            .expect("The statically compiled data file should be valid.")
+    });
+
+    &*PROVIDER
 }
 
 /// Gets the default data provider stored as a [`BufferProvider`].
@@ -93,10 +106,6 @@ pub fn minimal() -> MinimalDataProvider {
 #[cfg(feature = "full")]
 #[must_use]
 pub fn buffer() -> &'static impl icu_provider::BufferProvider {
-    use icu_provider_adapters::fallback::LocaleFallbackProvider;
-    use icu_provider_blob::BlobDataProvider;
-    use once_cell::sync::Lazy;
-
     static PROVIDER: Lazy<LocaleFallbackProvider<BlobDataProvider>> = Lazy::new(|| {
         let blob = BlobDataProvider::try_new_from_static_blob(include_bytes!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -108,21 +117,4 @@ pub fn buffer() -> &'static impl icu_provider::BufferProvider {
     });
 
     &*PROVIDER
-}
-
-#[doc(hidden)]
-#[non_exhaustive]
-#[derive(Clone, Copy, Debug)]
-pub struct MinimalDataProvider;
-
-#[allow(
-    unreachable_pub,
-    clippy::unreadable_literal,
-    clippy::unnecessary_lazy_evaluations,
-    clippy::module_name_repetitions,
-    rustdoc::private_doc_tests
-)]
-mod baked {
-    include!("../data/min/mod.rs");
-    impl_data_provider!(super::MinimalDataProvider);
 }

@@ -7,7 +7,7 @@ use std::{error::Error, fs::File};
 
 use boa_icu_provider::data_root;
 use icu_casemapping::provider::CaseMappingV1Marker;
-use icu_datagen::{all_keys, datagen, BakedOptions, CoverageLevel, Out, SourceData};
+use icu_datagen::{all_keys, datagen, CoverageLevel, Out, SourceData};
 use icu_normalizer::provider::{
     CanonicalCompositionsV1Marker, CanonicalDecompositionDataV1Marker,
     CanonicalDecompositionTablesV1Marker, CompatibilityDecompositionSupplementV1Marker,
@@ -31,16 +31,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         data_root().join("icudata.postcard"),
     )?));
 
-    let normalization_out = Out::Baked {
-        mod_directory: data_root().join("min"),
-        options: {
-            let mut opt = BakedOptions::default();
-            opt.use_separate_crates = true;
-            opt.overwrite = true;
-            opt.pretty = true;
-            opt
-        },
-    };
+    let normalization_out = Out::Blob(Box::new(File::create(
+        data_root().join("normalization.postcard"),
+    )?));
 
     let locales = source_data.locales(&[CoverageLevel::Modern])?;
 

@@ -76,7 +76,7 @@ num_enum = "0.6.1"
 pollster = "0.3.0"
 thin-vec = "0.2.12"
 itertools = { version = "0.11.0", default-features = false }
-icu_normalizer = "1.2.0"
+icu_normalizer = { version = "1.2.0", features = ["serde"] }
 
 # intl deps
 icu_locid_transform = { version = "1.2.1", features = ["std", "serde"], optional = true }
