@@ -15,7 +15,7 @@ use crate::{
     error::JsNativeError,
     js_string,
     object::{
-        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind,
+        internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData, ObjectKind,
         CONSTRUCTOR,
     },
     property::{Attribute, PropertyDescriptorBuilder},
@@ -189,25 +189,40 @@ impl BuiltInConstructor for RegExp {
             }
         }
 
-        // 4. If Type(pattern) is Object and pattern has a [[RegExpMatcher]] internal slot, then
-        let (p, f) = if let Some(pattern) = pattern_is_regexp {
-            let mut original_source = JsValue::undefined();
-            let mut original_flags = JsValue::undefined();
+        // 4. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then
+        let (p, f) = if let Some(pattern) = pattern
+            .as_object()
+            .map(JsObject::borrow)
+            .as_deref()
+            .and_then(Object::as_regexp)
+        {
+            // a. Let P be pattern.[[OriginalSource]].
+            let p = pattern.original_source.clone().into();
 
-            if let Some(regexp) = pattern.borrow().as_regexp() {
-                original_source = regexp.original_source.clone().into();
-                original_flags = regexp.original_flags.clone().into();
+            // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
+            let f = if flags.is_undefined() {
+                pattern.original_flags.clone().into()
+            // c. Else, let F be flags.
+            } else {
+                flags.clone()
             };
 
-            // a. Let P be pattern.[[OriginalSource]].
-            // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
-            // c. Else, let F be flags.
-            if flags.is_undefined() {
-                (original_source, original_flags)
-            } else {
-                (original_source, flags.clone())
-            }
+            (p, f)
+        } else if let Some(pattern) = pattern_is_regexp {
+            // a. Let P be ? Get(pattern, "source").
+            let p = pattern.get("source", context)?;
 
+            // b. If flags is undefined, then
+            let f = if flags.is_undefined() {
+                // i. Let F be ? Get(pattern, "flags").
+                pattern.get("flags", context)?
+            // c. Else,
+            } else {
+                // i. Let F be flags.
+                flags.clone()
+            };
+
+            (p, f)
         // 6. Else,
         } else {
             // a. Let P be pattern.
