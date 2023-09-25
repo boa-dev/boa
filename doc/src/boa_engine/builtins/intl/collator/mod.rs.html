@@ -584,6 +584,8 @@
 <a href="#584" id="584">584</a>
 <a href="#585" id="585">585</a>
 <a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::{
@@ -597,7 +599,9 @@
 <span class="kw">use </span>icu_provider::DataLocale;
 
 <span class="kw">use crate</span>::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::get_option, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::{
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
         BoaProvider,
@@ -616,7 +620,7 @@
 
 <span class="kw">use super</span>::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales, validate_extension},
-    options::{coerce_options_to_object, get_option, IntlOptions, LocaleMatcher},
+    options::{coerce_options_to_object, IntlOptions, LocaleMatcher},
     Service,
 };
 

@@ -809,7 +809,7 @@
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
 <a href="#811" id="811">811</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{realm::Realm, string::utf16};
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{builtins::options::get_option, realm::Realm, string::utf16};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::CaseFirst;
 <span class="kw">use </span>icu_datetime::options::preferences::HourCycle;
@@ -837,7 +837,7 @@
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::options::{coerce_options_to_object, get_option};
+<span class="kw">use </span><span class="kw">super</span>::options::coerce_options_to_object;
 
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Locale;

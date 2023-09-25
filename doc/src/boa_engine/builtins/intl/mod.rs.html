@@ -155,6 +155,17 @@
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
 <a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Intl` object.
 //!
 //! `Intl` is a built-in object that has properties and methods for i18n. It&#39;s not a function object.
@@ -183,11 +194,13 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>date_time_format;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>list_format;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>locale;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>number_format;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>plural_rules;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>segmenter;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{
     collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat, locale::Locale,
-    segmenter::Segmenter,
+    plural_rules::PluralRules, segmenter::Segmenter,
 };
 
 <span class="kw">mod </span>options;
@@ -229,6 +242,15 @@
                 Segmenter::NAME,
                 realm.intrinsics().constructors().segmenter().constructor(),
                 Segmenter::ATTRIBUTE,
+            )
+            .static_property(
+                PluralRules::NAME,
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .plural_rules()
+                    .constructor(),
+                PluralRules::ATTRIBUTE,
             )
             .static_property(
                 DateTimeFormat::NAME,

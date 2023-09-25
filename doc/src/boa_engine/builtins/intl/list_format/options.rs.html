@@ -56,7 +56,7 @@
 <span class="kw">use </span>icu_list::ListLength;
 
 <span class="kw">use crate</span>::{
-    builtins::intl::options::{OptionType, OptionTypeParsable},
+    builtins::options::{OptionType, ParsableOptionType},
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -90,7 +90,7 @@
     }
 }
 
-<span class="kw">impl </span>OptionTypeParsable <span class="kw">for </span>ListFormatType {}
+<span class="kw">impl </span>ParsableOptionType <span class="kw">for </span>ListFormatType {}
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>ListLength {
     <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {

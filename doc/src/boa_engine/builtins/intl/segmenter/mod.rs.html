@@ -320,6 +320,9 @@
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
 <a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::Range;
 
 <span class="kw">use </span>boa_macros::utf16;
@@ -328,7 +331,10 @@
 <span class="kw">use </span>icu_segmenter::provider::WordBreakDataV1Marker;
 
 <span class="kw">use crate</span>::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::{get_option, get_options_object},
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{
@@ -348,7 +354,7 @@
 
 <span class="kw">use super</span>::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales},
-    options::{get_option, get_options_object, IntlOptions, LocaleMatcher},
+    options::{IntlOptions, LocaleMatcher},
     Service,
 };
 
@@ -499,8 +505,8 @@
 <span class="kw">impl </span>Segmenter {
     <span class="doccomment">/// [`Intl.Segmenter.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
-    /// Returns an array containing those of the provided locales that are supported in list
-    /// formatting without having to fall back to the runtime&#39;s default locale.
+    /// Returns an array containing those of the provided locales that are supported in segmenting
+    /// without having to fall back to the runtime&#39;s default locale.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]

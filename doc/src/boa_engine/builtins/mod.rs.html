@@ -1096,6 +1096,11 @@
 <a href="#1096" id="1096">1096</a>
 <a href="#1097" id="1097">1097</a>
 <a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
 </span><span class="kw">pub mod </span>array;
@@ -1136,6 +1141,10 @@
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
 </span><span class="kw">pub mod </span>intl;
+
+<span class="comment">// TODO: remove `cfg` when `Temporal` gets to stage 4.
+</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;intl&quot;</span>, feature = <span class="string">&quot;experimental&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>options;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{
     array::Array,
@@ -1367,6 +1376,7 @@
             intl::Segmenter::init(<span class="self">self</span>);
             intl::segmenter::Segments::init(<span class="self">self</span>);
             intl::segmenter::SegmentIterator::init(<span class="self">self</span>);
+            intl::PluralRules::init(<span class="self">self</span>);
         }
     }
 }

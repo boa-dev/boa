@@ -46,7 +46,7 @@
 <a href="#46" id="46">46</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Display;
 
-<span class="kw">use </span><span class="kw">crate</span>::builtins::intl::options::OptionTypeParsable;
+<span class="kw">use </span><span class="kw">crate</span>::builtins::options::ParsableOptionType;
 
 <span class="attr">#[derive(Debug, Clone, Copy, Default)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Granularity {
@@ -89,5 +89,5 @@
     }
 }
 
-<span class="kw">impl </span>OptionTypeParsable <span class="kw">for </span>Granularity {}
+<span class="kw">impl </span>ParsableOptionType <span class="kw">for </span>Granularity {}
 </code></pre></div></section></main></body></html>

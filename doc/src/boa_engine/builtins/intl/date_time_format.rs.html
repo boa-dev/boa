@@ -298,7 +298,9 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 </span><span class="kw">use crate</span>::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::OptionType, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -311,8 +313,6 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_datetime::options::preferences::HourCycle;
-
-<span class="kw">use </span><span class="kw">super</span>::options::OptionType;
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>HourCycle {
     <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {

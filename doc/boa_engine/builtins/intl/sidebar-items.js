@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["collator","date_time_format","list_format","locale","options","segmenter"],"struct":["Intl"],"trait":["Service"]};
+window.SIDEBAR_ITEMS = {"mod":["collator","date_time_format","list_format","locale","number_format","options","plural_rules","segmenter"],"struct":["Intl"],"trait":["Service"]};

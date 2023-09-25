@@ -628,12 +628,14 @@
 <a href="#628" id="628">628</a>
 <a href="#629" id="629">629</a>
 <a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         intl::{
-            options::{coerce_options_to_object, get_option, IntlOptions, LocaleMatcher},
+            options::{coerce_options_to_object, IntlOptions, LocaleMatcher},
             Service,
         },
+        options::get_option,
         Array,
     },
     context::{icu::Icu, BoaProvider},

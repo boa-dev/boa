@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["plural_category_to_js_string","resolve_plural"],"mod":["options"],"struct":["PluralRules","ResolvedPlural"]};

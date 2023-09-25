@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["f64_to_formatted_fixed_decimal","get_digit_format_options"]};

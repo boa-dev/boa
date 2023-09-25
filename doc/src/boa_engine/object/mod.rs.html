@@ -2497,6 +2497,53 @@
 <a href="#2497" id="2497">2497</a>
 <a href="#2498" id="2498">2498</a>
 <a href="#2499" id="2499">2499</a>
+<a href="#2500" id="2500">2500</a>
+<a href="#2501" id="2501">2501</a>
+<a href="#2502" id="2502">2502</a>
+<a href="#2503" id="2503">2503</a>
+<a href="#2504" id="2504">2504</a>
+<a href="#2505" id="2505">2505</a>
+<a href="#2506" id="2506">2506</a>
+<a href="#2507" id="2507">2507</a>
+<a href="#2508" id="2508">2508</a>
+<a href="#2509" id="2509">2509</a>
+<a href="#2510" id="2510">2510</a>
+<a href="#2511" id="2511">2511</a>
+<a href="#2512" id="2512">2512</a>
+<a href="#2513" id="2513">2513</a>
+<a href="#2514" id="2514">2514</a>
+<a href="#2515" id="2515">2515</a>
+<a href="#2516" id="2516">2516</a>
+<a href="#2517" id="2517">2517</a>
+<a href="#2518" id="2518">2518</a>
+<a href="#2519" id="2519">2519</a>
+<a href="#2520" id="2520">2520</a>
+<a href="#2521" id="2521">2521</a>
+<a href="#2522" id="2522">2522</a>
+<a href="#2523" id="2523">2523</a>
+<a href="#2524" id="2524">2524</a>
+<a href="#2525" id="2525">2525</a>
+<a href="#2526" id="2526">2526</a>
+<a href="#2527" id="2527">2527</a>
+<a href="#2528" id="2528">2528</a>
+<a href="#2529" id="2529">2529</a>
+<a href="#2530" id="2530">2530</a>
+<a href="#2531" id="2531">2531</a>
+<a href="#2532" id="2532">2532</a>
+<a href="#2533" id="2533">2533</a>
+<a href="#2534" id="2534">2534</a>
+<a href="#2535" id="2535">2535</a>
+<a href="#2536" id="2536">2536</a>
+<a href="#2537" id="2537">2537</a>
+<a href="#2538" id="2538">2538</a>
+<a href="#2539" id="2539">2539</a>
+<a href="#2540" id="2540">2540</a>
+<a href="#2541" id="2541">2541</a>
+<a href="#2542" id="2542">2542</a>
+<a href="#2543" id="2543">2543</a>
+<a href="#2544" id="2544">2544</a>
+<a href="#2545" id="2545">2545</a>
+<a href="#2546" id="2546">2546</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2531,6 +2578,7 @@
     collator::Collator,
     date_time_format::DateTimeFormat,
     list_format::ListFormat,
+    plural_rules::PluralRules,
     segmenter::{SegmentIterator, Segmenter, Segments},
 };
 <span class="kw">use crate</span>::{
@@ -2855,6 +2903,10 @@
     <span class="doccomment">/// The `Segment Iterator` object kind.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>SegmentIterator(SegmentIterator),
+
+    <span class="doccomment">/// The `PluralRules` object kind.
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span>PluralRules(PluralRules),
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ObjectKind {
@@ -2893,7 +2945,10 @@
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span><span class="self">Self</span>::SegmentIterator(it) =&gt; mark(it),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-            </span><span class="self">Self</span>::ListFormat(<span class="kw">_</span>) | <span class="self">Self</span>::Locale(<span class="kw">_</span>) | <span class="self">Self</span>::Segmenter(<span class="kw">_</span>) =&gt; {}
+            </span><span class="self">Self</span>::ListFormat(<span class="kw">_</span>)
+            | <span class="self">Self</span>::Locale(<span class="kw">_</span>)
+            | <span class="self">Self</span>::Segmenter(<span class="kw">_</span>)
+            | <span class="self">Self</span>::PluralRules(<span class="kw">_</span>) =&gt; {}
             <span class="self">Self</span>::RegExp(<span class="kw">_</span>)
             | <span class="self">Self</span>::BigInt(<span class="kw">_</span>)
             | <span class="self">Self</span>::Boolean(<span class="kw">_</span>)
@@ -3328,6 +3383,16 @@
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    <span class="doccomment">/// Create the `PluralRules` object data
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>plural_rules(plural_rules: PluralRules) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ObjectKind::PluralRules(plural_rules),
+            internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
+        }
+    }
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>ObjectKind {
@@ -3384,6 +3449,8 @@
             </span><span class="self">Self</span>::Segments(<span class="kw">_</span>) =&gt; <span class="string">&quot;Segments&quot;</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span><span class="self">Self</span>::SegmentIterator(<span class="kw">_</span>) =&gt; <span class="string">&quot;SegmentIterator&quot;</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span><span class="self">Self</span>::PluralRules(<span class="kw">_</span>) =&gt; <span class="string">&quot;PluralRules&quot;</span>,
         })
     }
 }
@@ -4285,6 +4352,27 @@
         }
     }
 
+    <span class="doccomment">/// Gets the `PluralRules` data if the object is a `PluralRules`.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub const fn </span>as_plural_rules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PluralRules&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            ObjectKind::PluralRules(it) =&gt; <span class="prelude-val">Some</span>(it),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets a mutable reference to the `PluralRules` data if the object is a `PluralRules`.
+    </span><span class="attr">#[inline]
+    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub fn </span>as_plural_rules_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PluralRules&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
+            ObjectKind::PluralRules(plural_rules) =&gt; <span class="prelude-val">Some</span>(plural_rules),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="doccomment">/// Return `true` if it is a native object and the native type is `T`.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>is&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool
@@ -4644,6 +4732,12 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.object.clone()
+    }
+
+    <span class="doccomment">/// Gets the context used to create the object.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt; {
+        <span class="self">self</span>.context
     }
 }
 
