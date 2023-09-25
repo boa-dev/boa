@@ -2141,21 +2141,13 @@ impl String {
         let normalizers = {
             #[cfg(not(feature = "intl"))]
             {
-                use once_cell::sync::Lazy;
-                static NORMALIZERS: Lazy<StringNormalizers> = Lazy::new(|| {
-                    let nfc = ComposingNormalizer::new_nfc(provider);
-                    let nfkc = ComposingNormalizer::new_nfkc(provider);
-                    let nfd = DecomposingNormalizer::new_nfd(provider);
-                    let nfkd = DecomposingNormalizer::new_nfkd(provider);
-
-                    StringNormalizers {
-                        nfc,
-                        nfkc,
-                        nfd,
-                        nfkd,
-                    }
-                });
-                &*NORMALIZERS
+                static NORMALIZERS: StringNormalizers = StringNormalizers {
+                    nfc: ComposingNormalizer::new_nfc(),
+                    nfkc: ComposingNormalizer::new_nfkc(),
+                    nfd: DecomposingNormalizer::new_nfd(),
+                    nfkd: DecomposingNormalizer::new_nfkd(),
+                };
+                &NORMALIZERS
             }
             #[cfg(feature = "intl")]
             {
