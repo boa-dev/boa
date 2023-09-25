@@ -1,13 +1,17 @@
 //! Boa's implementation of ECMAScript's global `Intl` object.
 //!
-//! `Intl` is a built-in object that has properties and methods for i18n. It's not a function object.
+//! The `Intl` namespace object contains several constructors as well as functionality common to the
+//! internationalization constructors and other language sensitive functions. Collectively, they
+//! comprise the ECMAScript Internationalization API, which provides language sensitive string
+//! comparison, number formatting, date and time formatting, and more.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
 //!
 //! [spec]: https://tc39.es/ecma402/#intl-object
-
-#![allow(clippy::string_lit_as_bytes)]
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl
 
 use crate::{
     builtins::{Array, BuiltInBuilder, BuiltInObject, IntrinsicObject},

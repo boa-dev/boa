@@ -15,9 +15,9 @@ rust-version.workspace = true
 profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
 intl = [
-    "boa_icu_provider/full",
     "icu_normalizer/serde",
     "icu_normalizer/std",
+    "dep:boa_icu_provider",
     "dep:icu_locid_transform",
     "dep:icu_locid",
     "dep:icu_datetime",
@@ -25,7 +25,7 @@ intl = [
     "dep:icu_provider",
     "dep:icu_calendar",
     "dep:icu_collator",
-    "dep:icu_casemapping",
+    "dep:icu_casemap",
     "dep:icu_list",
     "dep:icu_segmenter",
     "dep:writeable",
@@ -53,7 +53,6 @@ boa_profiler.workspace = true
 boa_macros.workspace = true
 boa_ast.workspace = true
 boa_parser.workspace = true
-boa_icu_provider.workspace = true
 serde = { version = "1.0.188", features = ["derive", "rc"] }
 serde_json = "1.0.107"
 rand = "0.8.5"
@@ -77,22 +76,23 @@ num_enum = "0.7.0"
 pollster = "0.3.0"
 thin-vec = "0.2.12"
 itertools = { version = "0.11.0", default-features = false }
-icu_normalizer = "1.2.0"
+icu_normalizer = "1.3.0"
 
 # intl deps
-icu_locid_transform = { version = "1.2.1", features = ["std", "serde"], optional = true }
-icu_locid = { version = "1.2.0", features = ["serde"], optional = true }
-icu_datetime = { version = "1.2.1", features = ["serde", "experimental"], optional = true }
-icu_calendar = { version = "1.2.0", optional = true }
-icu_collator = { version = "1.2.0", features = ["serde"], optional = true }
-icu_plurals = { version = "1.2.0", features = ["serde"], optional = true }
-icu_provider = { version = "1.2.0", optional = true }
-icu_list = { version = "1.2.0", features = ["serde"], optional = true }
-icu_casemapping = { version = "0.7.2", features = ["serde"], optional = true}
-icu_segmenter = { version = "1.2.1", features = ["serde"], optional = true }
-writeable = { version = "0.5.2", optional = true }
-yoke = { version = "0.7.1", optional = true }
-zerofrom = { version = "0.1.2", optional = true }
+boa_icu_provider = {workspace = true, features = ["std"], optional = true }
+icu_provider = { version = "1.3.0", optional = true }
+icu_locid = { version = "1.3.0", features = ["serde"], optional = true }
+icu_locid_transform = { version = "1.3.0", default-features = false, features = ["std", "serde"], optional = true }
+icu_datetime = { version = "1.3.0", default-features = false, features = ["serde", "experimental"], optional = true }
+icu_calendar = { version = "1.3.0", default-features = false, optional = true }
+icu_collator = { version = "1.3.0", default-features = false, features = ["serde"], optional = true }
+icu_plurals = { version = "1.3.0", default-features = false, features = ["serde"], optional = true }
+icu_list = { version = "1.3.0", default-features = false, features = ["serde"], optional = true }
+icu_casemap = { version = "1.3.0", default-features = false, features = ["serde"], optional = true}
+icu_segmenter = { version = "1.3.0", default-features = false, features = ["auto", "serde"], optional = true }
+writeable = { version = "0.5.3", optional = true }
+yoke = { version = "0.7.2", optional = true }
+zerofrom = { version = "0.1.3", optional = true }
 sys-locale = { version = "0.3.1", optional = true }
 fixed_decimal = { version = "0.5.4", features = ["ryu"], optional = true}
 

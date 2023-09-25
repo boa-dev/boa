@@ -27,22 +27,13 @@ use super::{
 
 mod options;
 pub(crate) use options::*;
+
+#[derive(Debug)]
 pub struct ListFormat {
     locale: Locale,
     typ: ListFormatType,
     style: ListLength,
-    formatter: ListFormatter,
-}
-
-impl std::fmt::Debug for ListFormat {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ListFormat")
-            .field("locale", &self.locale)
-            .field("typ", &self.typ)
-            .field("style", &self.style)
-            .field("formatter", &"ListFormatter")
-            .finish()
-    }
+    native: ListFormatter,
 }
 
 impl Service for ListFormat {
@@ -146,6 +137,25 @@ impl BuiltInConstructor for ListFormat {
         // 16. Let dataLocaleData be localeData.[[<dataLocale>]].
         // 17. Let dataLocaleTypes be dataLocaleData.[[<type>]].
         // 18. Set listFormat.[[Templates]] to dataLocaleTypes.[[<style>]].
+        let data_locale = DataLocale::from(&locale);
+        let formatter = match typ {
+            ListFormatType::Conjunction => ListFormatter::try_new_and_with_length_unstable(
+                &context.icu().provider(),
+                &data_locale,
+                style,
+            ),
+            ListFormatType::Disjunction => ListFormatter::try_new_or_with_length_unstable(
+                &context.icu().provider(),
+                &data_locale,
+                style,
+            ),
+            ListFormatType::Unit => ListFormatter::try_new_unit_with_length_unstable(
+                &context.icu().provider(),
+                &data_locale,
+                style,
+            ),
+        }
+        .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 
         // 2. Let listFormat be ? OrdinaryCreateFromConstructor(NewTarget, "%ListFormat.prototype%", « [[InitializedListFormat]], [[Locale]], [[Type]], [[Style]], [[Templates]] »).
         let prototype =
@@ -154,14 +164,10 @@ impl BuiltInConstructor for ListFormat {
             context.root_shape(),
             prototype,
             ObjectData::list_format(Self {
-                formatter: context
-                    .icu()
-                    .provider()
-                    .try_new_list_formatter(&DataLocale::from(&locale), typ, style)
-                    .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?,
                 locale,
                 typ,
                 style,
+                native: formatter,
             }),
         );
 
@@ -225,7 +231,7 @@ impl ListFormat {
 
         // 4. Return ! FormatList(lf, stringList).
         Ok(lf
-            .formatter
+            .native
             .format_to_string(strings.into_iter().map(|s| s.to_std_string_escaped()))
             .into())
     }
@@ -349,7 +355,7 @@ impl ListFormat {
 
         // 1. Let parts be ! CreatePartsFromList(listFormat, list).
         let mut parts = PartsCollector(Vec::new());
-        lf.formatter
+        lf.native
             .format(strings)
             .write_to_parts(&mut parts)
             .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;

@@ -132,11 +132,22 @@ impl BuiltInConstructor for PluralRules {
             context.icu(),
         );
 
-        let native = context
-            .icu()
-            .provider()
-            .try_new_plural_rules(&DataLocale::from(&locale), rule_type)
-            .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+        let native = match rule_type {
+            PluralRuleType::Cardinal => NativePluralRules::try_new_cardinal_unstable(
+                &context.icu().provider(),
+                &DataLocale::from(&locale),
+            ),
+            PluralRuleType::Ordinal => NativePluralRules::try_new_ordinal_unstable(
+                &context.icu().provider(),
+                &DataLocale::from(&locale),
+            ),
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("unimplemented plural rule type")
+                    .into())
+            }
+        }
+        .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 
         let proto = get_prototype_from_constructor(
             new_target,

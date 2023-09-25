@@ -83,19 +83,9 @@ pub fn data_root() -> std::path::PathBuf {
     std::path::PathBuf::from(std::env!("CARGO_MANIFEST_DIR")).join("data")
 }
 
-/// Gets a minimal data provider that is used when the `intl` feature of `boa_engine` is
-/// disabled.
-// Could use `LocaleFallbackProvider` in the future, which would disallow the `const`.
-#[must_use]
-#[allow(clippy::missing_const_for_fn)]
-pub fn minimal() -> MinimalDataProvider {
-    MinimalDataProvider
-}
-
 /// Gets the default data provider stored as a [`BufferProvider`].
 ///
 /// [`BufferProvider`]: icu_provider::BufferProvider
-#[cfg(feature = "full")]
 #[must_use]
 pub fn buffer() -> &'static impl icu_provider::BufferProvider {
     use icu_provider_adapters::fallback::LocaleFallbackProvider;
@@ -113,21 +103,4 @@ pub fn buffer() -> &'static impl icu_provider::BufferProvider {
     });
 
     &*PROVIDER
-}
-
-#[doc(hidden)]
-#[non_exhaustive]
-#[derive(Clone, Copy, Debug)]
-pub struct MinimalDataProvider;
-
-#[allow(
-    unreachable_pub,
-    clippy::unreadable_literal,
-    clippy::unnecessary_lazy_evaluations,
-    clippy::module_name_repetitions,
-    rustdoc::private_doc_tests
-)]
-mod baked {
-    include!("../data/min/mod.rs");
-    impl_data_provider!(super::MinimalDataProvider);
 }
