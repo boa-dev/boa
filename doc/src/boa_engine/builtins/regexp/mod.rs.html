@@ -1890,6 +1890,21 @@
 <a href="#1890" id="1890">1890</a>
 <a href="#1891" id="1891">1891</a>
 <a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
+<a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1907,7 +1922,7 @@
     error::JsNativeError,
     js_string,
     object::{
-        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind,
+        internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData, ObjectKind,
         CONSTRUCTOR,
     },
     property::{Attribute, PropertyDescriptorBuilder},
@@ -2081,25 +2096,40 @@
             }
         }
 
-        <span class="comment">// 4. If Type(pattern) is Object and pattern has a [[RegExpMatcher]] internal slot, then
-        </span><span class="kw">let </span>(p, f) = <span class="kw">if let </span><span class="prelude-val">Some</span>(pattern) = pattern_is_regexp {
-            <span class="kw">let </span><span class="kw-2">mut </span>original_source = JsValue::undefined();
-            <span class="kw">let </span><span class="kw-2">mut </span>original_flags = JsValue::undefined();
+        <span class="comment">// 4. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then
+        </span><span class="kw">let </span>(p, f) = <span class="kw">if let </span><span class="prelude-val">Some</span>(pattern) = pattern
+            .as_object()
+            .map(JsObject::borrow)
+            .as_deref()
+            .and_then(Object::as_regexp)
+        {
+            <span class="comment">// a. Let P be pattern.[[OriginalSource]].
+            </span><span class="kw">let </span>p = pattern.original_source.clone().into();
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(regexp) = pattern.borrow().as_regexp() {
-                original_source = regexp.original_source.clone().into();
-                original_flags = regexp.original_flags.clone().into();
+            <span class="comment">// b. If flags is undefined, let F be pattern.[[OriginalFlags]].
+            </span><span class="kw">let </span>f = <span class="kw">if </span>flags.is_undefined() {
+                pattern.original_flags.clone().into()
+            <span class="comment">// c. Else, let F be flags.
+            </span>} <span class="kw">else </span>{
+                flags.clone()
             };
 
-            <span class="comment">// a. Let P be pattern.[[OriginalSource]].
-            // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
-            // c. Else, let F be flags.
-            </span><span class="kw">if </span>flags.is_undefined() {
-                (original_source, original_flags)
-            } <span class="kw">else </span>{
-                (original_source, flags.clone())
-            }
+            (p, f)
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(pattern) = pattern_is_regexp {
+            <span class="comment">// a. Let P be ? Get(pattern, &quot;source&quot;).
+            </span><span class="kw">let </span>p = pattern.get(<span class="string">&quot;source&quot;</span>, context)<span class="question-mark">?</span>;
 
+            <span class="comment">// b. If flags is undefined, then
+            </span><span class="kw">let </span>f = <span class="kw">if </span>flags.is_undefined() {
+                <span class="comment">// i. Let F be ? Get(pattern, &quot;flags&quot;).
+                </span>pattern.get(<span class="string">&quot;flags&quot;</span>, context)<span class="question-mark">?
+            </span><span class="comment">// c. Else,
+            </span>} <span class="kw">else </span>{
+                <span class="comment">// i. Let F be flags.
+                </span>flags.clone()
+            };
+
+            (p, f)
         <span class="comment">// 6. Else,
         </span>} <span class="kw">else </span>{
             <span class="comment">// a. Let P be pattern.
