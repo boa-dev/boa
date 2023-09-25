@@ -2,10 +2,7 @@
 
 use std::{fmt, str::FromStr};
 
-use crate::{
-    object::{JsObject, ObjectData},
-    Context, JsNativeError, JsResult, JsString, JsValue,
-};
+use crate::{object::JsObject, Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// A type used as an option parameter for [`get_option`].
 pub(crate) trait OptionType: Sized {
@@ -87,7 +84,7 @@ pub(crate) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
         // If options is undefined, then
         JsValue::Undefined => {
             // a. Return OrdinaryObjectCreate(null).
-            Ok(JsObject::from_proto_and_data(None, ObjectData::ordinary()))
+            Ok(JsObject::with_null_proto())
         }
         // 2. If Type(options) is Object, then
         JsValue::Object(obj) => {
