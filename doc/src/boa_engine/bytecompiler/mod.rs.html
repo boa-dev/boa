@@ -1529,7 +1529,6 @@
 <a href="#1529" id="1529">1529</a>
 <a href="#1530" id="1530">1530</a>
 <a href="#1531" id="1531">1531</a>
-<a href="#1532" id="1532">1532</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2973,9 +2972,8 @@
                         kind = CallKind::CallEval;
                     }
                 }
-                <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                 <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
-                <span class="self">self</span>.emit_opcode(Opcode::Swap);
+                <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
             }
             expr =&gt; {
                 <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
