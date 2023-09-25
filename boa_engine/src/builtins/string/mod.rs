@@ -2141,7 +2141,7 @@ impl String {
         let normalizers = {
             #[cfg(not(feature = "intl"))]
             {
-                static NORMALIZERS: StringNormalizers = StringNormalizers {
+                const NORMALIZERS: StringNormalizers = StringNormalizers {
                     nfc: ComposingNormalizer::new_nfc(),
                     nfkc: ComposingNormalizer::new_nfkc(),
                     nfd: DecomposingNormalizer::new_nfd(),
