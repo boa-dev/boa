@@ -20,7 +20,10 @@ use icu_locid::{
     LanguageIdentifier, Locale,
 };
 use icu_locid_transform::LocaleCanonicalizer;
-use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata, KeyedDataMarker};
+use icu_provider::{
+    DataError, DataErrorKind, DataLocale, DataProvider, DataRequest, DataRequestMetadata,
+    KeyedDataMarker,
+};
 use icu_segmenter::provider::WordBreakDataV1Marker;
 use indexmap::IndexSet;
 
@@ -245,10 +248,25 @@ pub(crate) fn best_locale_for_provider<M: KeyedDataMarker>(
         provider,
         DataRequest {
             locale: &DataLocale::from(&candidate),
-            metadata: DataRequestMetadata::default(),
+            metadata: {
+                let mut md = DataRequestMetadata::default();
+                md.silent = true;
+                md
+            },
         },
-    )
-    .ok()?;
+    );
+    // another hack to the list...
+    // This time is because markers like `WordBreakDataV1Marker` throw an error if they receive
+    // a request with a locale, because they don't really need it. In this case, we can
+    // check if the key is one of those kinds and return the candidate as it is.
+    let response = match response {
+        Ok(response) => response,
+        Err(DataError {
+            kind: DataErrorKind::ExtraneousLocale,
+            ..
+        }) if M::KEY.metadata().singleton => return Some(candidate),
+        _ => return None,
+    };
 
     if candidate == LanguageIdentifier::UND {
         return Some(LanguageIdentifier::UND);
