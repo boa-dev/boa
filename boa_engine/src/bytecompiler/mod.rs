@@ -1441,9 +1441,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                         kind = CallKind::CallEval;
                     }
                 }
-                self.compile_expr(expr, true);
                 self.emit_opcode(Opcode::PushUndefined);
-                self.emit_opcode(Opcode::Swap);
+                self.compile_expr(expr, true);
             }
             expr => {
                 self.compile_expr(expr, true);

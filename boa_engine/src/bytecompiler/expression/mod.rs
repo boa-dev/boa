@@ -243,9 +243,8 @@ impl ByteCompiler<'_, '_> {
                         self.emit(Opcode::GetPrivateField, &[Operand::U32(index)]);
                     }
                     expr => {
+                        self.emit_opcode(Opcode::PushUndefined);
                         self.compile_expr(expr, true);
-                        self.emit_opcode(Opcode::This);
-                        self.emit_opcode(Opcode::Swap);
                     }
                 }
 
