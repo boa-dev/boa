@@ -187,28 +187,38 @@ pub(crate) fn best_available_locale<M: KeyedDataMarker>(
             },
         );
 
-        if let Ok(req) = response {
-            // `metadata.locale` returns None when the provider doesn't have a fallback mechanism,
-            // but supports the required locale. However, if the provider has a fallback mechanism,
-            // this will return `Some(locale)`, where the locale is the used locale after applying
-            // the fallback algorithm, even if the used locale is exactly the same as the required
-            // locale.
-            match req.metadata.locale {
-                // TODO: ugly hack to accept locales that fallback to "und" in the collator/segmenter services
-                Some(loc)
-                    if loc == candidate
-                        || (loc.is_empty()
-                            && [
-                                CollationMetadataV1Marker::KEY.path(),
-                                WordBreakDataV1Marker::KEY.path(),
-                            ]
-                            .contains(&M::KEY.path())) =>
-                {
-                    return Some(candidate.into_locale().id)
+        match response {
+            Ok(req) => {
+                // `metadata.locale` returns None when the provider doesn't have a fallback mechanism,
+                // but supports the required locale. However, if the provider has a fallback mechanism,
+                // this will return `Some(locale)`, where the locale is the used locale after applying
+                // the fallback algorithm, even if the used locale is exactly the same as the required
+                // locale.
+                match req.metadata.locale {
+                    // TODO: ugly hack to accept locales that fallback to "und" in the collator/segmenter services
+                    Some(loc)
+                        if loc == candidate
+                            || (loc.is_empty()
+                                && [
+                                    CollationMetadataV1Marker::KEY.path(),
+                                    WordBreakDataV1Marker::KEY.path(),
+                                ]
+                                .contains(&M::KEY.path())) =>
+                    {
+                        return Some(candidate.into_locale().id)
+                    }
+                    None => return Some(candidate.into_locale().id),
+                    _ => {}
                 }
-                None => return Some(candidate.into_locale().id),
-                _ => {}
             }
+            Err(DataError {
+                kind: DataErrorKind::ExtraneousLocale,
+                ..
+            }) => {
+                // This is essentially the same hack as above but for singleton keys
+                return Some(candidate.into_locale().id);
+            }
+            Err(_) => {}
         }
 
         // b. Let pos be the character index of the last occurrence of "-" (U+002D) within candidate. If that character does not occur, return undefined.
@@ -244,6 +254,14 @@ pub(crate) fn best_locale_for_provider<M: KeyedDataMarker>(
     candidate: LanguageIdentifier,
     provider: &(impl DataProvider<M> + ?Sized),
 ) -> Option<LanguageIdentifier> {
+    // another hack to the list...
+    // This time is because markers like `WordBreakDataV1Marker` throw an error if they receive
+    // a request with a locale, because they don't really need it. In this case, we can
+    // check if the key is one of those kinds and return the candidate as it is.
+    if M::KEY.metadata().singleton {
+        return Some(candidate);
+    }
+
     let response = DataProvider::<M>::load(
         provider,
         DataRequest {
@@ -254,19 +272,8 @@ pub(crate) fn best_locale_for_provider<M: KeyedDataMarker>(
                 md
             },
         },
-    );
-    // another hack to the list...
-    // This time is because markers like `WordBreakDataV1Marker` throw an error if they receive
-    // a request with a locale, because they don't really need it. In this case, we can
-    // check if the key is one of those kinds and return the candidate as it is.
-    let response = match response {
-        Ok(response) => response,
-        Err(DataError {
-            kind: DataErrorKind::ExtraneousLocale,
-            ..
-        }) if M::KEY.metadata().singleton => return Some(candidate),
-        _ => return None,
-    };
+    )
+    .ok()?;
 
     if candidate == LanguageIdentifier::UND {
         return Some(LanguageIdentifier::UND);
