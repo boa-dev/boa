@@ -10,8 +10,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
-#![warn(missing_docs, clippy::dbg_macro)]
-#![deny(
+#![warn(
     // rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
     warnings,
     future_incompatible,
@@ -23,6 +22,7 @@
     unused,
 
     // rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
+    missing_docs,
     macro_use_extern_crate,
     meta_variable_misuse,
     missing_abi,
@@ -51,6 +51,10 @@
     rustdoc::invalid_rust_codeblocks,
     rustdoc::bare_urls,
 
+    // clippy allowed by default
+    clippy::dbg_macro,
+    clippy::undocumented_unsafe_blocks,
+
     // clippy categories https://doc.rust-lang.org/clippy/
     clippy::all,
     clippy::correctness,
@@ -60,7 +64,6 @@
     clippy::perf,
     clippy::pedantic,
     clippy::nursery,
-    clippy::undocumented_unsafe_blocks
 )]
 #![allow(
     clippy::module_name_repetitions,
