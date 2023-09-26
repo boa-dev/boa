@@ -365,7 +365,7 @@ dependencies = [
 
 [[package]]
 name = "boa_ast"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "arbitrary",
  "bitflags 2.3.3",
@@ -379,7 +379,7 @@ dependencies = [
 
 [[package]]
 name = "boa_cli"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "boa_ast",
  "boa_engine",
@@ -399,7 +399,7 @@ dependencies = [
 
 [[package]]
 name = "boa_engine"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "bitflags 2.3.3",
  "boa_ast",
@@ -458,7 +458,7 @@ dependencies = [
 
 [[package]]
 name = "boa_examples"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "boa_ast",
  "boa_engine",
@@ -472,7 +472,7 @@ dependencies = [
 
 [[package]]
 name = "boa_gc"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "boa_macros",
  "boa_profiler",
@@ -481,7 +481,7 @@ dependencies = [
 
 [[package]]
 name = "boa_icu_provider"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "icu_casemapping",
  "icu_collections",
@@ -498,7 +498,7 @@ dependencies = [
 
 [[package]]
 name = "boa_interner"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "arbitrary",
  "boa_gc",
@@ -514,7 +514,7 @@ dependencies = [
 
 [[package]]
 name = "boa_macros"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -524,7 +524,7 @@ dependencies = [
 
 [[package]]
 name = "boa_macros_tests"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "boa_engine",
  "boa_macros",
@@ -533,7 +533,7 @@ dependencies = [
 
 [[package]]
 name = "boa_parser"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "bitflags 2.3.3",
  "boa_ast",
@@ -553,7 +553,7 @@ dependencies = [
 
 [[package]]
 name = "boa_profiler"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "measureme",
  "once_cell",
@@ -562,7 +562,7 @@ dependencies = [
 
 [[package]]
 name = "boa_runtime"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -573,7 +573,7 @@ dependencies = [
 
 [[package]]
 name = "boa_tester"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "bitflags 2.3.3",
  "boa_engine",
@@ -596,7 +596,7 @@ dependencies = [
 
 [[package]]
 name = "boa_wasm"
-version = "0.17.1"
+version = "0.17.2"
 dependencies = [
  "boa_engine",
  "chrono",
