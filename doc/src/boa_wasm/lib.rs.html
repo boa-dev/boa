@@ -77,6 +77,9 @@
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An ECMAScript WASM implementation based on boa_engine.
 //!
 </span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../ABOUT.md&quot;</span>)]
@@ -85,8 +88,7 @@
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
-#![warn(missing_docs, clippy::dbg_macro)]
-#![deny(
+#![warn(
     <span class="comment">// rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
     </span>warnings,
     future_incompatible,
@@ -98,7 +100,8 @@
     unused,
 
     <span class="comment">// rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
-    </span>macro_use_extern_crate,
+    </span>missing_docs,
+    macro_use_extern_crate,
     meta_variable_misuse,
     missing_abi,
     missing_copy_implementations,
@@ -125,6 +128,9 @@
     rustdoc::invalid_codeblock_attributes,
     rustdoc::invalid_rust_codeblocks,
     rustdoc::bare_urls,
+
+    <span class="comment">// clippy allowed by default
+    </span>clippy::dbg_macro,
 
     <span class="comment">// clippy categories https://doc.rust-lang.org/clippy/
     </span>clippy::all,

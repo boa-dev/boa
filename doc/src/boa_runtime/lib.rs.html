@@ -316,6 +316,8 @@
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **boa_runtime** crate contains an example runtime and basic runtime features and
 //! functionality for the `boa_engine` crate for runtime implementors.
 //!
@@ -364,8 +366,7 @@
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
-#![warn(missing_docs, clippy::dbg_macro)]
-#![deny(
+#![warn(
     <span class="comment">// rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
     </span>warnings,
     future_incompatible,
@@ -377,7 +378,8 @@
     unused,
 
     <span class="comment">// rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
-    </span>macro_use_extern_crate,
+    </span>missing_docs,
+    macro_use_extern_crate,
     meta_variable_misuse,
     missing_abi,
     missing_copy_implementations,
@@ -405,6 +407,9 @@
     rustdoc::invalid_rust_codeblocks,
     rustdoc::bare_urls,
 
+    <span class="comment">// clippy allowed by default
+    </span>clippy::dbg_macro,
+
     <span class="comment">// clippy categories https://doc.rust-lang.org/clippy/
     </span>clippy::all,
     clippy::correctness,
@@ -414,7 +419,6 @@
     clippy::perf,
     clippy::pedantic,
     clippy::nursery,
-    clippy::undocumented_unsafe_blocks
 )]
 #![allow(
     clippy::module_name_repetitions,

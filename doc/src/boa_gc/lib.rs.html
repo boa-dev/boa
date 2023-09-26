@@ -579,6 +579,9 @@
 <a href="#579" id="579">579</a>
 <a href="#580" id="580">580</a>
 <a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_gc`** crate implements a garbage collector.
 //!
 //! # Crate Overview
@@ -591,8 +594,7 @@
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
-#![warn(missing_docs, clippy::dbg_macro)]
-#![deny(
+#![warn(
     <span class="comment">// rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
     </span>warnings,
     future_incompatible,
@@ -604,7 +606,8 @@
     unused,
 
     <span class="comment">// rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
-    </span>macro_use_extern_crate,
+    </span>missing_docs,
+    macro_use_extern_crate,
     meta_variable_misuse,
     missing_abi,
     missing_copy_implementations,
@@ -632,6 +635,10 @@
     rustdoc::invalid_rust_codeblocks,
     rustdoc::bare_urls,
 
+    <span class="comment">// clippy allowed by default
+    </span>clippy::dbg_macro,
+    clippy::undocumented_unsafe_blocks,
+
     <span class="comment">// clippy categories https://doc.rust-lang.org/clippy/
     </span>clippy::all,
     clippy::correctness,
@@ -641,7 +648,6 @@
     clippy::perf,
     clippy::pedantic,
     clippy::nursery,
-    clippy::undocumented_unsafe_blocks
 )]
 #![allow(
     clippy::module_name_repetitions,

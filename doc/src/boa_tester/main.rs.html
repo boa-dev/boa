@@ -1011,6 +1011,9 @@
 <a href="#1011" id="1011">1011</a>
 <a href="#1012" id="1012">1012</a>
 <a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
@@ -1022,8 +1025,7 @@
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]
 #![cfg_attr(not(test), deny(clippy::unwrap_used))]
-#![warn(missing_docs, clippy::dbg_macro)]
-#![deny(
+#![warn(
     <span class="comment">// rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
     </span>warnings,
     future_incompatible,
@@ -1035,7 +1037,8 @@
     unused,
 
     <span class="comment">// rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
-    </span>macro_use_extern_crate,
+    </span>missing_docs,
+    macro_use_extern_crate,
     meta_variable_misuse,
     missing_abi,
     missing_copy_implementations,
@@ -1062,6 +1065,9 @@
     rustdoc::invalid_codeblock_attributes,
     rustdoc::invalid_rust_codeblocks,
     rustdoc::bare_urls,
+
+    <span class="comment">// clippy allowed by default
+    </span>clippy::dbg_macro,
 
     <span class="comment">// clippy categories https://doc.rust-lang.org/clippy/
     </span>clippy::all,

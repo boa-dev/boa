@@ -472,6 +472,9 @@
 <a href="#472" id="472">472</a>
 <a href="#473" id="473">473</a>
 <a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -526,8 +529,7 @@
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
-#![warn(missing_docs, clippy::dbg_macro)]
-#![deny(
+#![warn(
     <span class="comment">// rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
     </span>warnings,
     future_incompatible,
@@ -539,7 +541,8 @@
     unused,
 
     <span class="comment">// rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
-    </span>macro_use_extern_crate,
+    </span>missing_docs,
+    macro_use_extern_crate,
     meta_variable_misuse,
     missing_abi,
     missing_copy_implementations,
@@ -566,6 +569,9 @@
     rustdoc::invalid_codeblock_attributes,
     rustdoc::invalid_rust_codeblocks,
     rustdoc::bare_urls,
+
+    <span class="comment">// clippy allowed by default
+    </span>clippy::dbg_macro,
 
     <span class="comment">// clippy categories https://doc.rust-lang.org/clippy/
     </span>clippy::all,

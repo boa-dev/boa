@@ -202,6 +202,9 @@
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The **`boa_profiler`** crate is a code profiler for Boa.
 //!
 //! # Crate Overview
@@ -217,8 +220,7 @@
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
-#![warn(missing_docs, clippy::dbg_macro)]
-#![deny(
+#![warn(
     <span class="comment">// rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
     </span>warnings,
     future_incompatible,
@@ -230,7 +232,8 @@
     unused,
 
     <span class="comment">// rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
-    </span>macro_use_extern_crate,
+    </span>missing_docs,
+    macro_use_extern_crate,
     meta_variable_misuse,
     missing_abi,
     missing_copy_implementations,
@@ -257,6 +260,9 @@
     rustdoc::invalid_codeblock_attributes,
     rustdoc::invalid_rust_codeblocks,
     rustdoc::bare_urls,
+
+    <span class="comment">// clippy allowed by default
+    </span>clippy::dbg_macro,
 
     <span class="comment">// clippy categories https://doc.rust-lang.org/clippy/
     </span>clippy::all,
