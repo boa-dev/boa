@@ -542,13 +542,16 @@ dependencies = [
  "boa_macros",
  "boa_profiler",
  "fast-float",
+ "icu_locid",
  "icu_properties",
  "icu_provider",
+ "icu_provider_macros",
  "num-bigint",
  "num-traits",
  "once_cell",
  "regress",
  "rustc-hash",
+ "tinystr",
 ]
 
 [[package]]
