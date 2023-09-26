@@ -570,26 +570,11 @@
 <a href="#570" id="570">570</a>
 <a href="#571" id="571">571</a>
 <a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
-<a href="#574" id="574">574</a>
-<a href="#575" id="575">575</a>
-<a href="#576" id="576">576</a>
-<a href="#577" id="577">577</a>
-<a href="#578" id="578">578</a>
-<a href="#579" id="579">579</a>
-<a href="#580" id="580">580</a>
-<a href="#581" id="581">581</a>
-<a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
-<a href="#584" id="584">584</a>
-<a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::{
-    provider::CollationMetadataV1Marker, AlternateHandling, CaseFirst, MaxVariable, Numeric,
+    provider::CollationMetadataV1Marker, AlternateHandling, CaseFirst, Collator <span class="kw">as </span>NativeCollator,
+    MaxVariable, Numeric,
 };
 
 <span class="kw">use </span>icu_locid::{
@@ -627,7 +612,8 @@
 <span class="kw">mod </span>options;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>options::<span class="kw-2">*</span>;
 
-<span class="kw">pub struct </span>Collator {
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Collator {
     locale: Locale,
     collation: Value,
     numeric: bool,
@@ -635,7 +621,7 @@
     usage: Usage,
     sensitivity: Sensitivity,
     ignore_punctuation: bool,
-    collator: icu_collator::Collator,
+    collator: NativeCollator,
     bound_compare: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
 }
 
@@ -650,22 +636,6 @@
     <span class="doccomment">/// Gets the inner [`icu_collator::Collator`] comparator.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>collator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu_collator::Collator {
         <span class="kw-2">&amp;</span><span class="self">self</span>.collator
-    }
-}
-
-<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Collator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;Collator&quot;</span>)
-            .field(<span class="string">&quot;locale&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.locale)
-            .field(<span class="string">&quot;collation&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.collation)
-            .field(<span class="string">&quot;numeric&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.numeric)
-            .field(<span class="string">&quot;case_first&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.case_first)
-            .field(<span class="string">&quot;usage&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.usage)
-            .field(<span class="string">&quot;sensitivity&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sensitivity)
-            .field(<span class="string">&quot;ignore_punctuation&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.ignore_punctuation)
-            .field(<span class="string">&quot;collator&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;ICUCollator&quot;</span>)
-            .field(<span class="string">&quot;bound_compare&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.bound_compare)
-            .finish()
     }
 }
 
@@ -934,10 +904,8 @@
             .then_some((AlternateHandling::Shifted, MaxVariable::Punctuation))
             .unzip();
 
-        <span class="kw">let </span>collator = context
-            .icu()
-            .provider()
-            .try_new_collator(<span class="kw-2">&amp;</span>collator_locale, {
+        <span class="kw">let </span>collator =
+            NativeCollator::try_new_unstable(<span class="kw-2">&amp;</span>context.icu().provider(), <span class="kw-2">&amp;</span>collator_locale, {
                 <span class="kw">let </span><span class="kw-2">mut </span>options = icu_collator::CollatorOptions::new();
                 options.strength = strength;
                 options.case_level = case_level;

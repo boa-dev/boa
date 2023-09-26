@@ -2806,24 +2806,6 @@
 <a href="#2806" id="2806">2806</a>
 <a href="#2807" id="2807">2807</a>
 <a href="#2808" id="2808">2808</a>
-<a href="#2809" id="2809">2809</a>
-<a href="#2810" id="2810">2810</a>
-<a href="#2811" id="2811">2811</a>
-<a href="#2812" id="2812">2812</a>
-<a href="#2813" id="2813">2813</a>
-<a href="#2814" id="2814">2814</a>
-<a href="#2815" id="2815">2815</a>
-<a href="#2816" id="2816">2816</a>
-<a href="#2817" id="2817">2817</a>
-<a href="#2818" id="2818">2818</a>
-<a href="#2819" id="2819">2819</a>
-<a href="#2820" id="2820">2820</a>
-<a href="#2821" id="2821">2821</a>
-<a href="#2822" id="2822">2822</a>
-<a href="#2823" id="2823">2823</a>
-<a href="#2824" id="2824">2824</a>
-<a href="#2825" id="2825">2825</a>
-<a href="#2826" id="2826">2826</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2973,7 +2955,7 @@
             .method(<span class="self">Self</span>::at, <span class="string">&quot;at&quot;</span>, <span class="number">1</span>);
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
-        </span>{
+        </span><span class="kw">let </span>builder = {
             builder
                 .property(
                     <span class="macro">utf16!</span>(<span class="string">&quot;trimLeft&quot;</span>),
@@ -2999,11 +2981,9 @@
                 .method(<span class="self">Self</span>::strike, <span class="string">&quot;strike&quot;</span>, <span class="number">0</span>)
                 .method(<span class="self">Self</span>::sub, <span class="string">&quot;sub&quot;</span>, <span class="number">0</span>)
                 .method(<span class="self">Self</span>::sup, <span class="string">&quot;sup&quot;</span>, <span class="number">0</span>)
-                .build();
-        }
+        };
 
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;annex-b&quot;</span>))]
-        </span>builder.build();
+        builder.build();
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
@@ -4568,7 +4548,7 @@
             <span class="kw">use </span><span class="kw">super</span>::intl::locale::{
                 best_available_locale, canonicalize_locale_list, default_locale,
             };
-            <span class="kw">use </span>icu_casemapping::{provider::CaseMappingV1Marker, CaseMapping};
+            <span class="kw">use </span>icu_casemap::provider::CaseMapV1Marker;
             <span class="kw">use </span>icu_locid::LanguageIdentifier;
 
             <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).
@@ -4596,13 +4576,10 @@
             // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode Character Database contains language sensitive case mappings. Implementations may add additional language tags if they support case mapping for additional locales.
             // 6. Let locale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
             // 7. If locale is undefined, set locale to &quot;und&quot;.
-            </span><span class="kw">let </span>lang =
-                best_available_locale::&lt;CaseMappingV1Marker&gt;(lang, <span class="kw-2">&amp;</span>context.icu().provider())
-                    .unwrap_or(LanguageIdentifier::UND);
+            </span><span class="kw">let </span>lang = best_available_locale::&lt;CaseMapV1Marker&gt;(lang, <span class="kw-2">&amp;</span>context.icu().provider())
+                .unwrap_or(LanguageIdentifier::UND);
 
-            <span class="kw">let </span>casemapper =
-                CaseMapping::try_new_with_locale(<span class="kw-2">&amp;</span>context.icu().provider(), <span class="kw-2">&amp;</span>lang.into())
-                    .map_err(|err| JsNativeError::typ().with_message(err.to_string()))<span class="question-mark">?</span>;
+            <span class="kw">let </span>casemapper = context.icu().case_mapper();
 
             <span class="comment">// 8. Let codePoints be StringToCodePoints(S).
             </span><span class="kw">let </span>result = string.map_valid_segments(|segment| {
@@ -4610,11 +4587,11 @@
                     <span class="comment">// 10. Else,
                     //     a. Assert: targetCase is upper.
                     //     b. Let newCodePoints be a List whose elements are the result of an uppercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    </span>casemapper.to_full_uppercase(<span class="kw-2">&amp;</span>segment)
+                    </span>casemapper.uppercase_to_string(<span class="kw-2">&amp;</span>segment, <span class="kw-2">&amp;</span>lang)
                 } <span class="kw">else </span>{
                     <span class="comment">// 9. If targetCase is lower, then
                     //     a. Let newCodePoints be a List whose elements are the result of a lowercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    </span>casemapper.to_full_lowercase(<span class="kw-2">&amp;</span>segment)
+                    </span>casemapper.lowercase_to_string(<span class="kw-2">&amp;</span>segment, <span class="kw-2">&amp;</span>lang)
                 }
             });
 
@@ -4972,26 +4949,13 @@
         <span class="kw">let </span>normalizers = {
             <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
             </span>{
-                <span class="kw">use </span>once_cell::sync::Lazy;
-                <span class="kw">static </span>NORMALIZERS: Lazy&lt;StringNormalizers&gt; = Lazy::new(|| {
-                    <span class="kw">let </span>provider = <span class="kw-2">&amp;</span>boa_icu_provider::minimal();
-                    <span class="kw">let </span>nfc = ComposingNormalizer::try_new_nfc_unstable(provider)
-                        .expect(<span class="string">&quot;minimal data should always be updated&quot;</span>);
-                    <span class="kw">let </span>nfkc = ComposingNormalizer::try_new_nfkc_unstable(provider)
-                        .expect(<span class="string">&quot;minimal data should always be updated&quot;</span>);
-                    <span class="kw">let </span>nfd = DecomposingNormalizer::try_new_nfd_unstable(provider)
-                        .expect(<span class="string">&quot;minimal data should always be updated&quot;</span>);
-                    <span class="kw">let </span>nfkd = DecomposingNormalizer::try_new_nfkd_unstable(provider)
-                        .expect(<span class="string">&quot;minimal data should always be updated&quot;</span>);
-
-                    StringNormalizers {
-                        nfc,
-                        nfkc,
-                        nfd,
-                        nfkd,
-                    }
-                });
-                <span class="kw-2">&amp;*</span>NORMALIZERS
+                <span class="kw">const </span>NORMALIZERS: StringNormalizers = StringNormalizers {
+                    nfc: ComposingNormalizer::new_nfc(),
+                    nfkc: ComposingNormalizer::new_nfkc(),
+                    nfd: DecomposingNormalizer::new_nfd(),
+                    nfkd: DecomposingNormalizer::new_nfkd(),
+                };
+                <span class="kw-2">&amp;</span>NORMALIZERS
             }
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>{

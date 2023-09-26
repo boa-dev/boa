@@ -505,6 +505,12 @@
 <a href="#505" id="505">505</a>
 <a href="#506" id="506">506</a>
 <a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Write;
 
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -534,22 +540,13 @@
 
 <span class="kw">mod </span>options;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>options::<span class="kw-2">*</span>;
-<span class="kw">pub struct </span>ListFormat {
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ListFormat {
     locale: Locale,
     typ: ListFormatType,
     style: ListLength,
-    formatter: ListFormatter,
-}
-
-<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>ListFormat {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;ListFormat&quot;</span>)
-            .field(<span class="string">&quot;locale&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.locale)
-            .field(<span class="string">&quot;typ&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.typ)
-            .field(<span class="string">&quot;style&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.style)
-            .field(<span class="string">&quot;formatter&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;ListFormatter&quot;</span>)
-            .finish()
-    }
+    native: ListFormatter,
 }
 
 <span class="kw">impl </span>Service <span class="kw">for </span>ListFormat {
@@ -653,22 +650,37 @@
         // 16. Let dataLocaleData be localeData.[[&lt;dataLocale&gt;]].
         // 17. Let dataLocaleTypes be dataLocaleData.[[&lt;type&gt;]].
         // 18. Set listFormat.[[Templates]] to dataLocaleTypes.[[&lt;style&gt;]].
+        </span><span class="kw">let </span>data_locale = DataLocale::from(<span class="kw-2">&amp;</span>locale);
+        <span class="kw">let </span>formatter = <span class="kw">match </span>typ {
+            ListFormatType::Conjunction =&gt; ListFormatter::try_new_and_with_length_unstable(
+                <span class="kw-2">&amp;</span>context.icu().provider(),
+                <span class="kw-2">&amp;</span>data_locale,
+                style,
+            ),
+            ListFormatType::Disjunction =&gt; ListFormatter::try_new_or_with_length_unstable(
+                <span class="kw-2">&amp;</span>context.icu().provider(),
+                <span class="kw-2">&amp;</span>data_locale,
+                style,
+            ),
+            ListFormatType::Unit =&gt; ListFormatter::try_new_unit_with_length_unstable(
+                <span class="kw-2">&amp;</span>context.icu().provider(),
+                <span class="kw-2">&amp;</span>data_locale,
+                style,
+            ),
+        }
+        .map_err(|e| JsNativeError::typ().with_message(e.to_string()))<span class="question-mark">?</span>;
 
-        // 2. Let listFormat be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%ListFormat.prototype%&quot;, « [[InitializedListFormat]], [[Locale]], [[Type]], [[Style]], [[Templates]] »).
+        <span class="comment">// 2. Let listFormat be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%ListFormat.prototype%&quot;, « [[InitializedListFormat]], [[Locale]], [[Type]], [[Style]], [[Templates]] »).
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::list_format, context)<span class="question-mark">?</span>;
         <span class="kw">let </span>list_format = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
             ObjectData::list_format(<span class="self">Self </span>{
-                formatter: context
-                    .icu()
-                    .provider()
-                    .try_new_list_formatter(<span class="kw-2">&amp;</span>DataLocale::from(<span class="kw-2">&amp;</span>locale), typ, style)
-                    .map_err(|e| JsNativeError::typ().with_message(e.to_string()))<span class="question-mark">?</span>,
                 locale,
                 typ,
                 style,
+                native: formatter,
             }),
         );
 
@@ -732,7 +744,7 @@
 
         <span class="comment">// 4. Return ! FormatList(lf, stringList).
         </span><span class="prelude-val">Ok</span>(lf
-            .formatter
+            .native
             .format_to_string(strings.into_iter().map(|s| s.to_std_string_escaped()))
             .into())
     }
@@ -856,7 +868,7 @@
 
         // 1. Let parts be ! CreatePartsFromList(listFormat, list).
         </span><span class="kw">let </span><span class="kw-2">mut </span>parts = PartsCollector(Vec::new());
-        lf.formatter
+        lf.native
             .format(strings)
             .write_to_parts(<span class="kw-2">&amp;mut </span>parts)
             .map_err(|e| JsNativeError::typ().with_message(e.to_string()))<span class="question-mark">?</span>;

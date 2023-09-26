@@ -184,7 +184,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
-</span><span class="attr">#[derive(Debug, Clone, Finalize, Trace)]
+</span><span class="attr">#[derive(Debug, Finalize, Trace)]
 </span><span class="kw">pub struct </span>MapIterator {
     iterated_map: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     map_next_index: usize,

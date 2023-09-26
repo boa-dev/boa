@@ -166,16 +166,24 @@
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
 <a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Intl` object.
 //!
-//! `Intl` is a built-in object that has properties and methods for i18n. It&#39;s not a function object.
+//! The `Intl` namespace object contains several constructors as well as functionality common to the
+//! internationalization constructors and other language sensitive functions. Collectively, they
+//! comprise the ECMAScript Internationalization API, which provides language sensitive string
+//! comparison, number formatting, date and time formatting, and more.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
 //!
 //! [spec]: https://tc39.es/ecma402/#intl-object
-
-</span><span class="attr">#![allow(clippy::string_lit_as_bytes)]
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl
 
 </span><span class="kw">use crate</span>::{
     builtins::{Array, BuiltInBuilder, BuiltInObject, IntrinsicObject},

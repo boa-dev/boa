@@ -629,6 +629,31 @@
 <a href="#629" id="629">629</a>
 <a href="#630" id="630">630</a>
 <a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         intl::{
@@ -651,7 +676,10 @@
     LanguageIdentifier, Locale,
 };
 <span class="kw">use </span>icu_locid_transform::LocaleCanonicalizer;
-<span class="kw">use </span>icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata, KeyedDataMarker};
+<span class="kw">use </span>icu_provider::{
+    DataError, DataErrorKind, DataLocale, DataProvider, DataRequest, DataRequestMetadata,
+    KeyedDataMarker,
+};
 <span class="kw">use </span>icu_segmenter::provider::WordBreakDataV1Marker;
 <span class="kw">use </span>indexmap::IndexSet;
 
@@ -815,28 +843,38 @@
             },
         );
 
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(req) = response {
-            <span class="comment">// `metadata.locale` returns None when the provider doesn&#39;t have a fallback mechanism,
-            // but supports the required locale. However, if the provider has a fallback mechanism,
-            // this will return `Some(locale)`, where the locale is the used locale after applying
-            // the fallback algorithm, even if the used locale is exactly the same as the required
-            // locale.
-            </span><span class="kw">match </span>req.metadata.locale {
-                <span class="comment">// TODO: ugly hack to accept locales that fallback to &quot;und&quot; in the collator/segmenter services
-                </span><span class="prelude-val">Some</span>(loc)
-                    <span class="kw">if </span>loc == candidate
-                        || (loc.is_empty()
-                            &amp;&amp; [
-                                CollationMetadataV1Marker::KEY.path(),
-                                WordBreakDataV1Marker::KEY.path(),
-                            ]
-                            .contains(<span class="kw-2">&amp;</span>M::KEY.path())) =&gt;
-                {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(candidate.into_locale().id)
+        <span class="kw">match </span>response {
+            <span class="prelude-val">Ok</span>(req) =&gt; {
+                <span class="comment">// `metadata.locale` returns None when the provider doesn&#39;t have a fallback mechanism,
+                // but supports the required locale. However, if the provider has a fallback mechanism,
+                // this will return `Some(locale)`, where the locale is the used locale after applying
+                // the fallback algorithm, even if the used locale is exactly the same as the required
+                // locale.
+                </span><span class="kw">match </span>req.metadata.locale {
+                    <span class="comment">// TODO: ugly hack to accept locales that fallback to &quot;und&quot; in the collator/segmenter services
+                    </span><span class="prelude-val">Some</span>(loc)
+                        <span class="kw">if </span>loc == candidate
+                            || (loc.is_empty()
+                                &amp;&amp; [
+                                    CollationMetadataV1Marker::KEY.path(),
+                                    WordBreakDataV1Marker::KEY.path(),
+                                ]
+                                .contains(<span class="kw-2">&amp;</span>M::KEY.path())) =&gt;
+                    {
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(candidate.into_locale().id)
+                    }
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(candidate.into_locale().id),
+                    <span class="kw">_ </span>=&gt; {}
                 }
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(candidate.into_locale().id),
-                <span class="kw">_ </span>=&gt; {}
             }
+            <span class="prelude-val">Err</span>(DataError {
+                kind: DataErrorKind::ExtraneousLocale,
+                ..
+            }) =&gt; {
+                <span class="comment">// This is essentially the same hack as above but for singleton keys
+                </span><span class="kw">return </span><span class="prelude-val">Some</span>(candidate.into_locale().id);
+            }
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {}
         }
 
         <span class="comment">// b. Let pos be the character index of the last occurrence of &quot;-&quot; (U+002D) within candidate. If that character does not occur, return undefined.
@@ -872,11 +910,23 @@
     candidate: LanguageIdentifier,
     provider: <span class="kw-2">&amp;</span>(<span class="kw">impl </span>DataProvider&lt;M&gt; + <span class="question-mark">?</span>Sized),
 ) -&gt; <span class="prelude-ty">Option</span>&lt;LanguageIdentifier&gt; {
+    <span class="comment">// another hack to the list...
+    // This time is because markers like `WordBreakDataV1Marker` throw an error if they receive
+    // a request with a locale, because they don&#39;t really need it. In this case, we can
+    // check if the key is one of those kinds and return the candidate as it is.
+    </span><span class="kw">if </span>M::KEY.metadata().singleton {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(candidate);
+    }
+
     <span class="kw">let </span>response = DataProvider::&lt;M&gt;::load(
         provider,
         DataRequest {
             locale: <span class="kw-2">&amp;</span>DataLocale::from(<span class="kw-2">&amp;</span>candidate),
-            metadata: DataRequestMetadata::default(),
+            metadata: {
+                <span class="kw">let </span><span class="kw-2">mut </span>md = DataRequestMetadata::default();
+                md.silent = <span class="bool-val">true</span>;
+                md
+            },
         },
     )
     .ok()<span class="question-mark">?</span>;

@@ -104,33 +104,6 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_icu_provider`** exports the default data provider used by its `Intl` implementation.
 //!
 //! # Crate Overview
@@ -216,20 +189,10 @@
     std::path::PathBuf::from(<span class="macro">std::env!</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>)).join(<span class="string">&quot;data&quot;</span>)
 }
 
-<span class="doccomment">/// Gets a minimal data provider that is used when the `intl` feature of `boa_engine` is
-/// disabled.
-</span><span class="comment">// Could use `LocaleFallbackProvider` in the future, which would disallow the `const`.
-</span><span class="attr">#[must_use]
-#[allow(clippy::missing_const_for_fn)]
-</span><span class="kw">pub fn </span>minimal() -&gt; MinimalDataProvider {
-    MinimalDataProvider
-}
-
 <span class="doccomment">/// Gets the default data provider stored as a [`BufferProvider`].
 ///
 /// [`BufferProvider`]: icu_provider::BufferProvider
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;full&quot;</span>)]
-#[must_use]
+</span><span class="attr">#[must_use]
 </span><span class="kw">pub fn </span>buffer() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">impl </span>icu_provider::BufferProvider {
     <span class="kw">use </span>icu_provider_adapters::fallback::LocaleFallbackProvider;
     <span class="kw">use </span>icu_provider_blob::BlobDataProvider;
@@ -246,22 +209,5 @@
     });
 
     <span class="kw-2">&amp;*</span>PROVIDER
-}
-
-<span class="attr">#[doc(hidden)]
-#[non_exhaustive]
-#[derive(Clone, Copy, Debug)]
-</span><span class="kw">pub struct </span>MinimalDataProvider;
-
-<span class="attr">#[allow(
-    unreachable_pub,
-    clippy::unreadable_literal,
-    clippy::unnecessary_lazy_evaluations,
-    clippy::module_name_repetitions,
-    rustdoc::private_doc_tests
-)]
-</span><span class="kw">mod </span>baked {
-    <span class="macro">include!</span>(<span class="string">&quot;../data/min/mod.rs&quot;</span>);
-    <span class="macro">impl_data_provider!</span>(<span class="kw">super</span>::MinimalDataProvider);
 }
 </code></pre></div></section></main></body></html>

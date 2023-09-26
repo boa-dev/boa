@@ -323,12 +323,21 @@
 <a href="#323" id="323">323</a>
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::Range;
 
 <span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_locid::Locale;
-<span class="kw">use </span>icu_segmenter::provider::WordBreakDataV1Marker;
+<span class="kw">use </span>icu_segmenter::{
+    provider::WordBreakDataV1Marker, GraphemeClusterSegmenter, SentenceSegmenter, WordSegmenter,
+};
 
 <span class="kw">use crate</span>::{
     builtins::{
@@ -366,9 +375,9 @@
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>NativeSegmenter {
-    Grapheme(Box&lt;icu_segmenter::GraphemeClusterSegmenter&gt;),
-    Word(Box&lt;icu_segmenter::WordSegmenter&gt;),
-    Sentence(Box&lt;icu_segmenter::SentenceSegmenter&gt;),
+    Grapheme(Box&lt;GraphemeClusterSegmenter&gt;),
+    Word(Box&lt;WordSegmenter&gt;),
+    Sentence(Box&lt;SentenceSegmenter&gt;),
 }
 
 <span class="kw">impl </span>NativeSegmenter {
@@ -474,16 +483,21 @@
                 </span>.unwrap_or_default();
         <span class="comment">// 13. Set segmenter.[[SegmenterGranularity]] to granularity.
 
-        </span><span class="kw">let </span>kind = context
-            .icu()
-            .provider()
-            .try_new_segmenter(granularity)
-            .map_err(|err| JsNativeError::typ().with_message(err.to_string()))<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>native = <span class="kw">match </span>granularity {
+            Granularity::Grapheme =&gt; {
+                GraphemeClusterSegmenter::try_new_unstable(<span class="kw-2">&amp;</span>context.icu().provider())
+                    .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
+            }
 
-        <span class="kw">let </span>segmenter = <span class="self">Self </span>{
-            locale,
-            native: kind,
-        };
+            Granularity::Word =&gt; WordSegmenter::try_new_auto_unstable(<span class="kw-2">&amp;</span>context.icu().provider())
+                .map(|s| NativeSegmenter::Word(Box::new(s))),
+
+            Granularity::Sentence =&gt; SentenceSegmenter::try_new_unstable(<span class="kw-2">&amp;</span>context.icu().provider())
+                .map(|s| NativeSegmenter::Sentence(Box::new(s))),
+        }
+        .map_err(|err| JsNativeError::typ().with_message(err.to_string()))<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>segmenter = <span class="self">Self </span>{ locale, native };
 
         <span class="comment">// 2. Let internalSlotsList be « [[InitializedSegmenter]], [[Locale]], [[SegmenterGranularity]] ».
         // 3. Let segmenter be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Segmenter.prototype%&quot;, internalSlotsList).
