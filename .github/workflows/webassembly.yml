@@ -27,6 +27,7 @@ jobs:
     timeout-minutes: 60
     env:
       WASM_PACK_PATH: ~/.cargo/bin/wasm-pack
+      RUSTFLAGS: -D warnings
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7

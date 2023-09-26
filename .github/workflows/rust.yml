@@ -70,6 +70,8 @@ jobs:
     name: Misc
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      RUSTFLAGS: -D warnings
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
