@@ -75,7 +75,6 @@
 #![allow(elided_lifetimes_in_paths)]
 #![cfg_attr(not(feature = "bin"), no_std)]
 
-use icu_provider_adapters::fallback::LocaleFallbackProvider;
 use icu_provider_blob::BlobDataProvider;
 use once_cell::sync::Lazy;
 
@@ -92,14 +91,12 @@ pub fn data_root() -> std::path::PathBuf {
 #[must_use]
 #[allow(clippy::missing_const_for_fn)]
 pub fn minimal() -> &'static impl icu_provider::BufferProvider {
-    static PROVIDER: Lazy<LocaleFallbackProvider<BlobDataProvider>> = Lazy::new(|| {
-        let blob = BlobDataProvider::try_new_from_static_blob(include_bytes!(concat!(
+    static PROVIDER: Lazy<BlobDataProvider> = Lazy::new(|| {
+        BlobDataProvider::try_new_from_static_blob(include_bytes!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/data/normalization.postcard"
         )))
-        .expect("The statically compiled data file should be valid.");
-        LocaleFallbackProvider::try_new_with_buffer_provider(blob)
-            .expect("The statically compiled data file should be valid.")
+        .expect("The statically compiled data file should be valid.")
     });
 
     &*PROVIDER
@@ -111,6 +108,7 @@ pub fn minimal() -> &'static impl icu_provider::BufferProvider {
 #[cfg(feature = "full")]
 #[must_use]
 pub fn buffer() -> &'static impl icu_provider::BufferProvider {
+    use icu_provider_adapters::fallback::LocaleFallbackProvider;
     static PROVIDER: Lazy<LocaleFallbackProvider<BlobDataProvider>> = Lazy::new(|| {
         let blob = BlobDataProvider::try_new_from_static_blob(include_bytes!(concat!(
             env!("CARGO_MANIFEST_DIR"),
