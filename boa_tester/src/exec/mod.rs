@@ -17,7 +17,7 @@ use boa_engine::{
     Context, JsArgs, JsError, JsNativeErrorKind, JsValue, Source,
 };
 use colored::Colorize;
-use fxhash::FxHashSet;
+use rustc_hash::FxHashSet;
 use rayon::prelude::*;
 use std::{cell::RefCell, eprintln, rc::Rc};
 

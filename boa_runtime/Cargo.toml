@@ -10,12 +10,11 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
-
 [dependencies]
 boa_engine.workspace = true
 boa_gc.workspace = true
-rustc-hash = "1.1.0"
+rustc-hash = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
-indoc = "2.0.4"
-textwrap = "0.16.0"
+indoc.workspace = true
+textwrap.workspace = true

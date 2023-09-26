@@ -11,9 +11,9 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-profiler = ["measureme", "once_cell", "rustc-hash"]
+profiler = ["dep:measureme", "dep:once_cell", "dep:rustc-hash"]
 
 [dependencies]
 measureme = { version = "10.1.1", optional = true }
-once_cell = { version = "1.18.0", optional = true }
-rustc-hash = { version = "1.1.0", optional = true }
+once_cell = { workspace = true, optional = true, features = ["std"] }
+rustc-hash = { workspace = true, optional = true }

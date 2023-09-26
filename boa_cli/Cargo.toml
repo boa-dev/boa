@@ -19,18 +19,18 @@ boa_gc.workspace = true
 boa_interner.workspace = true
 boa_runtime.workspace = true
 rustyline = { version = "12.0.0", features = ["derive"]}
-clap = { version = "4.4.5", features = ["derive"] }
-serde_json = "1.0.107"
-colored = "2.0.4"
-regex = "1.9.5"
-phf = { version = "0.11.2", features = ["macros"] }
-pollster = "0.3.0"
+clap = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+colored.workspace = true
+regex.workspace = true
+phf = { workspace = true, features = ["macros"] }
+pollster.workspace = true
 
 [features]
 default = ["boa_engine/annex-b", "boa_engine/intl"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
-jemallocator = "0.5.4"
+jemallocator.workspace = true
 
 [[bin]]
 name = "boa"
