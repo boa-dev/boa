@@ -16,6 +16,16 @@ pub(crate) struct ObjectTemplate {
     shape: SharedShape,
 }
 
+impl crate::snapshot::Serialize for ObjectTemplate {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.shape.serialize(s)?;
+        Ok(())
+    }
+}
+
 impl ObjectTemplate {
     /// Create a new [`ObjectTemplate`]
     pub(crate) fn new(shape: &SharedShape) -> Self {

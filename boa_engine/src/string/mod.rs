@@ -176,7 +176,7 @@ impl CodePoint {
 
 /// The raw representation of a [`JsString`] in the heap.
 #[repr(C)]
-struct RawJsString {
+pub(crate) struct RawJsString {
     /// The UTF-16 length.
     len: usize,
 
@@ -206,7 +206,37 @@ const DATA_OFFSET: usize = std::mem::size_of::<RawJsString>();
 /// <code>\[u16\]</code>'s methods.
 #[derive(Finalize)]
 pub struct JsString {
-    ptr: Tagged<RawJsString>,
+    pub(crate) ptr: Tagged<RawJsString>,
+}
+
+impl crate::snapshot::Serialize for JsString {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        let addr = self.ptr.addr();
+        s.reference_or(addr, |s| {
+            s.write_bool(self.is_static())?;
+            if !self.is_static() {
+                s.write_usize(self.len())?;
+                for elem in self.as_slice() {
+                    s.write_u16(*elem)?;
+                }
+            } else {
+                s.write_usize(addr)?;
+            }
+
+            Ok(())
+        })
+    }
+}
+
+impl crate::snapshot::Deserialize for JsString {
+    fn deserialize(
+        _d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> crate::snapshot::SnapshotResult<Self> {
+        todo!()
+    }
 }
 
 // JsString should always be pointer sized.
@@ -617,6 +647,10 @@ impl JsString {
             // Safety: `allocate_inner` guarantees `ptr` is a valid heap pointer.
             ptr: Tagged::from_non_null(ptr),
         }
+    }
+
+    pub(crate) fn is_static(&self) -> bool {
+        self.ptr.is_tagged()
     }
 }
 

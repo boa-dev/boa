@@ -16,6 +16,16 @@ pub struct JsFunction {
     inner: JsObject,
 }
 
+impl crate::snapshot::Serialize for JsFunction {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.inner.serialize(s)?;
+        Ok(())
+    }
+}
+
 impl JsFunction {
     /// Creates a new `JsFunction` from an object, without checking if the object is callable.
     pub(crate) fn from_object_unchecked(object: JsObject) -> Self {

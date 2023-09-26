@@ -58,6 +58,7 @@ static TWO_E_63: Lazy<BigInt> = Lazy::new(|| {
 
 /// A Javascript value
 #[derive(Finalize, Debug, Clone)]
+#[repr(u8)]
 pub enum JsValue {
     /// `null` - A null value, for when a value doesn't exist.
     Null,
@@ -77,6 +78,35 @@ pub enum JsValue {
     Object(JsObject),
     /// `Symbol` - A Symbol Primitive type.
     Symbol(JsSymbol),
+}
+
+impl JsValue {
+    fn discriminant(&self) -> u8 {
+        // SAFETY: Because `Self` is marked `repr(u8)`, its layout is a `repr(C)` `union`
+        // between `repr(C)` structs, each of which has the `u8` discriminant as its first
+        // field, so we can read the discriminant without offsetting the pointer.
+        unsafe { *<*const _>::from(self).cast::<u8>() }
+    }
+}
+
+impl crate::snapshot::Serialize for JsValue {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        let discriminant = self.discriminant();
+        s.write_u8(discriminant)?;
+        match self {
+            JsValue::Null | JsValue::Undefined => Ok(()),
+            JsValue::Boolean(value) => s.write_bool(*value),
+            JsValue::String(string) => string.serialize(s),
+            JsValue::Rational(rational) => s.write_f64(*rational),
+            JsValue::Integer(integer) => s.write_i32(*integer),
+            JsValue::BigInt(bigint) => bigint.serialize(s),
+            JsValue::Object(object) => object.serialize(s),
+            JsValue::Symbol(symbol) => symbol.serialize(s),
+        }
+    }
 }
 
 unsafe impl Trace for JsValue {

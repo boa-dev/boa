@@ -25,6 +25,27 @@ pub struct Realm {
     inner: Gc<Inner>,
 }
 
+impl crate::snapshot::Serialize for Realm {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.inner.serialize(s)?;
+        Ok(())
+    }
+}
+
+impl crate::snapshot::Deserialize for Realm {
+    fn deserialize(
+        d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> Result<Self, crate::snapshot::SnapshotError> {
+        let inner = Inner::deserialize(d)?;
+        Ok(Realm {
+            inner: Gc::new(inner),
+        })
+    }
+}
+
 impl Eq for Realm {}
 
 impl PartialEq for Realm {
@@ -52,6 +73,30 @@ struct Inner {
     global_this: JsObject,
     template_map: GcRefCell<FxHashMap<u64, JsObject>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
+}
+
+impl crate::snapshot::Serialize for Inner {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.intrinsics.serialize(s)?;
+        self.global_object.serialize(s)?;
+        self.global_this.serialize(s)?;
+        self.template_map.borrow().serialize(s)?;
+        Ok(())
+    }
+}
+
+impl crate::snapshot::Deserialize for Inner {
+    fn deserialize(
+        _d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> Result<Self, crate::snapshot::SnapshotError> {
+        // let intrinsics = Intrinsics::deserialize(d)?;
+
+        // Ok(Inner::)
+        todo!()
+    }
 }
 
 impl Realm {

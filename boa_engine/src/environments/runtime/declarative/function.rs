@@ -10,6 +10,17 @@ pub(crate) struct FunctionEnvironment {
     slots: FunctionSlots,
 }
 
+impl crate::snapshot::Serialize for FunctionEnvironment {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.inner.serialize(s)?;
+        self.slots.serialize(s)?;
+        Ok(())
+    }
+}
+
 impl FunctionEnvironment {
     /// Creates a new `FunctionEnvironment`.
     pub(crate) fn new(bindings: u32, poisoned: bool, with: bool, slots: FunctionSlots) -> Self {
@@ -160,6 +171,22 @@ pub(crate) enum ThisBindingStatus {
     Initialized(JsValue),
 }
 
+impl crate::snapshot::Serialize for ThisBindingStatus {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        match self {
+            ThisBindingStatus::Lexical => b'L'.serialize(s),
+            ThisBindingStatus::Uninitialized => b'U'.serialize(s),
+            ThisBindingStatus::Initialized(v) => {
+                b'I'.serialize(s)?;
+                v.serialize(s)
+            }
+        }
+    }
+}
+
 unsafe impl Trace for ThisBindingStatus {
     custom_trace!(this, {
         match this {
@@ -180,6 +207,18 @@ pub(crate) struct FunctionSlots {
 
     /// The `[[NewTarget]]` internal slot.
     new_target: Option<JsObject>,
+}
+
+impl crate::snapshot::Serialize for FunctionSlots {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.this.borrow().serialize(s)?;
+        self.function_object.serialize(s)?;
+        self.new_target.serialize(s)?;
+        Ok(())
+    }
 }
 
 impl FunctionSlots {

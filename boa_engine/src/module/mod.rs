@@ -269,6 +269,16 @@ pub struct Module {
     inner: Gc<Inner>,
 }
 
+impl crate::snapshot::Serialize for Module {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.inner.serialize(s)?;
+        Ok(())
+    }
+}
+
 impl std::fmt::Debug for Module {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Module")
@@ -290,6 +300,20 @@ struct Inner {
     host_defined: (),
 }
 
+impl crate::snapshot::Serialize for Inner {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.realm.serialize(s)?;
+        self.environment.borrow().serialize(s)?;
+        self.namespace.borrow().serialize(s)?;
+        self.kind.serialize(s)?;
+        self.host_defined.serialize(s)?;
+        Ok(())
+    }
+}
+
 /// The kind of a [`Module`].
 #[derive(Debug, Trace, Finalize)]
 pub(crate) enum ModuleKind {
@@ -298,6 +322,24 @@ pub(crate) enum ModuleKind {
     /// A [**Synthetic Module Record**](https://tc39.es/proposal-json-modules/#sec-synthetic-module-records)
     #[allow(unused)]
     Synthetic,
+}
+
+impl crate::snapshot::Serialize for ModuleKind {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        match self {
+            ModuleKind::SourceText(v) => {
+                s.write_u8(b'S')?;
+                v.serialize(s)?;
+            }
+            ModuleKind::Synthetic => {
+                s.write_u8(b'C')?;
+            }
+        }
+        Ok(())
+    }
 }
 
 /// Return value of the [`Module::resolve_export`] operation.

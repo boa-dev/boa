@@ -226,6 +226,18 @@ pub struct PropertyMap {
     pub(crate) storage: ObjectStorage,
 }
 
+impl crate::snapshot::Serialize for PropertyMap {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        // FIXME: indexed properties.
+        self.shape.serialize(s)?;
+        self.storage.serialize(s)?;
+        Ok(())
+    }
+}
+
 impl PropertyMap {
     /// Create a new [`PropertyMap`].
     #[must_use]

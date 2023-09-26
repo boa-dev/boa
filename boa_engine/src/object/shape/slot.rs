@@ -13,6 +13,16 @@ bitflags! {
     }
 }
 
+impl crate::snapshot::Serialize for SlotAttributes {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.bits().serialize(s)?;
+        Ok(())
+    }
+}
+
 impl SlotAttributes {
     pub(crate) const fn is_accessor_descriptor(self) -> bool {
         self.contains(Self::GET) || self.contains(Self::SET)
@@ -46,6 +56,17 @@ impl SlotAttributes {
 pub(crate) struct Slot {
     pub(crate) index: SlotIndex,
     pub(crate) attributes: SlotAttributes,
+}
+
+impl crate::snapshot::Serialize for Slot {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.index.serialize(s)?;
+        self.attributes.serialize(s)?;
+        Ok(())
+    }
 }
 
 impl Slot {

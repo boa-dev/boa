@@ -42,6 +42,17 @@ pub(crate) struct DeclarativeEnvironment {
     compile: Rc<CompileTimeEnvironment>,
 }
 
+impl crate::snapshot::Serialize for DeclarativeEnvironment {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.kind.serialize(s)?;
+        self.compile.serialize(s)?;
+        Ok(())
+    }
+}
+
 impl DeclarativeEnvironment {
     /// Creates a new global `DeclarativeEnvironment`.
     pub(crate) fn global(global_this: JsObject) -> Self {
@@ -140,6 +151,34 @@ pub(crate) enum DeclarativeEnvironmentKind {
     Function(FunctionEnvironment),
     /// Stores module bindings, which include references to bindings on other environments.
     Module(ModuleEnvironment),
+}
+
+impl crate::snapshot::Serialize for DeclarativeEnvironmentKind {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        match self {
+            DeclarativeEnvironmentKind::Lexical(env) => {
+                s.write_u8(b'L')?;
+                env.serialize(s)?;
+            }
+            DeclarativeEnvironmentKind::Global(env) => {
+                s.write_u8(b'G')?;
+                env.serialize(s)?;
+            }
+            DeclarativeEnvironmentKind::Function(env) => {
+                s.write_u8(b'F')?;
+                env.serialize(s)?;
+            }
+            DeclarativeEnvironmentKind::Module(env) => {
+                s.write_u8(b'M')?;
+                env.serialize(s)?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 impl DeclarativeEnvironmentKind {
@@ -273,6 +312,18 @@ pub(crate) struct PoisonableEnvironment {
     poisoned: Cell<bool>,
     #[unsafe_ignore_trace]
     with: Cell<bool>,
+}
+
+impl crate::snapshot::Serialize for PoisonableEnvironment {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.bindings.borrow().serialize(s)?;
+        self.poisoned.serialize(s)?;
+        self.with.serialize(s)?;
+        Ok(())
+    }
 }
 
 impl PoisonableEnvironment {

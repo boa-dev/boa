@@ -74,6 +74,29 @@ pub struct IteratorPrototypes {
     segment: JsObject,
 }
 
+impl crate::snapshot::Serialize for IteratorPrototypes {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.iterator.serialize(s)?;
+        self.async_iterator.serialize(s)?;
+        self.async_from_sync_iterator.serialize(s)?;
+        self.array.serialize(s)?;
+        self.set.serialize(s)?;
+        self.string.serialize(s)?;
+        self.regexp_string.serialize(s)?;
+        self.map.serialize(s)?;
+        self.for_in.serialize(s)?;
+        #[cfg(feature = "intl")]
+        {
+            self.segment.serialize(s)?;
+        }
+
+        Ok(())
+    }
+}
+
 impl IteratorPrototypes {
     /// Returns the `ArrayIteratorPrototype` object.
     #[inline]

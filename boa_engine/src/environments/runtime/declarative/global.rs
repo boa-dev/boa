@@ -10,6 +10,17 @@ pub(crate) struct GlobalEnvironment {
     global_this: JsObject,
 }
 
+impl crate::snapshot::Serialize for GlobalEnvironment {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        self.inner.serialize(s)?;
+        self.global_this.serialize(s)?;
+        Ok(())
+    }
+}
+
 impl GlobalEnvironment {
     /// Creates a new `GlobalEnvironment`.
     pub(crate) fn new(global_this: JsObject) -> Self {

@@ -112,7 +112,7 @@ impl WellKnown {
 // TODO: Address below clippy::arc_with_non_send_sync below.
 /// The inner representation of a JavaScript symbol.
 #[derive(Debug, Clone)]
-struct Inner {
+pub(crate) struct Inner {
     hash: u64,
     description: Option<JsString>,
 }
@@ -120,6 +120,39 @@ struct Inner {
 /// This represents a JavaScript symbol primitive.
 pub struct JsSymbol {
     repr: Tagged<Inner>,
+}
+
+impl crate::snapshot::Serialize for JsSymbol {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> crate::snapshot::SnapshotResult<()> {
+        let addr = self.repr.addr();
+        s.reference_or(addr, |s| {
+            s.write_bool(self.repr.is_tagged())?;
+            if !self.repr.is_tagged() {
+                self.hash().serialize(s)?;
+                if let Some(desc) = self.description() {
+                    s.write_bool(true)?;
+                    desc.serialize(s)?;
+                } else {
+                    s.write_bool(false)?;
+                }
+            } else {
+                s.write_usize(addr)?;
+            }
+
+            Ok(())
+        })
+    }
+}
+
+impl crate::snapshot::Deserialize for JsSymbol {
+    fn deserialize(
+        _d: &mut crate::snapshot::SnapshotDeserializer<'_>,
+    ) -> crate::snapshot::SnapshotResult<Self> {
+        todo!()
+    }
 }
 
 // SAFETY: `JsSymbol` uses `Arc` to do the reference counting, making this type thread-safe.

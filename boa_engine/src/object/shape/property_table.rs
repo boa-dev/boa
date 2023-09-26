@@ -14,6 +14,17 @@ pub(crate) struct PropertyTableInner {
     pub(crate) keys: Vec<(PropertyKey, Slot)>,
 }
 
+impl crate::snapshot::Serialize for PropertyTableInner {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        self.map.serialize(s)?;
+        self.keys.serialize(s)?;
+        Ok(())
+    }
+}
+
 impl PropertyTableInner {
     /// Returns all the keys, in insertion order.
     pub(crate) fn keys(&self) -> Vec<PropertyKey> {
@@ -71,6 +82,19 @@ impl PropertyTableInner {
 #[derive(Default, Debug, Clone)]
 pub(crate) struct PropertyTable {
     pub(super) inner: Rc<RefCell<PropertyTableInner>>,
+}
+
+impl crate::snapshot::Serialize for PropertyTable {
+    fn serialize(
+        &self,
+        s: &mut crate::snapshot::SnapshotSerializer,
+    ) -> Result<(), crate::snapshot::SnapshotError> {
+        let ptr = self.inner.as_ptr() as usize;
+        s.reference_or(ptr, |s| {
+            self.inner.borrow().serialize(s)?;
+            Ok(())
+        })
+    }
 }
 
 impl PropertyTable {
