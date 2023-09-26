@@ -1,7 +1,8 @@
 use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use icu_collator::{
-    provider::CollationMetadataV1Marker, AlternateHandling, CaseFirst, MaxVariable, Numeric,
+    provider::CollationMetadataV1Marker, AlternateHandling, CaseFirst, Collator as NativeCollator,
+    MaxVariable, Numeric,
 };
 
 use icu_locid::{
@@ -39,6 +40,7 @@ use super::{
 mod options;
 pub(crate) use options::*;
 
+#[derive(Debug)]
 pub struct Collator {
     locale: Locale,
     collation: Value,
@@ -47,7 +49,7 @@ pub struct Collator {
     usage: Usage,
     sensitivity: Sensitivity,
     ignore_punctuation: bool,
-    collator: icu_collator::Collator,
+    collator: NativeCollator,
     bound_compare: Option<JsFunction>,
 }
 
@@ -62,22 +64,6 @@ impl Collator {
     /// Gets the inner [`icu_collator::Collator`] comparator.
     pub(crate) const fn collator(&self) -> &icu_collator::Collator {
         &self.collator
-    }
-}
-
-impl std::fmt::Debug for Collator {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Collator")
-            .field("locale", &self.locale)
-            .field("collation", &self.collation)
-            .field("numeric", &self.numeric)
-            .field("case_first", &self.case_first)
-            .field("usage", &self.usage)
-            .field("sensitivity", &self.sensitivity)
-            .field("ignore_punctuation", &self.ignore_punctuation)
-            .field("collator", &"ICUCollator")
-            .field("bound_compare", &self.bound_compare)
-            .finish()
     }
 }
 
@@ -346,10 +332,8 @@ impl BuiltInConstructor for Collator {
             .then_some((AlternateHandling::Shifted, MaxVariable::Punctuation))
             .unzip();
 
-        let collator = context
-            .icu()
-            .provider()
-            .try_new_collator(&collator_locale, {
+        let collator =
+            NativeCollator::try_new_unstable(&context.icu().provider(), &collator_locale, {
                 let mut options = icu_collator::CollatorOptions::new();
                 options.strength = strength;
                 options.case_level = case_level;

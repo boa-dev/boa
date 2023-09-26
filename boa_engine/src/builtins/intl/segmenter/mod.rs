@@ -3,7 +3,9 @@ use std::ops::Range;
 use boa_macros::utf16;
 use boa_profiler::Profiler;
 use icu_locid::Locale;
-use icu_segmenter::provider::WordBreakDataV1Marker;
+use icu_segmenter::{
+    provider::WordBreakDataV1Marker, GraphemeClusterSegmenter, SentenceSegmenter, WordSegmenter,
+};
 
 use crate::{
     builtins::{
@@ -41,9 +43,9 @@ pub struct Segmenter {
 
 #[derive(Debug)]
 pub(crate) enum NativeSegmenter {
-    Grapheme(Box<icu_segmenter::GraphemeClusterSegmenter>),
-    Word(Box<icu_segmenter::WordSegmenter>),
-    Sentence(Box<icu_segmenter::SentenceSegmenter>),
+    Grapheme(Box<GraphemeClusterSegmenter>),
+    Word(Box<WordSegmenter>),
+    Sentence(Box<SentenceSegmenter>),
 }
 
 impl NativeSegmenter {
@@ -149,16 +151,21 @@ impl BuiltInConstructor for Segmenter {
                 .unwrap_or_default();
         // 13. Set segmenter.[[SegmenterGranularity]] to granularity.
 
-        let kind = context
-            .icu()
-            .provider()
-            .try_new_segmenter(granularity)
-            .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+        let native = match granularity {
+            Granularity::Grapheme => {
+                GraphemeClusterSegmenter::try_new_unstable(&context.icu().provider())
+                    .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
+            }
 
-        let segmenter = Self {
-            locale,
-            native: kind,
-        };
+            Granularity::Word => WordSegmenter::try_new_auto_unstable(&context.icu().provider())
+                .map(|s| NativeSegmenter::Word(Box::new(s))),
+
+            Granularity::Sentence => SentenceSegmenter::try_new_unstable(&context.icu().provider())
+                .map(|s| NativeSegmenter::Sentence(Box::new(s))),
+        }
+        .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+
+        let segmenter = Self { locale, native };
 
         // 2. Let internalSlotsList be « [[InitializedSegmenter]], [[Locale]], [[SegmenterGranularity]] ».
         // 3. Let segmenter be ? OrdinaryCreateFromConstructor(NewTarget, "%Segmenter.prototype%", internalSlotsList).

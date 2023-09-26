@@ -27,7 +27,7 @@ use boa_profiler::Profiler;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
-#[derive(Debug, Clone, Finalize, Trace)]
+#[derive(Debug, Finalize, Trace)]
 pub struct MapIterator {
     iterated_map: Option<JsObject>,
     map_next_index: usize,

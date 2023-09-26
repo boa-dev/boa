@@ -147,7 +147,7 @@ impl IntrinsicObject for String {
             .method(Self::at, "at", 1);
 
         #[cfg(feature = "annex-b")]
-        {
+        let builder = {
             builder
                 .property(
                     utf16!("trimLeft"),
@@ -173,10 +173,8 @@ impl IntrinsicObject for String {
                 .method(Self::strike, "strike", 0)
                 .method(Self::sub, "sub", 0)
                 .method(Self::sup, "sup", 0)
-                .build();
-        }
+        };
 
-        #[cfg(not(feature = "annex-b"))]
         builder.build();
     }
 
@@ -1742,7 +1740,7 @@ impl String {
             use super::intl::locale::{
                 best_available_locale, canonicalize_locale_list, default_locale,
             };
-            use icu_casemapping::{provider::CaseMappingV1Marker, CaseMapping};
+            use icu_casemap::provider::CaseMapV1Marker;
             use icu_locid::LanguageIdentifier;
 
             // 1. Let O be ? RequireObjectCoercible(this value).
@@ -1770,13 +1768,10 @@ impl String {
             // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode Character Database contains language sensitive case mappings. Implementations may add additional language tags if they support case mapping for additional locales.
             // 6. Let locale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
             // 7. If locale is undefined, set locale to "und".
-            let lang =
-                best_available_locale::<CaseMappingV1Marker>(lang, &context.icu().provider())
-                    .unwrap_or(LanguageIdentifier::UND);
+            let lang = best_available_locale::<CaseMapV1Marker>(lang, &context.icu().provider())
+                .unwrap_or(LanguageIdentifier::UND);
 
-            let casemapper =
-                CaseMapping::try_new_with_locale(&context.icu().provider(), &lang.into())
-                    .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+            let casemapper = context.icu().case_mapper();
 
             // 8. Let codePoints be StringToCodePoints(S).
             let result = string.map_valid_segments(|segment| {
@@ -1784,11 +1779,11 @@ impl String {
                     // 10. Else,
                     //     a. Assert: targetCase is upper.
                     //     b. Let newCodePoints be a List whose elements are the result of an uppercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.to_full_uppercase(&segment)
+                    casemapper.uppercase_to_string(&segment, &lang)
                 } else {
                     // 9. If targetCase is lower, then
                     //     a. Let newCodePoints be a List whose elements are the result of a lowercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.to_full_lowercase(&segment)
+                    casemapper.lowercase_to_string(&segment, &lang)
                 }
             });
 
@@ -2146,26 +2141,13 @@ impl String {
         let normalizers = {
             #[cfg(not(feature = "intl"))]
             {
-                use once_cell::sync::Lazy;
-                static NORMALIZERS: Lazy<StringNormalizers> = Lazy::new(|| {
-                    let provider = &boa_icu_provider::minimal();
-                    let nfc = ComposingNormalizer::try_new_nfc_unstable(provider)
-                        .expect("minimal data should always be updated");
-                    let nfkc = ComposingNormalizer::try_new_nfkc_unstable(provider)
-                        .expect("minimal data should always be updated");
-                    let nfd = DecomposingNormalizer::try_new_nfd_unstable(provider)
-                        .expect("minimal data should always be updated");
-                    let nfkd = DecomposingNormalizer::try_new_nfkd_unstable(provider)
-                        .expect("minimal data should always be updated");
-
-                    StringNormalizers {
-                        nfc,
-                        nfkc,
-                        nfd,
-                        nfkd,
-                    }
-                });
-                &*NORMALIZERS
+                const NORMALIZERS: StringNormalizers = StringNormalizers {
+                    nfc: ComposingNormalizer::new_nfc(),
+                    nfkc: ComposingNormalizer::new_nfkc(),
+                    nfd: DecomposingNormalizer::new_nfd(),
+                    nfkd: DecomposingNormalizer::new_nfkd(),
+                };
+                &NORMALIZERS
             }
             #[cfg(feature = "intl")]
             {

@@ -217,18 +217,13 @@ impl<V> OrderedMap<V> {
 /// Increases the lock count of the map for the lifetime of the guard. This should not be dropped until iteration has completed.
 #[derive(Debug, Trace)]
 pub(crate) struct MapLock(JsObject);
-
-impl Clone for MapLock {
-    fn clone(&self) -> Self {
-        let mut map = self.0.borrow_mut();
-        let map = map.as_map_mut().expect("MapLock does not point to a map");
-        map.lock(self.0.clone())
-    }
-}
-
 impl Finalize for MapLock {
     fn finalize(&self) {
-        let mut map = self.0.borrow_mut();
+        // Avoids panicking inside `Finalize`, with the downside of slightly increasing
+        // memory usage if the map could not be borrowed.
+        let Ok(mut map) = self.0.try_borrow_mut() else {
+            return;
+        };
         let map = map.as_map_mut().expect("MapLock does not point to a map");
         map.unlock();
     }

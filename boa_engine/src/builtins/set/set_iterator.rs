@@ -27,7 +27,7 @@ use boa_profiler::Profiler;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
-#[derive(Debug, Clone, Finalize, Trace)]
+#[derive(Debug, Finalize, Trace)]
 pub struct SetIterator {
     iterated_set: JsValue,
     next_index: usize,
