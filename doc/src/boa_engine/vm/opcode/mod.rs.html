@@ -2113,6 +2113,8 @@
 <a href="#2113" id="2113">2113</a>
 <a href="#2114" id="2114">2114</a>
 <a href="#2115" id="2115">2115</a>
+<a href="#2116" id="2116">2116</a>
+<a href="#2117" id="2117">2117</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 
 <span class="doccomment">/// The opcodes of the vm.
@@ -2719,6 +2721,8 @@
     </span>PushEmptyObject,
 
     <span class="doccomment">/// Get the prototype of a superclass and push it on the stack.
+    ///
+    /// Additionally this sets the `[[prototype]]` of the class and the `DERIVED` flag.
     ///
     /// Operands:
     ///
