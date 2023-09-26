@@ -605,6 +605,8 @@ generate_opcodes! {
 
     /// Get the prototype of a superclass and push it on the stack.
     ///
+    /// Additionally this sets the `[[prototype]]` of the class and the `DERIVED` flag.
+    ///
     /// Operands:
     ///
     /// Stack: class, superclass **=>** class, superclass.prototype
