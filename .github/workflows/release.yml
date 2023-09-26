@@ -5,9 +5,11 @@ on:
 
 jobs:
   publish:
-    name: publish
+    name: Publish crates
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      RUSTFLAGS: -D warnings
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -36,21 +38,28 @@ jobs:
             --from-git \
             --yes \
             --no-git-commit \
-            --no-git-push \
-            --no-individual-tags \
             skip
 
   doc-publish:
-    # needs: publish
+    name: Publish documentation
+    needs: publish
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
       - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        uses: baptiste0928/cargo-install@v2.2.0
+        with:
+          crate: wasm-pack
       - uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "20"
       - run: npm ci
       - name: Cache npm build
         uses: actions/cache@v3
@@ -62,6 +71,7 @@ jobs:
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
+      - run: wasm-pack build ./boa_wasm
       - run: npm run build:prod
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
@@ -72,6 +82,7 @@ jobs:
 
   release-binaries:
     name: Publish binaries
+    needs: publish
     strategy:
       fail-fast: false
       matrix:
@@ -82,25 +93,34 @@ jobs:
           rust: stable
           target: x86_64-unknown-linux-gnu
           asset_name: boa-linux-amd64
+          binary_name: boa
         - build: macos
           os: macos-latest
           rust: stable
           target: x86_64-apple-darwin
           asset_name: boa-macos-amd64
+          binary_name: boa
         - build: win-msvc
           os: windows-2019
           rust: stable
           target: x86_64-pc-windows-msvc
           asset_name: boa-windows-amd64
+          binary_name: boa.exe
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/${{ matrix.target }}
-        asset_name: ${{ matrix.asset_name }}
-        tag: ${{ github.ref }}
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - name: Build
+        run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/${{ matrix.target }}/release/${{ matrix.binary_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
