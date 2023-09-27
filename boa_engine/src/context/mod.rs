@@ -29,13 +29,15 @@ use crate::{
     realm::Realm,
     script::Script,
     vm::{ActiveRunnable, CallFrame, Vm},
-    JsResult, JsString, JsValue, Source,
+    JsNativeError, JsResult, JsString, JsValue, Source,
 };
 use boa_ast::{expression::Identifier, StatementList};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
 use crate::vm::RuntimeLimits;
+
+use self::intrinsics::StandardConstructor;
 
 /// ECMAScript context. It is the primary way to interact with the runtime.
 ///
@@ -317,9 +319,9 @@ impl<'host> Context<'host> {
         Ok(())
     }
 
-    /// Register a global class of type `T`, where `T` implements `Class`.
+    /// Registers a global class `C` in the currently active realm.
     ///
-    /// It will return an error if the global property is already defined.
+    /// Errors if the class has already been registered.
     ///
     /// # Example
     /// ```ignore
@@ -330,26 +332,46 @@ impl<'host> Context<'host> {
     ///    // ...
     /// }
     ///
-    /// context.register_global_class::<MyClass>();
+    /// context.register_global_class::<MyClass>()?;
     /// ```
-    pub fn register_global_class<T>(&mut self) -> JsResult<()>
+    pub fn register_global_class<C>(&mut self) -> JsResult<()>
     where
-        T: Class,
+        C: Class,
     {
-        let mut class_builder = ClassBuilder::new::<T>(self);
-        T::init(&mut class_builder)?;
+        if self.realm.has_class::<C>() {
+            return Err(JsNativeError::typ()
+                .with_message("cannot register a class twice")
+                .into());
+        }
+
+        let mut class_builder = ClassBuilder::new::<C>(self);
+        C::init(&mut class_builder)?;
 
         let class = class_builder.build();
         let property = PropertyDescriptor::builder()
-            .value(class)
-            .writable(T::ATTRIBUTES.writable())
-            .enumerable(T::ATTRIBUTES.enumerable())
-            .configurable(T::ATTRIBUTES.configurable());
+            .value(class.constructor())
+            .writable(C::ATTRIBUTES.writable())
+            .enumerable(C::ATTRIBUTES.enumerable())
+            .configurable(C::ATTRIBUTES.configurable());
 
         self.global_object()
-            .define_property_or_throw(js_string!(T::NAME), property, self)?;
+            .define_property_or_throw(js_string!(C::NAME), property, self)?;
+        self.realm.register_class::<C>(class);
 
         Ok(())
+    }
+
+    /// Checks if the currently active realm has the global class `C` registered.
+    #[must_use]
+    pub fn has_global_class<C: Class>(&self) -> bool {
+        self.realm.has_class::<C>()
+    }
+
+    /// Gets the constructor and prototype of the global class `C` if the currently active realm has
+    /// that class registered.
+    #[must_use]
+    pub fn get_global_class<C: Class>(&self) -> Option<StandardConstructor> {
+        self.realm.get_class::<C>()
     }
 
     /// Gets the string interner.

@@ -96,6 +96,24 @@ impl WellKnown {
         }
     }
 
+    const fn fn_name(self) -> JsString {
+        match self {
+            Self::AsyncIterator => StaticJsStrings::FN_SYMBOL_ASYNC_ITERATOR,
+            Self::HasInstance => StaticJsStrings::FN_SYMBOL_HAS_INSTANCE,
+            Self::IsConcatSpreadable => StaticJsStrings::FN_SYMBOL_IS_CONCAT_SPREADABLE,
+            Self::Iterator => StaticJsStrings::FN_SYMBOL_ITERATOR,
+            Self::Match => StaticJsStrings::FN_SYMBOL_MATCH,
+            Self::MatchAll => StaticJsStrings::FN_SYMBOL_MATCH_ALL,
+            Self::Replace => StaticJsStrings::FN_SYMBOL_REPLACE,
+            Self::Search => StaticJsStrings::FN_SYMBOL_SEARCH,
+            Self::Species => StaticJsStrings::FN_SYMBOL_SPECIES,
+            Self::Split => StaticJsStrings::FN_SYMBOL_SPLIT,
+            Self::ToPrimitive => StaticJsStrings::FN_SYMBOL_TO_PRIMITIVE,
+            Self::ToStringTag => StaticJsStrings::FN_SYMBOL_TO_STRING_TAG,
+            Self::Unscopables => StaticJsStrings::FN_SYMBOL_UNSCOPABLES,
+        }
+    }
+
     const fn hash(self) -> u64 {
         self as u64
     }
@@ -163,7 +181,7 @@ impl JsSymbol {
         })
     }
 
-    /// Returns the `Symbol`s description.
+    /// Returns the `Symbol` description.
     #[inline]
     #[must_use]
     pub fn description(&self) -> Option<JsString> {
@@ -180,6 +198,24 @@ impl JsSymbol {
                 Some(wk.description())
             }
         }
+    }
+
+    /// Returns the `Symbol` as a function name.
+    ///
+    /// Equivalent to `[description]`, but returns the empty string if the symbol doesn't have a
+    /// description.
+    #[inline]
+    #[must_use]
+    pub fn fn_name(&self) -> JsString {
+        if let UnwrappedTagged::Tag(tag) = self.repr.unwrap() {
+            // SAFETY: All tagged reprs always come from `WellKnown` itself, making
+            // this operation always safe.
+            let wk = unsafe { WellKnown::from_tag(tag).unwrap_unchecked() };
+            return wk.fn_name();
+        }
+        self.description()
+            .map(|s| js_string!(utf16!("["), &*s, utf16!("]")))
+            .unwrap_or_default()
     }
 
     /// Returns the `Symbol`s hash.

@@ -161,11 +161,7 @@ impl IntrinsicObject for Iterator {
         let _timer = Profiler::global().start_event("Iterator Prototype", "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(
-                |v, _, _| Ok(v.clone()),
-                (JsSymbol::iterator(), js_string!("[Symbol.iterator]")),
-                0,
-            )
+            .static_method(|v, _, _| Ok(v.clone()), JsSymbol::iterator(), 0)
             .build();
     }
 
@@ -187,14 +183,7 @@ impl IntrinsicObject for AsyncIterator {
         let _timer = Profiler::global().start_event("AsyncIteratorPrototype", "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(
-                |v, _, _| Ok(v.clone()),
-                (
-                    JsSymbol::async_iterator(),
-                    js_string!("[Symbol.asyncIterator]"),
-                ),
-                0,
-            )
+            .static_method(|v, _, _| Ok(v.clone()), JsSymbol::async_iterator(), 0)
             .build();
     }
 

@@ -66,83 +66,60 @@
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
+    context::intrinsics::StandardConstructor,
     error::JsNativeError,
-    js_string,
     native_function::NativeFunction,
-    object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
+    object::{
+        ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, ObjectData,
+        PROTOTYPE,
+    },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
 };
 
 /// Native class.
 pub trait Class: NativeObject + Sized {
-    /// The binding name of the object.
+    /// The binding name of the class.
     const NAME: &'static str;
-    /// The amount of arguments the class `constructor` takes, default is `0`.
+    /// The amount of arguments the constructor of the class takes, default is `0`.
     const LENGTH: usize = 0;
     /// The attributes the class will be binded with, default is `writable`, `enumerable`, `configurable`.
     const ATTRIBUTES: Attribute = Attribute::all();
 
-    /// The constructor of the class.
-    fn constructor(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self>;
+    /// Creates the inner data for an instance of this class.
+    fn make_data(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self>;
 
-    /// Initializes the internals and the methods of the class.
+    /// Initializes the internals and the methods of this class.
     fn init(class: &mut ClassBuilder<'_, '_>) -> JsResult<()>;
-}
 
-/// This is a wrapper around `Class::constructor` that sets the internal data of a class.
-///
-/// This is automatically implemented, when a type implements `Class`.
-pub trait ClassConstructor: Class {
-    /// The raw constructor that matches the `NativeFunction` signature.
-    fn raw_constructor(
-        this: &JsValue,
+    /// Creates a new [`JsObject`] with its internal data set to the result of calling `Self::make_data`.
+    ///
+    /// # Warning
+    ///
+    /// Overriding this method could be useful for certain usages, but incorrectly implementing this
+    /// could lead to weird errors like missing inherited methods or incorrect internal data.
+    fn construct(
+        new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
-    ) -> JsResult<JsValue>
-    where
-        Self: Sized;
-}
-
-impl<T: Class> ClassConstructor for T {
-    fn raw_constructor(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>
-    where
-        Self: Sized,
-    {
-        if this.is_undefined() {
+    ) -> JsResult<JsObject> {
+        if new_target.is_undefined() {
             return Err(JsNativeError::typ()
                 .with_message(format!(
                     "cannot call constructor of native class `{}` without new",
-                    T::NAME
+                    Self::NAME
                 ))
                 .into());
         }
 
-        let class = context.global_object().get(js_string!(T::NAME), context)?;
-        let JsValue::Object(ref class_constructor) = class else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "invalid constructor for native class `{}` ",
-                    T::NAME
-                ))
-                .into());
-        };
+        let class = context.get_global_class::<Self>().ok_or_else(|| {
+            JsNativeError::typ().with_message(format!(
+                "could not find native class `{}` in the map of registered classes",
+                Self::NAME
+            ))
+        })?;
 
-        let JsValue::Object(ref class_prototype) = class_constructor.get(PROTOTYPE, context)?
-        else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "invalid default prototype for native class `{}`",
-                    T::NAME
-                ))
-                .into());
-        };
-
-        let prototype = this
+        let prototype = new_target
             .as_object()
             .map(|obj| {
                 obj.get(PROTOTYPE, context)
@@ -150,15 +127,15 @@ impl<T: Class> ClassConstructor for T {
             })
             .transpose()?
             .flatten()
-            .unwrap_or_else(|| class_prototype.clone());
+            .unwrap_or_else(|| class.prototype());
 
-        let native_instance = Self::constructor(this, args, context)?;
-        let object_instance = JsObject::from_proto_and_data_with_shared_shape(
+        let data = Self::make_data(new_target, args, context)?;
+        let instance = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::native_object(native_instance),
+            ObjectData::native_object(data),
         );
-        Ok(object_instance.into())
+        Ok(instance)
     }
 }
 
@@ -171,17 +148,19 @@ pub struct ClassBuilder<'ctx, 'host> {
 impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
     pub(crate) fn new<T>(context: &'ctx mut Context<'host>) -> Self
     where
-        T: ClassConstructor,
+        T: Class,
     {
-        let mut builder =
-            ConstructorBuilder::new(context, NativeFunction::from_fn_ptr(T::raw_constructor));
+        let mut builder = ConstructorBuilder::new(
+            context,
+            NativeFunction::from_fn_ptr(|t, a, c| T::construct(t, a, c).map(JsValue::from)),
+        );
         builder.name(T::NAME);
         builder.length(T::LENGTH);
         Self { builder }
     }
 
-    pub(crate) fn build(self) -> JsFunction {
-        JsFunction::from_object_unchecked(self.builder.build().into())
+    pub(crate) fn build(self) -> StandardConstructor {
+        self.builder.build()
     }
 
     /// Add a method to the class.
@@ -189,10 +168,9 @@ impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
     /// It is added to `prototype`.
     pub fn method<N>(&mut self, name: N, length: usize, function: NativeFunction) -> &mut Self
     where
-        N: AsRef<str>,
+        N: Into<FunctionBinding>,
     {
-        self.builder
-            .method(function, js_string!(name.as_ref()), length);
+        self.builder.method(function, name, length);
         self
     }
 
@@ -206,10 +184,9 @@ impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
         function: NativeFunction,
     ) -> &mut Self
     where
-        N: AsRef<str>,
+        N: Into<FunctionBinding>,
     {
-        self.builder
-            .static_method(function, js_string!(name.as_ref()), length);
+        self.builder.static_method(function, name, length);
         self
     }
 

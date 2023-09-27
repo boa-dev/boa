@@ -58,8 +58,8 @@ impl Intrinsics {
     }
 }
 
-/// Store a builtin constructor (such as `Object`) and its corresponding prototype.
-#[derive(Debug, Trace, Finalize)]
+/// Stores a constructor (such as `Object`) and its corresponding prototype.
+#[derive(Debug, Trace, Finalize, Clone)]
 pub struct StandardConstructor {
     constructor: JsFunction,
     prototype: JsObject,
@@ -75,6 +75,14 @@ impl Default for StandardConstructor {
 }
 
 impl StandardConstructor {
+    /// Creates a new `StandardConstructor` from the constructor and the prototype.
+    pub(crate) fn new(constructor: JsFunction, prototype: JsObject) -> Self {
+        Self {
+            constructor,
+            prototype,
+        }
+    }
+
     /// Build a constructor with a defined prototype.
     fn with_prototype(prototype: JsObject) -> Self {
         Self {
@@ -85,7 +93,7 @@ impl StandardConstructor {
 
     /// Return the prototype of the constructor object.
     ///
-    /// This is the same as `Object.prototype`, `Array.prototype`, etc
+    /// This is the same as `Object.prototype`, `Array.prototype`, etc.
     #[inline]
     #[must_use]
     pub fn prototype(&self) -> JsObject {

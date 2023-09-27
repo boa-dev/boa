@@ -269,6 +269,31 @@ impl<'a, T: ?Sized> GcRef<'a, T> {
         }
     }
 
+    /// Tries to make a new `GcCellRef` from a component of the borrowed data, returning `None`
+    /// if the mapping function returns `None`.
+    ///
+    /// The `GcCell` is already immutably borrowed, so this cannot fail.
+    ///
+    /// This is an associated function that needs to be used as `GcCellRef::try_map(...)`.
+    /// A method would interfere with methods of the same name on the contents
+    /// of a `GcCellRef` used through `Deref`.
+    pub fn try_map<U, F>(orig: Self, f: F) -> Option<GcRef<'a, U>>
+    where
+        U: ?Sized,
+        F: FnOnce(&T) -> Option<&U>,
+    {
+        let ret = GcRef {
+            flags: orig.flags,
+            value: f(orig.value)?,
+        };
+
+        // We have to tell the compiler not to call the destructor of GcCellRef,
+        // because it will update the borrow flags.
+        std::mem::forget(orig);
+
+        Some(ret)
+    }
+
     /// Makes a new `GcCellRef` from a component of the borrowed data.
     ///
     /// The `GcCell` is already immutably borrowed, so this cannot fail.
@@ -362,6 +387,35 @@ pub struct GcRefMut<'a, T: ?Sized + 'static, U: ?Sized = T> {
 }
 
 impl<'a, T: ?Sized, U: ?Sized> GcRefMut<'a, T, U> {
+    /// Tries to make a new `GcCellRefMut` for a component of the borrowed data, returning `None`
+    /// if the mapping function returns `None`.
+    ///
+    /// The `GcCellRefMut` is already mutably borrowed, so this cannot fail.
+    ///
+    /// This is an associated function that needs to be used as
+    /// `GcCellRefMut::map(...)`. A method would interfere with methods of the same
+    /// name on the contents of a `GcCell` used through `Deref`.
+    pub fn try_map<V, F>(orig: Self, f: F) -> Option<GcRefMut<'a, T, V>>
+    where
+        V: ?Sized,
+        F: FnOnce(&mut U) -> Option<&mut V>,
+    {
+        #[allow(trivial_casts)]
+        // SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
+        let value = unsafe { &mut *(orig.value as *mut U) };
+
+        let ret = GcRefMut {
+            gc_cell: orig.gc_cell,
+            value: f(value)?,
+        };
+
+        // We have to tell the compiler not to call the destructor of GcCellRef,
+        // because it will update the borrow flags.
+        std::mem::forget(orig);
+
+        Some(ret)
+    }
+
     /// Makes a new `GcCellRefMut` for a component of the borrowed data, e.g., an enum
     /// variant.
     ///

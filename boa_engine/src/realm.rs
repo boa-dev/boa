@@ -6,8 +6,16 @@
 //!
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
+use std::any::TypeId;
+
+use rustc_hash::FxHashMap;
+
 use crate::{
-    context::{intrinsics::Intrinsics, HostHooks},
+    class::Class,
+    context::{
+        intrinsics::{Intrinsics, StandardConstructor},
+        HostHooks,
+    },
     environments::DeclarativeEnvironment,
     module::Module,
     object::shape::RootShape,
@@ -15,7 +23,6 @@ use crate::{
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
-use rustc_hash::FxHashMap;
 
 /// Representation of a Realm.
 ///
@@ -52,6 +59,7 @@ struct Inner {
     global_this: JsObject,
     template_map: GcRefCell<FxHashMap<u64, JsObject>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
+    host_classes: GcRefCell<FxHashMap<TypeId, StandardConstructor>>,
 
     host_defined: HostDefined,
 }
@@ -77,6 +85,7 @@ impl Realm {
                 global_this,
                 template_map: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
+                host_classes: GcRefCell::default(),
                 host_defined: HostDefined::default(),
             }),
         };
@@ -100,6 +109,25 @@ impl Realm {
     #[must_use]
     pub fn host_defined(&self) -> &HostDefined {
         &self.inner.host_defined
+    }
+
+    /// Checks if this `Realm` has the class `C` registered into its class map.
+    #[must_use]
+    pub fn has_class<C: Class>(&self) -> bool {
+        self.inner
+            .host_classes
+            .borrow()
+            .contains_key(&TypeId::of::<C>())
+    }
+
+    /// Gets the constructor and prototype of the class `C` if it is registered in the class map.
+    #[must_use]
+    pub fn get_class<C: Class>(&self) -> Option<StandardConstructor> {
+        self.inner
+            .host_classes
+            .borrow()
+            .get(&TypeId::of::<C>())
+            .cloned()
     }
 
     pub(crate) fn environment(&self) -> &Gc<DeclarativeEnvironment> {
@@ -140,6 +168,13 @@ impl Realm {
 
     pub(crate) fn lookup_template(&self, site: u64) -> Option<JsObject> {
         self.inner.template_map.borrow().get(&site).cloned()
+    }
+
+    pub(crate) fn register_class<C: Class>(&self, spec: StandardConstructor) {
+        self.inner
+            .host_classes
+            .borrow_mut()
+            .insert(TypeId::of::<C>(), spec);
     }
 
     pub(crate) fn addr(&self) -> *const () {
