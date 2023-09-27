@@ -11,7 +11,7 @@
 //! # };
 //! # use boa_gc::{Finalize, Trace};
 //! #
-//! // This does not have to be an enum it can also be a struct.
+//! // Can also be a struct containing `Trace` types.
 //! #[derive(Debug, Trace, Finalize)]
 //! enum Animal {
 //!     Cat,
@@ -26,8 +26,8 @@
 //!     // We set the length to `1` since we accept 1 arguments in the constructor.
 //!     const LENGTH: usize = 1;
 //!
-//!     // This is what is called when we do `new Animal()`
-//!     fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self> {
+//!     // This is what is called when we do `new Animal()` to construct the inner data of the class.
+//!     fn make_data(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self> {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
