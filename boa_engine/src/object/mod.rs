@@ -60,13 +60,14 @@ use crate::{
     module::ModuleNamespace,
     native_function::NativeFunction,
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    realm::Realm,
     string::utf16,
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
 use boa_gc::{custom_trace, Finalize, Trace, WeakGc};
 use std::{
-    any::Any,
+    any::{Any, TypeId},
     fmt::{self, Debug},
     ops::{Deref, DerefMut},
 };
@@ -127,6 +128,75 @@ impl<T: Any + Trace> NativeObject for T {
 
     fn as_mut_any(&mut self) -> &mut dyn Any {
         self
+    }
+}
+
+impl dyn NativeObject {
+    /// Returns `true` if the inner type is the same as `T`.
+    #[inline]
+    pub fn is<T: NativeObject>(&self) -> bool {
+        // Get `TypeId` of the type this function is instantiated with.
+        let t = TypeId::of::<T>();
+
+        // Get `TypeId` of the type in the trait object (`self`).
+        let concrete = self.type_id();
+
+        // Compare both `TypeId`s on equality.
+        t == concrete
+    }
+
+    /// Returns some reference to the inner value if it is of type `T`, or
+    /// `None` if it isn't.
+    #[inline]
+    pub fn downcast_ref<T: NativeObject>(&self) -> Option<&T> {
+        if self.is::<T>() {
+            // SAFETY: just checked whether we are pointing to the correct type, and we can rely on
+            // that check for memory safety because we have implemented NativeObject for all types; no other
+            // impls can exist as they would conflict with our impl.
+            unsafe { Some(self.downcast_ref_unchecked()) }
+        } else {
+            None
+        }
+    }
+
+    /// Returns some mutable reference to the inner value if it is of type `T`, or
+    /// `None` if it isn't.
+    #[inline]
+    pub fn downcast_mut<T: NativeObject>(&mut self) -> Option<&mut T> {
+        if self.is::<T>() {
+            // SAFETY: Already checked if inner type is T, so this is safe.
+            unsafe { Some(self.downcast_mut_unchecked()) }
+        } else {
+            None
+        }
+    }
+
+    /// Returns a reference to the inner value as type `dyn T`.
+    ///
+    /// # Safety
+    ///
+    /// The contained value must be of type `T`. Calling this method
+    /// with the incorrect type is *undefined behavior*.
+    #[inline]
+    pub unsafe fn downcast_ref_unchecked<T: NativeObject>(&self) -> &T {
+        debug_assert!(self.is::<T>());
+        let ptr: *const dyn NativeObject = self;
+        // SAFETY: caller guarantees that T is the correct type
+        unsafe { &*ptr.cast::<T>() }
+    }
+
+    /// Returns a mutable reference to the inner value as type `dyn T`.
+    ///
+    /// # Safety
+    ///
+    /// The contained value must be of type `T`. Calling this method
+    /// with the incorrect type is *undefined behavior*.
+    #[inline]
+    pub unsafe fn downcast_mut_unchecked<T: NativeObject>(&mut self) -> &mut T {
+        debug_assert!(self.is::<T>());
+        // SAFETY: caller guarantees that T is the correct type
+        let ptr: *mut dyn NativeObject = self;
+        unsafe { &mut *ptr.cast::<T>() }
     }
 }
 
@@ -1992,20 +2062,21 @@ where
 
 /// Builder for creating native function objects
 #[derive(Debug)]
-pub struct FunctionObjectBuilder<'ctx, 'host> {
-    context: &'ctx mut Context<'host>,
+pub struct FunctionObjectBuilder<'realm> {
+    realm: &'realm Realm,
     function: NativeFunction,
     constructor: Option<ConstructorKind>,
     name: JsString,
     length: usize,
 }
 
-impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
+impl<'realm> FunctionObjectBuilder<'realm> {
     /// Create a new `FunctionBuilder` for creating a native function.
     #[inline]
-    pub fn new(context: &'ctx mut Context<'host>, function: NativeFunction) -> Self {
+    #[must_use]
+    pub fn new(realm: &'realm Realm, function: NativeFunction) -> Self {
         Self {
-            context,
+            realm,
             function,
             constructor: None,
             name: js_string!(),
@@ -2054,9 +2125,9 @@ impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
                 function: self.function,
                 constructor: self.constructor,
             },
-            self.context.realm().clone(),
+            self.realm.clone(),
         );
-        let object = self.context.intrinsics().templates().function().create(
+        let object = self.realm.intrinsics().templates().function().create(
             ObjectData::function(function, self.constructor.is_some()),
             vec![self.length.into(), self.name.into()],
         );
@@ -2123,7 +2194,7 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionObjectBuilder::new(self.context, function)
+        let function = FunctionObjectBuilder::new(self.context.realm(), function)
             .name(binding.name)
             .length(length)
             .constructor(false)
@@ -2249,7 +2320,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionObjectBuilder::new(self.context, function)
+        let function = FunctionObjectBuilder::new(self.context.realm(), function)
             .name(binding.name)
             .length(length)
             .constructor(false)
@@ -2277,7 +2348,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionObjectBuilder::new(self.context, function)
+        let function = FunctionObjectBuilder::new(self.context.realm(), function)
             .name(binding.name)
             .length(length)
             .constructor(false)

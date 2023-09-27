@@ -62,7 +62,7 @@ fn main() -> JsResult<()> {
     assert_eq!(&joined_array, utf16!("14::false::false::false::10"));
 
     let filter_callback = FunctionObjectBuilder::new(
-        context,
+        context.realm(),
         NativeFunction::from_fn_ptr(|_this, args, _context| {
             Ok(args.get(0).cloned().unwrap_or_default().is_number().into())
         }),
@@ -70,7 +70,7 @@ fn main() -> JsResult<()> {
     .build();
 
     let map_callback = FunctionObjectBuilder::new(
-        context,
+        context.realm(),
         NativeFunction::from_fn_ptr(|_this, args, context| {
             args.get(0)
                 .cloned()
@@ -96,7 +96,7 @@ fn main() -> JsResult<()> {
     assert_eq!(&chained_array.join(None, context)?, utf16!("196,1,2,3"));
 
     let reduce_callback = FunctionObjectBuilder::new(
-        context,
+        context.realm(),
         NativeFunction::from_fn_ptr(|_this, args, context| {
             let accumulator = args.get(0).cloned().unwrap_or_default();
             let value = args.get(1).cloned().unwrap_or_default();

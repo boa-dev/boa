@@ -71,7 +71,7 @@ fn main() -> Result<(), JsError> {
     // We can use `FunctionBuilder` to define a closure with additional captures and custom property
     // attributes.
     let js_function = FunctionObjectBuilder::new(
-        &mut context,
+        context.realm(),
         NativeFunction::from_copy_closure_with_captures(
             |_, _, captures, context| {
                 let mut captures = captures.borrow_mut();

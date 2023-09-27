@@ -1,4 +1,5 @@
 use std::{
+    any::TypeId,
     borrow::{Cow, ToOwned},
     cell::Cell,
     collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque},
@@ -143,6 +144,7 @@ simple_empty_finalize_trace![
     f32,
     f64,
     char,
+    TypeId,
     String,
     Box<str>,
     Rc<str>,

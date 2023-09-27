@@ -32,22 +32,24 @@ fn set_recursion(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
 }
 
 pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
-    let get_loop = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get_loop))
-        .name("get loop")
-        .length(0)
-        .build();
-    let set_loop = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(set_loop))
-        .name("set loop")
-        .length(1)
-        .build();
+    let get_loop =
+        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_loop))
+            .name("get loop")
+            .length(0)
+            .build();
+    let set_loop =
+        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_loop))
+            .name("set loop")
+            .length(1)
+            .build();
 
     let get_recursion =
-        FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get_recursion))
+        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_recursion))
             .name("get recursion")
             .length(0)
             .build();
     let set_recursion =
-        FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(set_recursion))
+        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_recursion))
             .name("set recursion")
             .length(1)
             .build();

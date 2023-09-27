@@ -256,7 +256,7 @@ impl<'host> Context<'host> {
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
-        let function = FunctionObjectBuilder::new(self, body)
+        let function = FunctionObjectBuilder::new(&self.realm, body)
             .name(name)
             .length(length)
             .constructor(true)
@@ -289,7 +289,7 @@ impl<'host> Context<'host> {
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
-        let function = FunctionObjectBuilder::new(self, body)
+        let function = FunctionObjectBuilder::new(&self.realm, body)
             .name(name)
             .length(length)
             .constructor(false)

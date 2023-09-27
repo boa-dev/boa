@@ -401,7 +401,7 @@ impl JsProxyBuilder {
         let handler = JsObject::with_object_proto(context.intrinsics());
 
         if let Some(apply) = self.apply {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(apply))
+            let f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(apply))
                 .length(3)
                 .build();
             handler
@@ -409,33 +409,38 @@ impl JsProxyBuilder {
                 .expect("new object should be writable");
         }
         if let Some(construct) = self.construct {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(construct))
-                .length(3)
-                .build();
+            let f =
+                FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(construct))
+                    .length(3)
+                    .build();
             handler
                 .create_data_property_or_throw(utf16!("construct"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(define_property) = self.define_property {
-            let f =
-                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(define_property))
-                    .length(3)
-                    .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                NativeFunction::from_fn_ptr(define_property),
+            )
+            .length(3)
+            .build();
             handler
                 .create_data_property_or_throw(utf16!("defineProperty"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(delete_property) = self.delete_property {
-            let f =
-                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(delete_property))
-                    .length(2)
-                    .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                NativeFunction::from_fn_ptr(delete_property),
+            )
+            .length(2)
+            .build();
             handler
                 .create_data_property_or_throw(utf16!("deleteProperty"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(get) = self.get {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get))
+            let f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get))
                 .length(3)
                 .build();
             handler
@@ -444,7 +449,7 @@ impl JsProxyBuilder {
         }
         if let Some(get_own_property_descriptor) = self.get_own_property_descriptor {
             let f = FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 NativeFunction::from_fn_ptr(get_own_property_descriptor),
             )
             .length(2)
@@ -454,16 +459,18 @@ impl JsProxyBuilder {
                 .expect("new object should be writable");
         }
         if let Some(get_prototype_of) = self.get_prototype_of {
-            let f =
-                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get_prototype_of))
-                    .length(1)
-                    .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                NativeFunction::from_fn_ptr(get_prototype_of),
+            )
+            .length(1)
+            .build();
             handler
                 .create_data_property_or_throw(utf16!("getPrototypeOf"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(has) = self.has {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(has))
+            let f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(has))
                 .length(2)
                 .build();
             handler
@@ -471,24 +478,28 @@ impl JsProxyBuilder {
                 .expect("new object should be writable");
         }
         if let Some(is_extensible) = self.is_extensible {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(is_extensible))
-                .length(1)
-                .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                NativeFunction::from_fn_ptr(is_extensible),
+            )
+            .length(1)
+            .build();
             handler
                 .create_data_property_or_throw(utf16!("isExtensible"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(own_keys) = self.own_keys {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(own_keys))
-                .length(1)
-                .build();
+            let f =
+                FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(own_keys))
+                    .length(1)
+                    .build();
             handler
                 .create_data_property_or_throw(utf16!("ownKeys"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(prevent_extensions) = self.prevent_extensions {
             let f = FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 NativeFunction::from_fn_ptr(prevent_extensions),
             )
             .length(1)
@@ -498,7 +509,7 @@ impl JsProxyBuilder {
                 .expect("new object should be writable");
         }
         if let Some(set) = self.set {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(set))
+            let f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set))
                 .length(4)
                 .build();
             handler
@@ -506,10 +517,12 @@ impl JsProxyBuilder {
                 .expect("new object should be writable");
         }
         if let Some(set_prototype_of) = self.set_prototype_of {
-            let f =
-                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(set_prototype_of))
-                    .length(2)
-                    .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                NativeFunction::from_fn_ptr(set_prototype_of),
+            )
+            .length(2)
+            .build();
             handler
                 .create_data_property_or_throw(utf16!("setPrototypeOf"), f, context)
                 .expect("new object should be writable");

@@ -147,12 +147,14 @@ pub mod realm;
 pub mod script;
 pub mod string;
 pub mod symbol;
-// pub(crate) mod tagged;
-mod tagged;
-#[cfg(test)]
-mod tests;
 pub mod value;
 pub mod vm;
+
+mod host_defined;
+mod tagged;
+
+#[cfg(test)]
+mod tests;
 
 /// A convenience module that re-exports the most commonly-used Boa APIs
 pub mod prelude {
@@ -175,6 +177,7 @@ pub use crate::{
     bigint::JsBigInt,
     context::Context,
     error::{JsError, JsNativeError, JsNativeErrorKind},
+    host_defined::HostDefined,
     module::Module,
     native_function::NativeFunction,
     object::JsObject,

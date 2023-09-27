@@ -622,7 +622,7 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context<
 fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
     // We use `FunctionBuilder` to define a closure with additional captures.
     let js_function = FunctionObjectBuilder::new(
-        context,
+        context.realm(),
         // SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
         unsafe {
             NativeFunction::from_closure(move |_, args, context| {

@@ -652,7 +652,7 @@ impl Module {
             .then(
                 Some(
                     FunctionObjectBuilder::new(
-                        context,
+                        context.realm(),
                         NativeFunction::from_copy_closure_with_captures(
                             |_, _, module, context| {
                                 module.link(context)?;
@@ -669,7 +669,7 @@ impl Module {
             .then(
                 Some(
                     FunctionObjectBuilder::new(
-                        context,
+                        context.realm(),
                         NativeFunction::from_copy_closure_with_captures(
                             |_, _, module, context| Ok(module.evaluate(context).into()),
                             self.clone(),
