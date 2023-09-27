@@ -46,6 +46,9 @@ trace = []
 # Enable Boa's additional ECMAScript features for web browsers.
 annex-b = ["boa_parser/annex-b"]
 
+# Enable experimental features, like Stage 3 proposals.
+experimental = []
+
 [dependencies]
 boa_interner.workspace = true
 boa_gc = { workspace = true, features = [ "thinvec" ] }

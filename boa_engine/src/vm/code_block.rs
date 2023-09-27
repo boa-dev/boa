@@ -823,7 +823,7 @@ pub(crate) fn create_function_object(
 /// Creates a new function object.
 ///
 /// This is prefered over [`create_function_object`] if prototype is [`None`],
-/// because it constructs the funtion from a pre-initialized object template,
+/// because it constructs the function from a pre-initialized object template,
 /// with all the properties and prototype set.
 pub(crate) fn create_function_object_fast(
     code: Gc<CodeBlock>,

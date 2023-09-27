@@ -66,9 +66,6 @@ features = [
     # https://github.com/tc39/proposal-iterator-helpers
     "iterator-helpers",
 
-    # https://github.com/tc39/proposal-promise-with-resolvers
-    "promise-with-resolvers",
-
     ### Non-standard
     "caller",
 

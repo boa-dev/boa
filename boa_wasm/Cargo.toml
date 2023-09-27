@@ -19,7 +19,7 @@ chrono = { workspace = true, default-features = false, features = ["clock", "std
 console_error_panic_hook = "0.1.7"
 
 [features]
-default = ["boa_engine/annex-b"]
+default = ["boa_engine/annex-b", "boa_engine/intl", "boa_engine/experimental"]
 
 [lib]
 crate-type = ["cdylib", "lib"]
