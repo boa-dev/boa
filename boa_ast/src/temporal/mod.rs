@@ -1,6 +1,8 @@
 //! AST nodes for Temporal's implementation of ISO8601 grammar.
 
-/// TBD...
+/// An `ISOParseRecord` is the full record of a node that is returned via the parse records.
+///
+/// This node comes complete with the parsed date, time, time zone, and calendar data.
 #[derive(Default, Debug)]
 pub struct IsoParseRecord {
     /// Parsed Date Record
@@ -8,9 +10,8 @@ pub struct IsoParseRecord {
     /// Parsed Time
     pub time: Option<TimeSpec>,
     /// Parsed Offset
-    pub offset: Option<UtcOffset>,
     /// Parsed `TimeZoneAnnotation`
-    pub tz_annotation: Option<TimeZoneAnnotation>,
+    pub tz: Option<TimeZone>,
     /// Parsed Annotations
     pub calendar: Option<String>,
 }
@@ -42,7 +43,7 @@ pub struct TimeSpec {
 #[derive(Debug, Clone, Copy)]
 pub struct DateTimeUtcOffset;
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone)]
 /// A `DateTime` Parse Node that contains the date, time, and offset info.
 pub struct DateTimeRecord {
     /// Date
@@ -50,17 +51,25 @@ pub struct DateTimeRecord {
     /// Time
     pub time: Option<TimeSpec>,
     /// Tz Offset
-    pub offset: Option<UtcOffset>,
+    pub time_zone: Option<TimeZone>,
 }
 
 /// A `TimeZoneAnnotation`.
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct TimeZoneAnnotation {
     /// Critical Flag for the annotation.
     pub critical: bool,
     /// TimeZone Data
-    pub tz: TzIdentifier,
+    pub tz: TimeZone,
+}
+
+/// `TimeZone` data
+#[derive(Default, Debug, Clone)]
+pub struct TimeZone {
+    /// TimeZoneIANAName
+    pub name: Option<String>,
+    /// TimeZoneOffset
+    pub offset: Option<UtcOffset>,
 }
 
 /// A valid `TimeZoneIdentifier` that is defined by
@@ -74,22 +83,9 @@ pub enum TzIdentifier {
     TzIANAName(String),
 }
 
-// NOTE: is it worth consolidating MinutePrecision vs. Offset
-/// A UTC Offset that maintains only minute precision.
-#[derive(Debug, Clone, Copy)]
-#[allow(dead_code)]
-pub struct UtcOffsetMinutePrecision {
-    sign: i8,
-    hour: i8,
-    minute: i8,
-}
-
 /// A full precision `UtcOffset`
 #[derive(Debug, Clone, Copy)]
-#[allow(dead_code)]
 pub struct UtcOffset {
-    /// The UTC flag
-    pub utc: bool,
     /// The `+`/`-` sign of this `UtcOffset`
     pub sign: i8,
     /// The hour value of the `UtcOffset`
@@ -102,7 +98,6 @@ pub struct UtcOffset {
 
 /// A `KeyValueAnnotation` Parse Node.
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct KeyValueAnnotation {
     /// An `Annotation`'s Key.
     pub key: String,

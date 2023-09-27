@@ -3,7 +3,11 @@
 
 use crate::{
     builtins::{
-        temporal::Duration, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        temporal::{
+            duration::{DateDuration, TimeDuration},
+            Duration,
+        },
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::internal_methods::get_prototype_from_constructor,
@@ -590,11 +594,17 @@ fn diff_instant(
     let seconds = (&difference.to_f64() / 1_000_000_000_f64).trunc();
 
     // 6. Let roundResult be ! RoundDuration(0, 0, 0, 0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, largestUnit, roundingMode).
-    let mut roundable_duration = duration::DurationRecord::default()
-        .with_seconds(seconds)
-        .with_milliseconds(milliseconds.to_f64())
-        .with_microseconds(microseconds.to_f64())
-        .with_nanoseconds(nanoseconds.to_f64());
+    let mut roundable_duration = duration::DurationRecord::new(
+        DateDuration::default(),
+        TimeDuration::new(
+            0.0,
+            0.0,
+            seconds,
+            milliseconds.to_f64(),
+            microseconds.to_f64(),
+            nanoseconds.to_f64(),
+        ),
+    );
     let _rem = roundable_duration.round_duration(
         rounding_increment,
         smallest_unit,
@@ -700,13 +710,17 @@ fn diff_temporal_instant(
 
     // 6. Return ! CreateTemporalDuration(0, 0, 0, 0, sign × result.[[Hours]], sign × result.[[Minutes]], sign × result.[[Seconds]], sign × result.[[Milliseconds]], sign × result.[[Microseconds]], sign × result.[[Nanoseconds]]).
     Ok(duration::create_temporal_duration(
-        duration::DurationRecord::default()
-            .with_hours(sign * result.hours())
-            .with_minutes(sign * result.minutes())
-            .with_seconds(sign * result.seconds())
-            .with_milliseconds(sign * result.milliseconds())
-            .with_microseconds(sign * result.microseconds())
-            .with_nanoseconds(sign * result.nanoseconds()),
+        duration::DurationRecord::new(
+            DateDuration::default(),
+            TimeDuration::new(
+                sign * result.hours(),
+                sign * result.minutes(),
+                sign * result.seconds(),
+                sign * result.milliseconds(),
+                sign * result.microseconds(),
+                sign * result.nanoseconds(),
+            ),
+        ),
         None,
         context,
     )?

@@ -213,6 +213,8 @@ impl IntrinsicObject for Calendar {
             .method(Self::in_leap_year, "inLeapYear", 1)
             .method(Self::fields, "fields", 1)
             .method(Self::merge_fields, "mergeFields", 2)
+            .method(Self::get_id, "toString", 0)
+            .method(Self::get_id, "toJSON", 0)
             .build();
     }
 
@@ -371,17 +373,15 @@ impl Calendar {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
         })?;
 
         let identifier = calendar.identifier.to_std_string_escaped();
-
         drop(o);
 
         let available_calendars = available_calendars();
@@ -454,10 +454,9 @@ impl Calendar {
     ) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -531,10 +530,9 @@ impl Calendar {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         // 3. Assert: calendar.[[Identifier]] is "iso8601".
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -585,10 +583,9 @@ impl Calendar {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         // 3. Assert: calendar.[[Identifier]] is "iso8601".
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -631,10 +628,9 @@ impl Calendar {
 
     /// 15.8.2.6 `Temporal.Calendar.prototype.era ( temporalDateLike )`
     fn era(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -678,10 +674,9 @@ impl Calendar {
 
     /// 15.8.2.7 `Temporal.Calendar.prototype.eraYear ( temporalDateLike )`
     fn era_year(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -723,11 +718,11 @@ impl Calendar {
         this_calendar.era_year(&date_info, context)
     }
 
+    /// 15.8.2.8 `Temporal.Calendar.prototype.year ( temporalDateLike )`
     fn year(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -769,11 +764,11 @@ impl Calendar {
         this_calendar.year(&date_record, context)
     }
 
+    /// 15.8.2.9 `Temporal.Calendar.prototype.month ( temporalDateLike )`
     fn month(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -824,15 +819,15 @@ impl Calendar {
         this_calendar.month(&date_record, context)
     }
 
+    /// 15.8.2.10 `Temporal.Calendar.prototype.monthCode ( temporalDateLike )`
     fn month_code(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -880,11 +875,11 @@ impl Calendar {
         this_calendar.month_code(&date_record, context)
     }
 
+    /// 15.8.2.11 `Temporal.Calendar.prototype.day ( temporalDateLike )`
     fn day(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -926,6 +921,7 @@ impl Calendar {
         this_calendar.day(&date_record, context)
     }
 
+    /// 15.8.2.12 `Temporal.Calendar.prototype.dayOfWeek ( dateOrDateTime )`
     fn day_of_week(
         this: &JsValue,
         args: &[JsValue],
@@ -933,10 +929,9 @@ impl Calendar {
     ) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -954,6 +949,7 @@ impl Calendar {
         this_calendar.day_of_week(&date.inner, context)
     }
 
+    /// 15.8.2.13 `Temporal.Calendar.prototype.dayOfYear ( temporalDateLike )`
     fn day_of_year(
         this: &JsValue,
         args: &[JsValue],
@@ -980,15 +976,15 @@ impl Calendar {
         this_calendar.day_of_year(&date.inner, context)
     }
 
+    /// 15.8.2.14 `Temporal.Calendar.prototype.weekOfYear ( temporalDateLike )`
     fn week_of_year(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -1006,15 +1002,15 @@ impl Calendar {
         this_calendar.week_of_year(&date.inner, context)
     }
 
+    /// 15.8.2.15 `Temporal.Calendar.prototype.yearOfWeek ( temporalDateLike )`
     fn year_of_week(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -1032,15 +1028,15 @@ impl Calendar {
         this_calendar.year_of_week(&date.inner, context)
     }
 
+    /// 15.8.2.16 `Temporal.Calendar.prototype.daysInWeek ( temporalDateLike )`
     fn days_in_week(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -1058,15 +1054,15 @@ impl Calendar {
         this_calendar.days_in_week(&date.inner, context)
     }
 
+    /// 15.8.2.17 `Temporal.Calendar.prototype.daysInMonth ( temporalDateLike )`
     fn days_in_month(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -1108,15 +1104,15 @@ impl Calendar {
         this_calendar.days_in_month(&date_record, context)
     }
 
+    /// 15.8.2.18 `Temporal.Calendar.prototype.daysInYear ( temporalDateLike )`
     fn days_in_year(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -1158,15 +1154,15 @@ impl Calendar {
         this_calendar.days_in_year(&date_record, context)
     }
 
+    /// 15.8.2.19 `Temporal.Calendar.prototype.monthsInYear ( temporalDateLike )`
     fn months_in_year(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -1208,15 +1204,15 @@ impl Calendar {
         this_calendar.months_in_year(&date_record, context)
     }
 
+    /// 15.8.2.20 `Temporal.Calendar.prototype.inLeapYear ( temporalDateLike )`
     fn in_leap_year(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -1258,13 +1254,13 @@ impl Calendar {
         this_calendar.in_leap_year(&date_record, context)
     }
 
+    /// 15.8.2.21 `Temporal.Calendar.prototype.fields ( fields )`
     fn fields(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")
@@ -1356,10 +1352,9 @@ impl Calendar {
     ) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
-        let o = o.borrow();
         let calendar = o.as_calendar().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("the this value of Calendar must be a Calendar object.")

@@ -10,7 +10,7 @@ mod tests;
 mod time;
 mod time_zone;
 
-use boa_ast::temporal::{DateRecord, DurationParseRecord, IsoParseRecord, TzIdentifier};
+use boa_ast::temporal::{DateRecord, DurationParseRecord, IsoParseRecord, TimeZone};
 
 // TODO: optimize where possible.
 //
@@ -51,8 +51,8 @@ impl TemporalTimeZoneString {
     ///
     /// The parse will error if the provided target is not valid
     /// ISO8601 grammar.
-    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<TzIdentifier> {
-        time_zone::parse_tz_identifier(cursor)
+    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<TimeZone> {
+        time_zone::parse_time_zone(cursor)
     }
 }
 
@@ -80,6 +80,8 @@ impl TemporalYearMonthString {
                 (None, None)
             };
 
+            let tz = tz_annotation.map(|annotation| annotation.tz);
+
             return Ok(IsoParseRecord {
                 date: DateRecord {
                     year: ym.0,
@@ -87,8 +89,7 @@ impl TemporalYearMonthString {
                     day: 0,
                 },
                 time: None,
-                offset: None,
-                tz_annotation,
+                tz,
                 calendar,
             });
         }
@@ -121,6 +122,8 @@ impl TemporalMonthDayString {
                 (None, None)
             };
 
+            let tz = tz_annotation.map(|annotation| annotation.tz);
+
             return Ok(IsoParseRecord {
                 date: DateRecord {
                     year: 0,
@@ -128,8 +131,7 @@ impl TemporalMonthDayString {
                     day: md.1,
                 },
                 time: None,
-                offset: None,
-                tz_annotation,
+                tz,
                 calendar,
             });
         }

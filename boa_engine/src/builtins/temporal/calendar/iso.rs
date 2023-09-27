@@ -18,7 +18,13 @@ use crate::{
 
 use super::BuiltinCalendar;
 
-use icu_calendar::{iso::Iso, types::IsoWeekday, week::WeekCalculator, Calendar, Date};
+use icu_calendar::{
+    iso::Iso,
+    types::IsoWeekday,
+    week::{RelativeUnit, WeekCalculator},
+    Calendar, Date,
+};
+use icu_datetime::fields::Week;
 
 pub(crate) struct IsoCalendar;
 
@@ -33,15 +39,8 @@ impl BuiltinCalendar for IsoCalendar {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // NOTE: we are in ISO by default here.
-        // 9. If calendar.[[Identifier]] is "iso8601", then
         // a. Perform ? ISOResolveMonth(fields).
         // b. Let result be ? ISODateFromFields(fields, overflow).
-        // 10. Else,
-        // a. Perform ? CalendarResolveFields(calendar.[[Identifier]], fields, date).
-        // b. Let result be ? CalendarDateToISO(calendar.[[Identifier]], fields, overflow).
-        // NOTE: Overflow will probably have to be a work around for now for "constrained".
-
-        // a. Perform ? ISOResolveMonth(fields).
         fields.resolve_month()?;
 
         // Extra: handle reulating/overflow until implemented on `icu_calendar`
@@ -253,19 +252,43 @@ impl BuiltinCalendar for IsoCalendar {
     /// Returns the `weekOfYear` for the `Iso` calendar.
     fn week_of_year(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
         // TODO: Determine `ICU4X` equivalent.
-        let record =
-            super::utils::to_iso_week_of_year(date_like.year(), date_like.month(), date_like.day());
+        let date = Date::try_new_iso_date(
+            date_like.year(),
+            date_like.month() as u8,
+            date_like.day() as u8,
+        )
+        .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(record.0.into())
+        let week_calculator = WeekCalculator::default();
+
+        let week_of = date
+            .week_of_year(&week_calculator)
+            .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
+
+        Ok(week_of.week.into())
     }
 
     /// Returns the `yearOfWeek` for the `Iso` calendar.
     fn year_of_week(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
         // TODO: Determine `ICU4X` equivalent.
-        let record =
-            super::utils::to_iso_week_of_year(date_like.year(), date_like.month(), date_like.day());
+        let date = Date::try_new_iso_date(
+            date_like.year(),
+            date_like.month() as u8,
+            date_like.day() as u8,
+        )
+        .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(record.1.into())
+        let week_calculator = WeekCalculator::default();
+
+        let week_of = date
+            .week_of_year(&week_calculator)
+            .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
+
+        match week_of.unit {
+            RelativeUnit::Previous => Ok((date.year().number - 1).into()),
+            RelativeUnit::Current => Ok(date.year().number.into()),
+            RelativeUnit::Next => Ok((date.year().number + 1).into()),
+        }
     }
 
     /// Returns the `daysInWeek` value for the `Iso` calendar.
@@ -297,12 +320,12 @@ impl BuiltinCalendar for IsoCalendar {
         Ok(date.days_in_year().into())
     }
 
-    /// TODO: Docs
+    /// Return the amount of months in an ISO Calendar.
     fn months_in_year(&self, _: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
         Ok(12.into())
     }
 
-    /// TODO: Docs
+    /// Returns whether provided date is in a leap year according to this calendar.
     fn in_leap_year(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
         // `ICU4X`'s `CalendarArithmetic` is currently private.
         if mathematical_days_in_year(date_like.year()) == 366 {
@@ -340,6 +363,9 @@ impl BuiltinCalendar for IsoCalendar {
         result
     }
 
+    // NOTE: This is currently not a name that is compliant with
+    // the Temporal proposal. For debugging purposes only.
+    /// Returns the debug name.
     fn debug_name(&self) -> &str {
         Iso.debug_name()
     }

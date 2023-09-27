@@ -11,7 +11,7 @@ use crate::{
 };
 
 use boa_ast::{
-    temporal::{DateRecord, DateTimeRecord, IsoParseRecord},
+    temporal::{DateRecord, DateTimeRecord, IsoParseRecord, TimeZone},
     Position, Span,
 };
 
@@ -52,19 +52,27 @@ pub(crate) fn parse_annotated_date_time(
         return Ok(IsoParseRecord {
             date: date_time.date,
             time: date_time.time,
-            offset: date_time.offset,
-            tz_annotation: None,
+            tz: date_time.time_zone,
             calendar: None,
         });
     }
 
+    let mut tz = TimeZone::default();
+
+    if let Some(tz_info) = date_time.time_zone {
+        tz = tz_info;
+    }
+
     let annotation_set = annotations::parse_annotation_set(zoned, cursor)?;
+
+    if let Some(annotated_tz) = annotation_set.tz {
+        tz = annotated_tz.tz;
+    }
 
     Ok(IsoParseRecord {
         date: date_time.date,
         time: date_time.time,
-        offset: date_time.offset,
-        tz_annotation: annotation_set.tz,
+        tz: Some(tz),
         calendar: annotation_set.calendar,
     })
 }
@@ -89,7 +97,7 @@ fn parse_date_time(
         return Ok(DateTimeRecord {
             date,
             time: None,
-            offset: None,
+            time_zone: None,
         });
     }
 
@@ -97,7 +105,7 @@ fn parse_date_time(
 
     let time = time::parse_time_spec(cursor)?;
 
-    let offset = if cursor
+    let time_zone = if cursor
         .check(|ch| is_sign(ch) || is_utc_designator(ch))
         .unwrap_or(false)
     {
@@ -115,7 +123,7 @@ fn parse_date_time(
     Ok(DateTimeRecord {
         date,
         time: Some(time),
-        offset,
+        time_zone,
     })
 }
 

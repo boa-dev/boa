@@ -38,7 +38,9 @@ fn temporal_date_time_max() {
         32.329_402_834_f64.mul_add(100_000_f64, 0.0).trunc() as i64
     );
 
-    let offset_results = &result.offset.unwrap();
+    let tz = &result.tz.unwrap();
+
+    let offset_results = &tz.offset.unwrap();
 
     assert_eq!(offset_results.sign, -1);
     assert_eq!(offset_results.hour, 3);
@@ -51,16 +53,9 @@ fn temporal_date_time_max() {
         0.123_456_789_f64.mul_add(1_000_000_f64, 0.0).trunc() as i64
     );
 
-    let tz = &result.tz_annotation.unwrap();
+    let tz_name = &tz.name.clone().unwrap();
 
-    assert!(tz.critical);
-
-    match &tz.tz {
-        boa_ast::temporal::TzIdentifier::TzIANAName(id) => {
-            assert_eq!(id, "America/Argentina/ComodRivadavia");
-        }
-        boa_ast::temporal::TzIdentifier::UtcOffset(_) => unreachable!(),
-    }
+    assert_eq!(tz_name, "America/Argentina/ComodRivadavia");
 
     assert_eq!(&result.calendar, &Some("iso8601".to_string()));
 }
@@ -84,28 +79,21 @@ fn temporal_annotated_date_time() {
 
     let result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(basic)).unwrap();
 
-    if let Some(tz) = &result.tz_annotation {
-        match &tz.tz {
-            boa_ast::temporal::TzIdentifier::TzIANAName(id) => {
-                assert_eq!(id, "America/Argentina/ComodRivadavia");
-            }
-            boa_ast::temporal::TzIdentifier::UtcOffset(_) => unreachable!(),
-        }
-    }
+    let tz = &result.tz.unwrap().name.unwrap();
+
+    assert_eq!(tz, "America/Argentina/ComodRivadavia");
 
     assert_eq!(&result.calendar, &Some("iso8601".to_string()));
 
     let omit_result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(omitted)).unwrap();
 
-    assert!(&omit_result.tz_annotation.is_none());
+    assert!(&omit_result.tz.is_none());
 
     assert_eq!(&omit_result.calendar, &Some("iso8601".to_string()));
 }
 
 #[test]
 fn temporal_year_month() {
-    use boa_ast::temporal::TzIdentifier;
-
     let possible_year_months = &[
         "+002020-11",
         "2020-11[+04:00]",
@@ -119,12 +107,9 @@ fn temporal_year_month() {
         assert_eq!(result.date.year, 2020);
         assert_eq!(result.date.month, 11);
 
-        if let Some(annotation) = &result.tz_annotation {
-            match &annotation.tz {
-                TzIdentifier::UtcOffset(utc) => assert_eq!(utc.hour, 4),
-                TzIdentifier::TzIANAName(_) => unreachable!(),
-            }
-        }
+        let offset = &result.tz.unwrap().offset.unwrap();
+
+        assert_eq!(offset.hour, 4);
     }
 }
 

@@ -16,7 +16,7 @@ use crate::{
 };
 
 use boa_ast::{
-    temporal::{TimeZoneAnnotation, TzIdentifier, UtcOffset},
+    temporal::{TimeZone, TimeZoneAnnotation, UtcOffset},
     Position,
 };
 
@@ -89,7 +89,7 @@ fn parse_tz_annotation(cursor: &mut IsoCursor) -> ParseResult<TimeZoneAnnotation
         cursor.advance();
     }
 
-    let tz = parse_tz_identifier(cursor)?;
+    let tz = parse_time_zone(cursor)?;
 
     if !cursor.check_or(false, is_annotation_close) {
         return Err(LexError::syntax(
@@ -104,18 +104,23 @@ fn parse_tz_annotation(cursor: &mut IsoCursor) -> ParseResult<TimeZoneAnnotation
     Ok(TimeZoneAnnotation { critical, tz })
 }
 
-pub(crate) fn parse_tz_identifier(cursor: &mut IsoCursor) -> ParseResult<TzIdentifier> {
+/// Parses the [`TimeZoneIdentifier`][tz] node.
+///
+/// [tz]: https://tc39.es/proposal-temporal/#prod-TimeZoneIdentifier
+pub(crate) fn parse_time_zone(cursor: &mut IsoCursor) -> ParseResult<TimeZone> {
     let is_iana = cursor
         .check(is_tz_leading_char)
         .ok_or_else(|| Error::AbruptEnd)?;
     let is_offset = cursor.check_or(false, is_sign);
 
     if is_iana {
-        let iana_name = parse_tz_iana_name(cursor)?;
-        return Ok(TzIdentifier::TzIANAName(iana_name));
+        return parse_tz_iana_name(cursor);
     } else if is_offset {
         let offset = parse_utc_offset_minute_precision(cursor)?;
-        return Ok(TzIdentifier::UtcOffset(offset));
+        return Ok(TimeZone {
+            name: None,
+            offset: Some(offset),
+        });
     }
 
     Err(LexError::syntax(
@@ -126,7 +131,7 @@ pub(crate) fn parse_tz_identifier(cursor: &mut IsoCursor) -> ParseResult<TzIdent
 }
 
 /// Parse a `TimeZoneIANAName` Parse Node
-fn parse_tz_iana_name(cursor: &mut IsoCursor) -> ParseResult<String> {
+fn parse_tz_iana_name(cursor: &mut IsoCursor) -> ParseResult<TimeZone> {
     let tz_name_start = cursor.pos();
     while let Some(potential_value_char) = cursor.next() {
         if is_tz_name_separator(potential_value_char) {
@@ -142,7 +147,10 @@ fn parse_tz_iana_name(cursor: &mut IsoCursor) -> ParseResult<String> {
 
         if !is_tz_char(potential_value_char) {
             // Return the valid TimeZoneIANAName
-            return Ok(cursor.slice(tz_name_start, cursor.pos()));
+            return Ok(TimeZone {
+                name: Some(cursor.slice(tz_name_start, cursor.pos())),
+                offset: None,
+            });
         }
     }
 
@@ -152,15 +160,12 @@ fn parse_tz_iana_name(cursor: &mut IsoCursor) -> ParseResult<String> {
 // ==== Utc Offset Parsing ====
 
 /// Parse a full precision `UtcOffset`
-pub(crate) fn parse_date_time_utc(cursor: &mut IsoCursor) -> ParseResult<UtcOffset> {
+pub(crate) fn parse_date_time_utc(cursor: &mut IsoCursor) -> ParseResult<TimeZone> {
     if cursor.check_or(false, is_utc_designator) {
         cursor.advance();
-        return Ok(UtcOffset {
-            utc: true,
-            sign: 1,
-            hour: 0,
-            minute: 0,
-            second: 0.0,
+        return Ok(TimeZone {
+            name: Some("UTC".to_owned()),
+            offset: None,
         });
     }
 
@@ -181,7 +186,10 @@ pub(crate) fn parse_date_time_utc(cursor: &mut IsoCursor) -> ParseResult<UtcOffs
 
     // Return early on None or next char an AnnotationOpen.
     if cursor.check_or(true, is_annotation_open) {
-        return Ok(utc_to_minute);
+        return Ok(TimeZone {
+            name: None,
+            offset: Some(utc_to_minute),
+        });
     }
 
     // If `UtcOffsetWithSubMinuteComponents`, continue parsing.
@@ -194,7 +202,10 @@ pub(crate) fn parse_date_time_utc(cursor: &mut IsoCursor) -> ParseResult<UtcOffs
     };
 
     utc_to_minute.second = double;
-    Ok(utc_to_minute)
+    Ok(TimeZone {
+        name: None,
+        offset: Some(utc_to_minute),
+    })
 }
 
 /// Parse an `UtcOffsetMinutePrecision` node
@@ -216,7 +227,6 @@ pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut IsoCursor) -> Parse
         .ok_or_else(|| Error::AbruptEnd)?
     {
         return Ok(UtcOffset {
-            utc: false,
             sign,
             hour,
             minute: 0,
@@ -232,7 +242,6 @@ pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut IsoCursor) -> Parse
     let minute = parse_minute_second(cursor, false)?;
 
     Ok(UtcOffset {
-        utc: false,
         sign,
         hour,
         minute,

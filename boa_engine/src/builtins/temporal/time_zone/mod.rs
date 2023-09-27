@@ -363,7 +363,7 @@ fn parse_timezone_offset_string(offset_string: &str, context: &mut Context<'_>) 
 
     // 2. Assert: parseResult is not a List of errors.
     // 3. Assert: parseResult contains a TemporalSign Parse Node.
-    let TzIdentifier::UtcOffset(utc_offset) = parse_result else {
+    let Some(utc_offset) = parse_result.offset else {
         return Err(JsNativeError::typ()
             .with_message("Offset string was not a valid offset")
             .into());
