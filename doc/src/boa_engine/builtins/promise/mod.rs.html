@@ -2530,7 +2530,7 @@
         <span class="comment">// 4. Let executorClosure be a new Abstract Closure with parameters (resolve, reject) that captures promiseCapability and performs the following steps when called:
         // 5. Let executor be CreateBuiltinFunction(executorClosure, 2, &quot;&quot;, « »).
         </span><span class="kw">let </span>executor = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args: <span class="kw-2">&amp;</span>[JsValue], captures, <span class="kw">_</span>| {
                     <span class="kw">let </span><span class="kw-2">mut </span>promise_capability = captures.borrow_mut();
@@ -2896,7 +2896,7 @@
             // p. Set onFulfilled.[[Capability]] to resultCapability.
             // q. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
             </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 NativeFunction::from_copy_closure_with_captures(
                     |<span class="kw">_</span>, args, captures, context| {
                         <span class="comment">// https://tc39.es/ecma262/#sec-promise.all-resolve-element-functions
@@ -3121,7 +3121,7 @@
             // q. Set onFulfilled.[[Capability]] to resultCapability.
             // r. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
             </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 NativeFunction::from_copy_closure_with_captures(
                     |<span class="kw">_</span>, args, captures, context| {
                         <span class="comment">// https://tc39.es/ecma262/#sec-promise.allsettled-resolve-element-functions
@@ -3207,7 +3207,7 @@
             // y. Set onRejected.[[Capability]] to resultCapability.
             // z. Set onRejected.[[RemainingElements]] to remainingElementsCount.
             </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 NativeFunction::from_copy_closure_with_captures(
                     |<span class="kw">_</span>, args, captures, context| {
                         <span class="comment">// https://tc39.es/ecma262/#sec-promise.allsettled-reject-element-functions
@@ -3450,7 +3450,7 @@
             // p. Set onRejected.[[Capability]] to resultCapability.
             // q. Set onRejected.[[RemainingElements]] to remainingElementsCount.
             </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 NativeFunction::from_copy_closure_with_captures(
                     |<span class="kw">_</span>, args, captures, context| {
                         <span class="comment">// https://tc39.es/ecma262/#sec-promise.any-reject-element-functions
@@ -3868,7 +3868,7 @@
 
         <span class="comment">// a. Let thenFinallyClosure be a new Abstract Closure with parameters (value) that captures onFinally and C and performs the following steps when called:
         </span><span class="kw">let </span>then_finally_closure = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
                     <span class="doccomment">/// Capture object for the abstract `returnValue` closure.
@@ -3889,7 +3889,7 @@
 
                     <span class="comment">// iii. Let returnValue be a new Abstract Closure with no parameters that captures value and performs the following steps when called:
                     </span><span class="kw">let </span>return_value = FunctionObjectBuilder::new(
-                        context,
+                        context.realm(),
                         NativeFunction::from_copy_closure_with_captures(
                             |_this, _args, captures, _context| {
                                 <span class="comment">// 1. Return value.
@@ -3919,7 +3919,7 @@
 
         <span class="comment">// c. Let catchFinallyClosure be a new Abstract Closure with parameters (reason) that captures onFinally and C and performs the following steps when called:
         </span><span class="kw">let </span>catch_finally_closure = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
                     <span class="doccomment">/// Capture object for the abstract `throwReason` closure.
@@ -3940,7 +3940,7 @@
 
                     <span class="comment">// iii. Let throwReason be a new Abstract Closure with no parameters that captures reason and performs the following steps when called:
                     </span><span class="kw">let </span>throw_reason = FunctionObjectBuilder::new(
-                        context,
+                        context.realm(),
                         NativeFunction::from_copy_closure_with_captures(
                             |_this, _args, captures, _context| {
                                 <span class="comment">// 1. Return ThrowCompletion(reason).
@@ -4321,7 +4321,7 @@
         // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
         // 4. Let resolve be CreateBuiltinFunction(stepsResolve, lengthResolve, &quot;&quot;, « [[Promise]], [[AlreadyResolved]] »).
         </span><span class="kw">let </span>resolve = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
                     <span class="comment">// https://tc39.es/ecma262/#sec-promise-resolve-functions
@@ -4420,7 +4420,7 @@
         // 8. Let lengthReject be the number of non-optional parameters of the function definition in Promise Reject Functions.
         // 9. Let reject be CreateBuiltinFunction(stepsReject, lengthReject, &quot;&quot;, « [[Promise]], [[AlreadyResolved]] »).
         </span><span class="kw">let </span>reject = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
                     <span class="comment">// https://tc39.es/ecma262/#sec-promise-reject-functions

@@ -1288,7 +1288,7 @@
         length: usize,
         body: NativeFunction,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>, body)
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="kw-2">&amp;</span><span class="self">self</span>.realm, body)
             .name(name)
             .length(length)
             .constructor(<span class="bool-val">true</span>)
@@ -1321,7 +1321,7 @@
         length: usize,
         body: NativeFunction,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>, body)
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="kw-2">&amp;</span><span class="self">self</span>.realm, body)
             .name(name)
             .length(length)
             .constructor(<span class="bool-val">false</span>)

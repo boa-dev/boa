@@ -1457,7 +1457,7 @@
             .then(
                 <span class="prelude-val">Some</span>(
                     FunctionObjectBuilder::new(
-                        context,
+                        context.realm(),
                         NativeFunction::from_copy_closure_with_captures(
                             |<span class="kw">_</span>, <span class="kw">_</span>, module, context| {
                                 module.link(context)<span class="question-mark">?</span>;
@@ -1474,7 +1474,7 @@
             </span>.then(
                 <span class="prelude-val">Some</span>(
                     FunctionObjectBuilder::new(
-                        context,
+                        context.realm(),
                         NativeFunction::from_copy_closure_with_captures(
                             |<span class="kw">_</span>, <span class="kw">_</span>, module, context| <span class="prelude-val">Ok</span>(module.evaluate(context).into()),
                             <span class="self">self</span>.clone(),

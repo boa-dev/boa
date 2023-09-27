@@ -1130,7 +1130,7 @@
 ///     .then(
 ///         Some(
 ///             FunctionObjectBuilder::new(
-///                 context,
+///                 context.realm(),
 ///                 NativeFunction::from_fn_ptr(|_, args, _| {
 ///                     Err(JsError::from_opaque(args.get_or_undefined(0).clone()).into())
 ///                 }),
@@ -1142,7 +1142,7 @@
 ///     )?
 ///     .catch(
 ///         FunctionObjectBuilder::new(
-///             context,
+///             context.realm(),
 ///             NativeFunction::from_fn_ptr(|_, args, _| {
 ///                 Ok(args.get_or_undefined(0).clone())
 ///             }),
@@ -1152,7 +1152,7 @@
 ///     )?
 ///     .finally(
 ///         FunctionObjectBuilder::new(
-///             context,
+///             context.realm(),
 ///             NativeFunction::from_fn_ptr(|_, _, context| {
 ///                 context
 ///                     .global_object()
@@ -1541,7 +1541,7 @@
     /// )?.then(
     ///     Some(
     ///         FunctionObjectBuilder::new(
-    ///             context,
+    ///             context.realm(),
     ///             NativeFunction::from_fn_ptr(|_, args, context| {
     ///                 args.get_or_undefined(0).to_string(context).map(JsValue::from)
     ///             }),
@@ -1607,7 +1607,7 @@
     ///     context,
     /// )?.catch(
     ///     FunctionObjectBuilder::new(
-    ///         context,
+    ///         context.realm(),
     ///         NativeFunction::from_fn_ptr(|_, args, context| {
     ///             args.get_or_undefined(0).to_string(context).map(JsValue::from)
     ///         }),
@@ -1671,7 +1671,7 @@
     ///     context,
     /// )?.finally(
     ///     FunctionObjectBuilder::new(
-    ///         context,
+    ///         context.realm(),
     ///         NativeFunction::from_fn_ptr(|_, _, context| {
     ///             context
     ///                 .global_object()
@@ -2044,7 +2044,7 @@
             <span class="kw">let </span>state = state.clone();
 
             FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 NativeFunction::from_copy_closure_with_captures(
                     <span class="kw">move </span>|<span class="kw">_</span>, args, state, <span class="kw">_</span>| {
                         finish(state, <span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone()));
@@ -2060,7 +2060,7 @@
             <span class="kw">let </span>state = state.clone();
 
             FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 NativeFunction::from_copy_closure_with_captures(
                     <span class="kw">move </span>|<span class="kw">_</span>, args, state, <span class="kw">_</span>| {
                         <span class="kw">let </span>err = JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone());

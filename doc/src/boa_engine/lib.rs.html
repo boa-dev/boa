@@ -475,6 +475,9 @@
 <a href="#475" id="475">475</a>
 <a href="#476" id="476">476</a>
 <a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -624,12 +627,14 @@
 <span class="kw">pub mod </span>script;
 <span class="kw">pub mod </span>string;
 <span class="kw">pub mod </span>symbol;
-<span class="comment">// pub(crate) mod tagged;
-</span><span class="kw">mod </span>tagged;
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests;
 <span class="kw">pub mod </span>value;
 <span class="kw">pub mod </span>vm;
+
+<span class="kw">mod </span>host_defined;
+<span class="kw">mod </span>tagged;
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
 <span class="doccomment">/// A convenience module that re-exports the most commonly-used Boa APIs
 </span><span class="kw">pub mod </span>prelude {
@@ -652,6 +657,7 @@
     bigint::JsBigInt,
     context::Context,
     error::{JsError, JsNativeError, JsNativeErrorKind},
+    host_defined::HostDefined,
     module::Module,
     native_function::NativeFunction,
     object::JsObject,

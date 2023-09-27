@@ -671,7 +671,7 @@
         // that captures done and performs the following steps when called:
         // 9. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, &quot;&quot;, « »).
         </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure(<span class="kw">move </span>|_this, args, context| {
                 <span class="comment">// a. Return CreateIterResultObject(value, done).
                 </span><span class="prelude-val">Ok</span>(create_iter_result_object(

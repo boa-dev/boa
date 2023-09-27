@@ -313,6 +313,10 @@
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
 <a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s API to create and customize `ECMAScript` jobs and job queues.
 //!
 //! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
@@ -332,7 +336,7 @@
 //! [Job]: https://tc39.es/ecma262/#sec-jobs
 //! [JobCallback]: https://tc39.es/ecma262/#sec-jobcallback-records
 
-</span><span class="kw">use </span>std::{any::Any, cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
+</span><span class="kw">use </span>std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
 <span class="kw">use crate</span>::{
     object::{JsFunction, NativeObject},
@@ -468,7 +472,8 @@
 
 <span class="kw">impl </span>JobCallback {
     <span class="doccomment">/// Creates a new `JobCallback`.
-    </span><span class="kw">pub fn </span>new&lt;T: Any + Trace&gt;(callback: JsFunction, host_defined: T) -&gt; <span class="self">Self </span>{
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>new&lt;T: NativeObject&gt;(callback: JsFunction, host_defined: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             callback,
             host_defined: Box::new(host_defined),
@@ -476,20 +481,23 @@
     }
 
     <span class="doccomment">/// Gets the inner callback of the job.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>callback(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsFunction {
         <span class="kw-2">&amp;</span><span class="self">self</span>.callback
     }
 
-    <span class="doccomment">/// Gets a reference to the host defined additional field as an `Any` trait object.
-    </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>host_defined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any {
-        <span class="self">self</span>.host_defined.as_any()
+    <span class="doccomment">/// Gets a reference to the host defined additional field as an [`NativeObject`] trait object.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>host_defined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>NativeObject {
+        <span class="kw-2">&amp;*</span><span class="self">self</span>.host_defined
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the host defined additional field as an `Any` trait object.
-    </span><span class="kw">pub fn </span>host_defined_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any {
-        <span class="self">self</span>.host_defined.as_mut_any()
+    <span class="doccomment">/// Gets a mutable reference to the host defined additional field as an [`NativeObject`] trait object.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>host_defined_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>NativeObject {
+        <span class="kw-2">&amp;mut *</span><span class="self">self</span>.host_defined
     }
 }
 

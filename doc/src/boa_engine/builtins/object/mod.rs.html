@@ -2682,7 +2682,7 @@
         <span class="comment">// 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
         // obj and performs the following steps when called:
         </span><span class="kw">let </span>closure = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |<span class="kw">_</span>, args, obj, context| {
                     <span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>);

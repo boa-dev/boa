@@ -999,7 +999,7 @@
             f
         } <span class="kw">else </span>{
             <span class="kw">let </span>bound_compare = FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 <span class="comment">// 10.3.3.1. Collator Compare Functions
                 // https://tc39.es/ecma402/#sec-collator-compare-functions
                 </span>NativeFunction::from_copy_closure_with_captures(

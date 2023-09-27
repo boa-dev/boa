@@ -241,7 +241,7 @@
         <span class="comment">// 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, &quot;&quot;, « »).
         </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
                     <span class="comment">// a. Let prevContext be the running execution context.
@@ -282,7 +282,7 @@
         <span class="comment">// 5. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures asyncContext and performs the following steps when called:
         // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, &quot;&quot;, « »).
         </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
                     <span class="comment">// a. Let prevContext be the running execution context.

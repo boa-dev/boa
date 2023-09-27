@@ -542,6 +542,19 @@
 <a href="#542" id="542">542</a>
 <a href="#543" id="543">543</a>
 <a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
@@ -945,7 +958,7 @@
         <span class="kw">let </span>handler = JsObject::with_object_proto(context.intrinsics());
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(apply) = <span class="self">self</span>.apply {
-            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(apply))
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(apply))
                 .length(<span class="number">3</span>)
                 .build();
             handler
@@ -953,33 +966,38 @@
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(construct) = <span class="self">self</span>.construct {
-            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(construct))
-                .length(<span class="number">3</span>)
-                .build();
+            <span class="kw">let </span>f =
+                FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(construct))
+                    .length(<span class="number">3</span>)
+                    .build();
             handler
                 .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;construct&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(define_property) = <span class="self">self</span>.define_property {
-            <span class="kw">let </span>f =
-                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(define_property))
-                    .length(<span class="number">3</span>)
-                    .build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(
+                context.realm(),
+                NativeFunction::from_fn_ptr(define_property),
+            )
+            .length(<span class="number">3</span>)
+            .build();
             handler
                 .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;defineProperty&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(delete_property) = <span class="self">self</span>.delete_property {
-            <span class="kw">let </span>f =
-                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(delete_property))
-                    .length(<span class="number">2</span>)
-                    .build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(
+                context.realm(),
+                NativeFunction::from_fn_ptr(delete_property),
+            )
+            .length(<span class="number">2</span>)
+            .build();
             handler
                 .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;deleteProperty&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get) = <span class="self">self</span>.get {
-            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get))
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get))
                 .length(<span class="number">3</span>)
                 .build();
             handler
@@ -988,7 +1006,7 @@
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get_own_property_descriptor) = <span class="self">self</span>.get_own_property_descriptor {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 NativeFunction::from_fn_ptr(get_own_property_descriptor),
             )
             .length(<span class="number">2</span>)
@@ -998,16 +1016,18 @@
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get_prototype_of) = <span class="self">self</span>.get_prototype_of {
-            <span class="kw">let </span>f =
-                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get_prototype_of))
-                    .length(<span class="number">1</span>)
-                    .build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(
+                context.realm(),
+                NativeFunction::from_fn_ptr(get_prototype_of),
+            )
+            .length(<span class="number">1</span>)
+            .build();
             handler
                 .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;getPrototypeOf&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(has) = <span class="self">self</span>.has {
-            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(has))
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(has))
                 .length(<span class="number">2</span>)
                 .build();
             handler
@@ -1015,24 +1035,28 @@
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(is_extensible) = <span class="self">self</span>.is_extensible {
-            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(is_extensible))
-                .length(<span class="number">1</span>)
-                .build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(
+                context.realm(),
+                NativeFunction::from_fn_ptr(is_extensible),
+            )
+            .length(<span class="number">1</span>)
+            .build();
             handler
                 .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;isExtensible&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(own_keys) = <span class="self">self</span>.own_keys {
-            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(own_keys))
-                .length(<span class="number">1</span>)
-                .build();
+            <span class="kw">let </span>f =
+                FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(own_keys))
+                    .length(<span class="number">1</span>)
+                    .build();
             handler
                 .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;ownKeys&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(prevent_extensions) = <span class="self">self</span>.prevent_extensions {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(
-                context,
+                context.realm(),
                 NativeFunction::from_fn_ptr(prevent_extensions),
             )
             .length(<span class="number">1</span>)
@@ -1042,7 +1066,7 @@
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(set) = <span class="self">self</span>.set {
-            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(set))
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set))
                 .length(<span class="number">4</span>)
                 .build();
             handler
@@ -1050,10 +1074,12 @@
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(set_prototype_of) = <span class="self">self</span>.set_prototype_of {
-            <span class="kw">let </span>f =
-                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(set_prototype_of))
-                    .length(<span class="number">2</span>)
-                    .build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(
+                context.realm(),
+                NativeFunction::from_fn_ptr(set_prototype_of),
+            )
+            .length(<span class="number">2</span>)
+            .build();
             handler
                 .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;setPrototypeOf&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);

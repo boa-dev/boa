@@ -1315,7 +1315,7 @@
 </span><span class="kw">fn </span>register_print_fn(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, async_result: AsyncResult) {
     <span class="comment">// We use `FunctionBuilder` to define a closure with additional captures.
     </span><span class="kw">let </span>js_function = FunctionObjectBuilder::new(
-        context,
+        context.realm(),
         <span class="comment">// SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
         </span><span class="kw">unsafe </span>{
             NativeFunction::from_closure(<span class="kw">move </span>|<span class="kw">_</span>, args, context| {

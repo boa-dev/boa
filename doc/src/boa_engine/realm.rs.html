@@ -134,6 +134,19 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Realm Records`
 //!
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
@@ -146,8 +159,8 @@
     context::{intrinsics::Intrinsics, HostHooks},
     environments::DeclarativeEnvironment,
     module::Module,
-    object::{shape::RootShape, JsObject},
-    JsString,
+    object::shape::RootShape,
+    HostDefined, JsObject, JsString,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -188,10 +201,12 @@
     global_this: JsObject,
     template_map: GcRefCell&lt;FxHashMap&lt;u64, JsObject&gt;&gt;,
     loaded_modules: GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt;,
+
+    host_defined: HostDefined,
 }
 
 <span class="kw">impl </span>Realm {
-    <span class="doccomment">/// Create a new Realm.
+    <span class="doccomment">/// Create a new [`Realm`].
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>create(hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks, root_shape: <span class="kw-2">&amp;</span>RootShape) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Realm::create&quot;</span>, <span class="string">&quot;realm&quot;</span>);
@@ -211,6 +226,7 @@
                 global_this,
                 template_map: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
+                host_defined: HostDefined::default(),
             }),
         };
 
@@ -220,9 +236,19 @@
     }
 
     <span class="doccomment">/// Gets the intrinsics of this `Realm`.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>intrinsics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Intrinsics {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.intrinsics
+    }
+
+    <span class="doccomment">/// Returns the [`ECMAScript specification`][spec] defined [`\[\[\HostDefined]\]`][`HostDefined`] field of the [`Realm`].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-realm-record-fields
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>host_defined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HostDefined {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.host_defined
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>environment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Gc&lt;DeclarativeEnvironment&gt; {

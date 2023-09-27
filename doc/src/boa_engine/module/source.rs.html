@@ -3252,7 +3252,7 @@
         <span class="comment">// 4. Let fulfilledClosure be a new Abstract Closure with no parameters that captures module and performs the following steps when called:
         // 5. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, &quot;&quot;, « »).
         </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |<span class="kw">_</span>, <span class="kw">_</span>, module, context| {
                     <span class="comment">//     a. Perform AsyncModuleExecutionFulfilled(module).
@@ -3268,7 +3268,7 @@
         <span class="comment">// 6. Let rejectedClosure be a new Abstract Closure with parameters (error) that captures module and performs the following steps when called:
         // 7. Let onRejected be CreateBuiltinFunction(rejectedClosure, 0, &quot;&quot;, « »).
         </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |<span class="kw">_</span>, args, module, context| {
                     <span class="kw">let </span>error = JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone());

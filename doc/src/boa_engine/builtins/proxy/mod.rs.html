@@ -344,7 +344,7 @@
         <span class="comment">// 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, &quot;&quot;, « [[RevocableProxy]] »).
         // 4. Set revoker.[[RevocableProxy]] to p.
         </span>FunctionObjectBuilder::new(
-            context,
+            context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |<span class="kw">_</span>, <span class="kw">_</span>, revocable_proxy, <span class="kw">_</span>| {
                     <span class="comment">// a. Let F be the active function object.

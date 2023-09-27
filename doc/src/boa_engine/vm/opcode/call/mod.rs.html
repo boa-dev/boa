@@ -835,7 +835,7 @@
                     <span class="comment">// 4. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures promiseCapability and performs the following steps when called:
                     // 5. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, &quot;&quot;, « »).
                     </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
-                        context,
+                        context.realm(),
                         NativeFunction::from_copy_closure_with_captures(
                             |<span class="kw">_</span>, args, cap, context| {
                                 <span class="comment">//     a. Perform ! Call(promiseCapability.[[Reject]], undefined, « reason »).
@@ -854,7 +854,7 @@
                     <span class="comment">// 6. Let linkAndEvaluateClosure be a new Abstract Closure with no parameters that captures module, promiseCapability, and onRejected and performs the following steps when called:
                     // 7. Let linkAndEvaluate be CreateBuiltinFunction(linkAndEvaluateClosure, 0, &quot;&quot;, « »).
                     </span><span class="kw">let </span>link_evaluate = FunctionObjectBuilder::new(
-                        context,
+                        context.realm(),
                         NativeFunction::from_copy_closure_with_captures(
                             |<span class="kw">_</span>, <span class="kw">_</span>, (module, cap, on_rejected), context| {
                                 <span class="comment">// a. Let link be Completion(module.Link()).
@@ -875,7 +875,7 @@
                                 <span class="comment">// d. Let fulfilledClosure be a new Abstract Closure with no parameters that captures module and promiseCapability and performs the following steps when called:
                                 // e. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, &quot;&quot;, « »).
                                 </span><span class="kw">let </span>fulfill = FunctionObjectBuilder::new(
-                                    context,
+                                    context.realm(),
                                     NativeFunction::from_copy_closure_with_captures(
                                         |<span class="kw">_</span>, <span class="kw">_</span>, (module, cap), context| {
                                             <span class="comment">// i. Let namespace be GetModuleNamespace(module).

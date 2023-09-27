@@ -2544,6 +2544,77 @@
 <a href="#2544" id="2544">2544</a>
 <a href="#2545" id="2545">2545</a>
 <a href="#2546" id="2546">2546</a>
+<a href="#2547" id="2547">2547</a>
+<a href="#2548" id="2548">2548</a>
+<a href="#2549" id="2549">2549</a>
+<a href="#2550" id="2550">2550</a>
+<a href="#2551" id="2551">2551</a>
+<a href="#2552" id="2552">2552</a>
+<a href="#2553" id="2553">2553</a>
+<a href="#2554" id="2554">2554</a>
+<a href="#2555" id="2555">2555</a>
+<a href="#2556" id="2556">2556</a>
+<a href="#2557" id="2557">2557</a>
+<a href="#2558" id="2558">2558</a>
+<a href="#2559" id="2559">2559</a>
+<a href="#2560" id="2560">2560</a>
+<a href="#2561" id="2561">2561</a>
+<a href="#2562" id="2562">2562</a>
+<a href="#2563" id="2563">2563</a>
+<a href="#2564" id="2564">2564</a>
+<a href="#2565" id="2565">2565</a>
+<a href="#2566" id="2566">2566</a>
+<a href="#2567" id="2567">2567</a>
+<a href="#2568" id="2568">2568</a>
+<a href="#2569" id="2569">2569</a>
+<a href="#2570" id="2570">2570</a>
+<a href="#2571" id="2571">2571</a>
+<a href="#2572" id="2572">2572</a>
+<a href="#2573" id="2573">2573</a>
+<a href="#2574" id="2574">2574</a>
+<a href="#2575" id="2575">2575</a>
+<a href="#2576" id="2576">2576</a>
+<a href="#2577" id="2577">2577</a>
+<a href="#2578" id="2578">2578</a>
+<a href="#2579" id="2579">2579</a>
+<a href="#2580" id="2580">2580</a>
+<a href="#2581" id="2581">2581</a>
+<a href="#2582" id="2582">2582</a>
+<a href="#2583" id="2583">2583</a>
+<a href="#2584" id="2584">2584</a>
+<a href="#2585" id="2585">2585</a>
+<a href="#2586" id="2586">2586</a>
+<a href="#2587" id="2587">2587</a>
+<a href="#2588" id="2588">2588</a>
+<a href="#2589" id="2589">2589</a>
+<a href="#2590" id="2590">2590</a>
+<a href="#2591" id="2591">2591</a>
+<a href="#2592" id="2592">2592</a>
+<a href="#2593" id="2593">2593</a>
+<a href="#2594" id="2594">2594</a>
+<a href="#2595" id="2595">2595</a>
+<a href="#2596" id="2596">2596</a>
+<a href="#2597" id="2597">2597</a>
+<a href="#2598" id="2598">2598</a>
+<a href="#2599" id="2599">2599</a>
+<a href="#2600" id="2600">2600</a>
+<a href="#2601" id="2601">2601</a>
+<a href="#2602" id="2602">2602</a>
+<a href="#2603" id="2603">2603</a>
+<a href="#2604" id="2604">2604</a>
+<a href="#2605" id="2605">2605</a>
+<a href="#2606" id="2606">2606</a>
+<a href="#2607" id="2607">2607</a>
+<a href="#2608" id="2608">2608</a>
+<a href="#2609" id="2609">2609</a>
+<a href="#2610" id="2610">2610</a>
+<a href="#2611" id="2611">2611</a>
+<a href="#2612" id="2612">2612</a>
+<a href="#2613" id="2613">2613</a>
+<a href="#2614" id="2614">2614</a>
+<a href="#2615" id="2615">2615</a>
+<a href="#2616" id="2616">2616</a>
+<a href="#2617" id="2617">2617</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2606,13 +2677,14 @@
     module::ModuleNamespace,
     native_function::NativeFunction,
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    realm::Realm,
     string::utf16,
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace, WeakGc};
 <span class="kw">use </span>std::{
-    any::Any,
+    any::{Any, TypeId},
     fmt::{<span class="self">self</span>, Debug},
     ops::{Deref, DerefMut},
 };
@@ -2674,6 +2746,75 @@
     <span class="kw">fn </span>as_mut_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any {
         <span class="self">self
     </span>}
+}
+
+<span class="kw">impl dyn </span>NativeObject {
+    <span class="doccomment">/// Returns `true` if the inner type is the same as `T`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>is&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="comment">// Get `TypeId` of the type this function is instantiated with.
+        </span><span class="kw">let </span>t = TypeId::of::&lt;T&gt;();
+
+        <span class="comment">// Get `TypeId` of the type in the trait object (`self`).
+        </span><span class="kw">let </span>concrete = <span class="self">self</span>.type_id();
+
+        <span class="comment">// Compare both `TypeId`s on equality.
+        </span>t == concrete
+    }
+
+    <span class="doccomment">/// Returns some reference to the inner value if it is of type `T`, or
+    /// `None` if it isn&#39;t.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>downcast_ref&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is::&lt;T&gt;() {
+            <span class="comment">// SAFETY: just checked whether we are pointing to the correct type, and we can rely on
+            // that check for memory safety because we have implemented NativeObject for all types; no other
+            // impls can exist as they would conflict with our impl.
+            </span><span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(<span class="self">self</span>.downcast_ref_unchecked()) }
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="doccomment">/// Returns some mutable reference to the inner value if it is of type `T`, or
+    /// `None` if it isn&#39;t.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>downcast_mut&lt;T: NativeObject&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is::&lt;T&gt;() {
+            <span class="comment">// SAFETY: Already checked if inner type is T, so this is safe.
+            </span><span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(<span class="self">self</span>.downcast_mut_unchecked()) }
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="doccomment">/// Returns a reference to the inner value as type `dyn T`.
+    ///
+    /// # Safety
+    ///
+    /// The contained value must be of type `T`. Calling this method
+    /// with the incorrect type is *undefined behavior*.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub unsafe fn </span>downcast_ref_unchecked&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.is::&lt;T&gt;());
+        <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">dyn </span>NativeObject = <span class="self">self</span>;
+        <span class="comment">// SAFETY: caller guarantees that T is the correct type
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>ptr.cast::&lt;T&gt;() }
+    }
+
+    <span class="doccomment">/// Returns a mutable reference to the inner value as type `dyn T`.
+    ///
+    /// # Safety
+    ///
+    /// The contained value must be of type `T`. Calling this method
+    /// with the incorrect type is *undefined behavior*.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub unsafe fn </span>downcast_mut_unchecked&lt;T: NativeObject&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.is::&lt;T&gt;());
+        <span class="comment">// SAFETY: caller guarantees that T is the correct type
+        </span><span class="kw">let </span>ptr: <span class="kw-2">*mut </span><span class="kw">dyn </span>NativeObject = <span class="self">self</span>;
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>ptr.cast::&lt;T&gt;() }
+    }
 }
 
 <span class="doccomment">/// The internal representation of a JavaScript object.
@@ -4538,20 +4679,21 @@
 
 <span class="doccomment">/// Builder for creating native function objects
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>FunctionObjectBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
+</span><span class="kw">pub struct </span>FunctionObjectBuilder&lt;<span class="lifetime">&#39;realm</span>&gt; {
+    realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;realm </span>Realm,
     function: NativeFunction,
     constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
     name: JsString,
     length: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; FunctionObjectBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;realm</span>&gt; FunctionObjectBuilder&lt;<span class="lifetime">&#39;realm</span>&gt; {
     <span class="doccomment">/// Create a new `FunctionBuilder` for creating a native function.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;, function: NativeFunction) -&gt; <span class="self">Self </span>{
+    #[must_use]
+    </span><span class="kw">pub fn </span>new(realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;realm </span>Realm, function: NativeFunction) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            context,
+            realm,
             function,
             constructor: <span class="prelude-val">None</span>,
             name: <span class="macro">js_string!</span>(),
@@ -4600,9 +4742,9 @@
                 function: <span class="self">self</span>.function,
                 constructor: <span class="self">self</span>.constructor,
             },
-            <span class="self">self</span>.context.realm().clone(),
+            <span class="self">self</span>.realm.clone(),
         );
-        <span class="kw">let </span>object = <span class="self">self</span>.context.intrinsics().templates().function().create(
+        <span class="kw">let </span>object = <span class="self">self</span>.realm.intrinsics().templates().function().create(
             ObjectData::function(function, <span class="self">self</span>.constructor.is_some()),
             <span class="macro">vec!</span>[<span class="self">self</span>.length.into(), <span class="self">self</span>.name.into()],
         );
@@ -4669,7 +4811,7 @@
         </span>B: Into&lt;FunctionBinding&gt;,
     {
         <span class="kw">let </span>binding = binding.into();
-        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.context, function)
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.context.realm(), function)
             .name(binding.name)
             .length(length)
             .constructor(<span class="bool-val">false</span>)
@@ -4795,7 +4937,7 @@
         </span>B: Into&lt;FunctionBinding&gt;,
     {
         <span class="kw">let </span>binding = binding.into();
-        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.context, function)
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.context.realm(), function)
             .name(binding.name)
             .length(length)
             .constructor(<span class="bool-val">false</span>)
@@ -4823,7 +4965,7 @@
         </span>B: Into&lt;FunctionBinding&gt;,
     {
         <span class="kw">let </span>binding = binding.into();
-        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.context, function)
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.context.realm(), function)
             .name(binding.name)
             .length(length)
             .constructor(<span class="bool-val">false</span>)
