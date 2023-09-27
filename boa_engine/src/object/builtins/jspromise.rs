@@ -40,9 +40,11 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 /// let promise = JsPromise::new(
 ///     |resolvers, context| {
 ///         let result = js_string!("hello world!").into();
-///         resolvers
-///             .resolve
-///             .call(&JsValue::undefined(), &[result], context)?;
+///         resolvers.resolve.call(
+///             &JsValue::undefined(),
+///             &[result],
+///             context,
+///         )?;
 ///         Ok(JsValue::undefined())
 ///     },
 ///     context,
@@ -54,7 +56,10 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///             FunctionObjectBuilder::new(
 ///                 context.realm(),
 ///                 NativeFunction::from_fn_ptr(|_, args, _| {
-///                     Err(JsError::from_opaque(args.get_or_undefined(0).clone()).into())
+///                     Err(JsError::from_opaque(
+///                         args.get_or_undefined(0).clone(),
+///                     )
+///                     .into())
 ///                 }),
 ///             )
 ///             .build(),
@@ -76,10 +81,12 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///         FunctionObjectBuilder::new(
 ///             context.realm(),
 ///             NativeFunction::from_fn_ptr(|_, _, context| {
-///                 context
-///                     .global_object()
-///                     .clone()
-///                     .set("finally", JsValue::from(true), true, context)?;
+///                 context.global_object().clone().set(
+///                     "finally",
+///                     JsValue::from(true),
+///                     true,
+///                     context,
+///                 )?;
 ///                 Ok(JsValue::undefined())
 ///             }),
 ///         )
@@ -135,15 +142,25 @@ impl JsPromise {
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// let context = &mut Context::default();
     ///
-    /// let promise = JsPromise::new(|resolvers, context| {
-    ///     let result = js_string!("hello world").into();
-    ///     resolvers.resolve.call(&JsValue::undefined(), &[result], context)?;
-    ///     Ok(JsValue::undefined())
-    /// }, context)?;
+    /// let promise = JsPromise::new(
+    ///     |resolvers, context| {
+    ///         let result = js_string!("hello world").into();
+    ///         resolvers.resolve.call(
+    ///             &JsValue::undefined(),
+    ///             &[result],
+    ///             context,
+    ///         )?;
+    ///         Ok(JsValue::undefined())
+    ///     },
+    ///     context,
+    /// )?;
     ///
     /// context.run_jobs();
     ///
-    /// assert_eq!(promise.state()?, PromiseState::Fulfilled(js_string!("hello world").into()));
+    /// assert_eq!(
+    ///     promise.state()?,
+    ///     PromiseState::Fulfilled(js_string!("hello world").into())
+    /// );
     /// # Ok(())
     /// # }
     /// ```
@@ -192,7 +209,9 @@ impl JsPromise {
     ///
     /// assert_eq!(promise.state()?, PromiseState::Pending);
     ///
-    /// resolvers.reject.call(&JsValue::undefined(), &[5.into()], context)?;
+    /// resolvers
+    ///     .reject
+    ///     .call(&JsValue::undefined(), &[5.into()], context)?;
     ///
     /// assert_eq!(promise.state()?, PromiseState::Rejected(5.into()));
     ///
@@ -228,12 +247,17 @@ impl JsPromise {
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// let context = &mut Context::default();
     ///
-    /// let promise = context.eval(Source::from_bytes("new Promise((resolve, reject) => resolve())"))?;
+    /// let promise = context.eval(Source::from_bytes(
+    ///     "new Promise((resolve, reject) => resolve())",
+    /// ))?;
     /// let promise = promise.as_object().cloned().unwrap();
     ///
     /// let promise = JsPromise::from_object(promise)?;
     ///
-    /// assert_eq!(promise.state()?, PromiseState::Fulfilled(JsValue::undefined()));
+    /// assert_eq!(
+    ///     promise.state()?,
+    ///     PromiseState::Fulfilled(JsValue::undefined())
+    /// );
     ///
     /// assert!(JsPromise::from_object(JsObject::with_null_proto()).is_err());
     ///
@@ -327,7 +351,10 @@ impl JsPromise {
     ///
     /// let promise = JsPromise::resolve(js_string!("resolved!"), context)?;
     ///
-    /// assert_eq!(promise.state()?, PromiseState::Fulfilled(js_string!("resolved!").into()));
+    /// assert_eq!(
+    ///     promise.state()?,
+    ///     PromiseState::Fulfilled(js_string!("resolved!").into())
+    /// );
     ///
     /// # Ok(())
     /// # }
@@ -363,9 +390,15 @@ impl JsPromise {
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// let context = &mut Context::default();
     ///
-    /// let promise = JsPromise::reject(JsError::from_opaque(js_string!("oops!").into()), context)?;
+    /// let promise = JsPromise::reject(
+    ///     JsError::from_opaque(js_string!("oops!").into()),
+    ///     context,
+    /// )?;
     ///
-    /// assert_eq!(promise.state()?, PromiseState::Rejected(js_string!("oops!").into()));
+    /// assert_eq!(
+    ///     promise.state()?,
+    ///     PromiseState::Rejected(js_string!("oops!").into())
+    /// );
     ///
     /// # Ok(())
     /// # }
@@ -454,18 +487,23 @@ impl JsPromise {
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
-    ///         resolvers
-    ///             .resolve
-    ///             .call(&JsValue::undefined(), &[255.255.into()], context)?;
+    ///         resolvers.resolve.call(
+    ///             &JsValue::undefined(),
+    ///             &[255.255.into()],
+    ///             context,
+    ///         )?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
-    /// )?.then(
+    /// )?
+    /// .then(
     ///     Some(
     ///         FunctionObjectBuilder::new(
     ///             context.realm(),
     ///             NativeFunction::from_fn_ptr(|_, args, context| {
-    ///                 args.get_or_undefined(0).to_string(context).map(JsValue::from)
+    ///                 args.get_or_undefined(0)
+    ///                     .to_string(context)
+    ///                     .map(JsValue::from)
     ///             }),
     ///         )
     ///         .build(),
@@ -521,17 +559,22 @@ impl JsPromise {
     ///     |resolvers, context| {
     ///         let error = JsNativeError::typ().with_message("thrown");
     ///         let error = error.to_opaque(context);
-    ///         resolvers
-    ///             .reject
-    ///             .call(&JsValue::undefined(), &[error.into()], context)?;
+    ///         resolvers.reject.call(
+    ///             &JsValue::undefined(),
+    ///             &[error.into()],
+    ///             context,
+    ///         )?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
-    /// )?.catch(
+    /// )?
+    /// .catch(
     ///     FunctionObjectBuilder::new(
     ///         context.realm(),
     ///         NativeFunction::from_fn_ptr(|_, args, context| {
-    ///             args.get_or_undefined(0).to_string(context).map(JsValue::from)
+    ///             args.get_or_undefined(0)
+    ///                 .to_string(context)
+    ///                 .map(JsValue::from)
     ///         }),
     ///     )
     ///     .build(),
@@ -585,20 +628,25 @@ impl JsPromise {
     ///     |resolvers, context| {
     ///         let error = JsNativeError::typ().with_message("thrown");
     ///         let error = error.to_opaque(context);
-    ///         resolvers
-    ///             .reject
-    ///             .call(&JsValue::undefined(), &[error.into()], context)?;
+    ///         resolvers.reject.call(
+    ///             &JsValue::undefined(),
+    ///             &[error.into()],
+    ///             context,
+    ///         )?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
-    /// )?.finally(
+    /// )?
+    /// .finally(
     ///     FunctionObjectBuilder::new(
     ///         context.realm(),
     ///         NativeFunction::from_fn_ptr(|_, _, context| {
-    ///             context
-    ///                 .global_object()
-    ///                 .clone()
-    ///                 .set("finally", JsValue::from(true), true, context)?;
+    ///             context.global_object().clone().set(
+    ///                 "finally",
+    ///                 JsValue::from(true),
+    ///                 true,
+    ///                 context,
+    ///             )?;
     ///             Ok(JsValue::undefined())
     ///         }),
     ///     )
@@ -663,7 +711,12 @@ impl JsPromise {
     ///
     /// context.run_jobs();
     ///
-    /// let array = promise1.state()?.as_fulfilled().and_then(JsValue::as_object).unwrap().clone();
+    /// let array = promise1
+    ///     .state()?
+    ///     .as_fulfilled()
+    ///     .and_then(JsValue::as_object)
+    ///     .unwrap()
+    ///     .clone();
     /// let array = JsArray::from_object(array)?;
     /// assert_eq!(array.at(0, context)?, 0.into());
     /// assert_eq!(array.at(1, context)?, 2.into());
@@ -726,7 +779,12 @@ impl JsPromise {
     ///
     /// context.run_jobs();
     ///
-    /// let array = promise.state()?.as_fulfilled().and_then(JsValue::as_object).unwrap().clone();
+    /// let array = promise
+    ///     .state()?
+    ///     .as_fulfilled()
+    ///     .and_then(JsValue::as_object)
+    ///     .unwrap()
+    ///     .clone();
     /// let array = JsArray::from_object(array)?;
     ///
     /// let a = array.at(0, context)?.as_object().unwrap().clone();
@@ -735,7 +793,10 @@ impl JsPromise {
     ///
     /// let b = array.at(1, context)?.as_object().unwrap().clone();
     /// assert_eq!(b.get("status", context)?, js_string!("rejected").into());
-    /// assert_eq!(b.get("reason", context)?.to_string(context)?, js_string!("TypeError"));
+    /// assert_eq!(
+    ///     b.get("reason", context)?.to_string(context)?,
+    ///     js_string!("TypeError")
+    /// );
     ///
     /// let c = array.at(2, context)?.as_object().unwrap().clone();
     /// assert_eq!(c.get("status", context)?, js_string!("fulfilled").into());
@@ -788,7 +849,6 @@ impl JsPromise {
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// let context = &mut Context::default();
     ///
-    ///
     /// let promise = JsPromise::any(
     ///     [
     ///         JsPromise::reject(JsNativeError::syntax(), context)?,
@@ -801,7 +861,10 @@ impl JsPromise {
     ///
     /// context.run_jobs();
     ///
-    /// assert_eq!(promise.state()?, PromiseState::Fulfilled(js_string!("fulfilled").into()));
+    /// assert_eq!(
+    ///     promise.state()?,
+    ///     PromiseState::Fulfilled(js_string!("fulfilled").into())
+    /// );
     ///
     /// # Ok(())
     /// # }
@@ -856,8 +919,14 @@ impl JsPromise {
     /// let promise = JsPromise::race([a, b, c], context)?;
     ///
     /// resolvers_b.reject.call(&JsValue::undefined(), &[], context);
-    /// resolvers_a.resolve.call(&JsValue::undefined(), &[5.into()], context);
-    /// resolvers_c.reject.call(&JsValue::undefined(), &[js_string!("c error").into()], context);
+    /// resolvers_a
+    ///     .resolve
+    ///     .call(&JsValue::undefined(), &[5.into()], context);
+    /// resolvers_c.reject.call(
+    ///     &JsValue::undefined(),
+    ///     &[js_string!("c error").into()],
+    ///     context,
+    /// );
     ///
     /// context.run_jobs();
     ///
@@ -913,12 +982,12 @@ impl JsPromise {
     /// let (promise, resolvers) = JsPromise::new_pending(context);
     /// let promise_future = promise.into_js_future(context)?;
     ///
-    /// let future1 = async move {
-    ///     promise_future.await
-    /// };
+    /// let future1 = async move { promise_future.await };
     ///
     /// let future2 = async move {
-    ///     resolvers.resolve.call(&JsValue::undefined(), &[10.into()], context)?;
+    ///     resolvers
+    ///         .resolve
+    ///         .call(&JsValue::undefined(), &[10.into()], context)?;
     ///     context.run_jobs();
     ///     Ok::<(), JsError>(())
     /// };

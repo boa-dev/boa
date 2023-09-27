@@ -628,7 +628,10 @@ impl Module {
     /// # use boa_engine::module::{ModuleLoader, SimpleModuleLoader};
     /// let loader = &SimpleModuleLoader::new(Path::new(".")).unwrap();
     /// let dyn_loader: &dyn ModuleLoader = loader;
-    /// let mut context = &mut Context::builder().module_loader(dyn_loader).build().unwrap();
+    /// let mut context = &mut Context::builder()
+    ///     .module_loader(dyn_loader)
+    ///     .build()
+    ///     .unwrap();
     ///
     /// let source = Source::from_bytes("1 + 3");
     ///
@@ -640,7 +643,10 @@ impl Module {
     ///
     /// context.run_jobs();
     ///
-    /// assert_eq!(promise.state().unwrap(), PromiseState::Fulfilled(JsValue::undefined()));
+    /// assert_eq!(
+    ///     promise.state().unwrap(),
+    ///     PromiseState::Fulfilled(JsValue::undefined())
+    /// );
     /// ```
     #[allow(dropping_copy_types)]
     #[inline]

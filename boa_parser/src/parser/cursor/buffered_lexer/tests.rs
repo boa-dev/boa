@@ -266,7 +266,7 @@ fn skip_peeked_terminators() {
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("B", utf16!("B"))) // This value is after the line terminator
+        TokenKind::identifier(interner.get_or_intern_static("B", utf16!("B"))) /* This value is after the line terminator */
     );
 
     assert_eq!(

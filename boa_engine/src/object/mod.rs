@@ -2152,7 +2152,11 @@ impl<'realm> FunctionObjectBuilder<'realm> {
 /// let object = ObjectInitializer::new(&mut context)
 ///     .property("hello", "world", Attribute::all())
 ///     .property(1, 1, Attribute::all())
-///     .function(NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())), "func", 0)
+///     .function(
+///         NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
+///         "func",
+///         0,
+///     )
 ///     .build();
 /// ```
 ///

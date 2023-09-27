@@ -1,5 +1,4 @@
 //! Switch node.
-//!
 use crate::{
     expression::Expression,
     statement::Statement,

@@ -50,8 +50,7 @@ use crate::vm::RuntimeLimits;
 /// use boa_engine::{
 ///     object::ObjectInitializer,
 ///     property::{Attribute, PropertyDescriptor},
-///     Context,
-///     Source
+///     Context, Source,
 /// };
 ///
 /// let script = r#"

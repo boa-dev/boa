@@ -253,7 +253,10 @@ pub trait JobQueue {
 /// can be done by passing a reference to it to the [`ContextBuilder`]:
 ///
 /// ```
-/// use boa_engine::{context::ContextBuilder, job::{JobQueue, IdleJobQueue}};
+/// use boa_engine::{
+///     context::ContextBuilder,
+///     job::{IdleJobQueue, JobQueue},
+/// };
 ///
 /// let queue: &dyn JobQueue = &IdleJobQueue;
 /// let context = ContextBuilder::new().job_queue(queue).build();

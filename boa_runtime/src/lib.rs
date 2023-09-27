@@ -37,9 +37,7 @@
 //!         # panic!("An error occured in boa_runtime's js_code");
 //!     }
 //! };
-//!
 //! ```
-//!
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",

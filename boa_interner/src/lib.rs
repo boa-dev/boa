@@ -9,7 +9,6 @@
 //! to `usize`, and also it's easier to store, since instead of a heap-allocated string, you only
 //! need to store a `usize`. This reduces memory consumption and improves performance in the
 //! compiler.
-//!
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",

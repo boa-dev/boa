@@ -35,7 +35,6 @@ use std::ops::Deref;
 /// # Ok(())
 /// # }
 /// ```
-///
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsRegExp {
     inner: JsObject,
