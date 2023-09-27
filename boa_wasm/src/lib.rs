@@ -1,5 +1,4 @@
 //! An ECMAScript WASM implementation based on boa_engine.
-//!
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",

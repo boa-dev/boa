@@ -27,7 +27,8 @@ use std::ops::Deref;
 /// let array_buffer = JsArrayBuffer::new(4, context)?;
 ///
 /// // Create a new Dataview from pre-existing ArrayBuffer
-/// let data_view = JsDataView::from_js_array_buffer(&array_buffer, None, None, context)?;
+/// let data_view =
+///     JsDataView::from_js_array_buffer(&array_buffer, None, None, context)?;
 ///
 /// # Ok(())
 /// # }

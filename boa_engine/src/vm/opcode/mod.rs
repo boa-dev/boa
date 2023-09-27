@@ -438,7 +438,6 @@ macro_rules! generate_opcodes {
 ///
 /// This trait should be implemented for a struct that corresponds with
 /// any arm of the `OpCode` enum.
-///
 pub(crate) trait Operation {
     const NAME: &'static str;
     const INSTRUCTION: &'static str;

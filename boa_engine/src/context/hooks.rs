@@ -22,10 +22,8 @@ use super::intrinsics::Intrinsics;
 /// ```
 /// use boa_engine::{
 ///     context::{Context, ContextBuilder, HostHooks},
-///     JsNativeError,
-///     JsResult,
 ///     realm::Realm,
-///     Source
+///     JsNativeError, JsResult, Source,
 /// };
 ///
 /// struct Hooks;
@@ -36,13 +34,18 @@ use super::intrinsics::Intrinsics;
 ///         _realm: Realm,
 ///         context: &mut Context<'_>,
 ///     ) -> JsResult<()> {
-///         Err(JsNativeError::typ().with_message("eval calls not available").into())
+///         Err(JsNativeError::typ()
+///             .with_message("eval calls not available")
+///             .into())
 ///     }
 /// }
 /// let hooks: &dyn HostHooks = &Hooks; // Can have additional state.
 /// let context = &mut ContextBuilder::new().host_hooks(hooks).build().unwrap();
 /// let result = context.eval(Source::from_bytes(r#"eval("let a = 5")"#));
-/// assert_eq!(result.unwrap_err().to_string(), "TypeError: eval calls not available");
+/// assert_eq!(
+///     result.unwrap_err().to_string(),
+///     "TypeError: eval calls not available"
+/// );
 /// ```
 ///
 /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary

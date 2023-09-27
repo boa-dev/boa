@@ -89,7 +89,7 @@ fn alloc_overflow() -> ! {
 /// ```
 /// # use boa_engine::js_string;
 /// # use boa_engine::string::utf16;
-/// const NAME: &[u16]  = utf16!("human! ");
+/// const NAME: &[u16] = utf16!("human! ");
 /// let greeting = js_string!("Hello, ");
 /// let msg = js_string!(&greeting, &NAME, utf16!("Nice to meet you!"));
 ///

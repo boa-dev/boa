@@ -165,7 +165,8 @@ impl JsError {
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError};
     /// let context = &mut Context::default();
-    /// let error: JsError = JsNativeError::eval().with_message("invalid script").into();
+    /// let error: JsError =
+    ///     JsNativeError::eval().with_message("invalid script").into();
     /// let error_val = error.to_opaque(context);
     ///
     /// assert!(error_val.as_object().unwrap().borrow().is_error());
@@ -345,7 +346,8 @@ impl JsError {
     ///
     /// ```rust
     /// # use boa_engine::{JsError, JsNativeError, JsValue};
-    /// let error: JsError = JsNativeError::error().with_message("Unknown error").into();
+    /// let error: JsError =
+    ///     JsNativeError::error().with_message("Unknown error").into();
     ///
     /// assert!(error.as_native().is_some());
     ///
