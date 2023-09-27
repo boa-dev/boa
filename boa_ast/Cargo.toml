@@ -17,9 +17,9 @@ arbitrary = ["dep:arbitrary", "boa_interner/arbitrary", "num-bigint/arbitrary"]
 [dependencies]
 boa_interner.workspace = true
 boa_macros.workspace = true
-rustc-hash = "1.1.0"
-bitflags = "2.4.0"
-num-bigint = "0.4.4"
-serde = { version = "1.0.188", features = ["derive"], optional = true }
-arbitrary = { version = "1", features = ["derive"], optional = true }
-indexmap = "2.0.0"
+rustc-hash = { workspace = true, features = ["std"] }
+bitflags.workspace = true
+num-bigint.workspace = true
+serde = { workspace = true, features = ["derive"], optional = true }
+arbitrary = { workspace = true, features = ["derive"], optional = true }
+indexmap.workspace = true

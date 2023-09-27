@@ -87,8 +87,8 @@ use color_eyre::{
 };
 use colored::Colorize;
 use edition::SpecEdition;
-use fxhash::{FxHashMap, FxHashSet};
 use read::ErrorType;
+use rustc_hash::{FxHashMap, FxHashSet};
 use serde::{
     de::{Unexpected, Visitor},
     Deserialize, Deserializer, Serialize,

@@ -7,7 +7,7 @@ use color_eyre::{
     eyre::{eyre, WrapErr},
     Result,
 };
-use fxhash::FxHashMap;
+use rustc_hash::FxHashMap;
 use serde::Deserialize;
 use std::{
     fs, io,
