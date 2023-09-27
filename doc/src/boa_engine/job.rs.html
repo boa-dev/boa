@@ -317,6 +317,9 @@
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s API to create and customize `ECMAScript` jobs and job queues.
 //!
 //! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
@@ -572,7 +575,10 @@
 /// can be done by passing a reference to it to the [`ContextBuilder`]:
 ///
 /// ```
-/// use boa_engine::{context::ContextBuilder, job::{JobQueue, IdleJobQueue}};
+/// use boa_engine::{
+///     context::ContextBuilder,
+///     job::{IdleJobQueue, JobQueue},
+/// };
 ///
 /// let queue: &amp;dyn JobQueue = &amp;IdleJobQueue;
 /// let context = ContextBuilder::new().job_queue(queue).build();

@@ -495,6 +495,7 @@
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `DataView` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::DataView,
@@ -524,7 +525,8 @@
 /// let array_buffer = JsArrayBuffer::new(4, context)?;
 ///
 /// // Create a new Dataview from pre-existing ArrayBuffer
-/// let data_view = JsDataView::from_js_array_buffer(&amp;array_buffer, None, None, context)?;
+/// let data_view =
+///     JsDataView::from_js_array_buffer(&amp;array_buffer, None, None, context)?;
 ///
 /// # Ok(())
 /// # }

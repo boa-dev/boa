@@ -2114,7 +2114,6 @@
 <a href="#2114" id="2114">2114</a>
 <a href="#2115" id="2115">2115</a>
 <a href="#2116" id="2116">2116</a>
-<a href="#2117" id="2117">2117</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 
 <span class="doccomment">/// The opcodes of the vm.
@@ -2555,7 +2554,6 @@
 ///
 /// This trait should be implemented for a struct that corresponds with
 /// any arm of the `OpCode` enum.
-///
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Operation {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;

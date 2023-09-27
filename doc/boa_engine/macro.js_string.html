@@ -24,7 +24,7 @@ conversion from <a href="https://doc.rust-lang.org/1.72.1/std/primitive.str.html
 <p>You can also pass it any number of <code>&amp;[u16]</code> as arguments to create a new <code>JsString</code> with
 the concatenation of every slice:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span>[u16]  = <span class="macro">utf16!</span>(<span class="string">&quot;human! &quot;</span>);
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;human! &quot;</span>);
 <span class="kw">let </span>greeting = <span class="macro">js_string!</span>(<span class="string">&quot;Hello, &quot;</span>);
 <span class="kw">let </span>msg = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>greeting, <span class="kw-2">&amp;</span>NAME, <span class="macro">utf16!</span>(<span class="string">&quot;Nice to meet you!&quot;</span>));
 

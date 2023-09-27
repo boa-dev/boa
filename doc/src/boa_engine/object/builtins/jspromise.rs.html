@@ -1076,6 +1076,75 @@
 <a href="#1076" id="1076">1076</a>
 <a href="#1077" id="1077">1077</a>
 <a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s promise Builtin ECMAScript Object
 
 </span><span class="kw">use </span>std::{future::Future, pin::Pin, task};
@@ -1118,9 +1187,11 @@
 /// let promise = JsPromise::new(
 ///     |resolvers, context| {
 ///         let result = js_string!(&quot;hello world!&quot;).into();
-///         resolvers
-///             .resolve
-///             .call(&amp;JsValue::undefined(), &amp;[result], context)?;
+///         resolvers.resolve.call(
+///             &amp;JsValue::undefined(),
+///             &amp;[result],
+///             context,
+///         )?;
 ///         Ok(JsValue::undefined())
 ///     },
 ///     context,
@@ -1132,7 +1203,10 @@
 ///             FunctionObjectBuilder::new(
 ///                 context.realm(),
 ///                 NativeFunction::from_fn_ptr(|_, args, _| {
-///                     Err(JsError::from_opaque(args.get_or_undefined(0).clone()).into())
+///                     Err(JsError::from_opaque(
+///                         args.get_or_undefined(0).clone(),
+///                     )
+///                     .into())
 ///                 }),
 ///             )
 ///             .build(),
@@ -1154,10 +1228,12 @@
 ///         FunctionObjectBuilder::new(
 ///             context.realm(),
 ///             NativeFunction::from_fn_ptr(|_, _, context| {
-///                 context
-///                     .global_object()
-///                     .clone()
-///                     .set(&quot;finally&quot;, JsValue::from(true), true, context)?;
+///                 context.global_object().clone().set(
+///                     &quot;finally&quot;,
+///                     JsValue::from(true),
+///                     true,
+///                     context,
+///                 )?;
 ///                 Ok(JsValue::undefined())
 ///             }),
 ///         )
@@ -1213,15 +1289,25 @@
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     /// let context = &amp;mut Context::default();
     ///
-    /// let promise = JsPromise::new(|resolvers, context| {
-    ///     let result = js_string!(&quot;hello world&quot;).into();
-    ///     resolvers.resolve.call(&amp;JsValue::undefined(), &amp;[result], context)?;
-    ///     Ok(JsValue::undefined())
-    /// }, context)?;
+    /// let promise = JsPromise::new(
+    ///     |resolvers, context| {
+    ///         let result = js_string!(&quot;hello world&quot;).into();
+    ///         resolvers.resolve.call(
+    ///             &amp;JsValue::undefined(),
+    ///             &amp;[result],
+    ///             context,
+    ///         )?;
+    ///         Ok(JsValue::undefined())
+    ///     },
+    ///     context,
+    /// )?;
     ///
     /// context.run_jobs();
     ///
-    /// assert_eq!(promise.state()?, PromiseState::Fulfilled(js_string!(&quot;hello world&quot;).into()));
+    /// assert_eq!(
+    ///     promise.state()?,
+    ///     PromiseState::Fulfilled(js_string!(&quot;hello world&quot;).into())
+    /// );
     /// # Ok(())
     /// # }
     /// ```
@@ -1270,7 +1356,9 @@
     ///
     /// assert_eq!(promise.state()?, PromiseState::Pending);
     ///
-    /// resolvers.reject.call(&amp;JsValue::undefined(), &amp;[5.into()], context)?;
+    /// resolvers
+    ///     .reject
+    ///     .call(&amp;JsValue::undefined(), &amp;[5.into()], context)?;
     ///
     /// assert_eq!(promise.state()?, PromiseState::Rejected(5.into()));
     ///
@@ -1306,12 +1394,17 @@
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     /// let context = &amp;mut Context::default();
     ///
-    /// let promise = context.eval(Source::from_bytes(&quot;new Promise((resolve, reject) =&gt; resolve())&quot;))?;
+    /// let promise = context.eval(Source::from_bytes(
+    ///     &quot;new Promise((resolve, reject) =&gt; resolve())&quot;,
+    /// ))?;
     /// let promise = promise.as_object().cloned().unwrap();
     ///
     /// let promise = JsPromise::from_object(promise)?;
     ///
-    /// assert_eq!(promise.state()?, PromiseState::Fulfilled(JsValue::undefined()));
+    /// assert_eq!(
+    ///     promise.state()?,
+    ///     PromiseState::Fulfilled(JsValue::undefined())
+    /// );
     ///
     /// assert!(JsPromise::from_object(JsObject::with_null_proto()).is_err());
     ///
@@ -1405,7 +1498,10 @@
     ///
     /// let promise = JsPromise::resolve(js_string!(&quot;resolved!&quot;), context)?;
     ///
-    /// assert_eq!(promise.state()?, PromiseState::Fulfilled(js_string!(&quot;resolved!&quot;).into()));
+    /// assert_eq!(
+    ///     promise.state()?,
+    ///     PromiseState::Fulfilled(js_string!(&quot;resolved!&quot;).into())
+    /// );
     ///
     /// # Ok(())
     /// # }
@@ -1441,9 +1537,15 @@
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     /// let context = &amp;mut Context::default();
     ///
-    /// let promise = JsPromise::reject(JsError::from_opaque(js_string!(&quot;oops!&quot;).into()), context)?;
+    /// let promise = JsPromise::reject(
+    ///     JsError::from_opaque(js_string!(&quot;oops!&quot;).into()),
+    ///     context,
+    /// )?;
     ///
-    /// assert_eq!(promise.state()?, PromiseState::Rejected(js_string!(&quot;oops!&quot;).into()));
+    /// assert_eq!(
+    ///     promise.state()?,
+    ///     PromiseState::Rejected(js_string!(&quot;oops!&quot;).into())
+    /// );
     ///
     /// # Ok(())
     /// # }
@@ -1532,18 +1634,23 @@
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
-    ///         resolvers
-    ///             .resolve
-    ///             .call(&amp;JsValue::undefined(), &amp;[255.255.into()], context)?;
+    ///         resolvers.resolve.call(
+    ///             &amp;JsValue::undefined(),
+    ///             &amp;[255.255.into()],
+    ///             context,
+    ///         )?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
-    /// )?.then(
+    /// )?
+    /// .then(
     ///     Some(
     ///         FunctionObjectBuilder::new(
     ///             context.realm(),
     ///             NativeFunction::from_fn_ptr(|_, args, context| {
-    ///                 args.get_or_undefined(0).to_string(context).map(JsValue::from)
+    ///                 args.get_or_undefined(0)
+    ///                     .to_string(context)
+    ///                     .map(JsValue::from)
     ///             }),
     ///         )
     ///         .build(),
@@ -1599,17 +1706,22 @@
     ///     |resolvers, context| {
     ///         let error = JsNativeError::typ().with_message(&quot;thrown&quot;);
     ///         let error = error.to_opaque(context);
-    ///         resolvers
-    ///             .reject
-    ///             .call(&amp;JsValue::undefined(), &amp;[error.into()], context)?;
+    ///         resolvers.reject.call(
+    ///             &amp;JsValue::undefined(),
+    ///             &amp;[error.into()],
+    ///             context,
+    ///         )?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
-    /// )?.catch(
+    /// )?
+    /// .catch(
     ///     FunctionObjectBuilder::new(
     ///         context.realm(),
     ///         NativeFunction::from_fn_ptr(|_, args, context| {
-    ///             args.get_or_undefined(0).to_string(context).map(JsValue::from)
+    ///             args.get_or_undefined(0)
+    ///                 .to_string(context)
+    ///                 .map(JsValue::from)
     ///         }),
     ///     )
     ///     .build(),
@@ -1663,20 +1775,25 @@
     ///     |resolvers, context| {
     ///         let error = JsNativeError::typ().with_message(&quot;thrown&quot;);
     ///         let error = error.to_opaque(context);
-    ///         resolvers
-    ///             .reject
-    ///             .call(&amp;JsValue::undefined(), &amp;[error.into()], context)?;
+    ///         resolvers.reject.call(
+    ///             &amp;JsValue::undefined(),
+    ///             &amp;[error.into()],
+    ///             context,
+    ///         )?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
-    /// )?.finally(
+    /// )?
+    /// .finally(
     ///     FunctionObjectBuilder::new(
     ///         context.realm(),
     ///         NativeFunction::from_fn_ptr(|_, _, context| {
-    ///             context
-    ///                 .global_object()
-    ///                 .clone()
-    ///                 .set(&quot;finally&quot;, JsValue::from(true), true, context)?;
+    ///             context.global_object().clone().set(
+    ///                 &quot;finally&quot;,
+    ///                 JsValue::from(true),
+    ///                 true,
+    ///                 context,
+    ///             )?;
     ///             Ok(JsValue::undefined())
     ///         }),
     ///     )
@@ -1741,7 +1858,12 @@
     ///
     /// context.run_jobs();
     ///
-    /// let array = promise1.state()?.as_fulfilled().and_then(JsValue::as_object).unwrap().clone();
+    /// let array = promise1
+    ///     .state()?
+    ///     .as_fulfilled()
+    ///     .and_then(JsValue::as_object)
+    ///     .unwrap()
+    ///     .clone();
     /// let array = JsArray::from_object(array)?;
     /// assert_eq!(array.at(0, context)?, 0.into());
     /// assert_eq!(array.at(1, context)?, 2.into());
@@ -1804,7 +1926,12 @@
     ///
     /// context.run_jobs();
     ///
-    /// let array = promise.state()?.as_fulfilled().and_then(JsValue::as_object).unwrap().clone();
+    /// let array = promise
+    ///     .state()?
+    ///     .as_fulfilled()
+    ///     .and_then(JsValue::as_object)
+    ///     .unwrap()
+    ///     .clone();
     /// let array = JsArray::from_object(array)?;
     ///
     /// let a = array.at(0, context)?.as_object().unwrap().clone();
@@ -1813,7 +1940,10 @@
     ///
     /// let b = array.at(1, context)?.as_object().unwrap().clone();
     /// assert_eq!(b.get(&quot;status&quot;, context)?, js_string!(&quot;rejected&quot;).into());
-    /// assert_eq!(b.get(&quot;reason&quot;, context)?.to_string(context)?, js_string!(&quot;TypeError&quot;));
+    /// assert_eq!(
+    ///     b.get(&quot;reason&quot;, context)?.to_string(context)?,
+    ///     js_string!(&quot;TypeError&quot;)
+    /// );
     ///
     /// let c = array.at(2, context)?.as_object().unwrap().clone();
     /// assert_eq!(c.get(&quot;status&quot;, context)?, js_string!(&quot;fulfilled&quot;).into());
@@ -1866,7 +1996,6 @@
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     /// let context = &amp;mut Context::default();
     ///
-    ///
     /// let promise = JsPromise::any(
     ///     [
     ///         JsPromise::reject(JsNativeError::syntax(), context)?,
@@ -1879,7 +2008,10 @@
     ///
     /// context.run_jobs();
     ///
-    /// assert_eq!(promise.state()?, PromiseState::Fulfilled(js_string!(&quot;fulfilled&quot;).into()));
+    /// assert_eq!(
+    ///     promise.state()?,
+    ///     PromiseState::Fulfilled(js_string!(&quot;fulfilled&quot;).into())
+    /// );
     ///
     /// # Ok(())
     /// # }
@@ -1934,8 +2066,14 @@
     /// let promise = JsPromise::race([a, b, c], context)?;
     ///
     /// resolvers_b.reject.call(&amp;JsValue::undefined(), &amp;[], context);
-    /// resolvers_a.resolve.call(&amp;JsValue::undefined(), &amp;[5.into()], context);
-    /// resolvers_c.reject.call(&amp;JsValue::undefined(), &amp;[js_string!(&quot;c error&quot;).into()], context);
+    /// resolvers_a
+    ///     .resolve
+    ///     .call(&amp;JsValue::undefined(), &amp;[5.into()], context);
+    /// resolvers_c.reject.call(
+    ///     &amp;JsValue::undefined(),
+    ///     &amp;[js_string!(&quot;c error&quot;).into()],
+    ///     context,
+    /// );
     ///
     /// context.run_jobs();
     ///
@@ -1991,12 +2129,12 @@
     /// let (promise, resolvers) = JsPromise::new_pending(context);
     /// let promise_future = promise.into_js_future(context)?;
     ///
-    /// let future1 = async move {
-    ///     promise_future.await
-    /// };
+    /// let future1 = async move { promise_future.await };
     ///
     /// let future2 = async move {
-    ///     resolvers.resolve.call(&amp;JsValue::undefined(), &amp;[10.into()], context)?;
+    ///     resolvers
+    ///         .resolve
+    ///         .call(&amp;JsValue::undefined(), &amp;[10.into()], context)?;
     ///     context.run_jobs();
     ///     Ok::&lt;(), JsError&gt;(())
     /// };

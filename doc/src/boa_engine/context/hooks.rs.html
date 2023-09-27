@@ -222,6 +222,9 @@
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::promise::OperationType,
     job::JobCallback,
@@ -246,10 +249,8 @@
 /// ```
 /// use boa_engine::{
 ///     context::{Context, ContextBuilder, HostHooks},
-///     JsNativeError,
-///     JsResult,
 ///     realm::Realm,
-///     Source
+///     JsNativeError, JsResult, Source,
 /// };
 ///
 /// struct Hooks;
@@ -260,13 +261,18 @@
 ///         _realm: Realm,
 ///         context: &amp;mut Context&lt;&#39;_&gt;,
 ///     ) -&gt; JsResult&lt;()&gt; {
-///         Err(JsNativeError::typ().with_message(&quot;eval calls not available&quot;).into())
+///         Err(JsNativeError::typ()
+///             .with_message(&quot;eval calls not available&quot;)
+///             .into())
 ///     }
 /// }
 /// let hooks: &amp;dyn HostHooks = &amp;Hooks; // Can have additional state.
 /// let context = &amp;mut ContextBuilder::new().host_hooks(hooks).build().unwrap();
 /// let result = context.eval(Source::from_bytes(r#&quot;eval(&quot;let a = 5&quot;)&quot;#));
-/// assert_eq!(result.unwrap_err().to_string(), &quot;TypeError: eval calls not available&quot;);
+/// assert_eq!(
+///     result.unwrap_err().to_string(),
+///     &quot;TypeError: eval calls not available&quot;
+/// );
 /// ```
 ///
 /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary

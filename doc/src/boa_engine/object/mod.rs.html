@@ -2615,6 +2615,10 @@
 <a href="#2615" id="2615">2615</a>
 <a href="#2616" id="2616">2616</a>
 <a href="#2617" id="2617">2617</a>
+<a href="#2618" id="2618">2618</a>
+<a href="#2619" id="2619">2619</a>
+<a href="#2620" id="2620">2620</a>
+<a href="#2621" id="2621">2621</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -4769,7 +4773,11 @@
 /// let object = ObjectInitializer::new(&amp;mut context)
 ///     .property(&quot;hello&quot;, &quot;world&quot;, Attribute::all())
 ///     .property(1, 1, Attribute::all())
-///     .function(NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())), &quot;func&quot;, 0)
+///     .function(
+///         NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
+///         &quot;func&quot;,
+///         0,
+///     )
 ///     .build();
 /// ```
 ///

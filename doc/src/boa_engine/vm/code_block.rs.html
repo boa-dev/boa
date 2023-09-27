@@ -1449,7 +1449,6 @@
 <a href="#1449" id="1449">1449</a>
 <a href="#1450" id="1450">1450</a>
 <a href="#1451" id="1451">1451</a>
-<a href="#1452" id="1452">1452</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1607,7 +1606,6 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) handlers: ThinVec&lt;Handler&gt;,
 
     <span class="doccomment">/// Compile time environments in this function.
-    ///
     </span><span class="comment">// Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
     //
     // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.

@@ -803,6 +803,12 @@
 <a href="#803" id="803">803</a>
 <a href="#804" id="804">804</a>
 <a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript&#39;s module system.
 //!
 //! This module contains the [`Module`] type, which represents an [**Abstract Module Record**][module],
@@ -1433,7 +1439,10 @@
     /// # use boa_engine::module::{ModuleLoader, SimpleModuleLoader};
     /// let loader = &amp;SimpleModuleLoader::new(Path::new(&quot;.&quot;)).unwrap();
     /// let dyn_loader: &amp;dyn ModuleLoader = loader;
-    /// let mut context = &amp;mut Context::builder().module_loader(dyn_loader).build().unwrap();
+    /// let mut context = &amp;mut Context::builder()
+    ///     .module_loader(dyn_loader)
+    ///     .build()
+    ///     .unwrap();
     ///
     /// let source = Source::from_bytes(&quot;1 + 3&quot;);
     ///
@@ -1445,7 +1454,10 @@
     ///
     /// context.run_jobs();
     ///
-    /// assert_eq!(promise.state().unwrap(), PromiseState::Fulfilled(JsValue::undefined()));
+    /// assert_eq!(
+    ///     promise.state().unwrap(),
+    ///     PromiseState::Fulfilled(JsValue::undefined())
+    /// );
     /// ```
     </span><span class="attr">#[allow(dropping_copy_types)]
     #[inline]
