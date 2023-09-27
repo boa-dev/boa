@@ -1,4 +1,4 @@
-use boa_engine::{object::builtins::JsDate, Context, JsResult, JsValue};
+use boa_engine::{js_string, object::builtins::JsDate, Context, JsResult, JsValue};
 
 fn main() -> JsResult<()> {
     let context = &mut Context::default();
@@ -51,27 +51,27 @@ fn main() -> JsResult<()> {
 
     assert_eq!(
         date.to_json(context)?,
-        JsValue::from("2000-10-09T17:42:59.059Z")
+        JsValue::from(js_string!("2000-10-09T17:42:59.059Z"))
     );
 
     assert_eq!(
         date.to_date_string(context)?,
-        JsValue::from("Mon Oct 09 2000")
+        JsValue::from(js_string!("Mon Oct 09 2000"))
     );
 
     assert_eq!(
         date.to_iso_string(context)?,
-        JsValue::from("2000-10-09T17:42:59.059Z")
+        JsValue::from(js_string!("2000-10-09T17:42:59.059Z"))
     );
 
     assert_eq!(
         date.to_time_string(context)?,
-        JsValue::from("23:12:59 GMT+0530")
+        JsValue::from(js_string!("23:12:59 GMT+0530"))
     );
 
     assert_eq!(
         date.to_string(context)?,
-        JsValue::from("Mon Oct 09 2000 23:12:59 GMT+0530")
+        JsValue::from(js_string!("Mon Oct 09 2000 23:12:59 GMT+0530"))
     );
 
     Ok(())

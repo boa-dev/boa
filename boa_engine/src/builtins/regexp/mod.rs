@@ -20,7 +20,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptorBuilder},
     realm::Realm,
-    string::{utf16, CodePoint},
+    string::{common::StaticJsStrings, utf16, CodePoint},
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
@@ -49,40 +49,40 @@ pub struct RegExp {
 
 impl IntrinsicObject for RegExp {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
-            .name("get [Symbol.species]")
+            .name(js_string!("get [Symbol.species]"))
             .build();
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_has_indices = BuiltInBuilder::callable(realm, Self::get_has_indices)
-            .name("get hasIndices")
+            .name(js_string!("get hasIndices"))
             .build();
         let get_global = BuiltInBuilder::callable(realm, Self::get_global)
-            .name("get global")
+            .name(js_string!("get global"))
             .build();
         let get_ignore_case = BuiltInBuilder::callable(realm, Self::get_ignore_case)
-            .name("get ignoreCase")
+            .name(js_string!("get ignoreCase"))
             .build();
         let get_multiline = BuiltInBuilder::callable(realm, Self::get_multiline)
-            .name("get multiline")
+            .name(js_string!("get multiline"))
             .build();
         let get_dot_all = BuiltInBuilder::callable(realm, Self::get_dot_all)
-            .name("get dotAll")
+            .name(js_string!("get dotAll"))
             .build();
         let get_unicode = BuiltInBuilder::callable(realm, Self::get_unicode)
-            .name("get unicode")
+            .name(js_string!("get unicode"))
             .build();
         let get_sticky = BuiltInBuilder::callable(realm, Self::get_sticky)
-            .name("get sticky")
+            .name(js_string!("get sticky"))
             .build();
         let get_flags = BuiltInBuilder::callable(realm, Self::get_flags)
-            .name("get flags")
+            .name(js_string!("get flags"))
             .build();
         let get_source = BuiltInBuilder::callable(realm, Self::get_source)
-            .name("get source")
+            .name(js_string!("get source"))
             .build();
         let regexp = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
@@ -91,46 +91,87 @@ impl IntrinsicObject for RegExp {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .property(utf16!("lastIndex"), 0, Attribute::all())
-            .method(Self::test, "test", 1)
-            .method(Self::exec, "exec", 1)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::r#match, (JsSymbol::r#match(), "[Symbol.match]"), 1)
+            .property(js_string!("lastIndex"), 0, Attribute::all())
+            .method(Self::test, js_string!("test"), 1)
+            .method(Self::exec, js_string!("exec"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
             .method(
-                Self::match_all,
-                (JsSymbol::match_all(), "[Symbol.matchAll]"),
+                Self::r#match,
+                (JsSymbol::r#match(), js_string!("[Symbol.match]")),
                 1,
             )
-            .method(Self::replace, (JsSymbol::replace(), "[Symbol.replace]"), 2)
-            .method(Self::search, (JsSymbol::search(), "[Symbol.search]"), 1)
-            .method(Self::split, (JsSymbol::split(), "[Symbol.split]"), 2)
+            .method(
+                Self::match_all,
+                (JsSymbol::match_all(), js_string!("[Symbol.matchAll]")),
+                1,
+            )
+            .method(
+                Self::replace,
+                (JsSymbol::replace(), js_string!("[Symbol.replace]")),
+                2,
+            )
+            .method(
+                Self::search,
+                (JsSymbol::search(), js_string!("[Symbol.search]")),
+                1,
+            )
+            .method(
+                Self::split,
+                (JsSymbol::split(), js_string!("[Symbol.split]")),
+                2,
+            )
             .accessor(
-                utf16!("hasIndices"),
+                js_string!("hasIndices"),
                 Some(get_has_indices),
                 None,
                 flag_attributes,
             )
-            .accessor(utf16!("global"), Some(get_global), None, flag_attributes)
             .accessor(
-                utf16!("ignoreCase"),
+                js_string!("global"),
+                Some(get_global),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("ignoreCase"),
                 Some(get_ignore_case),
                 None,
                 flag_attributes,
             )
             .accessor(
-                utf16!("multiline"),
+                js_string!("multiline"),
                 Some(get_multiline),
                 None,
                 flag_attributes,
             )
-            .accessor(utf16!("dotAll"), Some(get_dot_all), None, flag_attributes)
-            .accessor(utf16!("unicode"), Some(get_unicode), None, flag_attributes)
-            .accessor(utf16!("sticky"), Some(get_sticky), None, flag_attributes)
-            .accessor(utf16!("flags"), Some(get_flags), None, flag_attributes)
-            .accessor(utf16!("source"), Some(get_source), None, flag_attributes);
+            .accessor(
+                js_string!("dotAll"),
+                Some(get_dot_all),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("unicode"),
+                Some(get_unicode),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("sticky"),
+                Some(get_sticky),
+                None,
+                flag_attributes,
+            )
+            .accessor(js_string!("flags"), Some(get_flags), None, flag_attributes)
+            .accessor(
+                js_string!("source"),
+                Some(get_source),
+                None,
+                flag_attributes,
+            );
 
         #[cfg(feature = "annex-b")]
-        let regexp = regexp.method(Self::compile, "compile", 2);
+        let regexp = regexp.method(Self::compile, js_string!("compile"), 2);
 
         regexp.build();
     }
@@ -141,7 +182,7 @@ impl IntrinsicObject for RegExp {
 }
 
 impl BuiltInObject for RegExp {
-    const NAME: &'static str = "RegExp";
+    const NAME: JsString = StaticJsStrings::REG_EXP;
 }
 
 impl BuiltInConstructor for RegExp {
@@ -210,12 +251,12 @@ impl BuiltInConstructor for RegExp {
             (p, f)
         } else if let Some(pattern) = pattern_is_regexp {
             // a. Let P be ? Get(pattern, "source").
-            let p = pattern.get("source", context)?;
+            let p = pattern.get(js_string!("source"), context)?;
 
             // b. If flags is undefined, then
             let f = if flags.is_undefined() {
                 // i. Let F be ? Get(pattern, "flags").
-                pattern.get("flags", context)?
+                pattern.get(js_string!("flags"), context)?
             // c. Else,
             } else {
                 // i. Let F be flags.
@@ -641,7 +682,7 @@ impl RegExp {
             }
 
             // 18. Return result.
-            return Ok(result.into());
+            return Ok(js_string!(result).into());
         }
 
         Err(JsNativeError::typ()
@@ -684,7 +725,7 @@ impl RegExp {
                     this,
                     &JsValue::new(context.intrinsics().constructors().regexp().prototype()),
                 ) {
-                    Ok(JsValue::new("(?:)"))
+                    Ok(JsValue::new(js_string!("(?:)")))
                 } else {
                     Err(JsNativeError::typ()
                         .with_message("RegExp.prototype.source method called on incompatible value")
@@ -1064,12 +1105,13 @@ impl RegExp {
             // ii. Perform ! CreateDataPropertyOrThrow(groups, s, capturedValue).
             // iii. Append s to groupNames.
             for (name, range) in named_groups {
+                let name = js_string!(name);
                 if let Some(range) = range {
                     // TODO: Full UTF-16 regex support
                     let value = js_string!(&lossy_input[range.clone()]);
 
                     groups
-                        .create_data_property_or_throw(name, value, context)
+                        .create_data_property_or_throw(name.clone(), value, context)
                         .expect("this CreateDataPropertyOrThrow call must not fail");
 
                     // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
@@ -1079,7 +1121,7 @@ impl RegExp {
                     // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
                     group_names
                         .create_data_property_or_throw(
-                            name,
+                            name.clone(),
                             Array::create_array_from_list(
                                 [range.start.into(), range.end.into()],
                                 context,
@@ -1089,7 +1131,7 @@ impl RegExp {
                         .expect("this CreateDataPropertyOrThrow call must not fail");
                 } else {
                     groups
-                        .create_data_property_or_throw(name, JsValue::undefined(), context)
+                        .create_data_property_or_throw(name.clone(), JsValue::undefined(), context)
                         .expect("this CreateDataPropertyOrThrow call must not fail");
 
                     // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )

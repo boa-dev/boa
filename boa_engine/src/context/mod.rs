@@ -20,6 +20,7 @@ use crate::{
     builtins,
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
+    js_string,
     module::{IdleModuleLoader, ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::{shape::RootShape, FunctionObjectBuilder, JsObject},
@@ -28,7 +29,7 @@ use crate::{
     realm::Realm,
     script::Script,
     vm::{ActiveRunnable, CallFrame, Vm},
-    JsResult, JsValue, Source,
+    JsResult, JsString, JsValue, Source,
 };
 use boa_ast::{expression::Identifier, StatementList};
 use boa_interner::Interner;
@@ -251,12 +252,12 @@ impl<'host> Context<'host> {
     /// can use the [`FunctionObjectBuilder`] API.
     pub fn register_global_callable(
         &mut self,
-        name: &str,
+        name: JsString,
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
         let function = FunctionObjectBuilder::new(&self.realm, body)
-            .name(name)
+            .name(name.clone())
             .length(length)
             .constructor(true)
             .build();
@@ -284,12 +285,12 @@ impl<'host> Context<'host> {
     /// `constructable`. Usage of the function as a constructor will produce a `TypeError`.
     pub fn register_global_builtin_callable(
         &mut self,
-        name: &str,
+        name: JsString,
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
         let function = FunctionObjectBuilder::new(&self.realm, body)
-            .name(name)
+            .name(name.clone())
             .length(length)
             .constructor(false)
             .build();
@@ -336,7 +337,7 @@ impl<'host> Context<'host> {
             .configurable(T::ATTRIBUTES.configurable());
 
         self.global_object()
-            .define_property_or_throw(T::NAME, property, self)?;
+            .define_property_or_throw(js_string!(T::NAME), property, self)?;
 
         Ok(())
     }

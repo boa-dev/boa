@@ -9,6 +9,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     job::{JobCallback, NativeJob},
+    js_string,
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
@@ -16,10 +17,10 @@ use crate::{
     },
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsError, JsResult,
+    Context, JsArgs, JsError, JsResult, JsString,
 };
 use boa_gc::{custom_trace, Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
@@ -332,28 +333,28 @@ impl PromiseCapability {
 
 impl IntrinsicObject for Promise {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
-            .name("get [Symbol.species]")
+            .name(js_string!("get [Symbol.species]"))
             .build();
 
         let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::all, "all", 1)
-            .static_method(Self::all_settled, "allSettled", 1)
-            .static_method(Self::any, "any", 1)
-            .static_method(Self::race, "race", 1)
-            .static_method(Self::reject, "reject", 1)
-            .static_method(Self::resolve, "resolve", 1)
+            .static_method(Self::all, js_string!("all"), 1)
+            .static_method(Self::all_settled, js_string!("allSettled"), 1)
+            .static_method(Self::any, js_string!("any"), 1)
+            .static_method(Self::race, js_string!("race"), 1)
+            .static_method(Self::reject, js_string!("reject"), 1)
+            .static_method(Self::resolve, js_string!("resolve"), 1)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::then, "then", 2)
-            .method(Self::catch, "catch", 1)
-            .method(Self::finally, "finally", 1)
+            .method(Self::then, js_string!("then"), 2)
+            .method(Self::catch, js_string!("catch"), 1)
+            .method(Self::finally, js_string!("finally"), 1)
             // <https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag>
             .property(
                 JsSymbol::to_string_tag(),
@@ -374,7 +375,7 @@ impl IntrinsicObject for Promise {
 }
 
 impl BuiltInObject for Promise {
-    const NAME: &'static str = "Promise";
+    const NAME: JsString = StaticJsStrings::PROMISE;
 }
 
 impl BuiltInConstructor for Promise {
@@ -901,8 +902,12 @@ impl Promise {
                         let obj = JsObject::with_object_proto(context.intrinsics());
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
-                        obj.create_data_property_or_throw(utf16!("status"), "fulfilled", context)
-                            .expect("cannot fail per spec");
+                        obj.create_data_property_or_throw(
+                            utf16!("status"),
+                            js_string!("fulfilled"),
+                            context,
+                        )
+                        .expect("cannot fail per spec");
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "value", x).
                         obj.create_data_property_or_throw(
@@ -987,8 +992,12 @@ impl Promise {
                         let obj = JsObject::with_object_proto(context.intrinsics());
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
-                        obj.create_data_property_or_throw(utf16!("status"), "rejected", context)
-                            .expect("cannot fail per spec");
+                        obj.create_data_property_or_throw(
+                            utf16!("status"),
+                            js_string!("rejected"),
+                            context,
+                        )
+                        .expect("cannot fail per spec");
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "reason", x).
                         obj.create_data_property_or_throw(

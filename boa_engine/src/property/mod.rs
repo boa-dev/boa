@@ -678,28 +678,6 @@ impl From<JsString> for PropertyKey {
     }
 }
 
-impl From<&str> for PropertyKey {
-    #[inline]
-    fn from(string: &str) -> Self {
-        parse_u32_index(string.bytes()).map_or_else(|| Self::String(string.into()), Self::Index)
-    }
-}
-
-impl From<String> for PropertyKey {
-    #[inline]
-    fn from(string: String) -> Self {
-        parse_u32_index(string.bytes()).map_or_else(|| Self::String(string.into()), Self::Index)
-    }
-}
-
-impl From<Box<str>> for PropertyKey {
-    #[inline]
-    fn from(string: Box<str>) -> Self {
-        parse_u32_index(string.bytes())
-            .map_or_else(|| Self::String(string.as_ref().into()), Self::Index)
-    }
-}
-
 impl From<JsSymbol> for PropertyKey {
     #[inline]
     fn from(symbol: JsSymbol) -> Self {
@@ -737,7 +715,7 @@ impl From<PropertyKey> for JsValue {
         match property_key {
             PropertyKey::String(ref string) => string.clone().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
-            PropertyKey::Index(index) => index.to_string().into(),
+            PropertyKey::Index(index) => js_string!(index.to_string()).into(),
         }
     }
 }

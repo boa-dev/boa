@@ -1,4 +1,4 @@
-use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -26,7 +26,7 @@ fn spread_with_arguments() {
                 var result = foo(...a);
             "#}),
         TestAction::assert_eq("result[0]", 1),
-        TestAction::assert_eq("result[1]", "test"),
+        TestAction::assert_eq("result[1]", js_string!("test")),
         TestAction::assert_eq("result[2]", 3),
         TestAction::assert_eq("result[3]", 4),
     ]);
@@ -131,7 +131,7 @@ fn spread_with_new() {
             }
             f('message').m;
         "#},
-        "message",
+        js_string!("message"),
     )]);
 }
 
@@ -147,6 +147,6 @@ fn spread_with_call() {
             }
             g('message');
         "#},
-        "message",
+        js_string!("message"),
     )]);
 }

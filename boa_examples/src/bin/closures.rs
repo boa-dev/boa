@@ -24,7 +24,7 @@ fn main() -> Result<(), JsError> {
     // We register a global closure function that has the name 'closure' with length 0.
     context
         .register_global_callable(
-            "closure",
+            js_string!("closure"),
             0,
             NativeFunction::from_copy_closure(move |_, _, _| {
                 println!("Called `closure`");
@@ -53,9 +53,9 @@ fn main() -> Result<(), JsError> {
     // We create a new `JsObject` with some data
     let object = JsObject::with_object_proto(context.intrinsics());
     object.define_property_or_throw(
-        "name",
+        js_string!("name"),
         PropertyDescriptor::builder()
-            .value("Boa dev")
+            .value(js_string!("Boa dev"))
             .writable(false)
             .enumerable(false)
             .configurable(false),
@@ -78,7 +78,7 @@ fn main() -> Result<(), JsError> {
                 let BigStruct { greeting, object } = &mut *captures;
                 println!("Called `createMessage`");
                 // We obtain the `name` property of `captures.object`
-                let name = object.get("name", context)?;
+                let name = object.get(js_string!("name"), context)?;
 
                 // We create a new message from our captured variable.
                 let message = js_string!(
@@ -112,7 +112,7 @@ fn main() -> Result<(), JsError> {
         .register_global_property(
             // We set the key to access the function the same as its name for
             // consistency, but it may be different if needed.
-            "createMessage",
+            js_string!("createMessage"),
             // We pass `js_function` as a property value.
             js_function,
             // We assign to the "createMessage" property the desired attributes.
@@ -122,13 +122,13 @@ fn main() -> Result<(), JsError> {
 
     assert_eq!(
         context.eval(Source::from_bytes("createMessage()"))?,
-        "message from `Boa dev`: Hello!".into()
+        js_string!("message from `Boa dev`: Hello!").into()
     );
 
     // The data mutates between calls
     assert_eq!(
         context.eval(Source::from_bytes("createMessage(); createMessage();"))?,
-        "message from `Boa dev`: Hello! Hello! Hello!".into()
+        js_string!("message from `Boa dev`: Hello! Hello! Hello!").into()
     );
 
     // We have moved `Clone` variables into a closure and executed that closure
@@ -145,7 +145,7 @@ fn main() -> Result<(), JsError> {
     // We register a global closure that is not `Copy`.
     context
         .register_global_callable(
-            "enumerate",
+            js_string!("enumerate"),
             0,
             // Note that it is required to use `unsafe` code, since the compiler cannot verify that the
             // types captured by the closure are not traceable.

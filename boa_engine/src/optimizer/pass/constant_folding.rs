@@ -82,7 +82,7 @@ impl ConstantFolding {
                 },
             ),
             (literal, UnaryOp::TypeOf) => Ok(JsValue::new(
-                literal_to_js_value(literal, context).type_of(),
+                literal_to_js_value(literal, context).js_type_of(),
             )),
             (_, UnaryOp::Delete) => {
                 return PassAction::Replace(Expression::Literal(Literal::Bool(true)))

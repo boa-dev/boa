@@ -1,4 +1,6 @@
-use boa_engine::{object::ObjectInitializer, Context, JsObject, JsResult, JsValue, NativeFunction};
+use boa_engine::{
+    js_string, object::ObjectInitializer, Context, JsObject, JsResult, JsValue, NativeFunction,
+};
 
 /// Trigger garbage collection.
 fn collect(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
@@ -8,6 +10,10 @@ fn collect(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue>
 
 pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
     ObjectInitializer::new(context)
-        .function(NativeFunction::from_fn_ptr(collect), "collect", 0)
+        .function(
+            NativeFunction::from_fn_ptr(collect),
+            js_string!("collect"),
+            0,
+        )
         .build()
 }

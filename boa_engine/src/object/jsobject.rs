@@ -10,6 +10,7 @@ use super::{
 use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
     string::utf16,
@@ -245,7 +246,7 @@ impl JsObject {
             // we're in a recursive object, bail
             return Ok(match hint {
                 PreferredType::Number => JsValue::new(0),
-                PreferredType::String => JsValue::new(""),
+                PreferredType::String => JsValue::new(js_string!()),
                 PreferredType::Default => unreachable!("checked type hint in step 2"),
             });
         }

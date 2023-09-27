@@ -14,13 +14,14 @@ use crate::{
     builtins::{typed_array::TypedArrayKind, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -49,21 +50,21 @@ impl ArrayBuffer {
 
 impl IntrinsicObject for ArrayBuffer {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
-            .name("get [Symbol.species]")
+            .name(js_string!("get [Symbol.species]"))
             .build();
 
         let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length)
-            .name("get byteLength")
+            .name(js_string!("get byteLength"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .accessor(
-                utf16!("byteLength"),
+                js_string!("byteLength"),
                 Some(get_byte_length),
                 None,
                 flag_attributes,
@@ -74,8 +75,8 @@ impl IntrinsicObject for ArrayBuffer {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .static_method(Self::is_view, "isView", 1)
-            .method(Self::slice, "slice", 2)
+            .static_method(Self::is_view, js_string!("isView"), 1)
+            .method(Self::slice, js_string!("slice"), 2)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -90,7 +91,7 @@ impl IntrinsicObject for ArrayBuffer {
 }
 
 impl BuiltInObject for ArrayBuffer {
-    const NAME: &'static str = "ArrayBuffer";
+    const NAME: JsString = StaticJsStrings::ARRAY_BUFFER;
 }
 
 impl BuiltInConstructor for ArrayBuffer {

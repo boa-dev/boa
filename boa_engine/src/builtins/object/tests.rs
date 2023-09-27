@@ -1,4 +1,4 @@
-use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -137,18 +137,21 @@ fn object_to_string() {
             "#}),
         TestAction::assert_eq(
             "Object.prototype.toString.call(undefined)",
-            "[object Undefined]",
+            js_string!("[object Undefined]"),
         ),
-        TestAction::assert_eq("Object.prototype.toString.call(null)", "[object Null]"),
-        TestAction::assert_eq("[].toString()", "[object Array]"),
-        TestAction::assert_eq("(() => {}).toString()", "[object Function]"),
-        TestAction::assert_eq("(new Error('')).toString()", "[object Error]"),
-        TestAction::assert_eq("Boolean().toString()", "[object Boolean]"),
-        TestAction::assert_eq("Number(42).toString()", "[object Number]"),
-        TestAction::assert_eq("String('boa').toString()", "[object String]"),
-        TestAction::assert_eq("(new Date()).toString()", "[object Date]"),
-        TestAction::assert_eq("/boa/.toString()", "[object RegExp]"),
-        TestAction::assert_eq("({}).toString()", "[object Object]"),
+        TestAction::assert_eq(
+            "Object.prototype.toString.call(null)",
+            js_string!("[object Null]"),
+        ),
+        TestAction::assert_eq("[].toString()", js_string!("[object Array]")),
+        TestAction::assert_eq("(() => {}).toString()", js_string!("[object Function]")),
+        TestAction::assert_eq("(new Error('')).toString()", js_string!("[object Error]")),
+        TestAction::assert_eq("Boolean().toString()", js_string!("[object Boolean]")),
+        TestAction::assert_eq("Number(42).toString()", js_string!("[object Number]")),
+        TestAction::assert_eq("String('boa').toString()", js_string!("[object String]")),
+        TestAction::assert_eq("(new Date()).toString()", js_string!("[object Date]")),
+        TestAction::assert_eq("/boa/.toString()", js_string!("[object RegExp]")),
+        TestAction::assert_eq("({}).toString()", js_string!("[object Object]")),
     ]);
 }
 
@@ -160,7 +163,7 @@ fn define_symbol_property() {
                 let sym = Symbol("key");
                 Object.defineProperty(obj, sym, { value: "val" });
             "#}),
-        TestAction::assert_eq("obj[sym]", "val"),
+        TestAction::assert_eq("obj[sym]", js_string!("val")),
     ]);
 }
 

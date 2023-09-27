@@ -22,11 +22,12 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
     property::Attribute,
     realm::Realm,
-    string::utf16,
-    Context, JsArgs, JsResult, JsValue, NativeFunction,
+    string::{common::StaticJsStrings, utf16},
+    Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
 };
 use boa_profiler::Profiler;
 
@@ -38,14 +39,14 @@ pub(crate) struct TypeError;
 
 impl IntrinsicObject for TypeError {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(Some(realm.intrinsics().constructors().error().prototype()))
             .property(utf16!("name"), Self::NAME, attribute)
-            .property(utf16!("message"), "", attribute)
+            .property(utf16!("message"), js_string!(), attribute)
             .build();
     }
 
@@ -55,7 +56,7 @@ impl IntrinsicObject for TypeError {
 }
 
 impl BuiltInObject for TypeError {
-    const NAME: &'static str = "TypeError";
+    const NAME: JsString = StaticJsStrings::TYPE_ERROR;
 }
 
 impl BuiltInConstructor for TypeError {
@@ -129,7 +130,7 @@ impl IntrinsicObject for ThrowTypeError {
         let obj = BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(realm.intrinsics().constructors().function().prototype())
             .static_property(utf16!("length"), 0, Attribute::empty())
-            .static_property(utf16!("name"), "", Attribute::empty())
+            .static_property(utf16!("name"), js_string!(), Attribute::empty())
             .build();
 
         let mut obj = obj.borrow_mut();

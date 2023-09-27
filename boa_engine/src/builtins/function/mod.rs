@@ -23,7 +23,7 @@ use crate::{
     object::{JsFunction, PrivateElement, PrivateName},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{ActiveRunnable, CodeBlock},
@@ -461,20 +461,20 @@ pub struct BuiltInFunctionObject;
 
 impl IntrinsicObject for BuiltInFunctionObject {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("function", "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let has_instance = BuiltInBuilder::callable(realm, Self::has_instance)
-            .name("[Symbol.hasInstance]")
+            .name(js_string!("[Symbol.hasInstance]"))
             .length(1)
             .build();
 
         let throw_type_error = realm.intrinsics().objects().throw_type_error();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::apply, "apply", 2)
-            .method(Self::bind, "bind", 1)
-            .method(Self::call, "call", 1)
-            .method(Self::to_string, "toString", 0)
+            .method(Self::apply, js_string!("apply"), 2)
+            .method(Self::bind, js_string!("bind"), 1)
+            .method(Self::call, js_string!("call"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
             .property(JsSymbol::has_instance(), has_instance, Attribute::default())
             .accessor(
                 utf16!("caller"),
@@ -493,7 +493,7 @@ impl IntrinsicObject for BuiltInFunctionObject {
         let prototype = realm.intrinsics().constructors().function().prototype();
 
         BuiltInBuilder::callable_with_object(realm, prototype.clone(), Self::prototype)
-            .name("")
+            .name(js_string!())
             .length(0)
             .build();
 
@@ -506,7 +506,7 @@ impl IntrinsicObject for BuiltInFunctionObject {
 }
 
 impl BuiltInObject for BuiltInFunctionObject {
-    const NAME: &'static str = "Function";
+    const NAME: JsString = StaticJsStrings::FUNCTION;
 }
 
 impl BuiltInConstructor for BuiltInFunctionObject {

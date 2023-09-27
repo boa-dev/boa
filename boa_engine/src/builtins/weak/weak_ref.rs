@@ -4,11 +4,13 @@ use boa_profiler::Profiler;
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 /// Boa's implementation of ECMAScript's `WeakRef` builtin object.
@@ -30,20 +32,20 @@ impl IntrinsicObject for WeakRef {
     }
 
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                "WeakRef",
+                js_string!("WeakRef"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::deref, "deref", 0)
+            .method(Self::deref, js_string!("deref"), 0)
             .build();
     }
 }
 
 impl BuiltInObject for WeakRef {
-    const NAME: &'static str = "WeakRef";
+    const NAME: JsString = StaticJsStrings::WEAK_REF;
 
     const ATTRIBUTE: Attribute = Attribute::WRITABLE.union(Attribute::CONFIGURABLE);
 }

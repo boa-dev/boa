@@ -26,7 +26,7 @@ use crate::{
     object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::{utf16, CodePoint},
+    string::{common::StaticJsStrings, utf16, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::CallFrame,
@@ -48,14 +48,14 @@ pub(crate) struct Json;
 
 impl IntrinsicObject for Json {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let to_string_tag = JsSymbol::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(Self::parse, "parse", 2)
-            .static_method(Self::stringify, "stringify", 3)
+            .static_method(Self::parse, js_string!("parse"), 2)
+            .static_method(Self::stringify, js_string!("stringify"), 3)
             .static_property(to_string_tag, Self::NAME, attribute)
             .build();
     }
@@ -66,7 +66,7 @@ impl IntrinsicObject for Json {
 }
 
 impl BuiltInObject for Json {
-    const NAME: &'static str = "JSON";
+    const NAME: JsString = StaticJsStrings::JSON;
 }
 
 impl Json {

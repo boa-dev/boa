@@ -2013,30 +2013,6 @@ pub struct FunctionBinding {
     pub(crate) name: JsString,
 }
 
-impl From<&str> for FunctionBinding {
-    #[inline]
-    fn from(name: &str) -> Self {
-        let name: JsString = name.into();
-
-        Self {
-            binding: name.clone().into(),
-            name,
-        }
-    }
-}
-
-impl From<String> for FunctionBinding {
-    #[inline]
-    fn from(name: String) -> Self {
-        let name: JsString = name.into();
-
-        Self {
-            binding: name.clone().into(),
-            name,
-        }
-    }
-}
-
 impl From<JsString> for FunctionBinding {
     #[inline]
     fn from(name: JsString) -> Self {

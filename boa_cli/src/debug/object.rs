@@ -1,5 +1,6 @@
 use boa_engine::{
-    object::ObjectInitializer, Context, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
+    js_string, object::ObjectInitializer, Context, JsNativeError, JsObject, JsResult, JsValue,
+    NativeFunction,
 };
 
 /// Returns objects pointer in memory.
@@ -17,11 +18,11 @@ fn id(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
     };
 
     let ptr: *const _ = object.as_ref();
-    Ok(format!("0x{:X}", ptr as usize).into())
+    Ok(js_string!(format!("0x{:X}", ptr as usize)).into())
 }
 
 pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
     ObjectInitializer::new(context)
-        .function(NativeFunction::from_fn_ptr(id), "id", 1)
+        .function(NativeFunction::from_fn_ptr(id), js_string!("id"), 1)
         .build()
 }

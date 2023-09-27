@@ -1,7 +1,7 @@
 use indoc::indoc;
 mod loops;
 
-use crate::{run_test_actions, JsNativeErrorKind, TestAction};
+use crate::{js_string, run_test_actions, JsNativeErrorKind, TestAction};
 
 #[test]
 fn test_invalid_break() {
@@ -381,7 +381,7 @@ fn string_switch() {
 
             a;
         "#},
-        "world",
+        js_string!("world"),
     )]);
 }
 
@@ -418,13 +418,13 @@ fn bigger_switch_example() {
                     return b;
                 }
             "#}),
-        TestAction::assert_eq("f(0)", "Mon"),
-        TestAction::assert_eq("f(1)", "Tue"),
-        TestAction::assert_eq("f(2)", "Wed"),
-        TestAction::assert_eq("f(3)", "Thurs"),
-        TestAction::assert_eq("f(4)", "Fri"),
-        TestAction::assert_eq("f(5)", "Sat"),
-        TestAction::assert_eq("f(6)", "Sun"),
+        TestAction::assert_eq("f(0)", js_string!("Mon")),
+        TestAction::assert_eq("f(1)", js_string!("Tue")),
+        TestAction::assert_eq("f(2)", js_string!("Wed")),
+        TestAction::assert_eq("f(3)", js_string!("Thurs")),
+        TestAction::assert_eq("f(4)", js_string!("Fri")),
+        TestAction::assert_eq("f(5)", js_string!("Sat")),
+        TestAction::assert_eq("f(6)", js_string!("Sun")),
     ]);
 }
 
@@ -440,7 +440,7 @@ fn break_labelled_if_statement() {
             }
             result
         "#},
-        "foo",
+        js_string!("foo"),
     )]);
 }
 
@@ -458,6 +458,6 @@ fn break_labelled_try_statement() {
             }
             result
         "#},
-        "foo",
+        js_string!("foo"),
     )]);
 }

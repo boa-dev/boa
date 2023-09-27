@@ -651,7 +651,7 @@ impl Clone for JsString {
 impl Default for JsString {
     #[inline]
     fn default() -> Self {
-        StaticJsStrings::empty_string()
+        StaticJsStrings::EMPTY_STRING
     }
 }
 

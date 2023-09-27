@@ -1,4 +1,4 @@
-use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -8,7 +8,7 @@ fn typeof_string() {
             const a = "hello";
             typeof a;
         "#},
-        "string",
+        js_string!("string"),
     )]);
 }
 
@@ -19,7 +19,7 @@ fn typeof_number() {
             let a = 1234;
             typeof a;
         "#},
-        "number",
+        js_string!("number"),
     )]);
 }
 
@@ -50,7 +50,7 @@ fn try_catch_finally_from_init() {
             } finally {
             }
         "#},
-        "h",
+        js_string!("h"),
     )]);
 }
 
@@ -85,7 +85,7 @@ fn use_last_expr_try_block() {
                 "Bye!"
             }
         "#},
-        "Hello!",
+        js_string!("Hello!"),
     )]);
 }
 
@@ -102,7 +102,7 @@ fn use_last_expr_catch_block() {
                 "Hello!";
             }
         "#},
-        "Hello!",
+        js_string!("Hello!"),
     )]);
 }
 
@@ -133,7 +133,7 @@ fn finally_block_binding_env() {
             }
             buf
         "#},
-        "Hey hey people",
+        js_string!("Hey hey people"),
     )]);
 }
 
@@ -150,7 +150,7 @@ fn run_super_method_in_object() {
             Object.setPrototypeOf(obj, proto);
             obj.v();
         "#},
-        "super",
+        js_string!("super"),
     )]);
 }
 
@@ -174,7 +174,7 @@ fn get_reference_by_super() {
             obj.method();
             fromA + fromB
         "#},
-        "ab",
+        js_string!("ab"),
     )]);
 }
 
@@ -234,7 +234,7 @@ fn order_of_execution_in_assigment_with_comma_expressions() {
             (f(1), a)[(f(2), 0)][(f(3), 0)] = (f(4), 123);
             result
         "#},
-        "1234",
+        js_string!("1234"),
     )]);
 }
 
@@ -321,7 +321,7 @@ fn arguments_object_constructor_valid_index() {
             new F();
             typeof args
         "#},
-        "object",
+        js_string!("object"),
     )]);
 }
 

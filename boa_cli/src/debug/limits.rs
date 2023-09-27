@@ -1,4 +1,5 @@
 use boa_engine::{
+    js_string,
     object::{FunctionObjectBuilder, ObjectInitializer},
     property::Attribute,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
@@ -55,13 +56,13 @@ pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
             .build();
     ObjectInitializer::new(context)
         .accessor(
-            "loop",
+            js_string!("loop"),
             Some(get_loop),
             Some(set_loop),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .accessor(
-            "recursion",
+            js_string!("recursion"),
             Some(get_recursion),
             Some(set_recursion),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,

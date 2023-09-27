@@ -1,11 +1,11 @@
-use boa_engine::{object::builtins::JsRegExp, Context, JsResult};
+use boa_engine::{js_string, object::builtins::JsRegExp, Context, JsResult};
 
 fn main() -> JsResult<()> {
     let context = &mut Context::default();
 
-    let regexp = JsRegExp::new("foo", "gi", context)?;
+    let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
 
-    let test_result = regexp.test("football", context)?;
+    let test_result = regexp.test(js_string!("football"), context)?;
     assert!(test_result);
 
     let flags = regexp.flags(context)?;

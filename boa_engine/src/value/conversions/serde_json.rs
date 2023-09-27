@@ -4,6 +4,7 @@ use super::JsValue;
 use crate::{
     builtins::Array,
     error::JsNativeError,
+    js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult,
@@ -55,7 +56,7 @@ impl JsValue {
                         .with_message(format!("could not convert JSON number {num} to JsValue"))
                         .into()
                 }),
-            Value::String(string) => Ok(Self::from(string.as_str())),
+            Value::String(string) => Ok(Self::from(js_string!(string.as_str()))),
             Value::Array(vec) => {
                 let mut arr = Vec::with_capacity(vec.len());
                 for val in vec {
@@ -71,7 +72,9 @@ impl JsValue {
                         .writable(true)
                         .enumerable(true)
                         .configurable(true);
-                    js_obj.borrow_mut().insert(key.clone(), property);
+                    js_obj
+                        .borrow_mut()
+                        .insert(js_string!(key.clone()), property);
                 }
 
                 Ok(js_obj.into())
@@ -177,7 +180,7 @@ mod tests {
     use serde_json::json;
 
     use crate::object::JsArray;
-    use crate::{run_test_actions, TestAction};
+    use crate::{js_string, run_test_actions, TestAction};
     use crate::{string::utf16, JsValue};
 
     #[test]
@@ -206,7 +209,10 @@ mod tests {
 
             let value = JsValue::from_json(&json, ctx).unwrap();
             let obj = value.as_object().unwrap();
-            assert_eq!(obj.get(utf16!("name"), ctx).unwrap(), "John Doe".into());
+            assert_eq!(
+                obj.get(utf16!("name"), ctx).unwrap(),
+                js_string!("John Doe").into()
+            );
             assert_eq!(obj.get(utf16!("age"), ctx).unwrap(), 43_i32.into());
             assert_eq!(obj.get(utf16!("minor"), ctx).unwrap(), false.into());
             assert_eq!(obj.get(utf16!("adult"), ctx).unwrap(), true.into());
@@ -220,7 +226,7 @@ mod tests {
                 let phones = phones.as_object().unwrap();
 
                 let arr = JsArray::from_object(phones.clone()).unwrap();
-                assert_eq!(arr.at(0, ctx).unwrap(), "+44 1234567".into());
+                assert_eq!(arr.at(0, ctx).unwrap(), js_string!("+44 1234567").into());
                 assert_eq!(arr.at(1, ctx).unwrap(), JsValue::from(-45_i32));
                 assert!(arr.at(2, ctx).unwrap().is_object());
                 assert_eq!(arr.at(3, ctx).unwrap(), true.into());

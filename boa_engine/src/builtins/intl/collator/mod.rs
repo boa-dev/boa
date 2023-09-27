@@ -19,6 +19,7 @@ use crate::{
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
         BoaProvider,
     },
+    js_string,
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
@@ -26,9 +27,9 @@ use crate::{
     },
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::{
@@ -149,26 +150,30 @@ impl Service for Collator {
 
 impl IntrinsicObject for Collator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let compare = BuiltInBuilder::callable(realm, Self::compare)
-            .name("get compare")
+            .name(js_string!("get compare"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
+            .static_method(
+                Self::supported_locales_of,
+                js_string!("supportedLocalesOf"),
+                1,
+            )
             .property(
                 JsSymbol::to_string_tag(),
-                "Intl.Collator",
+                js_string!("Intl.Collator"),
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("compare"),
+                js_string!("compare"),
                 Some(compare),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::resolved_options, "resolvedOptions", 0)
+            .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
             .build();
     }
 
@@ -178,7 +183,7 @@ impl IntrinsicObject for Collator {
 }
 
 impl BuiltInObject for Collator {
-    const NAME: &'static str = "Collator";
+    const NAME: JsString = StaticJsStrings::COLLATOR;
 }
 
 impl BuiltInConstructor for Collator {
@@ -510,14 +515,18 @@ impl Collator {
         //         i. Perform ! CreateDataPropertyOrThrow(options, p, v).
         // 5. Return options.
         options
-            .create_data_property_or_throw(utf16!("locale"), collator.locale.to_string(), context)
+            .create_data_property_or_throw(
+                utf16!("locale"),
+                js_string!(collator.locale.to_string()),
+                context,
+            )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
                 utf16!("usage"),
                 match collator.usage {
-                    Usage::Search => "search",
-                    Usage::Sort => "sort",
+                    Usage::Search => js_string!("search"),
+                    Usage::Sort => js_string!("sort"),
                 },
                 context,
             )
@@ -526,25 +535,25 @@ impl Collator {
             .create_data_property_or_throw(
                 utf16!("sensitivity"),
                 match collator.sensitivity {
-                    Sensitivity::Base => "base",
-                    Sensitivity::Accent => "accent",
-                    Sensitivity::Case => "case",
-                    Sensitivity::Variant => "variant",
+                    Sensitivity::Base => js_string!("base"),
+                    Sensitivity::Accent => js_string!("accent"),
+                    Sensitivity::Case => js_string!("case"),
+                    Sensitivity::Variant => js_string!("variant"),
                 },
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                utf16!("ignorePunctuation"),
+                js_string!("ignorePunctuation"),
                 collator.ignore_punctuation,
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                utf16!("collation"),
-                collator.collation.to_string(),
+                js_string!("collation"),
+                js_string!(collator.collation.to_string()),
                 context,
             )
             .expect("operation must not fail per the spec");
@@ -554,11 +563,11 @@ impl Collator {
         if let Some(kf) = collator.case_first {
             options
                 .create_data_property_or_throw(
-                    utf16!("caseFirst"),
+                    js_string!("caseFirst"),
                     match kf {
-                        CaseFirst::Off => "false",
-                        CaseFirst::LowerFirst => "lower",
-                        CaseFirst::UpperFirst => "upper",
+                        CaseFirst::Off => js_string!("false"),
+                        CaseFirst::LowerFirst => js_string!("lower"),
+                        CaseFirst::UpperFirst => js_string!("upper"),
                         _ => unreachable!(),
                     },
                     context,

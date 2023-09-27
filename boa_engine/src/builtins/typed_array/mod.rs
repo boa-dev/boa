@@ -29,22 +29,25 @@ use crate::{
     },
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
-    Context, JsArgs, JsResult,
+    Context, JsArgs, JsResult, JsString,
 };
 use boa_profiler::Profiler;
 use num_traits::Zero;
+use paste::paste;
 use std::cmp::Ordering;
 
 pub mod integer_indexed_object;
 
 macro_rules! typed_array {
-    ($ty:ident, $variant:ident, $name:literal, $global_object_name:ident) => {
-        #[doc = concat!("JavaScript `", $name, "` built-in implementation.")]
-        #[derive(Debug, Clone, Copy)]
-        pub struct $ty;
+    ($ty:ident, $variant:ident, $name:literal, $js_name:expr, $global_object_name:ident) => {
+        paste! {
+            #[doc = "JavaScript `" $name "` built-in implementation."]
+            #[derive(Debug, Clone, Copy)]
+            pub struct $ty;
+        }
 
         impl IntrinsicObject for $ty {
             fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -52,10 +55,10 @@ macro_rules! typed_array {
             }
 
             fn init(realm: &Realm) {
-                let _timer = Profiler::global().start_event(Self::NAME, "init");
+                let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
                 let get_species = BuiltInBuilder::callable(realm, TypedArray::get_species)
-                    .name("get [Symbol.species]")
+                    .name(js_string!("get [Symbol.species]"))
                     .build();
 
                 BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -76,12 +79,12 @@ macro_rules! typed_array {
                         Attribute::CONFIGURABLE,
                     )
                     .property(
-                        utf16!("BYTES_PER_ELEMENT"),
+                        js_string!("BYTES_PER_ELEMENT"),
                         TypedArrayKind::$variant.element_size(),
                         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
                     )
                     .static_property(
-                        utf16!("BYTES_PER_ELEMENT"),
+                        js_string!("BYTES_PER_ELEMENT"),
                         TypedArrayKind::$variant.element_size(),
                         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
                     )
@@ -90,7 +93,7 @@ macro_rules! typed_array {
         }
 
         impl BuiltInObject for $ty {
-            const NAME: &'static str = $name;
+            const NAME: JsString = $js_name;
 
             const ATTRIBUTE: Attribute = Attribute::WRITABLE
                 .union(Attribute::NON_ENUMERABLE)
@@ -244,31 +247,31 @@ pub(crate) struct TypedArray;
 impl IntrinsicObject for TypedArray {
     fn init(realm: &Realm) {
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
-            .name("get [Symbol.species]")
+            .name(js_string!("get [Symbol.species]"))
             .build();
 
         let get_buffer = BuiltInBuilder::callable(realm, Self::buffer)
-            .name("get buffer")
+            .name(js_string!("get buffer"))
             .build();
 
         let get_byte_length = BuiltInBuilder::callable(realm, Self::byte_length)
-            .name("get byteLength")
+            .name(js_string!("get byteLength"))
             .build();
 
         let get_byte_offset = BuiltInBuilder::callable(realm, Self::byte_offset)
-            .name("get byteOffset")
+            .name(js_string!("get byteOffset"))
             .build();
 
         let get_length = BuiltInBuilder::callable(realm, Self::length)
-            .name("get length")
+            .name(js_string!("get length"))
             .build();
 
         let get_to_string_tag = BuiltInBuilder::callable(realm, Self::to_string_tag)
-            .name("get [Symbol.toStringTag]")
+            .name(js_string!("get [Symbol.toStringTag]"))
             .build();
 
         let values_function = BuiltInBuilder::callable(realm, Self::values)
-            .name("values")
+            .name(js_string!("values"))
             .length(0)
             .build();
 
@@ -314,44 +317,44 @@ impl IntrinsicObject for TypedArray {
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
-            .static_method(Self::from, "from", 1)
-            .static_method(Self::of, "of", 0)
-            .method(Self::at, "at", 1)
-            .method(Self::copy_within, "copyWithin", 2)
-            .method(Self::entries, "entries", 0)
-            .method(Self::every, "every", 1)
-            .method(Self::fill, "fill", 1)
-            .method(Self::filter, "filter", 1)
-            .method(Self::find, "find", 1)
-            .method(Self::find_index, "findIndex", 1)
-            .method(Self::find_last, "findLast", 1)
-            .method(Self::find_last_index, "findLastIndex", 1)
-            .method(Self::foreach, "forEach", 1)
-            .method(Self::includes, "includes", 1)
-            .method(Self::index_of, "indexOf", 1)
-            .method(Self::join, "join", 1)
-            .method(Self::keys, "keys", 0)
-            .method(Self::last_index_of, "lastIndexOf", 1)
-            .method(Self::map, "map", 1)
-            .method(Self::reduce, "reduce", 1)
-            .method(Self::reduceright, "reduceRight", 1)
-            .method(Self::reverse, "reverse", 0)
-            .method(Self::set, "set", 1)
-            .method(Self::slice, "slice", 2)
-            .method(Self::some, "some", 1)
-            .method(Self::sort, "sort", 1)
-            .method(Self::subarray, "subarray", 2)
-            .method(Self::to_locale_string, "toLocaleString", 0)
+            .static_method(Self::from, js_string!("from"), 1)
+            .static_method(Self::of, js_string!("of"), 0)
+            .method(Self::at, js_string!("at"), 1)
+            .method(Self::copy_within, js_string!("copyWithin"), 2)
+            .method(Self::entries, js_string!("entries"), 0)
+            .method(Self::every, js_string!("every"), 1)
+            .method(Self::fill, js_string!("fill"), 1)
+            .method(Self::filter, js_string!("filter"), 1)
+            .method(Self::find, js_string!("find"), 1)
+            .method(Self::find_index, js_string!("findIndex"), 1)
+            .method(Self::find_last, js_string!("findLast"), 1)
+            .method(Self::find_last_index, js_string!("findLastIndex"), 1)
+            .method(Self::foreach, js_string!("forEach"), 1)
+            .method(Self::includes, js_string!("includes"), 1)
+            .method(Self::index_of, js_string!("indexOf"), 1)
+            .method(Self::join, js_string!("join"), 1)
+            .method(Self::keys, js_string!("keys"), 0)
+            .method(Self::last_index_of, js_string!("lastIndexOf"), 1)
+            .method(Self::map, js_string!("map"), 1)
+            .method(Self::reduce, js_string!("reduce"), 1)
+            .method(Self::reduceright, js_string!("reduceRight"), 1)
+            .method(Self::reverse, js_string!("reverse"), 0)
+            .method(Self::set, js_string!("set"), 1)
+            .method(Self::slice, js_string!("slice"), 2)
+            .method(Self::some, js_string!("some"), 1)
+            .method(Self::sort, js_string!("sort"), 1)
+            .method(Self::subarray, js_string!("subarray"), 2)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             // 23.2.3.29 %TypedArray%.prototype.toString ( )
             // The initial value of the %TypedArray%.prototype.toString data property is the same
             // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
             .property(
-                utf16!("toString"),
+                js_string!("toString"),
                 realm.intrinsics().objects().array_prototype_to_string(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                "values",
+                js_string!("values"),
                 values_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -364,7 +367,7 @@ impl IntrinsicObject for TypedArray {
 }
 
 impl BuiltInObject for TypedArray {
-    const NAME: &'static str = "TypedArray";
+    const NAME: JsString = StaticJsStrings::TYPED_ARRAY;
 }
 
 impl BuiltInConstructor for TypedArray {
@@ -3676,19 +3679,19 @@ impl TypedArrayKind {
     }
 
     /// Gets the name of this typed array name.
-    pub(crate) const fn name(&self) -> &str {
+    pub(crate) const fn name(self) -> JsString {
         match self {
-            Self::Int8 => "Int8Array",
-            Self::Uint8 => "Uint8Array",
-            Self::Uint8Clamped => "Uint8ClampedArray",
-            Self::Int16 => "Int16Array",
-            Self::Uint16 => "Uint16Array",
-            Self::Int32 => "Int32Array",
-            Self::Uint32 => "Uint32Array",
-            Self::BigInt64 => "BigInt64Array",
-            Self::BigUint64 => "BigUint64Array",
-            Self::Float32 => "Float32Array",
-            Self::Float64 => "Float64Array",
+            Self::Int8 => StaticJsStrings::INT8_ARRAY,
+            Self::Uint8 => StaticJsStrings::UINT8_ARRAY,
+            Self::Uint8Clamped => StaticJsStrings::UINT8_CLAMPED_ARRAY,
+            Self::Int16 => StaticJsStrings::INT16_ARRAY,
+            Self::Uint16 => StaticJsStrings::UINT16_ARRAY,
+            Self::Int32 => StaticJsStrings::INT32_ARRAY,
+            Self::Uint32 => StaticJsStrings::UINT32_ARRAY,
+            Self::BigInt64 => StaticJsStrings::BIG_INT64_ARRAY,
+            Self::BigUint64 => StaticJsStrings::BIG_UINT64_ARRAY,
+            Self::Float32 => StaticJsStrings::FLOAT32_ARRAY,
+            Self::Float64 => StaticJsStrings::FLOAT64_ARRAY,
         }
     }
 
@@ -3697,29 +3700,80 @@ impl TypedArrayKind {
     }
 }
 
-typed_array!(Int8Array, Int8, "Int8Array", typed_int8_array);
-typed_array!(Uint8Array, Uint8, "Uint8Array", typed_uint8_array);
+typed_array!(
+    Int8Array,
+    Int8,
+    "Int8Array",
+    StaticJsStrings::INT8_ARRAY,
+    typed_int8_array
+);
+typed_array!(
+    Uint8Array,
+    Uint8,
+    "UInt8Array",
+    StaticJsStrings::UINT8_ARRAY,
+    typed_uint8_array
+);
 typed_array!(
     Uint8ClampedArray,
     Uint8Clamped,
-    "Uint8ClampedArray",
+    "UInt8ClampedArray",
+    StaticJsStrings::UINT8_CLAMPED_ARRAY,
     typed_uint8clamped_array
 );
-typed_array!(Int16Array, Int16, "Int16Array", typed_int16_array);
-typed_array!(Uint16Array, Uint16, "Uint16Array", typed_uint16_array);
-typed_array!(Int32Array, Int32, "Int32Array", typed_int32_array);
-typed_array!(Uint32Array, Uint32, "Uint32Array", typed_uint32_array);
+typed_array!(
+    Int16Array,
+    Int16,
+    "Int16Array",
+    StaticJsStrings::INT16_ARRAY,
+    typed_int16_array
+);
+typed_array!(
+    Uint16Array,
+    Uint16,
+    "UInt16Array",
+    StaticJsStrings::UINT16_ARRAY,
+    typed_uint16_array
+);
+typed_array!(
+    Int32Array,
+    Int32,
+    "Int32Array",
+    StaticJsStrings::INT32_ARRAY,
+    typed_int32_array
+);
+typed_array!(
+    Uint32Array,
+    Uint32,
+    "UInt32Array",
+    StaticJsStrings::UINT32_ARRAY,
+    typed_uint32_array
+);
 typed_array!(
     BigInt64Array,
     BigInt64,
     "BigInt64Array",
+    StaticJsStrings::BIG_INT64_ARRAY,
     typed_bigint64_array
 );
 typed_array!(
     BigUint64Array,
     BigUint64,
     "BigUint64Array",
+    StaticJsStrings::BIG_UINT64_ARRAY,
     typed_biguint64_array
 );
-typed_array!(Float32Array, Float32, "Float32Array", typed_float32_array);
-typed_array!(Float64Array, Float64, "Float64Array", typed_float64_array);
+typed_array!(
+    Float32Array,
+    Float32,
+    "Float32Array",
+    StaticJsStrings::FLOAT32_ARRAY,
+    typed_float32_array
+);
+typed_array!(
+    Float64Array,
+    Float64,
+    "Float64Array",
+    StaticJsStrings::FLOAT64_ARRAY,
+    typed_float64_array
+);

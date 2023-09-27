@@ -70,6 +70,7 @@ use boa_engine::{
     builtins::promise::PromiseState,
     context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
+    js_string,
     module::{Module, ModuleLoader, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     property::Attribute,
@@ -480,7 +481,7 @@ fn main() -> Result<(), io::Error> {
 fn add_runtime(context: &mut Context<'_>) {
     let console = Console::init(context);
     context
-        .register_global_property(Console::NAME, console, Attribute::all())
+        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
         .expect("the console object shouldn't exist");
 }
 

@@ -2,6 +2,7 @@
 
 use crate::{
     builtins::{error::ErrorKind, Array},
+    js_string,
     object::JsObject,
     object::ObjectData,
     property::PropertyDescriptor,
@@ -228,21 +229,23 @@ impl JsError {
                     .as_error()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
-                let try_get_property = |key, context: &mut Context<'_>| {
-                    obj.has_property(key, context)
+                let try_get_property = |key: JsString, name, context: &mut Context<'_>| {
+                    obj.has_property(key.clone(), context)
                         .map_err(|e| TryNativeError::InaccessibleProperty {
-                            property: key,
+                            property: name,
                             source: e,
                         })?
                         .then(|| obj.get(key, context))
                         .transpose()
                         .map_err(|e| TryNativeError::InaccessibleProperty {
-                            property: key,
+                            property: name,
                             source: e,
                         })
                 };
 
-                let message = if let Some(msg) = try_get_property("message", context)? {
+                let message = if let Some(msg) =
+                    try_get_property(js_string!("message"), "message", context)?
+                {
                     msg.as_string()
                         .map(JsString::to_std_string)
                         .transpose()
@@ -253,7 +256,7 @@ impl JsError {
                     Box::default()
                 };
 
-                let cause = try_get_property("cause", context)?;
+                let cause = try_get_property(js_string!("cause"), "cause", context)?;
 
                 let kind = match error {
                     ErrorKind::Error => JsNativeErrorKind::Error,
@@ -297,7 +300,7 @@ impl JsError {
                     }
                 };
 
-                let realm = try_get_property("constructor", context)?
+                let realm = try_get_property(js_string!("constructor"), "constructor", context)?
                     .as_ref()
                     .and_then(JsValue::as_constructor)
                     .ok_or(TryNativeError::InvalidConstructor)?
@@ -828,11 +831,15 @@ impl JsNativeError {
             ObjectData::error(tag),
         );
 
-        o.create_non_enumerable_data_property_or_throw(utf16!("message"), &**message, context);
+        o.create_non_enumerable_data_property_or_throw(
+            js_string!("message"),
+            js_string!(&**message),
+            context,
+        );
 
         if let Some(cause) = cause {
             o.create_non_enumerable_data_property_or_throw(
-                utf16!("cause"),
+                js_string!("cause"),
                 cause.to_opaque(context),
                 context,
             );
@@ -845,7 +852,7 @@ impl JsNativeError {
                 .collect::<Vec<_>>();
             let errors = Array::create_array_from_list(errors, context);
             o.define_property_or_throw(
-                utf16!("errors"),
+                js_string!("errors"),
                 PropertyDescriptor::builder()
                     .configurable(true)
                     .enumerable(false)

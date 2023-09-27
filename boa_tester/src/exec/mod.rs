@@ -8,6 +8,7 @@ use crate::{
 };
 use boa_engine::{
     builtins::promise::PromiseState,
+    js_string,
     module::{Module, ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
@@ -606,10 +607,10 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context<
             .as_opaque()
             .expect("try_native cannot fail if e is not opaque")
             .as_object()
-            .and_then(|o| o.get("constructor", context).ok())
+            .and_then(|o| o.get(js_string!("constructor"), context).ok())
             .as_ref()
             .and_then(JsValue::as_object)
-            .and_then(|o| o.get("name", context).ok())
+            .and_then(|o| o.get(js_string!("name"), context).ok())
             .as_ref()
             .and_then(JsValue::as_string)
             .map(|s| s == target_type.as_str())
@@ -653,7 +654,7 @@ fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
 
     context
         .register_global_property(
-            "print",
+            js_string!("print"),
             js_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

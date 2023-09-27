@@ -11,8 +11,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-additional-properties-of-the-global-object
 
 use crate::{
-    context::intrinsics::Intrinsics, js_string, realm::Realm, Context, JsArgs, JsObject, JsResult,
-    JsValue,
+    context::intrinsics::Intrinsics, js_string, realm::Realm, string::common::StaticJsStrings,
+    Context, JsArgs, JsObject, JsResult, JsString, JsValue,
 };
 
 use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
@@ -34,7 +34,7 @@ impl IntrinsicObject for Escape {
 }
 
 impl BuiltInObject for Escape {
-    const NAME: &'static str = "escape";
+    const NAME: JsString = StaticJsStrings::ESCAPE;
 }
 
 /// Builtin JavaScript `escape ( string )` function.
@@ -106,7 +106,7 @@ impl IntrinsicObject for Unescape {
 }
 
 impl BuiltInObject for Unescape {
-    const NAME: &'static str = "unescape";
+    const NAME: JsString = StaticJsStrings::UNESCAPE;
 }
 
 /// Builtin JavaScript `unescape ( string )` function.

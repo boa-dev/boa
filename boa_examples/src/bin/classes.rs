@@ -2,6 +2,7 @@
 use boa_engine::{
     class::{Class, ClassBuilder},
     error::JsNativeError,
+    js_string,
     native_function::NativeFunction,
     property::Attribute,
     Context, JsArgs, JsResult, JsString, JsValue, Source,
@@ -111,13 +112,13 @@ impl Class for Person {
 
         // We add an `"inheritedProperty"` property to the prototype of `Person` with
         // a value of `10` and default attribute flags `READONLY`, `NON_ENUMERABLE` and `PERMANENT`.
-        class.property("inheritedProperty", 10, Attribute::default());
+        class.property(js_string!("inheritedProperty"), 10, Attribute::default());
 
         // Finally, we add a `"staticProperty"` property to `Person` with a value
         // of `"Im a static property"` and attribute flags `WRITABLE`, `ENUMERABLE` and `PERMANENT`.
         class.static_property(
-            "staticProperty",
-            "Im a static property",
+            js_string!("staticProperty"),
+            js_string!("Im a static property"),
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::PERMANENT,
         );
 
@@ -130,7 +131,7 @@ fn add_runtime(context: &mut Context<'_>) {
     // We first add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
-        .register_global_property(Console::NAME, console, Attribute::all())
+        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
         .expect("the console builtin shouldn't exist");
 
     // Then we need to register the global class `Person` inside `context`.

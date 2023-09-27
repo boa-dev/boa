@@ -15,11 +15,13 @@ use crate::{
     builtins::{self, BuiltInObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::JsObject,
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -32,28 +34,28 @@ pub(crate) struct Reflect;
 
 impl IntrinsicObject for Reflect {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let to_string_tag = JsSymbol::to_string_tag();
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(Self::apply, "apply", 3)
-            .static_method(Self::construct, "construct", 2)
-            .static_method(Self::define_property, "defineProperty", 3)
-            .static_method(Self::delete_property, "deleteProperty", 2)
-            .static_method(Self::get, "get", 2)
+            .static_method(Self::apply, js_string!("apply"), 3)
+            .static_method(Self::construct, js_string!("construct"), 2)
+            .static_method(Self::define_property, js_string!("defineProperty"), 3)
+            .static_method(Self::delete_property, js_string!("deleteProperty"), 2)
+            .static_method(Self::get, js_string!("get"), 2)
             .static_method(
                 Self::get_own_property_descriptor,
-                "getOwnPropertyDescriptor",
+                js_string!("getOwnPropertyDescriptor"),
                 2,
             )
-            .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
-            .static_method(Self::has, "has", 2)
-            .static_method(Self::is_extensible, "isExtensible", 1)
-            .static_method(Self::own_keys, "ownKeys", 1)
-            .static_method(Self::prevent_extensions, "preventExtensions", 1)
-            .static_method(Self::set, "set", 3)
-            .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
+            .static_method(Self::get_prototype_of, js_string!("getPrototypeOf"), 1)
+            .static_method(Self::has, js_string!("has"), 2)
+            .static_method(Self::is_extensible, js_string!("isExtensible"), 1)
+            .static_method(Self::own_keys, js_string!("ownKeys"), 1)
+            .static_method(Self::prevent_extensions, js_string!("preventExtensions"), 1)
+            .static_method(Self::set, js_string!("set"), 3)
+            .static_method(Self::set_prototype_of, js_string!("setPrototypeOf"), 2)
             .static_property(
                 to_string_tag,
                 Self::NAME,
@@ -68,7 +70,7 @@ impl IntrinsicObject for Reflect {
 }
 
 impl BuiltInObject for Reflect {
-    const NAME: &'static str = "Reflect";
+    const NAME: JsString = StaticJsStrings::REFLECT;
 }
 
 impl Reflect {

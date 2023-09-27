@@ -1,4 +1,5 @@
 use boa_engine::{
+    js_string,
     object::ObjectInitializer,
     vm::flowgraph::{Direction, Graph},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
@@ -67,8 +68,10 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
     let mut direction = Direction::LeftToRight;
     if let Some(arguments) = args.get(1) {
         if let Some(arguments) = arguments.as_object() {
-            format = flowgraph_parse_format_option(&arguments.get("format", context)?)?;
-            direction = flowgraph_parse_direction_option(&arguments.get("direction", context)?)?;
+            format = flowgraph_parse_format_option(&arguments.get(js_string!("format"), context)?)?;
+            direction = flowgraph_parse_direction_option(
+                &arguments.get(js_string!("direction"), context)?,
+            )?;
         } else if value.is_string() {
             format = flowgraph_parse_format_option(value)?;
         } else {
@@ -97,7 +100,7 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
         FlowgraphFormat::Mermaid => graph.to_mermaid_format(),
     };
 
-    Ok(JsValue::new(result))
+    Ok(JsValue::new(js_string!(result)))
 }
 
 fn bytecode(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
@@ -122,7 +125,7 @@ fn bytecode(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
         JsNativeError::typ().with_message("native functions do not have bytecode")
     })?;
 
-    Ok(code.to_interned_string(context.interner()).into())
+    Ok(js_string!(code.to_interned_string(context.interner())).into())
 }
 
 fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult<()> {
@@ -176,9 +179,21 @@ fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsV
 
 pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
     ObjectInitializer::new(context)
-        .function(NativeFunction::from_fn_ptr(flowgraph), "flowgraph", 1)
-        .function(NativeFunction::from_fn_ptr(bytecode), "bytecode", 1)
-        .function(NativeFunction::from_fn_ptr(trace), "trace", 1)
-        .function(NativeFunction::from_fn_ptr(traceable), "traceable", 2)
+        .function(
+            NativeFunction::from_fn_ptr(flowgraph),
+            js_string!("flowgraph"),
+            1,
+        )
+        .function(
+            NativeFunction::from_fn_ptr(bytecode),
+            js_string!("bytecode"),
+            1,
+        )
+        .function(NativeFunction::from_fn_ptr(trace), js_string!("trace"), 1)
+        .function(
+            NativeFunction::from_fn_ptr(traceable),
+            js_string!("traceable"),
+            2,
+        )
         .build()
 }

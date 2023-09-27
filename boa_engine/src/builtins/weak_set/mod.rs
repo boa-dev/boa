@@ -10,12 +10,13 @@
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace, WeakMap};
 use boa_profiler::Profiler;
@@ -29,22 +30,22 @@ impl IntrinsicObject for WeakSet {
     }
 
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::add, "add", 1)
-            .method(Self::delete, "delete", 1)
-            .method(Self::has, "has", 1)
+            .method(Self::add, js_string!("add"), 1)
+            .method(Self::delete, js_string!("delete"), 1)
+            .method(Self::has, js_string!("has"), 1)
             .build();
     }
 }
 
 impl BuiltInObject for WeakSet {
-    const NAME: &'static str = "WeakSet";
+    const NAME: JsString = StaticJsStrings::WEAK_SET;
 
     const ATTRIBUTE: Attribute = Attribute::WRITABLE.union(Attribute::CONFIGURABLE);
 }

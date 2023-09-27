@@ -28,7 +28,7 @@ use crate::{
     object::JsObject,
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
@@ -93,7 +93,7 @@ pub struct Symbol;
 
 impl IntrinsicObject for Symbol {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let symbol_async_iterator = JsSymbol::async_iterator();
         let symbol_has_instance = JsSymbol::has_instance();
@@ -112,46 +112,50 @@ impl IntrinsicObject for Symbol {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         let to_primitive = BuiltInBuilder::callable(realm, Self::to_primitive)
-            .name("[Symbol.toPrimitive]")
+            .name(js_string!("[Symbol.toPrimitive]"))
             .length(1)
             .build();
 
         let get_description = BuiltInBuilder::callable(realm, Self::get_description)
-            .name("get description")
+            .name(js_string!("get description"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::for_, "for", 1)
-            .static_method(Self::key_for, "keyFor", 1)
-            .static_property(utf16!("asyncIterator"), symbol_async_iterator, attribute)
-            .static_property(utf16!("hasInstance"), symbol_has_instance, attribute)
+            .static_method(Self::for_, js_string!("for"), 1)
+            .static_method(Self::key_for, js_string!("keyFor"), 1)
             .static_property(
-                utf16!("isConcatSpreadable"),
+                js_string!("asyncIterator"),
+                symbol_async_iterator,
+                attribute,
+            )
+            .static_property(js_string!("hasInstance"), symbol_has_instance, attribute)
+            .static_property(
+                js_string!("isConcatSpreadable"),
                 symbol_is_concat_spreadable,
                 attribute,
             )
-            .static_property(utf16!("iterator"), symbol_iterator, attribute)
-            .static_property(utf16!("match"), symbol_match, attribute)
-            .static_property(utf16!("matchAll"), symbol_match_all, attribute)
-            .static_property(utf16!("replace"), symbol_replace, attribute)
-            .static_property(utf16!("search"), symbol_search, attribute)
-            .static_property(utf16!("species"), symbol_species, attribute)
-            .static_property(utf16!("split"), symbol_split, attribute)
+            .static_property(js_string!("iterator"), symbol_iterator, attribute)
+            .static_property(js_string!("match"), symbol_match, attribute)
+            .static_property(js_string!("matchAll"), symbol_match_all, attribute)
+            .static_property(js_string!("replace"), symbol_replace, attribute)
+            .static_property(js_string!("search"), symbol_search, attribute)
+            .static_property(js_string!("species"), symbol_species, attribute)
+            .static_property(js_string!("split"), symbol_split, attribute)
             .static_property(
-                utf16!("toPrimitive"),
+                js_string!("toPrimitive"),
                 symbol_to_primitive.clone(),
                 attribute,
             )
             .static_property(
-                utf16!("toStringTag"),
+                js_string!("toStringTag"),
                 symbol_to_string_tag.clone(),
                 attribute,
             )
-            .static_property(utf16!("unscopables"), symbol_unscopables, attribute)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::value_of, "valueOf", 0)
+            .static_property(js_string!("unscopables"), symbol_unscopables, attribute)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .accessor(
-                utf16!("description"),
+                js_string!("description"),
                 Some(get_description),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
@@ -175,7 +179,7 @@ impl IntrinsicObject for Symbol {
 }
 
 impl BuiltInObject for Symbol {
-    const NAME: &'static str = "Symbol";
+    const NAME: JsString = StaticJsStrings::SYMBOL;
 }
 
 impl BuiltInConstructor for Symbol {

@@ -1,4 +1,4 @@
-use crate::{run_test_actions, JsNativeErrorKind, TestAction};
+use crate::{js_string, run_test_actions, JsNativeErrorKind, TestAction};
 use chrono::{Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use indoc::indoc;
 
@@ -762,7 +762,7 @@ fn date_proto_set_utc_seconds() {
 fn date_proto_to_date_string() {
     run_test_actions([TestAction::assert_eq(
         "new Date(2020, 6, 8, 9, 16, 15, 779).toDateString()",
-        "Wed Jul 08 2020",
+        js_string!("Wed Jul 08 2020"),
     )]);
 }
 
@@ -770,7 +770,7 @@ fn date_proto_to_date_string() {
 fn date_proto_to_gmt_string() {
     run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toGMTString()",
-        "Wed, 08 Jul 2020 09:16:15 GMT",
+        js_string!("Wed, 08 Jul 2020 09:16:15 GMT"),
     )]);
 }
 
@@ -778,7 +778,7 @@ fn date_proto_to_gmt_string() {
 fn date_proto_to_iso_string() {
     run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toISOString()",
-        "2020-07-08T09:16:15.779Z",
+        js_string!("2020-07-08T09:16:15.779Z"),
     )]);
 }
 
@@ -786,7 +786,7 @@ fn date_proto_to_iso_string() {
 fn date_proto_to_json() {
     run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toJSON()",
-        "2020-07-08T09:16:15.779Z",
+        js_string!("2020-07-08T09:16:15.779Z"),
     )]);
 }
 
@@ -794,7 +794,7 @@ fn date_proto_to_json() {
 fn date_proto_to_string() {
     run_test_actions([TestAction::assert_eq(
         "new Date(2020, 6, 8, 9, 16, 15, 779).toString()",
-        Local
+        js_string!(Local
             .from_local_datetime(&NaiveDateTime::new(
                 NaiveDate::from_ymd_opt(2020, 7, 8).unwrap(),
                 NaiveTime::from_hms_milli_opt(9, 16, 15, 779).unwrap(),
@@ -802,7 +802,7 @@ fn date_proto_to_string() {
             .earliest()
             .unwrap()
             .format("Wed Jul 08 2020 09:16:15 GMT%z")
-            .to_string(),
+            .to_string()),
     )]);
 }
 
@@ -810,7 +810,7 @@ fn date_proto_to_string() {
 fn date_proto_to_time_string() {
     run_test_actions([TestAction::assert_eq(
         "new Date(2020, 6, 8, 9, 16, 15, 779).toTimeString()",
-        Local
+        js_string!(Local
             .from_local_datetime(&NaiveDateTime::new(
                 NaiveDate::from_ymd_opt(2020, 7, 8).unwrap(),
                 NaiveTime::from_hms_milli_opt(9, 16, 15, 779).unwrap(),
@@ -818,7 +818,7 @@ fn date_proto_to_time_string() {
             .earliest()
             .unwrap()
             .format("09:16:15 GMT%z")
-            .to_string(),
+            .to_string()),
     )]);
 }
 
@@ -826,7 +826,7 @@ fn date_proto_to_time_string() {
 fn date_proto_to_utc_string() {
     run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toUTCString()",
-        "Wed, 08 Jul 2020 09:16:15 GMT",
+        js_string!("Wed, 08 Jul 2020 09:16:15 GMT"),
     )]);
 }
 
@@ -850,6 +850,6 @@ fn date_neg() {
 fn date_json() {
     run_test_actions([TestAction::assert_eq(
         "JSON.stringify({ date: new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)) })",
-        r#"{"date":"2020-07-08T09:16:15.779Z"}"#,
+        js_string!(r#"{"date":"2020-07-08T09:16:15.779Z"}"#),
     )]);
 }

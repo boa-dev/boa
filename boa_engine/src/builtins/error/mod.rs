@@ -18,8 +18,8 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
-    Context, JsArgs, JsResult, JsValue,
+    string::{common::StaticJsStrings, utf16},
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -129,13 +129,13 @@ pub(crate) struct Error;
 
 impl IntrinsicObject for Error {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(utf16!("name"), Self::NAME, attribute)
-            .property(utf16!("message"), "", attribute)
-            .method(Self::to_string, "toString", 0)
+            .property(utf16!("message"), js_string!(), attribute)
+            .method(Self::to_string, js_string!("toString"), 0)
             .build();
     }
 
@@ -145,7 +145,7 @@ impl IntrinsicObject for Error {
 }
 
 impl BuiltInObject for Error {
-    const NAME: &'static str = "Error";
+    const NAME: JsString = StaticJsStrings::ERROR;
 }
 
 impl BuiltInConstructor for Error {

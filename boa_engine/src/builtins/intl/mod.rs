@@ -16,11 +16,13 @@
 use crate::{
     builtins::{Array, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::{intrinsics::Intrinsics, BoaProvider},
+    js_string,
     object::JsObject,
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 
 use boa_profiler::Profiler;
@@ -47,7 +49,7 @@ pub(crate) struct Intl;
 
 impl IntrinsicObject for Intl {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
@@ -97,7 +99,11 @@ impl IntrinsicObject for Intl {
                     .constructor(),
                 DateTimeFormat::ATTRIBUTE,
             )
-            .static_method(Self::get_canonical_locales, "getCanonicalLocales", 1)
+            .static_method(
+                Self::get_canonical_locales,
+                js_string!("getCanonicalLocales"),
+                1,
+            )
             .build();
     }
 
@@ -107,7 +113,7 @@ impl IntrinsicObject for Intl {
 }
 
 impl BuiltInObject for Intl {
-    const NAME: &'static str = "Intl";
+    const NAME: JsString = StaticJsStrings::INTL;
 }
 
 impl Intl {
@@ -133,7 +139,7 @@ impl Intl {
 
         // 2. Return CreateArrayFromList(ll).
         Ok(JsValue::Object(Array::create_array_from_list(
-            ll.into_iter().map(|loc| loc.to_string().into()),
+            ll.into_iter().map(|loc| js_string!(loc.to_string()).into()),
             context,
         )))
     }

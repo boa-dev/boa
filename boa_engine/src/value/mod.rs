@@ -19,6 +19,7 @@ use crate::{
         Number,
     },
     error::JsNativeError,
+    js_string,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
@@ -366,9 +367,9 @@ impl JsValue {
                 //     1. Assert: preferredType is number.
                 //     2. Let hint be "number".
                 let hint = match preferred_type {
-                    PreferredType::Default => "default",
-                    PreferredType::String => "string",
-                    PreferredType::Number => "number",
+                    PreferredType::Default => js_string!("default"),
+                    PreferredType::String => js_string!("string"),
+                    PreferredType::Number => js_string!("number"),
                 }
                 .into();
 
@@ -471,7 +472,7 @@ impl JsValue {
             Self::Null => Ok("null".into()),
             Self::Undefined => Ok("undefined".into()),
             Self::Boolean(boolean) => Ok(boolean.to_string().into()),
-            Self::Rational(rational) => Ok(Number::to_native_string(*rational).into()),
+            Self::Rational(rational) => Ok(Number::to_js_string(*rational)),
             Self::Integer(integer) => Ok(integer.to_string().into()),
             Self::String(string) => Ok(string.clone()),
             Self::Symbol(_) => Err(JsNativeError::typ()
@@ -969,6 +970,27 @@ impl JsValue {
                     "function"
                 } else {
                     "object"
+                }
+            }
+        }
+    }
+
+    /// Same as [`JsValue::type_of`], but returning a [`JsString`] instead.
+    #[must_use]
+    pub fn js_type_of(&self) -> JsString {
+        match *self {
+            Self::Rational(_) | Self::Integer(_) => js_string!("number"),
+            Self::String(_) => js_string!("string"),
+            Self::Boolean(_) => js_string!("boolean"),
+            Self::Symbol(_) => js_string!("symbol"),
+            Self::Null => js_string!("object"),
+            Self::Undefined => js_string!("undefined"),
+            Self::BigInt(_) => js_string!("bigint"),
+            Self::Object(ref object) => {
+                if object.is_callable() {
+                    js_string!("function")
+                } else {
+                    js_string!("object")
                 }
             }
         }

@@ -12,11 +12,12 @@
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
-    Context, JsArgs, JsResult, JsValue,
+    string::{common::StaticJsStrings, utf16},
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -28,14 +29,14 @@ pub(crate) struct RangeError;
 
 impl IntrinsicObject for RangeError {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(Some(realm.intrinsics().constructors().error().prototype()))
             .property(utf16!("name"), Self::NAME, attribute)
-            .property(utf16!("message"), "", attribute)
+            .property(utf16!("message"), js_string!(), attribute)
             .build();
     }
 
@@ -45,7 +46,7 @@ impl IntrinsicObject for RangeError {
 }
 
 impl BuiltInObject for RangeError {
-    const NAME: &'static str = "RangeError";
+    const NAME: JsString = StaticJsStrings::RANGE_ERROR;
 }
 
 impl BuiltInConstructor for RangeError {

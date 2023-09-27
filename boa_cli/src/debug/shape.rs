@@ -23,7 +23,7 @@ fn id(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
     let object = get_object(args, 0)?;
     let object = object.borrow();
     let shape = object.shape();
-    Ok(format!("0x{:X}", shape.to_addr_usize()).into())
+    Ok(js_string!(format!("0x{:X}", shape.to_addr_usize())).into())
 }
 
 /// Returns object's shape type.
@@ -62,8 +62,8 @@ fn same(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue>
 
 pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
     ObjectInitializer::new(context)
-        .function(NativeFunction::from_fn_ptr(id), "id", 1)
-        .function(NativeFunction::from_fn_ptr(r#type), "type", 1)
-        .function(NativeFunction::from_fn_ptr(same), "same", 2)
+        .function(NativeFunction::from_fn_ptr(id), js_string!("id"), 1)
+        .function(NativeFunction::from_fn_ptr(r#type), js_string!("type"), 1)
+        .function(NativeFunction::from_fn_ptr(same), js_string!("same"), 2)
         .build()
 }

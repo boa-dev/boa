@@ -17,7 +17,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     string::{CodePoint, Utf16Trim},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
@@ -76,18 +76,18 @@ pub(crate) struct String;
 
 impl IntrinsicObject for String {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let symbol_iterator = JsSymbol::iterator();
 
         let trim_start = BuiltInBuilder::callable(realm, Self::trim_start)
             .length(0)
-            .name("trimStart")
+            .name(js_string!("trimStart"))
             .build();
 
         let trim_end = BuiltInBuilder::callable(realm, Self::trim_end)
             .length(0)
-            .name("trimEnd")
+            .name(js_string!("trimEnd"))
             .build();
 
         #[cfg(feature = "annex-b")]
@@ -98,81 +98,93 @@ impl IntrinsicObject for String {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(utf16!("length"), 0, attribute)
+            .property(js_string!("length"), 0, attribute)
             .property(
-                utf16!("trimStart"),
+                js_string!("trimStart"),
                 trim_start,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                utf16!("trimEnd"),
+                js_string!("trimEnd"),
                 trim_end,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(Self::raw, "raw", 1)
-            .static_method(Self::from_char_code, "fromCharCode", 1)
-            .static_method(Self::from_code_point, "fromCodePoint", 1)
-            .method(Self::char_at, "charAt", 1)
-            .method(Self::char_code_at, "charCodeAt", 1)
-            .method(Self::code_point_at, "codePointAt", 1)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::concat, "concat", 1)
-            .method(Self::repeat, "repeat", 1)
-            .method(Self::slice, "slice", 2)
-            .method(Self::starts_with, "startsWith", 1)
-            .method(Self::ends_with, "endsWith", 1)
-            .method(Self::includes, "includes", 1)
-            .method(Self::index_of, "indexOf", 1)
-            .method(Self::is_well_formed, "isWellFormed", 0)
-            .method(Self::last_index_of, "lastIndexOf", 1)
-            .method(Self::locale_compare, "localeCompare", 1)
-            .method(Self::r#match, "match", 1)
-            .method(Self::normalize, "normalize", 0)
-            .method(Self::pad_end, "padEnd", 1)
-            .method(Self::pad_start, "padStart", 1)
-            .method(Self::trim, "trim", 0)
-            .method(Self::to_case::<false>, "toLowerCase", 0)
-            .method(Self::to_case::<true>, "toUpperCase", 0)
-            .method(Self::to_well_formed, "toWellFormed", 0)
-            .method(Self::to_locale_case::<false>, "toLocaleLowerCase", 0)
-            .method(Self::to_locale_case::<true>, "toLocaleUpperCase", 0)
-            .method(Self::substring, "substring", 2)
-            .method(Self::split, "split", 2)
-            .method(Self::value_of, "valueOf", 0)
-            .method(Self::match_all, "matchAll", 1)
-            .method(Self::replace, "replace", 2)
-            .method(Self::replace_all, "replaceAll", 2)
-            .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
-            .method(Self::search, "search", 1)
-            .method(Self::at, "at", 1);
+            .static_method(Self::raw, js_string!("raw"), 1)
+            .static_method(Self::from_char_code, js_string!("fromCharCode"), 1)
+            .static_method(Self::from_code_point, js_string!("fromCodePoint"), 1)
+            .method(Self::char_at, js_string!("charAt"), 1)
+            .method(Self::char_code_at, js_string!("charCodeAt"), 1)
+            .method(Self::code_point_at, js_string!("codePointAt"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::concat, js_string!("concat"), 1)
+            .method(Self::repeat, js_string!("repeat"), 1)
+            .method(Self::slice, js_string!("slice"), 2)
+            .method(Self::starts_with, js_string!("startsWith"), 1)
+            .method(Self::ends_with, js_string!("endsWith"), 1)
+            .method(Self::includes, js_string!("includes"), 1)
+            .method(Self::index_of, js_string!("indexOf"), 1)
+            .method(Self::is_well_formed, js_string!("isWellFormed"), 0)
+            .method(Self::last_index_of, js_string!("lastIndexOf"), 1)
+            .method(Self::locale_compare, js_string!("localeCompare"), 1)
+            .method(Self::r#match, js_string!("match"), 1)
+            .method(Self::normalize, js_string!("normalize"), 0)
+            .method(Self::pad_end, js_string!("padEnd"), 1)
+            .method(Self::pad_start, js_string!("padStart"), 1)
+            .method(Self::trim, js_string!("trim"), 0)
+            .method(Self::to_case::<false>, js_string!("toLowerCase"), 0)
+            .method(Self::to_case::<true>, js_string!("toUpperCase"), 0)
+            .method(Self::to_well_formed, js_string!("toWellFormed"), 0)
+            .method(
+                Self::to_locale_case::<false>,
+                js_string!("toLocaleLowerCase"),
+                0,
+            )
+            .method(
+                Self::to_locale_case::<true>,
+                js_string!("toLocaleUpperCase"),
+                0,
+            )
+            .method(Self::substring, js_string!("substring"), 2)
+            .method(Self::split, js_string!("split"), 2)
+            .method(Self::value_of, js_string!("valueOf"), 0)
+            .method(Self::match_all, js_string!("matchAll"), 1)
+            .method(Self::replace, js_string!("replace"), 2)
+            .method(Self::replace_all, js_string!("replaceAll"), 2)
+            .method(
+                Self::iterator,
+                (symbol_iterator, js_string!("[Symbol.iterator]")),
+                0,
+            )
+            .method(Self::search, js_string!("search"), 1)
+            .method(Self::at, js_string!("at"), 1);
 
         #[cfg(feature = "annex-b")]
         let builder = {
             builder
                 .property(
-                    utf16!("trimLeft"),
+                    js_string!("trimLeft"),
                     trim_left,
                     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
                 )
                 .property(
-                    utf16!("trimRight"),
+                    js_string!("trimRight"),
                     trim_right,
                     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
                 )
-                .method(Self::substr, "substr", 2)
-                .method(Self::anchor, "anchor", 1)
-                .method(Self::big, "big", 0)
-                .method(Self::blink, "blink", 0)
-                .method(Self::bold, "bold", 0)
-                .method(Self::fixed, "fixed", 0)
-                .method(Self::fontcolor, "fontcolor", 1)
-                .method(Self::fontsize, "fontsize", 1)
-                .method(Self::italics, "italics", 0)
-                .method(Self::link, "link", 1)
-                .method(Self::small, "small", 0)
-                .method(Self::strike, "strike", 0)
-                .method(Self::sub, "sub", 0)
-                .method(Self::sup, "sup", 0)
+                .method(Self::substr, js_string!("substr"), 2)
+                .method(Self::anchor, js_string!("anchor"), 1)
+                .method(Self::big, js_string!("big"), 0)
+                .method(Self::blink, js_string!("blink"), 0)
+                .method(Self::bold, js_string!("bold"), 0)
+                .method(Self::fixed, js_string!("fixed"), 0)
+                .method(Self::fontcolor, js_string!("fontcolor"), 1)
+                .method(Self::fontsize, js_string!("fontsize"), 1)
+                .method(Self::italics, js_string!("italics"), 0)
+                .method(Self::link, js_string!("link"), 1)
+                .method(Self::small, js_string!("small"), 0)
+                .method(Self::strike, js_string!("strike"), 0)
+                .method(Self::sub, js_string!("sub"), 0)
+                .method(Self::sup, js_string!("sup"), 0)
         };
 
         builder.build();
@@ -184,7 +196,7 @@ impl IntrinsicObject for String {
 }
 
 impl BuiltInObject for String {
-    const NAME: &'static str = "String";
+    const NAME: JsString = StaticJsStrings::STRING;
 }
 
 impl BuiltInConstructor for String {
@@ -1835,7 +1847,7 @@ impl String {
             .collect::<std::string::String>();
 
         // 7. Return result.
-        Ok(result.into())
+        Ok(js_string!(result).into())
     }
 
     /// `String.prototype.substring( indexStart[, indexEnd] )`

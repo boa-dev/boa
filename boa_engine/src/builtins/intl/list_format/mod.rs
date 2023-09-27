@@ -11,10 +11,11 @@ use crate::{
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
@@ -44,18 +45,22 @@ impl Service for ListFormat {
 
 impl IntrinsicObject for ListFormat {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
+            .static_method(
+                Self::supported_locales_of,
+                js_string!("supportedLocalesOf"),
+                1,
+            )
             .property(
                 JsSymbol::to_string_tag(),
-                "Intl.ListFormat",
+                js_string!("Intl.ListFormat"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::format, "format", 1)
-            .method(Self::format_to_parts, "formatToParts", 1)
-            .method(Self::resolved_options, "resolvedOptions", 0)
+            .method(Self::format, js_string!("format"), 1)
+            .method(Self::format_to_parts, js_string!("formatToParts"), 1)
+            .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
             .build();
     }
 
@@ -65,7 +70,7 @@ impl IntrinsicObject for ListFormat {
 }
 
 impl BuiltInObject for ListFormat {
-    const NAME: &'static str = "ListFormat";
+    const NAME: JsString = StaticJsStrings::LIST_FORMAT;
 }
 
 impl BuiltInConstructor for ListFormat {
@@ -229,11 +234,12 @@ impl ListFormat {
         // TODO: support for UTF-16 unpaired surrogates formatting
         let strings = string_list_from_iterable(args.get_or_undefined(0), context)?;
 
-        // 4. Return ! FormatList(lf, stringList).
-        Ok(lf
+        let formatted = lf
             .native
-            .format_to_string(strings.into_iter().map(|s| s.to_std_string_escaped()))
-            .into())
+            .format_to_string(strings.into_iter().map(|s| s.to_std_string_escaped()));
+
+        // 4. Return ! FormatList(lf, stringList).
+        Ok(js_string!(formatted).into())
     }
 
     /// [`Intl.ListFormat.prototype.formatToParts ( list )`][spec].
@@ -375,11 +381,11 @@ impl ListFormat {
                 .create(ObjectData::ordinary(), vec![]);
 
             // b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
-            o.create_data_property_or_throw(utf16!("type"), part.typ(), context)
+            o.create_data_property_or_throw(utf16!("type"), js_string!(part.typ()), context)
                 .expect("operation must not fail per the spec");
 
             // c. Perform ! CreateDataPropertyOrThrow(O, "value", part.[[Value]]).
-            o.create_data_property_or_throw(utf16!("value"), part.value(), context)
+            o.create_data_property_or_throw(utf16!("value"), js_string!(part.value()), context)
                 .expect("operation must not fail per the spec");
 
             // d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(n), O).
@@ -433,26 +439,30 @@ impl ListFormat {
         //     c. Assert: v is not undefined.
         //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
         options
-            .create_data_property_or_throw(utf16!("locale"), lf.locale.to_string(), context)
+            .create_data_property_or_throw(
+                utf16!("locale"),
+                js_string!(lf.locale.to_string()),
+                context,
+            )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                utf16!("type"),
+                js_string!("type"),
                 match lf.typ {
-                    ListFormatType::Conjunction => "conjunction",
-                    ListFormatType::Disjunction => "disjunction",
-                    ListFormatType::Unit => "unit",
+                    ListFormatType::Conjunction => js_string!("conjunction"),
+                    ListFormatType::Disjunction => js_string!("disjunction"),
+                    ListFormatType::Unit => js_string!("unit"),
                 },
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                utf16!("style"),
+                js_string!("style"),
                 match lf.style {
-                    ListLength::Wide => "long",
-                    ListLength::Short => "short",
-                    ListLength::Narrow => "narrow",
+                    ListLength::Wide => js_string!("long"),
+                    ListLength::Short => js_string!("short"),
+                    ListLength::Narrow => js_string!("narrow"),
                     _ => unreachable!(),
                 },
                 context,

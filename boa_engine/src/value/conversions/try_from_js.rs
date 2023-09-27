@@ -36,7 +36,7 @@ impl TryFromJs for String {
         match value {
             JsValue::String(s) => s.to_std_string().map_err(|e| {
                 JsNativeError::typ()
-                    .with_message(format!("could not convert JsString to Rust string, since it has UTF-16 characters: {e}"))
+                    .with_message(format!("could not convert JsString to Rust string: {e}"))
                     .into()
             }),
             _ => Err(JsNativeError::typ()

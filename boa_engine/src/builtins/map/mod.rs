@@ -14,12 +14,13 @@ use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 use num_traits::Zero;
@@ -39,18 +40,18 @@ pub(crate) struct Map;
 
 impl IntrinsicObject for Map {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
-            .name("get [Symbol.species]")
+            .name(js_string!("get [Symbol.species]"))
             .build();
 
         let get_size = BuiltInBuilder::callable(realm, Self::get_size)
-            .name("get size")
+            .name(js_string!("get size"))
             .build();
 
         let entries_function = BuiltInBuilder::callable(realm, Self::entries)
-            .name("entries")
+            .name(js_string!("entries"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -75,16 +76,16 @@ impl IntrinsicObject for Map {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::clear, "clear", 0)
-            .method(Self::delete, "delete", 1)
-            .method(Self::for_each, "forEach", 1)
-            .method(Self::get, "get", 1)
-            .method(Self::has, "has", 1)
-            .method(Self::keys, "keys", 0)
-            .method(Self::set, "set", 2)
-            .method(Self::values, "values", 0)
+            .method(Self::clear, js_string!("clear"), 0)
+            .method(Self::delete, js_string!("delete"), 1)
+            .method(Self::for_each, js_string!("forEach"), 1)
+            .method(Self::get, js_string!("get"), 1)
+            .method(Self::has, js_string!("has"), 1)
+            .method(Self::keys, js_string!("keys"), 0)
+            .method(Self::set, js_string!("set"), 2)
+            .method(Self::values, js_string!("values"), 0)
             .accessor(
-                utf16!("size"),
+                js_string!("size"),
                 Some(get_size),
                 None,
                 Attribute::CONFIGURABLE,
@@ -98,7 +99,7 @@ impl IntrinsicObject for Map {
 }
 
 impl BuiltInObject for Map {
-    const NAME: &'static str = "Map";
+    const NAME: JsString = StaticJsStrings::MAP;
 }
 
 impl BuiltInConstructor for Map {

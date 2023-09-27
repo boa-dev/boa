@@ -137,7 +137,7 @@ pub(crate) trait BuiltInObject: IntrinsicObject {
     /// E.g. If you want access the properties of a `Complex` built-in with the name `Cplx` you must
     /// assign `"Cplx"` to this constant, making any property inside it accessible from ECMAScript
     /// as `Cplx.prop`
-    const NAME: &'static str;
+    const NAME: JsString;
 
     /// Property attribute flags of the built-in. Check [`Attribute`] for more information.
     const ATTRIBUTE: Attribute = Attribute::WRITABLE
@@ -649,8 +649,8 @@ impl BuiltInConstructorWithPrototype<'_> {
     /// Specify the name of the constructor function.
     ///
     /// Default is `""`
-    fn name<N: Into<JsString>>(mut self, name: N) -> Self {
-        self.name = name.into();
+    fn name(mut self, name: JsString) -> Self {
+        self.name = name;
         self
     }
 
@@ -826,8 +826,8 @@ impl BuiltInConstructorWithPrototype<'_> {
         let length = self.length;
         let name = self.name.clone();
         let prototype = self.prototype.clone();
-        self = self.static_property("length", length, Attribute::CONFIGURABLE);
-        self = self.static_property("name", name, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("length"), length, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
         self = self.static_property(PROTOTYPE, prototype, Attribute::empty());
 
         let attributes = self.attributes;
@@ -877,8 +877,8 @@ impl BuiltInConstructorWithPrototype<'_> {
 
         let length = self.length;
         let name = self.name.clone();
-        self = self.static_property("length", length, Attribute::CONFIGURABLE);
-        self = self.static_property("name", name, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("length"), length, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
 
         let mut object = self.object.borrow_mut();
         *object.kind_mut() = ObjectKind::Function(function);
@@ -916,8 +916,8 @@ impl BuiltInCallable<'_> {
     /// Specify the name of the constructor function.
     ///
     /// Default is `""`
-    fn name<N: Into<JsString>>(mut self, name: N) -> Self {
-        self.name = name.into();
+    fn name(mut self, name: JsString) -> Self {
+        self.name = name;
         self
     }
 
@@ -1074,8 +1074,8 @@ impl<FnTyp> BuiltInBuilder<'_, Callable<FnTyp>> {
     /// Specify the name of the constructor function.
     ///
     /// Default is `""`
-    fn name<N: Into<JsString>>(mut self, name: N) -> Self {
-        self.kind.name = name.into();
+    fn name(mut self, name: JsString) -> Self {
+        self.kind.name = name;
         self
     }
 }

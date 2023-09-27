@@ -14,11 +14,12 @@ use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsFunction, JsObject, ObjectData},
     realm::Realm,
-    string::utf16,
-    Context, JsArgs, JsResult, JsValue,
+    string::{common::StaticJsStrings, utf16},
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
 use boa_profiler::Profiler;
@@ -33,10 +34,10 @@ pub struct Proxy {
 
 impl IntrinsicObject for Proxy {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::revocable, "revocable", 2)
+            .static_method(Self::revocable, js_string!("revocable"), 2)
             .build_without_prototype();
     }
 
@@ -46,7 +47,7 @@ impl IntrinsicObject for Proxy {
 }
 
 impl BuiltInObject for Proxy {
-    const NAME: &'static str = "Proxy";
+    const NAME: JsString = StaticJsStrings::PROXY;
 }
 
 impl BuiltInConstructor for Proxy {

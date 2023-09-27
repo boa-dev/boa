@@ -5,8 +5,8 @@ use crate::{
     context::intrinsics::Intrinsics,
     object::JsObject,
     realm::Realm,
-    string::Utf16Trim,
-    Context, JsArgs, JsResult, JsValue,
+    string::{common::StaticJsStrings, Utf16Trim},
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 
 use num_traits::Num;
@@ -50,7 +50,7 @@ impl IntrinsicObject for IsFinite {
 }
 
 impl BuiltInObject for IsFinite {
-    const NAME: &'static str = "isFinite";
+    const NAME: JsString = StaticJsStrings::IS_FINITE;
 }
 
 /// Builtin javascript 'isNaN(number)' function.
@@ -96,7 +96,7 @@ impl IntrinsicObject for IsNaN {
 }
 
 impl BuiltInObject for IsNaN {
-    const NAME: &'static str = "isNaN";
+    const NAME: JsString = StaticJsStrings::IS_NAN;
 }
 
 /// Builtin javascript 'parseInt(str, radix)' function.
@@ -237,7 +237,7 @@ impl IntrinsicObject for ParseInt {
 }
 
 impl BuiltInObject for ParseInt {
-    const NAME: &'static str = "parseInt";
+    const NAME: JsString = StaticJsStrings::PARSE_INT;
 }
 
 /// Builtin javascript 'parseFloat(str)' function.
@@ -310,5 +310,5 @@ impl IntrinsicObject for ParseFloat {
 }
 
 impl BuiltInObject for ParseFloat {
-    const NAME: &'static str = "parseFloat";
+    const NAME: JsString = StaticJsStrings::PARSE_FLOAT;
 }
