@@ -11,7 +11,7 @@ use crate::{
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
-    Context, JsResult,
+    Context, JsNativeError, JsResult,
 };
 use boa_profiler::Profiler;
 
@@ -225,11 +225,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Object::__call__", "object");
-        self.vtable()
-            .__call__
-            .expect("called `[[Call]]` for object without a `[[Call]]` internal method")(
-            self, this, args, context,
-        )
+        (self.vtable().__call__)(self, this, args, context)
     }
 
     /// Internal method `[[Construct]]`
@@ -248,11 +244,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Object::__construct__", "object");
-        self.vtable()
-            .__construct__
-            .expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
-            self, args, new_target, context,
-        )
+        (self.vtable().__construct__)(self, args, new_target, context)
     }
 }
 
@@ -279,8 +271,8 @@ pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObj
     __set__: ordinary_set,
     __delete__: ordinary_delete,
     __own_property_keys__: ordinary_own_property_keys,
-    __call__: None,
-    __construct__: None,
+    __call__: non_existant_call,
+    __construct__: non_existant_construct,
 };
 
 /// The internal representation of the internal methods of a `JsObject`.
@@ -307,10 +299,9 @@ pub(crate) struct InternalObjectMethods {
         fn(&JsObject, PropertyKey, JsValue, JsValue, &mut Context<'_>) -> JsResult<bool>,
     pub(crate) __delete__: fn(&JsObject, &PropertyKey, &mut Context<'_>) -> JsResult<bool>,
     pub(crate) __own_property_keys__: fn(&JsObject, &mut Context<'_>) -> JsResult<Vec<PropertyKey>>,
-    pub(crate) __call__:
-        Option<fn(&JsObject, &JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue>>,
+    pub(crate) __call__: fn(&JsObject, &JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue>,
     pub(crate) __construct__:
-        Option<fn(&JsObject, &[JsValue], &JsObject, &mut Context<'_>) -> JsResult<JsObject>>,
+        fn(&JsObject, &[JsValue], &JsObject, &mut Context<'_>) -> JsResult<JsObject>,
 }
 
 /// Abstract operation `OrdinaryGetPrototypeOf`.
@@ -918,4 +909,28 @@ where
     };
     // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
     Ok(default(realm.intrinsics().constructors()).prototype())
+}
+
+pub(crate) fn non_existant_call(
+    _obj: &JsObject,
+    _this: &JsValue,
+    _args: &[JsValue],
+    context: &mut Context<'_>,
+) -> JsResult<JsValue> {
+    Err(JsNativeError::typ()
+        .with_message("not a callable function")
+        .with_realm(context.realm().clone())
+        .into())
+}
+
+pub(crate) fn non_existant_construct(
+    _obj: &JsObject,
+    _args: &[JsValue],
+    _new_target: &JsObject,
+    context: &mut Context<'_>,
+) -> JsResult<JsObject> {
+    Err(JsNativeError::typ()
+        .with_message("object is not constructable")
+        .with_realm(context.realm().clone())
+        .into())
 }

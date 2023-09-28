@@ -543,15 +543,10 @@ impl ApplyToObject for OrdinaryFunction {
 
 impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
     fn apply_to(self, object: &mut BuiltInObjectInitializer) {
-        let function = ObjectData::function(
-            function::Function::new(
-                function::FunctionKind::Native {
-                    function: NativeFunction::from_fn_ptr(self.function),
-                    constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
-                },
-                self.realm,
-            ),
+        let function = ObjectData::native_function(
+            NativeFunction::from_fn_ptr(self.function),
             S::IS_CONSTRUCTOR,
+            self.realm,
         );
         object.set_data(function);
         object.insert(
@@ -815,13 +810,11 @@ impl BuiltInConstructorWithPrototype<'_> {
     }
 
     fn build(mut self) {
-        let function = function::Function::new(
-            function::FunctionKind::Native {
-                function: NativeFunction::from_fn_ptr(self.function),
-                constructor: (true).then_some(function::ConstructorKind::Base),
-            },
-            self.realm.clone(),
-        );
+        let function = ObjectKind::NativeFunction {
+            function: NativeFunction::from_fn_ptr(self.function),
+            constructor: Some(function::ConstructorKind::Base),
+            realm: self.realm.clone(),
+        };
 
         let length = self.length;
         let name = self.name.clone();
@@ -852,7 +845,7 @@ impl BuiltInConstructorWithPrototype<'_> {
         }
 
         let mut object = self.object.borrow_mut();
-        *object.kind_mut() = ObjectKind::Function(function);
+        *object.kind_mut() = function;
         object
             .properties_mut()
             .shape
@@ -867,13 +860,11 @@ impl BuiltInConstructorWithPrototype<'_> {
     }
 
     fn build_without_prototype(mut self) {
-        let function = function::Function::new(
-            function::FunctionKind::Native {
-                function: NativeFunction::from_fn_ptr(self.function),
-                constructor: (true).then_some(function::ConstructorKind::Base),
-            },
-            self.realm.clone(),
-        );
+        let function = ObjectKind::NativeFunction {
+            function: NativeFunction::from_fn_ptr(self.function),
+            constructor: Some(function::ConstructorKind::Base),
+            realm: self.realm.clone(),
+        };
 
         let length = self.length;
         let name = self.name.clone();
@@ -881,7 +872,7 @@ impl BuiltInConstructorWithPrototype<'_> {
         self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
 
         let mut object = self.object.borrow_mut();
-        *object.kind_mut() = ObjectKind::Function(function);
+        *object.kind_mut() = function;
         object
             .properties_mut()
             .shape
@@ -922,15 +913,12 @@ impl BuiltInCallable<'_> {
     }
 
     fn build(self) -> JsFunction {
-        let function = function::FunctionKind::Native {
-            function: NativeFunction::from_fn_ptr(self.function),
-            constructor: None,
-        };
-
-        let function = function::Function::new(function, self.realm.clone());
-
         let object = self.realm.intrinsics().templates().function().create(
-            ObjectData::function(function, false),
+            ObjectData::native_function(
+                NativeFunction::from_fn_ptr(self.function),
+                false,
+                self.realm.clone(),
+            ),
             vec![JsValue::new(self.length), JsValue::new(self.name)],
         );
 

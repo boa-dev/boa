@@ -3,7 +3,10 @@
 //! The `JsObject` is a garbage collected Object.
 
 use super::{
-    internal_methods::{InternalObjectMethods, ARRAY_EXOTIC_INTERNAL_METHODS},
+    internal_methods::{
+        non_existant_call, non_existant_construct, InternalObjectMethods,
+        ARRAY_EXOTIC_INTERNAL_METHODS,
+    },
     shape::RootShape,
     JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
@@ -488,8 +491,20 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn is_function(&self) -> bool {
-        self.borrow().is_function()
+    pub fn is_ordinary_function(&self) -> bool {
+        self.borrow().is_ordinary_function()
+    }
+
+    /// Checks if it's a native `Function` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn is_native_function(&self) -> bool {
+        self.borrow().is_native_function()
     }
 
     /// Checks if it's a `Generator` object.
@@ -956,9 +971,9 @@ Cannot both specify accessors and a value or writable attribute",
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
     #[must_use]
-    #[track_caller]
+    #[allow(clippy::fn_address_comparisons)]
     pub fn is_callable(&self) -> bool {
-        self.inner.vtable.__call__.is_some()
+        self.inner.vtable.__call__ != non_existant_call
     }
 
     /// It determines if Object is a function object with a `[[Construct]]` internal method.
@@ -969,9 +984,9 @@ Cannot both specify accessors and a value or writable attribute",
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     #[inline]
     #[must_use]
-    #[track_caller]
+    #[allow(clippy::fn_address_comparisons)]
     pub fn is_constructor(&self) -> bool {
-        self.inner.vtable.__construct__.is_some()
+        self.inner.vtable.__construct__ != non_existant_construct
     }
 
     /// Returns true if the `JsObject` is the global for a Realm
@@ -1146,7 +1161,7 @@ impl Debug for JsObject {
             let ptr: *const _ = self.as_ref();
             let obj = self.borrow();
             let kind = obj.kind();
-            if obj.is_function() {
+            if obj.is_ordinary_function() {
                 let name_prop = obj
                     .properties()
                     .get(&PropertyKey::String(JsString::from("name")));

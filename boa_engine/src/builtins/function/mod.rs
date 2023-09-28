@@ -18,8 +18,7 @@ use crate::{
     environments::{EnvironmentStack, PrivateEnvironment},
     error::JsNativeError,
     js_string,
-    native_function::NativeFunction,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     object::{JsFunction, PrivateElement, PrivateName},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -146,107 +145,31 @@ unsafe impl Trace for ClassFieldDefinition {
 
 #[derive(Finalize)]
 pub(crate) enum FunctionKind {
-    /// A rust function.
-    Native {
-        /// The rust function.
-        function: NativeFunction,
-
-        /// The kind of the function constructor if it is a constructor.
-        constructor: Option<ConstructorKind>,
-    },
     /// A bytecode function.
     Ordinary {
-        /// The code block containing the compiled function.
-        code: Gc<CodeBlock>,
-
-        /// The `[[Environment]]` internal slot.
-        environments: EnvironmentStack,
-
         /// The `[[ConstructorKind]]` internal slot.
         constructor_kind: ConstructorKind,
-
-        /// The `[[HomeObject]]` internal slot.
-        home_object: Option<JsObject>,
 
         /// The `[[Fields]]` internal slot.
         fields: ThinVec<ClassFieldDefinition>,
 
         /// The `[[PrivateMethods]]` internal slot.
         private_methods: ThinVec<(PrivateName, PrivateElement)>,
-
-        /// The class object that this function is associated with.
-        class_object: Option<JsObject>,
-
-        /// The `[[ScriptOrModule]]` internal slot.
-        script_or_module: Option<ActiveRunnable>,
     },
 
     /// A bytecode async function.
-    Async {
-        /// The code block containing the compiled function.
-        code: Gc<CodeBlock>,
-
-        /// The `[[Environment]]` internal slot.
-        environments: EnvironmentStack,
-
-        /// The `[[HomeObject]]` internal slot.
-        home_object: Option<JsObject>,
-
-        /// The class object that this function is associated with.
-        class_object: Option<JsObject>,
-
-        /// The `[[ScriptOrModule]]` internal slot.
-        script_or_module: Option<ActiveRunnable>,
-    },
+    Async,
 
     /// A bytecode generator function.
-    Generator {
-        /// The code block containing the compiled function.
-        code: Gc<CodeBlock>,
-
-        /// The `[[Environment]]` internal slot.
-        environments: EnvironmentStack,
-
-        /// The `[[HomeObject]]` internal slot.
-        home_object: Option<JsObject>,
-
-        /// The class object that this function is associated with.
-        class_object: Option<JsObject>,
-
-        /// The `[[ScriptOrModule]]` internal slot.
-        script_or_module: Option<ActiveRunnable>,
-    },
+    Generator,
 
     /// A bytecode async generator function.
-    AsyncGenerator {
-        /// The code block containing the compiled function.
-        code: Gc<CodeBlock>,
-
-        /// The `[[Environment]]` internal slot.
-        environments: EnvironmentStack,
-
-        /// The `[[HomeObject]]` internal slot.
-        home_object: Option<JsObject>,
-
-        /// The class object that this function is associated with.
-        class_object: Option<JsObject>,
-
-        /// The `[[ScriptOrModule]]` internal slot.
-        script_or_module: Option<ActiveRunnable>,
-    },
+    AsyncGenerator,
 }
 
 impl fmt::Debug for FunctionKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Native {
-                function,
-                constructor,
-            } => f
-                .debug_struct("FunctionKind::Native")
-                .field("function", &function)
-                .field("constructor", &constructor)
-                .finish(),
             Self::Ordinary { .. } => f
                 .debug_struct("FunctionKind::Ordinary")
                 .finish_non_exhaustive(),
@@ -266,77 +189,65 @@ impl fmt::Debug for FunctionKind {
 unsafe impl Trace for FunctionKind {
     custom_trace! {this, {
         match this {
-            Self::Native { function, .. } => {mark(function)}
             Self::Ordinary {
-                code,
-                environments,
-                home_object,
                 fields,
                 private_methods,
-                class_object,
-                script_or_module,
                 ..
             } => {
-                mark(code);
-                mark(environments);
-                mark(home_object);
                 for elem in fields {
                     mark(elem);
                 }
                 for (_, elem) in private_methods {
                     mark(elem);
                 }
-                mark(class_object);
-                mark(script_or_module);
             }
-            Self::Async { code, environments, home_object, class_object, script_or_module }
-            | Self::Generator { code, environments, home_object, class_object, script_or_module}
-            | Self::AsyncGenerator { code, environments, home_object, class_object, script_or_module} => {
-                mark(code);
-                mark(environments);
-                mark(home_object);
-                mark(class_object);
-                mark(script_or_module);
-            }
+            Self::Async
+            | Self::Generator
+            | Self::AsyncGenerator => {}
         }
     }}
 }
 
-/// Boa representation of a Function Object.
+/// Boa representation of a JavaScript Function Object.
 ///
 /// `FunctionBody` is specific to this interpreter, it will either be Rust code or JavaScript code
 /// (AST Node).
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
 #[derive(Debug, Trace, Finalize)]
-pub struct Function {
-    kind: FunctionKind,
-    realm: Realm,
+pub struct OrdinaryFunction {
+    /// The code block containing the compiled function.
+    pub(crate) code: Gc<CodeBlock>,
+
+    /// The `[[Environment]]` internal slot.
+    pub(crate) environments: EnvironmentStack,
+
+    /// The `[[HomeObject]]` internal slot.
+    pub(crate) home_object: Option<JsObject>,
+
+    /// The class object that this function is associated with.
+    pub(crate) class_object: Option<JsObject>,
+
+    /// The `[[ScriptOrModule]]` internal slot.
+    pub(crate) script_or_module: Option<ActiveRunnable>,
+
+    /// The [`Realm`] the function is defined in.
+    pub(crate) realm: Realm,
+
+    /// The kind of ordinary function.
+    pub(crate) kind: FunctionKind,
 }
 
-impl Function {
-    /// Returns the codeblock of the function, or `None` if the function is a [`NativeFunction`].
+impl OrdinaryFunction {
+    /// Returns the codeblock of the function.
     #[must_use]
-    pub fn codeblock(&self) -> Option<&CodeBlock> {
-        match &self.kind {
-            FunctionKind::Native { .. } => None,
-            FunctionKind::Ordinary { code, .. }
-            | FunctionKind::Async { code, .. }
-            | FunctionKind::Generator { code, .. }
-            | FunctionKind::AsyncGenerator { code, .. } => Some(code),
-        }
-    }
-
-    /// Creates a new `Function`.
-    pub(crate) fn new(kind: FunctionKind, realm: Realm) -> Self {
-        Self { kind, realm }
+    pub fn codeblock(&self) -> &CodeBlock {
+        &self.code
     }
 
     /// Push a private environment to the function.
     pub(crate) fn push_private_environment(&mut self, environment: Gc<PrivateEnvironment>) {
-        if let FunctionKind::Ordinary { environments, .. } = &mut self.kind {
-            environments.push_private(environment);
-        }
+        self.environments.push_private(environment);
     }
 
     /// Returns true if the function object is a derived constructor.
@@ -353,33 +264,17 @@ impl Function {
 
     /// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
     pub(crate) fn in_class_field_initializer(&self) -> bool {
-        if let FunctionKind::Ordinary { code, .. } = &self.kind {
-            code.in_class_field_initializer()
-        } else {
-            false
-        }
+        self.code.in_class_field_initializer()
     }
 
     /// Returns a reference to the function `[[HomeObject]]` slot if present.
     pub(crate) const fn get_home_object(&self) -> Option<&JsObject> {
-        match &self.kind {
-            FunctionKind::Ordinary { home_object, .. }
-            | FunctionKind::Async { home_object, .. }
-            | FunctionKind::Generator { home_object, .. }
-            | FunctionKind::AsyncGenerator { home_object, .. } => home_object.as_ref(),
-            FunctionKind::Native { .. } => None,
-        }
+        self.home_object.as_ref()
     }
 
     ///  Sets the `[[HomeObject]]` slot if present.
     pub(crate) fn set_home_object(&mut self, object: JsObject) {
-        match &mut self.kind {
-            FunctionKind::Ordinary { home_object, .. }
-            | FunctionKind::Async { home_object, .. }
-            | FunctionKind::Generator { home_object, .. }
-            | FunctionKind::AsyncGenerator { home_object, .. } => *home_object = Some(object),
-            FunctionKind::Native { .. } => {}
-        }
+        self.home_object = Some(object);
     }
 
     /// Returns the values of the `[[Fields]]` internal slot.
@@ -429,13 +324,7 @@ impl Function {
 
     ///  Sets the class object.
     pub(crate) fn set_class_object(&mut self, object: JsObject) {
-        match &mut self.kind {
-            FunctionKind::Ordinary { class_object, .. }
-            | FunctionKind::Async { class_object, .. }
-            | FunctionKind::Generator { class_object, .. }
-            | FunctionKind::AsyncGenerator { class_object, .. } => *class_object = Some(object),
-            FunctionKind::Native { .. } => {}
-        }
+        self.class_object = Some(object);
     }
 
     /// Gets the `Realm` from where this function originates.
@@ -961,44 +850,64 @@ impl BuiltInFunctionObject {
 
     #[allow(clippy::wrong_self_convention)]
     fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
-        let object = this.as_object().map(JsObject::borrow);
-        let function = object
-            .as_deref()
-            .and_then(Object::as_function)
-            .ok_or_else(|| JsNativeError::typ().with_message("Not a function"))?;
+        // 1. Let func be the this value.
+        let func = this;
 
-        let name = {
-            // Is there a case here where if there is no name field on a value
-            // name should default to None? Do all functions have names set?
-            let value = this
-                .as_object()
-                .expect("checked that `this` was an object above")
-                .get(utf16!("name"), &mut *context)?;
-            if value.is_null_or_undefined() {
-                None
-            } else {
-                Some(value.to_string(context)?)
-            }
+        // 2. If func is an Object, func has a [[SourceText]] internal slot, func.[[SourceText]] is a sequence of Unicode code points,and HostHasSourceTextAvailable(func) is true, then
+        //     a. Return CodePointsToString(func.[[SourceText]]).
+
+        // 3. If func is a built-in function object, return an implementation-defined String source code representation of func.
+        //    The representation must have the syntax of a NativeFunction. Additionally, if func has an [[InitialName]] internal slot and
+        //    func.[[InitialName]] is a String, the portion of the returned String that would be matched by
+        //    NativeFunctionAccessor_opt PropertyName must be the value of func.[[InitialName]].
+
+        // 4. If func is an Object and IsCallable(func) is true, return an implementation-defined String source code representation of func.
+        //    The representation must have the syntax of a NativeFunction.
+        // 5. Throw a TypeError exception.
+        let Some(object) = func.as_object() else {
+            return Err(JsNativeError::typ().with_message("not a function").into());
         };
 
-        let name = name
-            .filter(|n| !n.is_empty())
-            .unwrap_or_else(|| "anonymous".into());
+        if object.borrow().is_native_function() {
+            let name = {
+                // Is there a case here where if there is no name field on a value
+                // name should default to None? Do all functions have names set?
+                let value = this
+                    .as_object()
+                    .expect("checked that `this` was an object above")
+                    .get(utf16!("name"), &mut *context)?;
+                if value.is_null_or_undefined() {
+                    js_string!()
+                } else {
+                    value.to_string(context)?
+                }
+            };
+            return Ok(
+                js_string!(utf16!("function "), &name, utf16!("() { [native code] }")).into(),
+            );
+        }
 
-        match function.kind {
-            FunctionKind::Native { .. } | FunctionKind::Ordinary { .. } => {
-                Ok(js_string!(utf16!("[Function: "), &name, utf16!("]")).into())
+        let object = object.borrow();
+        let function = object
+            .as_function()
+            .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
+
+        let code = function.codeblock();
+
+        let prefix = match function.kind {
+            FunctionKind::Ordinary { .. } => {
+                utf16!("function ")
             }
             FunctionKind::Async { .. } => {
-                Ok(js_string!(utf16!("[AsyncFunction: "), &name, utf16!("]")).into())
+                utf16!("async function ")
             }
             FunctionKind::Generator { .. } => {
-                Ok(js_string!(utf16!("[GeneratorFunction: "), &name, utf16!("]")).into())
+                utf16!("function* ")
             }
-            FunctionKind::AsyncGenerator { .. } => {
-                Ok(js_string!(utf16!("[AsyncGeneratorFunction: "), &name, utf16!("]")).into())
-            }
-        }
+            FunctionKind::AsyncGenerator { .. } => utf16!("async function* "),
+        };
+
+        Ok(js_string!(prefix, code.name(), utf16!("() { [native code] }")).into())
     }
 
     /// `Function.prototype [ @@hasInstance ] ( V )`

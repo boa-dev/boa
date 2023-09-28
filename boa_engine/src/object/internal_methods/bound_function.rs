@@ -10,14 +10,14 @@ use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects
 pub(crate) static BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
     InternalObjectMethods {
-        __call__: Some(bound_function_exotic_call),
+        __call__: bound_function_exotic_call,
         ..ORDINARY_INTERNAL_METHODS
     };
 
 pub(crate) static BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
     InternalObjectMethods {
-        __call__: Some(bound_function_exotic_call),
-        __construct__: Some(bound_function_exotic_construct),
+        __call__: bound_function_exotic_call,
+        __construct__: bound_function_exotic_construct,
         ..ORDINARY_INTERNAL_METHODS
     };
 

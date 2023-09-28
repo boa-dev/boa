@@ -2,13 +2,15 @@ use crate::{
     builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    object::{JsFunction, JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
+    object::{JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::utf16,
     value::Type,
     Context, JsResult, JsSymbol, JsValue,
 };
+
+use super::ObjectKind;
 
 /// Object integrity level.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -315,14 +317,14 @@ impl JsObject {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        // 1. If argumentsList is not present, set argumentsList to a new empty List.
-        // 2. If IsCallable(F) is false, throw a TypeError exception.
-        let function = JsFunction::from_object(self.clone()).ok_or_else(|| {
-            JsNativeError::typ().with_message("only callable objects / functions can be called")
-        })?;
+        // SKIP: 1. If argumentsList is not present, set argumentsList to a new empty List.
+        // SKIP: 2. If IsCallable(F) is false, throw a TypeError exception.
+
+        // NOTE(HalidOdat): For object's that are not callable we implement a special __call__ internal method
+        //                  that throws on call.
 
         // 3. Return ? F.[[Call]](V, argumentsList).
-        function.__call__(this, args, context)
+        self.__call__(this, args, context)
     }
 
     /// `Construct ( F [ , argumentsList [ , newTarget ] ] )`
@@ -676,6 +678,10 @@ impl JsObject {
         let constructor = self.borrow();
         if let Some(fun) = constructor.as_function() {
             return Ok(fun.realm().clone());
+        }
+
+        if let ObjectKind::NativeFunction { realm, .. } = constructor.kind() {
+            return Ok(realm.clone());
         }
 
         if let Some(bound) = constructor.as_bound_function() {
@@ -1153,14 +1159,16 @@ impl JsValue {
         args: &[Self],
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
-        self.as_callable()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(format!(
+        let Some(object) = self.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message(format!(
                     "value with type `{}` is not callable",
                     self.type_of()
                 ))
-            })?
-            .__call__(this, args, context)
+                .into());
+        };
+
+        object.__call__(this, args, context)
     }
 
     /// Abstract operation `( V, P [ , argumentsList ] )`
