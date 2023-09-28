@@ -88,12 +88,21 @@ use std::{
     println,
 };
 
-#[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
+#[cfg(all(
+    target_arch = "x86_64",
+    target_os = "linux",
+    target_env = "gnu",
+    not(feature = "dhat")
+))]
 #[cfg_attr(
     all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
     global_allocator
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
+#[cfg(feature = "dhat")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
 
 /// CLI configuration for Boa.
 static CLI_HISTORY: &str = ".boa_history";
@@ -367,6 +376,9 @@ fn evaluate_files(
 }
 
 fn main() -> Result<(), io::Error> {
+    #[cfg(feature = "dhat")]
+    let _profiler = dhat::Profiler::new_heap();
+
     let args = Opt::parse();
 
     let queue: &dyn JobQueue = &Jobs::default();

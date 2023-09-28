@@ -193,9 +193,6 @@ thread_local! {
 }
 
 /// Array of raw static strings that aren't reference counted.
-///
-/// The macro `static_strings` automatically sorts the array of strings, making it faster
-/// for searches by using `binary_search`.
 const RAW_STATICS: &[&[u16]] = &[
     utf16!(""),
     // Well known symbols

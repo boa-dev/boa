@@ -191,7 +191,7 @@ impl Default for StandardConstructors {
             )),
             string: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 None,
-                ObjectData::string("".into()),
+                ObjectData::string(js_string!()),
             )),
             regexp: StandardConstructor::default(),
             symbol: StandardConstructor::default(),
