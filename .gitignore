@@ -42,3 +42,4 @@ test-results
 
 # dhat
 dhat-*.json
+perf.data*
