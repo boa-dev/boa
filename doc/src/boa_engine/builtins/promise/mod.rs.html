@@ -2299,6 +2299,66 @@
 <a href="#2299" id="2299">2299</a>
 <a href="#2300" id="2300">2300</a>
 <a href="#2301" id="2301">2301</a>
+<a href="#2302" id="2302">2302</a>
+<a href="#2303" id="2303">2303</a>
+<a href="#2304" id="2304">2304</a>
+<a href="#2305" id="2305">2305</a>
+<a href="#2306" id="2306">2306</a>
+<a href="#2307" id="2307">2307</a>
+<a href="#2308" id="2308">2308</a>
+<a href="#2309" id="2309">2309</a>
+<a href="#2310" id="2310">2310</a>
+<a href="#2311" id="2311">2311</a>
+<a href="#2312" id="2312">2312</a>
+<a href="#2313" id="2313">2313</a>
+<a href="#2314" id="2314">2314</a>
+<a href="#2315" id="2315">2315</a>
+<a href="#2316" id="2316">2316</a>
+<a href="#2317" id="2317">2317</a>
+<a href="#2318" id="2318">2318</a>
+<a href="#2319" id="2319">2319</a>
+<a href="#2320" id="2320">2320</a>
+<a href="#2321" id="2321">2321</a>
+<a href="#2322" id="2322">2322</a>
+<a href="#2323" id="2323">2323</a>
+<a href="#2324" id="2324">2324</a>
+<a href="#2325" id="2325">2325</a>
+<a href="#2326" id="2326">2326</a>
+<a href="#2327" id="2327">2327</a>
+<a href="#2328" id="2328">2328</a>
+<a href="#2329" id="2329">2329</a>
+<a href="#2330" id="2330">2330</a>
+<a href="#2331" id="2331">2331</a>
+<a href="#2332" id="2332">2332</a>
+<a href="#2333" id="2333">2333</a>
+<a href="#2334" id="2334">2334</a>
+<a href="#2335" id="2335">2335</a>
+<a href="#2336" id="2336">2336</a>
+<a href="#2337" id="2337">2337</a>
+<a href="#2338" id="2338">2338</a>
+<a href="#2339" id="2339">2339</a>
+<a href="#2340" id="2340">2340</a>
+<a href="#2341" id="2341">2341</a>
+<a href="#2342" id="2342">2342</a>
+<a href="#2343" id="2343">2343</a>
+<a href="#2344" id="2344">2344</a>
+<a href="#2345" id="2345">2345</a>
+<a href="#2346" id="2346">2346</a>
+<a href="#2347" id="2347">2347</a>
+<a href="#2348" id="2348">2348</a>
+<a href="#2349" id="2349">2349</a>
+<a href="#2350" id="2350">2350</a>
+<a href="#2351" id="2351">2351</a>
+<a href="#2352" id="2352">2352</a>
+<a href="#2353" id="2353">2353</a>
+<a href="#2354" id="2354">2354</a>
+<a href="#2355" id="2355">2355</a>
+<a href="#2356" id="2356">2356</a>
+<a href="#2357" id="2357">2357</a>
+<a href="#2358" id="2358">2358</a>
+<a href="#2359" id="2359">2359</a>
+<a href="#2360" id="2360">2360</a>
+<a href="#2361" id="2361">2361</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -2410,12 +2470,20 @@
 /// the resolution value.
 ///
 /// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Finalize)]
 </span><span class="kw">pub struct </span>ResolvingFunctions {
     <span class="doccomment">/// The `resolveFunc` parameter of the executor passed to `Promise()`.
     </span><span class="kw">pub </span>resolve: JsFunction,
     <span class="doccomment">/// The `rejectFunc` parameter of the executor passed to `Promise()`.
     </span><span class="kw">pub </span>reject: JsFunction,
+}
+
+<span class="comment">// Manually implementing `Trace` to allow destructuring.
+</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ResolvingFunctions {
+    <span class="macro">custom_trace!</span>(this, {
+        mark(<span class="kw-2">&amp;</span>this.resolve);
+        mark(<span class="kw-2">&amp;</span>this.reject);
+    });
 }
 
 <span class="comment">// ==================== Private API ====================
@@ -2456,16 +2524,21 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="attr">#[derive(Debug, Clone, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PromiseCapability {
     <span class="doccomment">/// The `[[Promise]]` field.
     </span>promise: JsObject,
 
-    <span class="doccomment">/// The `[[Resolve]]` field.
-    </span>resolve: JsFunction,
+    <span class="doccomment">/// The resolving functions,
+    </span>functions: ResolvingFunctions,
+}
 
-    <span class="doccomment">/// The `[[Reject]]` field.
-    </span>reject: JsFunction,
+<span class="comment">// SAFETY: manually implementing `Trace` to allow destructuring.
+</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>PromiseCapability {
+    <span class="macro">custom_trace!</span>(this, {
+        mark(<span class="kw-2">&amp;</span>this.promise);
+        mark(<span class="kw-2">&amp;</span>this.functions);
+    });
 }
 
 <span class="doccomment">/// The internal `PromiseReaction` data type.
@@ -2598,8 +2671,7 @@
         // 10. Return promiseCapability.
         </span><span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             promise,
-            resolve,
-            reject,
+            functions: ResolvingFunctions { resolve, reject },
         })
     }
 
@@ -2610,12 +2682,12 @@
 
     <span class="doccomment">/// Returns the resolve function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsFunction {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.resolve
+        <span class="kw-2">&amp;</span><span class="self">self</span>.functions.resolve
     }
 
     <span class="doccomment">/// Returns the reject function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>reject(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsFunction {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.reject
+        <span class="kw-2">&amp;</span><span class="self">self</span>.functions.reject
     }
 }
 
@@ -2627,7 +2699,7 @@
             .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
+        <span class="kw">let </span>builder = BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(<span class="self">Self</span>::all, <span class="string">&quot;all&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::all_settled, <span class="string">&quot;allSettled&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::any, <span class="string">&quot;any&quot;</span>, <span class="number">1</span>)
@@ -2648,8 +2720,13 @@
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+        </span><span class="kw">let </span>builder =
+            builder.static_method(<span class="self">Self</span>::with_resolvers, <span class="macro">crate::js_string!</span>(<span class="string">&quot;withResolvers&quot;</span>), <span class="number">0</span>);
+
+        builder.build();
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
@@ -2746,6 +2823,42 @@
     <span class="doccomment">/// Gets the current state of the promise.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PromiseState {
         <span class="kw-2">&amp;</span><span class="self">self</span>.state
+    }
+
+    <span class="doccomment">/// [`Promise.withResolvers ( )`][spec]
+    ///
+    /// Creates a new promise that is pending, and returns that promise plus the resolve and reject
+    /// functions associated with it.
+    ///
+    /// [spec]: https://tc39.es/proposal-promise-with-resolvers/#sec-promise.withResolvers
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_resolvers(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        _args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let C be the this value.
+        </span><span class="kw">let </span>c = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;Promise.all() called on a non-object&quot;</span>)
+        })<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let promiseCapability be ? NewPromiseCapability(C).
+        </span><span class="kw">let </span>PromiseCapability {
+            promise,
+            functions: ResolvingFunctions { resolve, reject },
+        } = PromiseCapability::new(c, context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Let obj be OrdinaryObjectCreate(%Object.prototype%).
+        // 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;promise&quot;, promiseCapability.[[Promise]]).
+        // 5. Perform ! CreateDataPropertyOrThrow(obj, &quot;resolve&quot;, promiseCapability.[[Resolve]]).
+        // 6. Perform ! CreateDataPropertyOrThrow(obj, &quot;reject&quot;, promiseCapability.[[Reject]]).
+        </span><span class="kw">let </span>obj = context.intrinsics().templates().with_resolvers().create(
+            ObjectData::ordinary(),
+            <span class="macro">vec!</span>[promise.into(), resolve.into(), reject.into()],
+        );
+
+        <span class="comment">// 7. Return obj.
+        </span><span class="prelude-val">Ok</span>(obj.into())
     }
 
     <span class="doccomment">/// `Promise.all ( iterable )`
@@ -2864,7 +2977,7 @@
                     );
 
                     <span class="comment">// 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
-                    </span>result_capability.resolve.call(
+                    </span>result_capability.functions.resolve.call(
                         <span class="kw-2">&amp;</span>JsValue::undefined(),
                         <span class="kw-2">&amp;</span>[values_array.into()],
                         context,
@@ -2947,7 +3060,7 @@
                         already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
                         index,
                         values: values.clone(),
-                        capability_resolve: result_capability.resolve.clone(),
+                        capability_resolve: result_capability.functions.resolve.clone(),
                         remaining_elements_count: remaining_elements_count.clone(),
                     },
                 ),
@@ -2963,7 +3076,10 @@
             <span class="comment">// s. Perform ? Invoke(nextPromise, &quot;then&quot;, « onFulfilled, resultCapability.[[Reject]] »).
             </span>next_promise.invoke(
                 <span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>),
-                <span class="kw-2">&amp;</span>[on_fulfilled.into(), result_capability.reject.clone().into()],
+                <span class="kw-2">&amp;</span>[
+                    on_fulfilled.into(),
+                    result_capability.functions.reject.clone().into(),
+                ],
                 context,
             )<span class="question-mark">?</span>;
 
@@ -3088,7 +3204,7 @@
                     );
 
                     <span class="comment">// 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
-                    </span>result_capability.resolve.call(
+                    </span>result_capability.functions.resolve.call(
                         <span class="kw-2">&amp;</span>JsValue::undefined(),
                         <span class="kw-2">&amp;</span>[values_array.into()],
                         context,
@@ -3188,7 +3304,7 @@
                         already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
                         index,
                         values: values.clone(),
-                        capability: result_capability.resolve.clone(),
+                        capability: result_capability.functions.resolve.clone(),
                         remaining_elements: remaining_elements_count.clone(),
                     },
                 ),
@@ -3274,7 +3390,7 @@
                         already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
                         index,
                         values: values.clone(),
-                        capability: result_capability.resolve.clone(),
+                        capability: result_capability.functions.resolve.clone(),
                         remaining_elements: remaining_elements_count.clone(),
                     },
                 ),
@@ -3509,7 +3625,7 @@
                         already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
                         index,
                         errors: errors.clone(),
-                        capability_reject: result_capability.reject.clone(),
+                        capability_reject: result_capability.functions.reject.clone(),
                         remaining_elements_count: remaining_elements_count.clone(),
                     },
                 ),
@@ -3525,7 +3641,10 @@
             <span class="comment">// s. Perform ? Invoke(nextPromise, &quot;then&quot;, « resultCapability.[[Resolve]], onRejected »).
             </span>next_promise.invoke(
                 <span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>),
-                <span class="kw-2">&amp;</span>[result_capability.resolve.clone().into(), on_rejected.into()],
+                <span class="kw-2">&amp;</span>[
+                    result_capability.functions.resolve.clone().into(),
+                    on_rejected.into(),
+                ],
                 context,
             )<span class="question-mark">?</span>;
 
@@ -3645,8 +3764,8 @@
             </span>next_promise.invoke(
                 <span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>),
                 <span class="kw-2">&amp;</span>[
-                    result_capability.resolve.clone().into(),
-                    result_capability.reject.clone().into(),
+                    result_capability.functions.resolve.clone().into(),
+                    result_capability.functions.reject.clone().into(),
                 ],
                 context,
             )<span class="question-mark">?</span>;
@@ -3689,6 +3808,7 @@
 
         <span class="comment">// 3. Perform ? Call(promiseCapability.[[Reject]], undefined, « r »).
         </span>promise_capability
+            .functions
             .reject
             .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[e], context)<span class="question-mark">?</span>;
 
@@ -3754,6 +3874,7 @@
 
         <span class="comment">// 3. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
         </span>promise_capability
+            .functions
             .resolve
             .call(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[x], context)<span class="question-mark">?</span>;
 
@@ -4522,8 +4643,7 @@
                 <span class="comment">// g. Assert: promiseCapability is a PromiseCapability Record.
                 </span><span class="kw">let </span>PromiseCapability {
                     promise: <span class="kw">_</span>,
-                    resolve,
-                    reject,
+                    functions: ResolvingFunctions { resolve, reject },
                 } = <span class="kw-2">&amp;</span>promise_capability_record;
 
                 <span class="kw">match </span>handler_result {
