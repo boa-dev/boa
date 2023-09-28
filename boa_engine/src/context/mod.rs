@@ -49,6 +49,7 @@ use crate::vm::RuntimeLimits;
 ///
 /// ```rust
 /// use boa_engine::{
+///     js_string,
 ///     object::ObjectInitializer,
 ///     property::{Attribute, PropertyDescriptor},
 ///     Context, Source,
@@ -70,9 +71,9 @@ use crate::vm::RuntimeLimits;
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&mut context)
-///     .property("x", 12, Attribute::READONLY)
+///     .property(js_string!("x"), 12, Attribute::READONLY)
 ///     .build();
-/// context.register_global_property("arg", arg, Attribute::all());
+/// context.register_global_property(js_string!("arg"), arg, Attribute::all());
 ///
 /// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
 ///
@@ -197,6 +198,7 @@ impl<'host> Context<'host> {
     /// # Example
     /// ```
     /// use boa_engine::{
+    ///     js_string,
     ///     object::ObjectInitializer,
     ///     property::{Attribute, PropertyDescriptor},
     ///     Context,
@@ -205,15 +207,23 @@ impl<'host> Context<'host> {
     /// let mut context = Context::default();
     ///
     /// context
-    ///     .register_global_property("myPrimitiveProperty", 10, Attribute::all())
+    ///     .register_global_property(
+    ///         js_string!("myPrimitiveProperty"),
+    ///         10,
+    ///         Attribute::all(),
+    ///     )
     ///     .expect("property shouldn't exist");
     ///
     /// let object = ObjectInitializer::new(&mut context)
-    ///     .property("x", 0, Attribute::all())
-    ///     .property("y", 1, Attribute::all())
+    ///     .property(js_string!("x"), 0, Attribute::all())
+    ///     .property(js_string!("y"), 1, Attribute::all())
     ///     .build();
     /// context
-    ///     .register_global_property("myObjectProperty", object, Attribute::all())
+    ///     .register_global_property(
+    ///         js_string!("myObjectProperty"),
+    ///         object,
+    ///         Attribute::all(),
+    ///     )
     ///     .expect("property shouldn't exist");
     /// ```
     pub fn register_global_property<K, V>(

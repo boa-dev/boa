@@ -29,11 +29,11 @@ use thiserror::Error;
 /// # Examples
 ///
 /// ```rust
-/// # use boa_engine::{JsError, JsNativeError, JsNativeErrorKind, JsValue};
-/// let cause = JsError::from_opaque("error!".into());
+/// # use boa_engine::{JsError, JsNativeError, JsNativeErrorKind, JsValue, js_string};
+/// let cause = JsError::from_opaque(js_string!("error!").into());
 ///
 /// assert!(cause.as_opaque().is_some());
-/// assert_eq!(cause.as_opaque().unwrap(), &JsValue::from("error!"));
+/// assert_eq!(cause.as_opaque().unwrap(), &JsValue::from(js_string!("error!")));
 ///
 /// let native_error: JsError = JsNativeError::typ()
 ///     .with_message("invalid type!")
@@ -772,14 +772,17 @@ impl JsNativeError {
     /// # Examples
     ///
     /// ```rust
-    /// # use boa_engine::{Context, JsError, JsNativeError};
+    /// # use boa_engine::{Context, JsError, JsNativeError, js_string};
     /// let context = &mut Context::default();
     ///
     /// let error = JsNativeError::error().with_message("error!");
     /// let error_obj = error.to_opaque(context);
     ///
     /// assert!(error_obj.borrow().is_error());
-    /// assert_eq!(error_obj.get("message", context).unwrap(), "error!".into())
+    /// assert_eq!(
+    ///     error_obj.get(js_string!("message"), context).unwrap(),
+    ///     js_string!("error!").into()
+    /// )
     /// ```
     ///
     /// # Panics

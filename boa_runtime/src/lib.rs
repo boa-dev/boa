@@ -6,7 +6,7 @@
 //! 1. Add **boa_runtime** as a dependency to your project along with **boa_engine**.
 //!
 //! ```
-//! use boa_engine::{ Context, Source, property::Attribute };
+//! use boa_engine::{ Context, Source, property::Attribute, js_string };
 //! use boa_runtime::Console;
 //!
 //! // Create the context.
@@ -17,7 +17,7 @@
 //!
 //! // Register the console as a global property to the context.
 //! context
-//!     .register_global_property(Console::NAME, console, Attribute::all())
+//!     .register_global_property(js_string!(Console::NAME), console, Attribute::all())
 //!     .expect("the console object shouldn't exist yet");
 //!
 //! // JavaScript source for parsing.

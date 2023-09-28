@@ -18,7 +18,9 @@ use crate::{
 /// Create a `JsDate` object and set date to December 4 1995
 ///
 /// ```
-/// use boa_engine::{object::builtins::JsDate, Context, JsResult, JsValue};
+/// use boa_engine::{
+///     js_string, object::builtins::JsDate, Context, JsResult, JsValue,
+/// };
 ///
 /// fn main() -> JsResult<()> {
 ///     // JS mutable Context
@@ -30,7 +32,7 @@ use crate::{
 ///
 ///     assert_eq!(
 ///         date.to_date_string(context)?,
-///         JsValue::from("Mon Dec 04 1995")
+///         JsValue::from(js_string!("Mon Dec 04 1995"))
 ///     );
 ///
 ///     Ok(())

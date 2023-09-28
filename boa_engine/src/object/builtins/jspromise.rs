@@ -35,7 +35,11 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 /// # fn main() -> Result<(), Box<dyn Error>> {
 /// let context = &mut Context::default();
 ///
-/// context.register_global_property("finally", false, Attribute::all());
+/// context.register_global_property(
+///     js_string!("finally"),
+///     false,
+///     Attribute::all(),
+/// );
 ///
 /// let promise = JsPromise::new(
 ///     |resolvers, context| {
@@ -82,7 +86,7 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///             context.realm(),
 ///             NativeFunction::from_fn_ptr(|_, _, context| {
 ///                 context.global_object().clone().set(
-///                     "finally",
+///                     js_string!("finally"),
 ///                     JsValue::from(true),
 ///                     true,
 ///                     context,
@@ -102,7 +106,10 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 /// );
 ///
 /// assert_eq!(
-///     context.global_object().clone().get("finally", context)?,
+///     context
+///         .global_object()
+///         .clone()
+///         .get(js_string!("finally"), context)?,
 ///     JsValue::from(true)
 /// );
 ///
@@ -617,12 +624,16 @@ impl JsPromise {
     /// # use boa_engine::{
     /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
     /// #     property::Attribute,
-    /// #     Context, JsNativeError, JsValue, NativeFunction,
+    /// #     Context, JsNativeError, JsValue, NativeFunction, js_string
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// let context = &mut Context::default();
     ///
-    /// context.register_global_property("finally", false, Attribute::all());
+    /// context.register_global_property(
+    ///     js_string!("finally"),
+    ///     false,
+    ///     Attribute::all(),
+    /// );
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
@@ -642,7 +653,7 @@ impl JsPromise {
     ///         context.realm(),
     ///         NativeFunction::from_fn_ptr(|_, _, context| {
     ///             context.global_object().clone().set(
-    ///                 "finally",
+    ///                 js_string!("finally"),
     ///                 JsValue::from(true),
     ///                 true,
     ///                 context,
@@ -657,7 +668,10 @@ impl JsPromise {
     /// context.run_jobs();
     ///
     /// assert_eq!(
-    ///     context.global_object().clone().get("finally", context)?,
+    ///     context
+    ///         .global_object()
+    ///         .clone()
+    ///         .get(js_string!("finally"), context)?,
     ///     JsValue::from(true)
     /// );
     ///
@@ -788,19 +802,28 @@ impl JsPromise {
     /// let array = JsArray::from_object(array)?;
     ///
     /// let a = array.at(0, context)?.as_object().unwrap().clone();
-    /// assert_eq!(a.get("status", context)?, js_string!("fulfilled").into());
-    /// assert_eq!(a.get("value", context)?, 1.into());
+    /// assert_eq!(
+    ///     a.get(js_string!("status"), context)?,
+    ///     js_string!("fulfilled").into()
+    /// );
+    /// assert_eq!(a.get(js_string!("value"), context)?, 1.into());
     ///
     /// let b = array.at(1, context)?.as_object().unwrap().clone();
-    /// assert_eq!(b.get("status", context)?, js_string!("rejected").into());
     /// assert_eq!(
-    ///     b.get("reason", context)?.to_string(context)?,
+    ///     b.get(js_string!("status"), context)?,
+    ///     js_string!("rejected").into()
+    /// );
+    /// assert_eq!(
+    ///     b.get(js_string!("reason"), context)?.to_string(context)?,
     ///     js_string!("TypeError")
     /// );
     ///
     /// let c = array.at(2, context)?.as_object().unwrap().clone();
-    /// assert_eq!(c.get("status", context)?, js_string!("fulfilled").into());
-    /// assert_eq!(c.get("value", context)?, 3.into());
+    /// assert_eq!(
+    ///     c.get(js_string!("status"), context)?,
+    ///     js_string!("fulfilled").into()
+    /// );
+    /// assert_eq!(c.get(js_string!("value"), context)?, 3.into());
     ///
     /// # Ok(())
     /// # }
