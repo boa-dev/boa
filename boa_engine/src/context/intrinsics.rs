@@ -1216,7 +1216,7 @@ impl ObjectTemplates {
 
         #[cfg(feature = "experimental")]
         let with_resolvers = {
-            let mut with_resolvers = ObjectTemplate::new(root_shape);
+            let mut with_resolvers = ordinary_object.clone();
 
             with_resolvers
                 // 4. Perform ! CreateDataPropertyOrThrow(obj, "promise", promiseCapability.[[Promise]]).

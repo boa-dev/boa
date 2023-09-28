@@ -64,7 +64,7 @@ jobs:
       - name: Test with nextest
         run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl,experimental
       - name: Test docs
-        run: cargo test --doc --profile ci --all-features
+        run: cargo test --doc --profile ci --features annex-b,intl,experimental
 
   msrv:
     name: Minimum supported Rust version
