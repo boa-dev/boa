@@ -12,6 +12,7 @@ macro_rules! well_known_statics {
         $(
             paste!{
                 #[doc = "Gets the static `JsString` for `\"" $string "\"`."]
+                #[allow(unused)]
                 pub(crate) const $name: JsString = JsString {
                     ptr: Tagged::from_tag(
                         Self::find_index(utf16!($string)),
@@ -76,6 +77,7 @@ impl StaticJsStrings {
         RAW_STATICS.get(index).copied()
     }
 
+    // Some consts are only used on certain features, which triggers the unused lint.
     well_known_statics! {
         (EMPTY_STRING, ""),
         // Symbols
