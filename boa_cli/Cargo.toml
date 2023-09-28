@@ -27,7 +27,7 @@ phf = { workspace = true, features = ["macros"] }
 pollster.workspace = true
 
 [features]
-default = ["boa_engine/annex-b", "boa_engine/intl"]
+default = ["boa_engine/annex-b", "boa_engine/experimental", "boa_engine/intl"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 jemallocator.workspace = true

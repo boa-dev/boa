@@ -4,6 +4,7 @@ use boa_gc::{Finalize, Trace};
 
 use crate::{
     builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
+    js_string,
     object::{
         shape::{shared_shape::template::ObjectTemplate, RootShape},
         JsFunction, JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE,
@@ -1100,6 +1101,9 @@ pub(crate) struct ObjectTemplates {
     function_with_prototype_without_proto: ObjectTemplate,
 
     namespace: ObjectTemplate,
+
+    #[cfg(feature = "experimental")]
+    with_resolvers: ObjectTemplate,
 }
 
 impl ObjectTemplates {
@@ -1110,7 +1114,7 @@ impl ObjectTemplates {
         let ordinary_object =
             ObjectTemplate::with_prototype(root_shape, constructors.object().prototype());
         let mut array = ObjectTemplate::new(root_shape);
-        let length_property_key: PropertyKey = "length".into();
+        let length_property_key: PropertyKey = js_string!("length").into();
         array.property(
             length_property_key.clone(),
             Attribute::WRITABLE | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
@@ -1129,7 +1133,7 @@ impl ObjectTemplates {
         );
         string.set_prototype(constructors.string().prototype());
 
-        let name_property_key: PropertyKey = "name".into();
+        let name_property_key: PropertyKey = js_string!("name").into();
         let mut function = ObjectTemplate::new(root_shape);
         function.property(
             length_property_key.clone(),
@@ -1184,7 +1188,7 @@ impl ObjectTemplates {
         // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
         // [[Configurable]]: false }).
         unmapped_arguments.accessor(
-            "callee".into(),
+            js_string!("callee").into(),
             true,
             true,
             Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
@@ -1193,22 +1197,37 @@ impl ObjectTemplates {
         // 21. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
         // [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
         mapped_arguments.property(
-            "callee".into(),
+            js_string!("callee").into(),
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
         let mut iterator_result = ordinary_object.clone();
         iterator_result.property(
-            "value".into(),
+            js_string!("value").into(),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::ENUMERABLE,
         );
         iterator_result.property(
-            "done".into(),
+            js_string!("done").into(),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::ENUMERABLE,
         );
 
         let mut namespace = ObjectTemplate::new(root_shape);
         namespace.property(JsSymbol::to_string_tag().into(), Attribute::empty());
+
+        #[cfg(feature = "experimental")]
+        let with_resolvers = {
+            let mut with_resolvers = ordinary_object.clone();
+
+            with_resolvers
+                // 4. Perform ! CreateDataPropertyOrThrow(obj, "promise", promiseCapability.[[Promise]]).
+                .property(js_string!("promise").into(), Attribute::all())
+                // 5. Perform ! CreateDataPropertyOrThrow(obj, "resolve", promiseCapability.[[Resolve]]).
+                .property(js_string!("resolve").into(), Attribute::all())
+                // 6. Perform ! CreateDataPropertyOrThrow(obj, "reject", promiseCapability.[[Reject]]).
+                .property(js_string!("reject").into(), Attribute::all());
+
+            with_resolvers
+        };
 
         Self {
             iterator_result,
@@ -1228,6 +1247,8 @@ impl ObjectTemplates {
             function_without_proto,
             function_with_prototype_without_proto,
             namespace,
+            #[cfg(feature = "experimental")]
+            with_resolvers,
         }
     }
 
@@ -1403,5 +1424,17 @@ impl ObjectTemplates {
     /// 1. `@@toStringTag`: (`READONLY`, `NON_ENUMERABLE`, `PERMANENT`)
     pub(crate) const fn namespace(&self) -> &ObjectTemplate {
         &self.namespace
+    }
+
+    /// Cached object from the `Promise.withResolvers` method.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"promise"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"resolve"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"reject"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    #[cfg(feature = "experimental")]
+    pub(crate) const fn with_resolvers(&self) -> &ObjectTemplate {
+        &self.with_resolvers
     }
 }

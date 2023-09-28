@@ -109,12 +109,20 @@ pub enum OperationType {
 /// the resolution value.
 ///
 /// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Finalize)]
 pub struct ResolvingFunctions {
     /// The `resolveFunc` parameter of the executor passed to `Promise()`.
     pub resolve: JsFunction,
     /// The `rejectFunc` parameter of the executor passed to `Promise()`.
     pub reject: JsFunction,
+}
+
+// Manually implementing `Trace` to allow destructuring.
+unsafe impl Trace for ResolvingFunctions {
+    custom_trace!(this, {
+        mark(&this.resolve);
+        mark(&this.reject);
+    });
 }
 
 // ==================== Private API ====================
@@ -155,16 +163,21 @@ pub(crate) use if_abrupt_reject_promise;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Finalize)]
 pub(crate) struct PromiseCapability {
     /// The `[[Promise]]` field.
     promise: JsObject,
 
-    /// The `[[Resolve]]` field.
-    resolve: JsFunction,
+    /// The resolving functions,
+    functions: ResolvingFunctions,
+}
 
-    /// The `[[Reject]]` field.
-    reject: JsFunction,
+// SAFETY: manually implementing `Trace` to allow destructuring.
+unsafe impl Trace for PromiseCapability {
+    custom_trace!(this, {
+        mark(&this.promise);
+        mark(&this.functions);
+    });
 }
 
 /// The internal `PromiseReaction` data type.
@@ -297,8 +310,7 @@ impl PromiseCapability {
         // 10. Return promiseCapability.
         Ok(Self {
             promise,
-            resolve,
-            reject,
+            functions: ResolvingFunctions { resolve, reject },
         })
     }
 
@@ -309,12 +321,12 @@ impl PromiseCapability {
 
     /// Returns the resolve function.
     pub(crate) const fn resolve(&self) -> &JsFunction {
-        &self.resolve
+        &self.functions.resolve
     }
 
     /// Returns the reject function.
     pub(crate) const fn reject(&self) -> &JsFunction {
-        &self.reject
+        &self.functions.reject
     }
 }
 
@@ -326,7 +338,7 @@ impl IntrinsicObject for Promise {
             .name("get [Symbol.species]")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::all, "all", 1)
             .static_method(Self::all_settled, "allSettled", 1)
             .static_method(Self::any, "any", 1)
@@ -347,8 +359,13 @@ impl IntrinsicObject for Promise {
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        #[cfg(feature = "experimental")]
+        let builder =
+            builder.static_method(Self::with_resolvers, crate::js_string!("withResolvers"), 0);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -445,6 +462,42 @@ impl Promise {
     /// Gets the current state of the promise.
     pub(crate) const fn state(&self) -> &PromiseState {
         &self.state
+    }
+
+    /// [`Promise.withResolvers ( )`][spec]
+    ///
+    /// Creates a new promise that is pending, and returns that promise plus the resolve and reject
+    /// functions associated with it.
+    ///
+    /// [spec]: https://tc39.es/proposal-promise-with-resolvers/#sec-promise.withResolvers
+    #[cfg(feature = "experimental")]
+    pub(crate) fn with_resolvers(
+        this: &JsValue,
+        _args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let C be the this value.
+        let c = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Promise.all() called on a non-object")
+        })?;
+
+        // 2. Let promiseCapability be ? NewPromiseCapability(C).
+        let PromiseCapability {
+            promise,
+            functions: ResolvingFunctions { resolve, reject },
+        } = PromiseCapability::new(c, context)?;
+
+        // 3. Let obj be OrdinaryObjectCreate(%Object.prototype%).
+        // 4. Perform ! CreateDataPropertyOrThrow(obj, "promise", promiseCapability.[[Promise]]).
+        // 5. Perform ! CreateDataPropertyOrThrow(obj, "resolve", promiseCapability.[[Resolve]]).
+        // 6. Perform ! CreateDataPropertyOrThrow(obj, "reject", promiseCapability.[[Reject]]).
+        let obj = context.intrinsics().templates().with_resolvers().create(
+            ObjectData::ordinary(),
+            vec![promise.into(), resolve.into(), reject.into()],
+        );
+
+        // 7. Return obj.
+        Ok(obj.into())
     }
 
     /// `Promise.all ( iterable )`
@@ -563,7 +616,7 @@ impl Promise {
                     );
 
                     // 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
-                    result_capability.resolve.call(
+                    result_capability.functions.resolve.call(
                         &JsValue::undefined(),
                         &[values_array.into()],
                         context,
@@ -646,7 +699,7 @@ impl Promise {
                         already_called: Rc::new(Cell::new(false)),
                         index,
                         values: values.clone(),
-                        capability_resolve: result_capability.resolve.clone(),
+                        capability_resolve: result_capability.functions.resolve.clone(),
                         remaining_elements_count: remaining_elements_count.clone(),
                     },
                 ),
@@ -662,7 +715,10 @@ impl Promise {
             // s. Perform ? Invoke(nextPromise, "then", « onFulfilled, resultCapability.[[Reject]] »).
             next_promise.invoke(
                 utf16!("then"),
-                &[on_fulfilled.into(), result_capability.reject.clone().into()],
+                &[
+                    on_fulfilled.into(),
+                    result_capability.functions.reject.clone().into(),
+                ],
                 context,
             )?;
 
@@ -787,7 +843,7 @@ impl Promise {
                     );
 
                     // 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
-                    result_capability.resolve.call(
+                    result_capability.functions.resolve.call(
                         &JsValue::undefined(),
                         &[values_array.into()],
                         context,
@@ -887,7 +943,7 @@ impl Promise {
                         already_called: Rc::new(Cell::new(false)),
                         index,
                         values: values.clone(),
-                        capability: result_capability.resolve.clone(),
+                        capability: result_capability.functions.resolve.clone(),
                         remaining_elements: remaining_elements_count.clone(),
                     },
                 ),
@@ -973,7 +1029,7 @@ impl Promise {
                         already_called: Rc::new(Cell::new(false)),
                         index,
                         values: values.clone(),
-                        capability: result_capability.resolve.clone(),
+                        capability: result_capability.functions.resolve.clone(),
                         remaining_elements: remaining_elements_count.clone(),
                     },
                 ),
@@ -1208,7 +1264,7 @@ impl Promise {
                         already_called: Rc::new(Cell::new(false)),
                         index,
                         errors: errors.clone(),
-                        capability_reject: result_capability.reject.clone(),
+                        capability_reject: result_capability.functions.reject.clone(),
                         remaining_elements_count: remaining_elements_count.clone(),
                     },
                 ),
@@ -1224,7 +1280,10 @@ impl Promise {
             // s. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], onRejected »).
             next_promise.invoke(
                 utf16!("then"),
-                &[result_capability.resolve.clone().into(), on_rejected.into()],
+                &[
+                    result_capability.functions.resolve.clone().into(),
+                    on_rejected.into(),
+                ],
                 context,
             )?;
 
@@ -1344,8 +1403,8 @@ impl Promise {
             next_promise.invoke(
                 utf16!("then"),
                 &[
-                    result_capability.resolve.clone().into(),
-                    result_capability.reject.clone().into(),
+                    result_capability.functions.resolve.clone().into(),
+                    result_capability.functions.reject.clone().into(),
                 ],
                 context,
             )?;
@@ -1388,6 +1447,7 @@ impl Promise {
 
         // 3. Perform ? Call(promiseCapability.[[Reject]], undefined, « r »).
         promise_capability
+            .functions
             .reject
             .call(&JsValue::undefined(), &[e], context)?;
 
@@ -1453,6 +1513,7 @@ impl Promise {
 
         // 3. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
         promise_capability
+            .functions
             .resolve
             .call(&JsValue::Undefined, &[x], context)?;
 
@@ -2221,8 +2282,7 @@ fn new_promise_reaction_job(
                 // g. Assert: promiseCapability is a PromiseCapability Record.
                 let PromiseCapability {
                     promise: _,
-                    resolve,
-                    reject,
+                    functions: ResolvingFunctions { resolve, reject },
                 } = &promise_capability_record;
 
                 match handler_result {

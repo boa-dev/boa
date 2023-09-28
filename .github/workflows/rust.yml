@@ -33,7 +33,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
-          args: --workspace --features intl --ignore-tests --engine llvm --out xml
+          args: --workspace --features annex-b,intl,experimental --ignore-tests --engine llvm --out xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
 
@@ -62,9 +62,9 @@ jobs:
       - name: Install latest nextest
         uses: taiki-e/install-action@nextest
       - name: Test with nextest
-        run: cargo nextest run --profile ci --cargo-profile ci --features intl
+        run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl,experimental
       - name: Test docs
-        run: cargo test --doc --profile ci --features intl
+        run: cargo test --doc --profile ci --features annex-b,intl,experimental
 
   msrv:
     name: Minimum supported Rust version
