@@ -67,7 +67,7 @@ macro_rules! print_obj_value {
         }
     };
     (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
-        {let mut keys: Vec<_> = $obj.borrow().properties().index_property_keys().map(crate::property::PropertyKey::Index).collect();
+        {let mut keys: Vec<_> = $obj.borrow().properties().index_property_keys().map(crate::property::PropertyKey::from).collect();
         keys.extend($obj.borrow().properties().shape.keys());
         let mut result = Vec::default();
         for key in keys {

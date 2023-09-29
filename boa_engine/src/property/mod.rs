@@ -16,12 +16,13 @@
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
 mod attribute;
+mod nonmaxu32;
 
 use crate::{js_string, object::shape::slot::SlotAttributes, JsString, JsSymbol, JsValue};
 use boa_gc::{Finalize, Trace};
 use std::{fmt, iter::FusedIterator};
 
-pub use attribute::Attribute;
+pub use {attribute::Attribute, nonmaxu32::NonMaxU32};
 
 /// This represents an ECMAScript Property AKA The Property Descriptor.
 ///
@@ -598,7 +599,7 @@ pub enum PropertyKey {
     Symbol(JsSymbol),
 
     /// A numeric property key.
-    Index(u32),
+    Index(NonMaxU32),
 }
 
 /// Utility function for parsing [`PropertyKey`].
@@ -674,7 +675,9 @@ impl From<&[u16]> for PropertyKey {
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        parse_u32_index(string.as_slice().iter().copied()).map_or(Self::String(string), Self::Index)
+        parse_u32_index(string.as_slice().iter().copied())
+            .and_then(NonMaxU32::new)
+            .map_or(Self::String(string), Self::Index)
     }
 }
 
@@ -691,7 +694,7 @@ impl fmt::Display for PropertyKey {
         match self {
             Self::String(ref string) => string.to_std_string_escaped().fmt(f),
             Self::Symbol(ref symbol) => symbol.descriptive_string().to_std_string_escaped().fmt(f),
-            Self::Index(index) => index.fmt(f),
+            Self::Index(index) => index.get().fmt(f),
         }
     }
 }
@@ -703,7 +706,7 @@ impl From<&PropertyKey> for JsValue {
             PropertyKey::String(ref string) => string.clone().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
             PropertyKey::Index(index) => {
-                i32::try_from(*index).map_or_else(|_| Self::new(*index), Self::new)
+                i32::try_from(index.get()).map_or_else(|_| Self::new(index.get()), Self::new)
             }
         }
     }
@@ -715,72 +718,84 @@ impl From<PropertyKey> for JsValue {
         match property_key {
             PropertyKey::String(ref string) => string.clone().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
-            PropertyKey::Index(index) => js_string!(index.to_string()).into(),
+            PropertyKey::Index(index) => js_string!(index.get().to_string()).into(),
         }
     }
 }
 
 impl From<u8> for PropertyKey {
     fn from(value: u8) -> Self {
-        Self::Index(value.into())
+        // SAFETY: `u8` can never be `u32::MAX`.
+        unsafe { Self::Index(NonMaxU32::new_unchecked(value.into())) }
     }
 }
 
 impl From<u16> for PropertyKey {
     fn from(value: u16) -> Self {
-        Self::Index(value.into())
+        // SAFETY: `u16` can never be `u32::MAX`.
+        unsafe { Self::Index(NonMaxU32::new_unchecked(value.into())) }
     }
 }
 
 impl From<u32> for PropertyKey {
     fn from(value: u32) -> Self {
-        Self::Index(value)
+        NonMaxU32::new(value).map_or(Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 
 impl From<usize> for PropertyKey {
     fn from(value: usize) -> Self {
         u32::try_from(value)
-            .map_or_else(|_| Self::String(js_string!(value.to_string())), Self::Index)
+            .ok()
+            .and_then(NonMaxU32::new)
+            .map_or(Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 
 impl From<i64> for PropertyKey {
     fn from(value: i64) -> Self {
         u32::try_from(value)
-            .map_or_else(|_| Self::String(js_string!(value.to_string())), Self::Index)
+            .ok()
+            .and_then(NonMaxU32::new)
+            .map_or(Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 
 impl From<u64> for PropertyKey {
     fn from(value: u64) -> Self {
         u32::try_from(value)
-            .map_or_else(|_| Self::String(js_string!(value.to_string())), Self::Index)
+            .ok()
+            .and_then(NonMaxU32::new)
+            .map_or(Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 
 impl From<isize> for PropertyKey {
     fn from(value: isize) -> Self {
         u32::try_from(value)
-            .map_or_else(|_| Self::String(js_string!(value.to_string())), Self::Index)
+            .ok()
+            .and_then(NonMaxU32::new)
+            .map_or(Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 
 impl From<i32> for PropertyKey {
     fn from(value: i32) -> Self {
         u32::try_from(value)
-            .map_or_else(|_| Self::String(js_string!(value.to_string())), Self::Index)
+            .ok()
+            .and_then(NonMaxU32::new)
+            .map_or(Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 
 impl From<f64> for PropertyKey {
     fn from(value: f64) -> Self {
         use num_traits::cast::FromPrimitive;
-        if let Some(index) = u32::from_f64(value) {
-            return Self::Index(index);
-        }
 
-        Self::String(ryu_js::Buffer::new().format(value).into())
+        u32::from_f64(value).and_then(NonMaxU32::new).map_or(
+            Self::String(ryu_js::Buffer::new().format(value).into()),
+            Self::Index,
+        )
     }
 }
 

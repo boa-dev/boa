@@ -1420,7 +1420,7 @@ fn get_own_property_keys(
             (PropertyKeyType::String, PropertyKey::String(_))
             | (PropertyKeyType::Symbol, PropertyKey::Symbol(_)) => Some(next_key.into()),
             (PropertyKeyType::String, PropertyKey::Index(index)) => {
-                Some(js_string!(index.to_string()).into())
+                Some(js_string!(index.get().to_string()).into())
             }
             _ => None,
         }

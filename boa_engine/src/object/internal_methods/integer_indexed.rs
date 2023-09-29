@@ -69,7 +69,7 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
             // 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) => Some((*index).into()),
+        PropertyKey::Index(index) => Some(index.get().into()),
         PropertyKey::Symbol(_) => None,
     };
 
@@ -111,7 +111,7 @@ pub(crate) fn integer_indexed_exotic_has_property(
             // 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) => Some((*index).into()),
+        PropertyKey::Index(index) => Some(index.get().into()),
         PropertyKey::Symbol(_) => None,
     };
 
@@ -142,7 +142,7 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
             // 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) => Some((*index).into()),
+        PropertyKey::Index(index) => Some(index.get().into()),
         PropertyKey::Symbol(_) => None,
     };
 
@@ -204,7 +204,7 @@ pub(crate) fn integer_indexed_exotic_get(
             // 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) => Some((*index).into()),
+        PropertyKey::Index(index) => Some(index.get().into()),
         PropertyKey::Symbol(_) => None,
     };
 
@@ -237,7 +237,7 @@ pub(crate) fn integer_indexed_exotic_set(
             // 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) => Some((*index).into()),
+        PropertyKey::Index(index) => Some(index.get().into()),
         PropertyKey::Symbol(_) => None,
     };
 
@@ -279,7 +279,7 @@ pub(crate) fn integer_indexed_exotic_delete(
             // 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) => Some((*index).into()),
+        PropertyKey::Index(index) => Some(index.get().into()),
         PropertyKey::Symbol(_) => None,
     };
 
@@ -317,9 +317,7 @@ pub(crate) fn integer_indexed_exotic_own_property_keys(
         // 2. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is false, then
         //     a. For each integer i starting with 0 such that i < O.[[ArrayLength]], in ascending order, do
         //         i. Add ! ToString(𝔽(i)) as the last element of keys.
-        (0..inner.array_length())
-            .map(|index| PropertyKey::Index(index as u32))
-            .collect()
+        (0..inner.array_length()).map(PropertyKey::from).collect()
     };
 
     // 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do

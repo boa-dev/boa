@@ -66,7 +66,7 @@ impl Operation for GetPropertyByValue {
                 if let Some(element) = object_borrowed
                     .properties()
                     .dense_indexed_properties()
-                    .and_then(|vec| vec.get(*index as usize))
+                    .and_then(|vec| vec.get(index.get() as usize))
                 {
                     context.vm.push(element.clone());
                     return Ok(CompletionType::Normal);
@@ -137,7 +137,7 @@ impl Operation for GetPropertyByValuePush {
                 if let Some(element) = object_borrowed
                     .properties()
                     .dense_indexed_properties()
-                    .and_then(|vec| vec.get(*index as usize))
+                    .and_then(|vec| vec.get(index.get() as usize))
                 {
                     context.vm.push(key);
                     context.vm.push(element.clone());

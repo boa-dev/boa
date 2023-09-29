@@ -568,7 +568,7 @@ impl JsObject {
             // a. If Type(key) is String, then
             let key_str = match &key {
                 PropertyKey::String(s) => Some(s.clone()),
-                PropertyKey::Index(i) => Some(i.to_string().into()),
+                PropertyKey::Index(i) => Some(i.get().to_string().into()),
                 PropertyKey::Symbol(_) => None,
             };
 
