@@ -603,7 +603,7 @@ pub enum PropertyKey {
 }
 
 /// Utility function for parsing [`PropertyKey`].
-fn parse_u32_index<I, T>(mut input: I) -> Option<u32>
+fn parse_u32_index<I, T>(mut input: I) -> Option<NonMaxU32>
 where
     I: Iterator<Item = T> + ExactSizeIterator + FusedIterator,
     T: Into<u16>,
@@ -635,7 +635,8 @@ where
     let byte = input.next()?.into();
     if byte == CHAR_ZERO {
         if len == 1 {
-            return Some(0);
+            // SAFETY: `0` is not `u32::MAX`.
+            return unsafe { Some(NonMaxU32::new_unchecked(0)) };
         }
 
         // String "012345" is not a valid index.
@@ -644,19 +645,23 @@ where
 
     let mut result = to_digit(byte)?;
 
-    // If the len is equal to max chars, then we need to do checked opterations,
+    // If the len is equal to max chars, then we need to do checked operations,
     // in case of overflows. If less use unchecked versions.
     if len == MAX_CHAR_COUNT {
         for c in input {
             result = result.checked_mul(10)?.checked_add(to_digit(c.into())?)?;
         }
+
+        NonMaxU32::new(result)
     } else {
         for c in input {
             result = result * 10 + to_digit(c.into())?;
         }
-    }
 
-    Some(result)
+        // SAFETY: `result` cannot be `u32::MAX`,
+        //         because the length of the input is smaller than `MAX_CHAR_COUNT`.
+        unsafe { Some(NonMaxU32::new_unchecked(result)) }
+    }
 }
 
 impl From<&[u16]> for PropertyKey {
@@ -675,9 +680,7 @@ impl From<&[u16]> for PropertyKey {
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        parse_u32_index(string.as_slice().iter().copied())
-            .and_then(NonMaxU32::new)
-            .map_or(Self::String(string), Self::Index)
+        parse_u32_index(string.as_slice().iter().copied()).map_or(Self::String(string), Self::Index)
     }
 }
 

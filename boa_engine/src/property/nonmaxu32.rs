@@ -15,7 +15,7 @@ impl NonMaxU32 {
     #[must_use]
     pub const unsafe fn new_unchecked(inner: u32) -> Self {
         // SAFETY: The caller must ensure that `inner` is not `u32::MAX`.
-        let inner = unsafe { NonZeroU32::new_unchecked(inner + 1) };
+        let inner = unsafe { NonZeroU32::new_unchecked(inner.wrapping_add(1)) };
 
         Self { inner }
     }
@@ -34,6 +34,6 @@ impl NonMaxU32 {
     /// Returns the value as a primitive type.
     #[must_use]
     pub const fn get(&self) -> u32 {
-        self.inner.get() - 1
+        self.inner.get().wrapping_sub(1)
     }
 }
