@@ -3,7 +3,7 @@ use crate::{
     JsObject, JsResult, JsString, JsValue,
 };
 
-use super::plain_date::iso::IsoDateRecord;
+use super::{options::ArithmeticOverflow, plain_date::iso::IsoDateRecord};
 
 use bitflags::{bitflags, iter::Iter, Flags};
 use rustc_hash::FxHashSet;
@@ -484,22 +484,30 @@ impl TemporalFields {
 
     // Note placeholder until overflow is implemented on `ICU4x`'s Date<Iso>.
     /// A function to regulate the current `TemporalFields` according to the overflow value
-    pub(crate) fn regulate(&mut self, overflow: &str) {
+    pub(crate) fn regulate(&mut self, overflow: ArithmeticOverflow) -> JsResult<()> {
         if let (Some(year), Some(month), Some(day)) = (self.year(), self.month(), self.day()) {
-            if overflow == "constrain" {
-                let m = month.clamp(1, 12);
-                let days_in_month = super::calendar::utils::iso_days_in_month(year, month);
-                let d = day.clamp(1, days_in_month);
+            match overflow {
+                ArithmeticOverflow::Constrain => {
+                    let m = month.clamp(1, 12);
+                    let days_in_month = super::calendar::utils::iso_days_in_month(year, month);
+                    let d = day.clamp(1, days_in_month);
 
-                self.month = Some(m);
-                self.day = Some(d);
+                    self.month = Some(m);
+                    self.day = Some(d);
+                }
+                ArithmeticOverflow::Reject => {
+                    return Err(JsNativeError::range()
+                        .with_message("TemporalFields is out of a valid range.")
+                        .into())
+                }
             }
         }
+        Ok(())
     }
 
-    pub(crate) fn regulate_year_month(&mut self, overflow: &str) {
+    pub(crate) fn regulate_year_month(&mut self, overflow: ArithmeticOverflow) {
         match self.month {
-            Some(month) if overflow == "constrain" => {
+            Some(month) if overflow == ArithmeticOverflow::Constrain => {
                 let m = month.clamp(1, 12);
                 self.month = Some(m);
             }

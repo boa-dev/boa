@@ -46,6 +46,9 @@ pub mod temporal;
 #[cfg(any(feature = "intl", feature = "experimental"))]
 pub(crate) mod options;
 
+#[cfg(feature = "experimental")]
+pub mod temporal;
+
 pub(crate) use self::{
     array::Array,
     async_function::AsyncFunction,
@@ -393,7 +396,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     #[cfg(feature = "intl")]
     global_binding::<intl::Intl>(context)?;
 
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     {
         global_binding::<temporal::Temporal>(context)?;
     }

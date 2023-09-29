@@ -1,9 +1,12 @@
 #![allow(dead_code, unused_variables)]
 
 use crate::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::{get_option, get_options_object},
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    object::internal_methods::get_prototype_from_constructor,
+    object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::Attribute,
     realm::Realm,
     string::utf16,
@@ -12,9 +15,7 @@ use crate::{
 use boa_parser::temporal::{IsoCursor, TemporalDateTimeString};
 use boa_profiler::Profiler;
 
-use super::{
-    get_options_object, plain_date::iso::IsoDateRecord, plain_date_time, to_temporal_overflow,
-};
+use super::{options::ArithmeticOverflow, plain_date::iso::IsoDateRecord, plain_date_time};
 
 pub(crate) mod iso;
 
@@ -417,22 +418,23 @@ pub(crate) fn create_temporal_date(
     };
 
     // 4. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.PlainDate.prototype%", « [[InitializedTemporalDate]], [[ISOYear]], [[ISOMonth]], [[ISODay]], [[Calendar]] »).
-    let new_date =
+    let prototype =
         get_prototype_from_constructor(&new_target, StandardConstructors::plain_date, context)?;
-
-    let mut obj = new_date.borrow_mut();
-    let date = obj.as_plain_date_mut().expect("this value must be a date");
 
     // 5. Set object.[[ISOYear]] to isoYear.
     // 6. Set object.[[ISOMonth]] to isoMonth.
     // 7. Set object.[[ISODay]] to isoDay.
-    date.inner = iso_date;
     // 8. Set object.[[Calendar]] to calendar.
-    date.calendar = calendar;
+    let obj = JsObject::from_proto_and_data(
+        prototype,
+        ObjectData::plain_date(PlainDate {
+            inner: iso_date,
+            calendar,
+        }),
+    );
 
-    drop(obj);
     // 9. Return object.
-    Ok(new_date)
+    Ok(obj)
 }
 
 /// 3.5.4 `ToTemporalDate ( item [ , options ] )`
@@ -474,7 +476,9 @@ pub(crate) fn to_temporal_date(
             // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
         } else if object.is_plain_date_time() {
             // i. Perform ? ToTemporalOverflow(options).
-            let overflow = to_temporal_overflow(&options_obj, context)?;
+            let _o =
+                get_option::<ArithmeticOverflow>(&options_obj, utf16!("overflow"), false, context)?
+                    .unwrap_or(ArithmeticOverflow::Constrain);
 
             let obj = object.borrow();
             let date_time = obj
@@ -528,7 +532,9 @@ pub(crate) fn to_temporal_date(
             let calendar = identifier.to_ascii_lowercase();
 
             // 12. Perform ? ToTemporalOverflow(options).
-            let _result = to_temporal_overflow(&options_obj, context)?;
+            let _result =
+                get_option::<ArithmeticOverflow>(&options_obj, utf16!("overflow"), false, context)?
+                    .unwrap_or(ArithmeticOverflow::Constrain);
 
             // 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
             Ok(PlainDate {

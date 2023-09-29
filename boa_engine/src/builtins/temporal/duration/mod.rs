@@ -2,11 +2,12 @@
 
 use crate::{
     builtins::{
-        temporal::validate_temporal_rounding_increment, BuiltInBuilder, BuiltInConstructor,
-        BuiltInObject, IntrinsicObject,
+        options::{get_option, get_options_object, RoundingMode},
+        temporal::validate_temporal_rounding_increment,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    object::internal_methods::get_prototype_from_constructor,
+    object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::{Attribute, PropertyKey},
     realm::Realm,
     string::utf16,
@@ -15,11 +16,19 @@ use crate::{
 use boa_profiler::Profiler;
 
 use super::{
-    calendar, plain_date::iso::IsoDateRecord, to_integer_if_integral, zoned_date_time,
-    DateTimeValues,
+    calendar,
+    options::{
+        get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
+    },
+    plain_date::iso::IsoDateRecord,
+    to_integer_if_integral, zoned_date_time, DateTimeValues,
 };
 
 mod record;
+
+#[cfg(feature = "experimental")]
+#[cfg(test)]
+mod tests;
 
 pub(crate) use record::{DateDuration, DurationRecord, TimeDuration};
 
@@ -246,7 +255,7 @@ impl BuiltInConstructor for Duration {
         );
 
         // 12. Return ? CreateTemporalDuration(y, mo, w, d, h, m, s, ms, mis, ns, NewTarget).
-        Ok(create_temporal_duration(record, Some(new_target), context)?.into())
+        create_temporal_duration(record, Some(new_target), context).map(Into::into)
     }
 }
 
@@ -394,9 +403,9 @@ impl Duration {
             DurationRecord::from_partial_js_object(args.get_or_undefined(0), context)?;
 
         // 4. If temporalDurationLike.[[Years]] is not undefined, then
-            // a. Let years be temporalDurationLike.[[Years]].
+        // a. Let years be temporalDurationLike.[[Years]].
         // 5. Else,
-            // a. Let years be duration.[[Years]].
+        // a. Let years be duration.[[Years]].
         let years = if temporal_duration_like.years().is_nan() {
             duration.inner.years()
         } else {
@@ -404,9 +413,9 @@ impl Duration {
         };
 
         // 6. If temporalDurationLike.[[Months]] is not undefined, then
-            // a. Let months be temporalDurationLike.[[Months]].
+        // a. Let months be temporalDurationLike.[[Months]].
         // 7. Else,
-            // a. Let months be duration.[[Months]].
+        // a. Let months be duration.[[Months]].
         let months = if temporal_duration_like.months().is_nan() {
             duration.inner.months()
         } else {
@@ -414,9 +423,9 @@ impl Duration {
         };
 
         // 8. If temporalDurationLike.[[Weeks]] is not undefined, then
-            // a. Let weeks be temporalDurationLike.[[Weeks]].
+        // a. Let weeks be temporalDurationLike.[[Weeks]].
         // 9. Else,
-            // a. Let weeks be duration.[[Weeks]].
+        // a. Let weeks be duration.[[Weeks]].
         let weeks = if temporal_duration_like.weeks().is_nan() {
             duration.inner.weeks()
         } else {
@@ -424,9 +433,9 @@ impl Duration {
         };
 
         // 10. If temporalDurationLike.[[Days]] is not undefined, then
-            // a. Let days be temporalDurationLike.[[Days]].
+        // a. Let days be temporalDurationLike.[[Days]].
         // 11. Else,
-            // a. Let days be duration.[[Days]].
+        // a. Let days be duration.[[Days]].
         let days = if temporal_duration_like.days().is_nan() {
             duration.inner.days()
         } else {
@@ -434,9 +443,9 @@ impl Duration {
         };
 
         // 12. If temporalDurationLike.[[Hours]] is not undefined, then
-            // a. Let hours be temporalDurationLike.[[Hours]].
+        // a. Let hours be temporalDurationLike.[[Hours]].
         // 13. Else,
-            // a. Let hours be duration.[[Hours]].
+        // a. Let hours be duration.[[Hours]].
         let hours = if temporal_duration_like.hours().is_nan() {
             duration.inner.hours()
         } else {
@@ -444,9 +453,9 @@ impl Duration {
         };
 
         // 14. If temporalDurationLike.[[Minutes]] is not undefined, then
-            // a. Let minutes be temporalDurationLike.[[Minutes]].
+        // a. Let minutes be temporalDurationLike.[[Minutes]].
         // 15. Else,
-            // a. Let minutes be duration.[[Minutes]].
+        // a. Let minutes be duration.[[Minutes]].
         let minutes = if temporal_duration_like.minutes().is_nan() {
             duration.inner.minutes()
         } else {
@@ -454,9 +463,9 @@ impl Duration {
         };
 
         // 16. If temporalDurationLike.[[Seconds]] is not undefined, then
-            // a. Let seconds be temporalDurationLike.[[Seconds]].
+        // a. Let seconds be temporalDurationLike.[[Seconds]].
         // 17. Else,
-            // a. Let seconds be duration.[[Seconds]].
+        // a. Let seconds be duration.[[Seconds]].
         let seconds = if temporal_duration_like.seconds().is_nan() {
             duration.inner.seconds()
         } else {
@@ -464,9 +473,9 @@ impl Duration {
         };
 
         // 18. If temporalDurationLike.[[Milliseconds]] is not undefined, then
-            // a. Let milliseconds be temporalDurationLike.[[Milliseconds]].
+        // a. Let milliseconds be temporalDurationLike.[[Milliseconds]].
         // 19. Else,
-            // a. Let milliseconds be duration.[[Milliseconds]].
+        // a. Let milliseconds be duration.[[Milliseconds]].
         let milliseconds = if temporal_duration_like.milliseconds().is_nan() {
             duration.inner.milliseconds()
         } else {
@@ -474,9 +483,9 @@ impl Duration {
         };
 
         // 20. If temporalDurationLike.[[Microseconds]] is not undefined, then
-            // a. Let microseconds be temporalDurationLike.[[Microseconds]].
+        // a. Let microseconds be temporalDurationLike.[[Microseconds]].
         // 21. Else,
-            // a. Let microseconds be duration.[[Microseconds]].
+        // a. Let microseconds be duration.[[Microseconds]].
         let microseconds = if temporal_duration_like.microseconds().is_nan() {
             duration.inner.microseconds()
         } else {
@@ -484,15 +493,14 @@ impl Duration {
         };
 
         // 22. If temporalDurationLike.[[Nanoseconds]] is not undefined, then
-            // a. Let nanoseconds be temporalDurationLike.[[Nanoseconds]].
+        // a. Let nanoseconds be temporalDurationLike.[[Nanoseconds]].
         // 23. Else,
-            // a. Let nanoseconds be duration.[[Nanoseconds]].
+        // a. Let nanoseconds be duration.[[Nanoseconds]].
         let nanoseconds = if temporal_duration_like.nanoseconds().is_nan() {
             duration.inner.nanoseconds()
         } else {
             temporal_duration_like.nanoseconds()
         };
-
 
         // 24. Return ? CreateTemporalDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
         let new_duration = DurationRecord::new(
@@ -602,7 +610,7 @@ impl Duration {
             // 5. Else,
             _ => {
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                super::get_options_object(round_to)?
+                get_options_object(round_to)?
             }
         };
 
@@ -614,12 +622,12 @@ impl Duration {
         //   (ToRelativeTemporalObject reads "relativeTo", ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
 
         // 9. Let largestUnit be ? GetTemporalUnit(roundTo, "largestUnit", datetime, undefined, « "auto" »).
-        let largest_unit = super::get_temporal_unit(
+        let mut largest_unit = get_temporal_unit(
             &round_to,
-            PropertyKey::from("largestUnit"),
-            &JsString::from("datetime"),
-            Some(&JsValue::undefined()),
-            Some(vec![JsString::from("auto")]),
+            utf16!("largestUnit"),
+            TemporalUnitGroup::DateTime,
+            Some(TemporalUnit::Undefined),
+            Some([TemporalUnit::Auto].into()),
             context,
         )?;
 
@@ -627,57 +635,47 @@ impl Duration {
         let relative_to = super::to_relative_temporal_object(&round_to, context)?;
 
         // 11. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
-        let rounding_increment = super::to_temporal_rounding_increment(&round_to, context)?;
+        let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
 
         // 12. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let rounding_mode = super::to_temporal_rounding_mode(
-            &round_to,
-            &JsString::from("halfExpand").into(),
-            context,
-        )?;
+        let rounding_mode =
+            get_option::<RoundingMode>(&round_to, utf16!("roundingMode"), false, context)?
+                .unwrap_or(RoundingMode::HalfExpand);
 
         // 13. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
-        let smallest_unit = super::get_temporal_unit(
+        let mut smallest_unit = get_temporal_unit(
             &round_to,
-            PropertyKey::from("smallestUnit"),
-            &JsString::from("datetime"),
-            Some(&JsValue::undefined()),
+            utf16!("smallestUnit"),
+            TemporalUnitGroup::DateTime,
+            Some(TemporalUnit::Undefined),
             None,
             context,
         )?;
 
         // 14. If smallestUnit is undefined, then
-        let smallest_unit = if let Some(unit) = smallest_unit {
-            unit
-        } else {
+        if smallest_unit.is_undefined() {
             // a. Set smallestUnitPresent to false.
             smallest_unit_present = false;
             // b. Set smallestUnit to "nanosecond".
-            JsString::from("nanosecond")
-        };
+            smallest_unit = TemporalUnit::Nanosecond;
+        }
 
         // 15. Let defaultLargestUnit be ! DefaultTemporalLargestUnit(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]]).
         let mut default_largest_unit = duration.inner.default_temporal_largest_unit();
-        // 16. Set defaultLargestUnit to ! LargerOfTwoTemporalUnits(defaultLargestUnit, smallestUnit).
-        default_largest_unit =
-            super::larger_of_two_temporal_units(&default_largest_unit, &smallest_unit);
 
-        let auto = JsString::from("auto");
+        // 16. Set defaultLargestUnit to ! LargerOfTwoTemporalUnits(defaultLargestUnit, smallestUnit).
+        default_largest_unit = core::cmp::max(default_largest_unit, smallest_unit);
+
         // 17. If largestUnit is undefined, then
-        let largest_unit = match largest_unit {
-            None => {
-                // a. Set largestUnitPresent to false.
-                largest_unit_present = false;
-                // b. Set largestUnit to defaultLargestUnit.
-                default_largest_unit
-            }
-            // 18. Else if largestUnit is "auto", then
-            Some(s) if s == auto => {
-                // a. Set largestUnit to defaultLargestUnit.
-                default_largest_unit
-            }
-            Some(s) => s,
-        };
+        if largest_unit.is_undefined() {
+            // a. Set largestUnitPresent to false.
+            largest_unit_present = false;
+            // b. Set largestUnit to defaultLargestUnit.
+            largest_unit = default_largest_unit;
+        } else if largest_unit.is_auto() {
+            // a. Set largestUnit to defaultLargestUnit.
+            largest_unit = default_largest_unit;
+        }
 
         // 19. If smallestUnitPresent is false and largestUnitPresent is false, then
         if !smallest_unit_present && !largest_unit_present {
@@ -688,28 +686,24 @@ impl Duration {
         }
 
         // 20. If LargerOfTwoTemporalUnits(largestUnit, smallestUnit) is not largestUnit, throw a RangeError exception.
-        if super::larger_of_two_temporal_units(&largest_unit, &smallest_unit) != largest_unit {
+        if core::cmp::max(largest_unit, smallest_unit) != largest_unit {
             return Err(JsNativeError::range()
                 .with_message("largestUnit must be larger than smallestUnit")
                 .into());
         }
 
         // 21. Let maximum be ! MaximumTemporalDurationRoundingIncrement(smallestUnit).
-        let maximum = super::maximum_temporal_duration_rounding_increment(&smallest_unit);
+        let maximum = smallest_unit.to_maximum_rounding_increment();
 
         // 22. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
-        if !maximum.is_undefined() {
-            validate_temporal_rounding_increment(
-                rounding_increment,
-                maximum.to_number(context)?,
-                false,
-            )?;
+        if let Some(max) = maximum {
+            validate_temporal_rounding_increment(rounding_increment, max, false)?;
         }
 
         let mut unbalance_duration = DurationRecord::from_date_duration(duration.inner.date());
 
         // 23. Let unbalanceResult be ? UnbalanceDateDurationRelative(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], largestUnit, relativeTo).
-        unbalance_duration.unbalance_duration_relative(&largest_unit, &relative_to, context)?;
+        unbalance_duration.unbalance_duration_relative(largest_unit, &relative_to, context)?;
 
         let mut roundable_duration =
             DurationRecord::new(unbalance_duration.date(), duration.inner.time());
@@ -719,8 +713,8 @@ impl Duration {
         //     duration.[[Microseconds]], duration.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode, relativeTo)).[[DurationRecord]].
         let _rem = roundable_duration.round_duration(
             rounding_increment,
-            &smallest_unit,
-            &rounding_mode,
+            smallest_unit,
+            rounding_mode,
             Some(&relative_to),
             context,
         )?;
@@ -739,7 +733,7 @@ impl Duration {
             // 27. Else,
             _ => {
                 // a. Let balanceResult be ? BalanceTimeDuration(roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], largestUnit).
-                roundable_duration.balance_time_duration(&largest_unit, None)?;
+                roundable_duration.balance_time_duration(largest_unit, None)?;
             }
         }
         // 28. Let result be ? BalanceDateDurationRelative(roundResult.[[Years]], roundResult.[[Months]], roundResult.[[Weeks]], balanceResult.[[Days]], largestUnit, relativeTo).
@@ -784,11 +778,10 @@ impl Duration {
                 total_of
             }
             // 5. Else,
-            JsValue::Object(options_obj) => {
+            _ => {
                 // a. Set totalOf to ? GetOptionsObject(totalOf).
-                super::get_options_object(&options_obj.clone().into())?
+                get_options_object(total_of)?
             }
-            _ => unreachable!("total_of must be a String, Object, or undefined. Any other value is an implementation error."),
         };
 
         // 6. NOTE: The following steps read options and perform independent validation in alphabetical order (ToRelativeTemporalObject reads "relativeTo").
@@ -797,20 +790,19 @@ impl Duration {
         let relative_to = super::to_relative_temporal_object(&total_of, context)?;
 
         // 8. Let unit be ? GetTemporalUnit(totalOf, "unit", datetime, required).
-        let unit = super::get_temporal_unit(
+        let unit = get_temporal_unit(
             &total_of,
-            PropertyKey::from("unit"),
-            &JsString::from("datetime"),
+            utf16!("unit"),
+            TemporalUnitGroup::DateTime,
             None,
             None,
             context,
-        )?
-        .expect("GetTemporalUnit must return a string if default is required.");
+        )?;
 
         let mut unbalance_duration = DurationRecord::from_date_duration(duration.inner.date());
 
         // 9. Let unbalanceResult be ? UnbalanceDurationRelative(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], unit, relativeTo).
-        unbalance_duration.unbalance_duration_relative(&unit, &relative_to, context)?;
+        unbalance_duration.unbalance_duration_relative(unit, &relative_to, context)?;
 
         // 10. Let intermediate be undefined.
         let mut _intermediate = JsValue::undefined();
@@ -833,7 +825,7 @@ impl Duration {
             duration.inner.time(),
         );
         // 12. Let balanceResult be ? BalancePossiblyInfiniteDuration(unbalanceResult.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], unit, intermediate).
-        balance_duration.balance_possibly_infinite_duration(&unit, Some(&relative_to))?;
+        balance_duration.balance_possibly_infinite_duration(unit, Some(&relative_to))?;
 
         // 13. If balanceResult is positive overflow, return +∞𝔽.
         if balance_duration.is_positive_overflow() {
@@ -864,43 +856,43 @@ impl Duration {
 
         let remainder = round_record.round_duration(
             1_f64,
-            &unit,
-            &JsString::from("trunc"),
+            unit,
+            RoundingMode::Trunc,
             Some(&relative_to),
             context,
         )?;
 
-        let whole = match unit.to_std_string_escaped().as_str() {
+        let whole = match unit {
             // 18. If unit is "year", then
             // a. Let whole be roundResult.[[Years]].
-            "year" => round_record.years(),
+            TemporalUnit::Year => round_record.years(),
             // 19. Else if unit is "month", then
             // a. Let whole be roundResult.[[Months]].
-            "month" => round_record.months(),
+            TemporalUnit::Month => round_record.months(),
             // 20. Else if unit is "week", then
             // a. Let whole be roundResult.[[Weeks]].
-            "week" => round_record.weeks(),
+            TemporalUnit::Week => round_record.weeks(),
             // 21. Else if unit is "day", then
             // a. Let whole be roundResult.[[Days]].
-            "day" => round_record.days(),
+            TemporalUnit::Day => round_record.days(),
             // 22. Else if unit is "hour", then
             // a. Let whole be roundResult.[[Hours]].
-            "hour" => round_record.hours(),
+            TemporalUnit::Hour => round_record.hours(),
             // 23. Else if unit is "minute", then
             // a. Let whole be roundResult.[[Minutes]].
-            "minute" => round_record.minutes(),
+            TemporalUnit::Minute => round_record.minutes(),
             // 24. Else if unit is "second", then
             // a. Let whole be roundResult.[[Seconds]].
-            "second" => round_record.seconds(),
+            TemporalUnit::Second => round_record.seconds(),
             // 25. Else if unit is "millisecond", then
             // a. Let whole be roundResult.[[Milliseconds]].
-            "millisecond"=> round_record.milliseconds(),
+            TemporalUnit::Millisecond => round_record.milliseconds(),
             // 26. Else if unit is "microsecond", then
             // a. Let whole be roundResult.[[Microseconds]].
-            "microsecond" => round_record.microseconds(),
+            TemporalUnit::Microsecond => round_record.microseconds(),
             // 27. Else,
             // b. Let whole be roundResult.[[Nanoseconds]].
-            "nanosecond" => round_record.nanoseconds(),
+            TemporalUnit::Nanosecond => round_record.nanoseconds(),
             // a. Assert: unit is "nanosecond".
             _=> unreachable!("Unit must be a valid temporal unit. Any other value would be an implementation error."),
         };
@@ -995,10 +987,7 @@ pub(crate) fn create_temporal_duration(
     // 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Duration.prototype%", « [[InitializedTemporalDuration]], [[Years]], [[Months]], [[Weeks]], [[Days]], [[Hours]], [[Minutes]], [[Seconds]], [[Milliseconds]], [[Microseconds]], [[Nanoseconds]] »).
     let prototype =
         get_prototype_from_constructor(&new_target, StandardConstructors::duration, context)?;
-    let mut object = prototype.borrow_mut();
-    let duration = object
-        .as_duration_mut()
-        .expect("prototype must be a Temporal.Duration.");
+
     // 4. Set object.[[Years]] to ℝ(𝔽(years)).
     // 5. Set object.[[Months]] to ℝ(𝔽(months)).
     // 6. Set object.[[Weeks]] to ℝ(𝔽(weeks)).
@@ -1009,11 +998,11 @@ pub(crate) fn create_temporal_duration(
     // 11. Set object.[[Milliseconds]] to ℝ(𝔽(milliseconds)).
     // 12. Set object.[[Microseconds]] to ℝ(𝔽(microseconds)).
     // 13. Set object.[[Nanoseconds]] to ℝ(𝔽(nanoseconds)).
-    duration.inner = record;
-    drop(object);
 
+    let obj =
+        JsObject::from_proto_and_data(prototype, ObjectData::duration(Duration { inner: record }));
     // 14. Return object.
-    Ok(prototype)
+    Ok(obj)
 }
 
 /// 7.5.23 `DaysUntil ( earlier, later )`

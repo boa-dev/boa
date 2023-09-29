@@ -13,7 +13,7 @@ rust-version.workspace = true
 [features]
 serde = ["dep:serde", "boa_interner/serde", "bitflags/serde", "num-bigint/serde"]
 arbitrary = ["dep:arbitrary", "boa_interner/arbitrary", "num-bigint/arbitrary"]
-temporal = []
+experimental = []
 
 [dependencies]
 boa_interner.workspace = true

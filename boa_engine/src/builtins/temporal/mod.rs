@@ -11,6 +11,7 @@ mod duration;
 mod fields;
 mod instant;
 mod now;
+mod options;
 mod plain_date;
 mod plain_date_time;
 mod plain_month_day;
@@ -27,14 +28,23 @@ mod tests;
 
 pub(crate) use fields::TemporalFields;
 
-use self::date_equations::mathematical_days_in_year;
 pub use self::{
     calendar::*, duration::*, instant::*, now::*, plain_date::*, plain_date_time::*,
     plain_month_day::*, plain_time::*, plain_year_month::*, time_zone::*, zoned_date_time::*,
 };
-use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
+use self::{
+    date_equations::mathematical_days_in_year,
+    options::{
+        get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
+    },
+};
+
 use crate::{
-    builtins::iterable::IteratorRecord,
+    builtins::{
+        iterable::IteratorRecord,
+        options::{get_option, RoundingMode, UnsignedRoundingMode},
+        BuiltInBuilder, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructors},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
@@ -180,15 +190,6 @@ impl TemporalUnits {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum UnsignedRoundingMode {
-    Infinity,
-    Zero,
-    HalfInfinity,
-    HalfZero,
-    HalfEven,
-}
-
 /// The [`Temporal`][spec] builtin object.
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-objects
@@ -211,7 +212,7 @@ impl IntrinsicObject for Temporal {
             )
             .static_property(
                 "Now",
-                Now::init(realm),
+                realm.intrinsics().objects().now(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
@@ -342,6 +343,7 @@ pub(crate) fn epoch_days_to_epoch_ms(day: i32, time: i32) -> f64 {
 
 // TODO: 13.4 Date Equations -> See ./date_equations.rs
 
+/*
 /// Abstract Operation 13.5 `GetOptionsObject ( options )`
 #[inline]
 pub(crate) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
@@ -450,112 +452,18 @@ pub(crate) fn get_option(
     // 7. Return value.
     Ok(value)
 }
+*/
 
 /// 13.7 `ToTemporalOverflow (options)`
-pub(crate) fn to_temporal_overflow(
-    options: &JsObject,
-    context: &mut Context<'_>,
-) -> JsResult<JsString> {
-    // 1. If options is undefined, return "constrain".
-    if options.prototype().is_none() {
-        Ok("constrain".into())
-    } else {
-        // 2. Return ? GetOption(options, "overflow", "string", « "constrain", "reject" », "constrain").
-        let result = get_option(
-            options,
-            PropertyKey::from("overflow"),
-            OptionType::String,
-            Some(&["constrain".into(), "reject".into()]),
-            Some(&JsValue::from(utf16!("constrain"))),
-            context,
-        )?;
-        Ok(result.to_string(context)?)
-    }
-}
+// Now implemented in temporal/options.rs
 
 /// 13.10 `ToTemporalRoundingMode ( normalizedOptions, fallback )`
-#[inline]
-pub(crate) fn to_temporal_rounding_mode(
-    normalized_options: &JsObject,
-    fallback: &JsValue,
-    context: &mut Context<'_>,
-) -> JsResult<JsString> {
-    // 1. Return ? GetOption(normalizedOptions, "roundingMode", "string", [CEIL, FLOOR, "expand", "trunc",
-    // "halfCeil", "halfFloor", "halfExpand", "halfTrunc", "halfEven"], fallback).
-    let option_value = get_option(
-        normalized_options,
-        PropertyKey::from("roundingMode"),
-        OptionType::String,
-        Some(&[
-            "ceil".into(),
-            "floor".into(),
-            "expand".into(),
-            "trunc".into(),
-            "halfCeil".into(),
-            "halfFloor".into(),
-            "halfExpand".into(),
-            "halfTrunc".into(),
-            "halfEven".into(),
-        ]),
-        Some(fallback),
-        context,
-    )?;
-
-    match option_value.as_string() {
-        Some(string) => Ok(string.clone()),
-        // TODO: validate
-        None => Err(JsNativeError::typ()
-            .with_message("roundingMode must be a string value.")
-            .into()),
-    }
-}
+// Now implemented in builtin/options.rs
 
 // 13.11 `NegateTemporalRoundingMode ( roundingMode )`
-fn negate_temporal_rounding_mode(rounding_mode: JsString) -> JsString {
-    match rounding_mode.to_std_string_escaped().as_str() {
-        "ceil" => "floor".into(),
-        "floor" => "ceil".into(),
-        "halfCeil" => "halfFloor".into(),
-        "halfFloor" => "halfCeil".into(),
-        _ => rounding_mode,
-    }
-}
+// Now implemented in builtin/options.rs
 
-/// 13.16 `ToTemporalRoundingIncrement ( normalizedOptions )`
-#[inline]
-pub(crate) fn to_temporal_rounding_increment(
-    normalized_options: &JsObject,
-    context: &mut Context<'_>,
-) -> JsResult<f64> {
-    // 1. Let increment be ? GetOption(normalizedOptions, "roundingIncrement", "number", undefined, 1𝔽).
-    let increment = get_option(
-        normalized_options,
-        PropertyKey::from("roundingIncrement"),
-        OptionType::Number,
-        None,
-        Some(&JsValue::from(1.0)),
-        context,
-    )?;
-    // 2. If increment is not finite, throw a RangeError exception.
-    let num = match increment.to_number(context) {
-        Ok(number) if number.is_finite() => number,
-        _ => {
-            return Err(JsNativeError::range()
-                .with_message("rounding increment was out of range.")
-                .into())
-        }
-    };
-    // 3. Let integerIncrement be truncate(ℝ(increment)).
-    let integer_increment = num.trunc();
-    // 4. If integerIncrement < 1 or integerIncrement > 109, throw a RangeError exception.
-    if (1.0..=109.0).contains(&integer_increment) {
-        return Err(JsNativeError::range()
-            .with_message("rounding increment was out of range.")
-            .into());
-    }
-    // 5. Return integerIncrement.
-    Ok(integer_increment)
-}
+// 13.16 `ToTemporalRoundingIncrement ( normalizedOptions )`
 
 /// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
 #[inline]
@@ -593,6 +501,7 @@ pub(crate) fn validate_temporal_rounding_increment(
     Ok(())
 }
 
+/*
 /// Abstract operation 13.20 `GetTemporalUnit ( normalizedOptions, key, unitGroup, default [ , extraValues ] )`
 #[inline]
 pub(crate) fn get_temporal_unit(
@@ -676,6 +585,7 @@ pub(crate) fn get_temporal_unit(
         _ => unreachable!("The value returned from getTemporalUnit must be a string or undefined"),
     }
 }
+*/
 
 /// 13.21 `ToRelativeTemporalObject ( options )`
 pub(crate) fn to_relative_temporal_object(
@@ -743,73 +653,14 @@ pub(crate) fn to_relative_temporal_object(
         .into())
 }
 
-/// 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`
-fn larger_of_two_temporal_units(u1: &JsString, u2: &JsString) -> JsString {
-    // 1. Assert: Both u1 and u2 are listed in the Singular column of Table 13.
-    let unit_table = TemporalUnits::default();
-    assert!(
-        unit_table.datetime_singulars().contains(u1)
-            && unit_table.datetime_singulars().contains(u2)
-    );
+// 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`
+// core::cmp::max
 
-    // 2. For each row of Table 13, except the header row, in table order, do
-    // a. Let unit be the value in the Singular column of the row.
-    let mut result = JsString::default();
-    for unit in unit_table.all() {
-        // b. If SameValue(u1, unit) is true, return unit.
-        if u1.as_slice() == unit.0 {
-            result = u1.clone();
-            break;
-        };
+// 13.23 `MaximumTemporalDurationRoundingIncrement ( unit )`
+// Implemented on TemporalUnit in temporal/options.rs
 
-        // c. If SameValue(u2, unit) is true, return unit.
-        if u2.as_slice() == unit.1 {
-            result = u2.clone();
-            break;
-        };
-    }
-
-    result
-}
-
-/// 13.23 `MaximumTemporalDurationRoundingIncrement ( unit )`
-fn maximum_temporal_duration_rounding_increment(unit: &JsString) -> JsValue {
-    match unit.to_std_string_escaped().as_str() {
-        // 1. If unit is "year", "month", "week", or "day", then
-        // a. Return undefined.
-        "year" | "month" | "week" | "day" => JsValue::undefined(),
-        // 2. If unit is "hour", then
-        // a. Return 24.
-        "hour" => JsValue::from(24),
-        // 3. If unit is "minute" or "second", then
-        // a. Return 60.
-        "minute" | "second" => JsValue::from(60),
-        // 4. Assert: unit is one of "millisecond", "microsecond", or "nanosecond".
-        // 5. Return 1000.
-        "millisecond" | "microsecond" | "nanosecond" => JsValue::from(1000),
-        _ => unreachable!(),
-    }
-}
-
-/// 13.26 `GetUnsignedRoundingMode ( roundingMode, isNegative )`
-#[inline]
-pub(crate) fn get_unsigned_round_mode(
-    rounding_mode: &JsString,
-    is_negative: bool,
-) -> UnsignedRoundingMode {
-    match rounding_mode.to_std_string_escaped().as_str() {
-        "ceil" if !is_negative => UnsignedRoundingMode::Infinity,
-        "ceil" => UnsignedRoundingMode::Zero,
-        "floor" if !is_negative => UnsignedRoundingMode::Zero,
-        "floor" | "trunc" | "expand" => UnsignedRoundingMode::Infinity,
-        "halfCeil" if !is_negative => UnsignedRoundingMode::HalfInfinity,
-        "halfCeil" | "halfTrunc" => UnsignedRoundingMode::HalfZero,
-        "halfFloor" if !is_negative => UnsignedRoundingMode::HalfZero,
-        "halfFloor" | "halfExpand" => UnsignedRoundingMode::HalfInfinity,
-        "halfEven" => UnsignedRoundingMode::HalfEven,
-        _ => unreachable!(),
-    }
-}
+// 13.26 `GetUnsignedRoundingMode ( roundingMode, isNegative )`
+// Implemented on RoundingMode in builtins/options.rs
 
 /// 13.27 `ApplyUnsignedRoundingMode ( x, r1, r2, unsignedRoundingMode )`
 #[inline]
@@ -872,21 +723,28 @@ fn apply_unsigned_rounding_mode(
 }
 
 /// 13.28 `RoundNumberToIncrement ( x, increment, roundingMode )`
-pub(crate) fn round_number_to_increment(x: f64, increment: f64, rounding_mode: &JsString) -> f64 {
-    let mut is_negative = false;
+pub(crate) fn round_number_to_increment(
+    x: f64,
+    increment: f64,
+    rounding_mode: RoundingMode,
+) -> f64 {
     // 1. Let quotient be x / increment.
     let mut quotient = x / increment;
+
     // 2. If quotient < 0, then
-    // 3. Else,
-    // a. Let isNegative be false.
-    if quotient < 0_f64 {
+    let is_negative = if quotient < 0_f64 {
         // a. Let isNegative be true.
         // b. Set quotient to -quotient.
-        is_negative = true;
         quotient = -quotient;
+        true
+    // 3. Else,
+    } else {
+        // a. Let isNegative be false.
+        false
     };
+
     // 4. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, isNegative).
-    let unsigned_rounding_mode = get_unsigned_round_mode(rounding_mode, is_negative);
+    let unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(is_negative);
     // 5. Let r1 be the largest integer such that r1 ≤ quotient.
     let r1 = quotient.ceil();
     // 6. Let r2 be the smallest integer such that r2 > quotient.
@@ -906,12 +764,12 @@ pub(crate) fn round_number_to_increment(x: f64, increment: f64, rounding_mode: &
 pub(crate) fn round_to_increment_as_if_positive(
     ns: &JsBigInt,
     increment: i64,
-    rounding_mode: &JsString,
+    rounding_mode: RoundingMode,
 ) -> JsResult<JsBigInt> {
     // 1. Let quotient be x / increment.
     let q = ns.to_f64() / increment as f64;
     // 2. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, false).
-    let unsigned_rounding_mode = get_unsigned_round_mode(rounding_mode, false);
+    let unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(false);
     // 3. Let r1 be the largest integer such that r1 ≤ quotient.
     let r1 = q.trunc();
     // 4. Let r2 be the smallest integer such that r2 > quotient.
@@ -922,6 +780,7 @@ pub(crate) fn round_to_increment_as_if_positive(
     // 6. Return rounded × increment.
     let rounded = JsBigInt::try_from(rounded)
         .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+
     Ok(JsBigInt::mul(&rounded, &JsBigInt::from(increment)))
 }
 
@@ -985,23 +844,22 @@ pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -
 pub(crate) fn get_diff_settings(
     op: bool,
     options: &JsObject,
-    unit_group: &JsString,
-    disallowed_units: &[JsString],
-    fallback_smallest_unit: &JsString,
-    smallest_largest_default_unit: &JsString,
+    unit_group: TemporalUnitGroup,
+    disallowed_units: &[TemporalUnit],
+    fallback_smallest_unit: TemporalUnit,
+    smallest_largest_default_unit: TemporalUnit,
     context: &mut Context<'_>,
-) -> JsResult<(JsString, JsString, JsString, f64)> {
+) -> JsResult<(TemporalUnit, TemporalUnit, RoundingMode, f64)> {
     // 1. NOTE: The following steps read options and perform independent validation in alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
     // 2. Let largestUnit be ? GetTemporalUnit(options, "largestUnit", unitGroup, "auto").
     let mut largest_unit = get_temporal_unit(
         options,
-        PropertyKey::from("largestUnit"),
+        utf16!("largestUnit"),
         unit_group,
-        Some(&JsValue::from("auto")),
+        Some(TemporalUnit::Auto),
         None,
         context,
-    )?
-    .expect("GetTemporalUnit cannot return undefined as the default value is not Undefined.");
+    )?;
 
     // 3. If disallowedUnits contains largestUnit, throw a RangeError exception.
     if disallowed_units.contains(&largest_unit) {
@@ -1011,26 +869,27 @@ pub(crate) fn get_diff_settings(
     }
 
     // 4. Let roundingIncrement be ? ToTemporalRoundingIncrement(options).
-    let rounding_increment = to_temporal_rounding_increment(options, context)?;
+    let rounding_increment = get_temporal_rounding_increment(options, context)?;
     // 5. Let roundingMode be ? ToTemporalRoundingMode(options, "trunc").
-    let mut rounding_mode = to_temporal_rounding_mode(options, &JsValue::from("trunc"), context)?;
+    let mut rounding_mode =
+        get_option::<RoundingMode>(options, utf16!("roundingMode"), false, context)?
+            .unwrap_or(RoundingMode::Trunc);
 
     // 6. If operation is since, then
     if !op {
         // a. Set roundingMode to ! NegateTemporalRoundingMode(roundingMode).
-        rounding_mode = negate_temporal_rounding_mode(rounding_mode);
+        rounding_mode = rounding_mode.negate();
     }
 
     // 7. Let smallestUnit be ? GetTemporalUnit(options, "smallestUnit", unitGroup, fallbackSmallestUnit).
     let smallest_unit = get_temporal_unit(
         options,
-        PropertyKey::from("smallestUnit"),
+        utf16!("smallestUnit"),
         unit_group,
-        Some(&fallback_smallest_unit.clone().into()),
+        Some(fallback_smallest_unit),
         None,
         context,
-    )?
-    .expect("smallestUnit must be a string as default value is not undefined.");
+    )?;
 
     // 8. If disallowedUnits contains smallestUnit, throw a RangeError exception.
     if disallowed_units.contains(&smallest_unit) {
@@ -1040,32 +899,26 @@ pub(crate) fn get_diff_settings(
     }
 
     // 9. Let defaultLargestUnit be ! LargerOfTwoTemporalUnits(smallestLargestDefaultUnit, smallestUnit).
-    let default_largest_unit =
-        larger_of_two_temporal_units(smallest_largest_default_unit, &smallest_unit);
+    let default_largest_unit = core::cmp::max(smallest_largest_default_unit, smallest_unit);
+
     // 10. If largestUnit is "auto", set largestUnit to defaultLargestUnit.
-    if largest_unit.as_slice() == utf16!("auto") {
+    if largest_unit == TemporalUnit::Auto {
         largest_unit = default_largest_unit;
     }
 
     // 11. If LargerOfTwoTemporalUnits(largestUnit, smallestUnit) is not largestUnit, throw a RangeError exception.
-    if largest_unit != larger_of_two_temporal_units(&largest_unit, &smallest_unit) {
+    if largest_unit != core::cmp::max(largest_unit, smallest_unit) {
         return Err(JsNativeError::range()
             .with_message("largestUnit must be larger than smallestUnit")
             .into());
     }
 
     // 12. Let maximum be ! MaximumTemporalDurationRoundingIncrement(smallestUnit).
-    let maximum = maximum_temporal_duration_rounding_increment(&smallest_unit);
+    let maximum = smallest_unit.to_maximum_rounding_increment();
 
     // 13. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
-    if !maximum.is_undefined() {
-        validate_temporal_rounding_increment(
-            rounding_increment,
-            maximum
-                .as_number()
-                .expect("MaximumTemporalDurationRoundIncrement cannot fail in according to spec."),
-            false,
-        )?;
+    if let Some(max) = maximum {
+        validate_temporal_rounding_increment(rounding_increment, max, false)?;
     }
 
     // 14. Return the Record { [[SmallestUnit]]: smallestUnit, [[LargestUnit]]: largestUnit, [[RoundingMode]]: roundingMode, [[RoundingIncrement]]: roundingIncrement, }.

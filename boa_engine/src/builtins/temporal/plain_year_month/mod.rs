@@ -3,7 +3,7 @@
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    object::internal_methods::get_prototype_from_constructor,
+    object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::Attribute,
     realm::Realm,
     string::utf16,
@@ -322,26 +322,25 @@ pub(crate) fn create_temporal_year_month(
     };
 
     // 4. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.PlainYearMonth.prototype%", « [[InitializedTemporalYearMonth]], [[ISOYear]], [[ISOMonth]], [[ISODay]], [[Calendar]] »).
-    let new_year_month = get_prototype_from_constructor(
+    let proto = get_prototype_from_constructor(
         &new_target,
         StandardConstructors::plain_year_month,
         context,
     )?;
 
-    let mut obj = new_year_month.borrow_mut();
-    let year_month = obj
-        .as_plain_year_month_mut()
-        .expect("this value must be a date");
-
     // 5. Set object.[[ISOYear]] to isoYear.
     // 6. Set object.[[ISOMonth]] to isoMonth.
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISODay]] to referenceISODay.
-    year_month.inner = year_month_record;
-    year_month.calendar = calendar;
 
-    drop(obj);
+    let obj = JsObject::from_proto_and_data(
+        proto,
+        ObjectData::plain_year_month(PlainYearMonth {
+            inner: year_month_record,
+            calendar,
+        }),
+    );
 
     // 9. Return object.
-    Ok(new_year_month.into())
+    Ok(obj.into())
 }

@@ -2,21 +2,31 @@ use crate::{object::JsObject, run_test_actions, JsNativeErrorKind, JsValue, Test
 use indoc::indoc;
 
 #[test]
-fn calendar_constructor() {
+fn temporal_object() {
+    // Temporal Builtin tests.
     run_test_actions([
-        TestAction::run("let iso = new Temporal.Calendar('iso8601');"),
-        TestAction::assert_eq("iso.id", "iso8601"),
-    ]);
+        TestAction::assert_eq(
+            "Object.prototype.toString.call(Temporal)",
+            "[object Temporal]",
+        ),
+        TestAction::assert_eq("String(Temporal)", "[object Temporal]"),
+        TestAction::assert_eq("Object.keys(Temporal).length === 0", true),
+    ])
 }
 
 #[test]
-fn calendar_methods() {
+fn now_object() {
+    // Now Builtin tests.
     run_test_actions([
-        TestAction::run("let iso = new Temporal.Calendar('iso8601');"),
-        TestAction::assert_eq("iso.inLeapYear('2020-11-20')", true),
-        TestAction::assert_eq("iso.daysInYear('2020-11-20')", 366),
-        TestAction::assert_eq("iso.daysInYear('2021-11-20')", 365),
-        TestAction::assert_eq("iso.monthsInYear('2021-11-20')", 12),
-        TestAction::assert_eq("iso.daysInWeek('2021-11-20')", 7),
-    ]);
+        TestAction::assert_eq("Object.isExtensible(Temporal.Now)", true),
+        TestAction::assert_eq(
+            "Object.prototype.toString.call(Temporal.Now)",
+            "[object Temporal.Now]",
+        ),
+        TestAction::assert_eq(
+            "Object.getPrototypeOf(Temporal.Now) === Object.prototype",
+            true,
+        ),
+        TestAction::assert_eq("Temporal.Now.prototype", JsValue::undefined()),
+    ])
 }

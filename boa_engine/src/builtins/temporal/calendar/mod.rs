@@ -2,11 +2,16 @@
 
 use self::iso::IsoCalendar;
 
-use super::{plain_date::iso::IsoDateRecord, PlainDate, TemporalFields};
+use super::{
+    options::{ArithmeticOverflow, TemporalUnit, TemporalUnitGroup},
+    plain_date::iso::IsoDateRecord,
+    PlainDate, TemporalFields,
+};
 use crate::{
     builtins::{
-        iterable::IteratorHint, temporal, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
-        IntrinsicObject,
+        iterable::IteratorHint,
+        options::{get_option, get_options_object},
+        temporal, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -22,6 +27,10 @@ use rustc_hash::FxHashMap;
 mod iso;
 pub(crate) mod utils;
 
+#[cfg(feature = "experimental")]
+#[cfg(test)]
+mod tests;
+
 // TODO: Determine how many methods actually need the context on them while using
 // `icu_calendar`.
 //
@@ -33,21 +42,21 @@ pub(crate) trait BuiltinCalendar {
     fn date_from_fields(
         &self,
         fields: &mut TemporalFields,
-        overflow: &str,
+        overflow: ArithmeticOverflow,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue>;
     /// Creates a `Temporal.PlainYearMonth` object from the provided fields.
     fn year_month_from_fields(
         &self,
         fields: &mut TemporalFields,
-        overflow: &str,
+        overflow: ArithmeticOverflow,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue>;
     /// Creates a `Temporal.PlainMonthDay` object from the provided fields.
     fn month_day_from_fields(
         &self,
         fields: &mut TemporalFields,
-        overflow: &str,
+        overflow: ArithmeticOverflow,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue>;
     /// Returns a `Temporal.PlainDate` based off an added date.
@@ -55,7 +64,7 @@ pub(crate) trait BuiltinCalendar {
         &self,
         date: &PlainDate,
         duration: &temporal::DurationRecord,
-        overflow: &str,
+        overflow: ArithmeticOverflow,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue>;
     /// Returns a `Temporal.Duration` representing the duration between two dates.
@@ -63,7 +72,7 @@ pub(crate) trait BuiltinCalendar {
         &self,
         one: &PlainDate,
         two: &PlainDate,
-        largest_unit: &str,
+        largest_unit: TemporalUnit,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue>;
     /// Returns the era for a given `temporaldatelike`.
@@ -247,22 +256,22 @@ impl BuiltInConstructor for Calendar {
         let identifier = args.get_or_undefined(0);
 
         // 2. If id is not a String, throw a TypeError exception.
-        if let Some(id) = identifier.as_string() {
-            // 3. If IsBuiltinCalendar(id) is false, then
-            if !is_builtin_calendar(&id.to_std_string_escaped()) {
-                // a. Throw a RangeError exception.
-                return Err(JsNativeError::range()
-                    .with_message("Calendar ID must be a valid builtin calendar.")
-                    .into());
-            }
-
-            // 4. Return ? CreateTemporalCalendar(id, NewTarget).
-            create_temporal_calendar(id, Some(new_target.clone()), context)
-        } else {
-            Err(JsNativeError::typ()
+        let JsValue::String(id) = identifier else {
+            return Err(JsNativeError::typ()
                 .with_message("Calendar id must be a string.")
-                .into())
+                .into());
+        };
+
+        // 3. If IsBuiltinCalendar(id) is false, then
+        if !is_builtin_calendar(&id.to_std_string_escaped()) {
+            // a. Throw a RangeError exception.
+            return Err(JsNativeError::range()
+                .with_message("Calendar ID must be a valid builtin calendar.")
+                .into());
         }
+
+        // 4. Return ? CreateTemporalCalendar(id, NewTarget).
+        create_temporal_calendar(id, Some(new_target.clone()), context)
     }
 }
 
@@ -314,7 +323,7 @@ impl Calendar {
         })?;
 
         // 4. Set options to ? GetOptionsObject(options).
-        let options = temporal::get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1))?;
 
         // 5. Let relevantFieldNames be « "day", "month", "monthCode", "year" ».
         let mut relevant_field_names = Vec::from([
@@ -354,7 +363,9 @@ impl Calendar {
         };
 
         // 8. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = temporal::to_temporal_overflow(&options, context)?;
+        let overflow =
+            get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), false, context)?
+                .unwrap_or(ArithmeticOverflow::Constrain);
 
         // NOTE: implement the below on the calenar itself
         // 9. If calendar.[[Identifier]] is "iso8601", then
@@ -364,7 +375,7 @@ impl Calendar {
         // a. Perform ? CalendarResolveFields(calendar.[[Identifier]], fields, date).
         // b. Let result be ? CalendarDateToISO(calendar.[[Identifier]], fields, overflow).
 
-        this_calendar.date_from_fields(&mut fields, &overflow.to_std_string_escaped(), context)
+        this_calendar.date_from_fields(&mut fields, overflow, context)
     }
 
     /// 15.8.2.2 `Temporal.Calendar.prototype.yearMonthFromFields ( fields [ , options ] )` - Supercedes 12.5.5
@@ -395,7 +406,7 @@ impl Calendar {
         })?;
 
         // 5. Set options to ? GetOptionsObject(options).
-        let options = temporal::get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1))?;
 
         let mut relevant_field_names = Vec::from([
             "year".to_owned(),
@@ -437,13 +448,11 @@ impl Calendar {
         };
 
         // 7. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = temporal::to_temporal_overflow(&options, context)?;
+        let overflow =
+            get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), false, context)?
+                .unwrap_or(ArithmeticOverflow::Constrain);
 
-        this_calendar.year_month_from_fields(
-            &mut fields,
-            overflow.to_std_string_escaped().as_str(),
-            context,
-        )
+        this_calendar.year_month_from_fields(&mut fields, overflow, context)
     }
 
     /// 15.8.2.3 `Temporal.Calendar.prototype.monthDayFromFields ( fields [ , options ] )` - Supercedes 12.5.6
@@ -479,7 +488,7 @@ impl Calendar {
         })?;
 
         // 4. Set options to ? GetOptionsObject(options).
-        let options = temporal::get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1))?;
 
         // 5. Let relevantFieldNames be « "day", "month", "monthCode", "year" ».
         let mut relevant_field_names = Vec::from([
@@ -520,9 +529,11 @@ impl Calendar {
         };
 
         // 8. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = temporal::to_temporal_overflow(&options, context)?;
+        let overflow =
+            get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), false, context)?
+                .unwrap_or(ArithmeticOverflow::Constrain);
 
-        this_calendar.month_day_from_fields(&mut fields, &overflow.to_std_string_escaped(), context)
+        this_calendar.month_day_from_fields(&mut fields, overflow, context)
     }
 
     /// 15.8.2.4 `Temporal.Calendar.prototype.dateAdd ( date, duration [ , options ] )` - supercedes 12.5.7
@@ -556,22 +567,19 @@ impl Calendar {
 
         // 6. Set options to ? GetOptionsObject(options).
         let options = args.get_or_undefined(2);
-        let options_obj = temporal::get_options_object(options)?;
+        let options_obj = get_options_object(options)?;
 
         // 7. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = temporal::to_temporal_overflow(&options_obj, context)?;
+        let overflow =
+            get_option::<ArithmeticOverflow>(&options_obj, utf16!("overflow"), false, context)?
+                .unwrap_or(ArithmeticOverflow::Constrain);
 
         // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
         duration
             .inner
-            .balance_time_duration(&JsString::from("day"), None)?;
+            .balance_time_duration(TemporalUnit::Day, None)?;
 
-        this_calendar.date_add(
-            &date,
-            &duration.inner,
-            &overflow.to_std_string_escaped(),
-            context,
-        )
+        this_calendar.date_add(&date, &duration.inner, overflow, context)
     }
 
     ///15.8.2.5 `Temporal.Calendar.prototype.dateUntil ( one, two [ , options ] )` - Supercedes 12.5.8
@@ -603,27 +611,20 @@ impl Calendar {
         let two = temporal::plain_date::to_temporal_date(args.get_or_undefined(1), None, context)?;
 
         // 6. Set options to ? GetOptionsObject(options).
-        let options = temporal::get_options_object(args.get_or_undefined(2))?;
+        let options = get_options_object(args.get_or_undefined(2))?;
 
-        let auto: JsValue = "auto".into();
         // 7. Let largestUnit be ? GetTemporalUnit(options, "largestUnit", date, "auto").
-        let retrieved_unit = temporal::get_temporal_unit(
+        // 8. If largestUnit is "auto", set largestUnit to "day".
+        let largest_unit = super::options::get_temporal_unit(
             &options,
-            "largestUnit".into(),
-            &JsString::from("date"),
-            Some(&auto),
+            utf16!("largestUnit"),
+            TemporalUnitGroup::Date,
+            Some(TemporalUnit::Day),
             None,
             context,
-        )?
-        .expect("Return must be a string.");
+        )?;
 
-        // 8. If largestUnit is "auto", set largestUnit to "day".
-        let largest_unit = match retrieved_unit.to_std_string_escaped().as_str() {
-            "auto" => JsString::from("day"),
-            _ => retrieved_unit,
-        };
-
-        this_calendar.date_until(&one, &two, &largest_unit.to_std_string_escaped(), context)
+        this_calendar.date_until(&one, &two, largest_unit, context)
     }
 
     /// 15.8.2.6 `Temporal.Calendar.prototype.era ( temporalDateLike )`

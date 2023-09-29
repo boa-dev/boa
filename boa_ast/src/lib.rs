@@ -92,7 +92,7 @@ pub mod operations;
 pub mod pattern;
 pub mod property;
 pub mod statement;
-#[cfg(feature = "temporal")]
+#[cfg(feature = "experimental")]
 pub mod temporal;
 pub mod visitor;
 

@@ -3,7 +3,10 @@
 use icu_calendar::types::Time;
 
 use crate::{
-    builtins::temporal::{self, create_temporal_date, to_temporal_date},
+    builtins::{
+        options::RoundingMode,
+        temporal::{self, create_temporal_date, options::TemporalUnit, to_temporal_date, Temporal},
+    },
     Context, JsArgs, JsError, JsNativeError, JsNativeErrorKind, JsObject, JsResult, JsString,
     JsSymbol, JsValue,
 };
@@ -576,7 +579,7 @@ impl DurationRecord {
         // 2. For each value v of « years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds », do
         for v in self {
             // a. If 𝔽(v) is not finite, return false.
-            if v.is_finite() {
+            if !v.is_finite() {
                 return false;
             }
             // b. If v < 0 and sign > 0, return false.
@@ -593,25 +596,25 @@ impl DurationRecord {
     }
 
     /// 7.5.12 `DefaultTemporalLargestUnit ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds )`
-    pub(crate) fn default_temporal_largest_unit(&self) -> JsString {
+    pub(crate) fn default_temporal_largest_unit(&self) -> TemporalUnit {
         for (index, value) in self.into_iter().enumerate() {
             if value != 0.0 {
                 match index {
-                    0 => return "year".into(),
-                    1 => return "month".into(),
-                    2 => return "week".into(),
-                    3 => return "day".into(),
-                    4 => return "hour".into(),
-                    5 => return "minute".into(),
-                    6 => return "second".into(),
-                    7 => return "millisecond".into(),
-                    8 => return "microsecond".into(),
+                    0 => return TemporalUnit::Year,
+                    1 => return TemporalUnit::Month,
+                    2 => return TemporalUnit::Week,
+                    3 => return TemporalUnit::Day,
+                    4 => return TemporalUnit::Hour,
+                    5 => return TemporalUnit::Minute,
+                    6 => return TemporalUnit::Second,
+                    7 => return TemporalUnit::Millisecond,
+                    8 => return TemporalUnit::Microsecond,
                     _ => {}
                 }
             }
         }
 
-        "nanosecond".into()
+        TemporalUnit::Nanosecond
     }
 
     // TODO: implement on `DurationRecord`
@@ -635,7 +638,7 @@ impl DurationRecord {
     /// Abstract Operation 7.5.18 `BalanceTimeDuration ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit [ , relativeTo ] )`
     pub(crate) fn balance_time_duration(
         &mut self,
-        largest_unit: &JsString,
+        largest_unit: TemporalUnit,
         relative_to: Option<&JsValue>,
     ) -> JsResult<()> {
         // 1. Let balanceResult be ? BalancePossiblyInfiniteDuration(days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit, relativeTo).
@@ -655,7 +658,7 @@ impl DurationRecord {
     /// Abstract Operation 7.5.19 `BalancePossiblyInfiniteDuration ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit [ , relativeTo ] )`
     pub(crate) fn balance_possibly_infinite_duration(
         &mut self,
-        largest_unit: &JsString,
+        largest_unit: TemporalUnit,
         relative_to: Option<&JsValue>,
     ) -> JsResult<()> {
         // 1. If relativeTo is not present, set relativeTo to undefined.
@@ -682,9 +685,9 @@ impl DurationRecord {
             self.set_nanoseconds(self.total_duration_nanoseconds(0.0));
         }
 
-        match largest_unit.to_std_string_escaped().as_str() {
+        match largest_unit {
             // 4. If largestUnit is one of "year", "month", "week", or "day", then
-            "year" | "month" | "week" | "day" => {
+            TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week | TemporalUnit::Day => {
                 // a. Let result be ? NanosecondsToDays(nanoseconds, relativeTo).
                 let result = temporal::zoned_date_time::nanoseconds_to_days(
                     self.nanoseconds(),
@@ -717,15 +720,19 @@ impl DurationRecord {
         // 8. Set nanoseconds to abs(nanoseconds).
         self.set_nanoseconds(self.nanoseconds().abs());
 
-        match largest_unit.to_std_string_escaped().as_str() {
+        match largest_unit {
             // 9. If largestUnit is "year", "month", "week", "day", or "hour", then
-            "year" | "month" | "week" | "day" | "hour" => {
+            TemporalUnit::Year
+            | TemporalUnit::Month
+            | TemporalUnit::Week
+            | TemporalUnit::Day
+            | TemporalUnit::Hour => {
                 // a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
                 self.balance_microseconds();
 
                 // c. Set milliseconds to floor(microseconds / 1000).
-                // d. Set microseconds to microseconds modulo 1000.              self.balance_milliseconds();
+                // d. Set microseconds to microseconds modulo 1000.
                 self.balance_milliseconds();
 
                 // e. Set seconds to floor(milliseconds / 1000).
@@ -741,7 +748,7 @@ impl DurationRecord {
                 self.balance_hours();
             }
             // 10. Else if largestUnit is "minute", then
-            "minute" => {
+            TemporalUnit::Minute => {
                 // a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
                 self.balance_microseconds();
@@ -759,7 +766,7 @@ impl DurationRecord {
                 self.balance_minutes();
             }
             // 11. Else if largestUnit is "second", then
-            "second" => {
+            TemporalUnit::Second => {
                 // a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
                 self.balance_microseconds();
@@ -773,7 +780,7 @@ impl DurationRecord {
                 self.balance_seconds();
             }
             // 12. Else if largestUnit is "millisecond", then
-            "millisecond" => {
+            TemporalUnit::Millisecond => {
                 // a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
                 self.balance_microseconds();
@@ -783,14 +790,14 @@ impl DurationRecord {
                 self.balance_milliseconds();
             }
             // 13. Else if largestUnit is "microsecond", then
-            "microsecond" => {
+            TemporalUnit::Microsecond => {
                 // a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
                 self.balance_microseconds();
             }
             // 14. Else,
             // a. Assert: largestUnit is "nanosecond".
-            _ => assert!(largest_unit.to_std_string_escaped().as_str() == "nanosecond"),
+            _ => assert!(largest_unit == TemporalUnit::Nanosecond),
         }
 
         // 15. For each value v of « days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds », do
@@ -832,7 +839,7 @@ impl DurationRecord {
     /// 7.5.20 `UnbalanceDurationRelative ( years, months, weeks, days, largestUnit, relativeTo )`
     pub(crate) fn unbalance_duration_relative(
         &mut self,
-        largest_unit: &JsString,
+        largest_unit: TemporalUnit,
         relative_to: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<()> {
@@ -844,7 +851,7 @@ impl DurationRecord {
             && self.days() == 0_f64;
 
         // 3. If largestUnit is "year" or allZero is true, then
-        if largest_unit.to_std_string_escaped().as_str() == "year" || all_zero {
+        if largest_unit == TemporalUnit::Year || all_zero {
             // a. Return ! CreateDateDurationRecord(years, months, weeks, days).
             return Ok(());
         };
@@ -960,7 +967,7 @@ impl DurationRecord {
     /// `BalanceDateDurationRelative`
     pub(crate) fn balance_date_duration_relative(
         &mut self,
-        largest_unit: &JsString,
+        largest_unit: TemporalUnit,
         relative_to: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<()> {
@@ -972,8 +979,8 @@ impl DurationRecord {
             && self.days() == 0.0;
 
         // 3. If largestUnit is not one of "year", "month", or "week", or allZero is true, then
-        match largest_unit.to_std_string_escaped().as_str() {
-            "year" | "month" | "week" if !all_zero => {}
+        match largest_unit {
+            TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week if !all_zero => {}
             _ => {
                 // a. Return ! CreateDateDurationRecord(years, months, weeks, days).
                 return Ok(());
@@ -1016,9 +1023,9 @@ impl DurationRecord {
 
         let relative_to = create_temporal_date(date.inner, date.calendar, None, context)?;
 
-        match largest_unit.to_std_string_escaped().as_str() {
+        match largest_unit {
             // 12. If largestUnit is "year", then
-            "year" => {
+            TemporalUnit::Year => {
                 // a. If calendar is an Object, then
                 // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // b. Else,
@@ -1116,7 +1123,7 @@ impl DurationRecord {
                 // viii. Set oneYearMonths to untilResult.[[Months]].
             }
             // 13. Else if largestUnit is "month", then
-            "month" => {
+            TemporalUnit::Month => {
                 // a. If calendar is an Object, then
                 // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // b. Else,
@@ -1133,7 +1140,7 @@ impl DurationRecord {
                 // vi. Set oneMonthDays to moveResult.[[Days]].
             }
             // 14. Else,
-            "week" => {
+            TemporalUnit::Week => {
                 // a. Assert: largestUnit is "week".
                 // b. If calendar is an Object, then
                 // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
@@ -1167,8 +1174,8 @@ impl DurationRecord {
     pub(crate) fn round_duration(
         &mut self,
         increment: f64,
-        unit: &JsString,
-        rounding_mode: &JsString,
+        unit: TemporalUnit,
+        rounding_mode: RoundingMode,
         relative_to: Option<&JsValue>,
         context: &mut Context<'_>,
     ) -> JsResult<f64> {
@@ -1179,13 +1186,11 @@ impl DurationRecord {
             JsValue::undefined()
         };
 
-        let unit_string = unit.to_std_string_escaped();
-
         // 2. If unit is "year", "month", or "week", and relativeTo is undefined, then
         if relative_to.is_undefined()
-            && (unit_string.as_str() == "year"
-                || unit_string.as_str() == "month"
-                || unit_string.as_str() == "week")
+            && (unit == TemporalUnit::Year
+                || unit == TemporalUnit::Month
+                || unit == TemporalUnit::Week)
         {
             // a. Throw a RangeError exception.
             return Err(JsNativeError::range()
@@ -1228,8 +1233,8 @@ impl DurationRecord {
         };
 
         // 6. If unit is one of "year", "month", "week", or "day", then
-        let fractional_secs = match unit_string.as_str() {
-            "year" | "month" | "week" | "day" => {
+        let fractional_secs = match unit {
+            TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week | TemporalUnit::Day => {
                 // a. Let nanoseconds be ! TotalDurationNanoseconds(0, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, 0).
                 let nanoseconds =
                     Self::from_day_and_time(0.0, self.time()).total_duration_nanoseconds(0.0);
@@ -1268,9 +1273,9 @@ impl DurationRecord {
 
         // 8. Let remainder be undefined.
         // We begin matching against unit and return the remainder value.
-        let remainder = match unit_string.as_str() {
+        let remainder = match unit {
             // 9. If unit is "year", then
-            "year" => {
+            TemporalUnit::Year => {
                 // This should be safe as we throw a range error if relative_to does not exist.
                 assert!(calendar.is_some() && relative_to.is_some());
                 let calendar_obj = calendar.expect("calendar must exist at this point.");
@@ -1437,7 +1442,7 @@ impl DurationRecord {
                 fractional_years - self.years()
             }
             // 10. Else if unit is "month", then
-            "month" => {
+            TemporalUnit::Month => {
                 let mut relative_to = relative_to
                     .expect("relative_to must exist if unit is a month")
                     .clone();
@@ -1556,7 +1561,7 @@ impl DurationRecord {
                 fractional_months - self.months()
             }
             // 11. Else if unit is "week", then
-            "week" => {
+            TemporalUnit::Week => {
                 let mut relative_to = relative_to
                     .expect("relative_to must exist if unit is a month")
                     .clone();
@@ -1625,7 +1630,7 @@ impl DurationRecord {
                 fractional_weeks - self.weeks()
             }
             // 12. Else if unit is "day", then
-            "day" => {
+            TemporalUnit::Day => {
                 // a. Let fractionalDays be days.
                 let fractional_days = self.days();
                 // b. Set days to RoundNumberToIncrement(days, increment, roundingMode).
@@ -1638,7 +1643,7 @@ impl DurationRecord {
                 fractional_days - self.days()
             }
             // 13. Else if unit is "hour", then
-            "hour" => {
+            TemporalUnit::Hour => {
                 // a. Let fractionalHours be (fractionalSeconds / 60 + minutes) / 60 + hours.
                 let fractional_hours =
                     (fractional_secs / (60_f64 + self.minutes())) / 60_f64 + self.hours();
@@ -1655,7 +1660,7 @@ impl DurationRecord {
                 fractional_hours - self.hours()
             }
             // 14. Else if unit is "minute", then
-            "minute" => {
+            TemporalUnit::Minute => {
                 // a. Let fractionalMinutes be fractionalSeconds / 60 + minutes.
                 let fraction_minutes = fractional_secs / 60_f64 + self.minutes();
                 // b. Set minutes to RoundNumberToIncrement(fractionalMinutes, increment, roundingMode).
@@ -1673,7 +1678,7 @@ impl DurationRecord {
                 fraction_minutes - self.minutes()
             }
             // 15. Else if unit is "second", then
-            "second" => {
+            TemporalUnit::Second => {
                 // a. Set seconds to RoundNumberToIncrement(fractionalSeconds, increment, roundingMode).
                 self.set_seconds(temporal::round_number_to_increment(
                     fractional_secs,
@@ -1688,7 +1693,7 @@ impl DurationRecord {
                 fractional_secs - self.seconds()
             }
             // 16. Else if unit is "millisecond", then
-            "millisecond" => {
+            TemporalUnit::Millisecond => {
                 // a. Let fractionalMilliseconds be nanoseconds × 10-6 + microseconds × 10-3 + milliseconds.
                 let fractional_millis = self
                     .nanoseconds()
@@ -1707,7 +1712,7 @@ impl DurationRecord {
                 fractional_millis - self.milliseconds()
             }
             // 17. Else if unit is "microsecond", then
-            "microsecond" => {
+            TemporalUnit::Microsecond => {
                 // a. Let fractionalMicroseconds be nanoseconds × 10-3 + microseconds.
                 let fractional_micros = self.nanoseconds().mul_add(1_000_f64, self.microseconds());
                 // b. Set microseconds to RoundNumberToIncrement(fractionalMicroseconds, increment, roundingMode).
@@ -1722,7 +1727,7 @@ impl DurationRecord {
                 fractional_micros - self.microseconds()
             }
             // 18. Else,
-            "nanosecond" => {
+            TemporalUnit::Nanosecond => {
                 // a. Assert: unit is "nanosecond".
                 // b. Set remainder to nanoseconds.
                 let remainder = self.nanoseconds();

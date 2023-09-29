@@ -81,7 +81,7 @@ pub mod error;
 pub mod lexer;
 pub mod parser;
 mod source;
-#[cfg(feature = "temporal")]
+#[cfg(feature = "experimental")]
 pub mod temporal;
 
 pub use error::Error;

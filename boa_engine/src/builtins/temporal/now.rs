@@ -1,4 +1,4 @@
-//! Boa's implementation of `Temporal.Now` `EcmaScript` object.
+//! Boa's implementation of `Temporal.Now` ECMAScript Builtin object.
 
 use crate::{
     builtins::{
@@ -21,11 +21,9 @@ use std::time::SystemTime;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Now;
 
-impl Now {
-    const NAME: &'static str = "Temporal.Now";
-
+impl IntrinsicObject for Now {
     /// Initializes the `Temporal.Now` object.
-    pub(crate) fn init(realm: &Realm) -> JsValue {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         // is an ordinary object.
@@ -34,7 +32,7 @@ impl Now {
         // does not have a [[Construct]] internal method; it cannot be used as a constructor with the new operator.
         // does not have a [[Call]] internal method; it cannot be invoked as a function.
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .property(
+            .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
@@ -53,7 +51,13 @@ impl Now {
     fn get(intrinsics: &Intrinsics) -> JsObject {
         intrinsics.objects().now()
     }
+}
 
+impl BuiltInObject for Now {
+    const NAME: &'static str = "Temporal.Now";
+}
+
+impl Now {
     /// `Temporal.Now.timeZoneId ( )`
     ///
     /// More information:

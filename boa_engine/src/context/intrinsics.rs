@@ -166,25 +166,25 @@ pub struct StandardConstructors {
     segmenter: StandardConstructor,
     #[cfg(feature = "intl")]
     plural_rules: StandardConstructor,
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     instant: StandardConstructor,
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     plain_date_time: StandardConstructor,
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     plain_date: StandardConstructor,
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     plain_time: StandardConstructor,
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     plain_year_month: StandardConstructor,
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     plain_month_day: StandardConstructor,
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     time_zone: StandardConstructor,
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     duration: StandardConstructor,
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     zoned_date_time: StandardConstructor,
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     calendar: StandardConstructor,
 }
 
@@ -262,25 +262,25 @@ impl Default for StandardConstructors {
             segmenter: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             plural_rules: StandardConstructor::default(),
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             instant: StandardConstructor::default(),
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             plain_date_time: StandardConstructor::default(),
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             plain_date: StandardConstructor::default(),
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             plain_time: StandardConstructor::default(),
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             plain_year_month: StandardConstructor::default(),
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             plain_month_day: StandardConstructor::default(),
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             time_zone: StandardConstructor::default(),
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             duration: StandardConstructor::default(),
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             zoned_date_time: StandardConstructor::default(),
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             calendar: StandardConstructor::default(),
         }
     }
@@ -1101,7 +1101,7 @@ impl Default for IntrinsicObjects {
             #[cfg(feature = "experimental")]
             temporal: JsObject::default(),
             #[cfg(feature = "experimental")]
-            now: JsObject::default()
+            now: JsObject::default(),
         }
     }
 }

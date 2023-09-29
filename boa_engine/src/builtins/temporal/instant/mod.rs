@@ -3,14 +3,18 @@
 
 use crate::{
     builtins::{
+        options::{get_option, get_options_object, RoundingMode},
         temporal::{
             duration::{DateDuration, TimeDuration},
+            options::{
+                get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
+            },
             Duration,
         },
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    object::internal_methods::get_prototype_from_constructor,
+    object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::{Attribute, PropertyKey},
     realm::Realm,
     string::utf16,
@@ -121,8 +125,9 @@ impl BuiltInConstructor for Instant {
                 .into());
         };
 
-        let epoch_nanos = args.get_or_undefined(0).to_bigint(context)?;
         // 2. Let epochNanoseconds be ? ToBigInt(epochNanoseconds).
+        let epoch_nanos = args.get_or_undefined(0).to_bigint(context)?;
+
         // 3. If ! IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
         if !is_valid_epoch_nanos(&epoch_nanos) {
             return Err(JsNativeError::range()
@@ -145,10 +150,9 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Instant must be an object.")
         })?;
-        let o = o.borrow();
         let instant = o.as_instant().ok_or_else(|| {
             JsNativeError::typ().with_message("the this object must be an instant object.")
         })?;
@@ -168,10 +172,9 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Instant must be an object.")
         })?;
-        let o = o.borrow();
         let instant = o.as_instant().ok_or_else(|| {
             JsNativeError::typ().with_message("the this object must be an instant object.")
         })?;
@@ -191,10 +194,9 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Instant must be an object.")
         })?;
-        let o = o.borrow();
         let instant = o.as_instant().ok_or_else(|| {
             JsNativeError::typ().with_message("the this object must be an instant object.")
         })?;
@@ -217,10 +219,9 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Instant must be an object.")
         })?;
-        let o = o.borrow();
         let instant = o.as_instant().ok_or_else(|| {
             JsNativeError::typ().with_message("the this object must be an instant object.")
         })?;
@@ -238,10 +239,9 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Instant must be an object.")
         })?;
-        let o = o.borrow();
         let instant = o.as_instant().ok_or_else(|| {
             JsNativeError::typ().with_message("the this object must be an instant object.")
         })?;
@@ -259,10 +259,9 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Instant must be an object.")
         })?;
-        let o = o.borrow();
         let instant = o.as_instant().ok_or_else(|| {
             JsNativeError::typ().with_message("the this object must be an instant object.")
         })?;
@@ -280,10 +279,9 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Instant must be an object.")
         })?;
-        let o = o.borrow();
         let instant = o.as_instant().ok_or_else(|| {
             JsNativeError::typ().with_message("the this object must be an instant object.")
         })?;
@@ -302,10 +300,9 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Instant must be an object.")
         })?;
-        let o = o.borrow();
         let instant = o.as_instant().ok_or_else(|| {
             JsNativeError::typ().with_message("the this object must be an instant object.")
         })?;
@@ -324,10 +321,9 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Instant must be an object.")
         })?;
-        let o = o.borrow();
         let instant = o.as_instant().ok_or_else(|| {
             JsNativeError::typ().with_message("the this object must be an instant object.")
         })?;
@@ -358,47 +354,49 @@ impl Instant {
         // 5. Else,
         } else {
             // a. Set roundTo to ? GetOptionsObject(roundTo).
-            super::get_options_object(round_to)?
+            get_options_object(round_to)?
         };
+
         // 6. NOTE: The following steps read options and perform independent validation in
         // alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
         // 7. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
-        let rounding_increment = super::to_temporal_rounding_increment(&round_to, context)?;
+        let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
+
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let rounding_mode =
-            super::to_temporal_rounding_mode(&round_to, &JsValue::from("halfExpand"), context)?;
+            get_option::<RoundingMode>(&round_to, utf16!("roundingMode"), false, context)?
+                .unwrap_or_default();
+
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", time, required).
-        let smallest_unit = super::get_temporal_unit(
+        let smallest_unit = get_temporal_unit(
             &round_to,
-            PropertyKey::from("smallestUnit"),
-            &JsString::from("time"),
+            utf16!("smallestUnit"),
+            TemporalUnitGroup::Time,
             None,
             None,
             context,
         )?;
 
-        let smallest_unit = smallest_unit
-            .expect("GetTemporalUnit cannot return Undefined when default is required.");
-        let maximum = match smallest_unit.to_std_string_escaped().as_str() {
+        let maximum = match smallest_unit {
             // 10. If smallestUnit is "hour", then
             // a. Let maximum be HoursPerDay.
-            "hour" => 24,
+            TemporalUnit::Hour => 24,
             // 11. Else if smallestUnit is "minute", then
             // a. Let maximum be MinutesPerHour × HoursPerDay.
-            "minute" => 14400,
+            TemporalUnit::Minute => 14400,
             // 12. Else if smallestUnit is "second", then
             // a. Let maximum be SecondsPerMinute × MinutesPerHour × HoursPerDay.
-            "second" => 86400,
+            TemporalUnit::Second => 86400,
             // 13. Else if smallestUnit is "millisecond", then
             // a. Let maximum be ℝ(msPerDay).
-            "millisecond" => MILLI_PER_DAY,
+            TemporalUnit::Millisecond => MILLI_PER_DAY,
             // 14. Else if smallestUnit is "microsecond", then
             // a. Let maximum be 103 × ℝ(msPerDay).
-            "microsecond" => MICRO_PER_DAY,
+            TemporalUnit::Microsecond => MICRO_PER_DAY,
             // 15. Else,
             // a. Assert: smallestUnit is "nanosecond".
             // b. Let maximum be nsPerDay.
-            "nanosecond" => NS_PER_DAY,
+            TemporalUnit::Nanosecond => NS_PER_DAY,
             // unreachable here functions as 15.a.
             _ => unreachable!(),
         };
@@ -410,8 +408,8 @@ impl Instant {
         let rounded_ns = round_temporal_instant(
             &instant.nanoseconds,
             rounding_increment,
-            &smallest_unit,
-            &rounding_mode,
+            smallest_unit,
+            rounding_mode,
         )?;
 
         // 18. Return ! CreateTemporalInstant(roundedNs).
@@ -428,10 +426,9 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         // 4. If instant.[[Nanoseconds]] ≠ other.[[Nanoseconds]], return false.
         // 5. Return true.
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Instant must be an object.")
         })?;
-        let o = o.borrow();
         let instant = o.as_instant().ok_or_else(|| {
             JsNativeError::typ().with_message("the this object must be an instant object.")
         })?;
@@ -508,16 +505,19 @@ fn create_temporal_instant(
             .into()
     });
     // 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Instant.prototype%", « [[InitializedTemporalInstant]], [[Nanoseconds]] »).
-    let new_instant =
+    let proto =
         get_prototype_from_constructor(&new_target, StandardConstructors::instant, context)?;
+
     // 4. Set object.[[Nanoseconds]] to epochNanoseconds.
-    new_instant
-        .borrow_mut()
-        .as_instant_mut()
-        .expect("created object must be a `Temporal.Instant`.")
-        .nanoseconds = epoch_nanos;
+    let obj = JsObject::from_proto_and_data(
+        proto,
+        ObjectData::instant(Instant {
+            nanoseconds: epoch_nanos,
+        }),
+    );
+
     // 5. Return object.
-    Ok(new_instant.into())
+    Ok(obj.into())
 }
 
 /// 8.5.3 `ToTemporalInstant ( item )`
@@ -571,9 +571,9 @@ fn diff_instant(
     ns1: &JsBigInt,
     ns2: &JsBigInt,
     rounding_increment: f64,
-    smallest_unit: &JsString,
-    largest_unit: &JsString,
-    rounding_mode: &JsString,
+    smallest_unit: TemporalUnit,
+    largest_unit: TemporalUnit,
+    rounding_mode: RoundingMode,
     context: &mut Context<'_>,
 ) -> JsResult<duration::DurationRecord> {
     // 1. Let difference be ℝ(ns2) - ℝ(ns1).
@@ -629,37 +629,37 @@ fn diff_instant(
 fn round_temporal_instant(
     ns: &JsBigInt,
     increment: f64,
-    unit: &JsString,
-    rounding_mode: &JsString,
+    unit: TemporalUnit,
+    rounding_mode: RoundingMode,
 ) -> JsResult<JsBigInt> {
-    let increment_ns = match unit.to_std_string_escaped().as_str() {
+    let increment_ns = match unit {
         // 1. If unit is "hour", then
-        "hour" => {
+        TemporalUnit::Hour => {
             // a. Let incrementNs be increment × 3.6 × 10^12.
             increment as i64 * NANOSECONDS_PER_HOUR
         }
         // 2. Else if unit is "minute", then
-        "minute" => {
+        TemporalUnit::Minute => {
             // a. Let incrementNs be increment × 6 × 10^10.
             increment as i64 * NANOSECONDS_PER_MINUTE
         }
         // 3. Else if unit is "second", then
-        "second" => {
+        TemporalUnit::Second => {
             // a. Let incrementNs be increment × 10^9.
             increment as i64 * NANOSECONDS_PER_SECOND
         }
         // 4. Else if unit is "millisecond", then
-        "millisecond" => {
+        TemporalUnit::Millisecond => {
             // a. Let incrementNs be increment × 10^6.
             increment as i64 * 1_000_000
         }
         // 5. Else if unit is "microsecond", then
-        "microsecond" => {
+        TemporalUnit::Microsecond => {
             // a. Let incrementNs be increment × 10^3.
             increment as i64 * 1000
         }
         // 6. Else,
-        "nanosecond" => {
+        TemporalUnit::Nanosecond => {
             // NOTE: We shouldn't have to assert here as `unreachable` asserts instead.
             // a. Assert: unit is "nanosecond".
             // b. Let incrementNs be increment.
@@ -667,6 +667,7 @@ fn round_temporal_instant(
         }
         _ => unreachable!(),
     };
+
     // 7. Return ℤ(RoundNumberToIncrementAsIfPositive(ℝ(ns), incrementNs, roundingMode)).
     super::round_to_increment_as_if_positive(ns, increment_ns, rounding_mode)
 }
@@ -685,26 +686,28 @@ fn diff_temporal_instant(
     // 2. Set other to ? ToTemporalInstant(other).
     let other = to_temporal_instant(other)?;
     // 3. Let resolvedOptions be ? CopyOptions(options).
-    let resolved_options = super::copy_options(options, context)?;
+    let resolved_options =
+        super::snapshot_own_properties(&get_options_object(options)?, None, None, context)?;
 
     // 4. Let settings be ? GetDifferenceSettings(operation, resolvedOptions, time, « », "nanosecond", "second").
     let settings = super::get_diff_settings(
         op,
         &resolved_options,
-        &JsString::from("time"),
+        TemporalUnitGroup::Time,
         &[],
-        &JsString::from("nanosecond"),
-        &JsString::from("second"),
+        TemporalUnit::Nanosecond,
+        TemporalUnit::Second,
         context,
     )?;
+
     // 5. Let result be DifferenceInstant(instant.[[Nanoseconds]], other.[[Nanoseconds]], settings.[[RoundingIncrement]], settings.[[SmallestUnit]], settings.[[LargestUnit]], settings.[[RoundingMode]]).
     let result = diff_instant(
         &instant.nanoseconds,
         &other.nanoseconds,
         settings.3,
-        &settings.0,
-        &settings.1,
-        &settings.2,
+        settings.0,
+        settings.1,
+        settings.2,
         context,
     )?;
 

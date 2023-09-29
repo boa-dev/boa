@@ -6,9 +6,9 @@ use crate::{
         date_equations::{
             epoch_time_for_year, mathematical_days_in_year, mathematical_in_leap_year,
         },
-        get_options_object, get_temporal_unit,
+        options::{get_temporal_unit, ArithmeticOverflow, TemporalUnit},
         plain_date::iso::IsoDateRecord,
-        to_temporal_date, to_temporal_overflow,
+        to_temporal_date,
     },
     js_string,
     property::PropertyKey,
@@ -24,7 +24,6 @@ use icu_calendar::{
     week::{RelativeUnit, WeekCalculator},
     Calendar, Date,
 };
-use icu_datetime::fields::Week;
 
 pub(crate) struct IsoCalendar;
 
@@ -35,7 +34,7 @@ impl BuiltinCalendar for IsoCalendar {
     fn date_from_fields(
         &self,
         fields: &mut temporal::TemporalFields,
-        overflow: &str,
+        overflow: ArithmeticOverflow,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // NOTE: we are in ISO by default here.
@@ -44,12 +43,12 @@ impl BuiltinCalendar for IsoCalendar {
         fields.resolve_month()?;
 
         // Extra: handle reulating/overflow until implemented on `icu_calendar`
-        fields.regulate(overflow);
+        fields.regulate(overflow)?;
 
         let date = Date::try_new_iso_date(
             fields.year().unwrap_or(0),
-            fields.month().unwrap_or(255) as u8,
-            fields.day().unwrap_or(255) as u8,
+            fields.month().unwrap_or(250) as u8,
+            fields.day().unwrap_or(250) as u8,
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
@@ -69,7 +68,7 @@ impl BuiltinCalendar for IsoCalendar {
     fn year_month_from_fields(
         &self,
         fields: &mut temporal::TemporalFields,
-        overflow: &str,
+        overflow: ArithmeticOverflow,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 9. If calendar.[[Identifier]] is "iso8601", then
@@ -81,7 +80,7 @@ impl BuiltinCalendar for IsoCalendar {
 
         let result = Date::try_new_iso_date(
             fields.year().unwrap_or(0),
-            fields.month().unwrap_or(255) as u8,
+            fields.month().unwrap_or(250) as u8,
             fields.day().unwrap_or(20) as u8,
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
@@ -101,20 +100,20 @@ impl BuiltinCalendar for IsoCalendar {
     fn month_day_from_fields(
         &self,
         fields: &mut temporal::TemporalFields,
-        overflow: &str,
+        overflow: ArithmeticOverflow,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 8. Perform ? ISOResolveMonth(fields).
         fields.resolve_month()?;
 
-        fields.regulate(overflow);
+        fields.regulate(overflow)?;
 
         // TODO: double check error mapping is correct for specifcation/test262.
         // 9. Let result be ? ISOMonthDayFromFields(fields, overflow).
         let result = Date::try_new_iso_date(
             fields.year().unwrap_or(1972),
-            fields.month().unwrap_or(255) as u8,
-            fields.day().unwrap_or(255) as u8,
+            fields.month().unwrap_or(250) as u8,
+            fields.day().unwrap_or(250) as u8,
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
@@ -134,7 +133,7 @@ impl BuiltinCalendar for IsoCalendar {
         &self,
         _date: &temporal::PlainDate,
         _duration: &temporal::duration::DurationRecord,
-        _overflow: &str,
+        _overflow: ArithmeticOverflow,
         _context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // TODO: Not stable on `ICU4X`. Implement once completed.
@@ -153,7 +152,7 @@ impl BuiltinCalendar for IsoCalendar {
         &self,
         _one: &temporal::PlainDate,
         _two: &temporal::PlainDate,
-        _largest_unit: &str,
+        _largest_unit: TemporalUnit,
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // TODO: Not stable on `ICU4X`. Implement once completed.
@@ -246,7 +245,7 @@ impl BuiltinCalendar for IsoCalendar {
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok((date.day_of_year_info().day_of_year as i32).into())
+        Ok(i32::from(date.day_of_year_info().day_of_year).into())
     }
 
     /// Returns the `weekOfYear` for the `Iso` calendar.
