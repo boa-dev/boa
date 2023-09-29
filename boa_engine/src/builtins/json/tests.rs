@@ -1,12 +1,15 @@
 use indoc::indoc;
 
-use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 
 #[test]
 fn json_sanity() {
     run_test_actions([
-        TestAction::assert_eq(r#"JSON.parse('{"aaa":"bbb"}').aaa"#, "bbb"),
-        TestAction::assert_eq(r#"JSON.stringify({aaa: 'bbb'})"#, r#"{"aaa":"bbb"}"#),
+        TestAction::assert_eq(r#"JSON.parse('{"aaa":"bbb"}').aaa"#, js_string!("bbb")),
+        TestAction::assert_eq(
+            r#"JSON.stringify({aaa: 'bbb'})"#,
+            js_string!(r#"{"aaa":"bbb"}"#),
+        ),
     ]);
 }
 
@@ -14,7 +17,7 @@ fn json_sanity() {
 fn json_stringify_remove_undefined_values_from_objects() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({ aaa: undefined, bbb: 'ccc' })"#,
-        r#"{"bbb":"ccc"}"#,
+        js_string!(r#"{"bbb":"ccc"}"#),
     )]);
 }
 
@@ -22,7 +25,7 @@ fn json_stringify_remove_undefined_values_from_objects() {
 fn json_stringify_remove_function_values_from_objects() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({ aaa: () => {}, bbb: 'ccc' })"#,
-        r#"{"bbb":"ccc"}"#,
+        js_string!(r#"{"bbb":"ccc"}"#),
     )]);
 }
 
@@ -30,7 +33,7 @@ fn json_stringify_remove_function_values_from_objects() {
 fn json_stringify_remove_symbols_from_objects() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({ aaa: Symbol(), bbb: 'ccc' })"#,
-        r#"{"bbb":"ccc"}"#,
+        js_string!(r#"{"bbb":"ccc"}"#),
     )]);
 }
 
@@ -38,7 +41,7 @@ fn json_stringify_remove_symbols_from_objects() {
 fn json_stringify_replacer_array_strings() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({aaa: 'bbb', bbb: 'ccc', ccc: 'ddd'}, ['aaa', 'bbb'])"#,
-        r#"{"aaa":"bbb","bbb":"ccc"}"#,
+        js_string!(r#"{"aaa":"bbb","bbb":"ccc"}"#),
     )]);
 }
 
@@ -46,7 +49,7 @@ fn json_stringify_replacer_array_strings() {
 fn json_stringify_replacer_array_numbers() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({ 0: 'aaa', 1: 'bbb', 2: 'ccc'}, [1, 2])"#,
-        r#"{"1":"bbb","2":"ccc"}"#,
+        js_string!(r#"{"1":"bbb","2":"ccc"}"#),
     )]);
 }
 
@@ -62,7 +65,7 @@ fn json_stringify_replacer_function() {
                 return value;
             })
         "#},
-        r#"{"bbb":2}"#,
+        js_string!(r#"{"bbb":2}"#),
     )]);
 }
 
@@ -70,7 +73,7 @@ fn json_stringify_replacer_function() {
 fn json_stringify_arrays() {
     run_test_actions([TestAction::assert_eq(
         "JSON.stringify(['a', 'b'])",
-        r#"["a","b"]"#,
+        js_string!(r#"["a","b"]"#),
     )]);
 }
 
@@ -78,7 +81,7 @@ fn json_stringify_arrays() {
 fn json_stringify_object_array() {
     run_test_actions([TestAction::assert_eq(
         "JSON.stringify([{a: 'b'}, {b: 'c'}])",
-        r#"[{"a":"b"},{"b":"c"}]"#,
+        js_string!(r#"[{"a":"b"},{"b":"c"}]"#),
     )]);
 }
 
@@ -86,7 +89,7 @@ fn json_stringify_object_array() {
 fn json_stringify_array_converts_undefined_to_null() {
     run_test_actions([TestAction::assert_eq(
         "JSON.stringify([undefined])",
-        "[null]",
+        js_string!("[null]"),
     )]);
 }
 
@@ -94,7 +97,7 @@ fn json_stringify_array_converts_undefined_to_null() {
 fn json_stringify_array_converts_function_to_null() {
     run_test_actions([TestAction::assert_eq(
         "JSON.stringify([() => {}])",
-        "[null]",
+        js_string!("[null]"),
     )]);
 }
 
@@ -102,7 +105,7 @@ fn json_stringify_array_converts_function_to_null() {
 fn json_stringify_array_converts_symbol_to_null() {
     run_test_actions([TestAction::assert_eq(
         "JSON.stringify([Symbol()])",
-        "[null]",
+        js_string!("[null]"),
     )]);
 }
 #[test]
@@ -147,19 +150,22 @@ fn json_stringify_no_args() {
 
 #[test]
 fn json_stringify_fractional_numbers() {
-    run_test_actions([TestAction::assert_eq("JSON.stringify(1.2)", "1.2")]);
+    run_test_actions([TestAction::assert_eq(
+        "JSON.stringify(1.2)",
+        js_string!("1.2"),
+    )]);
 }
 
 #[test]
 fn json_stringify_pretty_print() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({a: "b", b: "c"}, undefined, 4)"#,
-        indoc! {r#"
+        js_string!(indoc! {r#"
             {
                 "a": "b",
                 "b": "c"
             }"#
-        },
+        }),
     )]);
 }
 
@@ -167,12 +173,12 @@ fn json_stringify_pretty_print() {
 fn json_stringify_pretty_print_four_spaces() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({a: "b", b: "c"}, undefined, 4.3)"#,
-        indoc! {r#"
+        js_string!(indoc! {r#"
             {
                 "a": "b",
                 "b": "c"
             }"#
-        },
+        }),
     )]);
 }
 
@@ -180,12 +186,12 @@ fn json_stringify_pretty_print_four_spaces() {
 fn json_stringify_pretty_print_twenty_spaces() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({a: "b", b: "c"}, undefined, 20)"#,
-        indoc! {r#"
+        js_string!(indoc! {r#"
             {
                       "a": "b",
                       "b": "c"
             }"#
-        },
+        }),
     )]);
 }
 
@@ -193,12 +199,12 @@ fn json_stringify_pretty_print_twenty_spaces() {
 fn json_stringify_pretty_print_with_number_object() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({a: "b", b: "c"}, undefined, new Number(10))"#,
-        indoc! {r#"
+        js_string!(indoc! {r#"
             {
                       "a": "b",
                       "b": "c"
             }"#
-        },
+        }),
     )]);
 }
 
@@ -206,7 +212,7 @@ fn json_stringify_pretty_print_with_number_object() {
 fn json_stringify_pretty_print_bad_space_argument() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({a: "b", b: "c"}, undefined, [])"#,
-        r#"{"a":"b","b":"c"}"#,
+        js_string!(r#"{"a":"b","b":"c"}"#),
     )]);
 }
 
@@ -214,12 +220,12 @@ fn json_stringify_pretty_print_bad_space_argument() {
 fn json_stringify_pretty_print_with_too_long_string() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({a: "b", b: "c"}, undefined, "abcdefghijklmn")"#,
-        indoc! {r#"
+        js_string!(indoc! {r#"
             {
             abcdefghij"a": "b",
             abcdefghij"b": "c"
             }"#
-        },
+        }),
     )]);
 }
 
@@ -227,12 +233,12 @@ fn json_stringify_pretty_print_with_too_long_string() {
 fn json_stringify_pretty_print_with_string_object() {
     run_test_actions([TestAction::assert_eq(
         r#"JSON.stringify({a: "b", b: "c"}, undefined, new String("abcd"))"#,
-        indoc! {r#"
+        js_string!(indoc! {r#"
             {
             abcd"a": "b",
             abcd"b": "c"
             }"#
-        },
+        }),
     )]);
 }
 
@@ -272,8 +278,8 @@ fn json_parse_object_with_reviver() {
 
                 var jsonObj = JSON.parse(jsonString, dataReviver);
             "#}),
-        TestAction::assert_eq("jsonObj.firstname", "boa"),
-        TestAction::assert_eq("jsonObj.lastname", "interpreter"),
+        TestAction::assert_eq("jsonObj.firstname", js_string!("boa")),
+        TestAction::assert_eq("jsonObj.lastname", js_string!("interpreter")),
     ]);
 }
 

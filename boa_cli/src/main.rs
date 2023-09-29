@@ -70,6 +70,7 @@ use boa_engine::{
     builtins::promise::PromiseState,
     context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
+    js_string,
     module::{Module, ModuleLoader, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     property::Attribute,
@@ -87,12 +88,21 @@ use std::{
     println,
 };
 
-#[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
+#[cfg(all(
+    target_arch = "x86_64",
+    target_os = "linux",
+    target_env = "gnu",
+    not(feature = "dhat")
+))]
 #[cfg_attr(
     all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
     global_allocator
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
+#[cfg(feature = "dhat")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
 
 /// CLI configuration for Boa.
 static CLI_HISTORY: &str = ".boa_history";
@@ -366,6 +376,9 @@ fn evaluate_files(
 }
 
 fn main() -> Result<(), io::Error> {
+    #[cfg(feature = "dhat")]
+    let _profiler = dhat::Profiler::new_heap();
+
     let args = Opt::parse();
 
     let queue: &dyn JobQueue = &Jobs::default();
@@ -480,7 +493,7 @@ fn main() -> Result<(), io::Error> {
 fn add_runtime(context: &mut Context<'_>) {
     let console = Console::init(context);
     context
-        .register_global_property(Console::NAME, console, Attribute::all())
+        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
         .expect("the console object shouldn't exist");
 }
 

@@ -45,7 +45,7 @@ fn canonical_numeric_index_string(argument: &JsString) -> Option<f64> {
     let n = argument.to_number();
 
     // 3. If ! ToString(n) is argument, return n.
-    if &JsString::from(Number::to_native_string(n)) == argument {
+    if &Number::to_js_string(n) == argument {
         return Some(n);
     }
 

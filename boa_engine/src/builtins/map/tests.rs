@@ -1,4 +1,4 @@
-use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -74,7 +74,7 @@ fn merge() {
                 let merged2 = new Map([...second, ...third]);
             "#}),
         TestAction::assert_eq("merged1.size", 3),
-        TestAction::assert_eq("merged1.get('2')", "second two"),
+        TestAction::assert_eq("merged1.get('2')", js_string!("second two")),
         TestAction::assert_eq("merged2.size", 4),
     ]);
 }
@@ -85,8 +85,8 @@ fn get() {
         TestAction::run(indoc! {r#"
                 let map = new Map([["1", "one"], ["2", "two"]]);
             "#}),
-        TestAction::assert_eq("map.get('1')", "one"),
-        TestAction::assert_eq("map.get('2')", "two"),
+        TestAction::assert_eq("map.get('1')", js_string!("one")),
+        TestAction::assert_eq("map.get('2')", js_string!("two")),
         TestAction::assert_eq("map.get('3')", JsValue::undefined()),
         TestAction::assert_eq("map.get()", JsValue::undefined()),
     ]);
@@ -98,7 +98,7 @@ fn set() {
         TestAction::run("let map = new Map();"),
         TestAction::assert("map.set(); map.has(undefined)"),
         TestAction::assert_eq("map.get()", JsValue::undefined()),
-        TestAction::assert_eq("map.set('1', 'one'); map.get('1')", "one"),
+        TestAction::assert_eq("map.set('1', 'one'); map.get('1')", js_string!("one")),
         TestAction::assert("map.set('2'); map.has('2')"),
         TestAction::assert_eq("map.get('2')", JsValue::undefined()),
     ]);
@@ -148,7 +148,7 @@ fn keys() {
                 let item2 = keysIterator.next();
                 let item3 = keysIterator.next();
             "#}),
-        TestAction::assert_eq("item1.value", "0"),
+        TestAction::assert_eq("item1.value", js_string!("0")),
         TestAction::assert_eq("item2.value", 1),
         TestAction::assert("item3.done"),
     ]);
@@ -187,8 +187,8 @@ fn values() {
                 let item2 = valuesIterator.next();
                 let item3 = valuesIterator.next();
             "#}),
-        TestAction::assert_eq("item1.value", "foo"),
-        TestAction::assert_eq("item2.value", "bar"),
+        TestAction::assert_eq("item1.value", js_string!("foo")),
+        TestAction::assert_eq("item2.value", js_string!("bar")),
         TestAction::assert("item3.done"),
     ]);
 }
@@ -201,7 +201,7 @@ fn modify_key() {
                 let map = new Map([[obj, "one"]]);
                 obj.field = "Value";
             "#}),
-        TestAction::assert_eq("map.get(obj)", "one"),
+        TestAction::assert_eq("map.get(obj)", js_string!("one")),
     ]);
 }
 

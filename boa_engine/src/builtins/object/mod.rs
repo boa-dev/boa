@@ -28,7 +28,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
@@ -46,14 +46,14 @@ pub struct Object;
 
 impl IntrinsicObject for Object {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let legacy_proto_getter = BuiltInBuilder::callable(realm, Self::legacy_proto_getter)
-            .name("get __proto__")
+            .name(js_string!("get __proto__"))
             .build();
 
         let legacy_setter_proto = BuiltInBuilder::callable(realm, Self::legacy_proto_setter)
-            .name("set __proto__")
+            .name(js_string!("set __proto__"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -64,46 +64,74 @@ impl IntrinsicObject for Object {
                 Some(legacy_setter_proto),
                 Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::has_own_property, "hasOwnProperty", 1)
-            .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::to_locale_string, "toLocaleString", 0)
-            .method(Self::value_of, "valueOf", 0)
-            .method(Self::is_prototype_of, "isPrototypeOf", 1)
-            .method(Self::legacy_define_getter, "__defineGetter__", 2)
-            .method(Self::legacy_define_setter, "__defineSetter__", 2)
-            .method(Self::legacy_lookup_getter, "__lookupGetter__", 1)
-            .method(Self::legacy_lookup_setter, "__lookupSetter__", 1)
-            .static_method(Self::create, "create", 2)
-            .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
-            .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
-            .static_method(Self::define_property, "defineProperty", 3)
-            .static_method(Self::define_properties, "defineProperties", 2)
-            .static_method(Self::assign, "assign", 2)
-            .static_method(Self::is, "is", 2)
-            .static_method(Self::keys, "keys", 1)
-            .static_method(Self::values, "values", 1)
-            .static_method(Self::entries, "entries", 1)
-            .static_method(Self::seal, "seal", 1)
-            .static_method(Self::is_sealed, "isSealed", 1)
-            .static_method(Self::freeze, "freeze", 1)
-            .static_method(Self::is_frozen, "isFrozen", 1)
-            .static_method(Self::prevent_extensions, "preventExtensions", 1)
-            .static_method(Self::is_extensible, "isExtensible", 1)
+            .method(Self::has_own_property, js_string!("hasOwnProperty"), 1)
+            .method(
+                Self::property_is_enumerable,
+                js_string!("propertyIsEnumerable"),
+                1,
+            )
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
+            .method(Self::value_of, js_string!("valueOf"), 0)
+            .method(Self::is_prototype_of, js_string!("isPrototypeOf"), 1)
+            .method(
+                Self::legacy_define_getter,
+                js_string!("__defineGetter__"),
+                2,
+            )
+            .method(
+                Self::legacy_define_setter,
+                js_string!("__defineSetter__"),
+                2,
+            )
+            .method(
+                Self::legacy_lookup_getter,
+                js_string!("__lookupGetter__"),
+                1,
+            )
+            .method(
+                Self::legacy_lookup_setter,
+                js_string!("__lookupSetter__"),
+                1,
+            )
+            .static_method(Self::create, js_string!("create"), 2)
+            .static_method(Self::set_prototype_of, js_string!("setPrototypeOf"), 2)
+            .static_method(Self::get_prototype_of, js_string!("getPrototypeOf"), 1)
+            .static_method(Self::define_property, js_string!("defineProperty"), 3)
+            .static_method(Self::define_properties, js_string!("defineProperties"), 2)
+            .static_method(Self::assign, js_string!("assign"), 2)
+            .static_method(Self::is, js_string!("is"), 2)
+            .static_method(Self::keys, js_string!("keys"), 1)
+            .static_method(Self::values, js_string!("values"), 1)
+            .static_method(Self::entries, js_string!("entries"), 1)
+            .static_method(Self::seal, js_string!("seal"), 1)
+            .static_method(Self::is_sealed, js_string!("isSealed"), 1)
+            .static_method(Self::freeze, js_string!("freeze"), 1)
+            .static_method(Self::is_frozen, js_string!("isFrozen"), 1)
+            .static_method(Self::prevent_extensions, js_string!("preventExtensions"), 1)
+            .static_method(Self::is_extensible, js_string!("isExtensible"), 1)
             .static_method(
                 Self::get_own_property_descriptor,
-                "getOwnPropertyDescriptor",
+                js_string!("getOwnPropertyDescriptor"),
                 2,
             )
             .static_method(
                 Self::get_own_property_descriptors,
-                "getOwnPropertyDescriptors",
+                js_string!("getOwnPropertyDescriptors"),
                 1,
             )
-            .static_method(Self::get_own_property_names, "getOwnPropertyNames", 1)
-            .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
-            .static_method(Self::has_own, "hasOwn", 2)
-            .static_method(Self::from_entries, "fromEntries", 1)
+            .static_method(
+                Self::get_own_property_names,
+                js_string!("getOwnPropertyNames"),
+                1,
+            )
+            .static_method(
+                Self::get_own_property_symbols,
+                js_string!("getOwnPropertySymbols"),
+                1,
+            )
+            .static_method(Self::has_own, js_string!("hasOwn"), 2)
+            .static_method(Self::from_entries, js_string!("fromEntries"), 1)
             .build();
     }
 
@@ -113,7 +141,7 @@ impl IntrinsicObject for Object {
 }
 
 impl BuiltInObject for Object {
-    const NAME: &'static str = "Object";
+    const NAME: JsString = StaticJsStrings::OBJECT;
 }
 
 impl BuiltInConstructor for Object {
@@ -791,11 +819,11 @@ impl Object {
     ) -> JsResult<JsValue> {
         // 1. If the this value is undefined, return "[object Undefined]".
         if this.is_undefined() {
-            return Ok("[object Undefined]".into());
+            return Ok(js_string!("[object Undefined]").into());
         }
         // 2. If the this value is null, return "[object Null]".
         if this.is_null() {
-            return Ok("[object Null]".into());
+            return Ok(js_string!("[object Null]").into());
         }
         // 3. Let O be ! ToObject(this value).
         let o = this.to_object(context).expect("toObject cannot fail here");
@@ -1391,7 +1419,9 @@ fn get_own_property_keys(
         match (r#type, &next_key) {
             (PropertyKeyType::String, PropertyKey::String(_))
             | (PropertyKeyType::Symbol, PropertyKey::Symbol(_)) => Some(next_key.into()),
-            (PropertyKeyType::String, PropertyKey::Index(index)) => Some(index.to_string().into()),
+            (PropertyKeyType::String, PropertyKey::Index(index)) => {
+                Some(js_string!(index.to_string()).into())
+            }
             _ => None,
         }
     });

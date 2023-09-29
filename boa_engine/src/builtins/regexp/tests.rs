@@ -1,4 +1,6 @@
-use crate::{object::JsObject, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{
+    js_string, object::JsObject, run_test_actions, JsNativeErrorKind, JsValue, TestAction,
+};
 use indoc::indoc;
 
 #[test]
@@ -33,7 +35,7 @@ fn species() {
         // return-value
         TestAction::assert("Object.is(accessor.call(thisVal), thisVal)"),
         // symbol-species-name
-        TestAction::assert_eq("name.value", "get [Symbol.species]"),
+        TestAction::assert_eq("name.value", js_string!("get [Symbol.species]")),
         TestAction::assert("!name.enumerable"),
         TestAction::assert("!name.writable"),
         TestAction::assert("name.configurable"),
@@ -61,7 +63,7 @@ fn flags() {
         TestAction::assert("!re_gi.dotAll"),
         TestAction::assert("!re_gi.unicode"),
         TestAction::assert("!re_gi.sticky"),
-        TestAction::assert_eq("re_gi.flags", "gi"),
+        TestAction::assert_eq("re_gi.flags", js_string!("gi")),
         //
         TestAction::assert("!re_sm.global"),
         TestAction::assert("!re_sm.ignoreCase"),
@@ -69,7 +71,7 @@ fn flags() {
         TestAction::assert("re_sm.dotAll"),
         TestAction::assert("!re_sm.unicode"),
         TestAction::assert("!re_sm.sticky"),
-        TestAction::assert_eq("re_sm.flags", "ms"),
+        TestAction::assert_eq("re_sm.flags", js_string!("ms")),
         //
         TestAction::assert("!re_u.global"),
         TestAction::assert("!re_u.ignoreCase"),
@@ -77,7 +79,7 @@ fn flags() {
         TestAction::assert("!re_u.dotAll"),
         TestAction::assert("re_u.unicode"),
         TestAction::assert("!re_u.sticky"),
-        TestAction::assert_eq("re_u.flags", "u"),
+        TestAction::assert_eq("re_u.flags", js_string!("u")),
     ]);
 }
 
@@ -110,7 +112,7 @@ fn exec() {
         TestAction::assert_eq("result.index", 4),
         TestAction::assert_eq(
             "result.input",
-            "The Quick Brown Fox Jumps Over The Lazy Dog",
+            js_string!("The Quick Brown Fox Jumps Over The Lazy Dog"),
         ),
     ]);
 }
@@ -134,11 +136,11 @@ fn no_panic_on_parse_fail() {
 #[test]
 fn to_string() {
     run_test_actions([
-        TestAction::assert_eq("(new RegExp('a+b+c')).toString()", "/a+b+c/"),
-        TestAction::assert_eq("(new RegExp('bar', 'g')).toString()", "/bar/g"),
-        TestAction::assert_eq(r"(new RegExp('\\n', 'g')).toString()", r"/\n/g"),
-        TestAction::assert_eq(r"/\n/g.toString()", r"/\n/g"),
-        TestAction::assert_eq(r"/,\;/.toString()", r"/,\;/"),
+        TestAction::assert_eq("(new RegExp('a+b+c')).toString()", js_string!("/a+b+c/")),
+        TestAction::assert_eq("(new RegExp('bar', 'g')).toString()", js_string!("/bar/g")),
+        TestAction::assert_eq(r"(new RegExp('\\n', 'g')).toString()", js_string!(r"/\n/g")),
+        TestAction::assert_eq(r"/\n/g.toString()", js_string!(r"/\n/g")),
+        TestAction::assert_eq(r"/,\;/.toString()", js_string!(r"/,\;/")),
     ]);
 }
 #[test]
@@ -160,7 +162,7 @@ fn search() {
         TestAction::assert("!length.writable"),
         TestAction::assert("length.configurable"),
         // name
-        TestAction::assert_eq("name.value", "[Symbol.search]"),
+        TestAction::assert_eq("name.value", js_string!("[Symbol.search]")),
         TestAction::assert("!name.enumerable"),
         TestAction::assert("!name.writable"),
         TestAction::assert("name.configurable"),

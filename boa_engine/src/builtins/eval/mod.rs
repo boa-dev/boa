@@ -17,6 +17,7 @@ use crate::{
     error::JsNativeError,
     object::JsObject,
     realm::Realm,
+    string::common::StaticJsStrings,
     vm::{CallFrame, Opcode},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
@@ -33,7 +34,7 @@ pub(crate) struct Eval;
 
 impl IntrinsicObject for Eval {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::callable_with_intrinsic::<Self>(realm, Self::eval)
             .name(Self::NAME)
@@ -47,7 +48,7 @@ impl IntrinsicObject for Eval {
 }
 
 impl BuiltInObject for Eval {
-    const NAME: &'static str = "eval";
+    const NAME: JsString = StaticJsStrings::EVAL;
 }
 
 impl Eval {

@@ -101,6 +101,10 @@ lto = "fat"
 # Makes sure that all code is compiled together, for LTO
 codegen-units = 1
 
+[profile.release-dbg]
+inherits = "release"
+debug = true
+
 # The test profile, used for `cargo test`.
 [profile.test]
 # Enables thin local LTO and some optimizations.

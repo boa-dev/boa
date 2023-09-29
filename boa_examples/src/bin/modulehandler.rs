@@ -2,8 +2,8 @@
 // the require/module.exports pattern
 
 use boa_engine::{
-    native_function::NativeFunction, prelude::JsObject, property::Attribute, Context, JsResult,
-    JsValue, Source,
+    js_string, native_function::NativeFunction, prelude::JsObject, property::Attribute, Context,
+    JsResult, JsValue, Source,
 };
 use std::fs::read_to_string;
 
@@ -20,16 +20,29 @@ fn main() {
     let mut ctx = Context::default();
 
     // Adding custom implementation that mimics 'require'
-    ctx.register_global_callable("require", 0, NativeFunction::from_fn_ptr(require))
-        .unwrap();
+    ctx.register_global_callable(
+        js_string!("require"),
+        0,
+        NativeFunction::from_fn_ptr(require),
+    )
+    .unwrap();
 
     // Adding custom object that mimics 'module.exports'
     let moduleobj = JsObject::default();
     moduleobj
-        .set("exports", JsValue::from(" "), false, &mut ctx)
+        .set(
+            js_string!("exports"),
+            JsValue::from(js_string!(" ")),
+            false,
+            &mut ctx,
+        )
         .unwrap();
-    ctx.register_global_property("module", JsValue::from(moduleobj), Attribute::default())
-        .unwrap();
+    ctx.register_global_property(
+        js_string!("module"),
+        JsValue::from(moduleobj),
+        Attribute::default(),
+    )
+    .unwrap();
 
     // Instantiating the engine with the execution context
     // Loading, parsing and executing the JS code from the source file
@@ -58,7 +71,7 @@ fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context<'_>) -> JsResult<JsV
 
         // Access module.exports and return as ResultValue
         let global_obj = ctx.global_object();
-        let module = global_obj.get("module", ctx).unwrap();
-        module.as_object().unwrap().get("exports", ctx)
+        let module = global_obj.get(js_string!("module"), ctx).unwrap();
+        module.as_object().unwrap().get(js_string!("exports"), ctx)
     }
 }

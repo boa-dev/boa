@@ -1,5 +1,7 @@
 use super::Array;
-use crate::{builtins::Number, run_test_actions, Context, JsNativeErrorKind, JsValue, TestAction};
+use crate::{
+    builtins::Number, js_string, run_test_actions, Context, JsNativeErrorKind, JsValue, TestAction,
+};
 use indoc::indoc;
 
 #[test]
@@ -36,7 +38,7 @@ fn of() {
         TestAction::assert("arrayEquals(Array.of(), [])"),
         TestAction::run("let a = Array.of.call(Date, 'a', undefined, 3);"),
         TestAction::assert("a instanceof Date"),
-        TestAction::assert_eq("a[0]", "a"),
+        TestAction::assert_eq("a[0]", js_string!("a")),
         TestAction::assert_eq("a[1]", JsValue::undefined()),
         TestAction::assert_eq("a[2]", 3),
         TestAction::assert_eq("a.length", 3),
@@ -72,18 +74,18 @@ fn copy_within() {
 #[test]
 fn join() {
     run_test_actions([
-        TestAction::assert_eq("[].join('.')", ""),
-        TestAction::assert_eq("['a'].join('.')", "a"),
-        TestAction::assert_eq("['a', 'b', 'c'].join('.')", "a.b.c"),
+        TestAction::assert_eq("[].join('.')", js_string!()),
+        TestAction::assert_eq("['a'].join('.')", js_string!("a")),
+        TestAction::assert_eq("['a', 'b', 'c'].join('.')", js_string!("a.b.c")),
     ]);
 }
 
 #[test]
 fn to_string() {
     run_test_actions([
-        TestAction::assert_eq("[].toString()", ""),
-        TestAction::assert_eq("['a'].toString()", "a"),
-        TestAction::assert_eq("['a', 'b', 'c'].toString()", "a,b,c"),
+        TestAction::assert_eq("[].toString()", js_string!()),
+        TestAction::assert_eq("['a'].toString()", js_string!("a")),
+        TestAction::assert_eq("['a', 'b', 'c'].toString()", js_string!("a,b,c")),
     ]);
 }
 
@@ -113,7 +115,7 @@ fn every() {
 fn find() {
     run_test_actions([TestAction::assert_eq(
         "['a', 'b', 'c'].find(e => e == 'a')",
-        "a",
+        js_string!("a"),
     )]);
 }
 
@@ -347,7 +349,7 @@ fn fill_obj_ref() {
                 let a = new Array(3).fill(obj);
                 obj.hi = 'hi'
             "#}),
-        TestAction::assert_eq("a[2].hi", "hi"),
+        TestAction::assert_eq("a[2].hi", js_string!("hi")),
     ]);
 }
 

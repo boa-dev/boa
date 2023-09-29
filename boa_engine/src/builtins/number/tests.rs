@@ -1,10 +1,11 @@
 use crate::{
-    builtins::Number, run_test_actions, value::AbstractRelation, JsNativeErrorKind, TestAction,
+    builtins::Number, js_string, run_test_actions, value::AbstractRelation, JsNativeErrorKind,
+    TestAction,
 };
 
 #[test]
 fn integer_number_primitive_to_number_object() {
-    run_test_actions([TestAction::assert_eq("(100).toString()", "100")]);
+    run_test_actions([TestAction::assert_eq("(100).toString()", js_string!("100"))]);
 }
 
 #[test]
@@ -24,23 +25,29 @@ fn call_number() {
 #[test]
 fn to_exponential() {
     run_test_actions([
-        TestAction::assert_eq("Number().toExponential()", "0e+0"),
-        TestAction::assert_eq("Number(5).toExponential()", "5e+0"),
-        TestAction::assert_eq("Number(1.234).toExponential()", "1.234e+0"),
-        TestAction::assert_eq("Number(1234).toExponential()", "1.234e+3"),
-        TestAction::assert_eq("Number('I am also not a number').toExponential()", "NaN"),
-        TestAction::assert_eq("Number('1.23e+2').toExponential()", "1.23e+2"),
+        TestAction::assert_eq("Number().toExponential()", js_string!("0e+0")),
+        TestAction::assert_eq("Number(5).toExponential()", js_string!("5e+0")),
+        TestAction::assert_eq("Number(1.234).toExponential()", js_string!("1.234e+0")),
+        TestAction::assert_eq("Number(1234).toExponential()", js_string!("1.234e+3")),
+        TestAction::assert_eq(
+            "Number('I am also not a number').toExponential()",
+            js_string!("NaN"),
+        ),
+        TestAction::assert_eq("Number('1.23e+2').toExponential()", js_string!("1.23e+2")),
     ]);
 }
 
 #[test]
 fn to_fixed() {
     run_test_actions([
-        TestAction::assert_eq("Number().toFixed()", "0"),
-        TestAction::assert_eq("Number('3.456e+4').toFixed()", "34560"),
-        TestAction::assert_eq("Number('3.456e-4').toFixed()", "0"),
-        TestAction::assert_eq("Number(5).toFixed()", "5"),
-        TestAction::assert_eq("Number('I am also not a number').toFixed()", "NaN"),
+        TestAction::assert_eq("Number().toFixed()", js_string!("0")),
+        TestAction::assert_eq("Number('3.456e+4').toFixed()", js_string!("34560")),
+        TestAction::assert_eq("Number('3.456e-4').toFixed()", js_string!("0")),
+        TestAction::assert_eq("Number(5).toFixed()", js_string!("5")),
+        TestAction::assert_eq(
+            "Number('I am also not a number').toFixed()",
+            js_string!("NaN"),
+        ),
     ]);
 }
 
@@ -49,10 +56,10 @@ fn to_locale_string() {
     // TODO: We don't actually do any locale checking here
     // To honor the spec we should print numbers according to user locale.
     run_test_actions([
-        TestAction::assert_eq("Number().toLocaleString()", "0"),
-        TestAction::assert_eq("Number(5).toLocaleString()", "5"),
-        TestAction::assert_eq("Number('345600').toLocaleString()", "345600"),
-        TestAction::assert_eq("Number(-25).toLocaleString()", "-25"),
+        TestAction::assert_eq("Number().toLocaleString()", js_string!("0")),
+        TestAction::assert_eq("Number(5).toLocaleString()", js_string!("5")),
+        TestAction::assert_eq("Number('345600').toLocaleString()", js_string!("345600")),
+        TestAction::assert_eq("Number(-25).toLocaleString()", js_string!("-25")),
     ]);
 }
 
@@ -60,21 +67,21 @@ fn to_locale_string() {
 fn to_precision() {
     const ERROR: &str = "precision must be an integer at least 1 and no greater than 100";
     run_test_actions([
-        TestAction::assert_eq("(1/0).toPrecision(3)", "Infinity"),
-        TestAction::assert_eq("Number().toPrecision()", "0"),
-        TestAction::assert_eq("Number().toPrecision(undefined)", "0"),
-        TestAction::assert_eq("(123456789).toPrecision(1)", "1e+8"),
-        TestAction::assert_eq("(123456789).toPrecision(4)", "1.235e+8"),
-        TestAction::assert_eq("(123456789).toPrecision(9)", "123456789"),
-        TestAction::assert_eq("(-123456789).toPrecision(4)", "-1.235e+8"),
+        TestAction::assert_eq("(1/0).toPrecision(3)", js_string!("Infinity")),
+        TestAction::assert_eq("Number().toPrecision()", js_string!("0")),
+        TestAction::assert_eq("Number().toPrecision(undefined)", js_string!("0")),
+        TestAction::assert_eq("(123456789).toPrecision(1)", js_string!("1e+8")),
+        TestAction::assert_eq("(123456789).toPrecision(4)", js_string!("1.235e+8")),
+        TestAction::assert_eq("(123456789).toPrecision(9)", js_string!("123456789")),
+        TestAction::assert_eq("(-123456789).toPrecision(4)", js_string!("-1.235e+8")),
         TestAction::assert_eq(
             "(123456789).toPrecision(50)",
-            "123456789.00000000000000000000000000000000000000000",
+            js_string!("123456789.00000000000000000000000000000000000000000"),
         ),
-        TestAction::assert_eq("(0.1).toPrecision(4)", "0.1000"),
+        TestAction::assert_eq("(0.1).toPrecision(4)", js_string!("0.1000")),
         TestAction::assert_eq(
             "(1/3).toPrecision(60)",
-            "0.333333333333333314829616256247390992939472198486328125000000",
+            js_string!("0.333333333333333314829616256247390992939472198486328125000000"),
         ),
         TestAction::assert_native_error("(1).toPrecision(101)", JsNativeErrorKind::Range, ERROR),
         TestAction::assert_native_error("(1).toPrecision(0)", JsNativeErrorKind::Range, ERROR),
@@ -86,90 +93,132 @@ fn to_precision() {
 #[test]
 fn to_string() {
     run_test_actions([
-        TestAction::assert_eq("Number(NaN).toString()", "NaN"),
-        TestAction::assert_eq("Number(1/0).toString()", "Infinity"),
-        TestAction::assert_eq("Number(-1/0).toString()", "-Infinity"),
-        TestAction::assert_eq("Number(0).toString()", "0"),
-        TestAction::assert_eq("Number(9).toString()", "9"),
-        TestAction::assert_eq("Number(90).toString()", "90"),
-        TestAction::assert_eq("Number(90.12).toString()", "90.12"),
-        TestAction::assert_eq("Number(0.1).toString()", "0.1"),
-        TestAction::assert_eq("Number(0.01).toString()", "0.01"),
-        TestAction::assert_eq("Number(0.0123).toString()", "0.0123"),
-        TestAction::assert_eq("Number(0.00001).toString()", "0.00001"),
-        TestAction::assert_eq("Number(0.000001).toString()", "0.000001"),
-        TestAction::assert_eq("Number(NaN).toString(16)", "NaN"),
-        TestAction::assert_eq("Number(1/0).toString(16)", "Infinity"),
-        TestAction::assert_eq("Number(-1/0).toString(16)", "-Infinity"),
-        TestAction::assert_eq("Number(0).toString(16)", "0"),
-        TestAction::assert_eq("Number(9).toString(16)", "9"),
-        TestAction::assert_eq("Number(90).toString(16)", "5a"),
-        TestAction::assert_eq("Number(90.12).toString(16)", "5a.1eb851eb852"),
-        TestAction::assert_eq("Number(0.1).toString(16)", "0.1999999999999a"),
-        TestAction::assert_eq("Number(0.01).toString(16)", "0.028f5c28f5c28f6"),
-        TestAction::assert_eq("Number(0.0123).toString(16)", "0.032617c1bda511a"),
+        TestAction::assert_eq("Number(NaN).toString()", js_string!("NaN")),
+        TestAction::assert_eq("Number(1/0).toString()", js_string!("Infinity")),
+        TestAction::assert_eq("Number(-1/0).toString()", js_string!("-Infinity")),
+        TestAction::assert_eq("Number(0).toString()", js_string!("0")),
+        TestAction::assert_eq("Number(9).toString()", js_string!("9")),
+        TestAction::assert_eq("Number(90).toString()", js_string!("90")),
+        TestAction::assert_eq("Number(90.12).toString()", js_string!("90.12")),
+        TestAction::assert_eq("Number(0.1).toString()", js_string!("0.1")),
+        TestAction::assert_eq("Number(0.01).toString()", js_string!("0.01")),
+        TestAction::assert_eq("Number(0.0123).toString()", js_string!("0.0123")),
+        TestAction::assert_eq("Number(0.00001).toString()", js_string!("0.00001")),
+        TestAction::assert_eq("Number(0.000001).toString()", js_string!("0.000001")),
+        TestAction::assert_eq("Number(NaN).toString(16)", js_string!("NaN")),
+        TestAction::assert_eq("Number(1/0).toString(16)", js_string!("Infinity")),
+        TestAction::assert_eq("Number(-1/0).toString(16)", js_string!("-Infinity")),
+        TestAction::assert_eq("Number(0).toString(16)", js_string!("0")),
+        TestAction::assert_eq("Number(9).toString(16)", js_string!("9")),
+        TestAction::assert_eq("Number(90).toString(16)", js_string!("5a")),
+        TestAction::assert_eq("Number(90.12).toString(16)", js_string!("5a.1eb851eb852")),
+        TestAction::assert_eq("Number(0.1).toString(16)", js_string!("0.1999999999999a")),
+        TestAction::assert_eq("Number(0.01).toString(16)", js_string!("0.028f5c28f5c28f6")),
+        TestAction::assert_eq(
+            "Number(0.0123).toString(16)",
+            js_string!("0.032617c1bda511a"),
+        ),
         TestAction::assert_eq(
             "Number(111111111111111111111).toString(16)",
-            "605f9f6dd18bc8000",
+            js_string!("605f9f6dd18bc8000"),
         ),
         TestAction::assert_eq(
             "Number(1111111111111111111111).toString(16)",
-            "3c3bc3a4a2f75c0000",
+            js_string!("3c3bc3a4a2f75c0000"),
         ),
         TestAction::assert_eq(
             "Number(11111111111111111111111).toString(16)",
-            "25a55a46e5da9a00000",
+            js_string!("25a55a46e5da9a00000"),
         ),
-        TestAction::assert_eq("Number(0.00001).toString(16)", "0.0000a7c5ac471b4788"),
-        TestAction::assert_eq("Number(0.000001).toString(16)", "0.000010c6f7a0b5ed8d"),
-        TestAction::assert_eq("Number(0.0000001).toString(16)", "0.000001ad7f29abcaf48"),
-        TestAction::assert_eq("Number(0.00000012).toString(16)", "0.000002036565348d256"),
-        TestAction::assert_eq("Number(0.000000123).toString(16)", "0.0000021047ee22aa466"),
-        TestAction::assert_eq("Number(0.00000001).toString(16)", "0.0000002af31dc4611874"),
-        TestAction::assert_eq("Number(0.000000012).toString(16)", "0.000000338a23b87483be"),
+        TestAction::assert_eq(
+            "Number(0.00001).toString(16)",
+            js_string!("0.0000a7c5ac471b4788"),
+        ),
+        TestAction::assert_eq(
+            "Number(0.000001).toString(16)",
+            js_string!("0.000010c6f7a0b5ed8d"),
+        ),
+        TestAction::assert_eq(
+            "Number(0.0000001).toString(16)",
+            js_string!("0.000001ad7f29abcaf48"),
+        ),
+        TestAction::assert_eq(
+            "Number(0.00000012).toString(16)",
+            js_string!("0.000002036565348d256"),
+        ),
+        TestAction::assert_eq(
+            "Number(0.000000123).toString(16)",
+            js_string!("0.0000021047ee22aa466"),
+        ),
+        TestAction::assert_eq(
+            "Number(0.00000001).toString(16)",
+            js_string!("0.0000002af31dc4611874"),
+        ),
+        TestAction::assert_eq(
+            "Number(0.000000012).toString(16)",
+            js_string!("0.000000338a23b87483be"),
+        ),
         TestAction::assert_eq(
             "Number(0.0000000123).toString(16)",
-            "0.00000034d3fe36aaa0a2",
+            js_string!("0.00000034d3fe36aaa0a2"),
         ),
-        TestAction::assert_eq("Number(-0).toString(16)", "0"),
-        TestAction::assert_eq("Number(-9).toString(16)", "-9"),
+        TestAction::assert_eq("Number(-0).toString(16)", js_string!("0")),
+        TestAction::assert_eq("Number(-9).toString(16)", js_string!("-9")),
         //
-        TestAction::assert_eq("Number(-90).toString(16)", "-5a"),
-        TestAction::assert_eq("Number(-90.12).toString(16)", "-5a.1eb851eb852"),
-        TestAction::assert_eq("Number(-0.1).toString(16)", "-0.1999999999999a"),
-        TestAction::assert_eq("Number(-0.01).toString(16)", "-0.028f5c28f5c28f6"),
-        TestAction::assert_eq("Number(-0.0123).toString(16)", "-0.032617c1bda511a"),
+        TestAction::assert_eq("Number(-90).toString(16)", js_string!("-5a")),
+        TestAction::assert_eq("Number(-90.12).toString(16)", js_string!("-5a.1eb851eb852")),
+        TestAction::assert_eq("Number(-0.1).toString(16)", js_string!("-0.1999999999999a")),
+        TestAction::assert_eq(
+            "Number(-0.01).toString(16)",
+            js_string!("-0.028f5c28f5c28f6"),
+        ),
+        TestAction::assert_eq(
+            "Number(-0.0123).toString(16)",
+            js_string!("-0.032617c1bda511a"),
+        ),
         TestAction::assert_eq(
             "Number(-111111111111111111111).toString(16)",
-            "-605f9f6dd18bc8000",
+            js_string!("-605f9f6dd18bc8000"),
         ),
         TestAction::assert_eq(
             "Number(-1111111111111111111111).toString(16)",
-            "-3c3bc3a4a2f75c0000",
+            js_string!("-3c3bc3a4a2f75c0000"),
         ),
         TestAction::assert_eq(
             "Number(-11111111111111111111111).toString(16)",
-            "-25a55a46e5da9a00000",
+            js_string!("-25a55a46e5da9a00000"),
         ),
-        TestAction::assert_eq("Number(-0.00001).toString(16)", "-0.0000a7c5ac471b4788"),
-        TestAction::assert_eq("Number(-0.000001).toString(16)", "-0.000010c6f7a0b5ed8d"),
-        TestAction::assert_eq("Number(-0.0000001).toString(16)", "-0.000001ad7f29abcaf48"),
-        TestAction::assert_eq("Number(-0.00000012).toString(16)", "-0.000002036565348d256"),
+        TestAction::assert_eq(
+            "Number(-0.00001).toString(16)",
+            js_string!("-0.0000a7c5ac471b4788"),
+        ),
+        TestAction::assert_eq(
+            "Number(-0.000001).toString(16)",
+            js_string!("-0.000010c6f7a0b5ed8d"),
+        ),
+        TestAction::assert_eq(
+            "Number(-0.0000001).toString(16)",
+            js_string!("-0.000001ad7f29abcaf48"),
+        ),
+        TestAction::assert_eq(
+            "Number(-0.00000012).toString(16)",
+            js_string!("-0.000002036565348d256"),
+        ),
         TestAction::assert_eq(
             "Number(-0.000000123).toString(16)",
-            "-0.0000021047ee22aa466",
+            js_string!("-0.0000021047ee22aa466"),
         ),
         TestAction::assert_eq(
             "Number(-0.00000001).toString(16)",
-            "-0.0000002af31dc4611874",
+            js_string!("-0.0000002af31dc4611874"),
         ),
         TestAction::assert_eq(
             "Number(-0.000000012).toString(16)",
-            "-0.000000338a23b87483be",
+            js_string!("-0.000000338a23b87483be"),
         ),
         TestAction::assert_eq(
             "Number(-0.0000000123).toString(16)",
-            "-0.00000034d3fe36aaa0a2",
+            js_string!("-0.00000034d3fe36aaa0a2"),
         ),
     ]);
 }
@@ -177,26 +226,26 @@ fn to_string() {
 #[test]
 fn num_to_string_exponential() {
     run_test_actions([
-        TestAction::assert_eq("(0).toString()", "0"),
-        TestAction::assert_eq("(-0).toString()", "0"),
+        TestAction::assert_eq("(0).toString()", js_string!("0")),
+        TestAction::assert_eq("(-0).toString()", js_string!("0")),
         TestAction::assert_eq(
             "(111111111111111111111).toString()",
-            "111111111111111110000",
+            js_string!("111111111111111110000"),
         ),
         TestAction::assert_eq(
             "(1111111111111111111111).toString()",
-            "1.1111111111111111e+21",
+            js_string!("1.1111111111111111e+21"),
         ),
         TestAction::assert_eq(
             "(11111111111111111111111).toString()",
-            "1.1111111111111111e+22",
+            js_string!("1.1111111111111111e+22"),
         ),
-        TestAction::assert_eq("(0.0000001).toString()", "1e-7"),
-        TestAction::assert_eq("(0.00000012).toString()", "1.2e-7"),
-        TestAction::assert_eq("(0.000000123).toString()", "1.23e-7"),
-        TestAction::assert_eq("(0.00000001).toString()", "1e-8"),
-        TestAction::assert_eq("(0.000000012).toString()", "1.2e-8"),
-        TestAction::assert_eq("(0.0000000123).toString()", "1.23e-8"),
+        TestAction::assert_eq("(0.0000001).toString()", js_string!("1e-7")),
+        TestAction::assert_eq("(0.00000012).toString()", js_string!("1.2e-7")),
+        TestAction::assert_eq("(0.000000123).toString()", js_string!("1.23e-7")),
+        TestAction::assert_eq("(0.00000001).toString()", js_string!("1e-8")),
+        TestAction::assert_eq("(0.000000012).toString()", js_string!("1.2e-8")),
+        TestAction::assert_eq("(0.0000000123).toString()", js_string!("1.23e-8")),
     ]);
 }
 
@@ -475,7 +524,13 @@ fn number_is_safe_integer() {
 #[test]
 fn issue_2717() {
     run_test_actions([
-        TestAction::assert_eq("(0.1600057092765239).toString(36)", "0.5rd85dm1ixq"),
-        TestAction::assert_eq("(0.23046743672210102).toString(36)", "0.8aoosla2phj"),
+        TestAction::assert_eq(
+            "(0.1600057092765239).toString(36)",
+            js_string!("0.5rd85dm1ixq"),
+        ),
+        TestAction::assert_eq(
+            "(0.23046743672210102).toString(36)",
+            js_string!("0.8aoosla2phj"),
+        ),
     ]);
 }

@@ -16,9 +16,11 @@ use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     realm::Realm,
-    Context, JsResult, JsValue,
+    string::common::StaticJsStrings,
+    Context, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -30,11 +32,11 @@ pub(crate) struct Boolean;
 
 impl IntrinsicObject for Boolean {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::value_of, "valueOf", 0)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 
@@ -44,7 +46,7 @@ impl IntrinsicObject for Boolean {
 }
 
 impl BuiltInObject for Boolean {
-    const NAME: &'static str = "Boolean";
+    const NAME: JsString = StaticJsStrings::BOOLEAN;
 }
 
 impl BuiltInConstructor for Boolean {
@@ -111,7 +113,7 @@ impl Boolean {
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let boolean = Self::this_boolean_value(this)?;
-        Ok(JsValue::new(boolean.to_string()))
+        Ok(JsValue::new(js_string!(boolean.to_string())))
     }
 
     /// The valueOf() method returns the primitive value of a `Boolean` object.

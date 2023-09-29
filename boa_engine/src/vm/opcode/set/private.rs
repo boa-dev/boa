@@ -1,4 +1,5 @@
 use crate::{
+    js_string,
     object::PrivateElement,
     property::PropertyDescriptor,
     string::utf16,
@@ -81,7 +82,7 @@ impl Operation for SetPrivateMethod {
         let value = context.vm.pop();
         let value = value.as_callable().expect("method must be callable");
 
-        let name_string = format!("#{}", name.to_std_string_escaped());
+        let name_string = js_string!(utf16!("#"), &name);
         let desc = PropertyDescriptor::builder()
             .value(name_string)
             .writable(false)
@@ -89,7 +90,7 @@ impl Operation for SetPrivateMethod {
             .configurable(true)
             .build();
         value
-            .__define_own_property__(&utf16!("name").into(), desc, context)
+            .__define_own_property__(&js_string!("name").into(), desc, context)
             .expect("failed to set name property on private method");
 
         let object = context.vm.pop();

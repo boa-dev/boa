@@ -1,4 +1,4 @@
-use crate::{run_test_actions, JsNativeErrorKind, TestAction};
+use crate::{js_string, run_test_actions, JsNativeErrorKind, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -87,7 +87,7 @@ fn for_loop() {
                     b
                 }
             "#},
-            "hello",
+            js_string!("hello"),
         ),
         TestAction::assert_eq(
             indoc! {r#"
@@ -192,7 +192,7 @@ fn try_break_finally_edge_cases() {
         a + b
     "#;
 
-    run_test_actions([TestAction::assert_eq(scenario, "foobar")]);
+    run_test_actions([TestAction::assert_eq(scenario, js_string!("foobar"))]);
 }
 
 #[test]
@@ -228,7 +228,7 @@ fn try_break_labels() {
         }
     "#;
 
-    run_test_actions([TestAction::assert_eq(scenario, "finally! :)")]);
+    run_test_actions([TestAction::assert_eq(scenario, js_string!("finally! :)"))]);
 }
 
 #[test]
@@ -268,10 +268,10 @@ fn break_nested_labels_loops_and_try() {
 
     run_test_actions([
         TestAction::run(scenario),
-        TestAction::assert_eq("nestedLabels(true)", "foobar broke-foo"),
+        TestAction::assert_eq("nestedLabels(true)", js_string!("foobar broke-foo")),
         TestAction::assert_eq(
             "nestedLabels(false)",
-            "foobar broke-bar broke-spacer broke-foo",
+            js_string!("foobar broke-bar broke-spacer broke-foo"),
         ),
     ]);
 }
@@ -376,7 +376,7 @@ fn break_environment_gauntlet() {
         }
     "#;
 
-    run_test_actions([TestAction::assert_eq(scenario, "5601try_block")]);
+    run_test_actions([TestAction::assert_eq(scenario, js_string!("5601try_block"))]);
 }
 
 #[test]
@@ -707,7 +707,7 @@ fn for_loop_break_label() {
             }
             str
         "#},
-        "01",
+        js_string!("01"),
     )]);
 }
 
@@ -822,7 +822,7 @@ fn for_in_break_label() {
             }
             str
         "#},
-        "0",
+        js_string!("0"),
     )]);
 }
 
@@ -843,6 +843,6 @@ fn for_in_continue_label() {
             }
             str
         "#},
-        "00",
+        js_string!("00"),
     )]);
 }

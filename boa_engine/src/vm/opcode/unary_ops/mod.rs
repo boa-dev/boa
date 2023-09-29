@@ -29,7 +29,7 @@ impl Operation for TypeOf {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        context.vm.push(value.type_of());
+        context.vm.push(value.js_type_of());
         Ok(CompletionType::Normal)
     }
 }

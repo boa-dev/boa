@@ -2,7 +2,7 @@ use boa_macros::utf16;
 use indoc::indoc;
 
 use super::*;
-use crate::{run_test_actions, TestAction};
+use crate::{js_string, run_test_actions, TestAction};
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -10,7 +10,7 @@ use std::hash::{Hash, Hasher};
 #[test]
 fn string_to_value() {
     let s = String::from("Hello");
-    let v = JsValue::new(s);
+    let v = JsValue::new(js_string!(s));
     assert!(v.is_string());
     assert!(!v.is_null());
 }
@@ -27,9 +27,9 @@ fn get_set_field() {
     run_test_actions([TestAction::assert_context(|ctx| {
         let obj = &JsObject::with_object_proto(ctx.intrinsics());
         // Create string and convert it to a Value
-        let s = JsValue::new("bar");
-        obj.set("foo", s, false, ctx).unwrap();
-        obj.get("foo", ctx).unwrap() == JsValue::new("bar")
+        let s = JsValue::new(js_string!("bar"));
+        obj.set(js_string!("foo"), s, false, ctx).unwrap();
+        obj.get(js_string!("foo"), ctx).unwrap() == JsValue::new(js_string!("bar"))
     })]);
 }
 
@@ -198,9 +198,9 @@ fn float_display() {
 #[test]
 fn string_length_is_not_enumerable() {
     run_test_actions([TestAction::assert_context(|ctx| {
-        let object = JsValue::new("foo").to_object(ctx).unwrap();
+        let object = JsValue::new(js_string!("foo")).to_object(ctx).unwrap();
         let length_desc = object
-            .__get_own_property__(&PropertyKey::from("length"), ctx)
+            .__get_own_property__(&js_string!("length").into(), ctx)
             .unwrap()
             .unwrap();
         !length_desc.expect_enumerable()
@@ -211,9 +211,9 @@ fn string_length_is_not_enumerable() {
 fn string_length_is_in_utf16_codeunits() {
     run_test_actions([TestAction::assert_context(|ctx| {
         // 😀 is one Unicode code point, but 2 UTF-16 code units
-        let object = JsValue::new("😀").to_object(ctx).unwrap();
+        let object = JsValue::new(js_string!("😀")).to_object(ctx).unwrap();
         let length_desc = object
-            .__get_own_property__(&PropertyKey::from("length"), ctx)
+            .__get_own_property__(&js_string!("length").into(), ctx)
             .unwrap()
             .unwrap();
         length_desc
@@ -231,14 +231,17 @@ fn add_number_and_number() {
 
 #[test]
 fn add_number_and_string() {
-    run_test_actions([TestAction::assert_eq("1 + \" + 2 = 3\"", "1 + 2 = 3")]);
+    run_test_actions([TestAction::assert_eq(
+        "1 + \" + 2 = 3\"",
+        js_string!("1 + 2 = 3"),
+    )]);
 }
 
 #[test]
 fn add_string_and_string() {
     run_test_actions([TestAction::assert_eq(
         "\"Hello\" + \", world\"",
-        "Hello, world",
+        js_string!("Hello, world"),
     )]);
 }
 
@@ -251,7 +254,7 @@ fn add_number_object_and_number() {
 fn add_number_object_and_string_object() {
     run_test_actions([TestAction::assert_eq(
         "new Number(10) + new String(\"0\")",
-        "100",
+        js_string!("100"),
     )]);
 }
 
@@ -324,7 +327,7 @@ fn assign_pow_number_and_string() {
 #[test]
 fn display_string() {
     let s = String::from("Hello");
-    let v = JsValue::new(s);
+    let v = JsValue::new(js_string!(s));
     assert_eq!(v.display().to_string(), "\"Hello\"");
 }
 
@@ -434,7 +437,9 @@ fn to_integer_or_infinity() {
             IntegerOrInfinity::Integer(11)
         );
         assert_eq!(
-            JsValue::new("12").to_integer_or_infinity(ctx).unwrap(),
+            JsValue::new(js_string!("12"))
+                .to_integer_or_infinity(ctx)
+                .unwrap(),
             IntegerOrInfinity::Integer(12)
         );
         assert_eq!(
@@ -452,8 +457,8 @@ fn test_accessors() {
                 let a = { get b() { return "c" }, set b(value) { arr = arr.concat([value]) }} ;
                 a.b = "a";
             "#}),
-        TestAction::assert_eq("a.b", "c"),
-        TestAction::assert_eq("arr[0]", "a"),
+        TestAction::assert_eq("a.b", js_string!("c")),
+        TestAction::assert_eq("arr[0]", js_string!("a")),
     ]);
 }
 
@@ -678,7 +683,7 @@ fn to_string() {
         assert_eq!(&JsValue::new(55).to_string(ctx).unwrap(), utf16!("55"));
         assert_eq!(&JsValue::new(55.0).to_string(ctx).unwrap(), utf16!("55"));
         assert_eq!(
-            &JsValue::new("hello").to_string(ctx).unwrap(),
+            &JsValue::new(js_string!("hello")).to_string(ctx).unwrap(),
             utf16!("hello")
         );
     })]);
@@ -691,7 +696,7 @@ fn to_bigint() {
         assert!(JsValue::undefined().to_bigint(ctx).is_err());
         assert!(JsValue::new(55).to_bigint(ctx).is_err());
         assert!(JsValue::new(10.0).to_bigint(ctx).is_err());
-        assert!(JsValue::new("100").to_bigint(ctx).is_ok());
+        assert!(JsValue::new(js_string!("100")).to_bigint(ctx).is_ok());
     })]);
 }
 
@@ -724,7 +729,7 @@ mod cyclic_conversions {
                 let a = [b, b];
                 JSON.stringify(a)
             "#},
-            "[[],[]]",
+            js_string!("[[],[]]"),
         )]);
     }
 
@@ -739,7 +744,7 @@ mod cyclic_conversions {
                 a[0] = a;
                 a.toString()
             "#},
-            "",
+            js_string!(),
         )]);
     }
 

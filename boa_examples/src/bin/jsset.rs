@@ -1,6 +1,6 @@
 // This example shows how to manipulate a Javascript Set using Rust code.
 #![allow(clippy::bool_assert_comparison)]
-use boa_engine::{object::builtins::JsSet, Context, JsError, JsValue};
+use boa_engine::{js_string, object::builtins::JsSet, Context, JsError, JsValue};
 
 fn main() -> Result<(), JsError> {
     // New `Context` for a new Javascript executor.
@@ -17,21 +17,21 @@ fn main() -> Result<(), JsError> {
     set.clear(context)?;
     assert_eq!(set.size()?, 0);
 
-    set.add("one", context)?;
-    set.add("two", context)?;
-    set.add("three", context)?;
+    set.add(js_string!("one"), context)?;
+    set.add(js_string!("two"), context)?;
+    set.add(js_string!("three"), context)?;
 
-    assert!(set.has("one", context)?);
-    assert_eq!(set.has("One", context)?, false);
+    assert!(set.has(js_string!("one"), context)?);
+    assert_eq!(set.has(js_string!("One"), context)?, false);
 
-    set.delete("two", context)?;
+    set.delete(js_string!("two"), context)?;
 
-    assert_eq!(set.has("two", context)?, false);
+    assert_eq!(set.has(js_string!("two"), context)?, false);
 
     set.clear(context)?;
 
-    assert_eq!(set.has("one", context)?, false);
-    assert_eq!(set.has("three", context)?, false);
+    assert_eq!(set.has(js_string!("one"), context)?, false);
+    assert_eq!(set.has(js_string!("three"), context)?, false);
     assert_eq!(set.size()?, 0);
 
     // Add a slice into a set;

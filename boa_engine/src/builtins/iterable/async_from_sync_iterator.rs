@@ -5,6 +5,7 @@ use crate::{
         BuiltInBuilder, IntrinsicObject, Promise,
     },
     context::intrinsics::Intrinsics,
+    js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, ObjectData},
     realm::Realm,
@@ -28,7 +29,7 @@ pub struct AsyncFromSyncIterator {
 
 impl IntrinsicObject for AsyncFromSyncIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("AsyncFromSyncIteratorPrototype", "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
@@ -38,9 +39,9 @@ impl IntrinsicObject for AsyncFromSyncIterator {
                     .iterator_prototypes()
                     .async_iterator(),
             )
-            .static_method(Self::next, "next", 1)
-            .static_method(Self::r#return, "return", 1)
-            .static_method(Self::throw, "throw", 1)
+            .static_method(Self::next, js_string!("next"), 1)
+            .static_method(Self::r#return, js_string!("return"), 1)
+            .static_method(Self::throw, js_string!("throw"), 1)
             .build();
     }
 

@@ -12,8 +12,9 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -25,7 +26,7 @@ pub struct AsyncFunction;
 
 impl IntrinsicObject for AsyncFunction {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().function().constructor())
@@ -46,7 +47,7 @@ impl IntrinsicObject for AsyncFunction {
 }
 
 impl BuiltInObject for AsyncFunction {
-    const NAME: &'static str = "AsyncFunction";
+    const NAME: JsString = StaticJsStrings::ASYNC_FUNCTION;
 }
 
 impl BuiltInConstructor for AsyncFunction {

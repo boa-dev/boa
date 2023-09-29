@@ -25,7 +25,7 @@ use crate::{
     js_string,
     object::{JsFunction, JsObject},
     realm::Realm,
-    string::CodePoint,
+    string::{common::StaticJsStrings, CodePoint},
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
@@ -93,7 +93,7 @@ impl IntrinsicObject for DecodeUri {
 }
 
 impl BuiltInObject for DecodeUri {
-    const NAME: &'static str = "decodeURI";
+    const NAME: JsString = StaticJsStrings::DECODE_URI;
 }
 
 pub(crate) struct DecodeUriComponent;
@@ -115,7 +115,7 @@ impl IntrinsicObject for DecodeUriComponent {
 }
 
 impl BuiltInObject for DecodeUriComponent {
-    const NAME: &'static str = "decodeURIComponent";
+    const NAME: JsString = StaticJsStrings::DECODE_URI_COMPONENT;
 }
 
 pub(crate) struct EncodeUri;
@@ -133,7 +133,7 @@ impl IntrinsicObject for EncodeUri {
 }
 
 impl BuiltInObject for EncodeUri {
-    const NAME: &'static str = "encodeURI";
+    const NAME: JsString = StaticJsStrings::ENCODE_URI;
 }
 pub(crate) struct EncodeUriComponent;
 
@@ -154,7 +154,7 @@ impl IntrinsicObject for EncodeUriComponent {
 }
 
 impl BuiltInObject for EncodeUriComponent {
-    const NAME: &'static str = "encodeURIComponent";
+    const NAME: JsString = StaticJsStrings::ENCODE_URI_COMPONENT;
 }
 
 /// Builtin JavaScript `decodeURI ( encodedURI )` function.

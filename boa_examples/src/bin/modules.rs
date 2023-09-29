@@ -2,6 +2,7 @@ use std::{error::Error, path::Path};
 
 use boa_engine::{
     builtins::promise::PromiseState,
+    js_string,
     module::{ModuleLoader, SimpleModuleLoader},
     object::FunctionObjectBuilder,
     Context, JsError, JsNativeError, JsValue, Module, NativeFunction,
@@ -111,14 +112,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // We can access the full namespace of the module with all its exports.
     let namespace = module.namespace(context);
-    let result = namespace.get("result", context)?;
+    let result = namespace.get(js_string!("result"), context)?;
 
     println!("result = {}", result.display());
 
-    assert_eq!(namespace.get("result", context)?, JsValue::from(5));
+    assert_eq!(
+        namespace.get(js_string!("result"), context)?,
+        JsValue::from(5)
+    );
 
     let mix = namespace
-        .get("mix", context)?
+        .get(js_string!("mix"), context)?
         .as_callable()
         .cloned()
         .ok_or_else(|| JsNativeError::typ().with_message("mix export wasn't a function!"))?;

@@ -8,6 +8,7 @@ use crate::{
         Array,
     },
     context::{icu::Icu, BoaProvider},
+    js_string,
     object::JsObject,
     string::utf16,
     Context, JsNativeError, JsResult, JsValue,
@@ -563,7 +564,9 @@ where
 
     // 5. Return CreateArrayFromList(supportedLocales).
     Ok(Array::create_array_from_list(
-        elements.into_iter().map(|loc| loc.to_string().into()),
+        elements
+            .into_iter()
+            .map(|loc| js_string!(loc.to_string()).into()),
         context,
     ))
 }

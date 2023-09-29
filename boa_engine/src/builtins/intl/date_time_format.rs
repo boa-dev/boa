@@ -16,7 +16,7 @@ use crate::{
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     Context, JsResult, JsString, JsValue,
 };
 
@@ -64,7 +64,7 @@ pub struct DateTimeFormat {
 
 impl IntrinsicObject for DateTimeFormat {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm).build();
     }
@@ -75,7 +75,7 @@ impl IntrinsicObject for DateTimeFormat {
 }
 
 impl BuiltInObject for DateTimeFormat {
-    const NAME: &'static str = "DateTimeFormat";
+    const NAME: JsString = StaticJsStrings::DATE_TIME_FORMAT;
 }
 
 impl BuiltInConstructor for DateTimeFormat {
@@ -272,7 +272,7 @@ pub(crate) fn to_date_time_options(
         // a. For each property name prop of « "year", "month", "day" », do
         for property in [utf16!("year"), utf16!("month"), utf16!("day")] {
             // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
-            options.create_data_property_or_throw(property, "numeric", context)?;
+            options.create_data_property_or_throw(property, js_string!("numeric"), context)?;
         }
     }
 
@@ -281,7 +281,7 @@ pub(crate) fn to_date_time_options(
         // a. For each property name prop of « "hour", "minute", "second" », do
         for property in [utf16!("hour"), utf16!("minute"), utf16!("second")] {
             // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
-            options.create_data_property_or_throw(property, "numeric", context)?;
+            options.create_data_property_or_throw(property, js_string!("numeric"), context)?;
         }
     }
 

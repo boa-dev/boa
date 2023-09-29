@@ -67,6 +67,7 @@
 
 use crate::{
     error::JsNativeError,
+    js_string,
     native_function::NativeFunction,
     object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -121,7 +122,7 @@ impl<T: Class> ClassConstructor for T {
                 .into());
         }
 
-        let class = context.global_object().get(T::NAME, context)?;
+        let class = context.global_object().get(js_string!(T::NAME), context)?;
         let JsValue::Object(ref class_constructor) = class else {
             return Err(JsNativeError::typ()
                 .with_message(format!(
@@ -190,7 +191,8 @@ impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
     where
         N: AsRef<str>,
     {
-        self.builder.method(function, name.as_ref(), length);
+        self.builder
+            .method(function, js_string!(name.as_ref()), length);
         self
     }
 
@@ -206,7 +208,8 @@ impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
     where
         N: AsRef<str>,
     {
-        self.builder.static_method(function, name.as_ref(), length);
+        self.builder
+            .static_method(function, js_string!(name.as_ref()), length);
         self
     }
 

@@ -1,4 +1,8 @@
-use crate::{builtins::options::get_option, realm::Realm, string::utf16};
+use crate::{
+    builtins::options::get_option,
+    realm::Realm,
+    string::{common::StaticJsStrings, utf16},
+};
 use boa_profiler::Profiler;
 use icu_collator::CaseFirst;
 use icu_datetime::options::preferences::HourCycle;
@@ -33,113 +37,113 @@ pub(crate) struct Locale;
 
 impl IntrinsicObject for Locale {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let base_name = BuiltInBuilder::callable(realm, Self::base_name)
-            .name("get baseName")
+            .name(js_string!("get baseName"))
             .build();
 
         let calendar = BuiltInBuilder::callable(realm, Self::calendar)
-            .name("get calendar")
+            .name(js_string!("get calendar"))
             .build();
 
         let case_first = BuiltInBuilder::callable(realm, Self::case_first)
-            .name("get caseFirst")
+            .name(js_string!("get caseFirst"))
             .build();
 
         let collation = BuiltInBuilder::callable(realm, Self::collation)
-            .name("get collation")
+            .name(js_string!("get collation"))
             .build();
 
         let hour_cycle = BuiltInBuilder::callable(realm, Self::hour_cycle)
-            .name("get hourCycle")
+            .name(js_string!("get hourCycle"))
             .build();
 
         let numeric = BuiltInBuilder::callable(realm, Self::numeric)
-            .name("get numeric")
+            .name(js_string!("get numeric"))
             .build();
 
         let numbering_system = BuiltInBuilder::callable(realm, Self::numbering_system)
-            .name("get numberingSystem")
+            .name(js_string!("get numberingSystem"))
             .build();
 
         let language = BuiltInBuilder::callable(realm, Self::language)
-            .name("get language")
+            .name(js_string!("get language"))
             .build();
 
         let script = BuiltInBuilder::callable(realm, Self::script)
-            .name("get script")
+            .name(js_string!("get script"))
             .build();
 
         let region = BuiltInBuilder::callable(realm, Self::region)
-            .name("get region")
+            .name(js_string!("get region"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                "Intl.Locale",
+                js_string!("Intl.Locale"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::maximize, "maximize", 0)
-            .method(Self::minimize, "minimize", 0)
-            .method(Self::to_string, "toString", 0)
+            .method(Self::maximize, js_string!("maximize"), 0)
+            .method(Self::minimize, js_string!("minimize"), 0)
+            .method(Self::to_string, js_string!("toString"), 0)
             .accessor(
-                utf16!("baseName"),
+                js_string!("baseName"),
                 Some(base_name),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("calendar"),
+                js_string!("calendar"),
                 Some(calendar),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("caseFirst"),
+                js_string!("caseFirst"),
                 Some(case_first),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("collation"),
+                js_string!("collation"),
                 Some(collation),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("hourCycle"),
+                js_string!("hourCycle"),
                 Some(hour_cycle),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("numeric"),
+                js_string!("numeric"),
                 Some(numeric),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("numberingSystem"),
+                js_string!("numberingSystem"),
                 Some(numbering_system),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("language"),
+                js_string!("language"),
                 Some(language),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("script"),
+                js_string!("script"),
                 Some(script),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("region"),
+                js_string!("region"),
                 Some(region),
                 None,
                 Attribute::CONFIGURABLE,
@@ -153,7 +157,7 @@ impl IntrinsicObject for Locale {
 }
 
 impl BuiltInObject for Locale {
-    const NAME: &'static str = "Locale";
+    const NAME: JsString = StaticJsStrings::LOCALE;
 }
 
 impl BuiltInConstructor for Locale {

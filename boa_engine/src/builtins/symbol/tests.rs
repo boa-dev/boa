@@ -1,4 +1,4 @@
-use crate::{run_test_actions, JsValue, TestAction};
+use crate::{js_string, run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -12,7 +12,7 @@ fn call_symbol_and_check_return_type() {
 fn print_symbol_expect_description() {
     run_test_actions([TestAction::assert_eq(
         "String(Symbol('Hello'))",
-        "Symbol(Hello)",
+        js_string!("Symbol(Hello)"),
     )]);
 }
 

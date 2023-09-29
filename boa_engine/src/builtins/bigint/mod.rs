@@ -16,12 +16,14 @@ use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::JsObject,
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, PreferredType},
-    Context, JsArgs, JsBigInt, JsResult, JsValue,
+    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 use num_bigint::ToBigInt;
@@ -37,13 +39,13 @@ pub struct BigInt;
 
 impl IntrinsicObject for BigInt {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::value_of, "valueOf", 0)
-            .static_method(Self::as_int_n, "asIntN", 2)
-            .static_method(Self::as_uint_n, "asUintN", 2)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::value_of, js_string!("valueOf"), 0)
+            .static_method(Self::as_int_n, js_string!("asIntN"), 2)
+            .static_method(Self::as_uint_n, js_string!("asUintN"), 2)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -58,7 +60,7 @@ impl IntrinsicObject for BigInt {
 }
 
 impl BuiltInObject for BigInt {
-    const NAME: &'static str = "BigInt";
+    const NAME: JsString = StaticJsStrings::BIG_INT;
 }
 
 impl BuiltInConstructor for BigInt {
@@ -179,7 +181,7 @@ impl BigInt {
         let radix_mv = if radix.is_undefined() {
             // 5. If radixMV = 10, return ! ToString(x).
             // Note: early return optimization.
-            return Ok(x.to_string().into());
+            return Ok(js_string!(x.to_string()).into());
         // 3. Else, let radixMV be ? ToIntegerOrInfinity(radix).
         } else {
             radix.to_integer_or_infinity(context)?
@@ -197,14 +199,14 @@ impl BigInt {
 
         // 5. If radixMV = 10, return ! ToString(x).
         if radix_mv == 10 {
-            return Ok(x.to_string().into());
+            return Ok(js_string!(x.to_string()).into());
         }
 
         // 1. Let x be ? thisBigIntValue(this value).
         // 6. Return the String representation of this Number value using the radix specified by radixMV.
         //    Letters a-z are used for digits with values 10 through 35.
         //    The precise algorithm is implementation-defined, however the algorithm should be a generalization of that specified in 6.1.6.2.23.
-        Ok(JsValue::new(x.to_string_radix(radix_mv as u32)))
+        Ok(JsValue::new(js_string!(x.to_string_radix(radix_mv as u32))))
     }
 
     /// `BigInt.prototype.valueOf()`

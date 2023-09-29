@@ -20,6 +20,7 @@ use crate::{
     builtins,
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
+    js_string,
     module::{IdleModuleLoader, ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::{shape::RootShape, FunctionObjectBuilder, JsObject},
@@ -28,7 +29,7 @@ use crate::{
     realm::Realm,
     script::Script,
     vm::{ActiveRunnable, CallFrame, Vm},
-    JsResult, JsValue, Source,
+    JsResult, JsString, JsValue, Source,
 };
 use boa_ast::{expression::Identifier, StatementList};
 use boa_interner::Interner;
@@ -48,6 +49,7 @@ use crate::vm::RuntimeLimits;
 ///
 /// ```rust
 /// use boa_engine::{
+///     js_string,
 ///     object::ObjectInitializer,
 ///     property::{Attribute, PropertyDescriptor},
 ///     Context, Source,
@@ -69,9 +71,9 @@ use crate::vm::RuntimeLimits;
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&mut context)
-///     .property("x", 12, Attribute::READONLY)
+///     .property(js_string!("x"), 12, Attribute::READONLY)
 ///     .build();
-/// context.register_global_property("arg", arg, Attribute::all());
+/// context.register_global_property(js_string!("arg"), arg, Attribute::all());
 ///
 /// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
 ///
@@ -196,6 +198,7 @@ impl<'host> Context<'host> {
     /// # Example
     /// ```
     /// use boa_engine::{
+    ///     js_string,
     ///     object::ObjectInitializer,
     ///     property::{Attribute, PropertyDescriptor},
     ///     Context,
@@ -204,15 +207,23 @@ impl<'host> Context<'host> {
     /// let mut context = Context::default();
     ///
     /// context
-    ///     .register_global_property("myPrimitiveProperty", 10, Attribute::all())
+    ///     .register_global_property(
+    ///         js_string!("myPrimitiveProperty"),
+    ///         10,
+    ///         Attribute::all(),
+    ///     )
     ///     .expect("property shouldn't exist");
     ///
     /// let object = ObjectInitializer::new(&mut context)
-    ///     .property("x", 0, Attribute::all())
-    ///     .property("y", 1, Attribute::all())
+    ///     .property(js_string!("x"), 0, Attribute::all())
+    ///     .property(js_string!("y"), 1, Attribute::all())
     ///     .build();
     /// context
-    ///     .register_global_property("myObjectProperty", object, Attribute::all())
+    ///     .register_global_property(
+    ///         js_string!("myObjectProperty"),
+    ///         object,
+    ///         Attribute::all(),
+    ///     )
     ///     .expect("property shouldn't exist");
     /// ```
     pub fn register_global_property<K, V>(
@@ -251,12 +262,12 @@ impl<'host> Context<'host> {
     /// can use the [`FunctionObjectBuilder`] API.
     pub fn register_global_callable(
         &mut self,
-        name: &str,
+        name: JsString,
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
         let function = FunctionObjectBuilder::new(&self.realm, body)
-            .name(name)
+            .name(name.clone())
             .length(length)
             .constructor(true)
             .build();
@@ -284,12 +295,12 @@ impl<'host> Context<'host> {
     /// `constructable`. Usage of the function as a constructor will produce a `TypeError`.
     pub fn register_global_builtin_callable(
         &mut self,
-        name: &str,
+        name: JsString,
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
         let function = FunctionObjectBuilder::new(&self.realm, body)
-            .name(name)
+            .name(name.clone())
             .length(length)
             .constructor(false)
             .build();
@@ -336,7 +347,7 @@ impl<'host> Context<'host> {
             .configurable(T::ATTRIBUTES.configurable());
 
         self.global_object()
-            .define_property_or_throw(T::NAME, property, self)?;
+            .define_property_or_throw(js_string!(T::NAME), property, self)?;
 
         Ok(())
     }

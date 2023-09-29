@@ -17,12 +17,13 @@ use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::common::StaticJsStrings,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
-    Context, JsArgs, JsResult,
+    Context, JsArgs, JsResult, JsString,
 };
 use boa_profiler::Profiler;
 use num_traits::float::FloatCore;
@@ -47,47 +48,51 @@ pub(crate) struct Number;
 
 impl IntrinsicObject for Number {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_property(utf16!("EPSILON"), f64::EPSILON, attribute)
+            .static_property(js_string!("EPSILON"), f64::EPSILON, attribute)
             .static_property(
-                utf16!("MAX_SAFE_INTEGER"),
+                js_string!("MAX_SAFE_INTEGER"),
                 Self::MAX_SAFE_INTEGER,
                 attribute,
             )
             .static_property(
-                utf16!("MIN_SAFE_INTEGER"),
+                js_string!("MIN_SAFE_INTEGER"),
                 Self::MIN_SAFE_INTEGER,
                 attribute,
             )
-            .static_property(utf16!("MAX_VALUE"), Self::MAX_VALUE, attribute)
-            .static_property(utf16!("MIN_VALUE"), Self::MIN_VALUE, attribute)
-            .static_property(utf16!("NEGATIVE_INFINITY"), f64::NEG_INFINITY, attribute)
-            .static_property(utf16!("POSITIVE_INFINITY"), f64::INFINITY, attribute)
-            .static_property(utf16!("NaN"), f64::NAN, attribute)
+            .static_property(js_string!("MAX_VALUE"), Self::MAX_VALUE, attribute)
+            .static_property(js_string!("MIN_VALUE"), Self::MIN_VALUE, attribute)
             .static_property(
-                utf16!("parseInt"),
+                js_string!("NEGATIVE_INFINITY"),
+                f64::NEG_INFINITY,
+                attribute,
+            )
+            .static_property(js_string!("POSITIVE_INFINITY"), f64::INFINITY, attribute)
+            .static_property(js_string!("NaN"), f64::NAN, attribute)
+            .static_property(
+                js_string!("parseInt"),
                 realm.intrinsics().objects().parse_int(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                utf16!("parseFloat"),
+                js_string!("parseFloat"),
                 realm.intrinsics().objects().parse_float(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(Self::number_is_finite, "isFinite", 1)
-            .static_method(Self::number_is_nan, "isNaN", 1)
-            .static_method(Self::is_safe_integer, "isSafeInteger", 1)
-            .static_method(Self::number_is_integer, "isInteger", 1)
-            .method(Self::to_exponential, "toExponential", 1)
-            .method(Self::to_fixed, "toFixed", 1)
-            .method(Self::to_locale_string, "toLocaleString", 0)
-            .method(Self::to_precision, "toPrecision", 1)
-            .method(Self::to_string, "toString", 1)
-            .method(Self::value_of, "valueOf", 0)
+            .static_method(Self::number_is_finite, js_string!("isFinite"), 1)
+            .static_method(Self::number_is_nan, js_string!("isNaN"), 1)
+            .static_method(Self::is_safe_integer, js_string!("isSafeInteger"), 1)
+            .static_method(Self::number_is_integer, js_string!("isInteger"), 1)
+            .method(Self::to_exponential, js_string!("toExponential"), 1)
+            .method(Self::to_fixed, js_string!("toFixed"), 1)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
+            .method(Self::to_precision, js_string!("toPrecision"), 1)
+            .method(Self::to_string, js_string!("toString"), 1)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 
@@ -97,7 +102,7 @@ impl IntrinsicObject for Number {
 }
 
 impl BuiltInObject for Number {
-    const NAME: &'static str = "Number";
+    const NAME: JsString = StaticJsStrings::NUMBER;
 }
 
 impl BuiltInConstructor for Number {
@@ -222,7 +227,7 @@ impl Number {
         };
         // 4. If x is not finite, return ! Number::toString(x).
         if !this_num.is_finite() {
-            return Ok(JsValue::new(Self::to_native_string(this_num)));
+            return Ok(JsValue::new(Self::to_js_string(this_num)));
         }
         // Get rid of the '-' sign for -0.0
         let this_num = if this_num == 0. { 0. } else { this_num };
@@ -276,7 +281,7 @@ impl Number {
 
         // 6. If x is not finite, return ! Number::toString(x).
         if !this_num.is_finite() {
-            Ok(JsValue::new(Self::to_native_string(this_num)))
+            Ok(JsValue::new(Self::to_js_string(this_num)))
         // 10. If x ≥ 10^21, then let m be ! ToString(𝔽(x)).
         } else if this_num >= 1.0e21 {
             Ok(JsValue::new(f64_to_exponential(this_num)))
@@ -284,7 +289,7 @@ impl Number {
             // Get rid of the '-' sign for -0.0 because of 9. If x < 0, then set s to "-".
             let this_num = if this_num == 0_f64 { 0_f64 } else { this_num };
             let this_fixed_num = format!("{this_num:.precision$}");
-            Ok(JsValue::new(this_fixed_num))
+            Ok(JsValue::new(js_string!(this_fixed_num)))
         }
     }
 
@@ -309,7 +314,7 @@ impl Number {
     ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this)?;
         let this_str_num = this_num.to_string();
-        Ok(JsValue::new(this_str_num))
+        Ok(JsValue::new(js_string!(this_str_num)))
     }
 
     /// `flt_str_to_exp` - used in `to_precision`
@@ -494,14 +499,14 @@ impl Number {
                 // iv, v
                 suffix.push_str(&exponent.to_string());
 
-                return Ok(JsValue::new(prefix + &suffix));
+                return Ok(JsValue::new(js_string!(prefix + &suffix)));
             }
         }
 
         // 11
         let e_inc = exponent + 1;
         if e_inc == precision_i32 {
-            return Ok(JsValue::new(prefix + &suffix));
+            return Ok(JsValue::new(js_string!(prefix + &suffix)));
         }
 
         // 12
@@ -515,7 +520,7 @@ impl Number {
         }
 
         // 14
-        Ok(JsValue::new(prefix + &suffix))
+        Ok(JsValue::new(js_string!(prefix + &suffix)))
     }
 
     // https://golang.org/src/math/nextafter.go
@@ -535,7 +540,7 @@ impl Number {
 
     // https://chromium.googlesource.com/v8/v8/+/refs/heads/master/src/numbers/conversions.cc#1230
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_native_string_radix(mut value: f64, radix: u8) -> String {
+    pub(crate) fn to_js_string_radix(mut value: f64, radix: u8) -> JsString {
         assert!(radix >= 2);
         assert!(radix <= 36);
         assert!(value.is_finite());
@@ -639,13 +644,15 @@ impl Number {
 
         let integer_cursor = int_iter.next().expect("integer buffer exhausted").0 + 1;
         let fraction_cursor = fraction_cursor + BUF_SIZE / 2;
-        String::from_utf8_lossy(&buffer[integer_cursor..fraction_cursor]).into()
+        js_string!(&*String::from_utf8_lossy(
+            &buffer[integer_cursor..fraction_cursor]
+        ))
     }
 
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_native_string(x: f64) -> String {
+    pub(crate) fn to_js_string(x: f64) -> JsString {
         let mut buffer = ryu_js::Buffer::new();
-        buffer.format(x).to_string()
+        js_string!(buffer.format(x).to_string())
     }
 
     /// `Number.prototype.toString( [radix] )`
@@ -686,17 +693,17 @@ impl Number {
 
         // 5. If radixNumber = 10, return ! ToString(x).
         if radix_number == 10 {
-            return Ok(JsValue::new(Self::to_native_string(x)));
+            return Ok(JsValue::new(Self::to_js_string(x)));
         }
 
         if x == -0. {
-            return Ok(JsValue::new("0"));
+            return Ok(JsValue::new(js_string!("0")));
         } else if x.is_nan() {
-            return Ok(JsValue::new("NaN"));
+            return Ok(JsValue::new(js_string!("NaN")));
         } else if x.is_infinite() && x.is_sign_positive() {
-            return Ok(JsValue::new("Infinity"));
+            return Ok(JsValue::new(js_string!("Infinity")));
         } else if x.is_infinite() && x.is_sign_negative() {
-            return Ok(JsValue::new("-Infinity"));
+            return Ok(JsValue::new(js_string!("-Infinity")));
         }
 
         // This is a Optimization from the v8 source code to print values that can fit in a single character
@@ -708,7 +715,7 @@ impl Number {
         // }
 
         // 6. Return the String representation of this Number value using the radix specified by radixNumber.
-        Ok(JsValue::new(Self::to_native_string_radix(x, radix_number)))
+        Ok(JsValue::new(Self::to_js_string_radix(x, radix_number)))
     }
 
     /// `Number.prototype.toString()`
@@ -920,22 +927,22 @@ impl Number {
 }
 
 /// Helper function that formats a float as a ES6-style exponential number string.
-fn f64_to_exponential(n: f64) -> String {
-    match n.abs() {
+fn f64_to_exponential(n: f64) -> JsString {
+    js_string!(match n.abs() {
         x if x >= 1.0 || x == 0.0 => format!("{n:e}").replace('e', "e+"),
         _ => format!("{n:e}"),
-    }
+    })
 }
 
 /// Helper function that formats a float as a ES6-style exponential number string with a given precision.
 // We can't use the same approach as in `f64_to_exponential`
 // because in cases like (0.999).toExponential(0) the result will be 1e0.
 // Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
-fn f64_to_exponential_with_precision(n: f64, prec: usize) -> String {
+fn f64_to_exponential_with_precision(n: f64, prec: usize) -> JsString {
     let mut res = format!("{n:.prec$e}");
     let idx = res.find('e').expect("'e' not found in exponential string");
     if res.as_bytes()[idx + 1] != b'-' {
         res.insert(idx + 1, '+');
     }
-    res
+    js_string!(res)
 }

@@ -1,4 +1,5 @@
 use crate::{
+    js_string,
     object::PrivateElement,
     property::PropertyDescriptor,
     string::utf16,
@@ -23,7 +24,7 @@ impl Operation for PushClassPrivateMethod {
         let method = context.vm.pop();
         let method_object = method.as_callable().expect("method must be callable");
 
-        let name_string = format!("#{}", name.to_std_string_escaped());
+        let name_string = js_string!(utf16!("#"), &name);
         let desc = PropertyDescriptor::builder()
             .value(name_string)
             .writable(false)

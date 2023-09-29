@@ -24,7 +24,7 @@ impl IntrinsicObject for Segments {
         let _timer = Profiler::global().start_event("%SegmentsPrototype%", "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(Self::containing, "containing", 1)
+            .static_method(Self::containing, js_string!("containing"), 1)
             .static_method(
                 Self::iterator,
                 (JsSymbol::iterator(), js_string!("[Symbol.iterator]")),

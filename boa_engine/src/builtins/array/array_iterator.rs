@@ -11,6 +11,7 @@ use crate::{
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::{JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
@@ -37,7 +38,7 @@ pub struct ArrayIterator {
 
 impl IntrinsicObject for ArrayIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("ArrayIterator", "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
@@ -47,10 +48,10 @@ impl IntrinsicObject for ArrayIterator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, "next", 0)
+            .static_method(Self::next, js_string!("next"), 0)
             .static_property(
                 JsSymbol::to_string_tag(),
-                "Array Iterator",
+                js_string!("Array Iterator"),
                 Attribute::CONFIGURABLE,
             )
             .build();

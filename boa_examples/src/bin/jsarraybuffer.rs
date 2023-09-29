@@ -1,6 +1,7 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
+    js_string,
     object::builtins::{JsArrayBuffer, JsDataView, JsUint32Array, JsUint8Array},
     property::Attribute,
     Context, JsResult, JsValue,
@@ -52,7 +53,7 @@ fn main() -> JsResult<()> {
     // We can also register it as a global property
     context
         .register_global_property(
-            "myArrayBuffer",
+            js_string!("myArrayBuffer"),
             array_buffer,
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
         )

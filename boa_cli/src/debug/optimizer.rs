@@ -1,4 +1,5 @@
 use boa_engine::{
+    js_string,
     object::{FunctionObjectBuilder, ObjectInitializer},
     optimizer::OptimizerOptions,
     property::Attribute,
@@ -71,13 +72,13 @@ pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
             .build();
     ObjectInitializer::new(context)
         .accessor(
-            "constantFolding",
+            js_string!("constantFolding"),
             Some(get_constant_folding),
             Some(set_constant_folding),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .accessor(
-            "statistics",
+            js_string!("statistics"),
             Some(get_statistics),
             Some(set_statistics),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,

@@ -19,6 +19,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
@@ -48,17 +49,21 @@ impl Service for PluralRules {
 
 impl IntrinsicObject for PluralRules {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
+            .static_method(
+                Self::supported_locales_of,
+                js_string!("supportedLocalesOf"),
+                1,
+            )
             .property(
                 JsSymbol::to_string_tag(),
-                "Intl.PluralRules",
+                js_string!("Intl.PluralRules"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::resolved_options, "resolvedOptions", 0)
-            .method(Self::select, "select", 1)
+            .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
+            .method(Self::select, js_string!("select"), 1)
             .build();
     }
 
@@ -68,7 +73,7 @@ impl IntrinsicObject for PluralRules {
 }
 
 impl BuiltInObject for PluralRules {
-    const NAME: &'static str = "PluralRules";
+    const NAME: JsString = StaticJsStrings::PLURAL_RULES;
 }
 
 impl BuiltInConstructor for PluralRules {
@@ -263,15 +268,15 @@ impl PluralRules {
         options
             .property(
                 js_string!("locale"),
-                plural_rules.locale.to_string(),
+                js_string!(plural_rules.locale.to_string()),
                 Attribute::all(),
             )
             .property(
                 js_string!("type"),
                 match plural_rules.rule_type {
-                    PluralRuleType::Cardinal => "cardinal",
-                    PluralRuleType::Ordinal => "ordinal",
-                    _ => "unknown",
+                    PluralRuleType::Cardinal => js_string!("cardinal"),
+                    PluralRuleType::Ordinal => js_string!("ordinal"),
+                    _ => js_string!("unknown"),
                 },
                 Attribute::all(),
             )
@@ -318,7 +323,7 @@ impl PluralRules {
         options
             .property(
                 js_string!("roundingMode"),
-                plural_rules.format_options.rounding_mode.to_string(),
+                js_string!(plural_rules.format_options.rounding_mode.to_string()),
                 Attribute::all(),
             )
             .property(
@@ -328,10 +333,10 @@ impl PluralRules {
             )
             .property(
                 js_string!("trailingZeroDisplay"),
-                plural_rules
+                js_string!(plural_rules
                     .format_options
                     .trailing_zero_display
-                    .to_string(),
+                    .to_string()),
                 Attribute::all(),
             );
 
@@ -360,7 +365,7 @@ impl PluralRules {
         //     a. Perform ! CreateDataPropertyOrThrow(options, "roundingPriority", "auto").
         options.property(
             js_string!("roundingPriority"),
-            plural_rules.format_options.rounding_priority.to_string(),
+            js_string!(plural_rules.format_options.rounding_priority.to_string()),
             Attribute::all(),
         );
 

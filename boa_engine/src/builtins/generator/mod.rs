@@ -14,13 +14,15 @@ use crate::{
     context::intrinsics::Intrinsics,
     environments::EnvironmentStack,
     error::JsNativeError,
+    js_string,
     object::{JsObject, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
     vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
-    Context, JsArgs, JsError, JsResult,
+    Context, JsArgs, JsError, JsResult, JsString,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
@@ -136,7 +138,7 @@ pub struct Generator {
 
 impl IntrinsicObject for Generator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
@@ -146,9 +148,9 @@ impl IntrinsicObject for Generator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, "next", 1)
-            .static_method(Self::r#return, "return", 1)
-            .static_method(Self::throw, "throw", 1)
+            .static_method(Self::next, js_string!("next"), 1)
+            .static_method(Self::r#return, js_string!("return"), 1)
+            .static_method(Self::throw, js_string!("throw"), 1)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -172,7 +174,7 @@ impl IntrinsicObject for Generator {
 }
 
 impl Generator {
-    const NAME: &'static str = "Generator";
+    const NAME: JsString = StaticJsStrings::GENERATOR;
 
     /// `Generator.prototype.next ( value )`
     ///

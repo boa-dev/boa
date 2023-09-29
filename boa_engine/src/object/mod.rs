@@ -2013,30 +2013,6 @@ pub struct FunctionBinding {
     pub(crate) name: JsString,
 }
 
-impl From<&str> for FunctionBinding {
-    #[inline]
-    fn from(name: &str) -> Self {
-        let name: JsString = name.into();
-
-        Self {
-            binding: name.clone().into(),
-            name,
-        }
-    }
-}
-
-impl From<String> for FunctionBinding {
-    #[inline]
-    fn from(name: String) -> Self {
-        let name: JsString = name.into();
-
-        Self {
-            binding: name.clone().into(),
-            name,
-        }
-    }
-}
-
 impl From<JsString> for FunctionBinding {
     #[inline]
     fn from(name: JsString) -> Self {
@@ -2146,15 +2122,16 @@ impl<'realm> FunctionObjectBuilder<'realm> {
 /// #     JsValue,
 /// #     NativeFunction,
 /// #     object::ObjectInitializer,
-/// #     property::Attribute
+/// #     property::Attribute,
+/// #     js_string,
 /// # };
 /// let mut context = Context::default();
 /// let object = ObjectInitializer::new(&mut context)
-///     .property("hello", "world", Attribute::all())
+///     .property(js_string!("hello"), js_string!("world"), Attribute::all())
 ///     .property(1, 1, Attribute::all())
 ///     .function(
 ///         NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
-///         "func",
+///         js_string!("func"),
 ///         0,
 ///     )
 ///     .build();

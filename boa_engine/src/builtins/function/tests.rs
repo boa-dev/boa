@@ -50,7 +50,7 @@ fn self_mutating_function_when_constructing() {
 #[test]
 fn function_prototype() {
     run_test_actions([
-        TestAction::assert_eq("Function.prototype.name", ""),
+        TestAction::assert_eq("Function.prototype.name", js_string!()),
         TestAction::assert_eq("Function.prototype.length", 0),
         TestAction::assert_eq("Function.prototype()", JsValue::undefined()),
         TestAction::assert_eq(
@@ -69,7 +69,7 @@ fn function_prototype() {
 fn function_prototype_call() {
     run_test_actions([TestAction::assert_eq(
         "Object.prototype.toString.call(new Error())",
-        "[object Error]",
+        js_string!("[object Error]"),
     )]);
 }
 
@@ -134,9 +134,9 @@ fn closure_capture_clone() {
             let object = JsObject::with_object_proto(ctx.intrinsics());
             object
                 .define_property_or_throw(
-                    "key",
+                    js_string!("key"),
                     PropertyDescriptor::builder()
-                        .value(" world!")
+                        .value(js_string!(" world!"))
                         .writable(false)
                         .enumerable(false)
                         .configurable(false),
@@ -153,7 +153,7 @@ fn closure_capture_clone() {
                         let hw = js_string!(
                             string,
                             &object
-                                .__get_own_property__(&"key".into(), context)?
+                                .__get_own_property__(&js_string!("key").into(), context)?
                                 .and_then(|prop| prop.value().cloned())
                                 .and_then(|val| val.as_string().cloned())
                                 .ok_or_else(
@@ -168,10 +168,10 @@ fn closure_capture_clone() {
             .name("closure")
             .build();
 
-            ctx.register_global_property("closure", func, Attribute::default())
+            ctx.register_global_property(js_string!("closure"), func, Attribute::default())
                 .unwrap();
         }),
-        TestAction::assert_eq("closure()", "Hello world!"),
+        TestAction::assert_eq("closure()", js_string!("Hello world!")),
     ]);
 }
 

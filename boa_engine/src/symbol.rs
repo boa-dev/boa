@@ -80,19 +80,19 @@ enum WellKnown {
 impl WellKnown {
     const fn description(self) -> JsString {
         match self {
-            Self::AsyncIterator => StaticJsStrings::symbol_async_iterator(),
-            Self::HasInstance => StaticJsStrings::symbol_has_instance(),
-            Self::IsConcatSpreadable => StaticJsStrings::symbol_is_concat_spreadable(),
-            Self::Iterator => StaticJsStrings::symbol_iterator(),
-            Self::Match => StaticJsStrings::symbol_match(),
-            Self::MatchAll => StaticJsStrings::symbol_match_all(),
-            Self::Replace => StaticJsStrings::symbol_replace(),
-            Self::Search => StaticJsStrings::symbol_search(),
-            Self::Species => StaticJsStrings::symbol_species(),
-            Self::Split => StaticJsStrings::symbol_split(),
-            Self::ToPrimitive => StaticJsStrings::symbol_to_primitive(),
-            Self::ToStringTag => StaticJsStrings::symbol_to_string_tag(),
-            Self::Unscopables => StaticJsStrings::symbol_unscopables(),
+            Self::AsyncIterator => StaticJsStrings::SYMBOL_ASYNC_ITERATOR,
+            Self::HasInstance => StaticJsStrings::SYMBOL_HAS_INSTANCE,
+            Self::IsConcatSpreadable => StaticJsStrings::SYMBOL_IS_CONCAT_SPREADABLE,
+            Self::Iterator => StaticJsStrings::SYMBOL_ITERATOR,
+            Self::Match => StaticJsStrings::SYMBOL_MATCH,
+            Self::MatchAll => StaticJsStrings::SYMBOL_MATCH_ALL,
+            Self::Replace => StaticJsStrings::SYMBOL_REPLACE,
+            Self::Search => StaticJsStrings::SYMBOL_SEARCH,
+            Self::Species => StaticJsStrings::SYMBOL_SPECIES,
+            Self::Split => StaticJsStrings::SYMBOL_SPLIT,
+            Self::ToPrimitive => StaticJsStrings::SYMBOL_TO_PRIMITIVE,
+            Self::ToStringTag => StaticJsStrings::SYMBOL_TO_STRING_TAG,
+            Self::Unscopables => StaticJsStrings::SYMBOL_UNSCOPABLES,
         }
     }
 

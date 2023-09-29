@@ -4,17 +4,20 @@ use crate::tagged::Tagged;
 
 use super::JsString;
 use boa_macros::utf16;
+use paste::paste;
 use rustc_hash::{FxHashMap, FxHasher};
 
 macro_rules! well_known_statics {
     ( $( $(#[$attr:meta])* ($name:ident, $string:literal) ),+$(,)? ) => {
         $(
-            $(#[$attr])* pub(crate) const fn $name() -> JsString {
-                JsString {
+            paste!{
+                #[doc = "Gets the static `JsString` for `\"" $string "\"`."]
+                #[allow(unused)]
+                pub(crate) const $name: JsString = JsString {
                     ptr: Tagged::from_tag(
                         Self::find_index(utf16!($string)),
                     ),
-                }
+                };
             }
         )+
     };
@@ -74,35 +77,89 @@ impl StaticJsStrings {
         RAW_STATICS.get(index).copied()
     }
 
+    // Some consts are only used on certain features, which triggers the unused lint.
     well_known_statics! {
-        /// Gets the empty string (`""`) `JsString`.
-        (empty_string, ""),
-        /// Gets the static `JsString` for `"Symbol.asyncIterator"`.
-        (symbol_async_iterator, "Symbol.asyncIterator"),
-        /// Gets the static `JsString` for `"Symbol.hasInstance"`.
-        (symbol_has_instance, "Symbol.hasInstance"),
-        /// Gets the static `JsString` for `"Symbol.isConcatSpreadable"`.
-        (symbol_is_concat_spreadable, "Symbol.isConcatSpreadable"),
-        /// Gets the static `JsString` for `"Symbol.iterator"`.
-        (symbol_iterator, "Symbol.iterator"),
-        /// Gets the static `JsString` for `"Symbol.match"`.
-        (symbol_match, "Symbol.match"),
-        /// Gets the static `JsString` for `"Symbol.matchAll"`.
-        (symbol_match_all, "Symbol.matchAll"),
-        /// Gets the static `JsString` for `"Symbol.replace"`.
-        (symbol_replace, "Symbol.replace"),
-        /// Gets the static `JsString` for `"Symbol.search"`.
-        (symbol_search, "Symbol.search"),
-        /// Gets the static `JsString` for `"Symbol.species"`.
-        (symbol_species, "Symbol.species"),
-        /// Gets the static `JsString` for `"Symbol.split"`.
-        (symbol_split, "Symbol.split"),
-        /// Gets the static `JsString` for `"Symbol.toPrimitive"`.
-        (symbol_to_primitive, "Symbol.toPrimitive"),
-        /// Gets the static `JsString` for `"Symbol.toStringTag"`.
-        (symbol_to_string_tag, "Symbol.toStringTag"),
-        /// Gets the static `JsString` for `"Symbol.unscopables"`.
-        (symbol_unscopables, "Symbol.unscopables"),
+        (EMPTY_STRING, ""),
+        // Symbols
+        (SYMBOL_ASYNC_ITERATOR, "Symbol.asyncIterator"),
+        (SYMBOL_HAS_INSTANCE, "Symbol.hasInstance"),
+        (SYMBOL_IS_CONCAT_SPREADABLE, "Symbol.isConcatSpreadable"),
+        (SYMBOL_ITERATOR, "Symbol.iterator"),
+        (SYMBOL_MATCH, "Symbol.match"),
+        (SYMBOL_MATCH_ALL, "Symbol.matchAll"),
+        (SYMBOL_REPLACE, "Symbol.replace"),
+        (SYMBOL_SEARCH, "Symbol.search"),
+        (SYMBOL_SPECIES, "Symbol.species"),
+        (SYMBOL_SPLIT, "Symbol.split"),
+        (SYMBOL_TO_PRIMITIVE, "Symbol.toPrimitive"),
+        (SYMBOL_TO_STRING_TAG, "Symbol.toStringTag"),
+        (SYMBOL_UNSCOPABLES, "Symbol.unscopables"),
+        // Builtins
+        (ARRAY, "Array"),
+        (ARRAY_BUFFER, "ArrayBuffer"),
+        (ASYNC_FUNCTION, "AsyncFunction"),
+        (ASYNC_GENERATOR, "AsyncGenerator"),
+        (ASYNC_GENERATOR_FUNCTION, "AsyncGeneratorFunction"),
+        (BIG_INT, "BigInt"),
+        (BOOLEAN, "Boolean"),
+        (DATA_VIEW, "DataView"),
+        (DATE, "Date"),
+        (ERROR, "Error"),
+        (AGGREGATE_ERROR, "AggregateError"),
+        (EVAL_ERROR, "EvalError"),
+        (RANGE_ERROR, "RangeError"),
+        (REFERENCE_ERROR, "ReferenceError"),
+        (SYNTAX_ERROR, "SyntaxError"),
+        (TYPE_ERROR, "TypeError"),
+        (URI_ERROR, "URIError"),
+        (ESCAPE, "escape"),
+        (UNESCAPE, "unescape"),
+        (EVAL, "eval"),
+        (FUNCTION, "Function"),
+        (GENERATOR, "Generator"),
+        (GENERATOR_FUNCTION, "GeneratorFunction"),
+        (INTL, "Intl"),
+        (COLLATOR, "Collator"),
+        (LIST_FORMAT, "ListFormat"),
+        (LOCALE, "Locale"),
+        (PLURAL_RULES, "PluralRules"),
+        (SEGMENTER, "Segmenter"),
+        (DATE_TIME_FORMAT, "DateTimeFormat"),
+        (JSON, "JSON"),
+        (MAP, "Map"),
+        (MATH, "Math"),
+        (NUMBER, "Number"),
+        (IS_FINITE, "isFinite"),
+        (IS_NAN, "isNaN"),
+        (PARSE_INT, "parseInt"),
+        (PARSE_FLOAT, "parseFloat"),
+        (OBJECT, "Object"),
+        (PROMISE, "Promise"),
+        (PROXY, "Proxy"),
+        (REFLECT, "Reflect"),
+        (REG_EXP, "RegExp"),
+        (SET, "Set"),
+        (STRING, "String"),
+        (SYMBOL, "Symbol"),
+        (TYPED_ARRAY, "TypedArray"),
+        (INT8_ARRAY, "Int8Array"),
+        (UINT8_ARRAY, "Uint8Array"),
+        (UINT8_CLAMPED_ARRAY, "Uint8ClampedArray"),
+        (INT16_ARRAY, "Int16Array"),
+        (UINT16_ARRAY, "Uint16Array"),
+        (INT32_ARRAY, "Int32Array"),
+        (UINT32_ARRAY, "Uint32Array"),
+        (BIG_INT64_ARRAY, "BigInt64Array"),
+        (BIG_UINT64_ARRAY, "BigUint64Array"),
+        (FLOAT32_ARRAY, "Float32Array"),
+        (FLOAT64_ARRAY, "Float64Array"),
+        (ENCODE_URI, "encodeURI"),
+        (ENCODE_URI_COMPONENT, "encodeURIComponent"),
+        (DECODE_URI, "decodeURI"),
+        (DECODE_URI_COMPONENT, "decodeURIComponent"),
+        (WEAK_REF, "WeakRef"),
+        (WEAK_MAP, "WeakMap"),
+        (WEAK_SET, "WeakSet"),
     }
 }
 
@@ -136,11 +193,101 @@ thread_local! {
 }
 
 /// Array of raw static strings that aren't reference counted.
-///
-/// The macro `static_strings` automatically sorts the array of strings, making it faster
-/// for searches by using `binary_search`.
 const RAW_STATICS: &[&[u16]] = &[
     utf16!(""),
+    // Well known symbols
+    utf16!("Symbol.asyncIterator"),
+    utf16!("[Symbol.asyncIterator]"),
+    utf16!("Symbol.hasInstance"),
+    utf16!("[Symbol.hasInstance]"),
+    utf16!("Symbol.isConcatSpreadable"),
+    utf16!("[Symbol.isConcatSpreadable]"),
+    utf16!("Symbol.iterator"),
+    utf16!("[Symbol.iterator]"),
+    utf16!("Symbol.match"),
+    utf16!("[Symbol.match]"),
+    utf16!("Symbol.matchAll"),
+    utf16!("[Symbol.matchAll]"),
+    utf16!("Symbol.replace"),
+    utf16!("[Symbol.replace]"),
+    utf16!("Symbol.search"),
+    utf16!("[Symbol.search]"),
+    utf16!("Symbol.species"),
+    utf16!("[Symbol.species]"),
+    utf16!("Symbol.split"),
+    utf16!("[Symbol.split]"),
+    utf16!("Symbol.toPrimitive"),
+    utf16!("[Symbol.toPrimitive]"),
+    utf16!("Symbol.toStringTag"),
+    utf16!("[Symbol.toStringTag]"),
+    utf16!("Symbol.unscopables"),
+    utf16!("[Symbol.unscopables]"),
+    // Well known builtins
+    utf16!("Array"),
+    utf16!("ArrayBuffer"),
+    utf16!("AsyncFunction"),
+    utf16!("AsyncGenerator"),
+    utf16!("AsyncGeneratorFunction"),
+    utf16!("BigInt"),
+    utf16!("Boolean"),
+    utf16!("DataView"),
+    utf16!("Date"),
+    utf16!("Error"),
+    utf16!("AggregateError"),
+    utf16!("EvalError"),
+    utf16!("RangeError"),
+    utf16!("ReferenceError"),
+    utf16!("SyntaxError"),
+    utf16!("TypeError"),
+    utf16!("URIError"),
+    utf16!("escape"),
+    utf16!("unescape"),
+    utf16!("eval"),
+    utf16!("Function"),
+    utf16!("Generator"),
+    utf16!("GeneratorFunction"),
+    utf16!("Intl"),
+    utf16!("Collator"),
+    utf16!("ListFormat"),
+    utf16!("Locale"),
+    utf16!("PluralRules"),
+    utf16!("Segmenter"),
+    utf16!("DateTimeFormat"),
+    utf16!("JSON"),
+    utf16!("Map"),
+    utf16!("Math"),
+    utf16!("Number"),
+    utf16!("isFinite"),
+    utf16!("isNaN"),
+    utf16!("parseInt"),
+    utf16!("parseFloat"),
+    utf16!("Object"),
+    utf16!("Promise"),
+    utf16!("Proxy"),
+    utf16!("Reflect"),
+    utf16!("RegExp"),
+    utf16!("Set"),
+    utf16!("String"),
+    utf16!("Symbol"),
+    utf16!("TypedArray"),
+    utf16!("Int8Array"),
+    utf16!("Uint8Array"),
+    utf16!("Uint8ClampedArray"),
+    utf16!("Int16Array"),
+    utf16!("Uint16Array"),
+    utf16!("Int32Array"),
+    utf16!("Uint32Array"),
+    utf16!("BigInt64Array"),
+    utf16!("BigUint64Array"),
+    utf16!("Float32Array"),
+    utf16!("Float64Array"),
+    utf16!("encodeURI"),
+    utf16!("encodeURIComponent"),
+    utf16!("decodeURI"),
+    utf16!("decodeURIComponent"),
+    utf16!("WeakRef"),
+    utf16!("WeakMap"),
+    utf16!("WeakSet"),
     // Misc
     utf16!(","),
     utf16!(":"),
@@ -197,14 +344,10 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("entries"),
     utf16!("fromEntries"),
     // Function object
-    utf16!("Function"),
     utf16!("apply"),
     utf16!("bind"),
     utf16!("call"),
-    // Generator object
-    utf16!("Generator"),
     // Array object
-    utf16!("Array"),
     utf16!("at"),
     utf16!("from"),
     utf16!("isArray"),
@@ -237,7 +380,6 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("push"),
     utf16!("pop"),
     // String object
-    utf16!("String"),
     utf16!("charAt"),
     utf16!("charCodeAt"),
     utf16!("codePointAt"),
@@ -267,13 +409,8 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("trimEnd"),
     utf16!("trimStart"),
     // Number object
-    utf16!("Number"),
     utf16!("Infinity"),
     utf16!("NaN"),
-    utf16!("parseInt"),
-    utf16!("parseFloat"),
-    utf16!("isFinite"),
-    utf16!("isNaN"),
     utf16!("EPSILON"),
     utf16!("MAX_SAFE_INTEGER"),
     utf16!("MIN_SAFE_INTEGER"),
@@ -284,14 +421,10 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("toExponential"),
     utf16!("toFixed"),
     utf16!("toPrecision"),
-    // Boolean object
-    utf16!("Boolean"),
     // BigInt object
-    utf16!("BigInt"),
     utf16!("asIntN"),
     utf16!("asUintN"),
     // RegExp object
-    utf16!("RegExp"),
     utf16!("exec"),
     utf16!("test"),
     utf16!("flags"),
@@ -314,7 +447,6 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("get flags"),
     utf16!("get source"),
     // Symbol object
-    utf16!("Symbol"),
     utf16!("for"),
     utf16!("keyFor"),
     utf16!("description"),
@@ -327,32 +459,18 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("toPrimitive"),
     utf16!("get description"),
     // Map object
-    utf16!("Map"),
     utf16!("clear"),
     utf16!("delete"),
     utf16!("has"),
     utf16!("size"),
     // Set object
-    utf16!("Set"),
     utf16!("add"),
     // Reflect object
-    utf16!("Reflect"),
     // Proxy object
-    utf16!("Proxy"),
     utf16!("revocable"),
     // Error objects
-    utf16!("Error"),
-    utf16!("AggregateError"),
-    utf16!("TypeError"),
-    utf16!("RangeError"),
-    utf16!("SyntaxError"),
-    utf16!("ReferenceError"),
-    utf16!("EvalError"),
-    utf16!("ThrowTypeError"),
-    utf16!("URIError"),
     utf16!("message"),
     // Date object
-    utf16!("Date"),
     utf16!("toJSON"),
     utf16!("getDate"),
     utf16!("getDay"),
@@ -394,7 +512,6 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("now"),
     utf16!("UTC"),
     // JSON object
-    utf16!("JSON"),
     utf16!("parse"),
     utf16!("stringify"),
     // Iterator object
@@ -404,7 +521,6 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("Map Iterator"),
     utf16!("For In Iterator"),
     // Math object
-    utf16!("Math"),
     utf16!("LN10"),
     utf16!("LN2"),
     utf16!("LOG10E"),
@@ -447,22 +563,7 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("tan"),
     utf16!("tanh"),
     utf16!("trunc"),
-    // Intl object
-    utf16!("Intl"),
-    utf16!("DateTimeFormat"),
     // TypedArray object
-    utf16!("TypedArray"),
-    utf16!("ArrayBuffer"),
-    utf16!("Int8Array"),
-    utf16!("Uint8Array"),
-    utf16!("Int16Array"),
-    utf16!("Uint16Array"),
-    utf16!("Int32Array"),
-    utf16!("Uint32Array"),
-    utf16!("BigInt64Array"),
-    utf16!("BigUint64Array"),
-    utf16!("Float32Array"),
-    utf16!("Float64Array"),
     utf16!("buffer"),
     utf16!("byteLength"),
     utf16!("byteOffset"),
@@ -474,7 +575,6 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("get size"),
     utf16!("get length"),
     // DataView object
-    utf16!("DataView"),
     utf16!("getBigInt64"),
     utf16!("getBigUint64"),
     utf16!("getFloat32"),
@@ -569,31 +669,4 @@ const RAW_STATICS: &[&[u16]] = &[
     utf16!("Z"),
     utf16!("_"),
     utf16!("$"),
-    // Well known symbols
-    utf16!("Symbol.asyncIterator"),
-    utf16!("[Symbol.asyncIterator]"),
-    utf16!("Symbol.hasInstance"),
-    utf16!("[Symbol.hasInstance]"),
-    utf16!("Symbol.isConcatSpreadable"),
-    utf16!("[Symbol.isConcatSpreadable]"),
-    utf16!("Symbol.iterator"),
-    utf16!("[Symbol.iterator]"),
-    utf16!("Symbol.match"),
-    utf16!("[Symbol.match]"),
-    utf16!("Symbol.matchAll"),
-    utf16!("[Symbol.matchAll]"),
-    utf16!("Symbol.replace"),
-    utf16!("[Symbol.replace]"),
-    utf16!("Symbol.search"),
-    utf16!("[Symbol.search]"),
-    utf16!("Symbol.species"),
-    utf16!("[Symbol.species]"),
-    utf16!("Symbol.split"),
-    utf16!("[Symbol.split]"),
-    utf16!("Symbol.toPrimitive"),
-    utf16!("[Symbol.toPrimitive]"),
-    utf16!("Symbol.toStringTag"),
-    utf16!("[Symbol.toStringTag]"),
-    utf16!("Symbol.unscopables"),
-    utf16!("[Symbol.unscopables]"),
 ];

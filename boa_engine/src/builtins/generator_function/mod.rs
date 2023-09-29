@@ -16,9 +16,10 @@ use crate::{
     object::PROTOTYPE,
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult,
+    Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
 
@@ -30,7 +31,7 @@ pub struct GeneratorFunction;
 
 impl IntrinsicObject for GeneratorFunction {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(Some(
@@ -56,7 +57,7 @@ impl IntrinsicObject for GeneratorFunction {
 }
 
 impl BuiltInObject for GeneratorFunction {
-    const NAME: &'static str = "GeneratorFunction";
+    const NAME: JsString = StaticJsStrings::GENERATOR_FUNCTION;
 }
 
 impl BuiltInConstructor for GeneratorFunction {

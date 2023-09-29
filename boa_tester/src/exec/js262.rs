@@ -1,4 +1,5 @@
 use boa_engine::{
+    js_string,
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
     property::Attribute,
@@ -10,16 +11,24 @@ pub(super) fn register_js262(context: &mut Context<'_>) -> JsObject {
     let global_obj = context.global_object();
 
     let js262 = ObjectInitializer::new(context)
-        .function(NativeFunction::from_fn_ptr(create_realm), "createRealm", 0)
+        .function(
+            NativeFunction::from_fn_ptr(create_realm),
+            js_string!("createRealm"),
+            0,
+        )
         .function(
             NativeFunction::from_fn_ptr(detach_array_buffer),
-            "detachArrayBuffer",
+            js_string!("detachArrayBuffer"),
             2,
         )
-        .function(NativeFunction::from_fn_ptr(eval_script), "evalScript", 1)
-        .function(NativeFunction::from_fn_ptr(gc), "gc", 0)
+        .function(
+            NativeFunction::from_fn_ptr(eval_script),
+            js_string!("evalScript"),
+            1,
+        )
+        .function(NativeFunction::from_fn_ptr(gc), js_string!("gc"), 0)
         .property(
-            "global",
+            js_string!("global"),
             global_obj,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
@@ -28,7 +37,7 @@ pub(super) fn register_js262(context: &mut Context<'_>) -> JsObject {
 
     context
         .register_global_property(
-            "$262",
+            js_string!("$262"),
             js262.clone(),
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
