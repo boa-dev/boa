@@ -177,6 +177,13 @@ impl Realm {
             .insert(TypeId::of::<C>(), spec);
     }
 
+    pub(crate) fn unregister_class<C: Class>(&self) -> Option<StandardConstructor> {
+        self.inner
+            .host_classes
+            .borrow_mut()
+            .remove(&TypeId::of::<C>())
+    }
+
     pub(crate) fn addr(&self) -> *const () {
         let ptr: *const _ = &*self.inner;
         ptr.cast()

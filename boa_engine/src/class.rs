@@ -79,20 +79,28 @@ use crate::{
 
 /// Native class.
 pub trait Class: NativeObject + Sized {
-    /// The binding name of the class.
+    /// The binding name of this class.
     const NAME: &'static str;
-    /// The amount of arguments the constructor of the class takes, default is `0`.
+    /// The amount of arguments this class' constructor takes. Default is `0`.
     const LENGTH: usize = 0;
-    /// The attributes the class will be binded with, default is `writable`, `enumerable`, `configurable`.
+    /// The property attributes of this class' constructor in the global object.
+    /// Default is `writable`, `enumerable`, `configurable`.
     const ATTRIBUTES: Attribute = Attribute::all();
 
-    /// Creates the inner data for an instance of this class.
+    /// Creates the internal data for an instance of this class.
+    ///
+    /// This method can also be called the "native constructor" of this class.
     fn make_data(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self>;
 
-    /// Initializes the internals and the methods of this class.
+    /// Initializes the properties and methods of this class.
     fn init(class: &mut ClassBuilder<'_, '_>) -> JsResult<()>;
 
     /// Creates a new [`JsObject`] with its internal data set to the result of calling `Self::make_data`.
+    ///
+    /// # Note
+    ///
+    /// This will throw an error if this class is not registered in the context's active realm.
+    /// See [`Context::register_global_class`].
     ///
     /// # Warning
     ///

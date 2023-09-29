@@ -334,10 +334,7 @@ impl<'host> Context<'host> {
     ///
     /// context.register_global_class::<MyClass>()?;
     /// ```
-    pub fn register_global_class<C>(&mut self) -> JsResult<()>
-    where
-        C: Class,
-    {
+    pub fn register_global_class<C: Class>(&mut self) -> JsResult<()> {
         if self.realm.has_class::<C>() {
             return Err(JsNativeError::typ()
                 .with_message("cannot register a class twice")
@@ -359,6 +356,35 @@ impl<'host> Context<'host> {
         self.realm.register_class::<C>(class);
 
         Ok(())
+    }
+
+    /// Removes the global class `C` from the currently active realm, returning the constructor
+    /// and prototype of the class if `C` was registered.
+    ///
+    /// # Note
+    ///
+    /// This makes the constructor return an error on further calls, but note that this won't protect
+    /// static properties from being accessed within variables that stored the constructor before being
+    /// unregistered.  If you need that functionality, you can use a static accessor that first checks
+    /// if the class is registered ([`Context::has_global_class`]) before returning the static value.
+    ///
+    /// # Example
+    /// ```ignore
+    /// #[derive(Debug, Trace, Finalize)]
+    /// struct MyClass;
+    ///
+    /// impl Class for MyClass {
+    ///    // ...
+    /// }
+    ///
+    /// context.register_global_class::<MyClass>()?;
+    /// // ... code
+    /// context.unregister_global_class::<MyClass>()?;
+    /// ```
+    pub fn unregister_global_class<C: Class>(&mut self) -> JsResult<Option<StandardConstructor>> {
+        self.global_object()
+            .delete_property_or_throw(js_string!(C::NAME), self)?;
+        Ok(self.realm.unregister_class::<C>())
     }
 
     /// Checks if the currently active realm has the global class `C` registered.
