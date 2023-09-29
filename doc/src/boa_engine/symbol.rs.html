@@ -402,19 +402,19 @@
 <span class="kw">impl </span>WellKnown {
     <span class="kw">const fn </span>description(<span class="self">self</span>) -&gt; JsString {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::AsyncIterator =&gt; StaticJsStrings::symbol_async_iterator(),
-            <span class="self">Self</span>::HasInstance =&gt; StaticJsStrings::symbol_has_instance(),
-            <span class="self">Self</span>::IsConcatSpreadable =&gt; StaticJsStrings::symbol_is_concat_spreadable(),
-            <span class="self">Self</span>::Iterator =&gt; StaticJsStrings::symbol_iterator(),
-            <span class="self">Self</span>::Match =&gt; StaticJsStrings::symbol_match(),
-            <span class="self">Self</span>::MatchAll =&gt; StaticJsStrings::symbol_match_all(),
-            <span class="self">Self</span>::Replace =&gt; StaticJsStrings::symbol_replace(),
-            <span class="self">Self</span>::Search =&gt; StaticJsStrings::symbol_search(),
-            <span class="self">Self</span>::Species =&gt; StaticJsStrings::symbol_species(),
-            <span class="self">Self</span>::Split =&gt; StaticJsStrings::symbol_split(),
-            <span class="self">Self</span>::ToPrimitive =&gt; StaticJsStrings::symbol_to_primitive(),
-            <span class="self">Self</span>::ToStringTag =&gt; StaticJsStrings::symbol_to_string_tag(),
-            <span class="self">Self</span>::Unscopables =&gt; StaticJsStrings::symbol_unscopables(),
+            <span class="self">Self</span>::AsyncIterator =&gt; StaticJsStrings::SYMBOL_ASYNC_ITERATOR,
+            <span class="self">Self</span>::HasInstance =&gt; StaticJsStrings::SYMBOL_HAS_INSTANCE,
+            <span class="self">Self</span>::IsConcatSpreadable =&gt; StaticJsStrings::SYMBOL_IS_CONCAT_SPREADABLE,
+            <span class="self">Self</span>::Iterator =&gt; StaticJsStrings::SYMBOL_ITERATOR,
+            <span class="self">Self</span>::Match =&gt; StaticJsStrings::SYMBOL_MATCH,
+            <span class="self">Self</span>::MatchAll =&gt; StaticJsStrings::SYMBOL_MATCH_ALL,
+            <span class="self">Self</span>::Replace =&gt; StaticJsStrings::SYMBOL_REPLACE,
+            <span class="self">Self</span>::Search =&gt; StaticJsStrings::SYMBOL_SEARCH,
+            <span class="self">Self</span>::Species =&gt; StaticJsStrings::SYMBOL_SPECIES,
+            <span class="self">Self</span>::Split =&gt; StaticJsStrings::SYMBOL_SPLIT,
+            <span class="self">Self</span>::ToPrimitive =&gt; StaticJsStrings::SYMBOL_TO_PRIMITIVE,
+            <span class="self">Self</span>::ToStringTag =&gt; StaticJsStrings::SYMBOL_TO_STRING_TAG,
+            <span class="self">Self</span>::Unscopables =&gt; StaticJsStrings::SYMBOL_UNSCOPABLES,
         }
     }
 

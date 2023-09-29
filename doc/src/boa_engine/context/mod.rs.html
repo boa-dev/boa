@@ -1029,6 +1029,17 @@
 <a href="#1029" id="1029">1029</a>
 <a href="#1030" id="1030">1030</a>
 <a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1051,6 +1062,7 @@
     builtins,
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
+    js_string,
     module::{IdleModuleLoader, ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::{shape::RootShape, FunctionObjectBuilder, JsObject},
@@ -1059,7 +1071,7 @@
     realm::Realm,
     script::Script,
     vm::{ActiveRunnable, CallFrame, Vm},
-    JsResult, JsValue, Source,
+    JsResult, JsString, JsValue, Source,
 };
 <span class="kw">use </span>boa_ast::{expression::Identifier, StatementList};
 <span class="kw">use </span>boa_interner::Interner;
@@ -1079,6 +1091,7 @@
 ///
 /// ```rust
 /// use boa_engine::{
+///     js_string,
 ///     object::ObjectInitializer,
 ///     property::{Attribute, PropertyDescriptor},
 ///     Context, Source,
@@ -1100,9 +1113,9 @@
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&amp;mut context)
-///     .property(&quot;x&quot;, 12, Attribute::READONLY)
+///     .property(js_string!(&quot;x&quot;), 12, Attribute::READONLY)
 ///     .build();
-/// context.register_global_property(&quot;arg&quot;, arg, Attribute::all());
+/// context.register_global_property(js_string!(&quot;arg&quot;), arg, Attribute::all());
 ///
 /// let value = context.eval(Source::from_bytes(&quot;test(arg)&quot;)).unwrap();
 ///
@@ -1227,6 +1240,7 @@
     /// # Example
     /// ```
     /// use boa_engine::{
+    ///     js_string,
     ///     object::ObjectInitializer,
     ///     property::{Attribute, PropertyDescriptor},
     ///     Context,
@@ -1235,15 +1249,23 @@
     /// let mut context = Context::default();
     ///
     /// context
-    ///     .register_global_property(&quot;myPrimitiveProperty&quot;, 10, Attribute::all())
+    ///     .register_global_property(
+    ///         js_string!(&quot;myPrimitiveProperty&quot;),
+    ///         10,
+    ///         Attribute::all(),
+    ///     )
     ///     .expect(&quot;property shouldn&#39;t exist&quot;);
     ///
     /// let object = ObjectInitializer::new(&amp;mut context)
-    ///     .property(&quot;x&quot;, 0, Attribute::all())
-    ///     .property(&quot;y&quot;, 1, Attribute::all())
+    ///     .property(js_string!(&quot;x&quot;), 0, Attribute::all())
+    ///     .property(js_string!(&quot;y&quot;), 1, Attribute::all())
     ///     .build();
     /// context
-    ///     .register_global_property(&quot;myObjectProperty&quot;, object, Attribute::all())
+    ///     .register_global_property(
+    ///         js_string!(&quot;myObjectProperty&quot;),
+    ///         object,
+    ///         Attribute::all(),
+    ///     )
     ///     .expect(&quot;property shouldn&#39;t exist&quot;);
     /// ```
     </span><span class="kw">pub fn </span>register_global_property&lt;K, V&gt;(
@@ -1282,12 +1304,12 @@
     /// can use the [`FunctionObjectBuilder`] API.
     </span><span class="kw">pub fn </span>register_global_callable(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span>str,
+        name: JsString,
         length: usize,
         body: NativeFunction,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="kw-2">&amp;</span><span class="self">self</span>.realm, body)
-            .name(name)
+            .name(name.clone())
             .length(length)
             .constructor(<span class="bool-val">true</span>)
             .build();
@@ -1315,12 +1337,12 @@
     /// `constructable`. Usage of the function as a constructor will produce a `TypeError`.
     </span><span class="kw">pub fn </span>register_global_builtin_callable(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span>str,
+        name: JsString,
         length: usize,
         body: NativeFunction,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="kw-2">&amp;</span><span class="self">self</span>.realm, body)
-            .name(name)
+            .name(name.clone())
             .length(length)
             .constructor(<span class="bool-val">false</span>)
             .build();
@@ -1367,7 +1389,7 @@
             .configurable(T::ATTRIBUTES.configurable());
 
         <span class="self">self</span>.global_object()
-            .define_property_or_throw(T::NAME, property, <span class="self">self</span>)<span class="question-mark">?</span>;
+            .define_property_or_throw(<span class="macro">js_string!</span>(T::NAME), property, <span class="self">self</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }

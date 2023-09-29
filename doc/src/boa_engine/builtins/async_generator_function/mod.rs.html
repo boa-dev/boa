@@ -89,6 +89,7 @@
 <a href="#89" id="89">89</a>
 <a href="#90" id="90">90</a>
 <a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `AsyncGeneratorFunction` object.
 //!
 //! More information:
@@ -102,9 +103,10 @@
     object::{JsObject, PROTOTYPE},
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult,
+    Context, JsResult, JsString,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -116,7 +118,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AsyncGeneratorFunction {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .inherits(<span class="prelude-val">Some</span>(
@@ -142,7 +144,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>AsyncGeneratorFunction {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;AsyncGeneratorFunction&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::ASYNC_GENERATOR_FUNCTION;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>AsyncGeneratorFunction {

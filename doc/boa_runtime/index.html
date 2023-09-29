@@ -5,7 +5,7 @@ functionality for the <code>boa_engine</code> crate for runtime implementors.</p
 <li>Add <strong>boa_runtime</strong> as a dependency to your project along with <strong>boa_engine</strong>.</li>
 </ol>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>boa_engine::{ Context, Source, property::Attribute };
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>boa_engine::{ Context, Source, property::Attribute, js_string };
 <span class="kw">use </span>boa_runtime::Console;
 
 <span class="comment">// Create the context.
@@ -16,7 +16,7 @@ functionality for the <code>boa_engine</code> crate for runtime implementors.</p
 
 <span class="comment">// Register the console as a global property to the context.
 </span>context
-    .register_global_property(Console::NAME, console, Attribute::all())
+    .register_global_property(<span class="macro">js_string!</span>(Console::NAME), console, Attribute::all())
     .expect(<span class="string">&quot;the console object shouldn&#39;t exist yet&quot;</span>);
 
 <span class="comment">// JavaScript source for parsing.

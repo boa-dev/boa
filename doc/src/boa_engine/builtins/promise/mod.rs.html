@@ -2359,6 +2359,15 @@
 <a href="#2359" id="2359">2359</a>
 <a href="#2360" id="2360">2360</a>
 <a href="#2361" id="2361">2361</a>
+<a href="#2362" id="2362">2362</a>
+<a href="#2363" id="2363">2363</a>
+<a href="#2364" id="2364">2364</a>
+<a href="#2365" id="2365">2365</a>
+<a href="#2366" id="2366">2366</a>
+<a href="#2367" id="2367">2367</a>
+<a href="#2368" id="2368">2368</a>
+<a href="#2369" id="2369">2369</a>
+<a href="#2370" id="2370">2370</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -2370,6 +2379,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     job::{JobCallback, NativeJob},
+    js_string,
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
@@ -2377,10 +2387,10 @@
     },
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsError, JsResult,
+    Context, JsArgs, JsError, JsResult, JsString,
 };
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -2693,28 +2703,28 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Promise {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
             .build();
 
         <span class="kw">let </span>builder = BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_method(<span class="self">Self</span>::all, <span class="string">&quot;all&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::all_settled, <span class="string">&quot;allSettled&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::any, <span class="string">&quot;any&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::race, <span class="string">&quot;race&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::reject, <span class="string">&quot;reject&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::resolve, <span class="string">&quot;resolve&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::all, <span class="macro">js_string!</span>(<span class="string">&quot;all&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::all_settled, <span class="macro">js_string!</span>(<span class="string">&quot;allSettled&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::any, <span class="macro">js_string!</span>(<span class="string">&quot;any&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::race, <span class="macro">js_string!</span>(<span class="string">&quot;race&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::reject, <span class="macro">js_string!</span>(<span class="string">&quot;reject&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::resolve, <span class="macro">js_string!</span>(<span class="string">&quot;resolve&quot;</span>), <span class="number">1</span>)
             .static_accessor(
                 JsSymbol::species(),
                 <span class="prelude-val">Some</span>(get_species),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::then, <span class="string">&quot;then&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::catch, <span class="string">&quot;catch&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::finally, <span class="string">&quot;finally&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::then, <span class="macro">js_string!</span>(<span class="string">&quot;then&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::catch, <span class="macro">js_string!</span>(<span class="string">&quot;catch&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::finally, <span class="macro">js_string!</span>(<span class="string">&quot;finally&quot;</span>), <span class="number">1</span>)
             <span class="comment">// &lt;https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag&gt;
             </span>.property(
                 JsSymbol::to_string_tag(),
@@ -2735,7 +2745,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Promise {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Promise&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::PROMISE;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Promise {
@@ -3262,8 +3272,12 @@
                         </span><span class="kw">let </span>obj = JsObject::with_object_proto(context.intrinsics());
 
                         <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(obj, &quot;status&quot;, &quot;fulfilled&quot;).
-                        </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;status&quot;</span>), <span class="string">&quot;fulfilled&quot;</span>, context)
-                            .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                        </span>obj.create_data_property_or_throw(
+                            <span class="macro">utf16!</span>(<span class="string">&quot;status&quot;</span>),
+                            <span class="macro">js_string!</span>(<span class="string">&quot;fulfilled&quot;</span>),
+                            context,
+                        )
+                        .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
                         <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, x).
                         </span>obj.create_data_property_or_throw(
@@ -3348,8 +3362,12 @@
                         </span><span class="kw">let </span>obj = JsObject::with_object_proto(context.intrinsics());
 
                         <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(obj, &quot;status&quot;, &quot;rejected&quot;).
-                        </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;status&quot;</span>), <span class="string">&quot;rejected&quot;</span>, context)
-                            .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                        </span>obj.create_data_property_or_throw(
+                            <span class="macro">utf16!</span>(<span class="string">&quot;status&quot;</span>),
+                            <span class="macro">js_string!</span>(<span class="string">&quot;rejected&quot;</span>),
+                            context,
+                        )
+                        .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
                         <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(obj, &quot;reason&quot;, x).
                         </span>obj.create_data_property_or_throw(

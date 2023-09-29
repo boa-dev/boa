@@ -266,8 +266,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-additional-properties-of-the-global-object
 
 </span><span class="kw">use crate</span>::{
-    context::intrinsics::Intrinsics, js_string, realm::Realm, Context, JsArgs, JsObject, JsResult,
-    JsValue,
+    context::intrinsics::Intrinsics, js_string, realm::Realm, string::common::StaticJsStrings,
+    Context, JsArgs, JsObject, JsResult, JsString, JsValue,
 };
 
 <span class="kw">use super</span>::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
@@ -289,7 +289,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Escape {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;escape&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::ESCAPE;
 }
 
 <span class="doccomment">/// Builtin JavaScript `escape ( string )` function.
@@ -361,7 +361,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Unescape {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;unescape&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::UNESCAPE;
 }
 
 <span class="doccomment">/// Builtin JavaScript `unescape ( string )` function.

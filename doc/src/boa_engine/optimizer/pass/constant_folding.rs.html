@@ -311,7 +311,7 @@
                 },
             ),
             (literal, UnaryOp::TypeOf) =&gt; <span class="prelude-val">Ok</span>(JsValue::new(
-                literal_to_js_value(literal, context).type_of(),
+                literal_to_js_value(literal, context).js_type_of(),
             )),
             (<span class="kw">_</span>, UnaryOp::Delete) =&gt; {
                 <span class="kw">return </span>PassAction::Replace(Expression::Literal(Literal::Bool(<span class="bool-val">true</span>)))

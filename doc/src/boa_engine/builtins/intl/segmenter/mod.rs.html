@@ -330,6 +330,11 @@
 <a href="#330" id="330">330</a>
 <a href="#331" id="331">331</a>
 <a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::Range;
 
 <span class="kw">use </span>boa_macros::utf16;
@@ -351,6 +356,7 @@
     },
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsSymbol, JsValue,
 };
 
@@ -409,17 +415,21 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Segmenter {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_method(<span class="self">Self</span>::supported_locales_of, <span class="string">&quot;supportedLocalesOf&quot;</span>, <span class="number">1</span>)
+            .static_method(
+                <span class="self">Self</span>::supported_locales_of,
+                <span class="macro">js_string!</span>(<span class="string">&quot;supportedLocalesOf&quot;</span>),
+                <span class="number">1</span>,
+            )
             .property(
                 JsSymbol::to_string_tag(),
-                <span class="string">&quot;Intl.Segmenter&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;Intl.Segmenter&quot;</span>),
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::resolved_options, <span class="string">&quot;resolvedOptions&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::segment, <span class="string">&quot;segment&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::resolved_options, <span class="macro">js_string!</span>(<span class="string">&quot;resolvedOptions&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::segment, <span class="macro">js_string!</span>(<span class="string">&quot;segment&quot;</span>), <span class="number">1</span>)
             .build();
     }
 
@@ -429,7 +439,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Segmenter {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Segmenter&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::SEGMENTER;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Segmenter {
@@ -579,12 +589,12 @@
         </span><span class="kw">let </span>options = ObjectInitializer::new(context)
             .property(
                 <span class="macro">js_string!</span>(<span class="string">&quot;locale&quot;</span>),
-                segmenter.locale.to_string(),
+                <span class="macro">js_string!</span>(segmenter.locale.to_string()),
                 Attribute::all(),
             )
             .property(
                 <span class="macro">js_string!</span>(<span class="string">&quot;granularity&quot;</span>),
-                segmenter.native.granularity().to_string(),
+                <span class="macro">js_string!</span>(segmenter.native.granularity().to_string()),
                 Attribute::all(),
             )
             .build();

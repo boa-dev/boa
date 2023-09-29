@@ -310,16 +310,16 @@
 /// ```
 /// # use boa_engine::{
 /// #  object::builtins::JsRegExp,
-/// #  Context, JsValue, JsResult,
+/// #  Context, JsValue, JsResult,js_string
 /// # };
 /// # fn main() -&gt; JsResult&lt;()&gt; {
 /// // Initialize the `Context`
 /// let context = &amp;mut Context::default();
 ///
 /// // Create a new RegExp with pattern and flags
-/// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
+/// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
 ///
-/// let test_result = regexp.test(&quot;football&quot;, context)?;
+/// let test_result = regexp.test(js_string!(&quot;football&quot;), context)?;
 /// assert!(test_result);
 ///
 /// let to_string = regexp.to_string(context)?;
@@ -337,14 +337,14 @@
     /// ```
     /// # use boa_engine::{
     /// #  object::builtins::JsRegExp,
-    /// #  Context, JsValue, JsResult,
+    /// #  Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// // Initialize the `Context`
     /// let context = &amp;mut Context::default();
     ///
     /// // Create a new RegExp with pattern and flags
-    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
+    /// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -433,11 +433,11 @@
     /// ```
     /// # use boa_engine::{
     /// #  object::builtins::JsRegExp,
-    /// #  Context, JsValue, JsResult,
+    /// #  Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
+    /// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
     ///
     /// let flags = regexp.flags(context)?;
     /// assert_eq!(flags, String::from(&quot;gi&quot;));
@@ -458,11 +458,11 @@
     /// ```
     /// # use boa_engine::{
     /// #  object::builtins::JsRegExp,
-    /// #  Context, JsValue, JsResult,
+    /// #  Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
+    /// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
     ///
     /// let src = regexp.source(context)?;
     /// assert_eq!(src, String::from(&quot;foo&quot;));
@@ -483,13 +483,13 @@
     /// ```
     /// # use boa_engine::{
     /// #  object::builtins::JsRegExp,
-    /// #  Context, JsValue, JsResult,
+    /// #  Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
+    /// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
     ///
-    /// let test_result = regexp.test(&quot;football&quot;, context)?;
+    /// let test_result = regexp.test(js_string!(&quot;football&quot;), context)?;
     /// assert!(test_result);
     /// # Ok(())
     /// # }
@@ -525,14 +525,14 @@
     /// ```
     /// # use boa_engine::{
     /// #  object::builtins::JsRegExp,
-    /// #  Context, JsValue, JsResult,
+    /// #  Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
+    /// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
     ///
     /// let to_string = regexp.to_string(context)?;
-    /// assert_eq!(to_string, String::from(&quot;/foo/gi&quot;));
+    /// assert_eq!(to_string, &quot;/foo/gi&quot;);
     /// # Ok(())
     /// # }
     /// ```

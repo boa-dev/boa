@@ -350,6 +350,7 @@
 <a href="#350" id="350">350</a>
 <a href="#351" id="351">351</a>
 <a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
@@ -357,6 +358,7 @@
         BuiltInBuilder, IntrinsicObject, Promise,
     },
     context::intrinsics::Intrinsics,
+    js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, ObjectData},
     realm::Realm,
@@ -380,7 +382,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AsyncFromSyncIterator {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncFromSyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .prototype(
@@ -390,9 +392,9 @@
                     .iterator_prototypes()
                     .async_iterator(),
             )
-            .static_method(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::r#return, <span class="string">&quot;return&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::throw, <span class="string">&quot;throw&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::next, <span class="macro">js_string!</span>(<span class="string">&quot;next&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::r#return, <span class="macro">js_string!</span>(<span class="string">&quot;return&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::throw, <span class="macro">js_string!</span>(<span class="string">&quot;throw&quot;</span>), <span class="number">1</span>)
             .build();
     }
 

@@ -3723,6 +3723,60 @@
 <a href="#3723" id="3723">3723</a>
 <a href="#3724" id="3724">3724</a>
 <a href="#3725" id="3725">3725</a>
+<a href="#3726" id="3726">3726</a>
+<a href="#3727" id="3727">3727</a>
+<a href="#3728" id="3728">3728</a>
+<a href="#3729" id="3729">3729</a>
+<a href="#3730" id="3730">3730</a>
+<a href="#3731" id="3731">3731</a>
+<a href="#3732" id="3732">3732</a>
+<a href="#3733" id="3733">3733</a>
+<a href="#3734" id="3734">3734</a>
+<a href="#3735" id="3735">3735</a>
+<a href="#3736" id="3736">3736</a>
+<a href="#3737" id="3737">3737</a>
+<a href="#3738" id="3738">3738</a>
+<a href="#3739" id="3739">3739</a>
+<a href="#3740" id="3740">3740</a>
+<a href="#3741" id="3741">3741</a>
+<a href="#3742" id="3742">3742</a>
+<a href="#3743" id="3743">3743</a>
+<a href="#3744" id="3744">3744</a>
+<a href="#3745" id="3745">3745</a>
+<a href="#3746" id="3746">3746</a>
+<a href="#3747" id="3747">3747</a>
+<a href="#3748" id="3748">3748</a>
+<a href="#3749" id="3749">3749</a>
+<a href="#3750" id="3750">3750</a>
+<a href="#3751" id="3751">3751</a>
+<a href="#3752" id="3752">3752</a>
+<a href="#3753" id="3753">3753</a>
+<a href="#3754" id="3754">3754</a>
+<a href="#3755" id="3755">3755</a>
+<a href="#3756" id="3756">3756</a>
+<a href="#3757" id="3757">3757</a>
+<a href="#3758" id="3758">3758</a>
+<a href="#3759" id="3759">3759</a>
+<a href="#3760" id="3760">3760</a>
+<a href="#3761" id="3761">3761</a>
+<a href="#3762" id="3762">3762</a>
+<a href="#3763" id="3763">3763</a>
+<a href="#3764" id="3764">3764</a>
+<a href="#3765" id="3765">3765</a>
+<a href="#3766" id="3766">3766</a>
+<a href="#3767" id="3767">3767</a>
+<a href="#3768" id="3768">3768</a>
+<a href="#3769" id="3769">3769</a>
+<a href="#3770" id="3770">3770</a>
+<a href="#3771" id="3771">3771</a>
+<a href="#3772" id="3772">3772</a>
+<a href="#3773" id="3773">3773</a>
+<a href="#3774" id="3774">3774</a>
+<a href="#3775" id="3775">3775</a>
+<a href="#3776" id="3776">3776</a>
+<a href="#3777" id="3777">3777</a>
+<a href="#3778" id="3778">3778</a>
+<a href="#3779" id="3779">3779</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
@@ -3754,22 +3808,25 @@
     },
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
-    Context, JsArgs, JsResult,
+    Context, JsArgs, JsResult, JsString,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>num_traits::Zero;
+<span class="kw">use </span>paste::paste;
 <span class="kw">use </span>std::cmp::Ordering;
 
 <span class="kw">pub mod </span>integer_indexed_object;
 
 <span class="macro">macro_rules! </span>typed_array {
-    (<span class="macro-nonterminal">$ty</span>:ident, <span class="macro-nonterminal">$variant</span>:ident, <span class="macro-nonterminal">$name</span>:literal, <span class="macro-nonterminal">$global_object_name</span>:ident) =&gt; {
-        <span class="attr">#[doc = <span class="macro">concat!</span>(<span class="string">&quot;JavaScript `&quot;</span>, <span class="macro-nonterminal">$name</span>, <span class="string">&quot;` built-in implementation.&quot;</span>)]
-        #[derive(Debug, Clone, Copy)]
-        </span><span class="kw">pub struct </span><span class="macro-nonterminal">$ty</span>;
+    (<span class="macro-nonterminal">$ty</span>:ident, <span class="macro-nonterminal">$variant</span>:ident, <span class="macro-nonterminal">$name</span>:literal, <span class="macro-nonterminal">$js_name</span>:expr, <span class="macro-nonterminal">$global_object_name</span>:ident) =&gt; {
+        <span class="macro">paste! </span>{
+            <span class="attr">#[doc = <span class="string">&quot;JavaScript `&quot; </span><span class="macro-nonterminal">$name </span><span class="string">&quot;` built-in implementation.&quot;</span>]
+            #[derive(Debug, Clone, Copy)]
+            </span><span class="kw">pub struct </span><span class="macro-nonterminal">$ty</span>;
+        }
 
         <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
             <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
@@ -3777,10 +3834,10 @@
             }
 
             <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-                <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+                <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
                 <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, TypedArray::get_species)
-                    .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+                    .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
                     .build();
 
                 BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
@@ -3801,12 +3858,12 @@
                         Attribute::CONFIGURABLE,
                     )
                     .property(
-                        <span class="macro">utf16!</span>(<span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>),
+                        <span class="macro">js_string!</span>(<span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>),
                         TypedArrayKind::<span class="macro-nonterminal">$variant</span>.element_size(),
                         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
                     )
                     .static_property(
-                        <span class="macro">utf16!</span>(<span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>),
+                        <span class="macro">js_string!</span>(<span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>),
                         TypedArrayKind::<span class="macro-nonterminal">$variant</span>.element_size(),
                         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
                     )
@@ -3815,7 +3872,7 @@
         }
 
         <span class="kw">impl </span>BuiltInObject <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
-            <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro-nonterminal">$name</span>;
+            <span class="kw">const </span>NAME: JsString = <span class="macro-nonterminal">$js_name</span>;
 
             <span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::WRITABLE
                 .union(Attribute::NON_ENUMERABLE)
@@ -3969,31 +4026,31 @@
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>TypedArray {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
             .build();
 
         <span class="kw">let </span>get_buffer = BuiltInBuilder::callable(realm, <span class="self">Self</span>::buffer)
-            .name(<span class="string">&quot;get buffer&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get buffer&quot;</span>))
             .build();
 
         <span class="kw">let </span>get_byte_length = BuiltInBuilder::callable(realm, <span class="self">Self</span>::byte_length)
-            .name(<span class="string">&quot;get byteLength&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get byteLength&quot;</span>))
             .build();
 
         <span class="kw">let </span>get_byte_offset = BuiltInBuilder::callable(realm, <span class="self">Self</span>::byte_offset)
-            .name(<span class="string">&quot;get byteOffset&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get byteOffset&quot;</span>))
             .build();
 
         <span class="kw">let </span>get_length = BuiltInBuilder::callable(realm, <span class="self">Self</span>::length)
-            .name(<span class="string">&quot;get length&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get length&quot;</span>))
             .build();
 
         <span class="kw">let </span>get_to_string_tag = BuiltInBuilder::callable(realm, <span class="self">Self</span>::to_string_tag)
-            .name(<span class="string">&quot;get [Symbol.toStringTag]&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.toStringTag]&quot;</span>))
             .build();
 
         <span class="kw">let </span>values_function = BuiltInBuilder::callable(realm, <span class="self">Self</span>::values)
-            .name(<span class="string">&quot;values&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;values&quot;</span>))
             .length(<span class="number">0</span>)
             .build();
 
@@ -4039,44 +4096,44 @@
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
-            .static_method(<span class="self">Self</span>::from, <span class="string">&quot;from&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::of, <span class="string">&quot;of&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::at, <span class="string">&quot;at&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::copy_within, <span class="string">&quot;copyWithin&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::entries, <span class="string">&quot;entries&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::every, <span class="string">&quot;every&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::fill, <span class="string">&quot;fill&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::filter, <span class="string">&quot;filter&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find, <span class="string">&quot;find&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find_index, <span class="string">&quot;findIndex&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find_last, <span class="string">&quot;findLast&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find_last_index, <span class="string">&quot;findLastIndex&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::foreach, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::includes, <span class="string">&quot;includes&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::index_of, <span class="string">&quot;indexOf&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::join, <span class="string">&quot;join&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::keys, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::last_index_of, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::map, <span class="string">&quot;map&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::reduce, <span class="string">&quot;reduce&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::reduceright, <span class="string">&quot;reduceRight&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::reverse, <span class="string">&quot;reverse&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::set, <span class="string">&quot;set&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::some, <span class="string">&quot;some&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::sort, <span class="string">&quot;sort&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::subarray, <span class="string">&quot;subarray&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::to_locale_string, <span class="string">&quot;toLocaleString&quot;</span>, <span class="number">0</span>)
+            .static_method(<span class="self">Self</span>::from, <span class="macro">js_string!</span>(<span class="string">&quot;from&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::of, <span class="macro">js_string!</span>(<span class="string">&quot;of&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::at, <span class="macro">js_string!</span>(<span class="string">&quot;at&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::copy_within, <span class="macro">js_string!</span>(<span class="string">&quot;copyWithin&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::entries, <span class="macro">js_string!</span>(<span class="string">&quot;entries&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::every, <span class="macro">js_string!</span>(<span class="string">&quot;every&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::fill, <span class="macro">js_string!</span>(<span class="string">&quot;fill&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::filter, <span class="macro">js_string!</span>(<span class="string">&quot;filter&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find, <span class="macro">js_string!</span>(<span class="string">&quot;find&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find_index, <span class="macro">js_string!</span>(<span class="string">&quot;findIndex&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find_last, <span class="macro">js_string!</span>(<span class="string">&quot;findLast&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find_last_index, <span class="macro">js_string!</span>(<span class="string">&quot;findLastIndex&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::foreach, <span class="macro">js_string!</span>(<span class="string">&quot;forEach&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::includes, <span class="macro">js_string!</span>(<span class="string">&quot;includes&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::index_of, <span class="macro">js_string!</span>(<span class="string">&quot;indexOf&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::join, <span class="macro">js_string!</span>(<span class="string">&quot;join&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::keys, <span class="macro">js_string!</span>(<span class="string">&quot;keys&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::last_index_of, <span class="macro">js_string!</span>(<span class="string">&quot;lastIndexOf&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::map, <span class="macro">js_string!</span>(<span class="string">&quot;map&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::reduce, <span class="macro">js_string!</span>(<span class="string">&quot;reduce&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::reduceright, <span class="macro">js_string!</span>(<span class="string">&quot;reduceRight&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::reverse, <span class="macro">js_string!</span>(<span class="string">&quot;reverse&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::set, <span class="macro">js_string!</span>(<span class="string">&quot;set&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::slice, <span class="macro">js_string!</span>(<span class="string">&quot;slice&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::some, <span class="macro">js_string!</span>(<span class="string">&quot;some&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::sort, <span class="macro">js_string!</span>(<span class="string">&quot;sort&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::subarray, <span class="macro">js_string!</span>(<span class="string">&quot;subarray&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::to_locale_string, <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleString&quot;</span>), <span class="number">0</span>)
             <span class="comment">// 23.2.3.29 %TypedArray%.prototype.toString ( )
             // The initial value of the %TypedArray%.prototype.toString data property is the same
             // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
             </span>.property(
-                <span class="macro">utf16!</span>(<span class="string">&quot;toString&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>),
                 realm.intrinsics().objects().array_prototype_to_string(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                <span class="string">&quot;values&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;values&quot;</span>),
                 values_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -4089,7 +4146,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>TypedArray {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;TypedArray&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::TYPED_ARRAY;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>TypedArray {
@@ -7401,19 +7458,19 @@
     }
 
     <span class="doccomment">/// Gets the name of this typed array name.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>name(<span class="self">self</span>) -&gt; JsString {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Int8 =&gt; <span class="string">&quot;Int8Array&quot;</span>,
-            <span class="self">Self</span>::Uint8 =&gt; <span class="string">&quot;Uint8Array&quot;</span>,
-            <span class="self">Self</span>::Uint8Clamped =&gt; <span class="string">&quot;Uint8ClampedArray&quot;</span>,
-            <span class="self">Self</span>::Int16 =&gt; <span class="string">&quot;Int16Array&quot;</span>,
-            <span class="self">Self</span>::Uint16 =&gt; <span class="string">&quot;Uint16Array&quot;</span>,
-            <span class="self">Self</span>::Int32 =&gt; <span class="string">&quot;Int32Array&quot;</span>,
-            <span class="self">Self</span>::Uint32 =&gt; <span class="string">&quot;Uint32Array&quot;</span>,
-            <span class="self">Self</span>::BigInt64 =&gt; <span class="string">&quot;BigInt64Array&quot;</span>,
-            <span class="self">Self</span>::BigUint64 =&gt; <span class="string">&quot;BigUint64Array&quot;</span>,
-            <span class="self">Self</span>::Float32 =&gt; <span class="string">&quot;Float32Array&quot;</span>,
-            <span class="self">Self</span>::Float64 =&gt; <span class="string">&quot;Float64Array&quot;</span>,
+            <span class="self">Self</span>::Int8 =&gt; StaticJsStrings::INT8_ARRAY,
+            <span class="self">Self</span>::Uint8 =&gt; StaticJsStrings::UINT8_ARRAY,
+            <span class="self">Self</span>::Uint8Clamped =&gt; StaticJsStrings::UINT8_CLAMPED_ARRAY,
+            <span class="self">Self</span>::Int16 =&gt; StaticJsStrings::INT16_ARRAY,
+            <span class="self">Self</span>::Uint16 =&gt; StaticJsStrings::UINT16_ARRAY,
+            <span class="self">Self</span>::Int32 =&gt; StaticJsStrings::INT32_ARRAY,
+            <span class="self">Self</span>::Uint32 =&gt; StaticJsStrings::UINT32_ARRAY,
+            <span class="self">Self</span>::BigInt64 =&gt; StaticJsStrings::BIG_INT64_ARRAY,
+            <span class="self">Self</span>::BigUint64 =&gt; StaticJsStrings::BIG_UINT64_ARRAY,
+            <span class="self">Self</span>::Float32 =&gt; StaticJsStrings::FLOAT32_ARRAY,
+            <span class="self">Self</span>::Float64 =&gt; StaticJsStrings::FLOAT64_ARRAY,
         }
     }
 
@@ -7422,30 +7479,81 @@
     }
 }
 
-<span class="macro">typed_array!</span>(Int8Array, Int8, <span class="string">&quot;Int8Array&quot;</span>, typed_int8_array);
-<span class="macro">typed_array!</span>(Uint8Array, Uint8, <span class="string">&quot;Uint8Array&quot;</span>, typed_uint8_array);
+<span class="macro">typed_array!</span>(
+    Int8Array,
+    Int8,
+    <span class="string">&quot;Int8Array&quot;</span>,
+    StaticJsStrings::INT8_ARRAY,
+    typed_int8_array
+);
+<span class="macro">typed_array!</span>(
+    Uint8Array,
+    Uint8,
+    <span class="string">&quot;UInt8Array&quot;</span>,
+    StaticJsStrings::UINT8_ARRAY,
+    typed_uint8_array
+);
 <span class="macro">typed_array!</span>(
     Uint8ClampedArray,
     Uint8Clamped,
-    <span class="string">&quot;Uint8ClampedArray&quot;</span>,
+    <span class="string">&quot;UInt8ClampedArray&quot;</span>,
+    StaticJsStrings::UINT8_CLAMPED_ARRAY,
     typed_uint8clamped_array
 );
-<span class="macro">typed_array!</span>(Int16Array, Int16, <span class="string">&quot;Int16Array&quot;</span>, typed_int16_array);
-<span class="macro">typed_array!</span>(Uint16Array, Uint16, <span class="string">&quot;Uint16Array&quot;</span>, typed_uint16_array);
-<span class="macro">typed_array!</span>(Int32Array, Int32, <span class="string">&quot;Int32Array&quot;</span>, typed_int32_array);
-<span class="macro">typed_array!</span>(Uint32Array, Uint32, <span class="string">&quot;Uint32Array&quot;</span>, typed_uint32_array);
+<span class="macro">typed_array!</span>(
+    Int16Array,
+    Int16,
+    <span class="string">&quot;Int16Array&quot;</span>,
+    StaticJsStrings::INT16_ARRAY,
+    typed_int16_array
+);
+<span class="macro">typed_array!</span>(
+    Uint16Array,
+    Uint16,
+    <span class="string">&quot;UInt16Array&quot;</span>,
+    StaticJsStrings::UINT16_ARRAY,
+    typed_uint16_array
+);
+<span class="macro">typed_array!</span>(
+    Int32Array,
+    Int32,
+    <span class="string">&quot;Int32Array&quot;</span>,
+    StaticJsStrings::INT32_ARRAY,
+    typed_int32_array
+);
+<span class="macro">typed_array!</span>(
+    Uint32Array,
+    Uint32,
+    <span class="string">&quot;UInt32Array&quot;</span>,
+    StaticJsStrings::UINT32_ARRAY,
+    typed_uint32_array
+);
 <span class="macro">typed_array!</span>(
     BigInt64Array,
     BigInt64,
     <span class="string">&quot;BigInt64Array&quot;</span>,
+    StaticJsStrings::BIG_INT64_ARRAY,
     typed_bigint64_array
 );
 <span class="macro">typed_array!</span>(
     BigUint64Array,
     BigUint64,
     <span class="string">&quot;BigUint64Array&quot;</span>,
+    StaticJsStrings::BIG_UINT64_ARRAY,
     typed_biguint64_array
 );
-<span class="macro">typed_array!</span>(Float32Array, Float32, <span class="string">&quot;Float32Array&quot;</span>, typed_float32_array);
-<span class="macro">typed_array!</span>(Float64Array, Float64, <span class="string">&quot;Float64Array&quot;</span>, typed_float64_array);
+<span class="macro">typed_array!</span>(
+    Float32Array,
+    Float32,
+    <span class="string">&quot;Float32Array&quot;</span>,
+    StaticJsStrings::FLOAT32_ARRAY,
+    typed_float32_array
+);
+<span class="macro">typed_array!</span>(
+    Float64Array,
+    Float64,
+    <span class="string">&quot;Float64Array&quot;</span>,
+    StaticJsStrings::FLOAT64_ARRAY,
+    typed_float64_array
+);
 </code></pre></div></section></main></body></html>

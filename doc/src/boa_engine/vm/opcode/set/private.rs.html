@@ -186,7 +186,9 @@
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    js_string,
     object::PrivateElement,
     property::PropertyDescriptor,
     string::utf16,
@@ -269,7 +271,7 @@
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>value = value.as_callable().expect(<span class="string">&quot;method must be callable&quot;</span>);
 
-        <span class="kw">let </span>name_string = <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, name.to_std_string_escaped());
+        <span class="kw">let </span>name_string = <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;#&quot;</span>), <span class="kw-2">&amp;</span>name);
         <span class="kw">let </span>desc = PropertyDescriptor::builder()
             .value(name_string)
             .writable(<span class="bool-val">false</span>)
@@ -277,7 +279,7 @@
             .configurable(<span class="bool-val">true</span>)
             .build();
         value
-            .__define_own_property__(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>).into(), desc, context)
+            .__define_own_property__(<span class="kw-2">&amp;</span><span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>).into(), desc, context)
             .expect(<span class="string">&quot;failed to set name property on private method&quot;</span>);
 
         <span class="kw">let </span>object = context.vm.pop();

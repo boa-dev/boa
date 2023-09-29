@@ -511,6 +511,16 @@
 <a href="#511" id="511">511</a>
 <a href="#512" id="512">512</a>
 <a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Write;
 
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -524,10 +534,11 @@
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
@@ -557,18 +568,22 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ListFormat {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_method(<span class="self">Self</span>::supported_locales_of, <span class="string">&quot;supportedLocalesOf&quot;</span>, <span class="number">1</span>)
+            .static_method(
+                <span class="self">Self</span>::supported_locales_of,
+                <span class="macro">js_string!</span>(<span class="string">&quot;supportedLocalesOf&quot;</span>),
+                <span class="number">1</span>,
+            )
             .property(
                 JsSymbol::to_string_tag(),
-                <span class="string">&quot;Intl.ListFormat&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;Intl.ListFormat&quot;</span>),
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::format, <span class="string">&quot;format&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::format_to_parts, <span class="string">&quot;formatToParts&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::resolved_options, <span class="string">&quot;resolvedOptions&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::format, <span class="macro">js_string!</span>(<span class="string">&quot;format&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::format_to_parts, <span class="macro">js_string!</span>(<span class="string">&quot;formatToParts&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::resolved_options, <span class="macro">js_string!</span>(<span class="string">&quot;resolvedOptions&quot;</span>), <span class="number">0</span>)
             .build();
     }
 
@@ -578,7 +593,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>ListFormat {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ListFormat&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::LIST_FORMAT;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>ListFormat {
@@ -742,11 +757,12 @@
         // TODO: support for UTF-16 unpaired surrogates formatting
         </span><span class="kw">let </span>strings = string_list_from_iterable(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Return ! FormatList(lf, stringList).
-        </span><span class="prelude-val">Ok</span>(lf
+        <span class="kw">let </span>formatted = lf
             .native
-            .format_to_string(strings.into_iter().map(|s| s.to_std_string_escaped()))
-            .into())
+            .format_to_string(strings.into_iter().map(|s| s.to_std_string_escaped()));
+
+        <span class="comment">// 4. Return ! FormatList(lf, stringList).
+        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(formatted).into())
     }
 
     <span class="doccomment">/// [`Intl.ListFormat.prototype.formatToParts ( list )`][spec].
@@ -888,11 +904,11 @@
                 .create(ObjectData::ordinary(), <span class="macro">vec!</span>[]);
 
             <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(O, &quot;type&quot;, part.[[Type]]).
-            </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;type&quot;</span>), part.typ(), context)
+            </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;type&quot;</span>), <span class="macro">js_string!</span>(part.typ()), context)
                 .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
 
             <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(O, &quot;value&quot;, part.[[Value]]).
-            </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), part.value(), context)
+            </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), <span class="macro">js_string!</span>(part.value()), context)
                 .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
 
             <span class="comment">// d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(n), O).
@@ -946,26 +962,30 @@
         //     c. Assert: v is not undefined.
         //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
         </span>options
-            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;locale&quot;</span>), lf.locale.to_string(), context)
+            .create_data_property_or_throw(
+                <span class="macro">utf16!</span>(<span class="string">&quot;locale&quot;</span>),
+                <span class="macro">js_string!</span>(lf.locale.to_string()),
+                context,
+            )
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
             .create_data_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;type&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;type&quot;</span>),
                 <span class="kw">match </span>lf.typ {
-                    ListFormatType::Conjunction =&gt; <span class="string">&quot;conjunction&quot;</span>,
-                    ListFormatType::Disjunction =&gt; <span class="string">&quot;disjunction&quot;</span>,
-                    ListFormatType::Unit =&gt; <span class="string">&quot;unit&quot;</span>,
+                    ListFormatType::Conjunction =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;conjunction&quot;</span>),
+                    ListFormatType::Disjunction =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;disjunction&quot;</span>),
+                    ListFormatType::Unit =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;unit&quot;</span>),
                 },
                 context,
             )
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
             .create_data_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;style&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;style&quot;</span>),
                 <span class="kw">match </span>lf.style {
-                    ListLength::Wide =&gt; <span class="string">&quot;long&quot;</span>,
-                    ListLength::Short =&gt; <span class="string">&quot;short&quot;</span>,
-                    ListLength::Narrow =&gt; <span class="string">&quot;narrow&quot;</span>,
+                    ListLength::Wide =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;long&quot;</span>),
+                    ListLength::Short =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;short&quot;</span>),
+                    ListLength::Narrow =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
                     <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                 },
                 context,

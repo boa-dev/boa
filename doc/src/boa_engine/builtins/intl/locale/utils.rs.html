@@ -654,6 +654,9 @@
 <a href="#654" id="654">654</a>
 <a href="#655" id="655">655</a>
 <a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         intl::{
@@ -664,6 +667,7 @@
         Array,
     },
     context::{icu::Icu, BoaProvider},
+    js_string,
     object::JsObject,
     string::utf16,
     Context, JsNativeError, JsResult, JsValue,
@@ -1219,7 +1223,9 @@
 
     <span class="comment">// 5. Return CreateArrayFromList(supportedLocales).
     </span><span class="prelude-val">Ok</span>(Array::create_array_from_list(
-        elements.into_iter().map(|loc| loc.to_string().into()),
+        elements
+            .into_iter()
+            .map(|loc| <span class="macro">js_string!</span>(loc.to_string()).into()),
         context,
     ))
 }

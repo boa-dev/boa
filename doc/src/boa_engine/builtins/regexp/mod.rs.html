@@ -1905,6 +1905,48 @@
 <a href="#1905" id="1905">1905</a>
 <a href="#1906" id="1906">1906</a>
 <a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1927,7 +1969,7 @@
     },
     property::{Attribute, PropertyDescriptorBuilder},
     realm::Realm,
-    string::{utf16, CodePoint},
+    string::{common::StaticJsStrings, utf16, CodePoint},
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
@@ -1956,40 +1998,40 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>RegExp {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
             .build();
 
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         <span class="kw">let </span>get_has_indices = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_has_indices)
-            .name(<span class="string">&quot;get hasIndices&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get hasIndices&quot;</span>))
             .build();
         <span class="kw">let </span>get_global = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_global)
-            .name(<span class="string">&quot;get global&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get global&quot;</span>))
             .build();
         <span class="kw">let </span>get_ignore_case = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_ignore_case)
-            .name(<span class="string">&quot;get ignoreCase&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get ignoreCase&quot;</span>))
             .build();
         <span class="kw">let </span>get_multiline = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_multiline)
-            .name(<span class="string">&quot;get multiline&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get multiline&quot;</span>))
             .build();
         <span class="kw">let </span>get_dot_all = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_dot_all)
-            .name(<span class="string">&quot;get dotAll&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get dotAll&quot;</span>))
             .build();
         <span class="kw">let </span>get_unicode = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_unicode)
-            .name(<span class="string">&quot;get unicode&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get unicode&quot;</span>))
             .build();
         <span class="kw">let </span>get_sticky = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_sticky)
-            .name(<span class="string">&quot;get sticky&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get sticky&quot;</span>))
             .build();
         <span class="kw">let </span>get_flags = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_flags)
-            .name(<span class="string">&quot;get flags&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get flags&quot;</span>))
             .build();
         <span class="kw">let </span>get_source = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_source)
-            .name(<span class="string">&quot;get source&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get source&quot;</span>))
             .build();
         <span class="kw">let </span>regexp = BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_accessor(
@@ -1998,46 +2040,87 @@
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .property(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, Attribute::all())
-            .method(<span class="self">Self</span>::test, <span class="string">&quot;test&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::exec, <span class="string">&quot;exec&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::r#match, (JsSymbol::r#match(), <span class="string">&quot;[Symbol.match]&quot;</span>), <span class="number">1</span>)
+            .property(<span class="macro">js_string!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, Attribute::all())
+            .method(<span class="self">Self</span>::test, <span class="macro">js_string!</span>(<span class="string">&quot;test&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::exec, <span class="macro">js_string!</span>(<span class="string">&quot;exec&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
             .method(
-                <span class="self">Self</span>::match_all,
-                (JsSymbol::match_all(), <span class="string">&quot;[Symbol.matchAll]&quot;</span>),
+                <span class="self">Self</span>::r#match,
+                (JsSymbol::r#match(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.match]&quot;</span>)),
                 <span class="number">1</span>,
             )
-            .method(<span class="self">Self</span>::replace, (JsSymbol::replace(), <span class="string">&quot;[Symbol.replace]&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::search, (JsSymbol::search(), <span class="string">&quot;[Symbol.search]&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::split, (JsSymbol::split(), <span class="string">&quot;[Symbol.split]&quot;</span>), <span class="number">2</span>)
+            .method(
+                <span class="self">Self</span>::match_all,
+                (JsSymbol::match_all(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.matchAll]&quot;</span>)),
+                <span class="number">1</span>,
+            )
+            .method(
+                <span class="self">Self</span>::replace,
+                (JsSymbol::replace(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.replace]&quot;</span>)),
+                <span class="number">2</span>,
+            )
+            .method(
+                <span class="self">Self</span>::search,
+                (JsSymbol::search(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.search]&quot;</span>)),
+                <span class="number">1</span>,
+            )
+            .method(
+                <span class="self">Self</span>::split,
+                (JsSymbol::split(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.split]&quot;</span>)),
+                <span class="number">2</span>,
+            )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;hasIndices&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;hasIndices&quot;</span>),
                 <span class="prelude-val">Some</span>(get_has_indices),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;global&quot;</span>), <span class="prelude-val">Some</span>(get_global), <span class="prelude-val">None</span>, flag_attributes)
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;ignoreCase&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;global&quot;</span>),
+                <span class="prelude-val">Some</span>(get_global),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
+            .accessor(
+                <span class="macro">js_string!</span>(<span class="string">&quot;ignoreCase&quot;</span>),
                 <span class="prelude-val">Some</span>(get_ignore_case),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;multiline&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;multiline&quot;</span>),
                 <span class="prelude-val">Some</span>(get_multiline),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;dotAll&quot;</span>), <span class="prelude-val">Some</span>(get_dot_all), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;unicode&quot;</span>), <span class="prelude-val">Some</span>(get_unicode), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;sticky&quot;</span>), <span class="prelude-val">Some</span>(get_sticky), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), <span class="prelude-val">Some</span>(get_flags), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;source&quot;</span>), <span class="prelude-val">Some</span>(get_source), <span class="prelude-val">None</span>, flag_attributes);
+            .accessor(
+                <span class="macro">js_string!</span>(<span class="string">&quot;dotAll&quot;</span>),
+                <span class="prelude-val">Some</span>(get_dot_all),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
+            .accessor(
+                <span class="macro">js_string!</span>(<span class="string">&quot;unicode&quot;</span>),
+                <span class="prelude-val">Some</span>(get_unicode),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
+            .accessor(
+                <span class="macro">js_string!</span>(<span class="string">&quot;sticky&quot;</span>),
+                <span class="prelude-val">Some</span>(get_sticky),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
+            .accessor(<span class="macro">js_string!</span>(<span class="string">&quot;flags&quot;</span>), <span class="prelude-val">Some</span>(get_flags), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(
+                <span class="macro">js_string!</span>(<span class="string">&quot;source&quot;</span>),
+                <span class="prelude-val">Some</span>(get_source),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            );
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
-        </span><span class="kw">let </span>regexp = regexp.method(<span class="self">Self</span>::compile, <span class="string">&quot;compile&quot;</span>, <span class="number">2</span>);
+        </span><span class="kw">let </span>regexp = regexp.method(<span class="self">Self</span>::compile, <span class="macro">js_string!</span>(<span class="string">&quot;compile&quot;</span>), <span class="number">2</span>);
 
         regexp.build();
     }
@@ -2048,7 +2131,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>RegExp {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;RegExp&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::REG_EXP;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>RegExp {
@@ -2117,12 +2200,12 @@
             (p, f)
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(pattern) = pattern_is_regexp {
             <span class="comment">// a. Let P be ? Get(pattern, &quot;source&quot;).
-            </span><span class="kw">let </span>p = pattern.get(<span class="string">&quot;source&quot;</span>, context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>p = pattern.get(<span class="macro">js_string!</span>(<span class="string">&quot;source&quot;</span>), context)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If flags is undefined, then
             </span><span class="kw">let </span>f = <span class="kw">if </span>flags.is_undefined() {
                 <span class="comment">// i. Let F be ? Get(pattern, &quot;flags&quot;).
-                </span>pattern.get(<span class="string">&quot;flags&quot;</span>, context)<span class="question-mark">?
+                </span>pattern.get(<span class="macro">js_string!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?
             </span><span class="comment">// c. Else,
             </span>} <span class="kw">else </span>{
                 <span class="comment">// i. Let F be flags.
@@ -2548,7 +2631,7 @@
             }
 
             <span class="comment">// 18. Return result.
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(result.into());
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(result).into());
         }
 
         <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -2591,7 +2674,7 @@
                     this,
                     <span class="kw-2">&amp;</span>JsValue::new(context.intrinsics().constructors().regexp().prototype()),
                 ) {
-                    <span class="prelude-val">Ok</span>(JsValue::new(<span class="string">&quot;(?:)&quot;</span>))
+                    <span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(<span class="string">&quot;(?:)&quot;</span>)))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Err</span>(JsNativeError::typ()
                         .with_message(<span class="string">&quot;RegExp.prototype.source method called on incompatible value&quot;</span>)
@@ -2971,12 +3054,13 @@
             // ii. Perform ! CreateDataPropertyOrThrow(groups, s, capturedValue).
             // iii. Append s to groupNames.
             </span><span class="kw">for </span>(name, range) <span class="kw">in </span>named_groups {
+                <span class="kw">let </span>name = <span class="macro">js_string!</span>(name);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(range) = range {
                     <span class="comment">// TODO: Full UTF-16 regex support
                     </span><span class="kw">let </span>value = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>lossy_input[range.clone()]);
 
                     groups
-                        .create_data_property_or_throw(name, value, context)
+                        .create_data_property_or_throw(name.clone(), value, context)
                         .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
                     <span class="comment">// 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
@@ -2986,7 +3070,7 @@
                     // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
                     </span>group_names
                         .create_data_property_or_throw(
-                            name,
+                            name.clone(),
                             Array::create_array_from_list(
                                 [range.start.into(), range.end.into()],
                                 context,
@@ -2996,7 +3080,7 @@
                         .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
                 } <span class="kw">else </span>{
                     groups
-                        .create_data_property_or_throw(name, JsValue::undefined(), context)
+                        .create_data_property_or_throw(name.clone(), JsValue::undefined(), context)
                         .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
                     <span class="comment">// 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )

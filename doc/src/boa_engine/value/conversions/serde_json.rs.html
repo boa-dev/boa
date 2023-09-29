@@ -254,12 +254,19 @@
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the conversions from and into [`serde_json::Value`].
 
 </span><span class="kw">use </span><span class="kw">super</span>::JsValue;
 <span class="kw">use crate</span>::{
     builtins::Array,
     error::JsNativeError,
+    js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult,
@@ -311,7 +318,7 @@
                         .with_message(<span class="macro">format!</span>(<span class="string">&quot;could not convert JSON number {num} to JsValue&quot;</span>))
                         .into()
                 }),
-            Value::String(string) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from(string.as_str())),
+            Value::String(string) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from(<span class="macro">js_string!</span>(string.as_str()))),
             Value::Array(vec) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>arr = Vec::with_capacity(vec.len());
                 <span class="kw">for </span>val <span class="kw">in </span>vec {
@@ -327,7 +334,9 @@
                         .writable(<span class="bool-val">true</span>)
                         .enumerable(<span class="bool-val">true</span>)
                         .configurable(<span class="bool-val">true</span>);
-                    js_obj.borrow_mut().insert(key.clone(), property);
+                    js_obj
+                        .borrow_mut()
+                        .insert(<span class="macro">js_string!</span>(key.clone()), property);
                 }
 
                 <span class="prelude-val">Ok</span>(js_obj.into())
@@ -433,7 +442,7 @@
     <span class="kw">use </span>serde_json::json;
 
     <span class="kw">use </span><span class="kw">crate</span>::object::JsArray;
-    <span class="kw">use crate</span>::{run_test_actions, TestAction};
+    <span class="kw">use crate</span>::{js_string, run_test_actions, TestAction};
     <span class="kw">use crate</span>::{string::utf16, JsValue};
 
     <span class="attr">#[test]
@@ -462,7 +471,10 @@
 
             <span class="kw">let </span>value = JsValue::from_json(<span class="kw-2">&amp;</span>json, ctx).unwrap();
             <span class="kw">let </span>obj = value.as_object().unwrap();
-            <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), ctx).unwrap(), <span class="string">&quot;John Doe&quot;</span>.into());
+            <span class="macro">assert_eq!</span>(
+                obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), ctx).unwrap(),
+                <span class="macro">js_string!</span>(<span class="string">&quot;John Doe&quot;</span>).into()
+            );
             <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;age&quot;</span>), ctx).unwrap(), <span class="number">43_i32</span>.into());
             <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;minor&quot;</span>), ctx).unwrap(), <span class="bool-val">false</span>.into());
             <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;adult&quot;</span>), ctx).unwrap(), <span class="bool-val">true</span>.into());
@@ -476,7 +488,7 @@
                 <span class="kw">let </span>phones = phones.as_object().unwrap();
 
                 <span class="kw">let </span>arr = JsArray::from_object(phones.clone()).unwrap();
-                <span class="macro">assert_eq!</span>(arr.at(<span class="number">0</span>, ctx).unwrap(), <span class="string">&quot;+44 1234567&quot;</span>.into());
+                <span class="macro">assert_eq!</span>(arr.at(<span class="number">0</span>, ctx).unwrap(), <span class="macro">js_string!</span>(<span class="string">&quot;+44 1234567&quot;</span>).into());
                 <span class="macro">assert_eq!</span>(arr.at(<span class="number">1</span>, ctx).unwrap(), JsValue::from(-<span class="number">45_i32</span>));
                 <span class="macro">assert!</span>(arr.at(<span class="number">2</span>, ctx).unwrap().is_object());
                 <span class="macro">assert_eq!</span>(arr.at(<span class="number">3</span>, ctx).unwrap(), <span class="bool-val">true</span>.into());

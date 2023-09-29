@@ -1002,10 +1002,21 @@
 <a href="#1002" id="1002">1002</a>
 <a href="#1003" id="1003">1003</a>
 <a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
 </span><span class="kw">use crate</span>::{
     builtins::{error::ErrorKind, Array},
+    js_string,
     object::JsObject,
     object::ObjectData,
     property::PropertyDescriptor,
@@ -1032,11 +1043,11 @@
 /// # Examples
 ///
 /// ```rust
-/// # use boa_engine::{JsError, JsNativeError, JsNativeErrorKind, JsValue};
-/// let cause = JsError::from_opaque(&quot;error!&quot;.into());
+/// # use boa_engine::{JsError, JsNativeError, JsNativeErrorKind, JsValue, js_string};
+/// let cause = JsError::from_opaque(js_string!(&quot;error!&quot;).into());
 ///
 /// assert!(cause.as_opaque().is_some());
-/// assert_eq!(cause.as_opaque().unwrap(), &amp;JsValue::from(&quot;error!&quot;));
+/// assert_eq!(cause.as_opaque().unwrap(), &amp;JsValue::from(js_string!(&quot;error!&quot;)));
 ///
 /// let native_error: JsError = JsNativeError::typ()
 ///     .with_message(&quot;invalid type!&quot;)
@@ -1232,21 +1243,23 @@
                     .as_error()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>try_get_property = |key, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
-                    obj.has_property(key, context)
+                <span class="kw">let </span>try_get_property = |key: JsString, name, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
+                    obj.has_property(key.clone(), context)
                         .map_err(|e| TryNativeError::InaccessibleProperty {
-                            property: key,
+                            property: name,
                             source: e,
                         })<span class="question-mark">?
                         </span>.then(|| obj.get(key, context))
                         .transpose()
                         .map_err(|e| TryNativeError::InaccessibleProperty {
-                            property: key,
+                            property: name,
                             source: e,
                         })
                 };
 
-                <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = try_get_property(<span class="string">&quot;message&quot;</span>, context)<span class="question-mark">? </span>{
+                <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) =
+                    try_get_property(<span class="macro">js_string!</span>(<span class="string">&quot;message&quot;</span>), <span class="string">&quot;message&quot;</span>, context)<span class="question-mark">?
+                </span>{
                     msg.as_string()
                         .map(JsString::to_std_string)
                         .transpose()
@@ -1257,7 +1270,7 @@
                     Box::default()
                 };
 
-                <span class="kw">let </span>cause = try_get_property(<span class="string">&quot;cause&quot;</span>, context)<span class="question-mark">?</span>;
+                <span class="kw">let </span>cause = try_get_property(<span class="macro">js_string!</span>(<span class="string">&quot;cause&quot;</span>), <span class="string">&quot;cause&quot;</span>, context)<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>kind = <span class="kw">match </span>error {
                     ErrorKind::Error =&gt; JsNativeErrorKind::Error,
@@ -1301,7 +1314,7 @@
                     }
                 };
 
-                <span class="kw">let </span>realm = try_get_property(<span class="string">&quot;constructor&quot;</span>, context)<span class="question-mark">?
+                <span class="kw">let </span>realm = try_get_property(<span class="macro">js_string!</span>(<span class="string">&quot;constructor&quot;</span>), <span class="string">&quot;constructor&quot;</span>, context)<span class="question-mark">?
                     </span>.as_ref()
                     .and_then(JsValue::as_constructor)
                     .ok_or(TryNativeError::InvalidConstructor)<span class="question-mark">?
@@ -1773,14 +1786,17 @@
     /// # Examples
     ///
     /// ```rust
-    /// # use boa_engine::{Context, JsError, JsNativeError};
+    /// # use boa_engine::{Context, JsError, JsNativeError, js_string};
     /// let context = &amp;mut Context::default();
     ///
     /// let error = JsNativeError::error().with_message(&quot;error!&quot;);
     /// let error_obj = error.to_opaque(context);
     ///
     /// assert!(error_obj.borrow().is_error());
-    /// assert_eq!(error_obj.get(&quot;message&quot;, context).unwrap(), &quot;error!&quot;.into())
+    /// assert_eq!(
+    ///     error_obj.get(js_string!(&quot;message&quot;), context).unwrap(),
+    ///     js_string!(&quot;error!&quot;).into()
+    /// )
     /// ```
     ///
     /// # Panics
@@ -1832,11 +1848,15 @@
             ObjectData::error(tag),
         );
 
-        o.create_non_enumerable_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="kw-2">&amp;**</span>message, context);
+        o.create_non_enumerable_data_property_or_throw(
+            <span class="macro">js_string!</span>(<span class="string">&quot;message&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="kw-2">&amp;**</span>message),
+            context,
+        );
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(cause) = cause {
             o.create_non_enumerable_data_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;cause&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;cause&quot;</span>),
                 cause.to_opaque(context),
                 context,
             );
@@ -1849,7 +1869,7 @@
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
             <span class="kw">let </span>errors = Array::create_array_from_list(errors, context);
             o.define_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;errors&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;errors&quot;</span>),
                 PropertyDescriptor::builder()
                     .configurable(<span class="bool-val">true</span>)
                     .enumerable(<span class="bool-val">false</span>)

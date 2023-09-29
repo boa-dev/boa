@@ -186,6 +186,7 @@
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp String Iterator` object.
 //!
 //! A `RegExp` String Iterator is an object, that represents a specific iteration over some
@@ -202,6 +203,7 @@
     builtins::{iterable::create_iter_result_object, regexp, BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::{JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
@@ -230,7 +232,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>RegExpStringIterator {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;RegExpStringIterator&quot;</span>, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .prototype(
@@ -240,10 +242,10 @@
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="number">0</span>)
+            .static_method(<span class="self">Self</span>::next, <span class="macro">js_string!</span>(<span class="string">&quot;next&quot;</span>), <span class="number">0</span>)
             .static_property(
                 JsSymbol::to_string_tag(),
-                <span class="string">&quot;RegExp String Iterator&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;RegExp String Iterator&quot;</span>),
                 Attribute::CONFIGURABLE,
             )
             .build();

@@ -527,7 +527,7 @@
     </span><span class="kw">let </span>n = argument.to_number();
 
     <span class="comment">// 3. If ! ToString(n) is argument, return n.
-    </span><span class="kw">if </span><span class="kw-2">&amp;</span>JsString::from(Number::to_native_string(n)) == argument {
+    </span><span class="kw">if </span><span class="kw-2">&amp;</span>Number::to_js_string(n) == argument {
         <span class="kw">return </span><span class="prelude-val">Some</span>(n);
     }
 

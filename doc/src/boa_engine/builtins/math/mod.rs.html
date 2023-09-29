@@ -1041,9 +1041,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
 </span><span class="kw">use crate</span>::{
-    builtins::BuiltInObject, context::intrinsics::Intrinsics, object::JsObject,
-    property::Attribute, realm::Realm, string::utf16, symbol::JsSymbol, Context, JsArgs, JsResult,
-    JsValue,
+    builtins::BuiltInObject, context::intrinsics::Intrinsics, js_string, object::JsObject,
+    property::Attribute, realm::Realm, string::common::StaticJsStrings, symbol::JsSymbol, Context,
+    JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -1058,57 +1058,57 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Math {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;E&quot;</span>), std::f64::consts::E, attribute)
-            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;LN10&quot;</span>), std::f64::consts::LN_10, attribute)
-            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;LN2&quot;</span>), std::f64::consts::LN_2, attribute)
-            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;LOG10E&quot;</span>), std::f64::consts::LOG10_E, attribute)
-            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;LOG2E&quot;</span>), std::f64::consts::LOG2_E, attribute)
-            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;PI&quot;</span>), std::f64::consts::PI, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;E&quot;</span>), std::f64::consts::E, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;LN10&quot;</span>), std::f64::consts::LN_10, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;LN2&quot;</span>), std::f64::consts::LN_2, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;LOG10E&quot;</span>), std::f64::consts::LOG10_E, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;LOG2E&quot;</span>), std::f64::consts::LOG2_E, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;PI&quot;</span>), std::f64::consts::PI, attribute)
             .static_property(
-                <span class="macro">utf16!</span>(<span class="string">&quot;SQRT1_2&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;SQRT1_2&quot;</span>),
                 std::f64::consts::FRAC_1_SQRT_2,
                 attribute,
             )
-            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;SQRT2&quot;</span>), std::f64::consts::SQRT_2, attribute)
-            .static_method(<span class="self">Self</span>::abs, <span class="string">&quot;abs&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::acos, <span class="string">&quot;acos&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::acosh, <span class="string">&quot;acosh&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::asin, <span class="string">&quot;asin&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::asinh, <span class="string">&quot;asinh&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::atan, <span class="string">&quot;atan&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::atanh, <span class="string">&quot;atanh&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::atan2, <span class="string">&quot;atan2&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::cbrt, <span class="string">&quot;cbrt&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::ceil, <span class="string">&quot;ceil&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::clz32, <span class="string">&quot;clz32&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::cos, <span class="string">&quot;cos&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::cosh, <span class="string">&quot;cosh&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::exp, <span class="string">&quot;exp&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::expm1, <span class="string">&quot;expm1&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::floor, <span class="string">&quot;floor&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::fround, <span class="string">&quot;fround&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::hypot, <span class="string">&quot;hypot&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::imul, <span class="string">&quot;imul&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::log, <span class="string">&quot;log&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::log1p, <span class="string">&quot;log1p&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::log10, <span class="string">&quot;log10&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::log2, <span class="string">&quot;log2&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::max, <span class="string">&quot;max&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::min, <span class="string">&quot;min&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::pow, <span class="string">&quot;pow&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::random, <span class="string">&quot;random&quot;</span>, <span class="number">0</span>)
-            .static_method(<span class="self">Self</span>::round, <span class="string">&quot;round&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::sign, <span class="string">&quot;sign&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::sin, <span class="string">&quot;sin&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::sinh, <span class="string">&quot;sinh&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::sqrt, <span class="string">&quot;sqrt&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::tan, <span class="string">&quot;tan&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::tanh, <span class="string">&quot;tanh&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::trunc, <span class="string">&quot;trunc&quot;</span>, <span class="number">1</span>)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;SQRT2&quot;</span>), std::f64::consts::SQRT_2, attribute)
+            .static_method(<span class="self">Self</span>::abs, <span class="macro">js_string!</span>(<span class="string">&quot;abs&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::acos, <span class="macro">js_string!</span>(<span class="string">&quot;acos&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::acosh, <span class="macro">js_string!</span>(<span class="string">&quot;acosh&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::asin, <span class="macro">js_string!</span>(<span class="string">&quot;asin&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::asinh, <span class="macro">js_string!</span>(<span class="string">&quot;asinh&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::atan, <span class="macro">js_string!</span>(<span class="string">&quot;atan&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::atanh, <span class="macro">js_string!</span>(<span class="string">&quot;atanh&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::atan2, <span class="macro">js_string!</span>(<span class="string">&quot;atan2&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::cbrt, <span class="macro">js_string!</span>(<span class="string">&quot;cbrt&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::ceil, <span class="macro">js_string!</span>(<span class="string">&quot;ceil&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::clz32, <span class="macro">js_string!</span>(<span class="string">&quot;clz32&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::cos, <span class="macro">js_string!</span>(<span class="string">&quot;cos&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::cosh, <span class="macro">js_string!</span>(<span class="string">&quot;cosh&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::exp, <span class="macro">js_string!</span>(<span class="string">&quot;exp&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::expm1, <span class="macro">js_string!</span>(<span class="string">&quot;expm1&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::floor, <span class="macro">js_string!</span>(<span class="string">&quot;floor&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::fround, <span class="macro">js_string!</span>(<span class="string">&quot;fround&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::hypot, <span class="macro">js_string!</span>(<span class="string">&quot;hypot&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::imul, <span class="macro">js_string!</span>(<span class="string">&quot;imul&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::log, <span class="macro">js_string!</span>(<span class="string">&quot;log&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::log1p, <span class="macro">js_string!</span>(<span class="string">&quot;log1p&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::log10, <span class="macro">js_string!</span>(<span class="string">&quot;log10&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::log2, <span class="macro">js_string!</span>(<span class="string">&quot;log2&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::max, <span class="macro">js_string!</span>(<span class="string">&quot;max&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::min, <span class="macro">js_string!</span>(<span class="string">&quot;min&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::pow, <span class="macro">js_string!</span>(<span class="string">&quot;pow&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::random, <span class="macro">js_string!</span>(<span class="string">&quot;random&quot;</span>), <span class="number">0</span>)
+            .static_method(<span class="self">Self</span>::round, <span class="macro">js_string!</span>(<span class="string">&quot;round&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::sign, <span class="macro">js_string!</span>(<span class="string">&quot;sign&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::sin, <span class="macro">js_string!</span>(<span class="string">&quot;sin&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::sinh, <span class="macro">js_string!</span>(<span class="string">&quot;sinh&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::sqrt, <span class="macro">js_string!</span>(<span class="string">&quot;sqrt&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::tan, <span class="macro">js_string!</span>(<span class="string">&quot;tan&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::tanh, <span class="macro">js_string!</span>(<span class="string">&quot;tanh&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::trunc, <span class="macro">js_string!</span>(<span class="string">&quot;trunc&quot;</span>), <span class="number">1</span>)
             .static_property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
@@ -1123,7 +1123,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Math {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Math&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::MATH;
 }
 
 <span class="kw">impl </span>Math {

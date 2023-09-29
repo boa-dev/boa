@@ -421,6 +421,11 @@
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>options;
 
 <span class="kw">use </span>boa_macros::utf16;
@@ -442,6 +447,7 @@
     object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
@@ -471,17 +477,21 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>PluralRules {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_method(<span class="self">Self</span>::supported_locales_of, <span class="string">&quot;supportedLocalesOf&quot;</span>, <span class="number">1</span>)
+            .static_method(
+                <span class="self">Self</span>::supported_locales_of,
+                <span class="macro">js_string!</span>(<span class="string">&quot;supportedLocalesOf&quot;</span>),
+                <span class="number">1</span>,
+            )
             .property(
                 JsSymbol::to_string_tag(),
-                <span class="string">&quot;Intl.PluralRules&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;Intl.PluralRules&quot;</span>),
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::resolved_options, <span class="string">&quot;resolvedOptions&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::select, <span class="string">&quot;select&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::resolved_options, <span class="macro">js_string!</span>(<span class="string">&quot;resolvedOptions&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::select, <span class="macro">js_string!</span>(<span class="string">&quot;select&quot;</span>), <span class="number">1</span>)
             .build();
     }
 
@@ -491,7 +501,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>PluralRules {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PluralRules&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::PLURAL_RULES;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>PluralRules {
@@ -686,15 +696,15 @@
         options
             .property(
                 <span class="macro">js_string!</span>(<span class="string">&quot;locale&quot;</span>),
-                plural_rules.locale.to_string(),
+                <span class="macro">js_string!</span>(plural_rules.locale.to_string()),
                 Attribute::all(),
             )
             .property(
                 <span class="macro">js_string!</span>(<span class="string">&quot;type&quot;</span>),
                 <span class="kw">match </span>plural_rules.rule_type {
-                    PluralRuleType::Cardinal =&gt; <span class="string">&quot;cardinal&quot;</span>,
-                    PluralRuleType::Ordinal =&gt; <span class="string">&quot;ordinal&quot;</span>,
-                    <span class="kw">_ </span>=&gt; <span class="string">&quot;unknown&quot;</span>,
+                    PluralRuleType::Cardinal =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;cardinal&quot;</span>),
+                    PluralRuleType::Ordinal =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;ordinal&quot;</span>),
+                    <span class="kw">_ </span>=&gt; <span class="macro">js_string!</span>(<span class="string">&quot;unknown&quot;</span>),
                 },
                 Attribute::all(),
             )
@@ -741,7 +751,7 @@
         options
             .property(
                 <span class="macro">js_string!</span>(<span class="string">&quot;roundingMode&quot;</span>),
-                plural_rules.format_options.rounding_mode.to_string(),
+                <span class="macro">js_string!</span>(plural_rules.format_options.rounding_mode.to_string()),
                 Attribute::all(),
             )
             .property(
@@ -751,10 +761,10 @@
             )
             .property(
                 <span class="macro">js_string!</span>(<span class="string">&quot;trailingZeroDisplay&quot;</span>),
-                plural_rules
+                <span class="macro">js_string!</span>(plural_rules
                     .format_options
                     .trailing_zero_display
-                    .to_string(),
+                    .to_string()),
                 Attribute::all(),
             );
 
@@ -783,7 +793,7 @@
         //     a. Perform ! CreateDataPropertyOrThrow(options, &quot;roundingPriority&quot;, &quot;auto&quot;).
         </span>options.property(
             <span class="macro">js_string!</span>(<span class="string">&quot;roundingPriority&quot;</span>),
-            plural_rules.format_options.rounding_priority.to_string(),
+            <span class="macro">js_string!</span>(plural_rules.format_options.rounding_priority.to_string()),
             Attribute::all(),
         );
 

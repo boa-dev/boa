@@ -1167,6 +1167,7 @@
 <a href="#1167" id="1167">1167</a>
 <a href="#1168" id="1168">1168</a>
 <a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -1179,6 +1180,7 @@
 <span class="kw">use crate</span>::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
     string::utf16,
@@ -1414,7 +1416,7 @@
             <span class="comment">// we&#39;re in a recursive object, bail
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>hint {
                 PreferredType::Number =&gt; JsValue::new(<span class="number">0</span>),
-                PreferredType::String =&gt; JsValue::new(<span class="string">&quot;&quot;</span>),
+                PreferredType::String =&gt; JsValue::new(<span class="macro">js_string!</span>()),
                 PreferredType::Default =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;checked type hint in step 2&quot;</span>),
             });
         }

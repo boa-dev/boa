@@ -438,6 +438,18 @@
 <a href="#438" id="438">438</a>
 <a href="#439" id="439">439</a>
 <a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Map` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
@@ -460,7 +472,7 @@
 /// ```
 /// # use boa_engine::{
 /// #  object::builtins::JsMap,
-/// #  Context, JsValue, JsResult,
+/// #  Context, JsValue, JsResult, js_string
 /// # };
 /// # fn main() -&gt; JsResult&lt;()&gt; {
 /// // Create default `Context`
@@ -470,8 +482,8 @@
 /// let map = JsMap::new(context);
 ///
 /// // Set key-value pairs for the `JsMap`.
-/// map.set(&quot;Key-1&quot;, &quot;Value-1&quot;, context)?;
-/// map.set(&quot;Key-2&quot;, 10, context)?;
+/// map.set(js_string!(&quot;Key-1&quot;), js_string!(&quot;Value-1&quot;), context)?;
+/// map.set(js_string!(&quot;Key-2&quot;), 10, context)?;
 ///
 /// assert_eq!(map.get_size(context)?, 2.into());
 /// # Ok(())
@@ -482,7 +494,7 @@
 /// ```
 /// # use boa_engine::{
 /// #    object::builtins::{JsArray, JsMap},
-/// #    Context, JsValue, JsResult,
+/// #    Context, JsValue, JsResult, js_string
 /// # };
 /// # fn main() -&gt; JsResult&lt;()&gt; {
 /// // Create a default `Context`
@@ -492,7 +504,10 @@
 /// let js_array = JsArray::new(context);
 ///
 /// // Create a `[key, value]` pair of JsValues
-/// let vec_one: Vec&lt;JsValue&gt; = vec![JsValue::new(&quot;first-key&quot;), JsValue::new(&quot;first-value&quot;)];
+/// let vec_one: Vec&lt;JsValue&gt; = vec![
+///     js_string!(&quot;first-key&quot;).into(),
+///     js_string!(&quot;first-value&quot;).into()
+/// ];
 ///
 /// // We create an push our `[key, value]` pair onto our array as a `JsArray`
 /// js_array.push(JsArray::from_iter(vec_one, context), context)?;
@@ -501,8 +516,8 @@
 /// let js_iterable_map = JsMap::from_js_iterable(&amp;js_array.into(), context)?;
 ///
 /// assert_eq!(
-///     js_iterable_map.get(&quot;first-key&quot;, context)?,
-///     &quot;first-value&quot;.into()
+///     js_iterable_map.get(js_string!(&quot;first-key&quot;), context)?,
+///     js_string!(&quot;first-value&quot;).into()
 /// );
 ///
 /// # Ok(())
@@ -539,7 +554,7 @@
     /// ```
     /// # use boa_engine::{
     /// #    object::builtins::{JsArray, JsMap},
-    /// #    Context, JsResult, JsValue,
+    /// #    Context, JsResult, JsValue, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # // Create a default `Context`
@@ -548,7 +563,10 @@
     /// let js_array = JsArray::new(context);
     ///
     /// // Create a `[key, value]` pair of JsValues and add it to the `JsArray` as a `JsArray`
-    /// let vec_one: Vec&lt;JsValue&gt; = vec![JsValue::new(&quot;first-key&quot;), JsValue::new(&quot;first-value&quot;)];
+    /// let vec_one: Vec&lt;JsValue&gt; = vec![
+    ///     js_string!(&quot;first-key&quot;).into(),
+    ///     js_string!(&quot;first-value&quot;).into()
+    /// ];
     /// js_array.push(JsArray::from_iter(vec_one, context), context)?;
     ///
     /// // Create a `JsMap` from the `JsArray` using it&#39;s iterable property.
@@ -657,16 +675,19 @@
     /// ```
     /// # use boa_engine::{
     /// #    object::builtins::JsMap,
-    /// #    Context, JsValue, JsResult,
+    /// #    Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
     ///
-    /// js_map.set(&quot;foo&quot;, &quot;bar&quot;, context)?;
+    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
     /// js_map.set(2, 4, context)?;
     ///
-    /// assert_eq!(js_map.get(&quot;foo&quot;, context)?, &quot;bar&quot;.into());
+    /// assert_eq!(
+    ///     js_map.get(js_string!(&quot;foo&quot;), context)?,
+    ///     js_string!(&quot;bar&quot;).into()
+    /// );
     /// assert_eq!(js_map.get(2, context)?, 4.into());
     /// # Ok(())
     /// # }
@@ -690,13 +711,13 @@
     /// ```
     /// # use boa_engine::{
     /// #    object::builtins::JsMap,
-    /// #    Context, JsValue, JsResult,
+    /// #    Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
     ///
-    /// js_map.set(&quot;foo&quot;, &quot;bar&quot;, context)?;
+    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
     ///
     /// let map_size = js_map.get_size(context)?;
     ///
@@ -716,18 +737,21 @@
     /// ```
     /// # use boa_engine::{
     /// #    object::builtins::JsMap,
-    /// #    Context, JsValue, JsResult,
+    /// #    Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
-    /// js_map.set(&quot;foo&quot;, &quot;bar&quot;, context)?;
-    /// js_map.set(&quot;hello&quot;, &quot;world&quot;, context)?;
+    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
+    /// js_map.set(js_string!(&quot;hello&quot;), js_string!(&quot;world&quot;), context)?;
     ///
-    /// js_map.delete(&quot;foo&quot;, context)?;
+    /// js_map.delete(js_string!(&quot;foo&quot;), context)?;
     ///
     /// assert_eq!(js_map.get_size(context)?, 1.into());
-    /// assert_eq!(js_map.get(&quot;foo&quot;, context)?, JsValue::undefined());
+    /// assert_eq!(
+    ///     js_map.get(js_string!(&quot;foo&quot;), context)?,
+    ///     JsValue::undefined()
+    /// );
     /// # Ok(())
     /// # }
     /// ```
@@ -745,16 +769,16 @@
     /// ```
     /// # use boa_engine::{
     /// #    object::builtins::JsMap,
-    /// #    Context, JsValue, JsResult,
+    /// #    Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
-    /// js_map.set(&quot;foo&quot;, &quot;bar&quot;, context)?;
+    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
     ///
-    /// let retrieved_value = js_map.get(&quot;foo&quot;, context)?;
+    /// let retrieved_value = js_map.get(js_string!(&quot;foo&quot;), context)?;
     ///
-    /// assert_eq!(retrieved_value, &quot;bar&quot;.into());
+    /// assert_eq!(retrieved_value, js_string!(&quot;bar&quot;).into());
     /// # Ok(())
     /// # }
     /// ```
@@ -772,13 +796,13 @@
     /// ```
     /// # use boa_engine::{
     /// #    object::builtins::JsMap,
-    /// #    Context, JsValue, JsResult,
+    /// #    Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
-    /// js_map.set(&quot;foo&quot;, &quot;bar&quot;, context)?;
-    /// js_map.set(&quot;hello&quot;, &quot;world&quot;, context)?;
+    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
+    /// js_map.set(js_string!(&quot;hello&quot;), js_string!(&quot;world&quot;), context)?;
     ///
     /// js_map.clear(context)?;
     ///
@@ -798,14 +822,14 @@
     /// ```
     /// # use boa_engine::{
     /// #    object::builtins::JsMap,
-    /// #    Context, JsValue, JsResult,
+    /// #    Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
-    /// js_map.set(&quot;foo&quot;, &quot;bar&quot;, context)?;
+    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
     ///
-    /// let has_key = js_map.has(&quot;foo&quot;, context)?;
+    /// let has_key = js_map.has(js_string!(&quot;foo&quot;), context)?;
     ///
     /// assert_eq!(has_key, true.into());
     /// # Ok(())

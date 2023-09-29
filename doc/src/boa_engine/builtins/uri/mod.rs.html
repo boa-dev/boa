@@ -592,7 +592,7 @@
     js_string,
     object::{JsFunction, JsObject},
     realm::Realm,
-    string::CodePoint,
+    string::{common::StaticJsStrings, CodePoint},
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
@@ -660,7 +660,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>DecodeUri {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;decodeURI&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::DECODE_URI;
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DecodeUriComponent;
@@ -682,7 +682,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>DecodeUriComponent {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;decodeURIComponent&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::DECODE_URI_COMPONENT;
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EncodeUri;
@@ -700,7 +700,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>EncodeUri {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;encodeURI&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::ENCODE_URI;
 }
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EncodeUriComponent;
 
@@ -721,7 +721,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>EncodeUriComponent {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;encodeURIComponent&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::ENCODE_URI_COMPONENT;
 }
 
 <span class="doccomment">/// Builtin JavaScript `decodeURI ( encodedURI )` function.

@@ -851,7 +851,7 @@
     object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::{utf16, CodePoint},
+    string::{common::StaticJsStrings, utf16, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::CallFrame,
@@ -873,14 +873,14 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Json {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>to_string_tag = JsSymbol::to_string_tag();
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_method(<span class="self">Self</span>::parse, <span class="string">&quot;parse&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::stringify, <span class="string">&quot;stringify&quot;</span>, <span class="number">3</span>)
+            .static_method(<span class="self">Self</span>::parse, <span class="macro">js_string!</span>(<span class="string">&quot;parse&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::stringify, <span class="macro">js_string!</span>(<span class="string">&quot;stringify&quot;</span>), <span class="number">3</span>)
             .static_property(to_string_tag, <span class="self">Self</span>::NAME, attribute)
             .build();
     }
@@ -891,7 +891,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Json {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JSON&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::JSON;
 }
 
 <span class="kw">impl </span>Json {

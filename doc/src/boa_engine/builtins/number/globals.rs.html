@@ -319,8 +319,8 @@
     context::intrinsics::Intrinsics,
     object::JsObject,
     realm::Realm,
-    string::Utf16Trim,
-    Context, JsArgs, JsResult, JsValue,
+    string::{common::StaticJsStrings, Utf16Trim},
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 
 <span class="kw">use </span>num_traits::Num;
@@ -364,7 +364,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>IsFinite {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;isFinite&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::IS_FINITE;
 }
 
 <span class="doccomment">/// Builtin javascript &#39;isNaN(number)&#39; function.
@@ -410,7 +410,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>IsNaN {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;isNaN&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::IS_NAN;
 }
 
 <span class="doccomment">/// Builtin javascript &#39;parseInt(str, radix)&#39; function.
@@ -551,7 +551,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>ParseInt {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;parseInt&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::PARSE_INT;
 }
 
 <span class="doccomment">/// Builtin javascript &#39;parseFloat(str)&#39; function.
@@ -624,6 +624,6 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>ParseFloat {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;parseFloat&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::PARSE_FLOAT;
 }
 </code></pre></div></section></main></body></html>

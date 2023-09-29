@@ -126,6 +126,7 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the global `AggregateError` object.
 //!
 //! More information:
@@ -141,11 +142,12 @@
         IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptorBuilder},
     realm::Realm,
-    string::utf16,
-    Context, JsArgs, JsResult, JsValue,
+    string::{common::StaticJsStrings, utf16},
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -156,14 +158,14 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AggregateError {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(<span class="prelude-val">Some</span>(realm.intrinsics().constructors().error().prototype()))
             .property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="self">Self</span>::NAME, attribute)
-            .property(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="string">&quot;&quot;</span>, attribute)
+            .property(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="macro">js_string!</span>(), attribute)
             .build();
     }
 
@@ -173,7 +175,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>AggregateError {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;AggregateError&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::AGGREGATE_ERROR;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>AggregateError {

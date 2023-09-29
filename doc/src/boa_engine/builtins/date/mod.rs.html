@@ -1530,6 +1530,42 @@
 <a href="#1530" id="1530">1530</a>
 <a href="#1531" id="1531">1531</a>
 <a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
+<a href="#1554" id="1554">1554</a>
+<a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Date` object.
 //!
 //! More information:
@@ -1556,10 +1592,10 @@
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::{IntegerOrNan, JsValue, PreferredType},
-    Context, JsArgs, JsError, JsResult,
+    Context, JsArgs, JsError, JsResult, JsString,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>chrono::prelude::<span class="kw-2">*</span>;
@@ -1626,73 +1662,109 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Date {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>to_utc_string = BuiltInBuilder::callable(realm, <span class="self">Self</span>::to_utc_string)
-            .name(<span class="string">&quot;toUTCString&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;toUTCString&quot;</span>))
             .length(<span class="number">0</span>)
             .build();
 
         <span class="kw">let </span>to_primitive = BuiltInBuilder::callable(realm, <span class="self">Self</span>::to_primitive)
-            .name(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>))
             .length(<span class="number">1</span>)
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_method(<span class="self">Self</span>::now, <span class="string">&quot;now&quot;</span>, <span class="number">0</span>)
-            .static_method(<span class="self">Self</span>::parse, <span class="string">&quot;parse&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::utc, <span class="string">&quot;UTC&quot;</span>, <span class="number">7</span>)
-            .method(<span class="self">Self</span>::get_date::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getDate&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_day::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getDay&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_full_year::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getFullYear&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_hours::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getHours&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_milliseconds::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getMilliseconds&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_minutes::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getMinutes&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_month::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getMonth&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_seconds::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getSeconds&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_time, <span class="string">&quot;getTime&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_timezone_offset, <span class="string">&quot;getTimezoneOffset&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_date::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;getUTCDate&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_day::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;getUTCDay&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_full_year::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;getUTCFullYear&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_hours::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;getUTCHours&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_milliseconds::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;getUTCMilliseconds&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_minutes::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;getUTCMinutes&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_month::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;getUTCMonth&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_seconds::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;getUTCSeconds&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_year, <span class="string">&quot;getYear&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::set_date::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;setDate&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::set_full_year::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;setFullYear&quot;</span>, <span class="number">3</span>)
-            .method(<span class="self">Self</span>::set_hours::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;setHours&quot;</span>, <span class="number">4</span>)
-            .method(<span class="self">Self</span>::set_milliseconds::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;setMilliseconds&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::set_minutes::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;setMinutes&quot;</span>, <span class="number">3</span>)
-            .method(<span class="self">Self</span>::set_month::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;setMonth&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_seconds::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;setSeconds&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_time, <span class="string">&quot;setTime&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::set_date::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;setUTCDate&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::set_full_year::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;setUTCFullYear&quot;</span>, <span class="number">3</span>)
-            .method(<span class="self">Self</span>::set_hours::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;setUTCHours&quot;</span>, <span class="number">4</span>)
-            .method(<span class="self">Self</span>::set_milliseconds::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;setUTCMilliseconds&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::set_minutes::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;setUTCMinutes&quot;</span>, <span class="number">3</span>)
-            .method(<span class="self">Self</span>::set_month::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;setUTCMonth&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_seconds::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;setUTCSeconds&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_year, <span class="string">&quot;setYear&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_date_string, <span class="string">&quot;toDateString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_iso_string, <span class="string">&quot;toISOString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_json, <span class="string">&quot;toJSON&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_locale_date_string, <span class="string">&quot;toLocaleDateString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_locale_string, <span class="string">&quot;toLocaleString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_locale_time_string, <span class="string">&quot;toLocaleTimeString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_time_string, <span class="string">&quot;toTimeString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
+            .static_method(<span class="self">Self</span>::now, <span class="macro">js_string!</span>(<span class="string">&quot;now&quot;</span>), <span class="number">0</span>)
+            .static_method(<span class="self">Self</span>::parse, <span class="macro">js_string!</span>(<span class="string">&quot;parse&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::utc, <span class="macro">js_string!</span>(<span class="string">&quot;UTC&quot;</span>), <span class="number">7</span>)
+            .method(<span class="self">Self</span>::get_date::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getDate&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_day::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getDay&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_full_year::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getFullYear&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_hours::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getHours&quot;</span>), <span class="number">0</span>)
+            .method(
+                <span class="self">Self</span>::get_milliseconds::&lt;<span class="bool-val">true</span>&gt;,
+                <span class="macro">js_string!</span>(<span class="string">&quot;getMilliseconds&quot;</span>),
+                <span class="number">0</span>,
+            )
+            .method(<span class="self">Self</span>::get_minutes::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getMinutes&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_month::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getMonth&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_seconds::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getSeconds&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_time, <span class="macro">js_string!</span>(<span class="string">&quot;getTime&quot;</span>), <span class="number">0</span>)
+            .method(
+                <span class="self">Self</span>::get_timezone_offset,
+                <span class="macro">js_string!</span>(<span class="string">&quot;getTimezoneOffset&quot;</span>),
+                <span class="number">0</span>,
+            )
+            .method(<span class="self">Self</span>::get_date::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getUTCDate&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_day::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getUTCDay&quot;</span>), <span class="number">0</span>)
+            .method(
+                <span class="self">Self</span>::get_full_year::&lt;<span class="bool-val">false</span>&gt;,
+                <span class="macro">js_string!</span>(<span class="string">&quot;getUTCFullYear&quot;</span>),
+                <span class="number">0</span>,
+            )
+            .method(<span class="self">Self</span>::get_hours::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getUTCHours&quot;</span>), <span class="number">0</span>)
+            .method(
+                <span class="self">Self</span>::get_milliseconds::&lt;<span class="bool-val">false</span>&gt;,
+                <span class="macro">js_string!</span>(<span class="string">&quot;getUTCMilliseconds&quot;</span>),
+                <span class="number">0</span>,
+            )
+            .method(<span class="self">Self</span>::get_minutes::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getUTCMinutes&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_month::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getUTCMonth&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_seconds::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;getUTCSeconds&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_year, <span class="macro">js_string!</span>(<span class="string">&quot;getYear&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::set_date::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setDate&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::set_full_year::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setFullYear&quot;</span>), <span class="number">3</span>)
+            .method(<span class="self">Self</span>::set_hours::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setHours&quot;</span>), <span class="number">4</span>)
+            .method(
+                <span class="self">Self</span>::set_milliseconds::&lt;<span class="bool-val">true</span>&gt;,
+                <span class="macro">js_string!</span>(<span class="string">&quot;setMilliseconds&quot;</span>),
+                <span class="number">1</span>,
+            )
+            .method(<span class="self">Self</span>::set_minutes::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setMinutes&quot;</span>), <span class="number">3</span>)
+            .method(<span class="self">Self</span>::set_month::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setMonth&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_seconds::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setSeconds&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_time, <span class="macro">js_string!</span>(<span class="string">&quot;setTime&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::set_date::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setUTCDate&quot;</span>), <span class="number">1</span>)
+            .method(
+                <span class="self">Self</span>::set_full_year::&lt;<span class="bool-val">false</span>&gt;,
+                <span class="macro">js_string!</span>(<span class="string">&quot;setUTCFullYear&quot;</span>),
+                <span class="number">3</span>,
+            )
+            .method(<span class="self">Self</span>::set_hours::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setUTCHours&quot;</span>), <span class="number">4</span>)
+            .method(
+                <span class="self">Self</span>::set_milliseconds::&lt;<span class="bool-val">false</span>&gt;,
+                <span class="macro">js_string!</span>(<span class="string">&quot;setUTCMilliseconds&quot;</span>),
+                <span class="number">1</span>,
+            )
+            .method(<span class="self">Self</span>::set_minutes::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setUTCMinutes&quot;</span>), <span class="number">3</span>)
+            .method(<span class="self">Self</span>::set_month::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setUTCMonth&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_seconds::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;setUTCSeconds&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_year, <span class="macro">js_string!</span>(<span class="string">&quot;setYear&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_date_string, <span class="macro">js_string!</span>(<span class="string">&quot;toDateString&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_iso_string, <span class="macro">js_string!</span>(<span class="string">&quot;toISOString&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_json, <span class="macro">js_string!</span>(<span class="string">&quot;toJSON&quot;</span>), <span class="number">1</span>)
+            .method(
+                <span class="self">Self</span>::to_locale_date_string,
+                <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleDateString&quot;</span>),
+                <span class="number">0</span>,
+            )
+            .method(<span class="self">Self</span>::to_locale_string, <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleString&quot;</span>), <span class="number">0</span>)
+            .method(
+                <span class="self">Self</span>::to_locale_time_string,
+                <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleTimeString&quot;</span>),
+                <span class="number">0</span>,
+            )
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_time_string, <span class="macro">js_string!</span>(<span class="string">&quot;toTimeString&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::value_of, <span class="macro">js_string!</span>(<span class="string">&quot;valueOf&quot;</span>), <span class="number">0</span>)
             .property(
-                <span class="string">&quot;toGMTString&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;toGMTString&quot;</span>),
                 to_utc_string.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                <span class="string">&quot;toUTCString&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;toUTCString&quot;</span>),
                 to_utc_string,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -1710,7 +1782,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Date {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Date&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::DATE;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Date {
@@ -1737,13 +1809,11 @@
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="comment">// a. Let now be the time value (UTC) identifying the current time.
             // b. Return ToDateString(now).
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(
-                context
-                    .host_hooks()
-                    .local_from_utc(context.host_hooks().utc_now())
-                    .format(<span class="string">&quot;%a %b %d %Y %H:%M:%S GMT%:z&quot;</span>)
-                    .to_string(),
-            ));
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(context
+                .host_hooks()
+                .local_from_utc(context.host_hooks().utc_now())
+                .format(<span class="string">&quot;%a %b %d %Y %H:%M:%S GMT%:z&quot;</span>)
+                .to_string())));
         }
         <span class="comment">// 2. Let numberOfArgs be the number of elements in values.
         </span><span class="kw">let </span>dv = <span class="kw">match </span>args {
@@ -2785,12 +2855,12 @@
 
         <span class="comment">// 4. Let t be LocalTime(tv).
         // 5. Return DateString(t).
-        </span><span class="prelude-val">Ok</span>(context
+        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(context
             .host_hooks()
             .local_from_utc(tv)
             .format(<span class="string">&quot;%a %b %d %Y&quot;</span>)
-            .to_string()
-            .into())
+            .to_string())
+        .into())
     }
 
     <span class="doccomment">/// [`Date.prototype.toISOString()`][spec].
@@ -2812,11 +2882,11 @@
         <span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?
             </span>.and_then(NaiveDateTime::from_timestamp_millis)
             .ok_or_else(|| JsNativeError::range().with_message(<span class="string">&quot;Invalid time value&quot;</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(Utc
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(Utc
             .from_utc_datetime(<span class="kw-2">&amp;</span>t)
             .format(<span class="string">&quot;%Y-%m-%dT%H:%M:%S.%3fZ&quot;</span>)
-            .to_string()
-            .into())
+            .to_string())
+        .into())
     }
 
     <span class="doccomment">/// [`Date.prototype.toJSON()`][spec].
@@ -2866,7 +2936,9 @@
         _args: <span class="kw-2">&amp;</span>[JsValue],
         _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="prelude-val">Err</span>(JsError::from_opaque(JsValue::new(<span class="string">&quot;Function Unimplemented&quot;</span>)))
+        <span class="prelude-val">Err</span>(JsError::from_opaque(JsValue::new(<span class="macro">js_string!</span>(
+            <span class="string">&quot;Function Unimplemented&quot;
+        </span>))))
     }
 
     <span class="doccomment">/// [`Date.prototype.toLocaleString()`][spec].
@@ -2883,9 +2955,9 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="prelude-val">Err</span>(JsError::from_opaque(JsValue::new(
-            <span class="string">&quot;Function Unimplemented]&quot;</span>,
-        )))
+        <span class="prelude-val">Err</span>(JsError::from_opaque(JsValue::new(<span class="macro">js_string!</span>(
+            <span class="string">&quot;Function Unimplemented]&quot;
+        </span>))))
     }
 
     <span class="doccomment">/// [`Date.prototype.toLocaleTimeString()`][spec].
@@ -2903,9 +2975,9 @@
         _args: <span class="kw-2">&amp;</span>[JsValue],
         _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="prelude-val">Err</span>(JsError::from_opaque(JsValue::new(
-            <span class="string">&quot;Function Unimplemented]&quot;</span>,
-        )))
+        <span class="prelude-val">Err</span>(JsError::from_opaque(JsValue::new(<span class="macro">js_string!</span>(
+            <span class="string">&quot;Function Unimplemented]&quot;
+        </span>))))
     }
 
     <span class="doccomment">/// [`Date.prototype.toString()`][spec].
@@ -2927,12 +2999,12 @@
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(tv) = this_time_value(this)<span class="question-mark">?</span>.and_then(NaiveDateTime::from_timestamp_millis) <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;Invalid Date&quot;</span>).into());
         };
-        <span class="prelude-val">Ok</span>(context
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(context
             .host_hooks()
             .local_from_utc(tv)
             .format(<span class="string">&quot;%a %b %d %Y %H:%M:%S GMT%z&quot;</span>)
-            .to_string()
-            .into())
+            .to_string())
+        .into())
     }
 
     <span class="doccomment">/// [`Date.prototype.toTimeString()`][spec].
@@ -2959,12 +3031,12 @@
 
         <span class="comment">// 4. Let t be LocalTime(tv).
         // 5. Return the string-concatenation of TimeString(t) and TimeZoneString(tv).
-        </span><span class="prelude-val">Ok</span>(context
+        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(context
             .host_hooks()
             .local_from_utc(tv)
             .format(<span class="string">&quot;%H:%M:%S GMT%z&quot;</span>)
-            .to_string()
-            .into())
+            .to_string())
+        .into())
     }
 
     <span class="doccomment">/// [`Date.prototype.toUTCString()`][spec].
@@ -2998,7 +3070,7 @@
         // code unit 0x0020 (SPACE), month, the code unit 0x0020 (SPACE), yearSign, paddedYear, the code
         // unit 0x0020 (SPACE), and TimeString(tv)
         </span><span class="kw">let </span>utc_string = t.format(<span class="string">&quot;%a, %d %b %Y %H:%M:%S GMT&quot;</span>).to_string();
-        <span class="prelude-val">Ok</span>(JsValue::new(utc_string))
+        <span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(utc_string)))
     }
 
     <span class="doccomment">/// [`Date.prototype.valueOf()`][spec].

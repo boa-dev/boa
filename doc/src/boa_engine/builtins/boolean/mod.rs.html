@@ -130,6 +130,8 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Boolean` object.
 //!
 //! The `Boolean` object is an object wrapper for a boolean value.
@@ -148,9 +150,11 @@
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     realm::Realm,
-    Context, JsResult, JsValue,
+    string::common::StaticJsStrings,
+    Context, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -162,11 +166,11 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Boolean {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::value_of, <span class="macro">js_string!</span>(<span class="string">&quot;valueOf&quot;</span>), <span class="number">0</span>)
             .build();
     }
 
@@ -176,7 +180,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Boolean {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Boolean&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::BOOLEAN;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Boolean {
@@ -243,7 +247,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>boolean = <span class="self">Self</span>::this_boolean_value(this)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(JsValue::new(boolean.to_string()))
+        <span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(boolean.to_string())))
     }
 
     <span class="doccomment">/// The valueOf() method returns the primitive value of a `Boolean` object.

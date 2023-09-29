@@ -622,6 +622,8 @@
 <a href="#622" id="622">622</a>
 <a href="#623" id="623">623</a>
 <a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Date` ECMAScript Builtin Object.
 </span><span class="kw">use </span>std::ops::Deref;
 
@@ -642,7 +644,9 @@
 /// Create a `JsDate` object and set date to December 4 1995
 ///
 /// ```
-/// use boa_engine::{object::builtins::JsDate, Context, JsResult, JsValue};
+/// use boa_engine::{
+///     js_string, object::builtins::JsDate, Context, JsResult, JsValue,
+/// };
 ///
 /// fn main() -&gt; JsResult&lt;()&gt; {
 ///     // JS mutable Context
@@ -654,7 +658,7 @@
 ///
 ///     assert_eq!(
 ///         date.to_date_string(context)?,
-///         JsValue::from(&quot;Mon Dec 04 1995&quot;)
+///         JsValue::from(js_string!(&quot;Mon Dec 04 1995&quot;))
 ///     );
 ///
 ///     Ok(())

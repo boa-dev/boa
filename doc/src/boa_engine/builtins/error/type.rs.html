@@ -148,6 +148,7 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypeError` object.
 //!
 //! The `TypeError` object represents an error when an operation could not be performed,
@@ -172,11 +173,12 @@
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
     property::Attribute,
     realm::Realm,
-    string::utf16,
-    Context, JsArgs, JsResult, JsValue, NativeFunction,
+    string::{common::StaticJsStrings, utf16},
+    Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -188,14 +190,14 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>TypeError {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(<span class="prelude-val">Some</span>(realm.intrinsics().constructors().error().prototype()))
             .property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="self">Self</span>::NAME, attribute)
-            .property(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="string">&quot;&quot;</span>, attribute)
+            .property(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="macro">js_string!</span>(), attribute)
             .build();
     }
 
@@ -205,7 +207,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>TypeError {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;TypeError&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::TYPE_ERROR;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>TypeError {
@@ -279,7 +281,7 @@
         <span class="kw">let </span>obj = BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .prototype(realm.intrinsics().constructors().function().prototype())
             .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, Attribute::empty())
-            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="string">&quot;&quot;</span>, Attribute::empty())
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="macro">js_string!</span>(), Attribute::empty())
             .build();
 
         <span class="kw">let </span><span class="kw-2">mut </span>obj = obj.borrow_mut();

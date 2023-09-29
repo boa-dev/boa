@@ -298,6 +298,9 @@
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
@@ -367,6 +370,7 @@
 
 </span><span class="kw">use crate</span>::{
     error::JsNativeError,
+    js_string,
     native_function::NativeFunction,
     object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -421,7 +425,7 @@
                 .into());
         }
 
-        <span class="kw">let </span>class = context.global_object().get(T::NAME, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>class = context.global_object().get(<span class="macro">js_string!</span>(T::NAME), context)<span class="question-mark">?</span>;
         <span class="kw">let </span>JsValue::Object(<span class="kw-2">ref </span>class_constructor) = class <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(
@@ -490,7 +494,8 @@
     </span><span class="kw">where
         </span>N: AsRef&lt;str&gt;,
     {
-        <span class="self">self</span>.builder.method(function, name.as_ref(), length);
+        <span class="self">self</span>.builder
+            .method(function, <span class="macro">js_string!</span>(name.as_ref()), length);
         <span class="self">self
     </span>}
 
@@ -506,7 +511,8 @@
     </span><span class="kw">where
         </span>N: AsRef&lt;str&gt;,
     {
-        <span class="self">self</span>.builder.static_method(function, name.as_ref(), length);
+        <span class="self">self</span>.builder
+            .static_method(function, <span class="macro">js_string!</span>(name.as_ref()), length);
         <span class="self">self
     </span>}
 

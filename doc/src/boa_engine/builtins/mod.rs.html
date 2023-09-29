@@ -1240,7 +1240,7 @@
     /// E.g. If you want access the properties of a `Complex` built-in with the name `Cplx` you must
     /// assign `&quot;Cplx&quot;` to this constant, making any property inside it accessible from ECMAScript
     /// as `Cplx.prop`
-    </span><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
+    </span><span class="kw">const </span>NAME: JsString;
 
     <span class="doccomment">/// Property attribute flags of the built-in. Check [`Attribute`] for more information.
     </span><span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::WRITABLE
@@ -1752,8 +1752,8 @@
     <span class="doccomment">/// Specify the name of the constructor function.
     ///
     /// Default is `&quot;&quot;`
-    </span><span class="kw">fn </span>name&lt;N: Into&lt;JsString&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: N) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.name = name.into();
+    </span><span class="kw">fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: JsString) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.name = name;
         <span class="self">self
     </span>}
 
@@ -1929,8 +1929,8 @@
         <span class="kw">let </span>length = <span class="self">self</span>.length;
         <span class="kw">let </span>name = <span class="self">self</span>.name.clone();
         <span class="kw">let </span>prototype = <span class="self">self</span>.prototype.clone();
-        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="string">&quot;length&quot;</span>, length, Attribute::CONFIGURABLE);
-        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="string">&quot;name&quot;</span>, name, Attribute::CONFIGURABLE);
+        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>), length, Attribute::CONFIGURABLE);
+        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), name, Attribute::CONFIGURABLE);
         <span class="self">self </span>= <span class="self">self</span>.static_property(PROTOTYPE, prototype, Attribute::empty());
 
         <span class="kw">let </span>attributes = <span class="self">self</span>.attributes;
@@ -1980,8 +1980,8 @@
 
         <span class="kw">let </span>length = <span class="self">self</span>.length;
         <span class="kw">let </span>name = <span class="self">self</span>.name.clone();
-        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="string">&quot;length&quot;</span>, length, Attribute::CONFIGURABLE);
-        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="string">&quot;name&quot;</span>, name, Attribute::CONFIGURABLE);
+        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>), length, Attribute::CONFIGURABLE);
+        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), name, Attribute::CONFIGURABLE);
 
         <span class="kw">let </span><span class="kw-2">mut </span>object = <span class="self">self</span>.object.borrow_mut();
         <span class="kw-2">*</span>object.kind_mut() = ObjectKind::Function(function);
@@ -2019,8 +2019,8 @@
     <span class="doccomment">/// Specify the name of the constructor function.
     ///
     /// Default is `&quot;&quot;`
-    </span><span class="kw">fn </span>name&lt;N: Into&lt;JsString&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: N) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.name = name.into();
+    </span><span class="kw">fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: JsString) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.name = name;
         <span class="self">self
     </span>}
 
@@ -2177,8 +2177,8 @@
     <span class="doccomment">/// Specify the name of the constructor function.
     ///
     /// Default is `&quot;&quot;`
-    </span><span class="kw">fn </span>name&lt;N: Into&lt;JsString&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: N) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.kind.name = name.into();
+    </span><span class="kw">fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: JsString) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.kind.name = name;
         <span class="self">self
     </span>}
 }

@@ -1174,7 +1174,7 @@
     object::{JsFunction, PrivateElement, PrivateName},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{ActiveRunnable, CodeBlock},
@@ -1612,20 +1612,20 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>BuiltInFunctionObject {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>has_instance = BuiltInBuilder::callable(realm, <span class="self">Self</span>::has_instance)
-            .name(<span class="string">&quot;[Symbol.hasInstance]&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.hasInstance]&quot;</span>))
             .length(<span class="number">1</span>)
             .build();
 
         <span class="kw">let </span>throw_type_error = realm.intrinsics().objects().throw_type_error();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .method(<span class="self">Self</span>::apply, <span class="string">&quot;apply&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::bind, <span class="string">&quot;bind&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::call, <span class="string">&quot;call&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::apply, <span class="macro">js_string!</span>(<span class="string">&quot;apply&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::bind, <span class="macro">js_string!</span>(<span class="string">&quot;bind&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::call, <span class="macro">js_string!</span>(<span class="string">&quot;call&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
             .property(JsSymbol::has_instance(), has_instance, Attribute::default())
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;caller&quot;</span>),
@@ -1644,7 +1644,7 @@
         <span class="kw">let </span>prototype = realm.intrinsics().constructors().function().prototype();
 
         BuiltInBuilder::callable_with_object(realm, prototype.clone(), <span class="self">Self</span>::prototype)
-            .name(<span class="string">&quot;&quot;</span>)
+            .name(<span class="macro">js_string!</span>())
             .length(<span class="number">0</span>)
             .build();
 
@@ -1657,7 +1657,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>BuiltInFunctionObject {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Function&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::FUNCTION;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>BuiltInFunctionObject {

@@ -691,6 +691,7 @@
 <a href="#691" id="691">691</a>
 <a href="#692" id="692">692</a>
 <a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -701,6 +702,7 @@
 };
 <span class="kw">use </span>boa_engine::{
     builtins::promise::PromiseState,
+    js_string,
     module::{Module, ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
@@ -1299,10 +1301,10 @@
             .as_opaque()
             .expect(<span class="string">&quot;try_native cannot fail if e is not opaque&quot;</span>)
             .as_object()
-            .and_then(|o| o.get(<span class="string">&quot;constructor&quot;</span>, context).ok())
+            .and_then(|o| o.get(<span class="macro">js_string!</span>(<span class="string">&quot;constructor&quot;</span>), context).ok())
             .as_ref()
             .and_then(JsValue::as_object)
-            .and_then(|o| o.get(<span class="string">&quot;name&quot;</span>, context).ok())
+            .and_then(|o| o.get(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), context).ok())
             .as_ref()
             .and_then(JsValue::as_string)
             .map(|s| s == target_type.as_str())
@@ -1346,7 +1348,7 @@
 
     context
         .register_global_property(
-            <span class="string">&quot;print&quot;</span>,
+            <span class="macro">js_string!</span>(<span class="string">&quot;print&quot;</span>),
             js_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

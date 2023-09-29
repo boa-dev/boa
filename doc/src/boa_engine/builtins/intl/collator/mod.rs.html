@@ -570,6 +570,15 @@
 <a href="#570" id="570">570</a>
 <a href="#571" id="571">571</a>
 <a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::{
@@ -591,6 +600,7 @@
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
         BoaProvider,
     },
+    js_string,
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
@@ -598,9 +608,9 @@
     },
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 <span class="kw">use super</span>::{
@@ -721,26 +731,30 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Collator {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>compare = BuiltInBuilder::callable(realm, <span class="self">Self</span>::compare)
-            .name(<span class="string">&quot;get compare&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get compare&quot;</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_method(<span class="self">Self</span>::supported_locales_of, <span class="string">&quot;supportedLocalesOf&quot;</span>, <span class="number">1</span>)
+            .static_method(
+                <span class="self">Self</span>::supported_locales_of,
+                <span class="macro">js_string!</span>(<span class="string">&quot;supportedLocalesOf&quot;</span>),
+                <span class="number">1</span>,
+            )
             .property(
                 JsSymbol::to_string_tag(),
-                <span class="string">&quot;Intl.Collator&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;Intl.Collator&quot;</span>),
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;compare&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;compare&quot;</span>),
                 <span class="prelude-val">Some</span>(compare),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::resolved_options, <span class="string">&quot;resolvedOptions&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::resolved_options, <span class="macro">js_string!</span>(<span class="string">&quot;resolvedOptions&quot;</span>), <span class="number">0</span>)
             .build();
     }
 
@@ -750,7 +764,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Collator {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Collator&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::COLLATOR;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Collator {
@@ -1082,14 +1096,18 @@
         //         i. Perform ! CreateDataPropertyOrThrow(options, p, v).
         // 5. Return options.
         </span>options
-            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;locale&quot;</span>), collator.locale.to_string(), context)
+            .create_data_property_or_throw(
+                <span class="macro">utf16!</span>(<span class="string">&quot;locale&quot;</span>),
+                <span class="macro">js_string!</span>(collator.locale.to_string()),
+                context,
+            )
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
             .create_data_property_or_throw(
                 <span class="macro">utf16!</span>(<span class="string">&quot;usage&quot;</span>),
                 <span class="kw">match </span>collator.usage {
-                    Usage::Search =&gt; <span class="string">&quot;search&quot;</span>,
-                    Usage::Sort =&gt; <span class="string">&quot;sort&quot;</span>,
+                    Usage::Search =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;search&quot;</span>),
+                    Usage::Sort =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;sort&quot;</span>),
                 },
                 context,
             )
@@ -1098,25 +1116,25 @@
             .create_data_property_or_throw(
                 <span class="macro">utf16!</span>(<span class="string">&quot;sensitivity&quot;</span>),
                 <span class="kw">match </span>collator.sensitivity {
-                    Sensitivity::Base =&gt; <span class="string">&quot;base&quot;</span>,
-                    Sensitivity::Accent =&gt; <span class="string">&quot;accent&quot;</span>,
-                    Sensitivity::Case =&gt; <span class="string">&quot;case&quot;</span>,
-                    Sensitivity::Variant =&gt; <span class="string">&quot;variant&quot;</span>,
+                    Sensitivity::Base =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;base&quot;</span>),
+                    Sensitivity::Accent =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;accent&quot;</span>),
+                    Sensitivity::Case =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;case&quot;</span>),
+                    Sensitivity::Variant =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;variant&quot;</span>),
                 },
                 context,
             )
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
             .create_data_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;ignorePunctuation&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;ignorePunctuation&quot;</span>),
                 collator.ignore_punctuation,
                 context,
             )
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
             .create_data_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;collation&quot;</span>),
-                collator.collation.to_string(),
+                <span class="macro">js_string!</span>(<span class="string">&quot;collation&quot;</span>),
+                <span class="macro">js_string!</span>(collator.collation.to_string()),
                 context,
             )
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
@@ -1126,11 +1144,11 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(kf) = collator.case_first {
             options
                 .create_data_property_or_throw(
-                    <span class="macro">utf16!</span>(<span class="string">&quot;caseFirst&quot;</span>),
+                    <span class="macro">js_string!</span>(<span class="string">&quot;caseFirst&quot;</span>),
                     <span class="kw">match </span>kf {
-                        CaseFirst::Off =&gt; <span class="string">&quot;false&quot;</span>,
-                        CaseFirst::LowerFirst =&gt; <span class="string">&quot;lower&quot;</span>,
-                        CaseFirst::UpperFirst =&gt; <span class="string">&quot;upper&quot;</span>,
+                        CaseFirst::Off =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;false&quot;</span>),
+                        CaseFirst::LowerFirst =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;lower&quot;</span>),
+                        CaseFirst::UpperFirst =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;upper&quot;</span>),
                         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                     },
                     context,

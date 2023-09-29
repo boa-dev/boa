@@ -3104,6 +3104,7 @@
 <a href="#3104" id="3104">3104</a>
 <a href="#3105" id="3105">3105</a>
 <a href="#3106" id="3106">3106</a>
+<a href="#3107" id="3107">3107</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3129,9 +3130,10 @@
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
-    Context, JsArgs, JsResult,
+    Context, JsArgs, JsResult, JsString,
 };
 <span class="kw">use </span>std::cmp::{max, min, Ordering};
 
@@ -3155,13 +3157,13 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Array {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
         <span class="kw">let </span>symbol_unscopables = JsSymbol::unscopables();
 
         <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
             .build();
 
         <span class="kw">let </span>values_function = BuiltInBuilder::callable_with_object(
@@ -3169,7 +3171,7 @@
             realm.intrinsics().objects().array_prototype_values().into(),
             <span class="self">Self</span>::values,
         )
-        .name(<span class="string">&quot;values&quot;</span>)
+        .name(<span class="macro">js_string!</span>(<span class="string">&quot;values&quot;</span>))
         .build();
 
         <span class="kw">let </span>to_string_function = BuiltInBuilder::callable_with_object(
@@ -3181,7 +3183,7 @@
                 .into(),
             <span class="self">Self</span>::to_string,
         )
-        .name(<span class="string">&quot;toString&quot;</span>)
+        .name(<span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>))
         .build();
 
         <span class="kw">let </span>unscopables_object = <span class="self">Self</span>::unscopables_object();
@@ -3213,47 +3215,47 @@
                 unscopables_object,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::at, <span class="string">&quot;at&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::concat, <span class="string">&quot;concat&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::push, <span class="string">&quot;push&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::index_of, <span class="string">&quot;indexOf&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::last_index_of, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::includes_value, <span class="string">&quot;includes&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::map, <span class="string">&quot;map&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::fill, <span class="string">&quot;fill&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::for_each, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::filter, <span class="string">&quot;filter&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::pop, <span class="string">&quot;pop&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::join, <span class="string">&quot;join&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::at, <span class="macro">js_string!</span>(<span class="string">&quot;at&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::concat, <span class="macro">js_string!</span>(<span class="string">&quot;concat&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::push, <span class="macro">js_string!</span>(<span class="string">&quot;push&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::index_of, <span class="macro">js_string!</span>(<span class="string">&quot;indexOf&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::last_index_of, <span class="macro">js_string!</span>(<span class="string">&quot;lastIndexOf&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::includes_value, <span class="macro">js_string!</span>(<span class="string">&quot;includes&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::map, <span class="macro">js_string!</span>(<span class="string">&quot;map&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::fill, <span class="macro">js_string!</span>(<span class="string">&quot;fill&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::for_each, <span class="macro">js_string!</span>(<span class="string">&quot;forEach&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::filter, <span class="macro">js_string!</span>(<span class="string">&quot;filter&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::pop, <span class="macro">js_string!</span>(<span class="string">&quot;pop&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::join, <span class="macro">js_string!</span>(<span class="string">&quot;join&quot;</span>), <span class="number">1</span>)
             .property(
                 <span class="macro">utf16!</span>(<span class="string">&quot;toString&quot;</span>),
                 to_string_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::reverse, <span class="string">&quot;reverse&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::shift, <span class="string">&quot;shift&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::unshift, <span class="string">&quot;unshift&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::every, <span class="string">&quot;every&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find, <span class="string">&quot;find&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find_index, <span class="string">&quot;findIndex&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find_last, <span class="string">&quot;findLast&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find_last_index, <span class="string">&quot;findLastIndex&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::flat, <span class="string">&quot;flat&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::flat_map, <span class="string">&quot;flatMap&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::some, <span class="string">&quot;some&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::sort, <span class="string">&quot;sort&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::splice, <span class="string">&quot;splice&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::to_locale_string, <span class="string">&quot;toLocaleString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::reduce, <span class="string">&quot;reduce&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::reduce_right, <span class="string">&quot;reduceRight&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::keys, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::entries, <span class="string">&quot;entries&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::copy_within, <span class="string">&quot;copyWithin&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::reverse, <span class="macro">js_string!</span>(<span class="string">&quot;reverse&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::shift, <span class="macro">js_string!</span>(<span class="string">&quot;shift&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::unshift, <span class="macro">js_string!</span>(<span class="string">&quot;unshift&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::every, <span class="macro">js_string!</span>(<span class="string">&quot;every&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find, <span class="macro">js_string!</span>(<span class="string">&quot;find&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find_index, <span class="macro">js_string!</span>(<span class="string">&quot;findIndex&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find_last, <span class="macro">js_string!</span>(<span class="string">&quot;findLast&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find_last_index, <span class="macro">js_string!</span>(<span class="string">&quot;findLastIndex&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::flat, <span class="macro">js_string!</span>(<span class="string">&quot;flat&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::flat_map, <span class="macro">js_string!</span>(<span class="string">&quot;flatMap&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::slice, <span class="macro">js_string!</span>(<span class="string">&quot;slice&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::some, <span class="macro">js_string!</span>(<span class="string">&quot;some&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::sort, <span class="macro">js_string!</span>(<span class="string">&quot;sort&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::splice, <span class="macro">js_string!</span>(<span class="string">&quot;splice&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::to_locale_string, <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleString&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::reduce, <span class="macro">js_string!</span>(<span class="string">&quot;reduce&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::reduce_right, <span class="macro">js_string!</span>(<span class="string">&quot;reduceRight&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::keys, <span class="macro">js_string!</span>(<span class="string">&quot;keys&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::entries, <span class="macro">js_string!</span>(<span class="string">&quot;entries&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::copy_within, <span class="macro">js_string!</span>(<span class="string">&quot;copyWithin&quot;</span>), <span class="number">2</span>)
             <span class="comment">// Static Methods
-            </span>.static_method(<span class="self">Self</span>::from, <span class="string">&quot;from&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::is_array, <span class="string">&quot;isArray&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::of, <span class="string">&quot;of&quot;</span>, <span class="number">0</span>)
+            </span>.static_method(<span class="self">Self</span>::from, <span class="macro">js_string!</span>(<span class="string">&quot;from&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::is_array, <span class="macro">js_string!</span>(<span class="string">&quot;isArray&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::of, <span class="macro">js_string!</span>(<span class="string">&quot;of&quot;</span>), <span class="number">0</span>)
             .build();
     }
 
@@ -3263,7 +3265,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Array {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Array&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::ARRAY;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Array {

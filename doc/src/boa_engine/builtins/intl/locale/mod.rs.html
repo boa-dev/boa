@@ -809,7 +809,15 @@
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
 <a href="#811" id="811">811</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{builtins::options::get_option, realm::Realm, string::utf16};
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::options::get_option,
+    realm::Realm,
+    string::{common::StaticJsStrings, utf16},
+};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::CaseFirst;
 <span class="kw">use </span>icu_datetime::options::preferences::HourCycle;
@@ -844,113 +852,113 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Locale {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>base_name = BuiltInBuilder::callable(realm, <span class="self">Self</span>::base_name)
-            .name(<span class="string">&quot;get baseName&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get baseName&quot;</span>))
             .build();
 
         <span class="kw">let </span>calendar = BuiltInBuilder::callable(realm, <span class="self">Self</span>::calendar)
-            .name(<span class="string">&quot;get calendar&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get calendar&quot;</span>))
             .build();
 
         <span class="kw">let </span>case_first = BuiltInBuilder::callable(realm, <span class="self">Self</span>::case_first)
-            .name(<span class="string">&quot;get caseFirst&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get caseFirst&quot;</span>))
             .build();
 
         <span class="kw">let </span>collation = BuiltInBuilder::callable(realm, <span class="self">Self</span>::collation)
-            .name(<span class="string">&quot;get collation&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get collation&quot;</span>))
             .build();
 
         <span class="kw">let </span>hour_cycle = BuiltInBuilder::callable(realm, <span class="self">Self</span>::hour_cycle)
-            .name(<span class="string">&quot;get hourCycle&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get hourCycle&quot;</span>))
             .build();
 
         <span class="kw">let </span>numeric = BuiltInBuilder::callable(realm, <span class="self">Self</span>::numeric)
-            .name(<span class="string">&quot;get numeric&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get numeric&quot;</span>))
             .build();
 
         <span class="kw">let </span>numbering_system = BuiltInBuilder::callable(realm, <span class="self">Self</span>::numbering_system)
-            .name(<span class="string">&quot;get numberingSystem&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get numberingSystem&quot;</span>))
             .build();
 
         <span class="kw">let </span>language = BuiltInBuilder::callable(realm, <span class="self">Self</span>::language)
-            .name(<span class="string">&quot;get language&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get language&quot;</span>))
             .build();
 
         <span class="kw">let </span>script = BuiltInBuilder::callable(realm, <span class="self">Self</span>::script)
-            .name(<span class="string">&quot;get script&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get script&quot;</span>))
             .build();
 
         <span class="kw">let </span>region = BuiltInBuilder::callable(realm, <span class="self">Self</span>::region)
-            .name(<span class="string">&quot;get region&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get region&quot;</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                <span class="string">&quot;Intl.Locale&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;Intl.Locale&quot;</span>),
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::maximize, <span class="string">&quot;maximize&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::minimize, <span class="string">&quot;minimize&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::maximize, <span class="macro">js_string!</span>(<span class="string">&quot;maximize&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::minimize, <span class="macro">js_string!</span>(<span class="string">&quot;minimize&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;baseName&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;baseName&quot;</span>),
                 <span class="prelude-val">Some</span>(base_name),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;calendar&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;calendar&quot;</span>),
                 <span class="prelude-val">Some</span>(calendar),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;caseFirst&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;caseFirst&quot;</span>),
                 <span class="prelude-val">Some</span>(case_first),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;collation&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;collation&quot;</span>),
                 <span class="prelude-val">Some</span>(collation),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;hourCycle&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;hourCycle&quot;</span>),
                 <span class="prelude-val">Some</span>(hour_cycle),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;numeric&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
                 <span class="prelude-val">Some</span>(numeric),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;numberingSystem&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;numberingSystem&quot;</span>),
                 <span class="prelude-val">Some</span>(numbering_system),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;language&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;language&quot;</span>),
                 <span class="prelude-val">Some</span>(language),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;script&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;script&quot;</span>),
                 <span class="prelude-val">Some</span>(script),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;region&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;region&quot;</span>),
                 <span class="prelude-val">Some</span>(region),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
@@ -964,7 +972,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Locale {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Locale&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::LOCALE;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Locale {

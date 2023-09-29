@@ -265,6 +265,7 @@
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -284,6 +285,7 @@
     error::JsNativeError,
     object::JsObject,
     realm::Realm,
+    string::common::StaticJsStrings,
     vm::{CallFrame, Opcode},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
@@ -300,7 +302,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Eval {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::callable_with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm, <span class="self">Self</span>::eval)
             .name(<span class="self">Self</span>::NAME)
@@ -314,7 +316,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Eval {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;eval&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::EVAL;
 }
 
 <span class="kw">impl </span>Eval {

@@ -274,6 +274,7 @@
 <a href="#274" id="274">274</a>
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `WeakMap` builtin object.
 //!
 //! More information:
@@ -289,12 +290,13 @@
         IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -308,23 +310,23 @@
     }
 
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::delete, <span class="string">&quot;delete&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get, <span class="string">&quot;get&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::has, <span class="string">&quot;has&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::set, <span class="string">&quot;set&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::delete, <span class="macro">js_string!</span>(<span class="string">&quot;delete&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get, <span class="macro">js_string!</span>(<span class="string">&quot;get&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::has, <span class="macro">js_string!</span>(<span class="string">&quot;has&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::set, <span class="macro">js_string!</span>(<span class="string">&quot;set&quot;</span>), <span class="number">2</span>)
             .build();
     }
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>WeakMap {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;WeakMap&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::WEAK_MAP;
 
     <span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::WRITABLE.union(Attribute::CONFIGURABLE);
 }

@@ -589,6 +589,7 @@
 <a href="#589" id="589">589</a>
 <a href="#590" id="590">590</a>
 <a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Map` object.
 //!
 //! The ECMAScript `Map` class is a global object that is used in the construction of maps; which
@@ -605,12 +606,13 @@
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>num_traits::Zero;
@@ -630,18 +632,18 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Map {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
             .build();
 
         <span class="kw">let </span>get_size = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_size)
-            .name(<span class="string">&quot;get size&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get size&quot;</span>))
             .build();
 
         <span class="kw">let </span>entries_function = BuiltInBuilder::callable(realm, <span class="self">Self</span>::entries)
-            .name(<span class="string">&quot;entries&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;entries&quot;</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
@@ -666,16 +668,16 @@
                 <span class="self">Self</span>::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::clear, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::delete, <span class="string">&quot;delete&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::for_each, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get, <span class="string">&quot;get&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::has, <span class="string">&quot;has&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::keys, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::set, <span class="string">&quot;set&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::values, <span class="string">&quot;values&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::clear, <span class="macro">js_string!</span>(<span class="string">&quot;clear&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::delete, <span class="macro">js_string!</span>(<span class="string">&quot;delete&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::for_each, <span class="macro">js_string!</span>(<span class="string">&quot;forEach&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get, <span class="macro">js_string!</span>(<span class="string">&quot;get&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::has, <span class="macro">js_string!</span>(<span class="string">&quot;has&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::keys, <span class="macro">js_string!</span>(<span class="string">&quot;keys&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::set, <span class="macro">js_string!</span>(<span class="string">&quot;set&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::values, <span class="macro">js_string!</span>(<span class="string">&quot;values&quot;</span>), <span class="number">0</span>)
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;size&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;size&quot;</span>),
                 <span class="prelude-val">Some</span>(get_size),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
@@ -689,7 +691,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Map {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Map&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::MAP;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Map {

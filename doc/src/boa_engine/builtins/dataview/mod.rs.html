@@ -1075,6 +1075,12 @@
 <a href="#1075" id="1075">1075</a>
 <a href="#1076" id="1076">1076</a>
 <a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `DataView` object.
 //!
 //! More information:
@@ -1088,13 +1094,14 @@
     builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsResult,
+    Context, JsArgs, JsResult, JsString,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 
@@ -1113,51 +1120,56 @@
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         <span class="kw">let </span>get_buffer = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_buffer)
-            .name(<span class="string">&quot;get buffer&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get buffer&quot;</span>))
             .build();
 
         <span class="kw">let </span>get_byte_length = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_byte_length)
-            .name(<span class="string">&quot;get byteLength&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get byteLength&quot;</span>))
             .build();
 
         <span class="kw">let </span>get_byte_offset = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_byte_offset)
-            .name(<span class="string">&quot;get byteOffset&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get byteOffset&quot;</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;buffer&quot;</span>), <span class="prelude-val">Some</span>(get_buffer), <span class="prelude-val">None</span>, flag_attributes)
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;byteLength&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;buffer&quot;</span>),
+                <span class="prelude-val">Some</span>(get_buffer),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
+            .accessor(
+                <span class="macro">js_string!</span>(<span class="string">&quot;byteLength&quot;</span>),
                 <span class="prelude-val">Some</span>(get_byte_length),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;byteOffset&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;byteOffset&quot;</span>),
                 <span class="prelude-val">Some</span>(get_byte_offset),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
-            .method(<span class="self">Self</span>::get_big_int64, <span class="string">&quot;getBigInt64&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_big_uint64, <span class="string">&quot;getBigUint64&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_float32, <span class="string">&quot;getFloat32&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_float64, <span class="string">&quot;getFloat64&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_int8, <span class="string">&quot;getInt8&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_int16, <span class="string">&quot;getInt16&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_int32, <span class="string">&quot;getInt32&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_uint8, <span class="string">&quot;getUint8&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_uint16, <span class="string">&quot;getUint16&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_uint32, <span class="string">&quot;getUint32&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::set_big_int64, <span class="string">&quot;setBigInt64&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_big_uint64, <span class="string">&quot;setBigUint64&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_float32, <span class="string">&quot;setFloat32&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_float64, <span class="string">&quot;setFloat64&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_int8, <span class="string">&quot;setInt8&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_int16, <span class="string">&quot;setInt16&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_int32, <span class="string">&quot;setInt32&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_uint8, <span class="string">&quot;setUint8&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_uint16, <span class="string">&quot;setUint16&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_uint32, <span class="string">&quot;setUint32&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::get_big_int64, <span class="macro">js_string!</span>(<span class="string">&quot;getBigInt64&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_big_uint64, <span class="macro">js_string!</span>(<span class="string">&quot;getBigUint64&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_float32, <span class="macro">js_string!</span>(<span class="string">&quot;getFloat32&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_float64, <span class="macro">js_string!</span>(<span class="string">&quot;getFloat64&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_int8, <span class="macro">js_string!</span>(<span class="string">&quot;getInt8&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_int16, <span class="macro">js_string!</span>(<span class="string">&quot;getInt16&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_int32, <span class="macro">js_string!</span>(<span class="string">&quot;getInt32&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_uint8, <span class="macro">js_string!</span>(<span class="string">&quot;getUint8&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_uint16, <span class="macro">js_string!</span>(<span class="string">&quot;getUint16&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_uint32, <span class="macro">js_string!</span>(<span class="string">&quot;getUint32&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::set_big_int64, <span class="macro">js_string!</span>(<span class="string">&quot;setBigInt64&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_big_uint64, <span class="macro">js_string!</span>(<span class="string">&quot;setBigUint64&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_float32, <span class="macro">js_string!</span>(<span class="string">&quot;setFloat32&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_float64, <span class="macro">js_string!</span>(<span class="string">&quot;setFloat64&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_int8, <span class="macro">js_string!</span>(<span class="string">&quot;setInt8&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_int16, <span class="macro">js_string!</span>(<span class="string">&quot;setInt16&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_int32, <span class="macro">js_string!</span>(<span class="string">&quot;setInt32&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_uint8, <span class="macro">js_string!</span>(<span class="string">&quot;setUint8&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_uint16, <span class="macro">js_string!</span>(<span class="string">&quot;setUint16&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_uint32, <span class="macro">js_string!</span>(<span class="string">&quot;setUint32&quot;</span>), <span class="number">2</span>)
             .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
@@ -1172,7 +1184,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>DataView {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DataView&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::DATA_VIEW;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>DataView {

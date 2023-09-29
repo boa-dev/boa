@@ -420,6 +420,8 @@
 <a href="#420" id="420">420</a>
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Generator` object.
 //!
 //! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.
@@ -436,13 +438,15 @@
     context::intrinsics::Intrinsics,
     environments::EnvironmentStack,
     error::JsNativeError,
+    js_string,
     object::{JsObject, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
     vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
-    Context, JsArgs, JsError, JsResult,
+    Context, JsArgs, JsError, JsResult, JsString,
 };
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -558,7 +562,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Generator {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .prototype(
@@ -568,9 +572,9 @@
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::r#return, <span class="string">&quot;return&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::throw, <span class="string">&quot;throw&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::next, <span class="macro">js_string!</span>(<span class="string">&quot;next&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::r#return, <span class="macro">js_string!</span>(<span class="string">&quot;return&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::throw, <span class="macro">js_string!</span>(<span class="string">&quot;throw&quot;</span>), <span class="number">1</span>)
             .static_property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
@@ -594,7 +598,7 @@
 }
 
 <span class="kw">impl </span>Generator {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Generator&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::GENERATOR;
 
     <span class="doccomment">/// `Generator.prototype.next ( value )`
     ///

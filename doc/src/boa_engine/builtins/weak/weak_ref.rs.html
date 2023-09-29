@@ -171,17 +171,21 @@
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
 <a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace, WeakGc};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use crate</span>::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 <span class="doccomment">/// Boa&#39;s implementation of ECMAScript&#39;s `WeakRef` builtin object.
@@ -203,20 +207,20 @@
     }
 
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                <span class="string">&quot;WeakRef&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;WeakRef&quot;</span>),
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::deref, <span class="string">&quot;deref&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::deref, <span class="macro">js_string!</span>(<span class="string">&quot;deref&quot;</span>), <span class="number">0</span>)
             .build();
     }
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>WeakRef {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;WeakRef&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::WEAK_REF;
 
     <span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::WRITABLE.union(Attribute::CONFIGURABLE);
 }

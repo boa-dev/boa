@@ -799,28 +799,6 @@
 <a href="#799" id="799">799</a>
 <a href="#800" id="800">800</a>
 <a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
-<a href="#806" id="806">806</a>
-<a href="#807" id="807">807</a>
-<a href="#808" id="808">808</a>
-<a href="#809" id="809">809</a>
-<a href="#810" id="810">810</a>
-<a href="#811" id="811">811</a>
-<a href="#812" id="812">812</a>
-<a href="#813" id="813">813</a>
-<a href="#814" id="814">814</a>
-<a href="#815" id="815">815</a>
-<a href="#816" id="816">816</a>
-<a href="#817" id="817">817</a>
-<a href="#818" id="818">818</a>
-<a href="#819" id="819">819</a>
-<a href="#820" id="820">820</a>
-<a href="#821" id="821">821</a>
-<a href="#822" id="822">822</a>
-<a href="#823" id="823">823</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s Property Descriptor.
 //!
 //! The Property Descriptor type is used to explain the manipulation and reification of `Object`
@@ -1501,28 +1479,6 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>str&gt; <span class="kw">for </span>PropertyKey {
-    <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(string: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
-        parse_u32_index(string.bytes()).map_or_else(|| <span class="self">Self</span>::String(string.into()), <span class="self">Self</span>::Index)
-    }
-}
-
-<span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>PropertyKey {
-    <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(string: String) -&gt; <span class="self">Self </span>{
-        parse_u32_index(string.bytes()).map_or_else(|| <span class="self">Self</span>::String(string.into()), <span class="self">Self</span>::Index)
-    }
-}
-
-<span class="kw">impl </span>From&lt;Box&lt;str&gt;&gt; <span class="kw">for </span>PropertyKey {
-    <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(string: Box&lt;str&gt;) -&gt; <span class="self">Self </span>{
-        parse_u32_index(string.bytes())
-            .map_or_else(|| <span class="self">Self</span>::String(string.as_ref().into()), <span class="self">Self</span>::Index)
-    }
-}
-
 <span class="kw">impl </span>From&lt;JsSymbol&gt; <span class="kw">for </span>PropertyKey {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(symbol: JsSymbol) -&gt; <span class="self">Self </span>{
@@ -1560,7 +1516,7 @@
         <span class="kw">match </span>property_key {
             PropertyKey::String(<span class="kw-2">ref </span>string) =&gt; string.clone().into(),
             PropertyKey::Symbol(<span class="kw-2">ref </span>symbol) =&gt; symbol.clone().into(),
-            PropertyKey::Index(index) =&gt; index.to_string().into(),
+            PropertyKey::Index(index) =&gt; <span class="macro">js_string!</span>(index.to_string()).into(),
         }
     }
 }

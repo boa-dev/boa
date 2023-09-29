@@ -125,7 +125,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
-        context.vm.push(value.type_of());
+        context.vm.push(value.js_type_of());
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

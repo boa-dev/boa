@@ -187,21 +187,23 @@
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Conversions from JavaScript values into Rust values, and the other way around.
 
-</span><span class="kw">use super</span>::{JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
+</span><span class="kw">use </span><span class="kw">crate</span>::js_string;
+
+<span class="kw">use super</span>::{JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
 
 <span class="kw">mod </span>serde_json;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>try_from_js;
 
-<span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>JsValue
-<span class="kw">where
-    </span>T: Into&lt;JsString&gt;,
-{
-    <span class="kw">fn </span>from(value: T) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;From&lt;String&gt;&quot;</span>, <span class="string">&quot;value&quot;</span>);
+<span class="kw">impl </span>From&lt;JsString&gt; <span class="kw">for </span>JsValue {
+    <span class="kw">fn </span>from(value: JsString) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;From&lt;JsString&gt;&quot;</span>, <span class="string">&quot;value&quot;</span>);
 
-        <span class="self">Self</span>::String(value.into())
+        <span class="self">Self</span>::String(value)
     }
 }
 
@@ -210,7 +212,11 @@
     </span><span class="kw">fn </span>from(value: char) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;From&lt;char&gt;&quot;</span>, <span class="string">&quot;value&quot;</span>);
 
-        <span class="self">Self</span>::new(value.to_string())
+        <span class="kw">let </span><span class="kw-2">mut </span>buf: [u16; <span class="number">2</span>] = [<span class="number">0</span>; <span class="number">2</span>];
+
+        <span class="kw">let </span>out = value.encode_utf16(<span class="kw-2">&amp;mut </span>buf);
+
+        <span class="self">Self</span>::from(<span class="macro">js_string!</span>(<span class="kw-2">&amp;*</span>out))
     }
 }
 

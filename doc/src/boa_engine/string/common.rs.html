@@ -597,23 +597,99 @@
 <a href="#597" id="597">597</a>
 <a href="#598" id="598">598</a>
 <a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::hash::BuildHasherDefault;
 
 <span class="kw">use </span><span class="kw">crate</span>::tagged::Tagged;
 
 <span class="kw">use </span><span class="kw">super</span>::JsString;
 <span class="kw">use </span>boa_macros::utf16;
+<span class="kw">use </span>paste::paste;
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHasher};
 
 <span class="macro">macro_rules! </span>well_known_statics {
     ( $( $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>:meta]</span>)* (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$string</span>:literal) ),+$(,)<span class="question-mark">? </span>) =&gt; {
         $(
-            $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)* <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span><span class="macro-nonterminal">$name</span>() -&gt; JsString {
-                JsString {
+            <span class="macro">paste!</span>{
+                <span class="attr">#[doc = <span class="string">&quot;Gets the static `JsString` for `\&quot;&quot; </span><span class="macro-nonterminal">$string </span><span class="string">&quot;\&quot;`.&quot;</span>]
+                #[allow(unused)]
+                </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span><span class="macro-nonterminal">$name</span>: JsString = JsString {
                     ptr: Tagged::from_tag(
                         <span class="self">Self</span>::find_index(<span class="macro">utf16!</span>(<span class="macro-nonterminal">$string</span>)),
                     ),
-                }
+                };
             }
         )+
     };
@@ -673,35 +749,89 @@
         RAW_STATICS.get(index).copied()
     }
 
-    <span class="macro">well_known_statics! </span>{
-        <span class="doccomment">/// Gets the empty string (`&quot;&quot;`) `JsString`.
-        </span>(empty_string, <span class="string">&quot;&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.asyncIterator&quot;`.
-        </span>(symbol_async_iterator, <span class="string">&quot;Symbol.asyncIterator&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.hasInstance&quot;`.
-        </span>(symbol_has_instance, <span class="string">&quot;Symbol.hasInstance&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.isConcatSpreadable&quot;`.
-        </span>(symbol_is_concat_spreadable, <span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.iterator&quot;`.
-        </span>(symbol_iterator, <span class="string">&quot;Symbol.iterator&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.match&quot;`.
-        </span>(symbol_match, <span class="string">&quot;Symbol.match&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.matchAll&quot;`.
-        </span>(symbol_match_all, <span class="string">&quot;Symbol.matchAll&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.replace&quot;`.
-        </span>(symbol_replace, <span class="string">&quot;Symbol.replace&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.search&quot;`.
-        </span>(symbol_search, <span class="string">&quot;Symbol.search&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.species&quot;`.
-        </span>(symbol_species, <span class="string">&quot;Symbol.species&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.split&quot;`.
-        </span>(symbol_split, <span class="string">&quot;Symbol.split&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.toPrimitive&quot;`.
-        </span>(symbol_to_primitive, <span class="string">&quot;Symbol.toPrimitive&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.toStringTag&quot;`.
-        </span>(symbol_to_string_tag, <span class="string">&quot;Symbol.toStringTag&quot;</span>),
-        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.unscopables&quot;`.
-        </span>(symbol_unscopables, <span class="string">&quot;Symbol.unscopables&quot;</span>),
+    <span class="comment">// Some consts are only used on certain features, which triggers the unused lint.
+    </span><span class="macro">well_known_statics! </span>{
+        (EMPTY_STRING, <span class="string">&quot;&quot;</span>),
+        <span class="comment">// Symbols
+        </span>(SYMBOL_ASYNC_ITERATOR, <span class="string">&quot;Symbol.asyncIterator&quot;</span>),
+        (SYMBOL_HAS_INSTANCE, <span class="string">&quot;Symbol.hasInstance&quot;</span>),
+        (SYMBOL_IS_CONCAT_SPREADABLE, <span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>),
+        (SYMBOL_ITERATOR, <span class="string">&quot;Symbol.iterator&quot;</span>),
+        (SYMBOL_MATCH, <span class="string">&quot;Symbol.match&quot;</span>),
+        (SYMBOL_MATCH_ALL, <span class="string">&quot;Symbol.matchAll&quot;</span>),
+        (SYMBOL_REPLACE, <span class="string">&quot;Symbol.replace&quot;</span>),
+        (SYMBOL_SEARCH, <span class="string">&quot;Symbol.search&quot;</span>),
+        (SYMBOL_SPECIES, <span class="string">&quot;Symbol.species&quot;</span>),
+        (SYMBOL_SPLIT, <span class="string">&quot;Symbol.split&quot;</span>),
+        (SYMBOL_TO_PRIMITIVE, <span class="string">&quot;Symbol.toPrimitive&quot;</span>),
+        (SYMBOL_TO_STRING_TAG, <span class="string">&quot;Symbol.toStringTag&quot;</span>),
+        (SYMBOL_UNSCOPABLES, <span class="string">&quot;Symbol.unscopables&quot;</span>),
+        <span class="comment">// Builtins
+        </span>(ARRAY, <span class="string">&quot;Array&quot;</span>),
+        (ARRAY_BUFFER, <span class="string">&quot;ArrayBuffer&quot;</span>),
+        (ASYNC_FUNCTION, <span class="string">&quot;AsyncFunction&quot;</span>),
+        (ASYNC_GENERATOR, <span class="string">&quot;AsyncGenerator&quot;</span>),
+        (ASYNC_GENERATOR_FUNCTION, <span class="string">&quot;AsyncGeneratorFunction&quot;</span>),
+        (BIG_INT, <span class="string">&quot;BigInt&quot;</span>),
+        (BOOLEAN, <span class="string">&quot;Boolean&quot;</span>),
+        (DATA_VIEW, <span class="string">&quot;DataView&quot;</span>),
+        (DATE, <span class="string">&quot;Date&quot;</span>),
+        (ERROR, <span class="string">&quot;Error&quot;</span>),
+        (AGGREGATE_ERROR, <span class="string">&quot;AggregateError&quot;</span>),
+        (EVAL_ERROR, <span class="string">&quot;EvalError&quot;</span>),
+        (RANGE_ERROR, <span class="string">&quot;RangeError&quot;</span>),
+        (REFERENCE_ERROR, <span class="string">&quot;ReferenceError&quot;</span>),
+        (SYNTAX_ERROR, <span class="string">&quot;SyntaxError&quot;</span>),
+        (TYPE_ERROR, <span class="string">&quot;TypeError&quot;</span>),
+        (URI_ERROR, <span class="string">&quot;URIError&quot;</span>),
+        (ESCAPE, <span class="string">&quot;escape&quot;</span>),
+        (UNESCAPE, <span class="string">&quot;unescape&quot;</span>),
+        (EVAL, <span class="string">&quot;eval&quot;</span>),
+        (FUNCTION, <span class="string">&quot;Function&quot;</span>),
+        (GENERATOR, <span class="string">&quot;Generator&quot;</span>),
+        (GENERATOR_FUNCTION, <span class="string">&quot;GeneratorFunction&quot;</span>),
+        (INTL, <span class="string">&quot;Intl&quot;</span>),
+        (COLLATOR, <span class="string">&quot;Collator&quot;</span>),
+        (LIST_FORMAT, <span class="string">&quot;ListFormat&quot;</span>),
+        (LOCALE, <span class="string">&quot;Locale&quot;</span>),
+        (PLURAL_RULES, <span class="string">&quot;PluralRules&quot;</span>),
+        (SEGMENTER, <span class="string">&quot;Segmenter&quot;</span>),
+        (DATE_TIME_FORMAT, <span class="string">&quot;DateTimeFormat&quot;</span>),
+        (JSON, <span class="string">&quot;JSON&quot;</span>),
+        (MAP, <span class="string">&quot;Map&quot;</span>),
+        (MATH, <span class="string">&quot;Math&quot;</span>),
+        (NUMBER, <span class="string">&quot;Number&quot;</span>),
+        (IS_FINITE, <span class="string">&quot;isFinite&quot;</span>),
+        (IS_NAN, <span class="string">&quot;isNaN&quot;</span>),
+        (PARSE_INT, <span class="string">&quot;parseInt&quot;</span>),
+        (PARSE_FLOAT, <span class="string">&quot;parseFloat&quot;</span>),
+        (OBJECT, <span class="string">&quot;Object&quot;</span>),
+        (PROMISE, <span class="string">&quot;Promise&quot;</span>),
+        (PROXY, <span class="string">&quot;Proxy&quot;</span>),
+        (REFLECT, <span class="string">&quot;Reflect&quot;</span>),
+        (REG_EXP, <span class="string">&quot;RegExp&quot;</span>),
+        (SET, <span class="string">&quot;Set&quot;</span>),
+        (STRING, <span class="string">&quot;String&quot;</span>),
+        (SYMBOL, <span class="string">&quot;Symbol&quot;</span>),
+        (TYPED_ARRAY, <span class="string">&quot;TypedArray&quot;</span>),
+        (INT8_ARRAY, <span class="string">&quot;Int8Array&quot;</span>),
+        (UINT8_ARRAY, <span class="string">&quot;Uint8Array&quot;</span>),
+        (UINT8_CLAMPED_ARRAY, <span class="string">&quot;Uint8ClampedArray&quot;</span>),
+        (INT16_ARRAY, <span class="string">&quot;Int16Array&quot;</span>),
+        (UINT16_ARRAY, <span class="string">&quot;Uint16Array&quot;</span>),
+        (INT32_ARRAY, <span class="string">&quot;Int32Array&quot;</span>),
+        (UINT32_ARRAY, <span class="string">&quot;Uint32Array&quot;</span>),
+        (BIG_INT64_ARRAY, <span class="string">&quot;BigInt64Array&quot;</span>),
+        (BIG_UINT64_ARRAY, <span class="string">&quot;BigUint64Array&quot;</span>),
+        (FLOAT32_ARRAY, <span class="string">&quot;Float32Array&quot;</span>),
+        (FLOAT64_ARRAY, <span class="string">&quot;Float64Array&quot;</span>),
+        (ENCODE_URI, <span class="string">&quot;encodeURI&quot;</span>),
+        (ENCODE_URI_COMPONENT, <span class="string">&quot;encodeURIComponent&quot;</span>),
+        (DECODE_URI, <span class="string">&quot;decodeURI&quot;</span>),
+        (DECODE_URI_COMPONENT, <span class="string">&quot;decodeURIComponent&quot;</span>),
+        (WEAK_REF, <span class="string">&quot;WeakRef&quot;</span>),
+        (WEAK_MAP, <span class="string">&quot;WeakMap&quot;</span>),
+        (WEAK_SET, <span class="string">&quot;WeakSet&quot;</span>),
     }
 }
 
@@ -735,11 +865,101 @@
 }
 
 <span class="doccomment">/// Array of raw static strings that aren&#39;t reference counted.
-///
-/// The macro `static_strings` automatically sorts the array of strings, making it faster
-/// for searches by using `binary_search`.
 </span><span class="kw">const </span>RAW_STATICS: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[u16]] = <span class="kw-2">&amp;</span>[
     <span class="macro">utf16!</span>(<span class="string">&quot;&quot;</span>),
+    <span class="comment">// Well known symbols
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;Symbol.asyncIterator&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.asyncIterator]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.hasInstance&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.hasInstance]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.isConcatSpreadable]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.iterator&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.iterator]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.match&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.match]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.matchAll&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.matchAll]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.replace&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.replace]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.search&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.search]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.species&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.species]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.split&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.split]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.toPrimitive&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.toStringTag&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.toStringTag]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.unscopables&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.unscopables]&quot;</span>),
+    <span class="comment">// Well known builtins
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;ArrayBuffer&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;AsyncFunction&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;AsyncGenerator&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;AsyncGeneratorFunction&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;BigInt&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Boolean&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;DataView&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Date&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Error&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;AggregateError&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;EvalError&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;RangeError&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;ReferenceError&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;SyntaxError&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;TypeError&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;URIError&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;escape&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;unescape&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;eval&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Function&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Generator&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;GeneratorFunction&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Intl&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Collator&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;ListFormat&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Locale&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;PluralRules&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Segmenter&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;DateTimeFormat&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;JSON&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Map&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Math&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Number&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;isFinite&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;isNaN&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;parseInt&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;parseFloat&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Object&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Promise&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Proxy&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Reflect&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;RegExp&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Set&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;String&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;TypedArray&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Int8Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Uint8Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Uint8ClampedArray&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Int16Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Uint16Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Int32Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Uint32Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;BigInt64Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;BigUint64Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Float32Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Float64Array&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;encodeURI&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;encodeURIComponent&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;decodeURI&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;decodeURIComponent&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;WeakRef&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;WeakMap&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;WeakSet&quot;</span>),
     <span class="comment">// Misc
     </span><span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;:&quot;</span>),
@@ -796,15 +1016,11 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;entries&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;fromEntries&quot;</span>),
     <span class="comment">// Function object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Function&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;apply&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;apply&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;bind&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;call&quot;</span>),
-    <span class="comment">// Generator object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Generator&quot;</span>),
     <span class="comment">// Array object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;at&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;at&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;from&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;isArray&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;of&quot;</span>),
@@ -836,8 +1052,7 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;push&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;pop&quot;</span>),
     <span class="comment">// String object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;String&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;charAt&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;charAt&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;charCodeAt&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;codePointAt&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;concat&quot;</span>),
@@ -866,13 +1081,8 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;trimEnd&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;trimStart&quot;</span>),
     <span class="comment">// Number object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Number&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Infinity&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;Infinity&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;NaN&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;parseInt&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;parseFloat&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;isFinite&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;isNaN&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;EPSILON&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;MAX_SAFE_INTEGER&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;MIN_SAFE_INTEGER&quot;</span>),
@@ -883,15 +1093,11 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;toExponential&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;toFixed&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;toPrecision&quot;</span>),
-    <span class="comment">// Boolean object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Boolean&quot;</span>),
     <span class="comment">// BigInt object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;BigInt&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;asIntN&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;asIntN&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;asUintN&quot;</span>),
     <span class="comment">// RegExp object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;RegExp&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;exec&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;exec&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;test&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;index&quot;</span>),
@@ -913,8 +1119,7 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;get flags&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;get source&quot;</span>),
     <span class="comment">// Symbol object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Symbol&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;for&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;for&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;keyFor&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;description&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;asyncIterator&quot;</span>),
@@ -926,33 +1131,19 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;toPrimitive&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;get description&quot;</span>),
     <span class="comment">// Map object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Map&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;clear&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;clear&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;delete&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;has&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;size&quot;</span>),
     <span class="comment">// Set object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Set&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;add&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;add&quot;</span>),
     <span class="comment">// Reflect object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Reflect&quot;</span>),
-    <span class="comment">// Proxy object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Proxy&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;revocable&quot;</span>),
+    // Proxy object
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;revocable&quot;</span>),
     <span class="comment">// Error objects
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Error&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;AggregateError&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;TypeError&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;RangeError&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;SyntaxError&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;ReferenceError&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;EvalError&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;ThrowTypeError&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;URIError&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>),
     <span class="comment">// Date object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Date&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;toJSON&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;toJSON&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;getDate&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;getDay&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;getFullYear&quot;</span>),
@@ -993,8 +1184,7 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;now&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;UTC&quot;</span>),
     <span class="comment">// JSON object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;JSON&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;parse&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;parse&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;stringify&quot;</span>),
     <span class="comment">// Iterator object
     </span><span class="macro">utf16!</span>(<span class="string">&quot;Array Iterator&quot;</span>),
@@ -1003,8 +1193,7 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;Map Iterator&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;For In Iterator&quot;</span>),
     <span class="comment">// Math object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Math&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;LN10&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;LN10&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;LN2&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;LOG10E&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;LOG2E&quot;</span>),
@@ -1046,23 +1235,8 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;tan&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;tanh&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;trunc&quot;</span>),
-    <span class="comment">// Intl object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Intl&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;DateTimeFormat&quot;</span>),
     <span class="comment">// TypedArray object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;TypedArray&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;ArrayBuffer&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Int8Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Uint8Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Int16Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Uint16Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Int32Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Uint32Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;BigInt64Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;BigUint64Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Float32Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Float64Array&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;buffer&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;buffer&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;byteLength&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;byteOffset&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;isView&quot;</span>),
@@ -1073,8 +1247,7 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;get size&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;get length&quot;</span>),
     <span class="comment">// DataView object
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;DataView&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;getBigInt64&quot;</span>),
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;getBigInt64&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;getBigUint64&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;getFloat32&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;getFloat64&quot;</span>),
@@ -1168,32 +1341,5 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;Z&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;_&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;$&quot;</span>),
-    <span class="comment">// Well known symbols
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;Symbol.asyncIterator&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.asyncIterator]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.hasInstance&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.hasInstance]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.isConcatSpreadable]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.iterator&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.iterator]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.match&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.match]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.matchAll&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.matchAll]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.replace&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.replace]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.search&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.search]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.species&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.species]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.split&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.split]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.toPrimitive&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.toStringTag&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.toStringTag]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.unscopables&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.unscopables]&quot;</span>),
 ];
 </code></pre></div></section></main></body></html>

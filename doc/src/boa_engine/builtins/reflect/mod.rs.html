@@ -423,6 +423,8 @@
 <a href="#423" id="423">423</a>
 <a href="#424" id="424">424</a>
 <a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Reflect` object.
 //!
 //! The `Reflect` global object is a built-in object that provides methods for interceptable
@@ -440,11 +442,13 @@
     builtins::{<span class="self">self</span>, BuiltInObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::JsObject,
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -457,28 +461,28 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Reflect {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>to_string_tag = JsSymbol::to_string_tag();
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_method(<span class="self">Self</span>::apply, <span class="string">&quot;apply&quot;</span>, <span class="number">3</span>)
-            .static_method(<span class="self">Self</span>::construct, <span class="string">&quot;construct&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::define_property, <span class="string">&quot;defineProperty&quot;</span>, <span class="number">3</span>)
-            .static_method(<span class="self">Self</span>::delete_property, <span class="string">&quot;deleteProperty&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::get, <span class="string">&quot;get&quot;</span>, <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::apply, <span class="macro">js_string!</span>(<span class="string">&quot;apply&quot;</span>), <span class="number">3</span>)
+            .static_method(<span class="self">Self</span>::construct, <span class="macro">js_string!</span>(<span class="string">&quot;construct&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::define_property, <span class="macro">js_string!</span>(<span class="string">&quot;defineProperty&quot;</span>), <span class="number">3</span>)
+            .static_method(<span class="self">Self</span>::delete_property, <span class="macro">js_string!</span>(<span class="string">&quot;deleteProperty&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::get, <span class="macro">js_string!</span>(<span class="string">&quot;get&quot;</span>), <span class="number">2</span>)
             .static_method(
                 <span class="self">Self</span>::get_own_property_descriptor,
-                <span class="string">&quot;getOwnPropertyDescriptor&quot;</span>,
+                <span class="macro">js_string!</span>(<span class="string">&quot;getOwnPropertyDescriptor&quot;</span>),
                 <span class="number">2</span>,
             )
-            .static_method(<span class="self">Self</span>::get_prototype_of, <span class="string">&quot;getPrototypeOf&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::has, <span class="string">&quot;has&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::is_extensible, <span class="string">&quot;isExtensible&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::own_keys, <span class="string">&quot;ownKeys&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::prevent_extensions, <span class="string">&quot;preventExtensions&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::set, <span class="string">&quot;set&quot;</span>, <span class="number">3</span>)
-            .static_method(<span class="self">Self</span>::set_prototype_of, <span class="string">&quot;setPrototypeOf&quot;</span>, <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::get_prototype_of, <span class="macro">js_string!</span>(<span class="string">&quot;getPrototypeOf&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::has, <span class="macro">js_string!</span>(<span class="string">&quot;has&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::is_extensible, <span class="macro">js_string!</span>(<span class="string">&quot;isExtensible&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::own_keys, <span class="macro">js_string!</span>(<span class="string">&quot;ownKeys&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::prevent_extensions, <span class="macro">js_string!</span>(<span class="string">&quot;preventExtensions&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::set, <span class="macro">js_string!</span>(<span class="string">&quot;set&quot;</span>), <span class="number">3</span>)
+            .static_method(<span class="self">Self</span>::set_prototype_of, <span class="macro">js_string!</span>(<span class="string">&quot;setPrototypeOf&quot;</span>), <span class="number">2</span>)
             .static_property(
                 to_string_tag,
                 <span class="self">Self</span>::NAME,
@@ -493,7 +497,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Reflect {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Reflect&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::REFLECT;
 }
 
 <span class="kw">impl </span>Reflect {

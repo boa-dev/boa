@@ -437,6 +437,7 @@
 <a href="#437" id="437">437</a>
 <a href="#438" id="438">438</a>
 <a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Macros for the Boa JavaScript engine.
 </span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../ABOUT.md&quot;</span>)]
 #![doc(
@@ -771,7 +772,7 @@
 
     <span class="comment">// Build the output, possibly using quasi-quotation
     </span><span class="kw">let </span>expanded = <span class="macro">quote! </span>{
-        <span class="kw">impl </span>boa_engine::value::TryFromJs <span class="kw">for </span>#type_name {
+        <span class="kw">impl </span>::boa_engine::value::TryFromJs <span class="kw">for </span>#type_name {
             <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>boa_engine::JsValue, context: <span class="kw-2">&amp;mut </span>boa_engine::Context)
                 -&gt; boa_engine::JsResult&lt;<span class="self">Self</span>&gt; {
                 <span class="kw">match </span>value {
@@ -835,24 +836,24 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(method) = from_js_with {
             <span class="kw">let </span>ident = Ident::new(<span class="kw-2">&amp;</span>method.value(), method.span());
             final_fields.push(<span class="macro">quote! </span>{
-                <span class="kw">let </span>#name = #ident(props.get(<span class="kw-2">&amp;</span>#name_str.into()).ok_or_else(|| {
-                    boa_engine::JsError::from(
+                <span class="kw">let </span>#name = #ident(props.get(<span class="kw-2">&amp;</span><span class="macro">::boa_engine::js_string!</span>(#name_str).into()).ok_or_else(|| {
+                    ::boa_engine::JsError::from(
                         boa_engine::JsNativeError::typ().with_message(#error_str)
                     )
                 })<span class="question-mark">?</span>.value().ok_or_else(|| {
-                    boa_engine::JsError::from(
+                    ::boa_engine::JsError::from(
                         boa_engine::JsNativeError::typ().with_message(#error_str)
                     )
                 })<span class="question-mark">?</span>, context)<span class="question-mark">?</span>;
             });
         } <span class="kw">else </span>{
             final_fields.push(<span class="macro">quote! </span>{
-                <span class="kw">let </span>#name = props.get(<span class="kw-2">&amp;</span>#name_str.into()).ok_or_else(|| {
-                    boa_engine::JsError::from(
+                <span class="kw">let </span>#name = props.get(<span class="kw-2">&amp;</span><span class="macro">::boa_engine::js_string!</span>(#name_str).into()).ok_or_else(|| {
+                    ::boa_engine::JsError::from(
                         boa_engine::JsNativeError::typ().with_message(#error_str)
                     )
                 })<span class="question-mark">?</span>.value().ok_or_else(|| {
-                    boa_engine::JsError::from(
+                    ::boa_engine::JsError::from(
                         boa_engine::JsNativeError::typ().with_message(#error_str)
                     )
                 })<span class="question-mark">?</span>.clone().try_js_into(context)<span class="question-mark">?</span>;
@@ -860,7 +861,8 @@
         }
     }
 
-    <span class="prelude-val">Ok</span>(<span class="macro">quote! </span>{
+    <span class="comment">// TODO: this could possibly skip accessors. Consider using `JsObject::get` instead.
+    </span><span class="prelude-val">Ok</span>(<span class="macro">quote! </span>{
         <span class="kw">let </span>o = o.borrow();
         <span class="kw">let </span>props = o.properties();
         #(#final_fields)*

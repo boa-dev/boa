@@ -294,6 +294,8 @@
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `BigInt` object.
 //!
 //! `BigInt` is a built-in object that provides a way to represent whole numbers larger
@@ -312,12 +314,14 @@
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::JsObject,
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, PreferredType},
-    Context, JsArgs, JsBigInt, JsResult, JsValue,
+    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>num_bigint::ToBigInt;
@@ -333,13 +337,13 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>BigInt {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-            .static_method(<span class="self">Self</span>::as_int_n, <span class="string">&quot;asIntN&quot;</span>, <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::as_uint_n, <span class="string">&quot;asUintN&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::value_of, <span class="macro">js_string!</span>(<span class="string">&quot;valueOf&quot;</span>), <span class="number">0</span>)
+            .static_method(<span class="self">Self</span>::as_int_n, <span class="macro">js_string!</span>(<span class="string">&quot;asIntN&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::as_uint_n, <span class="macro">js_string!</span>(<span class="string">&quot;asUintN&quot;</span>), <span class="number">2</span>)
             .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
@@ -354,7 +358,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>BigInt {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;BigInt&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::BIG_INT;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>BigInt {
@@ -475,7 +479,7 @@
         </span><span class="kw">let </span>radix_mv = <span class="kw">if </span>radix.is_undefined() {
             <span class="comment">// 5. If radixMV = 10, return ! ToString(x).
             // Note: early return optimization.
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(x.to_string().into());
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(x.to_string()).into());
         <span class="comment">// 3. Else, let radixMV be ? ToIntegerOrInfinity(radix).
         </span>} <span class="kw">else </span>{
             radix.to_integer_or_infinity(context)<span class="question-mark">?
@@ -493,14 +497,14 @@
 
         <span class="comment">// 5. If radixMV = 10, return ! ToString(x).
         </span><span class="kw">if </span>radix_mv == <span class="number">10 </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(x.to_string().into());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(x.to_string()).into());
         }
 
         <span class="comment">// 1. Let x be ? thisBigIntValue(this value).
         // 6. Return the String representation of this Number value using the radix specified by radixMV.
         //    Letters a-z are used for digits with values 10 through 35.
         //    The precise algorithm is implementation-defined, however the algorithm should be a generalization of that specified in 6.1.6.2.23.
-        </span><span class="prelude-val">Ok</span>(JsValue::new(x.to_string_radix(radix_mv <span class="kw">as </span>u32)))
+        </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(x.to_string_radix(radix_mv <span class="kw">as </span>u32))))
     }
 
     <span class="doccomment">/// `BigInt.prototype.valueOf()`

@@ -857,6 +857,7 @@
 <a href="#857" id="857">857</a>
 <a href="#858" id="858">858</a>
 <a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `ArrayBuffer` object.
 //!
 //! More information:
@@ -873,13 +874,14 @@
     builtins::{typed_array::TypedArrayKind, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -908,21 +910,21 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ArrayBuffer {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
             .build();
 
         <span class="kw">let </span>get_byte_length = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_byte_length)
-            .name(<span class="string">&quot;get byteLength&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get byteLength&quot;</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;byteLength&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;byteLength&quot;</span>),
                 <span class="prelude-val">Some</span>(get_byte_length),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
@@ -933,8 +935,8 @@
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .static_method(<span class="self">Self</span>::is_view, <span class="string">&quot;isView&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::is_view, <span class="macro">js_string!</span>(<span class="string">&quot;isView&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::slice, <span class="macro">js_string!</span>(<span class="string">&quot;slice&quot;</span>), <span class="number">2</span>)
             .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
@@ -949,7 +951,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>ArrayBuffer {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ArrayBuffer&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::ARRAY_BUFFER;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>ArrayBuffer {

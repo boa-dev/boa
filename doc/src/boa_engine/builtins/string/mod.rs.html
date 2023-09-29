@@ -2806,6 +2806,18 @@
 <a href="#2806" id="2806">2806</a>
 <a href="#2807" id="2807">2807</a>
 <a href="#2808" id="2808">2808</a>
+<a href="#2809" id="2809">2809</a>
+<a href="#2810" id="2810">2810</a>
+<a href="#2811" id="2811">2811</a>
+<a href="#2812" id="2812">2812</a>
+<a href="#2813" id="2813">2813</a>
+<a href="#2814" id="2814">2814</a>
+<a href="#2815" id="2815">2815</a>
+<a href="#2816" id="2816">2816</a>
+<a href="#2817" id="2817">2817</a>
+<a href="#2818" id="2818">2818</a>
+<a href="#2819" id="2819">2819</a>
+<a href="#2820" id="2820">2820</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2825,7 +2837,7 @@
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     string::{CodePoint, Utf16Trim},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
@@ -2884,18 +2896,18 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>String {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
 
         <span class="kw">let </span>trim_start = BuiltInBuilder::callable(realm, <span class="self">Self</span>::trim_start)
             .length(<span class="number">0</span>)
-            .name(<span class="string">&quot;trimStart&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;trimStart&quot;</span>))
             .build();
 
         <span class="kw">let </span>trim_end = BuiltInBuilder::callable(realm, <span class="self">Self</span>::trim_end)
             .length(<span class="number">0</span>)
-            .name(<span class="string">&quot;trimEnd&quot;</span>)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;trimEnd&quot;</span>))
             .build();
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
@@ -2906,81 +2918,93 @@
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         <span class="kw">let </span>builder = BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, attribute)
+            .property(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, attribute)
             .property(
-                <span class="macro">utf16!</span>(<span class="string">&quot;trimStart&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;trimStart&quot;</span>),
                 trim_start,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                <span class="macro">utf16!</span>(<span class="string">&quot;trimEnd&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">&quot;trimEnd&quot;</span>),
                 trim_end,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(<span class="self">Self</span>::raw, <span class="string">&quot;raw&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::from_char_code, <span class="string">&quot;fromCharCode&quot;</span>, <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::from_code_point, <span class="string">&quot;fromCodePoint&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::char_at, <span class="string">&quot;charAt&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::char_code_at, <span class="string">&quot;charCodeAt&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::code_point_at, <span class="string">&quot;codePointAt&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::concat, <span class="string">&quot;concat&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::repeat, <span class="string">&quot;repeat&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::starts_with, <span class="string">&quot;startsWith&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::ends_with, <span class="string">&quot;endsWith&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::includes, <span class="string">&quot;includes&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::index_of, <span class="string">&quot;indexOf&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::is_well_formed, <span class="string">&quot;isWellFormed&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::last_index_of, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::locale_compare, <span class="string">&quot;localeCompare&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::r#match, <span class="string">&quot;match&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::normalize, <span class="string">&quot;normalize&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::pad_end, <span class="string">&quot;padEnd&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::pad_start, <span class="string">&quot;padStart&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::trim, <span class="string">&quot;trim&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;toLowerCase&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;toUpperCase&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_well_formed, <span class="string">&quot;toWellFormed&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_locale_case::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;toLocaleLowerCase&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_locale_case::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;toLocaleUpperCase&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::substring, <span class="string">&quot;substring&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::split, <span class="string">&quot;split&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::match_all, <span class="string">&quot;matchAll&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::replace, <span class="string">&quot;replace&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::replace_all, <span class="string">&quot;replaceAll&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::iterator, (symbol_iterator, <span class="string">&quot;[Symbol.iterator]&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::search, <span class="string">&quot;search&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::at, <span class="string">&quot;at&quot;</span>, <span class="number">1</span>);
+            .static_method(<span class="self">Self</span>::raw, <span class="macro">js_string!</span>(<span class="string">&quot;raw&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::from_char_code, <span class="macro">js_string!</span>(<span class="string">&quot;fromCharCode&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::from_code_point, <span class="macro">js_string!</span>(<span class="string">&quot;fromCodePoint&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::char_at, <span class="macro">js_string!</span>(<span class="string">&quot;charAt&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::char_code_at, <span class="macro">js_string!</span>(<span class="string">&quot;charCodeAt&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::code_point_at, <span class="macro">js_string!</span>(<span class="string">&quot;codePointAt&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::concat, <span class="macro">js_string!</span>(<span class="string">&quot;concat&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::repeat, <span class="macro">js_string!</span>(<span class="string">&quot;repeat&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::slice, <span class="macro">js_string!</span>(<span class="string">&quot;slice&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::starts_with, <span class="macro">js_string!</span>(<span class="string">&quot;startsWith&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::ends_with, <span class="macro">js_string!</span>(<span class="string">&quot;endsWith&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::includes, <span class="macro">js_string!</span>(<span class="string">&quot;includes&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::index_of, <span class="macro">js_string!</span>(<span class="string">&quot;indexOf&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::is_well_formed, <span class="macro">js_string!</span>(<span class="string">&quot;isWellFormed&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::last_index_of, <span class="macro">js_string!</span>(<span class="string">&quot;lastIndexOf&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::locale_compare, <span class="macro">js_string!</span>(<span class="string">&quot;localeCompare&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::r#match, <span class="macro">js_string!</span>(<span class="string">&quot;match&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::normalize, <span class="macro">js_string!</span>(<span class="string">&quot;normalize&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::pad_end, <span class="macro">js_string!</span>(<span class="string">&quot;padEnd&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::pad_start, <span class="macro">js_string!</span>(<span class="string">&quot;padStart&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::trim, <span class="macro">js_string!</span>(<span class="string">&quot;trim&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;toLowerCase&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;toUpperCase&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_well_formed, <span class="macro">js_string!</span>(<span class="string">&quot;toWellFormed&quot;</span>), <span class="number">0</span>)
+            .method(
+                <span class="self">Self</span>::to_locale_case::&lt;<span class="bool-val">false</span>&gt;,
+                <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleLowerCase&quot;</span>),
+                <span class="number">0</span>,
+            )
+            .method(
+                <span class="self">Self</span>::to_locale_case::&lt;<span class="bool-val">true</span>&gt;,
+                <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleUpperCase&quot;</span>),
+                <span class="number">0</span>,
+            )
+            .method(<span class="self">Self</span>::substring, <span class="macro">js_string!</span>(<span class="string">&quot;substring&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::split, <span class="macro">js_string!</span>(<span class="string">&quot;split&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::value_of, <span class="macro">js_string!</span>(<span class="string">&quot;valueOf&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::match_all, <span class="macro">js_string!</span>(<span class="string">&quot;matchAll&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::replace, <span class="macro">js_string!</span>(<span class="string">&quot;replace&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::replace_all, <span class="macro">js_string!</span>(<span class="string">&quot;replaceAll&quot;</span>), <span class="number">2</span>)
+            .method(
+                <span class="self">Self</span>::iterator,
+                (symbol_iterator, <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.iterator]&quot;</span>)),
+                <span class="number">0</span>,
+            )
+            .method(<span class="self">Self</span>::search, <span class="macro">js_string!</span>(<span class="string">&quot;search&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::at, <span class="macro">js_string!</span>(<span class="string">&quot;at&quot;</span>), <span class="number">1</span>);
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
         </span><span class="kw">let </span>builder = {
             builder
                 .property(
-                    <span class="macro">utf16!</span>(<span class="string">&quot;trimLeft&quot;</span>),
+                    <span class="macro">js_string!</span>(<span class="string">&quot;trimLeft&quot;</span>),
                     trim_left,
                     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
                 )
                 .property(
-                    <span class="macro">utf16!</span>(<span class="string">&quot;trimRight&quot;</span>),
+                    <span class="macro">js_string!</span>(<span class="string">&quot;trimRight&quot;</span>),
                     trim_right,
                     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
                 )
-                .method(<span class="self">Self</span>::substr, <span class="string">&quot;substr&quot;</span>, <span class="number">2</span>)
-                .method(<span class="self">Self</span>::anchor, <span class="string">&quot;anchor&quot;</span>, <span class="number">1</span>)
-                .method(<span class="self">Self</span>::big, <span class="string">&quot;big&quot;</span>, <span class="number">0</span>)
-                .method(<span class="self">Self</span>::blink, <span class="string">&quot;blink&quot;</span>, <span class="number">0</span>)
-                .method(<span class="self">Self</span>::bold, <span class="string">&quot;bold&quot;</span>, <span class="number">0</span>)
-                .method(<span class="self">Self</span>::fixed, <span class="string">&quot;fixed&quot;</span>, <span class="number">0</span>)
-                .method(<span class="self">Self</span>::fontcolor, <span class="string">&quot;fontcolor&quot;</span>, <span class="number">1</span>)
-                .method(<span class="self">Self</span>::fontsize, <span class="string">&quot;fontsize&quot;</span>, <span class="number">1</span>)
-                .method(<span class="self">Self</span>::italics, <span class="string">&quot;italics&quot;</span>, <span class="number">0</span>)
-                .method(<span class="self">Self</span>::link, <span class="string">&quot;link&quot;</span>, <span class="number">1</span>)
-                .method(<span class="self">Self</span>::small, <span class="string">&quot;small&quot;</span>, <span class="number">0</span>)
-                .method(<span class="self">Self</span>::strike, <span class="string">&quot;strike&quot;</span>, <span class="number">0</span>)
-                .method(<span class="self">Self</span>::sub, <span class="string">&quot;sub&quot;</span>, <span class="number">0</span>)
-                .method(<span class="self">Self</span>::sup, <span class="string">&quot;sup&quot;</span>, <span class="number">0</span>)
+                .method(<span class="self">Self</span>::substr, <span class="macro">js_string!</span>(<span class="string">&quot;substr&quot;</span>), <span class="number">2</span>)
+                .method(<span class="self">Self</span>::anchor, <span class="macro">js_string!</span>(<span class="string">&quot;anchor&quot;</span>), <span class="number">1</span>)
+                .method(<span class="self">Self</span>::big, <span class="macro">js_string!</span>(<span class="string">&quot;big&quot;</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::blink, <span class="macro">js_string!</span>(<span class="string">&quot;blink&quot;</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::bold, <span class="macro">js_string!</span>(<span class="string">&quot;bold&quot;</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::fixed, <span class="macro">js_string!</span>(<span class="string">&quot;fixed&quot;</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::fontcolor, <span class="macro">js_string!</span>(<span class="string">&quot;fontcolor&quot;</span>), <span class="number">1</span>)
+                .method(<span class="self">Self</span>::fontsize, <span class="macro">js_string!</span>(<span class="string">&quot;fontsize&quot;</span>), <span class="number">1</span>)
+                .method(<span class="self">Self</span>::italics, <span class="macro">js_string!</span>(<span class="string">&quot;italics&quot;</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::link, <span class="macro">js_string!</span>(<span class="string">&quot;link&quot;</span>), <span class="number">1</span>)
+                .method(<span class="self">Self</span>::small, <span class="macro">js_string!</span>(<span class="string">&quot;small&quot;</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::strike, <span class="macro">js_string!</span>(<span class="string">&quot;strike&quot;</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::sub, <span class="macro">js_string!</span>(<span class="string">&quot;sub&quot;</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::sup, <span class="macro">js_string!</span>(<span class="string">&quot;sup&quot;</span>), <span class="number">0</span>)
         };
 
         builder.build();
@@ -2992,7 +3016,7 @@
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>String {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;String&quot;</span>;
+    <span class="kw">const </span>NAME: JsString = StaticJsStrings::STRING;
 }
 
 <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>String {
@@ -4643,7 +4667,7 @@
             .collect::&lt;std::string::String&gt;();
 
         <span class="comment">// 7. Return result.
-        </span><span class="prelude-val">Ok</span>(result.into())
+        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(result).into())
     }
 
     <span class="doccomment">/// `String.prototype.substring( indexStart[, indexEnd] )`
