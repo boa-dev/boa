@@ -2,16 +2,16 @@ use crate::{vm::CompletionType, Context, JsResult};
 
 use super::{Opcode, Operation};
 
-/// `Half` implements the Opcode Operation for `Opcode::Half`
+/// `ModifierU16` implements the Opcode Operation for `Opcode::ModifierU16`
 ///
 /// Operation:
 ///  - [`Opcode`] prefix operand modifier, makes all varying operands of an instruction [`u16`] sized.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Half;
+pub(crate) struct ModifierU16;
 
-impl Operation for Half {
-    const NAME: &'static str = "Half";
-    const INSTRUCTION: &'static str = "INST - Half";
+impl Operation for ModifierU16 {
+    const NAME: &'static str = "ModifierU16";
+    const INSTRUCTION: &'static str = "INST - ModifierU16";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let opcode = context.vm.read::<u8>() as usize;
@@ -20,16 +20,16 @@ impl Operation for Half {
     }
 }
 
-/// `Wide` implements the Opcode Operation for `Opcode::Wide`
+/// `ModifierU32` implements the Opcode Operation for `Opcode::ModifierU32`
 ///
 /// Operation:
-///  - [`Opcode`] prefix operand modifier, makes all varying operands of an instruction [`u16`] sized.
+///  - [`Opcode`] prefix operand modifier, makes all varying operands of an instruction [`u32`] sized.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Wide;
+pub(crate) struct ModifierU32;
 
-impl Operation for Wide {
-    const NAME: &'static str = "Wide";
-    const INSTRUCTION: &'static str = "INST - Wide";
+impl Operation for ModifierU32 {
+    const NAME: &'static str = "ModifierU32";
+    const INSTRUCTION: &'static str = "INST - ModifierU32";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let opcode = context.vm.read::<u8>() as usize;

@@ -465,23 +465,23 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     pub(crate) fn emit(&mut self, opcode: Opcode, operands: &[Operand]) {
-        let mut varying_kind = VaryingOperandKind::Short;
+        let mut varying_kind = VaryingOperandKind::U8;
         for operand in operands {
             if let Operand::Varying(operand) = *operand {
                 if u8::try_from(operand).is_ok() {
                 } else if u16::try_from(operand).is_ok() {
-                    varying_kind = VaryingOperandKind::Half;
+                    varying_kind = VaryingOperandKind::U16;
                 } else {
-                    varying_kind = VaryingOperandKind::Wide;
+                    varying_kind = VaryingOperandKind::U32;
                     break;
                 }
             }
         }
 
         match varying_kind {
-            VaryingOperandKind::Short => {}
-            VaryingOperandKind::Half => self.emit_opcode(Opcode::Half),
-            VaryingOperandKind::Wide => self.emit_opcode(Opcode::Wide),
+            VaryingOperandKind::U8 => {}
+            VaryingOperandKind::U16 => self.emit_opcode(Opcode::ModifierU16),
+            VaryingOperandKind::U32 => self.emit_opcode(Opcode::ModifierU32),
         }
         self.emit_opcode(opcode);
         for operand in operands {
@@ -497,11 +497,11 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             self.emit_opcode(opcode);
             self.emit_u8(operand);
         } else if let Ok(operand) = u16::try_from(operand) {
-            self.emit_opcode(Opcode::Half);
+            self.emit_opcode(Opcode::ModifierU16);
             self.emit_opcode(opcode);
             self.emit_u16(operand);
         } else {
-            self.emit_opcode(Opcode::Wide);
+            self.emit_opcode(Opcode::ModifierU32);
             self.emit_opcode(opcode);
             self.emit_u32(operand);
         }
@@ -519,9 +519,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             Operand::I64(v) => self.emit_i64(v),
             Operand::U64(v) => self.emit_u64(v),
             Operand::Varying(v) => match varying_kind {
-                VaryingOperandKind::Short => self.emit_u8(v as u8),
-                VaryingOperandKind::Half => self.emit_u16(v as u16),
-                VaryingOperandKind::Wide => self.emit_u32(v),
+                VaryingOperandKind::U8 => self.emit_u8(v as u8),
+                VaryingOperandKind::U16 => self.emit_u16(v as u16),
+                VaryingOperandKind::U32 => self.emit_u32(v),
             },
         }
     }

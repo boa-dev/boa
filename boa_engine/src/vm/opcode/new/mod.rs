@@ -56,12 +56,12 @@ impl Operation for New {
         Self::operation(context, argument_count)
     }
 
-    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u16>() as usize;
         Self::operation(context, argument_count)
     }
 
-    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u32>() as usize;
         Self::operation(context, argument_count)
     }

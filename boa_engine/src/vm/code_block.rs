@@ -574,8 +574,8 @@ impl CodeBlock {
             | Instruction::SetReturnValue
             | Instruction::Nop => String::new(),
 
-            Instruction::Half
-            | Instruction::Wide
+            Instruction::ModifierU16
+            | Instruction::ModifierU32
             | Instruction::Reserved1
             | Instruction::Reserved2
             | Instruction::Reserved3
@@ -676,9 +676,9 @@ impl ToInternedString for CodeBlock {
             };
 
             let varying_operand_kind = match varying_operand_kind {
-                super::VaryingOperandKind::Short => "",
-                super::VaryingOperandKind::Half => ".Half",
-                super::VaryingOperandKind::Wide => ".Wide",
+                super::VaryingOperandKind::U8 => "",
+                super::VaryingOperandKind::U16 => ".U16",
+                super::VaryingOperandKind::U32 => ".U32",
             };
 
             f.push_str(&format!(

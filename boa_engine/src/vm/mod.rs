@@ -32,11 +32,11 @@ mod runtime_limits;
 #[cfg(feature = "flowgraph")]
 pub mod flowgraph;
 
+pub(crate) use opcode::{Instruction, InstructionIterator, Opcode, VaryingOperandKind};
 pub use runtime_limits::RuntimeLimits;
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},
     code_block::CodeBlock,
-    opcode::{Instruction, InstructionIterator, Opcode, VaryingOperand, VaryingOperandKind},
 };
 
 pub(crate) use {
@@ -283,9 +283,9 @@ impl Context<'_> {
         };
 
         let varying_operand_kind = match varying_operand_kind {
-            VaryingOperandKind::Short => "",
-            VaryingOperandKind::Half => ".Half",
-            VaryingOperandKind::Wide => ".Wide",
+            VaryingOperandKind::U8 => "",
+            VaryingOperandKind::U16 => ".U16",
+            VaryingOperandKind::U32 => ".U32",
         };
 
         println!(

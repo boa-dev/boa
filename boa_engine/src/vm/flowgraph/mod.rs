@@ -18,10 +18,6 @@ use super::{Instruction, InstructionIterator};
 
 impl CodeBlock {
     /// Output the [`CodeBlock`] VM instructions into a [`Graph`].
-    ///
-    /// # Panics
-    ///
-    /// TODO:
     #[allow(clippy::match_same_arms)]
     pub fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
         // Have to remove any invalid graph chars like `<` or `>`.
@@ -469,8 +465,8 @@ impl CodeBlock {
                 Instruction::Return => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::Red);
                 }
-                Instruction::Half
-                | Instruction::Wide
+                Instruction::ModifierU16
+                | Instruction::ModifierU32
                 | Instruction::Reserved1
                 | Instruction::Reserved2
                 | Instruction::Reserved3

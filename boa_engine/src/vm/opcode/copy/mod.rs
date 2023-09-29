@@ -50,13 +50,13 @@ impl Operation for CopyDataProperties {
         Self::operation(context, excluded_key_count, excluded_key_count_computed)
     }
 
-    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let excluded_key_count = context.vm.read::<u16>() as usize;
         let excluded_key_count_computed = context.vm.read::<u16>() as usize;
         Self::operation(context, excluded_key_count, excluded_key_count_computed)
     }
 
-    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let excluded_key_count = context.vm.read::<u32>() as usize;
         let excluded_key_count_computed = context.vm.read::<u32>() as usize;
         Self::operation(context, excluded_key_count, excluded_key_count_computed)

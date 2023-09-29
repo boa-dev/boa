@@ -29,12 +29,12 @@ impl Operation for GetArrowFunction {
         Self::operation(context, index)
     }
 
-    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -66,12 +66,12 @@ impl Operation for GetAsyncArrowFunction {
         Self::operation(context, index)
     }
 
-    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -108,13 +108,13 @@ impl Operation for GetFunction {
         Self::operation(context, index, method)
     }
 
-    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         let method = context.vm.read::<u8>() != 0;
         Self::operation(context, index, method)
     }
 
-    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         let method = context.vm.read::<u8>() != 0;
         Self::operation(context, index, method)
@@ -152,13 +152,13 @@ impl Operation for GetFunctionAsync {
         Self::operation(context, index, method)
     }
 
-    fn half_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         let method = context.vm.read::<u8>() != 0;
         Self::operation(context, index, method)
     }
 
-    fn wide_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         let method = context.vm.read::<u8>() != 0;
         Self::operation(context, index, method)
