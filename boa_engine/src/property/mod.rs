@@ -636,7 +636,7 @@ where
     if byte == CHAR_ZERO {
         if len == 1 {
             // SAFETY: `0` is not `u32::MAX`.
-            return unsafe { Some(NonMaxU32::new_unchecked(0)) };
+            return Some(NonMaxU32::new_unchecked(0));
         }
 
         // String "012345" is not a valid index.
@@ -660,7 +660,7 @@ where
 
         // SAFETY: `result` cannot be `u32::MAX`,
         //         because the length of the input is smaller than `MAX_CHAR_COUNT`.
-        unsafe { Some(NonMaxU32::new_unchecked(result)) }
+        Some(NonMaxU32::new_unchecked(result))
     }
 }
 
@@ -729,14 +729,14 @@ impl From<PropertyKey> for JsValue {
 impl From<u8> for PropertyKey {
     fn from(value: u8) -> Self {
         // SAFETY: `u8` can never be `u32::MAX`.
-        unsafe { Self::Index(NonMaxU32::new_unchecked(value.into())) }
+        Self::Index(NonMaxU32::new_unchecked(value.into()))
     }
 }
 
 impl From<u16> for PropertyKey {
     fn from(value: u16) -> Self {
         // SAFETY: `u16` can never be `u32::MAX`.
-        unsafe { Self::Index(NonMaxU32::new_unchecked(value.into())) }
+        Self::Index(NonMaxU32::new_unchecked(value.into()))
     }
 }
 
