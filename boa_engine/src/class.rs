@@ -8,6 +8,7 @@
 //! #    class::{Class, ClassBuilder},
 //! #    Context, JsResult, JsValue,
 //! #    JsArgs,
+//! #    js_string,
 //! # };
 //! # use boa_gc::{Finalize, Trace};
 //! #
@@ -43,7 +44,7 @@
 //!     /// This is where the object is initialized.
 //!     fn init(class: &mut ClassBuilder) -> JsResult<()> {
 //!         class.method(
-//!             "speak",
+//!             js_string!("speak"),
 //!             0,
 //!             NativeFunction::from_fn_ptr(|this, _args, _ctx| {
 //!                 if let Some(object) = this.as_object() {
