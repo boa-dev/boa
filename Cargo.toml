@@ -43,7 +43,7 @@ boa_runtime = { version = "~0.17.0", path = "boa_runtime" }
 arbitrary = "1"
 bitflags = "2.4.0"
 chrono = { version = "0.4.31", default-features = false }
-clap = "4.4.5"
+clap = "4.4.6"
 colored = "2.0.4"
 fast-float = "0.2.0"
 hashbrown = { version = "0.14.0", default-features = false }
