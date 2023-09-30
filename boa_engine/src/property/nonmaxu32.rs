@@ -11,7 +11,7 @@ impl NonMaxU32 {
     ///
     /// The caller must ensure that the given value is not `u32::MAX`.
     #[must_use]
-    pub const fn new_unchecked(inner: u32) -> Self {
+    pub const unsafe fn new_unchecked(inner: u32) -> Self {
         debug_assert!(inner != u32::MAX);
 
         Self { inner }
@@ -24,7 +24,8 @@ impl NonMaxU32 {
             return None;
         }
 
-        Some(Self::new_unchecked(inner))
+        // SAFETY: We checked that `inner` is not `u32::MAX`.
+        unsafe { Some(Self::new_unchecked(inner)) }
     }
 
     /// Returns the value as a primitive type.
