@@ -223,7 +223,7 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = object_borrowed
                     .properties()
                     .dense_indexed_properties()
-                    .and_then(|vec| vec.get(<span class="kw-2">*</span>index <span class="kw">as </span>usize))
+                    .and_then(|vec| vec.get(index.get() <span class="kw">as </span>usize))
                 {
                     context.vm.push(element.clone());
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
@@ -269,7 +269,7 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = object_borrowed
                     .properties()
                     .dense_indexed_properties()
-                    .and_then(|vec| vec.get(<span class="kw-2">*</span>index <span class="kw">as </span>usize))
+                    .and_then(|vec| vec.get(index.get() <span class="kw">as </span>usize))
                 {
                     context.vm.push(key);
                     context.vm.push(element.clone());

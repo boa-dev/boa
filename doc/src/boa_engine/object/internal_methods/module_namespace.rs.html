@@ -420,7 +420,7 @@
     <span class="comment">// 1. If P is a Symbol, return OrdinaryGetOwnProperty(O, P).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="kw">return </span>ordinary_get_own_property(obj, key, context),
-        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{idx}&quot;</span>)),
+        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, idx.get())),
         PropertyKey::String(s) =&gt; s.clone(),
     };
 
@@ -500,7 +500,7 @@
     <span class="comment">// 1. If P is a Symbol, return ! OrdinaryHasProperty(O, P).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="kw">return </span>ordinary_has_property(obj, key, context),
-        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{idx}&quot;</span>)),
+        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, idx.get())),
         PropertyKey::String(s) =&gt; s.clone(),
     };
 
@@ -530,7 +530,7 @@
     //     a. Return ! OrdinaryGet(O, P, Receiver).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="kw">return </span>ordinary_get(obj, key, receiver, context),
-        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{idx}&quot;</span>)),
+        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, idx.get())),
         PropertyKey::String(s) =&gt; s.clone(),
     };
 
@@ -618,7 +618,7 @@
     //     a. Return ! OrdinaryDelete(O, P).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="kw">return </span>ordinary_delete(obj, key, context),
-        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{idx}&quot;</span>)),
+        PropertyKey::Index(idx) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, idx.get())),
         PropertyKey::String(s) =&gt; s.clone(),
     };
 

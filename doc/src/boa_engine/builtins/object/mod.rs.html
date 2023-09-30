@@ -2851,7 +2851,7 @@
             (PropertyKeyType::String, PropertyKey::String(<span class="kw">_</span>))
             | (PropertyKeyType::Symbol, PropertyKey::Symbol(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(next_key.into()),
             (PropertyKeyType::String, PropertyKey::Index(index)) =&gt; {
-                <span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(index.to_string()).into())
+                <span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(index.get().to_string()).into())
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }

@@ -1815,7 +1815,7 @@
             <span class="comment">// a. If Type(key) is String, then
             </span><span class="kw">let </span>key_str = <span class="kw">match </span><span class="kw-2">&amp;</span>key {
                 PropertyKey::String(s) =&gt; <span class="prelude-val">Some</span>(s.clone()),
-                PropertyKey::Index(i) =&gt; <span class="prelude-val">Some</span>(i.to_string().into()),
+                PropertyKey::Index(i) =&gt; <span class="prelude-val">Some</span>(i.get().to_string().into()),
                 PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             };
 

@@ -254,6 +254,8 @@
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     object::JsObject,
@@ -288,7 +290,7 @@
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
-    </span><span class="kw">match </span><span class="kw-2">*</span>key {
+    </span><span class="kw">match </span>key {
         <span class="comment">// 2. If P is &quot;length&quot;, then
         </span>PropertyKey::String(<span class="kw-2">ref </span>s) <span class="kw">if </span>s == <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>) =&gt; {
             <span class="comment">// a. Return ? ArraySetLength(A, Desc).
@@ -296,7 +298,9 @@
             </span>array_set_length(obj, desc, context)
         }
         <span class="comment">// 3. Else if P is an array index, then
-        </span>PropertyKey::Index(index) <span class="kw">if </span>index &lt; u32::MAX =&gt; {
+        </span>PropertyKey::Index(index) =&gt; {
+            <span class="kw">let </span>index = index.get();
+
             <span class="comment">// a. Let oldLenDesc be OrdinaryGetOwnProperty(A, &quot;length&quot;).
             </span><span class="kw">let </span>old_len_desc =
                 <span class="kw">super</span>::ordinary_get_own_property(obj, <span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into(), context)<span class="question-mark">?

@@ -478,7 +478,7 @@
                         .properties_mut()
                         .dense_indexed_properties_mut()
                     {
-                        <span class="kw">let </span>index = <span class="kw-2">*</span>index <span class="kw">as </span>usize;
+                        <span class="kw">let </span>index = index.get() <span class="kw">as </span>usize;
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = dense_elements.get_mut(index) {
                             <span class="kw-2">*</span>element = value;
                             context.vm.push(element.clone());

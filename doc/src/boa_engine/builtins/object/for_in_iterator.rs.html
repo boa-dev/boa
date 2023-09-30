@@ -154,6 +154,8 @@
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `ForInIterator` object.
 //!
 //! More information:
@@ -273,7 +275,9 @@
                             iterator.remaining_keys.push_back(k.clone());
                         }
                         PropertyKey::Index(i) =&gt; {
-                            iterator.remaining_keys.push_back(i.to_string().into());
+                            iterator
+                                .remaining_keys
+                                .push_back(i.get().to_string().into());
                         }
                         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; {}
                     }

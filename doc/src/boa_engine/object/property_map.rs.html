@@ -908,7 +908,7 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
         <span class="kw">if let </span>PropertyKey::Index(index) = key {
-            <span class="kw">return </span><span class="self">self</span>.indexed_properties.get(<span class="kw-2">*</span>index);
+            <span class="kw">return </span><span class="self">self</span>.indexed_properties.get(index.get());
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(slot) = <span class="self">self</span>.shape.lookup(key) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.get_storage(slot));
@@ -941,7 +941,7 @@
     <span class="doccomment">/// Insert the given property descriptor with the given key [`PropertyMap`].
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey, property: PropertyDescriptor) -&gt; bool {
         <span class="kw">if let </span>PropertyKey::Index(index) = key {
-            <span class="kw">return </span><span class="self">self</span>.indexed_properties.insert(<span class="kw-2">*</span>index, property);
+            <span class="kw">return </span><span class="self">self</span>.indexed_properties.insert(index.get(), property);
         }
 
         <span class="kw">let </span>attributes = property.to_slot_attributes();
@@ -1030,7 +1030,7 @@
     <span class="doccomment">/// Remove the property with the given key from the [`PropertyMap`].
     </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; bool {
         <span class="kw">if let </span>PropertyKey::Index(index) = key {
-            <span class="kw">return </span><span class="self">self</span>.indexed_properties.remove(<span class="kw-2">*</span>index);
+            <span class="kw">return </span><span class="self">self</span>.indexed_properties.remove(index.get());
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(slot) = <span class="self">self</span>.shape.lookup(key) {
             <span class="comment">// shift all elements when removing.
@@ -1101,7 +1101,7 @@
     #[must_use]
     </span><span class="kw">pub fn </span>contains_key(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; bool {
         <span class="kw">if let </span>PropertyKey::Index(index) = key {
-            <span class="kw">return </span><span class="self">self</span>.indexed_properties.contains_key(<span class="kw-2">*</span>index);
+            <span class="kw">return </span><span class="self">self</span>.indexed_properties.contains_key(index.get());
         }
         <span class="kw">if </span><span class="self">self</span>.shape.lookup(key).is_some() {
             <span class="kw">return </span><span class="bool-val">true</span>;

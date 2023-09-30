@@ -405,7 +405,7 @@
                     <span class="kw">for </span>property_key <span class="kw">in </span>obj.borrow().properties().shape.keys() {
                         <span class="kw">let </span>key = <span class="kw">match </span><span class="kw-2">&amp;</span>property_key {
                             PropertyKey::String(string) =&gt; string.to_std_string_escaped(),
-                            PropertyKey::Index(i) =&gt; i.to_string(),
+                            PropertyKey::Index(i) =&gt; i.get().to_string(),
                             PropertyKey::Symbol(_sym) =&gt; {
                                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                                     .with_message(<span class="string">&quot;cannot convert Symbol to JSON&quot;</span>)

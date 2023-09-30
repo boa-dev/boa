@@ -314,7 +314,7 @@
     // 6. If IsIntegralNumber(index) is false, return undefined.
     // 7. If index is -0𝔽, return undefined.
     </span><span class="kw">let </span>pos = <span class="kw">match </span>key {
-        PropertyKey::Index(index) =&gt; <span class="kw-2">*</span>index <span class="kw">as </span>usize,
+        PropertyKey::Index(index) =&gt; index.get() <span class="kw">as </span>usize,
         <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
     };
 

@@ -410,7 +410,7 @@
         }
     };
     (props of <span class="macro-nonterminal">$obj</span>:expr, <span class="macro-nonterminal">$display_fn</span>:ident, <span class="macro-nonterminal">$indent</span>:expr, <span class="macro-nonterminal">$encounters</span>:expr, <span class="macro-nonterminal">$print_internals</span>:expr) =&gt; {
-        {<span class="kw">let </span><span class="kw-2">mut </span>keys: Vec&lt;<span class="kw">_</span>&gt; = <span class="macro-nonterminal">$obj</span>.borrow().properties().index_property_keys().map(<span class="kw">crate</span>::property::PropertyKey::Index).collect();
+        {<span class="kw">let </span><span class="kw-2">mut </span>keys: Vec&lt;<span class="kw">_</span>&gt; = <span class="macro-nonterminal">$obj</span>.borrow().properties().index_property_keys().map(<span class="kw">crate</span>::property::PropertyKey::from).collect();
         keys.extend(<span class="macro-nonterminal">$obj</span>.borrow().properties().shape.keys());
         <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::default();
         <span class="kw">for </span>key <span class="kw">in </span>keys {

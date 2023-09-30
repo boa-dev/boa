@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["DescriptorKind","PropertyKey","PropertyNameKind"],"fn":["parse_u32_index"],"mod":["attribute"],"struct":["Attribute","PropertyDescriptor","PropertyDescriptorBuilder"]};
+window.SIDEBAR_ITEMS = {"enum":["DescriptorKind","PropertyKey","PropertyNameKind"],"fn":["parse_u32_index"],"mod":["attribute","nonmaxu32"],"struct":["Attribute","NonMaxU32","PropertyDescriptor","PropertyDescriptorBuilder"]};

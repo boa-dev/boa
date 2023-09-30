@@ -290,7 +290,7 @@
             .borrow()
             .as_mapped_arguments()
             .expect(<span class="string">&quot;arguments exotic method must only be callable from arguments objects&quot;</span>)
-            .get(<span class="kw-2">*</span>index)
+            .get(index.get())
         {
             <span class="comment">// a. Set desc.[[Value]] to Get(map, P).
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
@@ -322,12 +322,12 @@
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 2. Let isMapped be HasOwnProperty(map, P).
-    </span><span class="kw">let </span>mapped = <span class="kw">if let </span><span class="kw-2">&amp;</span>PropertyKey::Index(index) = key {
+    </span><span class="kw">let </span>mapped = <span class="kw">if let </span><span class="kw-2">&amp;</span>PropertyKey::Index(index) = <span class="kw-2">&amp;</span>key {
         <span class="comment">// 1. Let map be args.[[ParameterMap]].
         </span>obj.borrow()
             .as_mapped_arguments()
             .expect(<span class="string">&quot;arguments exotic method must only be callable from arguments objects&quot;</span>)
-            .get(index)
+            .get(index.get())
             .map(|value| (index, value))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
@@ -377,7 +377,7 @@
         <span class="comment">// a. If IsAccessorDescriptor(Desc) is true, then
         </span><span class="kw">if </span>desc.is_accessor_descriptor() {
             <span class="comment">// i. Call map.[[Delete]](P).
-            </span>map.delete(index);
+            </span>map.delete(index.get());
         }
         <span class="comment">// b. Else,
         </span><span class="kw">else </span>{
@@ -385,13 +385,13 @@
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = desc.value() {
                 <span class="comment">// 1. Let setStatus be Set(map, P, Desc.[[Value]], false).
                 // 2. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
-                </span>map.set(index, value);
+                </span>map.set(index.get(), value);
             }
 
             <span class="comment">// ii. If Desc.[[Writable]] is present and its value is false, then
             </span><span class="kw">if </span>desc.writable() == <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) {
                 <span class="comment">// 1. Call map.[[Delete]](P).
-                </span>map.delete(index);
+                </span>map.delete(index.get());
             }
         }
     }
@@ -419,7 +419,7 @@
             .borrow()
             .as_mapped_arguments()
             .expect(<span class="string">&quot;arguments exotic method must only be callable from arguments objects&quot;</span>)
-            .get(<span class="kw-2">*</span>index)
+            .get(index.get())
         {
             <span class="comment">// a. Assert: map contains a formal parameter mapping for P.
             // b. Return Get(map, P).
@@ -448,7 +448,7 @@
     <span class="comment">// 1. If SameValue(args, Receiver) is false, then
     // a. Let isMapped be false.
     // 2. Else,
-    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
+    </span><span class="kw">if let </span>PropertyKey::Index(index) = <span class="kw-2">&amp;</span>key {
         <span class="kw">if </span>JsValue::same_value(<span class="kw-2">&amp;</span>obj.clone().into(), <span class="kw-2">&amp;</span>receiver) {
             <span class="comment">// a. Let map be args.[[ParameterMap]].
             // b. Let isMapped be ! HasOwnProperty(map, P).
@@ -458,7 +458,7 @@
             </span>obj.borrow_mut()
                 .as_mapped_arguments_mut()
                 .expect(<span class="string">&quot;arguments exotic method must only be callable from arguments objects&quot;</span>)
-                .set(index, <span class="kw-2">&amp;</span>value);
+                .set(index.get(), <span class="kw-2">&amp;</span>value);
         }
     }
 
@@ -489,7 +489,7 @@
             </span>obj.borrow_mut()
                 .as_mapped_arguments_mut()
                 .expect(<span class="string">&quot;arguments exotic method must only be callable from arguments objects&quot;</span>)
-                .delete(<span class="kw-2">*</span>index);
+                .delete(index.get());
         }
     }
 

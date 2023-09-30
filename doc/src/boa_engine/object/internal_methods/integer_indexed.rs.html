@@ -478,8 +478,6 @@
 <a href="#478" id="478">478</a>
 <a href="#479" id="479">479</a>
 <a href="#480" id="480">480</a>
-<a href="#481" id="481">481</a>
-<a href="#482" id="482">482</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
 
 <span class="kw">use crate</span>::{
@@ -551,7 +549,7 @@
             <span class="comment">// 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             </span>canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>index).into()),
+        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>(index.get().into()),
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
     };
 
@@ -593,7 +591,7 @@
             <span class="comment">// 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             </span>canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>index).into()),
+        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>(index.get().into()),
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
     };
 
@@ -624,7 +622,7 @@
             <span class="comment">// 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             </span>canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>index).into()),
+        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>(index.get().into()),
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
     };
 
@@ -686,7 +684,7 @@
             <span class="comment">// 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             </span>canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>index).into()),
+        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>(index.get().into()),
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
     };
 
@@ -719,7 +717,7 @@
             <span class="comment">// 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             </span>canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>index).into()),
+        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>(index.get().into()),
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
     };
 
@@ -761,7 +759,7 @@
             <span class="comment">// 1.a. Let numericIndex be CanonicalNumericIndexString(P).
             </span>canonical_numeric_index_string(key)
         }
-        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>index).into()),
+        PropertyKey::Index(index) =&gt; <span class="prelude-val">Some</span>(index.get().into()),
         PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
     };
 
@@ -799,9 +797,7 @@
         <span class="comment">// 2. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is false, then
         //     a. For each integer i starting with 0 such that i &lt; O.[[ArrayLength]], in ascending order, do
         //         i. Add ! ToString(𝔽(i)) as the last element of keys.
-        </span>(<span class="number">0</span>..inner.array_length())
-            .map(|index| PropertyKey::Index(index <span class="kw">as </span>u32))
-            .collect()
+        </span>(<span class="number">0</span>..inner.array_length()).map(PropertyKey::from).collect()
     };
 
     <span class="comment">// 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do
