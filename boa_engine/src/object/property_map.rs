@@ -268,7 +268,7 @@ impl PropertyMap {
     #[must_use]
     pub fn get(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         if let PropertyKey::Index(index) = key {
-            return self.indexed_properties.get(*index);
+            return self.indexed_properties.get(index.get());
         }
         if let Some(slot) = self.shape.lookup(key) {
             return Some(self.get_storage(slot));
@@ -301,7 +301,7 @@ impl PropertyMap {
     /// Insert the given property descriptor with the given key [`PropertyMap`].
     pub fn insert(&mut self, key: &PropertyKey, property: PropertyDescriptor) -> bool {
         if let PropertyKey::Index(index) = key {
-            return self.indexed_properties.insert(*index, property);
+            return self.indexed_properties.insert(index.get(), property);
         }
 
         let attributes = property.to_slot_attributes();
@@ -390,7 +390,7 @@ impl PropertyMap {
     /// Remove the property with the given key from the [`PropertyMap`].
     pub fn remove(&mut self, key: &PropertyKey) -> bool {
         if let PropertyKey::Index(index) = key {
-            return self.indexed_properties.remove(*index);
+            return self.indexed_properties.remove(index.get());
         }
         if let Some(slot) = self.shape.lookup(key) {
             // shift all elements when removing.
@@ -461,7 +461,7 @@ impl PropertyMap {
     #[must_use]
     pub fn contains_key(&self, key: &PropertyKey) -> bool {
         if let PropertyKey::Index(index) = key {
-            return self.indexed_properties.contains_key(*index);
+            return self.indexed_properties.contains_key(index.get());
         }
         if self.shape.lookup(key).is_some() {
             return true;

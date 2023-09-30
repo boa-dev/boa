@@ -143,7 +143,7 @@ impl JsValue {
                     for property_key in obj.borrow().properties().shape.keys() {
                         let key = match &property_key {
                             PropertyKey::String(string) => string.to_std_string_escaped(),
-                            PropertyKey::Index(i) => i.to_string(),
+                            PropertyKey::Index(i) => i.get().to_string(),
                             PropertyKey::Symbol(_sym) => {
                                 return Err(JsNativeError::typ()
                                     .with_message("cannot convert Symbol to JSON")

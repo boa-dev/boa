@@ -99,7 +99,7 @@ impl Operation for SetPropertyByValue {
                         .properties_mut()
                         .dense_indexed_properties_mut()
                     {
-                        let index = *index as usize;
+                        let index = index.get() as usize;
                         if let Some(element) = dense_elements.get_mut(index) {
                             *element = value;
                             context.vm.push(element.clone());

@@ -89,7 +89,7 @@ fn module_namespace_exotic_get_own_property(
     // 1. If P is a Symbol, return OrdinaryGetOwnProperty(O, P).
     let key = match key {
         PropertyKey::Symbol(_) => return ordinary_get_own_property(obj, key, context),
-        PropertyKey::Index(idx) => js_string!(format!("{idx}")),
+        PropertyKey::Index(idx) => js_string!(format!("{}", idx.get())),
         PropertyKey::String(s) => s.clone(),
     };
 
@@ -169,7 +169,7 @@ fn module_namespace_exotic_has_property(
     // 1. If P is a Symbol, return ! OrdinaryHasProperty(O, P).
     let key = match key {
         PropertyKey::Symbol(_) => return ordinary_has_property(obj, key, context),
-        PropertyKey::Index(idx) => js_string!(format!("{idx}")),
+        PropertyKey::Index(idx) => js_string!(format!("{}", idx.get())),
         PropertyKey::String(s) => s.clone(),
     };
 
@@ -199,7 +199,7 @@ fn module_namespace_exotic_get(
     //     a. Return ! OrdinaryGet(O, P, Receiver).
     let key = match key {
         PropertyKey::Symbol(_) => return ordinary_get(obj, key, receiver, context),
-        PropertyKey::Index(idx) => js_string!(format!("{idx}")),
+        PropertyKey::Index(idx) => js_string!(format!("{}", idx.get())),
         PropertyKey::String(s) => s.clone(),
     };
 
@@ -287,7 +287,7 @@ fn module_namespace_exotic_delete(
     //     a. Return ! OrdinaryDelete(O, P).
     let key = match key {
         PropertyKey::Symbol(_) => return ordinary_delete(obj, key, context),
-        PropertyKey::Index(idx) => js_string!(format!("{idx}")),
+        PropertyKey::Index(idx) => js_string!(format!("{}", idx.get())),
         PropertyKey::String(s) => s.clone(),
     };
 

@@ -117,7 +117,9 @@ impl ForInIterator {
                             iterator.remaining_keys.push_back(k.clone());
                         }
                         PropertyKey::Index(i) => {
-                            iterator.remaining_keys.push_back(i.to_string().into());
+                            iterator
+                                .remaining_keys
+                                .push_back(i.get().to_string().into());
                         }
                         PropertyKey::Symbol(_) => {}
                     }

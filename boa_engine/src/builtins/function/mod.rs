@@ -1048,7 +1048,7 @@ pub(crate) fn set_function_name(
             )
         }
         PropertyKey::String(string) => string.clone(),
-        PropertyKey::Index(index) => js_string!(format!("{index}")),
+        PropertyKey::Index(index) => js_string!(format!("{}", index.get())),
     };
 
     // 3. Else if name is a Private Name, then

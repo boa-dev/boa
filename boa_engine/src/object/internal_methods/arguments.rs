@@ -41,7 +41,7 @@ pub(crate) fn arguments_exotic_get_own_property(
             .borrow()
             .as_mapped_arguments()
             .expect("arguments exotic method must only be callable from arguments objects")
-            .get(*index)
+            .get(index.get())
         {
             // a. Set desc.[[Value]] to Get(map, P).
             return Ok(Some(
@@ -73,12 +73,12 @@ pub(crate) fn arguments_exotic_define_own_property(
     context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 2. Let isMapped be HasOwnProperty(map, P).
-    let mapped = if let &PropertyKey::Index(index) = key {
+    let mapped = if let &PropertyKey::Index(index) = &key {
         // 1. Let map be args.[[ParameterMap]].
         obj.borrow()
             .as_mapped_arguments()
             .expect("arguments exotic method must only be callable from arguments objects")
-            .get(index)
+            .get(index.get())
             .map(|value| (index, value))
     } else {
         None
@@ -128,7 +128,7 @@ pub(crate) fn arguments_exotic_define_own_property(
         // a. If IsAccessorDescriptor(Desc) is true, then
         if desc.is_accessor_descriptor() {
             // i. Call map.[[Delete]](P).
-            map.delete(index);
+            map.delete(index.get());
         }
         // b. Else,
         else {
@@ -136,13 +136,13 @@ pub(crate) fn arguments_exotic_define_own_property(
             if let Some(value) = desc.value() {
                 // 1. Let setStatus be Set(map, P, Desc.[[Value]], false).
                 // 2. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
-                map.set(index, value);
+                map.set(index.get(), value);
             }
 
             // ii. If Desc.[[Writable]] is present and its value is false, then
             if desc.writable() == Some(false) {
                 // 1. Call map.[[Delete]](P).
-                map.delete(index);
+                map.delete(index.get());
             }
         }
     }
@@ -170,7 +170,7 @@ pub(crate) fn arguments_exotic_get(
             .borrow()
             .as_mapped_arguments()
             .expect("arguments exotic method must only be callable from arguments objects")
-            .get(*index)
+            .get(index.get())
         {
             // a. Assert: map contains a formal parameter mapping for P.
             // b. Return Get(map, P).
@@ -199,7 +199,7 @@ pub(crate) fn arguments_exotic_set(
     // 1. If SameValue(args, Receiver) is false, then
     // a. Let isMapped be false.
     // 2. Else,
-    if let PropertyKey::Index(index) = key {
+    if let PropertyKey::Index(index) = &key {
         if JsValue::same_value(&obj.clone().into(), &receiver) {
             // a. Let map be args.[[ParameterMap]].
             // b. Let isMapped be ! HasOwnProperty(map, P).
@@ -209,7 +209,7 @@ pub(crate) fn arguments_exotic_set(
             obj.borrow_mut()
                 .as_mapped_arguments_mut()
                 .expect("arguments exotic method must only be callable from arguments objects")
-                .set(index, &value);
+                .set(index.get(), &value);
         }
     }
 
@@ -240,7 +240,7 @@ pub(crate) fn arguments_exotic_delete(
             obj.borrow_mut()
                 .as_mapped_arguments_mut()
                 .expect("arguments exotic method must only be callable from arguments objects")
-                .delete(*index);
+                .delete(index.get());
         }
     }
 
