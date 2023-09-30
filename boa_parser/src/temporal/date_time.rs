@@ -69,10 +69,16 @@ pub(crate) fn parse_annotated_date_time(
         tz = annotated_tz.tz;
     }
 
+    let tz = if tz.name.is_some() || tz.offset.is_some() {
+        Some(tz)
+    } else {
+        None
+    };
+
     Ok(IsoParseRecord {
         date: date_time.date,
         time: date_time.time,
-        tz: Some(tz),
+        tz,
         calendar: annotation_set.calendar,
     })
 }
@@ -113,7 +119,7 @@ fn parse_date_time(
     } else {
         if utc_required {
             return Err(Error::general(
-                "DateTimeUtcOffset is required.",
+                "DateTimeUTCOffset is required.",
                 Position::new(1, cursor.pos() + 1),
             ));
         }

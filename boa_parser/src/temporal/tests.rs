@@ -40,18 +40,8 @@ fn temporal_date_time_max() {
 
     let tz = &result.tz.unwrap();
 
-    let offset_results = &tz.offset.unwrap();
-
-    assert_eq!(offset_results.sign, -1);
-    assert_eq!(offset_results.hour, 3);
-    assert_eq!(offset_results.minute, 0);
-    assert_eq!(
-        offset_results
-            .second
-            .mul_add(f64::from(1_000_000), 0.0)
-            .trunc() as i64,
-        0.123_456_789_f64.mul_add(1_000_000_f64, 0.0).trunc() as i64
-    );
+    // OffsetSubMinute is Empty when TimeZoneIdentifier is present.
+    assert!(&tz.offset.is_none());
 
     let tz_name = &tz.name.clone().unwrap();
 
@@ -86,6 +76,9 @@ fn temporal_annotated_date_time() {
     assert_eq!(&result.calendar, &Some("iso8601".to_string()));
 
     let omit_result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(omitted)).unwrap();
+
+    println!("omit result is:");
+    println!("{omit_result:?\n\n}");
 
     assert!(&omit_result.tz.is_none());
 
