@@ -95,31 +95,11 @@ impl IntrinsicObject for RegExp {
             .method(Self::test, js_string!("test"), 1)
             .method(Self::exec, js_string!("exec"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
-            .method(
-                Self::r#match,
-                (JsSymbol::r#match(), js_string!("[Symbol.match]")),
-                1,
-            )
-            .method(
-                Self::match_all,
-                (JsSymbol::match_all(), js_string!("[Symbol.matchAll]")),
-                1,
-            )
-            .method(
-                Self::replace,
-                (JsSymbol::replace(), js_string!("[Symbol.replace]")),
-                2,
-            )
-            .method(
-                Self::search,
-                (JsSymbol::search(), js_string!("[Symbol.search]")),
-                1,
-            )
-            .method(
-                Self::split,
-                (JsSymbol::split(), js_string!("[Symbol.split]")),
-                2,
-            )
+            .method(Self::r#match, JsSymbol::r#match(), 1)
+            .method(Self::match_all, JsSymbol::match_all(), 1)
+            .method(Self::replace, JsSymbol::replace(), 2)
+            .method(Self::search, JsSymbol::search(), 1)
+            .method(Self::split, JsSymbol::split(), 2)
             .accessor(
                 js_string!("hasIndices"),
                 Some(get_has_indices),

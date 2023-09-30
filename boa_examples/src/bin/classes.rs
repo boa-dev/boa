@@ -64,18 +64,19 @@ impl Class for Person {
     // NOTE: The default value of `LENGTH` is `0`.
     const LENGTH: usize = 2;
 
-    // This is what is called when we construct a `Person` with the expression `new Person()`.
-    fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self> {
+    // This is what is internally called when we construct a `Person` with the expression `new Person()`.
+    fn make_data(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self> {
         // We get the first argument. If it is unavailable we default to `undefined`,
         // and then we call `to_string()`.
         //
         // This is equivalent to `String(arg)`.
         let name = args.get_or_undefined(0).to_string(context)?;
+
         // We get the second argument. If it is unavailable we default to `undefined`,
         // and then we call `to_u32`.
         //
         // This is equivalent to `arg | 0`.
-        let age = args.get(1).cloned().unwrap_or_default().to_u32(context)?;
+        let age = args.get_or_undefined(1).to_u32(context)?;
 
         // We construct a new native struct `Person`
         let person = Person { name, age };
@@ -88,14 +89,18 @@ impl Class for Person {
         // We add a inheritable method `sayHello` with `0` arguments of length.
         //
         // This function is added to the `Person` prototype.
-        class.method("sayHello", 0, NativeFunction::from_fn_ptr(Self::say_hello));
+        class.method(
+            js_string!("sayHello"),
+            0,
+            NativeFunction::from_fn_ptr(Self::say_hello),
+        );
         // We add a static method `is` using a closure, but it must be convertible
-        // to a NativeFunction.
-        // This means it must not contain state, or the code won't compile.
+        // to a `NativeFunction`. The `NativeFunction` API has more information on which type of
+        // Rust functions can be used to create `NativeFunction`s.
         //
         // This function is added to the `Person` class.
         class.static_method(
-            "is",
+            js_string!("is"),
             1,
             NativeFunction::from_fn_ptr(|_this, args, _ctx| {
                 if let Some(arg) = args.get(0) {

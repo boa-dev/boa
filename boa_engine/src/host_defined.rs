@@ -73,20 +73,12 @@ impl HostDefined {
     /// Panics if [`HostDefined`] field is borrowed.
     #[track_caller]
     pub fn get<T: NativeObject>(&self) -> Option<GcRef<'_, T>> {
-        let state = self.state.borrow();
-
-        state
-            .get(&TypeId::of::<T>())
-            .map(Box::as_ref)
-            .and_then(<dyn NativeObject>::downcast_ref::<T>)?;
-
-        Some(GcRef::map(state, |state| {
+        GcRef::try_map(self.state.borrow(), |state| {
             state
                 .get(&TypeId::of::<T>())
                 .map(Box::as_ref)
                 .and_then(<dyn NativeObject>::downcast_ref::<T>)
-                .expect("Should not fail")
-        }))
+        })
     }
 
     /// Get type T from [`HostDefined`], if it exits.
@@ -96,23 +88,15 @@ impl HostDefined {
     /// Panics if [`HostDefined`] field is borrowed.
     #[track_caller]
     pub fn get_mut<T: NativeObject>(&self) -> Option<GcRefMut<'_, HostDefinedMap, T>> {
-        let mut state = self.state.borrow_mut();
-
-        state
-            .get_mut(&TypeId::of::<T>())
-            .map(Box::as_mut)
-            .and_then(<dyn NativeObject>::downcast_mut::<T>)?;
-
-        Some(GcRefMut::map(
-            state,
+        GcRefMut::try_map(
+            self.state.borrow_mut(),
             |state: &mut FxHashMap<TypeId, Box<dyn NativeObject>>| {
                 state
                     .get_mut(&TypeId::of::<T>())
                     .map(Box::as_mut)
                     .and_then(<dyn NativeObject>::downcast_mut::<T>)
-                    .expect("Should not fail")
             },
-        ))
+        )
     }
 
     /// Clears all the objects.

@@ -78,8 +78,6 @@ impl IntrinsicObject for String {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
-        let symbol_iterator = JsSymbol::iterator();
-
         let trim_start = BuiltInBuilder::callable(realm, Self::trim_start)
             .length(0)
             .name(js_string!("trimStart"))
@@ -150,11 +148,7 @@ impl IntrinsicObject for String {
             .method(Self::match_all, js_string!("matchAll"), 1)
             .method(Self::replace, js_string!("replace"), 2)
             .method(Self::replace_all, js_string!("replaceAll"), 2)
-            .method(
-                Self::iterator,
-                (symbol_iterator, js_string!("[Symbol.iterator]")),
-                0,
-            )
+            .method(Self::iterator, JsSymbol::iterator(), 0)
             .method(Self::search, js_string!("search"), 1)
             .method(Self::at, js_string!("at"), 1);
 

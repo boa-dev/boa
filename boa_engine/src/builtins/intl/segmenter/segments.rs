@@ -25,11 +25,7 @@ impl IntrinsicObject for Segments {
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(Self::containing, js_string!("containing"), 1)
-            .static_method(
-                Self::iterator,
-                (JsSymbol::iterator(), js_string!("[Symbol.iterator]")),
-                0,
-            )
+            .static_method(Self::iterator, JsSymbol::iterator(), 0)
             .build();
     }
 

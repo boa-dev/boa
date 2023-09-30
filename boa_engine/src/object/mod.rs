@@ -56,6 +56,7 @@ use crate::{
         typed_array::{integer_indexed_object::IntegerIndexed, TypedArrayKind},
         DataView, Date, Promise, RegExp,
     },
+    context::intrinsics::StandardConstructor,
     js_string,
     module::ModuleNamespace,
     native_function::NativeFunction,
@@ -2004,8 +2005,8 @@ impl Object {
 ///
 /// There are two implementations:
 ///  - From a single type `T` which implements `Into<FunctionBinding>` which sets the binding
-/// name and the function name to the same value
-///  - From a tuple `(B: Into<PropertyKey>, N: AsRef<str>)` the `B` is the binding name
+/// name and the function name to the same value.
+///  - From a tuple `(B: Into<PropertyKey>, N: Into<JsString>)`, where the `B` is the binding name
 /// and the `N` is the function name.
 #[derive(Debug, Clone)]
 pub struct FunctionBinding {
@@ -2019,6 +2020,16 @@ impl From<JsString> for FunctionBinding {
         Self {
             binding: name.clone().into(),
             name,
+        }
+    }
+}
+
+impl From<JsSymbol> for FunctionBinding {
+    #[inline]
+    fn from(binding: JsSymbol) -> Self {
+        Self {
+            name: binding.fn_name(),
+            binding: binding.into(),
         }
     }
 }
@@ -2510,7 +2521,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
 
     /// Build the constructor function object.
     #[must_use]
-    pub fn build(mut self) -> JsFunction {
+    pub fn build(mut self) -> StandardConstructor {
         // Create the native function
         let function = Function::new(
             FunctionKind::Native {
@@ -2593,6 +2604,6 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             );
         }
 
-        JsFunction::from_object_unchecked(constructor)
+        StandardConstructor::new(JsFunction::from_object_unchecked(constructor), prototype)
     }
 }
