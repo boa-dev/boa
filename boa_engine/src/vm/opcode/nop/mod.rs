@@ -34,11 +34,11 @@ impl Operation for Reserved {
         unreachable!("Reserved opcodes are unreachable!")
     }
 
-    fn u16_execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(_: &mut Context<'_>) -> JsResult<CompletionType> {
         unreachable!("Reserved.U16 opcodes are unreachable!")
     }
 
-    fn u32_execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(_: &mut Context<'_>) -> JsResult<CompletionType> {
         unreachable!("Reserved.U32 opcodes are unreachable!")
     }
 }

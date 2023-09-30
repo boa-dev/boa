@@ -80,12 +80,12 @@ impl Operation for CallEval {
         Self::operation(context, argument_count as usize)
     }
 
-    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u16>() as usize;
         Self::operation(context, argument_count)
     }
 
-    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u32>();
         Self::operation(context, argument_count as usize)
     }
@@ -221,12 +221,12 @@ impl Operation for Call {
         Self::operation(context, argument_count as usize)
     }
 
-    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u16>() as usize;
         Self::operation(context, argument_count)
     }
 
-    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u32>();
         Self::operation(context, argument_count as usize)
     }

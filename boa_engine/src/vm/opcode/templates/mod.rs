@@ -108,13 +108,13 @@ impl Operation for TemplateCreate {
         Self::operation(context, count, site)
     }
 
-    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let count = u32::from(context.vm.read::<u16>());
         let site = context.vm.read::<u64>();
         Self::operation(context, count, site)
     }
 
-    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let count = context.vm.read::<u32>();
         let site = context.vm.read::<u64>();
         Self::operation(context, count, site)

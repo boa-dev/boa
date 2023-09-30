@@ -480,8 +480,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
         match varying_kind {
             VaryingOperandKind::U8 => {}
-            VaryingOperandKind::U16 => self.emit_opcode(Opcode::ModifierU16),
-            VaryingOperandKind::U32 => self.emit_opcode(Opcode::ModifierU32),
+            VaryingOperandKind::U16 => self.emit_opcode(Opcode::U16Operands),
+            VaryingOperandKind::U32 => self.emit_opcode(Opcode::U32Operands),
         }
         self.emit_opcode(opcode);
         for operand in operands {
@@ -497,11 +497,11 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             self.emit_opcode(opcode);
             self.emit_u8(operand);
         } else if let Ok(operand) = u16::try_from(operand) {
-            self.emit_opcode(Opcode::ModifierU16);
+            self.emit_opcode(Opcode::U16Operands);
             self.emit_opcode(opcode);
             self.emit_u16(operand);
         } else {
-            self.emit_opcode(Opcode::ModifierU32);
+            self.emit_opcode(Opcode::U32Operands);
             self.emit_opcode(opcode);
             self.emit_u32(operand);
         }

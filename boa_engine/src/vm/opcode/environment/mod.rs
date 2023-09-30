@@ -157,12 +157,12 @@ impl Operation for SuperCall {
         Self::operation(context, value_count)
     }
 
-    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value_count = context.vm.read::<u16>() as usize;
         Self::operation(context, value_count)
     }
 
-    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value_count = context.vm.read::<u32>() as usize;
         Self::operation(context, value_count)
     }

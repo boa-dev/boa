@@ -424,8 +424,8 @@ macro_rules! generate_opcodes {
 
             const EXECUTE_FNS: [fn(&mut Context<'_>) -> JsResult<CompletionType>; Self::MAX] = [
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::u16_execute),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::u32_execute),*
+                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute_with_u16_operands),*,
+                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute_with_u32_operands),*
             ];
 
             pub(super) fn execute(self, context: &mut Context<'_>) -> JsResult<CompletionType> {
@@ -530,16 +530,16 @@ pub(crate) trait Operation {
 
     /// Execute opcode with [`VaryingOperandKind::U16`] sized [`VaryingOperand`]s.
     ///
-    /// By default if not implemented will call [`Reserved::u16_execute()`] that panics.
-    fn u16_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        Reserved::u16_execute(context)
+    /// By default if not implemented will call [`Reserved::u16_execute()`] which panics.
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        Reserved::execute_with_u16_operands(context)
     }
 
     /// Execute opcode with [`VaryingOperandKind::U32`] sized [`VaryingOperand`]s.
     ///
-    /// By default if not implemented will call [`Reserved::u32_execute()`] that panics.
-    fn u32_execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        Reserved::u32_execute(context)
+    /// By default if not implemented will call [`Reserved::u32_execute()`] which panics.
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        Reserved::execute_with_u32_operands(context)
     }
 }
 
@@ -2049,14 +2049,14 @@ generate_opcodes! {
     /// Operands: opcode (operands if any).
     ///
     /// Stack: The stack changes based on the opcode that is being prefixed.
-    ModifierU16,
+    U16Operands,
 
     /// Opcode prefix modifier, [`Opcode`] prefix operand modifier, makes all [`VaryingOperand`]s of an instruction [`u32`] sized.
     ///
     /// Operands: opcode (operands if any).
     ///
     /// Stack: The stack changes based on the opcode that is being prefixed.
-    ModifierU32,
+    U32Operands,
 
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
@@ -2228,13 +2228,13 @@ impl Iterator for InstructionIterator<'_> {
         let instruction =
             Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U8);
 
-        if instruction == Instruction::ModifierU16 {
+        if instruction == Instruction::U16Operands {
             return Some((
                 start_pc,
                 VaryingOperandKind::U16,
                 Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U16),
             ));
-        } else if instruction == Instruction::ModifierU32 {
+        } else if instruction == Instruction::U32Operands {
             return Some((
                 start_pc,
                 VaryingOperandKind::U32,

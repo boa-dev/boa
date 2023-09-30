@@ -465,8 +465,8 @@ impl CodeBlock {
                 Instruction::Return => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::Red);
                 }
-                Instruction::ModifierU16
-                | Instruction::ModifierU32
+                Instruction::U16Operands
+                | Instruction::U32Operands
                 | Instruction::Reserved1
                 | Instruction::Reserved2
                 | Instruction::Reserved3
