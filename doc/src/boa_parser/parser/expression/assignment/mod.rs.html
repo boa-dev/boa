@@ -527,7 +527,7 @@
                     cursor.set_goal(InputElement::RegExp);
 
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = AssignTarget::from_expression(<span class="kw-2">&amp;</span>lhs, cursor.strict()) {
-                        <span class="kw">if let </span>AssignTarget::Identifier(ident) = target {
+                        <span class="kw">if let </span>Expression::Identifier(ident) = lhs {
                             <span class="self">self</span>.name = <span class="prelude-val">Some</span>(ident);
                         }
                         <span class="kw">let </span>expr = <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>;
