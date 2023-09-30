@@ -117,13 +117,9 @@ impl Operation for MaybeException {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ThrowNewTypeError;
 
-impl Operation for ThrowNewTypeError {
-    const NAME: &'static str = "ThrowNewTypeError";
-    const INSTRUCTION: &'static str = "INST - ThrowNewTypeError";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let msg = context.vm.frame().code_block.literals[index as usize]
+impl ThrowNewTypeError {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let msg = context.vm.frame().code_block.literals[index]
             .as_string()
             .expect("throw message must be a string")
             .clone();
@@ -131,5 +127,25 @@ impl Operation for ThrowNewTypeError {
             .to_std_string()
             .expect("throw message must be an ASCII string");
         Err(JsNativeError::typ().with_message(msg).into())
+    }
+}
+
+impl Operation for ThrowNewTypeError {
+    const NAME: &'static str = "ThrowNewTypeError";
+    const INSTRUCTION: &'static str = "INST - ThrowNewTypeError";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }

@@ -14,13 +14,10 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassPrivateMethod;
 
-impl Operation for PushClassPrivateMethod {
-    const NAME: &'static str = "PushClassPrivateMethod";
-    const INSTRUCTION: &'static str = "INST - PushClassPrivateMethod";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl PushClassPrivateMethod {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let method = context.vm.pop();
         let method_object = method.as_callable().expect("method must be callable");
 
@@ -56,6 +53,26 @@ impl Operation for PushClassPrivateMethod {
     }
 }
 
+impl Operation for PushClassPrivateMethod {
+    const NAME: &'static str = "PushClassPrivateMethod";
+    const INSTRUCTION: &'static str = "INST - PushClassPrivateMethod";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
 /// `PushClassPrivateGetter` implements the Opcode Operation for `Opcode::PushClassPrivateGetter`
 ///
 /// Operation:
@@ -63,13 +80,10 @@ impl Operation for PushClassPrivateMethod {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassPrivateGetter;
 
-impl Operation for PushClassPrivateGetter {
-    const NAME: &'static str = "PushClassPrivateGetter";
-    const INSTRUCTION: &'static str = "INST - PushClassPrivateGetter";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl PushClassPrivateGetter {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let getter = context.vm.pop();
         let getter_object = getter.as_callable().expect("getter must be callable");
         let class = context.vm.pop();
@@ -95,6 +109,26 @@ impl Operation for PushClassPrivateGetter {
     }
 }
 
+impl Operation for PushClassPrivateGetter {
+    const NAME: &'static str = "PushClassPrivateGetter";
+    const INSTRUCTION: &'static str = "INST - PushClassPrivateGetter";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
 /// `PushClassPrivateSetter` implements the Opcode Operation for `Opcode::PushClassPrivateSetter`
 ///
 /// Operation:
@@ -102,13 +136,10 @@ impl Operation for PushClassPrivateGetter {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassPrivateSetter;
 
-impl Operation for PushClassPrivateSetter {
-    const NAME: &'static str = "PushClassPrivateSetter";
-    const INSTRUCTION: &'static str = "INST - PushClassPrivateSetter";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl PushClassPrivateSetter {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let setter = context.vm.pop();
         let setter_object = setter.as_callable().expect("getter must be callable");
         let class = context.vm.pop();
@@ -131,5 +162,25 @@ impl Operation for PushClassPrivateSetter {
             .expect("setter must be function object");
         function.set_class_object(class_object.clone());
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for PushClassPrivateSetter {
+    const NAME: &'static str = "PushClassPrivateSetter";
+    const INSTRUCTION: &'static str = "INST - PushClassPrivateSetter";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }

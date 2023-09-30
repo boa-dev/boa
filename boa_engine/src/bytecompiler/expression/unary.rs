@@ -4,7 +4,7 @@ use boa_ast::{
 };
 
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Operand},
+    bytecompiler::{Access, ByteCompiler},
     vm::Opcode,
 };
 
@@ -29,7 +29,7 @@ impl ByteCompiler<'_, '_> {
                     Expression::Identifier(identifier) => {
                         let binding = self.get_binding_value(*identifier);
                         let index = self.get_or_insert_binding(binding);
-                        self.emit(Opcode::GetNameOrUndefined, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetNameOrUndefined, index);
                     }
                     expr => self.compile_expr(expr, true),
                 }

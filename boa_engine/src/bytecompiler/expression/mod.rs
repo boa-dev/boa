@@ -66,9 +66,9 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        self.emit(
+        self.emit_with_varying_operand(
             Opcode::ConcatToString,
-            &[Operand::U32(template_literal.elements().len() as u32)],
+            template_literal.elements().len() as u32,
         );
 
         if !use_expr {
@@ -228,7 +228,7 @@ impl ByteCompiler<'_, '_> {
                         match access.field() {
                             PropertyAccessField::Const(field) => {
                                 let index = self.get_or_insert_name((*field).into());
-                                self.emit(Opcode::GetPropertyByName, &[Operand::U32(index)]);
+                                self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
                             }
                             PropertyAccessField::Expr(field) => {
                                 self.compile_expr(field, true);
@@ -240,7 +240,7 @@ impl ByteCompiler<'_, '_> {
                         self.compile_expr(access.target(), true);
                         self.emit(Opcode::Dup, &[]);
                         let index = self.get_or_insert_private_name(access.field());
-                        self.emit(Opcode::GetPrivateField, &[Operand::U32(index)]);
+                        self.emit_with_varying_operand(Opcode::GetPrivateField, index);
                     }
                     expr => {
                         self.emit_opcode(Opcode::PushUndefined);
@@ -267,8 +267,10 @@ impl ByteCompiler<'_, '_> {
                     ));
                 }
 
-                self.emit(Opcode::TemplateCreate, &[Operand::U32(count)]);
-                self.emit_u64(site);
+                self.emit(
+                    Opcode::TemplateCreate,
+                    &[Operand::Varying(count), Operand::U64(site)],
+                );
 
                 self.patch_jump(jump_label);
 
@@ -276,10 +278,7 @@ impl ByteCompiler<'_, '_> {
                     self.compile_expr(expr, true);
                 }
 
-                self.emit(
-                    Opcode::Call,
-                    &[Operand::U32(template.exprs().len() as u32 + 1)],
-                );
+                self.emit_with_varying_operand(Opcode::Call, template.exprs().len() as u32 + 1);
             }
             Expression::Class(class) => self.class(class, true),
             Expression::SuperCall(super_call) => {
@@ -310,9 +309,9 @@ impl ByteCompiler<'_, '_> {
                 if contains_spread {
                     self.emit_opcode(Opcode::SuperCallSpread);
                 } else {
-                    self.emit(
+                    self.emit_with_varying_operand(
                         Opcode::SuperCall,
-                        &[Operand::U32(super_call.arguments().len() as u32)],
+                        super_call.arguments().len() as u32,
                     );
                 }
 

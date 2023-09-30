@@ -11,12 +11,8 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineOwnPropertyByName;
 
-impl Operation for DefineOwnPropertyByName {
-    const NAME: &'static str = "DefineOwnPropertyByName";
-    const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
+impl DefineOwnPropertyByName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
@@ -24,7 +20,7 @@ impl Operation for DefineOwnPropertyByName {
         } else {
             object.to_object(context)?
         };
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+        let name = context.vm.frame().code_block.names[index].clone();
         object.__define_own_property__(
             &name.into(),
             PropertyDescriptor::builder()
@@ -36,6 +32,26 @@ impl Operation for DefineOwnPropertyByName {
             context,
         )?;
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for DefineOwnPropertyByName {
+    const NAME: &'static str = "DefineOwnPropertyByName";
+    const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 

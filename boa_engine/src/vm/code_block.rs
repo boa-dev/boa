@@ -21,7 +21,8 @@ use std::{cell::Cell, mem::size_of, rc::Rc};
 use thin_vec::ThinVec;
 
 #[cfg(any(feature = "trace", feature = "flowgraph"))]
-use crate::vm::Opcode;
+use super::{Instruction, InstructionIterator};
+
 #[cfg(any(feature = "trace", feature = "flowgraph"))]
 use boa_interner::{Interner, ToInternedString};
 
@@ -299,10 +300,11 @@ impl CodeBlock {
     ///
     /// Returns an empty `String` if no operands are present.
     #[cfg(any(feature = "trace", feature = "flowgraph"))]
-    pub(crate) fn instruction_operands(&self, pc: &mut usize, interner: &Interner) -> String {
-        use super::Instruction;
-
-        let instruction = Instruction::from_bytecode(&self.bytecode, pc);
+    pub(crate) fn instruction_operands(
+        &self,
+        instruction: &Instruction,
+        interner: &Interner,
+    ) -> String {
         match instruction {
             Instruction::SetFunctionName { prefix } => match prefix {
                 0 => "prefix: none",
@@ -318,11 +320,11 @@ impl CodeBlock {
             Instruction::PushInt8 { value } => value.to_string(),
             Instruction::PushInt16 { value } => value.to_string(),
             Instruction::PushInt32 { value } => value.to_string(),
-            Instruction::PushFloat { value } => ryu_js::Buffer::new().format(value).to_string(),
-            Instruction::PushDouble { value } => ryu_js::Buffer::new().format(value).to_string(),
-            Instruction::PushLiteral { index: value }
-            | Instruction::ThrowNewTypeError { message: value }
-            | Instruction::Jump { address: value }
+            Instruction::PushFloat { value } => ryu_js::Buffer::new().format(*value).to_string(),
+            Instruction::PushDouble { value } => ryu_js::Buffer::new().format(*value).to_string(),
+            Instruction::PushLiteral { index }
+            | Instruction::ThrowNewTypeError { message: index } => index.value().to_string(),
+            Instruction::Jump { address: value }
             | Instruction::JumpIfTrue { address: value }
             | Instruction::JumpIfFalse { address: value }
             | Instruction::JumpIfNotUndefined { address: value }
@@ -331,8 +333,8 @@ impl CodeBlock {
             | Instruction::Default { address: value }
             | Instruction::LogicalAnd { exit: value }
             | Instruction::LogicalOr { exit: value }
-            | Instruction::Coalesce { exit: value }
-            | Instruction::CallEval {
+            | Instruction::Coalesce { exit: value } => value.to_string(),
+            Instruction::CallEval {
                 argument_count: value,
             }
             | Instruction::Call {
@@ -344,7 +346,7 @@ impl CodeBlock {
             | Instruction::SuperCall {
                 argument_count: value,
             }
-            | Instruction::ConcatToString { value_count: value } => value.to_string(),
+            | Instruction::ConcatToString { value_count: value } => value.value().to_string(),
             Instruction::PushDeclarativeEnvironment {
                 compile_environments_index,
             }
@@ -354,8 +356,8 @@ impl CodeBlock {
             Instruction::CopyDataProperties {
                 excluded_key_count: value1,
                 excluded_key_count_computed: value2,
-            }
-            | Instruction::GeneratorDelegateNext {
+            } => format!("{}, {}", value1.value(), value2.value()),
+            Instruction::GeneratorDelegateNext {
                 return_method_undefined: value1,
                 throw_method_undefined: value2,
             }
@@ -365,29 +367,28 @@ impl CodeBlock {
             } => {
                 format!("{value1}, {value2}")
             }
-            Instruction::TemplateLookup { exit: value, site }
-            | Instruction::TemplateCreate { count: value, site } => {
-                format!("{value}, {site}")
+            Instruction::TemplateLookup { exit: value, site } => format!("{value}, {site}"),
+            Instruction::TemplateCreate { count, site } => {
+                format!("{}, {site}", count.value())
             }
-            Instruction::GetArrowFunction { index, method }
-            | Instruction::GetAsyncArrowFunction { index, method }
-            | Instruction::GetFunction { index, method }
+            Instruction::GetFunction { index, method }
             | Instruction::GetFunctionAsync { index, method } => {
+                let index = index.value() as usize;
                 format!(
                     "{index:04}: '{}' (length: {}), method: {method}",
-                    self.functions[index as usize]
-                        .name()
-                        .to_std_string_escaped(),
-                    self.functions[index as usize].length
+                    self.functions[index].name().to_std_string_escaped(),
+                    self.functions[index].length
                 )
             }
-            Instruction::GetGenerator { index } | Instruction::GetGeneratorAsync { index } => {
+            Instruction::GetArrowFunction { index }
+            | Instruction::GetAsyncArrowFunction { index }
+            | Instruction::GetGenerator { index }
+            | Instruction::GetGeneratorAsync { index } => {
+                let index = index.value() as usize;
                 format!(
                     "{index:04}: '{}' (length: {})",
-                    self.functions[index as usize]
-                        .name()
-                        .to_std_string_escaped(),
-                    self.functions[index as usize].length
+                    self.functions[index].name().to_std_string_escaped(),
+                    self.functions[index].length
                 )
             }
             Instruction::DefVar { index }
@@ -400,12 +401,12 @@ impl CodeBlock {
             | Instruction::SetName { index }
             | Instruction::DeleteName { index } => {
                 format!(
-                    "{index:04}: '{}'",
-                    interner.resolve_expect(self.bindings[index as usize].name().sym()),
+                    "{:04}: '{}'",
+                    index.value(),
+                    interner.resolve_expect(self.bindings[index.value() as usize].name().sym()),
                 )
             }
             Instruction::GetPropertyByName { index }
-            | Instruction::GetMethod { index }
             | Instruction::SetPropertyByName { index }
             | Instruction::DefineOwnPropertyByName { index }
             | Instruction::DefineClassStaticMethodByName { index }
@@ -416,6 +417,8 @@ impl CodeBlock {
             | Instruction::SetPropertySetterByName { index }
             | Instruction::DefineClassStaticSetterByName { index }
             | Instruction::DefineClassSetterByName { index }
+            | Instruction::InPrivate { index }
+            | Instruction::ThrowMutateImmutable { index }
             | Instruction::DeletePropertyByName { index }
             | Instruction::SetPrivateField { index }
             | Instruction::DefinePrivateField { index }
@@ -426,12 +429,11 @@ impl CodeBlock {
             | Instruction::PushClassFieldPrivate { index }
             | Instruction::PushClassPrivateGetter { index }
             | Instruction::PushClassPrivateSetter { index }
-            | Instruction::PushClassPrivateMethod { index }
-            | Instruction::InPrivate { index }
-            | Instruction::ThrowMutateImmutable { index } => {
+            | Instruction::PushClassPrivateMethod { index } => {
                 format!(
-                    "{index:04}: '{}'",
-                    self.names[index as usize].to_std_string_escaped(),
+                    "{:04}: '{}'",
+                    index.value(),
+                    self.names[index.value() as usize].to_std_string_escaped(),
                 )
             }
             Instruction::PushPrivateEnvironment { name_indices } => {
@@ -571,7 +573,10 @@ impl CodeBlock {
             | Instruction::GetReturnValue
             | Instruction::SetReturnValue
             | Instruction::Nop => String::new(),
-            Instruction::Reserved1
+
+            Instruction::U16Operands
+            | Instruction::U32Operands
+            | Instruction::Reserved1
             | Instruction::Reserved2
             | Instruction::Reserved3
             | Instruction::Reserved4
@@ -627,8 +632,7 @@ impl CodeBlock {
             | Instruction::Reserved54
             | Instruction::Reserved55
             | Instruction::Reserved56
-            | Instruction::Reserved57
-            | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved57 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
@@ -648,15 +652,14 @@ impl ToInternedString for CodeBlock {
             format!("Compiled Output: '{}'", name.to_std_string_escaped()),
         ));
 
-        let mut pc = 0;
-        let mut count = 0;
-        while pc < self.bytecode.len() {
-            let instruction_start_pc = pc;
+        let mut iterator = InstructionIterator::new(&self.bytecode);
 
-            let opcode: Opcode = self.bytecode[instruction_start_pc].into();
-            let opcode = opcode.as_str();
-            let previous_pc = pc;
-            let operands = self.instruction_operands(&mut pc, interner);
+        let mut count = 0;
+        while let Some((instruction_start_pc, varying_operand_kind, instruction)) = iterator.next()
+        {
+            let opcode = instruction.opcode().as_str();
+            let operands = self.instruction_operands(&instruction, interner);
+            let pc = iterator.pc();
 
             let handler = if let Some((i, handler)) = self.find_handler(instruction_start_pc as u32)
             {
@@ -672,8 +675,14 @@ impl ToInternedString for CodeBlock {
                 "   none  ".to_string()
             };
 
+            let varying_operand_kind = match varying_operand_kind {
+                super::VaryingOperandKind::U8 => "",
+                super::VaryingOperandKind::U16 => ".U16",
+                super::VaryingOperandKind::U32 => ".U32",
+            };
+
             f.push_str(&format!(
-                "{previous_pc:06}    {count:04}   {handler}    {opcode:<27}{operands}\n",
+                "{instruction_start_pc:06}    {count:04}   {handler}    {opcode}{varying_operand_kind:<27}{operands}\n",
             ));
             count += 1;
         }

@@ -10,13 +10,9 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPrivateField;
 
-impl Operation for GetPrivateField {
-    const NAME: &'static str = "GetPrivateField";
-    const INSTRUCTION: &'static str = "INST - GetPrivateField";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl GetPrivateField {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let value = context.vm.pop();
         let base_obj = value.to_object(context)?;
 
@@ -29,5 +25,25 @@ impl Operation for GetPrivateField {
         let result = base_obj.private_get(&name, context)?;
         context.vm.push(result);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for GetPrivateField {
+    const NAME: &'static str = "GetPrivateField";
+    const INSTRUCTION: &'static str = "INST - GetPrivateField";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }

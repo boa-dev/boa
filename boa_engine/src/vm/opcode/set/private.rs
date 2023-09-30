@@ -14,13 +14,9 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPrivateField;
 
-impl Operation for SetPrivateField {
-    const NAME: &'static str = "SetPrivateField";
-    const INSTRUCTION: &'static str = "INST - SetPrivateField";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl SetPrivateField {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let value = context.vm.pop();
         let object = context.vm.pop();
         let base_obj = object.to_object(context)?;
@@ -37,6 +33,26 @@ impl Operation for SetPrivateField {
     }
 }
 
+impl Operation for SetPrivateField {
+    const NAME: &'static str = "SetPrivateField";
+    const INSTRUCTION: &'static str = "INST - SetPrivateField";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
 /// `DefinePrivateField` implements the Opcode Operation for `Opcode::DefinePrivateField`
 ///
 /// Operation:
@@ -44,13 +60,10 @@ impl Operation for SetPrivateField {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DefinePrivateField;
 
-impl Operation for DefinePrivateField {
-    const NAME: &'static str = "DefinePrivateField";
-    const INSTRUCTION: &'static str = "INST - DefinePrivateField";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl DefinePrivateField {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object
@@ -65,6 +78,26 @@ impl Operation for DefinePrivateField {
     }
 }
 
+impl Operation for DefinePrivateField {
+    const NAME: &'static str = "DefinePrivateField";
+    const INSTRUCTION: &'static str = "INST - DefinePrivateField";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
 /// `SetPrivateMethod` implements the Opcode Operation for `Opcode::SetPrivateMethod`
 ///
 /// Operation:
@@ -72,13 +105,10 @@ impl Operation for DefinePrivateField {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPrivateMethod;
 
-impl Operation for SetPrivateMethod {
-    const NAME: &'static str = "SetPrivateMethod";
-    const INSTRUCTION: &'static str = "INST - SetPrivateMethod";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl SetPrivateMethod {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let value = context.vm.pop();
         let value = value.as_callable().expect("method must be callable");
 
@@ -112,6 +142,26 @@ impl Operation for SetPrivateMethod {
     }
 }
 
+impl Operation for SetPrivateMethod {
+    const NAME: &'static str = "SetPrivateMethod";
+    const INSTRUCTION: &'static str = "INST - SetPrivateMethod";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
 /// `SetPrivateSetter` implements the Opcode Operation for `Opcode::SetPrivateSetter`
 ///
 /// Operation:
@@ -119,13 +169,10 @@ impl Operation for SetPrivateMethod {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPrivateSetter;
 
-impl Operation for SetPrivateSetter {
-    const NAME: &'static str = "SetPrivateSetter";
-    const INSTRUCTION: &'static str = "INST - SetPrivateSetter";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl SetPrivateSetter {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let value = context.vm.pop();
         let value = value.as_callable().expect("setter must be callable");
         let object = context.vm.pop();
@@ -150,6 +197,26 @@ impl Operation for SetPrivateSetter {
     }
 }
 
+impl Operation for SetPrivateSetter {
+    const NAME: &'static str = "SetPrivateSetter";
+    const INSTRUCTION: &'static str = "INST - SetPrivateSetter";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
 /// `SetPrivateGetter` implements the Opcode Operation for `Opcode::SetPrivateGetter`
 ///
 /// Operation:
@@ -157,13 +224,10 @@ impl Operation for SetPrivateSetter {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPrivateGetter;
 
-impl Operation for SetPrivateGetter {
-    const NAME: &'static str = "SetPrivateGetter";
-    const INSTRUCTION: &'static str = "INST - SetPrivateGetter";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize].clone();
+impl SetPrivateGetter {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block.names[index].clone();
         let value = context.vm.pop();
         let value = value.as_callable().expect("getter must be callable");
         let object = context.vm.pop();
@@ -185,5 +249,25 @@ impl Operation for SetPrivateGetter {
         function.set_class_object(object.clone());
 
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for SetPrivateGetter {
+    const NAME: &'static str = "SetPrivateGetter";
+    const INSTRUCTION: &'static str = "INST - SetPrivateGetter";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }

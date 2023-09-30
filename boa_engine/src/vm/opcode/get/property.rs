@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyKey,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue,
+    Context, JsResult,
 };
 
 /// `GetPropertyByName` implements the Opcode Operation for `Opcode::GetPropertyByName`
@@ -11,13 +11,8 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPropertyByName;
 
-impl Operation for GetPropertyByName {
-    const NAME: &'static str = "GetPropertyByName";
-    const INSTRUCTION: &'static str = "INST - GetPropertyByName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-
+impl GetPropertyByName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let receiver = context.vm.pop();
         let value = context.vm.pop();
         let object = if let Some(object) = value.as_object() {
@@ -26,13 +21,31 @@ impl Operation for GetPropertyByName {
             value.to_object(context)?
         };
 
-        let key = context.vm.frame().code_block.names[index as usize]
-            .clone()
-            .into();
+        let key = context.vm.frame().code_block.names[index].clone().into();
         let result = object.__get__(&key, receiver, context)?;
 
         context.vm.push(result);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for GetPropertyByName {
+    const NAME: &'static str = "GetPropertyByName";
+    const INSTRUCTION: &'static str = "INST - GetPropertyByName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>();
+        Self::operation(context, index as usize)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        Self::operation(context, index as usize)
     }
 }
 
@@ -78,31 +91,6 @@ impl Operation for GetPropertyByValue {
         let result = object.__get__(&key, receiver, context)?;
 
         context.vm.push(result);
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `GetMethod` implements the Opcode Operation for `Opcode::GetMethod`
-///
-/// Operation:
-///  - Get a property method or undefined if the property is null or undefined.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct GetMethod;
-
-impl Operation for GetMethod {
-    const NAME: &'static str = "GetMethod";
-    const INSTRUCTION: &'static str = "INST - GetMethod";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let key = context.vm.frame().code_block.names[index as usize].clone();
-        let value = context.vm.pop();
-
-        let method = value.get_method(key, context)?;
-        context.vm.push(value);
-        context
-            .vm
-            .push(method.map(JsValue::from).unwrap_or_default());
         Ok(CompletionType::Normal)
     }
 }

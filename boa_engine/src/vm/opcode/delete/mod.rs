@@ -11,17 +11,11 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DeletePropertyByName;
 
-impl Operation for DeletePropertyByName {
-    const NAME: &'static str = "DeletePropertyByName";
-    const INSTRUCTION: &'static str = "INST - DeletePropertyByName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
+impl DeletePropertyByName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = value.to_object(context)?;
-        let key = context.vm.frame().code_block.names[index as usize]
-            .clone()
-            .into();
+        let key = context.vm.frame().code_block.names[index].clone().into();
         let result = object.__delete__(&key, context)?;
         if !result && context.vm.frame().code_block.strict() {
             return Err(JsNativeError::typ()
@@ -30,6 +24,26 @@ impl Operation for DeletePropertyByName {
         }
         context.vm.push(result);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for DeletePropertyByName {
+    const NAME: &'static str = "DeletePropertyByName";
+    const INSTRUCTION: &'static str = "INST - DeletePropertyByName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 
@@ -67,13 +81,9 @@ impl Operation for DeletePropertyByValue {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DeleteName;
 
-impl Operation for DeleteName {
-    const NAME: &'static str = "DeleteName";
-    const INSTRUCTION: &'static str = "INST - DeleteName";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+impl DeleteName {
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let mut binding_locator = context.vm.frame().code_block.bindings[index];
 
         context.find_runtime_binding(&mut binding_locator)?;
 
@@ -81,6 +91,26 @@ impl Operation for DeleteName {
 
         context.vm.push(deleted);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for DeleteName {
+    const NAME: &'static str = "DeleteName";
+    const INSTRUCTION: &'static str = "INST - DeleteName";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>();
+        Self::operation(context, index as usize)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        Self::operation(context, index as usize)
     }
 }
 

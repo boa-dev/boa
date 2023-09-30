@@ -10,16 +10,33 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetGenerator;
 
+impl GetGenerator {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let code = context.vm.frame().code_block.functions[index].clone();
+        let function = create_generator_function_object(code, false, None, context);
+        context.vm.push(function);
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for GetGenerator {
     const NAME: &'static str = "GetGenerator";
     const INSTRUCTION: &'static str = "INST - GetGenerator";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_generator_function_object(code, false, None, context);
-        context.vm.push(function);
-        Ok(CompletionType::Normal)
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 
@@ -30,15 +47,32 @@ impl Operation for GetGenerator {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetGeneratorAsync;
 
+impl GetGeneratorAsync {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+        let code = context.vm.frame().code_block.functions[index].clone();
+        let function = create_generator_function_object(code, true, None, context);
+        context.vm.push(function);
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for GetGeneratorAsync {
     const NAME: &'static str = "GetGeneratorAsync";
     const INSTRUCTION: &'static str = "INST - GetGeneratorAsync";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_generator_function_object(code, true, None, context);
-        context.vm.push(function);
-        Ok(CompletionType::Normal)
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
