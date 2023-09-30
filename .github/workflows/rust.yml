@@ -65,6 +65,14 @@ jobs:
         run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl,experimental
       - name: Test docs
         run: cargo test --doc --profile ci --features annex-b,intl,experimental
+      - name: Build boa_ast crate
+        run: cargo build -p boa_ast
+      - name: Build boa_cli crate
+        run: cargo build -p boa_cli
+      - name: Build boa_parser crate
+        run: cargo build -p boa_parser
+      - name: Build boa_runtime crate
+        run: cargo build -p boa_runtime
 
   msrv:
     name: Minimum supported Rust version
