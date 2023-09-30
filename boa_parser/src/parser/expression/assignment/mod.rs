@@ -241,7 +241,7 @@ where
                     cursor.set_goal(InputElement::RegExp);
 
                     if let Some(target) = AssignTarget::from_expression(&lhs, cursor.strict()) {
-                        if let AssignTarget::Identifier(ident) = target {
+                        if let Expression::Identifier(ident) = lhs {
                             self.name = Some(ident);
                         }
                         let expr = self.parse(cursor, interner)?;
