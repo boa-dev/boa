@@ -137,10 +137,6 @@
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>itertools::Itertools;
@@ -168,11 +164,7 @@
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(<span class="self">Self</span>::containing, <span class="macro">js_string!</span>(<span class="string">&quot;containing&quot;</span>), <span class="number">1</span>)
-            .static_method(
-                <span class="self">Self</span>::iterator,
-                (JsSymbol::iterator(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.iterator]&quot;</span>)),
-                <span class="number">0</span>,
-            )
+            .static_method(<span class="self">Self</span>::iterator, JsSymbol::iterator(), <span class="number">0</span>)
             .build();
     }
 

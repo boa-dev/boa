@@ -2596,6 +2596,17 @@
 <a href="#2596" id="2596">2596</a>
 <a href="#2597" id="2597">2597</a>
 <a href="#2598" id="2598">2598</a>
+<a href="#2599" id="2599">2599</a>
+<a href="#2600" id="2600">2600</a>
+<a href="#2601" id="2601">2601</a>
+<a href="#2602" id="2602">2602</a>
+<a href="#2603" id="2603">2603</a>
+<a href="#2604" id="2604">2604</a>
+<a href="#2605" id="2605">2605</a>
+<a href="#2606" id="2606">2606</a>
+<a href="#2607" id="2607">2607</a>
+<a href="#2608" id="2608">2608</a>
+<a href="#2609" id="2609">2609</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2654,6 +2665,7 @@
         typed_array::{integer_indexed_object::IntegerIndexed, TypedArrayKind},
         DataView, Date, Promise, RegExp,
     },
+    context::intrinsics::StandardConstructor,
     js_string,
     module::ModuleNamespace,
     native_function::NativeFunction,
@@ -4602,8 +4614,8 @@
 ///
 /// There are two implementations:
 ///  - From a single type `T` which implements `Into&lt;FunctionBinding&gt;` which sets the binding
-/// name and the function name to the same value
-///  - From a tuple `(B: Into&lt;PropertyKey&gt;, N: AsRef&lt;str&gt;)` the `B` is the binding name
+/// name and the function name to the same value.
+///  - From a tuple `(B: Into&lt;PropertyKey&gt;, N: Into&lt;JsString&gt;)`, where the `B` is the binding name
 /// and the `N` is the function name.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>FunctionBinding {
@@ -4617,6 +4629,16 @@
         <span class="self">Self </span>{
             binding: name.clone().into(),
             name,
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;JsSymbol&gt; <span class="kw">for </span>FunctionBinding {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(binding: JsSymbol) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            name: binding.fn_name(),
+            binding: binding.into(),
         }
     }
 }
@@ -5108,7 +5130,7 @@
 
     <span class="doccomment">/// Build the constructor function object.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; JsFunction {
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; StandardConstructor {
         <span class="comment">// Create the native function
         </span><span class="kw">let </span>function = Function::new(
             FunctionKind::Native {
@@ -5191,7 +5213,7 @@
             );
         }
 
-        JsFunction::from_object_unchecked(constructor)
+        StandardConstructor::new(JsFunction::from_object_unchecked(constructor), prototype)
     }
 }
 </code></pre></div></section></main></body></html>

@@ -2812,12 +2812,6 @@
 <a href="#2812" id="2812">2812</a>
 <a href="#2813" id="2813">2813</a>
 <a href="#2814" id="2814">2814</a>
-<a href="#2815" id="2815">2815</a>
-<a href="#2816" id="2816">2816</a>
-<a href="#2817" id="2817">2817</a>
-<a href="#2818" id="2818">2818</a>
-<a href="#2819" id="2819">2819</a>
-<a href="#2820" id="2820">2820</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2898,8 +2892,6 @@
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
-
         <span class="kw">let </span>trim_start = BuiltInBuilder::callable(realm, <span class="self">Self</span>::trim_start)
             .length(<span class="number">0</span>)
             .name(<span class="macro">js_string!</span>(<span class="string">&quot;trimStart&quot;</span>))
@@ -2970,11 +2962,7 @@
             .method(<span class="self">Self</span>::match_all, <span class="macro">js_string!</span>(<span class="string">&quot;matchAll&quot;</span>), <span class="number">1</span>)
             .method(<span class="self">Self</span>::replace, <span class="macro">js_string!</span>(<span class="string">&quot;replace&quot;</span>), <span class="number">2</span>)
             .method(<span class="self">Self</span>::replace_all, <span class="macro">js_string!</span>(<span class="string">&quot;replaceAll&quot;</span>), <span class="number">2</span>)
-            .method(
-                <span class="self">Self</span>::iterator,
-                (symbol_iterator, <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.iterator]&quot;</span>)),
-                <span class="number">0</span>,
-            )
+            .method(<span class="self">Self</span>::iterator, JsSymbol::iterator(), <span class="number">0</span>)
             .method(<span class="self">Self</span>::search, <span class="macro">js_string!</span>(<span class="string">&quot;search&quot;</span>), <span class="number">1</span>)
             .method(<span class="self">Self</span>::at, <span class="macro">js_string!</span>(<span class="string">&quot;at&quot;</span>), <span class="number">1</span>);
 

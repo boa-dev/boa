@@ -1927,26 +1927,6 @@
 <a href="#1927" id="1927">1927</a>
 <a href="#1928" id="1928">1928</a>
 <a href="#1929" id="1929">1929</a>
-<a href="#1930" id="1930">1930</a>
-<a href="#1931" id="1931">1931</a>
-<a href="#1932" id="1932">1932</a>
-<a href="#1933" id="1933">1933</a>
-<a href="#1934" id="1934">1934</a>
-<a href="#1935" id="1935">1935</a>
-<a href="#1936" id="1936">1936</a>
-<a href="#1937" id="1937">1937</a>
-<a href="#1938" id="1938">1938</a>
-<a href="#1939" id="1939">1939</a>
-<a href="#1940" id="1940">1940</a>
-<a href="#1941" id="1941">1941</a>
-<a href="#1942" id="1942">1942</a>
-<a href="#1943" id="1943">1943</a>
-<a href="#1944" id="1944">1944</a>
-<a href="#1945" id="1945">1945</a>
-<a href="#1946" id="1946">1946</a>
-<a href="#1947" id="1947">1947</a>
-<a href="#1948" id="1948">1948</a>
-<a href="#1949" id="1949">1949</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -2044,31 +2024,11 @@
             .method(<span class="self">Self</span>::test, <span class="macro">js_string!</span>(<span class="string">&quot;test&quot;</span>), <span class="number">1</span>)
             .method(<span class="self">Self</span>::exec, <span class="macro">js_string!</span>(<span class="string">&quot;exec&quot;</span>), <span class="number">1</span>)
             .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
-            .method(
-                <span class="self">Self</span>::r#match,
-                (JsSymbol::r#match(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.match]&quot;</span>)),
-                <span class="number">1</span>,
-            )
-            .method(
-                <span class="self">Self</span>::match_all,
-                (JsSymbol::match_all(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.matchAll]&quot;</span>)),
-                <span class="number">1</span>,
-            )
-            .method(
-                <span class="self">Self</span>::replace,
-                (JsSymbol::replace(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.replace]&quot;</span>)),
-                <span class="number">2</span>,
-            )
-            .method(
-                <span class="self">Self</span>::search,
-                (JsSymbol::search(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.search]&quot;</span>)),
-                <span class="number">1</span>,
-            )
-            .method(
-                <span class="self">Self</span>::split,
-                (JsSymbol::split(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.split]&quot;</span>)),
-                <span class="number">2</span>,
-            )
+            .method(<span class="self">Self</span>::r#match, JsSymbol::r#match(), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::match_all, JsSymbol::match_all(), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::replace, JsSymbol::replace(), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::search, JsSymbol::search(), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::split, JsSymbol::split(), <span class="number">2</span>)
             .accessor(
                 <span class="macro">js_string!</span>(<span class="string">&quot;hasIndices&quot;</span>),
                 <span class="prelude-val">Some</span>(get_has_indices),

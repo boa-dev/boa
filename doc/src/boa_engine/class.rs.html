@@ -287,20 +287,6 @@
 <a href="#287" id="287">287</a>
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
@@ -311,10 +297,11 @@
 //! #    class::{Class, ClassBuilder},
 //! #    Context, JsResult, JsValue,
 //! #    JsArgs,
+//! #    js_string,
 //! # };
 //! # use boa_gc::{Finalize, Trace};
 //! #
-//! // This does not have to be an enum it can also be a struct.
+//! // Can also be a struct containing `Trace` types.
 //! #[derive(Debug, Trace, Finalize)]
 //! enum Animal {
 //!     Cat,
@@ -329,8 +316,8 @@
 //!     // We set the length to `1` since we accept 1 arguments in the constructor.
 //!     const LENGTH: usize = 1;
 //!
-//!     // This is what is called when we do `new Animal()`
-//!     fn constructor(_this: &amp;JsValue, args: &amp;[JsValue], context: &amp;mut Context&lt;&#39;_&gt;) -&gt; JsResult&lt;Self&gt; {
+//!     // This is what is called when we do `new Animal()` to construct the inner data of the class.
+//!     fn make_data(_this: &amp;JsValue, args: &amp;[JsValue], context: &amp;mut Context&lt;&#39;_&gt;) -&gt; JsResult&lt;Self&gt; {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
@@ -346,7 +333,7 @@
 //!     /// This is where the object is initialized.
 //!     fn init(class: &amp;mut ClassBuilder) -&gt; JsResult&lt;()&gt; {
 //!         class.method(
-//!             &quot;speak&quot;,
+//!             js_string!(&quot;speak&quot;),
 //!             0,
 //!             NativeFunction::from_fn_ptr(|this, _args, _ctx| {
 //!                 if let Some(object) = this.as_object() {
@@ -369,83 +356,68 @@
 //! [class-trait]: ./trait.Class.html
 
 </span><span class="kw">use crate</span>::{
+    context::intrinsics::StandardConstructor,
     error::JsNativeError,
-    js_string,
     native_function::NativeFunction,
-    object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
+    object::{
+        ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, ObjectData,
+        PROTOTYPE,
+    },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
 };
 
 <span class="doccomment">/// Native class.
 </span><span class="kw">pub trait </span>Class: NativeObject + Sized {
-    <span class="doccomment">/// The binding name of the object.
+    <span class="doccomment">/// The binding name of this class.
     </span><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
-    <span class="doccomment">/// The amount of arguments the class `constructor` takes, default is `0`.
+    <span class="doccomment">/// The amount of arguments this class&#39; constructor takes. Default is `0`.
     </span><span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
-    <span class="doccomment">/// The attributes the class will be binded with, default is `writable`, `enumerable`, `configurable`.
+    <span class="doccomment">/// The property attributes of this class&#39; constructor in the global object.
+    /// Default is `writable`, `enumerable`, `configurable`.
     </span><span class="kw">const </span>ATTRIBUTES: Attribute = Attribute::all();
 
-    <span class="doccomment">/// The constructor of the class.
-    </span><span class="kw">fn </span>constructor(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
+    <span class="doccomment">/// Creates the internal data for an instance of this class.
+    ///
+    /// This method can also be called the &quot;native constructor&quot; of this class.
+    </span><span class="kw">fn </span>make_data(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
 
-    <span class="doccomment">/// Initializes the internals and the methods of the class.
+    <span class="doccomment">/// Initializes the properties and methods of this class.
     </span><span class="kw">fn </span>init(class: <span class="kw-2">&amp;mut </span>ClassBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt;;
-}
 
-<span class="doccomment">/// This is a wrapper around `Class::constructor` that sets the internal data of a class.
-///
-/// This is automatically implemented, when a type implements `Class`.
-</span><span class="kw">pub trait </span>ClassConstructor: Class {
-    <span class="doccomment">/// The raw constructor that matches the `NativeFunction` signature.
-    </span><span class="kw">fn </span>raw_constructor(
-        this: <span class="kw-2">&amp;</span>JsValue,
+    <span class="doccomment">/// Creates a new [`JsObject`] with its internal data set to the result of calling `Self::make_data`.
+    ///
+    /// # Note
+    ///
+    /// This will throw an error if this class is not registered in the context&#39;s active realm.
+    /// See [`Context::register_global_class`].
+    ///
+    /// # Warning
+    ///
+    /// Overriding this method could be useful for certain usages, but incorrectly implementing this
+    /// could lead to weird errors like missing inherited methods or incorrect internal data.
+    </span><span class="kw">fn </span>construct(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt;
-    <span class="kw">where
-        </span><span class="self">Self</span>: Sized;
-}
-
-<span class="kw">impl</span>&lt;T: Class&gt; ClassConstructor <span class="kw">for </span>T {
-    <span class="kw">fn </span>raw_constructor(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt;
-    <span class="kw">where
-        </span><span class="self">Self</span>: Sized,
-    {
-        <span class="kw">if </span>this.is_undefined() {
+    ) -&gt; JsResult&lt;JsObject&gt; {
+        <span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;cannot call constructor of native class `{}` without new&quot;</span>,
-                    T::NAME
+                    <span class="self">Self</span>::NAME
                 ))
                 .into());
         }
 
-        <span class="kw">let </span>class = context.global_object().get(<span class="macro">js_string!</span>(T::NAME), context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>JsValue::Object(<span class="kw-2">ref </span>class_constructor) = class <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="macro">format!</span>(
-                    <span class="string">&quot;invalid constructor for native class `{}` &quot;</span>,
-                    T::NAME
-                ))
-                .into());
-        };
+        <span class="kw">let </span>class = context.get_global_class::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="macro">format!</span>(
+                <span class="string">&quot;could not find native class `{}` in the map of registered classes&quot;</span>,
+                <span class="self">Self</span>::NAME
+            ))
+        })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>JsValue::Object(<span class="kw-2">ref </span>class_prototype) = class_constructor.get(PROTOTYPE, context)<span class="question-mark">?
-        </span><span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="macro">format!</span>(
-                    <span class="string">&quot;invalid default prototype for native class `{}`&quot;</span>,
-                    T::NAME
-                ))
-                .into());
-        };
-
-        <span class="kw">let </span>prototype = this
+        <span class="kw">let </span>prototype = new_target
             .as_object()
             .map(|obj| {
                 obj.get(PROTOTYPE, context)
@@ -453,15 +425,15 @@
             })
             .transpose()<span class="question-mark">?
             </span>.flatten()
-            .unwrap_or_else(|| class_prototype.clone());
+            .unwrap_or_else(|| class.prototype());
 
-        <span class="kw">let </span>native_instance = <span class="self">Self</span>::constructor(this, args, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>object_instance = JsObject::from_proto_and_data_with_shared_shape(
+        <span class="kw">let </span>data = <span class="self">Self</span>::make_data(new_target, args, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>instance = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::native_object(native_instance),
+            ObjectData::native_object(data),
         );
-        <span class="prelude-val">Ok</span>(object_instance.into())
+        <span class="prelude-val">Ok</span>(instance)
     }
 }
 
@@ -474,17 +446,19 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; ClassBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>T: ClassConstructor,
+        </span>T: Class,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>builder =
-            ConstructorBuilder::new(context, NativeFunction::from_fn_ptr(T::raw_constructor));
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = ConstructorBuilder::new(
+            context,
+            NativeFunction::from_fn_ptr(|t, a, c| T::construct(t, a, c).map(JsValue::from)),
+        );
         builder.name(T::NAME);
         builder.length(T::LENGTH);
         <span class="self">Self </span>{ builder }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="self">self</span>) -&gt; JsFunction {
-        JsFunction::from_object_unchecked(<span class="self">self</span>.builder.build().into())
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="self">self</span>) -&gt; StandardConstructor {
+        <span class="self">self</span>.builder.build()
     }
 
     <span class="doccomment">/// Add a method to the class.
@@ -492,10 +466,9 @@
     /// It is added to `prototype`.
     </span><span class="kw">pub fn </span>method&lt;N&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: N, length: usize, function: NativeFunction) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
-        </span>N: AsRef&lt;str&gt;,
+        </span>N: Into&lt;FunctionBinding&gt;,
     {
-        <span class="self">self</span>.builder
-            .method(function, <span class="macro">js_string!</span>(name.as_ref()), length);
+        <span class="self">self</span>.builder.method(function, name, length);
         <span class="self">self
     </span>}
 
@@ -509,10 +482,9 @@
         function: NativeFunction,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
-        </span>N: AsRef&lt;str&gt;,
+        </span>N: Into&lt;FunctionBinding&gt;,
     {
-        <span class="self">self</span>.builder
-            .static_method(function, <span class="macro">js_string!</span>(name.as_ref()), length);
+        <span class="self">self</span>.builder.static_method(function, name, length);
         <span class="self">self
     </span>}
 

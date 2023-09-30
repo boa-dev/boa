@@ -109,22 +109,6 @@
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::any::TypeId;
 
 <span class="kw">use </span>boa_gc::{GcRef, GcRefCell, GcRefMut};
@@ -200,20 +184,12 @@
     /// Panics if [`HostDefined`] field is borrowed.
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub fn </span>get&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
-        <span class="kw">let </span>state = <span class="self">self</span>.state.borrow();
-
-        state
-            .get(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
-            .map(Box::as_ref)
-            .and_then(&lt;<span class="kw">dyn </span>NativeObject&gt;::downcast_ref::&lt;T&gt;)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Some</span>(GcRef::map(state, |state| {
+        GcRef::try_map(<span class="self">self</span>.state.borrow(), |state| {
             state
                 .get(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
                 .map(Box::as_ref)
                 .and_then(&lt;<span class="kw">dyn </span>NativeObject&gt;::downcast_ref::&lt;T&gt;)
-                .expect(<span class="string">&quot;Should not fail&quot;</span>)
-        }))
+        })
     }
 
     <span class="doccomment">/// Get type T from [`HostDefined`], if it exits.
@@ -223,23 +199,15 @@
     /// Panics if [`HostDefined`] field is borrowed.
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub fn </span>get_mut&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GcRefMut&lt;<span class="lifetime">&#39;_</span>, HostDefinedMap, T&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.state.borrow_mut();
-
-        state
-            .get_mut(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
-            .map(Box::as_mut)
-            .and_then(&lt;<span class="kw">dyn </span>NativeObject&gt;::downcast_mut::&lt;T&gt;)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Some</span>(GcRefMut::map(
-            state,
+        GcRefMut::try_map(
+            <span class="self">self</span>.state.borrow_mut(),
             |state: <span class="kw-2">&amp;mut </span>FxHashMap&lt;TypeId, Box&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;| {
                 state
                     .get_mut(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
                     .map(Box::as_mut)
                     .and_then(&lt;<span class="kw">dyn </span>NativeObject&gt;::downcast_mut::&lt;T&gt;)
-                    .expect(<span class="string">&quot;Should not fail&quot;</span>)
             },
-        ))
+        )
     }
 
     <span class="doccomment">/// Clears all the objects.

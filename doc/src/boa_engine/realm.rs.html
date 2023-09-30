@@ -147,6 +147,48 @@
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Realm Records`
 //!
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
@@ -155,8 +197,16 @@
 //!
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
-</span><span class="kw">use crate</span>::{
-    context::{intrinsics::Intrinsics, HostHooks},
+</span><span class="kw">use </span>std::any::TypeId;
+
+<span class="kw">use </span>rustc_hash::FxHashMap;
+
+<span class="kw">use crate</span>::{
+    class::Class,
+    context::{
+        intrinsics::{Intrinsics, StandardConstructor},
+        HostHooks,
+    },
     environments::DeclarativeEnvironment,
     module::Module,
     object::shape::RootShape,
@@ -164,7 +214,6 @@
 };
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="doccomment">/// Representation of a Realm.
 ///
@@ -201,6 +250,7 @@
     global_this: JsObject,
     template_map: GcRefCell&lt;FxHashMap&lt;u64, JsObject&gt;&gt;,
     loaded_modules: GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt;,
+    host_classes: GcRefCell&lt;FxHashMap&lt;TypeId, StandardConstructor&gt;&gt;,
 
     host_defined: HostDefined,
 }
@@ -226,6 +276,7 @@
                 global_this,
                 template_map: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
+                host_classes: GcRefCell::default(),
                 host_defined: HostDefined::default(),
             }),
         };
@@ -249,6 +300,25 @@
     #[must_use]
     </span><span class="kw">pub fn </span>host_defined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HostDefined {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.host_defined
+    }
+
+    <span class="doccomment">/// Checks if this `Realm` has the class `C` registered into its class map.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>has_class&lt;C: Class&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner
+            .host_classes
+            .borrow()
+            .contains_key(<span class="kw-2">&amp;</span>TypeId::of::&lt;C&gt;())
+    }
+
+    <span class="doccomment">/// Gets the constructor and prototype of the class `C` if it is registered in the class map.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>get_class&lt;C: Class&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;StandardConstructor&gt; {
+        <span class="self">self</span>.inner
+            .host_classes
+            .borrow()
+            .get(<span class="kw-2">&amp;</span>TypeId::of::&lt;C&gt;())
+            .cloned()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>environment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Gc&lt;DeclarativeEnvironment&gt; {
@@ -289,6 +359,20 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lookup_template(<span class="kw-2">&amp;</span><span class="self">self</span>, site: u64) -&gt; <span class="prelude-ty">Option</span>&lt;JsObject&gt; {
         <span class="self">self</span>.inner.template_map.borrow().get(<span class="kw-2">&amp;</span>site).cloned()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_class&lt;C: Class&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, spec: StandardConstructor) {
+        <span class="self">self</span>.inner
+            .host_classes
+            .borrow_mut()
+            .insert(TypeId::of::&lt;C&gt;(), spec);
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unregister_class&lt;C: Class&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;StandardConstructor&gt; {
+        <span class="self">self</span>.inner
+            .host_classes
+            .borrow_mut()
+            .remove(<span class="kw-2">&amp;</span>TypeId::of::&lt;C&gt;())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>() {

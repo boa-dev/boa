@@ -1438,6 +1438,14 @@
 <a href="#1438" id="1438">1438</a>
 <a href="#1439" id="1439">1439</a>
 <a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -1498,8 +1506,8 @@
     }
 }
 
-<span class="doccomment">/// Store a builtin constructor (such as `Object`) and its corresponding prototype.
-</span><span class="attr">#[derive(Debug, Trace, Finalize)]
+<span class="doccomment">/// Stores a constructor (such as `Object`) and its corresponding prototype.
+</span><span class="attr">#[derive(Debug, Trace, Finalize, Clone)]
 </span><span class="kw">pub struct </span>StandardConstructor {
     constructor: JsFunction,
     prototype: JsObject,
@@ -1515,6 +1523,14 @@
 }
 
 <span class="kw">impl </span>StandardConstructor {
+    <span class="doccomment">/// Creates a new `StandardConstructor` from the constructor and the prototype.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(constructor: JsFunction, prototype: JsObject) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            constructor,
+            prototype,
+        }
+    }
+
     <span class="doccomment">/// Build a constructor with a defined prototype.
     </span><span class="kw">fn </span>with_prototype(prototype: JsObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -1525,7 +1541,7 @@
 
     <span class="doccomment">/// Return the prototype of the constructor object.
     ///
-    /// This is the same as `Object.prototype`, `Array.prototype`, etc
+    /// This is the same as `Object.prototype`, `Array.prototype`, etc.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
