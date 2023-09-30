@@ -1,5 +1,4 @@
 use crate::{run_test_actions, TestAction};
-use indoc::indoc;
 
 #[test]
 fn duration_constructor() {
@@ -10,7 +9,7 @@ fn duration_constructor() {
         TestAction::assert_eq("dur.weeks", 0),
         TestAction::assert_eq("dur.days", 1),
         TestAction::assert_eq("dur.milliseconds", 0),
-    ])
+    ]);
 }
 
 #[test]
@@ -24,5 +23,5 @@ fn duration_abs() {
         TestAction::assert_eq("abs.weeks", 0),
         TestAction::assert_eq("abs.days", 1),
         TestAction::assert_eq("abs.milliseconds", 0),
-    ])
+    ]);
 }

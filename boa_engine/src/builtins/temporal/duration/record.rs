@@ -1,17 +1,12 @@
-// use DurationRecord and Duration { inner: Duration }
-
-use icu_calendar::types::Time;
+use boa_macros::utf16;
 
 use crate::{
     builtins::{
         options::RoundingMode,
-        temporal::{self, create_temporal_date, options::TemporalUnit, to_temporal_date, Temporal},
+        temporal::{self, create_temporal_date, options::TemporalUnit, to_temporal_date},
     },
-    Context, JsArgs, JsError, JsNativeError, JsNativeErrorKind, JsObject, JsResult, JsString,
-    JsSymbol, JsValue,
+    js_string, Context, JsNativeError, JsObject, JsResult, JsValue,
 };
-
-use bitflags::bitflags;
 
 use super::super::{calendar, to_integer_if_integral, zoned_date_time};
 
@@ -211,70 +206,70 @@ impl DurationRecord {
 
         // 3. NOTE: The following steps read properties and perform independent validation in alphabetical order.
         // 4. Let days be ? Get(temporalDurationLike, "days").
-        let days = unknown_object.get("days", context)?;
+        let days = unknown_object.get(utf16!("days"), context)?;
         if !days.is_undefined() {
             // 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
             result.set_days(f64::from(to_integer_if_integral(&days, context)?));
         }
 
         // 6. Let hours be ? Get(temporalDurationLike, "hours").
-        let hours = unknown_object.get("hours", context)?;
+        let hours = unknown_object.get(utf16!("hours"), context)?;
         // 7. If hours is not undefined, set result.[[Hours]] to ? ToIntegerIfIntegral(hours).
         if !hours.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&hours, context)?));
         }
 
         // 8. Let microseconds be ? Get(temporalDurationLike, "microseconds").
-        let microseconds = unknown_object.get("microseconds", context)?;
+        let microseconds = unknown_object.get(utf16!("microseconds"), context)?;
         // 9. If microseconds is not undefined, set result.[[Microseconds]] to ? ToIntegerIfIntegral(microseconds).
         if !microseconds.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&microseconds, context)?));
         }
 
         // 10. Let milliseconds be ? Get(temporalDurationLike, "milliseconds").
-        let milliseconds = unknown_object.get("milliseconds", context)?;
+        let milliseconds = unknown_object.get(utf16!("milliseconds"), context)?;
         // 11. If milliseconds is not undefined, set result.[[Milliseconds]] to ? ToIntegerIfIntegral(milliseconds).
         if !milliseconds.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&milliseconds, context)?));
         }
 
         // 12. Let minutes be ? Get(temporalDurationLike, "minutes").
-        let minutes = unknown_object.get("minutes", context)?;
+        let minutes = unknown_object.get(utf16!("minutes"), context)?;
         // 13. If minutes is not undefined, set result.[[Minutes]] to ? ToIntegerIfIntegral(minutes).
         if !minutes.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&minutes, context)?));
         }
 
         // 14. Let months be ? Get(temporalDurationLike, "months").
-        let months = unknown_object.get("months", context)?;
+        let months = unknown_object.get(utf16!("months"), context)?;
         // 15. If months is not undefined, set result.[[Months]] to ? ToIntegerIfIntegral(months).
         if !months.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&months, context)?));
         }
 
         // 16. Let nanoseconds be ? Get(temporalDurationLike, "nanoseconds").
-        let nanoseconds = unknown_object.get("nanoseconds", context)?;
+        let nanoseconds = unknown_object.get(utf16!("nanoseconds"), context)?;
         // 17. If nanoseconds is not undefined, set result.[[Nanoseconds]] to ? ToIntegerIfIntegral(nanoseconds).
         if !nanoseconds.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&nanoseconds, context)?));
         }
 
         // 18. Let seconds be ? Get(temporalDurationLike, "seconds").
-        let seconds = unknown_object.get("seconds", context)?;
+        let seconds = unknown_object.get(utf16!("seconds"), context)?;
         // 19. If seconds is not undefined, set result.[[Seconds]] to ? ToIntegerIfIntegral(seconds).
         if !seconds.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&seconds, context)?));
         }
 
         // 20. Let weeks be ? Get(temporalDurationLike, "weeks").
-        let weeks = unknown_object.get("weeks", context)?;
+        let weeks = unknown_object.get(utf16!("weeks"), context)?;
         // 21. If weeks is not undefined, set result.[[Weeks]] to ? ToIntegerIfIntegral(weeks).
         if !weeks.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&weeks, context)?));
         }
 
         // 22. Let years be ? Get(temporalDurationLike, "years").
-        let years = unknown_object.get("years", context)?;
+        let years = unknown_object.get(utf16!("years"), context)?;
         // 23. If years is not undefined, set result.[[Years]] to ? ToIntegerIfIntegral(years).
         if !years.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&years, context)?));
@@ -689,7 +684,7 @@ impl DurationRecord {
             // 4. If largestUnit is one of "year", "month", "week", or "day", then
             TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week | TemporalUnit::Day => {
                 // a. Let result be ? NanosecondsToDays(nanoseconds, relativeTo).
-                let result = temporal::zoned_date_time::nanoseconds_to_days(
+                let _result = temporal::zoned_date_time::nanoseconds_to_days(
                     self.nanoseconds(),
                     &relative_to,
                 );
@@ -862,23 +857,23 @@ impl DurationRecord {
         assert!(sign != 0);
 
         // 6. Let oneYear be ! CreateTemporalDuration(sign, 0, 0, 0, 0, 0, 0, 0, 0, 0).
-        let one_year = Self::new(
+        let _one_year = Self::new(
             DateDuration::new(f64::from(sign), 0.0, 0.0, 0.0),
             TimeDuration::default(),
         );
         // 7. Let oneMonth be ! CreateTemporalDuration(0, sign, 0, 0, 0, 0, 0, 0, 0, 0).
-        let one_month = Self::new(
+        let _one_month = Self::new(
             DateDuration::new(0.0, f64::from(sign), 0.0, 0.0),
             TimeDuration::default(),
         );
         // 8. Let oneWeek be ! CreateTemporalDuration(0, 0, sign, 0, 0, 0, 0, 0, 0, 0).
-        let one_week = Self::new(
+        let _one_week = Self::new(
             DateDuration::new(0.0, 0.0, f64::from(sign), 0.0),
             TimeDuration::default(),
         );
 
         // 9. If relativeTo is not undefined, then
-        let calendar = if relative_to.is_undefined() {
+        let _calendar = if relative_to.is_undefined() {
             // 10. Else
             // a. Let calendar be undefined.
             None
@@ -965,6 +960,7 @@ impl DurationRecord {
     }
 
     /// `BalanceDateDurationRelative`
+    #[allow(unused)]
     pub(crate) fn balance_date_duration_relative(
         &mut self,
         largest_unit: TemporalUnit,
@@ -1010,7 +1006,7 @@ impl DurationRecord {
             TimeDuration::default(),
         );
         // 9. Let oneWeek be ! CreateTemporalDuration(0, 0, sign, 0, 0, 0, 0, 0, 0, 0).
-        let one_week = Self::new(
+        let _one_week = Self::new(
             DateDuration::new(0.0, 0.0, f64::from(sign), 0.0),
             TimeDuration::default(),
         );
@@ -1295,11 +1291,6 @@ impl DurationRecord {
                 // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // c. Else,
                 // i. Let dateAdd be unused.
-                let date_add: JsValue = calendar_obj
-                    .get_method("dateAdd", context)?
-                    .expect("dateAdd must exist on a calendar prototype")
-                    .into();
-
                 // d. Let yearsLater be ? CalendarDateAdd(calendar, relativeTo, yearsDuration, undefined, dateAdd).
 
                 let years_later = calendar::calendar_date_add(
@@ -1361,7 +1352,11 @@ impl DurationRecord {
                 // l. Let untilOptions be OrdinaryObjectCreate(null).
                 let until_options = JsObject::with_null_proto();
                 // m. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "year").
-                until_options.create_data_property_or_throw("largestUnit", "year", context)?;
+                until_options.create_data_property_or_throw(
+                    utf16!("largestUnit"),
+                    js_string!("year"),
+                    context,
+                )?;
 
                 // n. Let timePassed be ? CalendarDateUntil(calendar, relativeTo, wholeDaysLater, untilOptions).
                 let time_passed = calendar::calendar_date_until(
@@ -1462,10 +1457,6 @@ impl DurationRecord {
                 // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // c. Else,
                 // i. Let dateAdd be unused.
-                let date_add: JsValue = calendar_obj
-                    .get_method("dateAdd", context)?
-                    .expect("dateAdd must exist on a calendar prototype")
-                    .into();
 
                 // d. Let yearsMonthsLater be ? CalendarDateAdd(calendar, relativeTo, yearsMonths, undefined, dateAdd).
                 let years_months_later = calendar::calendar_date_add(
@@ -1582,10 +1573,6 @@ impl DurationRecord {
                 // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // d. Else,
                 // i. Let dateAdd be unused.
-                let date_add: JsValue = calendar_obj
-                    .get_method("dateAdd", context)?
-                    .expect("dateAdd must exist on a calendar prototype")
-                    .into();
 
                 // e. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
                 let move_result =
@@ -1753,11 +1740,12 @@ impl DurationRecord {
 
     /// 7.5.27 `AdjustRoundedDurationDays ( years, months, weeks, days, hours, minutes, seconds, milliseconds,
     /// microseconds, nanoseconds, increment, unit, roundingMode, relativeTo )`
+    #[allow(unused)]
     pub(crate) fn adjust_rounded_duration_days(
         &mut self,
         increment: f64,
-        unit: &JsString,
-        rounding_mode: &JsString,
+        unit: TemporalUnit,
+        rounding_mode: RoundingMode,
         relative_to: Option<&JsValue>,
         context: &mut Context<'_>,
     ) -> JsResult<()> {
@@ -1778,11 +1766,13 @@ impl DurationRecord {
             _ => return Ok(()),
         };
 
-        match unit.to_std_string_escaped().as_str() {
+        match unit {
             // a. Return ! CreateDurationRecord(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
-            "year" | "month" | "week" | "day" => return Ok(()),
+            TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week | TemporalUnit::Day => {
+                return Ok(())
+            }
             // a. Return ! CreateDurationRecord(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
-            "nanosecond" if (increment - 1_f64).abs() < f64::EPSILON => return Ok(()),
+            TemporalUnit::Nanosecond if (increment - 1_f64).abs() < f64::EPSILON => return Ok(()),
             _ => {}
         }
 
@@ -1791,7 +1781,7 @@ impl DurationRecord {
             Self::from_day_and_time(0.0, self.time()).total_duration_nanoseconds(0.0);
 
         // 3. If timeRemainderNs = 0, let direction be 0.
-        let direction = if time_remainder_ns == 0_f64 {
+        let _direction = if time_remainder_ns == 0_f64 {
             0
         // 4. Else if timeRemainderNs < 0, let direction be -1.
         } else if time_remainder_ns < 0_f64 {

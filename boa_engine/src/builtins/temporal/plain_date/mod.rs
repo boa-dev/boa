@@ -6,10 +6,11 @@ use crate::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_parser::temporal::{IsoCursor, TemporalDateTimeString};
@@ -27,67 +28,67 @@ pub struct PlainDate {
 }
 
 impl BuiltInObject for PlainDate {
-    const NAME: &'static str = "Temporal.PlainDate";
+    const NAME: JsString = StaticJsStrings::PLAIN_DATE;
 }
 
 impl IntrinsicObject for PlainDate {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
-            .name("get calendarId")
+            .name(js_string!("get calendarId"))
             .build();
 
         let get_year = BuiltInBuilder::callable(realm, Self::get_year)
-            .name("get year")
+            .name(js_string!("get year"))
             .build();
 
         let get_month = BuiltInBuilder::callable(realm, Self::get_month)
-            .name("get month")
+            .name(js_string!("get month"))
             .build();
 
         let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
-            .name("get monthCode")
+            .name(js_string!("get monthCode"))
             .build();
 
         let get_day = BuiltInBuilder::callable(realm, Self::get_day)
-            .name("get day")
+            .name(js_string!("get day"))
             .build();
 
         let get_day_of_week = BuiltInBuilder::callable(realm, Self::get_day_of_week)
-            .name("get dayOfWeek")
+            .name(js_string!("get dayOfWeek"))
             .build();
 
         let get_day_of_year = BuiltInBuilder::callable(realm, Self::get_day_of_year)
-            .name("get dayOfYear")
+            .name(js_string!("get dayOfYear"))
             .build();
 
         let get_week_of_year = BuiltInBuilder::callable(realm, Self::get_week_of_year)
-            .name("get weekOfYear")
+            .name(js_string!("get weekOfYear"))
             .build();
 
         let get_year_of_week = BuiltInBuilder::callable(realm, Self::get_year_of_week)
-            .name("get yearOfWeek")
+            .name(js_string!("get yearOfWeek"))
             .build();
 
         let get_days_in_week = BuiltInBuilder::callable(realm, Self::get_days_in_week)
-            .name("get daysInWeek")
+            .name(js_string!("get daysInWeek"))
             .build();
 
         let get_days_in_month = BuiltInBuilder::callable(realm, Self::get_days_in_month)
-            .name("get daysInMonth")
+            .name(js_string!("get daysInMonth"))
             .build();
 
         let get_days_in_year = BuiltInBuilder::callable(realm, Self::get_days_in_year)
-            .name("get daysInYear")
+            .name(js_string!("get daysInYear"))
             .build();
 
         let get_months_in_year = BuiltInBuilder::callable(realm, Self::get_months_in_year)
-            .name("get monthsInYear")
+            .name(js_string!("get monthsInYear"))
             .build();
 
         let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year)
-            .name("get inLeapYear")
+            .name(js_string!("get inLeapYear"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -165,17 +166,17 @@ impl IntrinsicObject for PlainDate {
                 None,
                 Attribute::default(),
             )
-            .method(Self::to_plain_year_month, "toPlainYearMonth", 0)
-            .method(Self::to_plain_month_day, "toPlainMonthDay", 0)
-            .method(Self::get_iso_fields, "getISOFields", 0)
-            .method(Self::get_calendar, "getCalendar", 0)
-            .method(Self::add, "add", 2)
-            .method(Self::subtract, "subtract", 2)
-            .method(Self::with, "with", 2)
-            .method(Self::with_calendar, "withCalendar", 1)
-            .method(Self::until, "until", 2)
-            .method(Self::since, "since", 2)
-            .method(Self::equals, "equals", 1)
+            .method(Self::to_plain_year_month, js_string!("toPlainYearMonth"), 0)
+            .method(Self::to_plain_month_day, js_string!("toPlainMonthDay"), 0)
+            .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
+            .method(Self::get_calendar, js_string!("getCalendar"), 0)
+            .method(Self::add, js_string!("add"), 2)
+            .method(Self::subtract, js_string!("subtract"), 2)
+            .method(Self::with, js_string!("with"), 2)
+            .method(Self::with_calendar, js_string!("withCalendar"), 1)
+            .method(Self::until, js_string!("until"), 2)
+            .method(Self::since, js_string!("since"), 2)
+            .method(Self::equals, js_string!("equals"), 1)
             .build();
     }
 
@@ -204,7 +205,7 @@ impl BuiltInConstructor for PlainDate {
         let iso_year = super::to_integer_with_truncation(args.get_or_undefined(0), context)?;
         let iso_month = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
         let iso_day = super::to_integer_with_truncation(args.get_or_undefined(2), context)?;
-        let default_calendar = JsValue::from("iso8601");
+        let default_calendar = JsValue::from(js_string!("iso8601"));
         let calendar_like = args.get(3).unwrap_or(&default_calendar);
 
         let iso = IsoDateRecord::new(iso_year, iso_month, iso_day);
@@ -519,7 +520,9 @@ pub(crate) fn to_temporal_date(
             // 7. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
             // 8. Let calendar be result.[[Calendar]].
             // 9. If calendar is undefined, set calendar to "iso8601".
-            let identifier = result.calendar.unwrap_or_else(|| "iso8601".to_string());
+            let identifier = result
+                .calendar
+                .map_or_else(|| js_string!("iso8601"), JsString::from);
 
             // 10. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
             if !super::calendar::is_builtin_calendar(&identifier) {
@@ -528,8 +531,8 @@ pub(crate) fn to_temporal_date(
                     .into());
             }
 
+            // TODO: impl to ASCII-lowercase on JsStirng
             // 11. Set calendar to the ASCII-lowercase of calendar.
-            let calendar = identifier.to_ascii_lowercase();
 
             // 12. Perform ? ToTemporalOverflow(options).
             let _result =
@@ -539,7 +542,7 @@ pub(crate) fn to_temporal_date(
             // 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
             Ok(PlainDate {
                 inner: IsoDateRecord::new(result.date.year, result.date.month, result.date.day),
-                calendar: calendar.into(),
+                calendar: identifier.into(),
             })
         }
         _ => Err(JsNativeError::typ()

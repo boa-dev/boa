@@ -39,9 +39,6 @@ pub mod escape;
 #[cfg(feature = "intl")]
 pub mod intl;
 
-#[cfg(feature = "experimental")]
-pub mod temporal;
-
 // TODO: remove `cfg` when `Temporal` gets to stage 4.
 #[cfg(any(feature = "intl", feature = "experimental"))]
 pub(crate) mod options;

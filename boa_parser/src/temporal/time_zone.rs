@@ -16,7 +16,7 @@ use crate::{
 };
 
 use boa_ast::{
-    temporal::{TimeZone, TimeZoneAnnotation, UtcOffset},
+    temporal::{TimeZone, TimeZoneAnnotation, UTCOffset},
     Position,
 };
 
@@ -209,7 +209,7 @@ pub(crate) fn parse_date_time_utc(cursor: &mut IsoCursor) -> ParseResult<TimeZon
 }
 
 /// Parse an `UtcOffsetMinutePrecision` node
-pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut IsoCursor) -> ParseResult<UtcOffset> {
+pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut IsoCursor) -> ParseResult<UTCOffset> {
     let sign = if let Some(ch) = cursor.next() {
         if ch == '+' {
             1_i8
@@ -226,7 +226,7 @@ pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut IsoCursor) -> Parse
         .check(|ch| !(ch.is_ascii_digit() || is_time_separator(ch)))
         .ok_or_else(|| Error::AbruptEnd)?
     {
-        return Ok(UtcOffset {
+        return Ok(UTCOffset {
             sign,
             hour,
             minute: 0,
@@ -241,7 +241,7 @@ pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut IsoCursor) -> Parse
 
     let minute = parse_minute_second(cursor, false)?;
 
-    Ok(UtcOffset {
+    Ok(UTCOffset {
         sign,
         hour,
         minute,

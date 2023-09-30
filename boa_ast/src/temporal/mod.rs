@@ -9,10 +9,22 @@ pub struct IsoParseRecord {
     pub date: DateRecord,
     /// Parsed Time
     pub time: Option<TimeSpec>,
-    /// Parsed Offset
-    /// Parsed `TimeZoneAnnotation`
+    /// Parsed `TimeZone` data (UTCOffset | IANA name)
     pub tz: Option<TimeZone>,
-    /// Parsed Annotations
+    /// The parsed calendar value.
+    pub calendar: Option<String>,
+}
+
+/// An ISO Date Node consisting of only date fields and any calendar value.
+#[derive(Default, Debug)]
+pub struct ISODate {
+    /// Date Year
+    pub year: i32,
+    /// Date Month
+    pub month: i32,
+    /// Date Day
+    pub day: i32,
+    /// The calendar value.
     pub calendar: Option<String>,
 }
 
@@ -69,7 +81,7 @@ pub struct TimeZone {
     /// TimeZoneIANAName
     pub name: Option<String>,
     /// TimeZoneOffset
-    pub offset: Option<UtcOffset>,
+    pub offset: Option<UTCOffset>,
 }
 
 /// A valid `TimeZoneIdentifier` that is defined by
@@ -78,14 +90,14 @@ pub struct TimeZone {
 #[derive(Debug, Clone)]
 pub enum TzIdentifier {
     /// A valid UTC `TimeZoneIdentifier` value
-    UtcOffset(UtcOffset),
+    UtcOffset(UTCOffset),
     /// A valid IANA name `TimeZoneIdentifier` value
     TzIANAName(String),
 }
 
 /// A full precision `UtcOffset`
 #[derive(Debug, Clone, Copy)]
-pub struct UtcOffset {
+pub struct UTCOffset {
     /// The `+`/`-` sign of this `UtcOffset`
     pub sign: i8,
     /// The hour value of the `UtcOffset`

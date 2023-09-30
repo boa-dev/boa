@@ -4,7 +4,8 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     realm::Realm,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsSymbol, JsValue,
+    string::common::StaticJsStrings,
+    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -17,12 +18,12 @@ pub struct ZonedDateTime {
 }
 
 impl BuiltInObject for ZonedDateTime {
-    const NAME: &'static str = "Temporal.ZonedDateTime";
+    const NAME: JsString = StaticJsStrings::ZONED_DT;
 }
 
 impl IntrinsicObject for ZonedDateTime {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_property(

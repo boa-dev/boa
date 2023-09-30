@@ -3,7 +3,6 @@
 //! More information:
 //!
 //! [spec]: https://tc39.es/proposal-temporal/
-#![allow(unreachable_code, dead_code, unused_imports)] // Unimplemented
 
 mod calendar;
 mod date_equations;
@@ -20,23 +19,18 @@ mod plain_year_month;
 mod time_zone;
 mod zoned_date_time;
 
-use std::ops::Mul;
-
 #[cfg(feature = "experimental")]
 #[cfg(test)]
 mod tests;
 
 pub(crate) use fields::TemporalFields;
 
+use self::options::{
+    get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
+};
 pub use self::{
     calendar::*, duration::*, instant::*, now::*, plain_date::*, plain_date_time::*,
     plain_month_day::*, plain_time::*, plain_year_month::*, time_zone::*, zoned_date_time::*,
-};
-use self::{
-    date_equations::mathematical_days_in_year,
-    options::{
-        get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
-    },
 };
 
 use crate::{
@@ -45,17 +39,14 @@ use crate::{
         options::{get_option, RoundingMode, UnsignedRoundingMode},
         BuiltInBuilder, BuiltInObject, IntrinsicObject,
     },
-    context::intrinsics::{Intrinsics, StandardConstructors},
+    context::intrinsics::Intrinsics,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
-    property::{Attribute, PropertyKey},
+    property::Attribute,
     realm::Realm,
-    string::utf16,
-    value::{IntegerOrInfinity, Type},
-    Context, JsBigInt, JsNativeError, JsNativeErrorKind, JsObject, JsResult, JsString, JsSymbol,
-    JsValue, NativeFunction,
+    string::{common::StaticJsStrings, utf16},
+    value::Type,
+    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_ast::temporal::{self, UtcOffset};
 use boa_profiler::Profiler;
 
 // Relavant numeric constants
@@ -75,6 +66,7 @@ pub(crate) fn ns_min_instant() -> JsBigInt {
 }
 
 // An enum representing common fields across `Temporal` objects.
+#[allow(unused)]
 pub(crate) enum DateTimeValues {
     Year,
     Month,
@@ -89,107 +81,6 @@ pub(crate) enum DateTimeValues {
     Nanosecond,
 }
 
-/// `TemporalUnits` represents the temporal relationship laid out in table 13 of the [ECMAScript Specification][spec]
-///
-/// [spec]: https://tc39.es/proposal-temporal/#table-temporal-units
-#[derive(Debug)]
-pub struct TemporalUnits {
-    year: (&'static [u16], &'static [u16]),
-    month: (&'static [u16], &'static [u16]),
-    week: (&'static [u16], &'static [u16]),
-    day: (&'static [u16], &'static [u16]),
-    hour: (&'static [u16], &'static [u16]),
-    minute: (&'static [u16], &'static [u16]),
-    second: (&'static [u16], &'static [u16]),
-    millisecond: (&'static [u16], &'static [u16]),
-    microsecond: (&'static [u16], &'static [u16]),
-    nanosecond: (&'static [u16], &'static [u16]),
-}
-
-impl Default for TemporalUnits {
-    fn default() -> Self {
-        Self {
-            year: (utf16!("year"), utf16!("years")),
-            month: (utf16!("month"), utf16!("months")),
-            week: (utf16!("week"), utf16!("weeks")),
-            day: (utf16!("day"), utf16!("days")),
-            hour: (utf16!("hour"), utf16!("hours")),
-            minute: (utf16!("minute"), utf16!("minutes")),
-            second: (utf16!("second"), utf16!("seconds")),
-            millisecond: (utf16!("millisecond"), utf16!("milliseconds")),
-            microsecond: (utf16!("microsecond"), utf16!("microseconds")),
-            nanosecond: (utf16!("nanosecond"), utf16!("nanoseconds")),
-        }
-    }
-}
-
-impl TemporalUnits {
-    /// Returns a vector of all date singualar `TemporalUnits`.
-    fn date_singulars(&self) -> Vec<JsString> {
-        vec![
-            self.year.0.into(),
-            self.month.0.into(),
-            self.week.0.into(),
-            self.day.0.into(),
-        ]
-    }
-
-    /// Returns a vector of all time singular `TemporalUnits`.
-    fn time_singulars(&self) -> Vec<JsString> {
-        vec![
-            self.hour.0.into(),
-            self.minute.0.into(),
-            self.second.0.into(),
-            self.millisecond.0.into(),
-            self.microsecond.0.into(),
-            self.nanosecond.0.into(),
-        ]
-    }
-
-    /// Return a vector of all datetime singular `TemporalUnits`.
-    fn datetime_singulars(&self) -> Vec<JsString> {
-        let mut output = self.date_singulars();
-        output.extend(self.time_singulars());
-        output
-    }
-
-    /// Return a vector of all stored singular and plural `TemporalUnits`.
-    fn all(&self) -> Vec<(&'static [u16], &'static [u16])> {
-        vec![
-            self.year,
-            self.month,
-            self.week,
-            self.day,
-            self.hour,
-            self.minute,
-            self.second,
-            self.millisecond,
-            self.microsecond,
-            self.nanosecond,
-        ]
-    }
-
-    fn append_plural_units(&self, singulars: &mut Vec<JsString>) {
-        let units_table = self.all();
-        for (singular, plural) in units_table {
-            let singular_string: JsString = singular.into();
-            if singulars.contains(&singular_string) {
-                singulars.push(plural.into());
-            }
-        }
-    }
-
-    fn plural_lookup(&self, value: &JsString) -> JsString {
-        let units_table = self.all();
-        for (singular, plural) in units_table {
-            if plural == value {
-                return singular.into();
-            }
-        }
-        value.clone()
-    }
-}
-
 /// The [`Temporal`][spec] builtin object.
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-objects
@@ -197,12 +88,12 @@ impl TemporalUnits {
 pub(crate) struct Temporal;
 
 impl BuiltInObject for Temporal {
-    const NAME: &'static str = "Temporal";
+    const NAME: JsString = StaticJsStrings::TEMPORAL;
 }
 
 impl IntrinsicObject for Temporal {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
@@ -211,32 +102,32 @@ impl IntrinsicObject for Temporal {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "Now",
+                js_string!("Now"),
                 realm.intrinsics().objects().now(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "Calendar",
+                js_string!("Calendar"),
                 realm.intrinsics().constructors().calendar().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "Duration",
+                js_string!("Duration"),
                 realm.intrinsics().constructors().duration().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "Instant",
+                js_string!("Instant"),
                 realm.intrinsics().constructors().instant().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "PlainDate",
+                js_string!("PlainDate"),
                 realm.intrinsics().constructors().plain_date().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "PlainDateTime",
+                js_string!("PlainDateTime"),
                 realm
                     .intrinsics()
                     .constructors()
@@ -245,7 +136,7 @@ impl IntrinsicObject for Temporal {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "PlainMonthDay",
+                js_string!("PlainMonthDay"),
                 realm
                     .intrinsics()
                     .constructors()
@@ -254,12 +145,12 @@ impl IntrinsicObject for Temporal {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "PlainTime",
+                js_string!("PlainTime"),
                 realm.intrinsics().constructors().plain_time().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "PlainYearMonth",
+                js_string!("PlainYearMonth"),
                 realm
                     .intrinsics()
                     .constructors()
@@ -268,12 +159,12 @@ impl IntrinsicObject for Temporal {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "TimeZone",
+                js_string!("TimeZone"),
                 realm.intrinsics().constructors().time_zone().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "ZonedDateTime",
+                js_string!("ZonedDateTime"),
                 realm
                     .intrinsics()
                     .constructors()
@@ -594,7 +485,7 @@ pub(crate) fn to_relative_temporal_object(
 ) -> JsResult<JsValue> {
     // 1. Assert: Type(options) is Object.
     // 2. Let value be ? Get(options, "relativeTo").
-    let value = options.get("relativeTo", context)?;
+    let value = options.get(js_string!("relativeTo"), context)?;
     // 3. If value is undefined, then
     if value.is_undefined() {
         // a. Return value.

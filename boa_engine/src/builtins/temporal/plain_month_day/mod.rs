@@ -2,9 +2,10 @@
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    object::internal_methods::get_prototype_from_constructor,
+    object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::Attribute,
     realm::Realm,
+    string::common::StaticJsStrings,
     Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
@@ -19,12 +20,12 @@ pub struct PlainMonthDay {
 }
 
 impl BuiltInObject for PlainMonthDay {
-    const NAME: &'static str = "Temporal.PlainMonthDay";
+    const NAME: JsString = StaticJsStrings::PLAIN_MD;
 }
 
 impl IntrinsicObject for PlainMonthDay {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_property(
@@ -97,26 +98,24 @@ pub(crate) fn create_temporal_month_day(
     };
 
     // 4. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.PlainMonthDay.prototype%", « [[InitializedTemporalMonthDay]], [[ISOMonth]], [[ISODay]], [[ISOYear]], [[Calendar]] »).
-    let new_month_day = get_prototype_from_constructor(
+    let proto = get_prototype_from_constructor(
         &new_target,
         StandardConstructors::plain_month_day,
         context,
     )?;
 
-    let mut obj = new_month_day.borrow_mut();
-    let month_day = obj
-        .as_plain_month_day_mut()
-        .expect("this value must be a date");
-
     // 5. Set object.[[ISOMonth]] to isoMonth.
     // 6. Set object.[[ISODay]] to isoDay.
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISOYear]] to referenceISOYear.
-    month_day.inner = iso;
-    month_day.calendar = calendar;
-
-    drop(obj);
+    let obj = JsObject::from_proto_and_data(
+        proto,
+        ObjectData::plain_month_day(PlainMonthDay {
+            inner: iso,
+            calendar,
+        }),
+    );
 
     // 9. Return object.
-    Ok(new_month_day.into())
+    Ok(obj.into())
 }

@@ -4,7 +4,8 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     realm::Realm,
-    Context, JsNativeError, JsObject, JsResult, JsSymbol, JsValue,
+    string::common::StaticJsStrings,
+    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -20,12 +21,12 @@ pub struct PlainTime {
 }
 
 impl BuiltInObject for PlainTime {
-    const NAME: &'static str = "Temporal.PlainTime";
+    const NAME: JsString = StaticJsStrings::PLAIN_TIME;
 }
 
 impl IntrinsicObject for PlainTime {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_property(

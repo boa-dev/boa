@@ -5,12 +5,12 @@ use crate::{
         temporal::{create_temporal_time_zone, default_time_zone},
         BuiltInBuilder, BuiltInObject, IntrinsicObject,
     },
-    context::intrinsics::{Intrinsics, StandardConstructors},
-    object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
+    context::intrinsics::Intrinsics,
+    js_string,
     property::Attribute,
     realm::Realm,
-    value::IntegerOrInfinity,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsSymbol, JsValue, NativeFunction,
+    string::common::StaticJsStrings,
+    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -24,7 +24,7 @@ pub struct Now;
 impl IntrinsicObject for Now {
     /// Initializes the `Temporal.Now` object.
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         // is an ordinary object.
         // has a [[Prototype]] internal slot whose value is %Object.prototype%.
@@ -37,14 +37,14 @@ impl IntrinsicObject for Now {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(Self::time_zone_id, "timeZoneId", 0)
-            .static_method(Self::instant, "instant", 0)
-            .static_method(Self::plain_date_time, "plainDateTime", 2)
-            .static_method(Self::plain_date_time_iso, "plainDateTimeISO", 1)
-            .static_method(Self::zoned_date_time, "zonedDateTime", 2)
-            .static_method(Self::zoned_date_time_iso, "zonedDateTimeISO", 1)
-            .static_method(Self::plain_date, "plainDate", 2)
-            .static_method(Self::plain_date_iso, "plainDateISO", 1)
+            .static_method(Self::time_zone_id, js_string!("timeZoneId"), 0)
+            .static_method(Self::instant, js_string!("instant"), 0)
+            .static_method(Self::plain_date_time, js_string!("plainDateTime"), 2)
+            .static_method(Self::plain_date_time_iso, js_string!("plainDateTimeISO"), 1)
+            .static_method(Self::zoned_date_time, js_string!("zonedDateTime"), 2)
+            .static_method(Self::zoned_date_time_iso, js_string!("zonedDateTimeISO"), 1)
+            .static_method(Self::plain_date, js_string!("plainDate"), 2)
+            .static_method(Self::plain_date_iso, js_string!("plainDateISO"), 1)
             .build();
     }
 
@@ -54,7 +54,7 @@ impl IntrinsicObject for Now {
 }
 
 impl BuiltInObject for Now {
-    const NAME: &'static str = "Temporal.Now";
+    const NAME: JsString = StaticJsStrings::NOW;
 }
 
 impl Now {
@@ -143,6 +143,7 @@ fn clamp_epoc_nanos(ns: JsBigInt) -> JsBigInt {
 }
 
 /// 2.3.2 `SystemUTCEpochMilliseconds`
+#[allow(unused)]
 fn system_utc_epoch_millis() -> JsResult<f64> {
     let now = host_system_utc_epoch_nanoseconds()?;
     Ok(now.to_f64().div_euclid(1_000_000_f64).floor())

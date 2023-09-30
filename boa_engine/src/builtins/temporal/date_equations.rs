@@ -2,7 +2,7 @@
 //!
 //! [spec]: https://tc39.es/proposal-temporal/#sec-date-equations
 
-use std::ops::{Add, Mul};
+use std::ops::Mul;
 
 pub(crate) fn epoch_time_to_day_number(t: f64) -> i32 {
     (t / super::NS_PER_DAY as f64).floor() as i32

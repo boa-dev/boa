@@ -1,4 +1,4 @@
-#![allow(dead_code, unused_variables)]
+// Boa's implementation of the `Temporal.Duration` Builtin Object.
 
 use crate::{
     builtins::{
@@ -7,10 +7,11 @@ use crate::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData},
-    property::{Attribute, PropertyKey},
+    property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
@@ -20,8 +21,7 @@ use super::{
     options::{
         get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
     },
-    plain_date::iso::IsoDateRecord,
-    to_integer_if_integral, zoned_date_time, DateTimeValues,
+    to_integer_if_integral, DateTimeValues,
 };
 
 mod record;
@@ -43,59 +43,59 @@ pub struct Duration {
 }
 
 impl BuiltInObject for Duration {
-    const NAME: &'static str = "Temporal.Duration";
+    const NAME: JsString = StaticJsStrings::DURATION;
 }
 
 impl IntrinsicObject for Duration {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_years = BuiltInBuilder::callable(realm, Self::get_years)
-            .name("get Years")
+            .name(js_string!("get Years"))
             .build();
 
         let get_months = BuiltInBuilder::callable(realm, Self::get_months)
-            .name("get Months")
+            .name(js_string!("get Months"))
             .build();
 
         let get_weeks = BuiltInBuilder::callable(realm, Self::get_weeks)
-            .name("get Weeks")
+            .name(js_string!("get Weeks"))
             .build();
 
         let get_days = BuiltInBuilder::callable(realm, Self::get_days)
-            .name("get Days")
+            .name(js_string!("get Days"))
             .build();
 
         let get_hours = BuiltInBuilder::callable(realm, Self::get_hours)
-            .name("get Hours")
+            .name(js_string!("get Hours"))
             .build();
 
         let get_minutes = BuiltInBuilder::callable(realm, Self::get_minutes)
-            .name("get Minutes")
+            .name(js_string!("get Minutes"))
             .build();
 
         let get_seconds = BuiltInBuilder::callable(realm, Self::get_seconds)
-            .name("get Seconds")
+            .name(js_string!("get Seconds"))
             .build();
 
         let get_milliseconds = BuiltInBuilder::callable(realm, Self::get_milliseconds)
-            .name("get Milliseconds")
+            .name(js_string!("get Milliseconds"))
             .build();
 
         let get_microseconds = BuiltInBuilder::callable(realm, Self::get_microseconds)
-            .name("get Microseconds")
+            .name(js_string!("get Microseconds"))
             .build();
 
         let get_nanoseconds = BuiltInBuilder::callable(realm, Self::get_nanoseconds)
-            .name("get Nanoseconds")
+            .name(js_string!("get Nanoseconds"))
             .build();
 
         let get_sign = BuiltInBuilder::callable(realm, Self::get_sign)
-            .name("get Sign")
+            .name(js_string!("get Sign"))
             .build();
 
         let is_blank = BuiltInBuilder::callable(realm, Self::get_blank)
-            .name("get blank")
+            .name(js_string!("get blank"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -146,15 +146,15 @@ impl IntrinsicObject for Duration {
             )
             .accessor(utf16!("sign"), Some(get_sign), None, Attribute::default())
             .accessor(utf16!("blank"), Some(is_blank), None, Attribute::default())
-            .method(Self::with, "with", 1)
-            .method(Self::negated, "negated", 0)
-            .method(Self::abs, "abs", 0)
-            .method(Self::add, "add", 2)
-            .method(Self::subtract, "subtract", 2)
-            .method(Self::round, "round", 1)
-            .method(Self::total, "total", 1)
-            .method(Self::to_string, "toString", 1)
-            .method(Self::to_json, "toJSON", 0)
+            .method(Self::with, js_string!("with"), 1)
+            .method(Self::negated, js_string!("negated"), 0)
+            .method(Self::abs, js_string!("abs"), 0)
+            .method(Self::add, js_string!("add"), 2)
+            .method(Self::subtract, js_string!("subtract"), 2)
+            .method(Self::round, js_string!("round"), 1)
+            .method(Self::total, js_string!("total"), 1)
+            .method(Self::to_string, js_string!("toString"), 1)
+            .method(Self::to_json, js_string!("toJSON"), 0)
             .build();
     }
 
@@ -519,7 +519,7 @@ impl Duration {
     }
 
     /// 7.3.16 `Temporal.Duration.prototype.negated ( )`
-    pub(crate) fn negated(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn negated(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         // 3. Return ! CreateNegatedTemporalDuration(duration).
@@ -553,18 +553,14 @@ impl Duration {
     }
 
     /// 7.3.18 `Temporal.Duration.prototype.add ( other [ , options ] )`
-    pub(crate) fn add(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn add(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// 7.3.19 `Temporal.Duration.prototype.subtract ( other [ , options ] )`
-    pub(crate) fn subtract(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn subtract(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("not yet implemented.")
             .into())
@@ -601,7 +597,7 @@ impl Duration {
                 let new_round_to = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 new_round_to.create_data_property_or_throw(
-                    "smallestUnit",
+                    utf16!("smallestUnit"),
                     param_string,
                     context,
                 )?;
@@ -774,7 +770,11 @@ impl Duration {
                 // b. Set totalOf to OrdinaryObjectCreate(null).
                 let total_of = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(totalOf, "unit", paramString).
-                total_of.create_data_property_or_throw("unit", param_string.clone(), context)?;
+                total_of.create_data_property_or_throw(
+                    utf16!("unit"),
+                    param_string.clone(),
+                    context,
+                )?;
                 total_of
             }
             // 5. Else,
@@ -903,7 +903,7 @@ impl Duration {
 
     /// 7.3.22 `Temporal.Duration.prototype.toString ( [ options ] )`
     pub(crate) fn to_string(
-        this: &JsValue,
+        _this: &JsValue,
         _: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
@@ -913,7 +913,11 @@ impl Duration {
     }
 
     /// 7.3.23 `Temporal.Duration.prototype.toJSON ( )`
-    pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn to_json(
+        _this: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("not yet implemented.")
             .into())
@@ -923,10 +927,7 @@ impl Duration {
 // -- Duration Abstract Operations --
 
 /// 7.5.8 `ToTemporalDuration ( item )`
-pub(crate) fn to_temporal_duration(
-    item: &JsValue,
-    context: &mut Context<'_>,
-) -> JsResult<Duration> {
+pub(crate) fn to_temporal_duration(item: &JsValue) -> JsResult<DurationRecord> {
     // 1a. If Type(item) is Object
     if item.is_object() {
         // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
@@ -937,16 +938,14 @@ pub(crate) fn to_temporal_duration(
             // a. Return item.
             let obj = o.borrow();
             let duration = obj.as_duration().expect("must be a duration.");
-            return Ok(Duration {
-                inner: duration.inner,
-            });
+            return Ok(duration.inner.clone());
         }
     }
 
     // 2. Let result be ? ToTemporalDurationRecord(item).
     let result = to_temporal_duration_record(item)?;
     // 3. Return ! CreateTemporalDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], result.[[Hours]], result.[[Minutes]], result.[[Seconds]], result.[[Milliseconds]], result.[[Microseconds]], result.[[Nanoseconds]]).
-    Ok(Duration { inner: result })
+    Ok(result)
 }
 
 /// 7.5.9 `ToTemporalDurationRecord ( temporalDurationLike )`

@@ -2,25 +2,21 @@
 
 use crate::{
     builtins::temporal::{
-        self, create_temporal_date, create_temporal_duration,
-        date_equations::{
-            epoch_time_for_year, mathematical_days_in_year, mathematical_in_leap_year,
-        },
-        options::{get_temporal_unit, ArithmeticOverflow, TemporalUnit},
+        self, create_temporal_date,
+        date_equations::mathematical_days_in_year,
+        options::{ArithmeticOverflow, TemporalUnit},
         plain_date::iso::IsoDateRecord,
-        to_temporal_date,
     },
     js_string,
     property::PropertyKey,
     string::utf16,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::BuiltinCalendar;
 
 use icu_calendar::{
     iso::Iso,
-    types::IsoWeekday,
     week::{RelativeUnit, WeekCalculator},
     Calendar, Date,
 };
@@ -55,7 +51,7 @@ impl BuiltinCalendar for IsoCalendar {
         // 9. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], "iso8601").
         Ok(create_temporal_date(
             IsoDateRecord::from_date_iso(date),
-            "iso8601".into(),
+            js_string!("iso8601").into(),
             None,
             context,
         )?
@@ -88,7 +84,7 @@ impl BuiltinCalendar for IsoCalendar {
         // 10. Return ? CreateTemporalYearMonth(result.[[Year]], result.[[Month]], "iso8601", result.[[ReferenceISODay]]).
         temporal::create_temporal_year_month(
             IsoDateRecord::from_date_iso(result),
-            "iso8601".into(),
+            js_string!("iso8601").into(),
             None,
             context,
         )
@@ -120,7 +116,7 @@ impl BuiltinCalendar for IsoCalendar {
         // 10. Return ? CreateTemporalMonthDay(result.[[Month]], result.[[Day]], "iso8601", result.[[ReferenceISOYear]]).
         temporal::create_temporal_month_day(
             IsoDateRecord::from_date_iso(result),
-            JsValue::from("iso8601"),
+            js_string!("iso8601").into(),
             None,
             context,
         )
@@ -209,7 +205,7 @@ impl BuiltinCalendar for IsoCalendar {
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(date.month().code.to_string().into())
+        Ok(JsString::from(date.month().code.to_string()).into())
     }
 
     /// Returns the `day` for the `Iso` calendar.
@@ -354,9 +350,9 @@ impl BuiltinCalendar for IsoCalendar {
             let key_string = key.to_string();
             result.push(key);
             if key_string.as_str() == "month" {
-                result.push("monthCode".into());
+                result.push(utf16!("monthCode").into());
             } else if key_string.as_str() == "monthCode" {
-                result.push("month".into());
+                result.push(utf16!("month").into());
             }
         }
         result

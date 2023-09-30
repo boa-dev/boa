@@ -9,20 +9,18 @@ use crate::{
             options::{
                 get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
             },
-            Duration,
         },
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData},
-    property::{Attribute, PropertyKey},
+    property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     Context, JsArgs, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use num_bigint::ToBigInt;
-use num_traits::ToPrimitive;
 
 use super::{duration, ns_max_instant, ns_min_instant, MICRO_PER_DAY, MILLI_PER_DAY, NS_PER_DAY};
 
@@ -37,27 +35,27 @@ pub struct Instant {
 }
 
 impl BuiltInObject for Instant {
-    const NAME: &'static str = "Temporal.Instant";
+    const NAME: JsString = StaticJsStrings::INSTANT;
 }
 
 impl IntrinsicObject for Instant {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_seconds = BuiltInBuilder::callable(realm, Self::get_epoc_seconds)
-            .name("get epochSeconds")
+            .name(js_string!("get epochSeconds"))
             .build();
 
         let get_millis = BuiltInBuilder::callable(realm, Self::get_epoc_milliseconds)
-            .name("get epochMilliseconds")
+            .name(js_string!("get epochMilliseconds"))
             .build();
 
         let get_micros = BuiltInBuilder::callable(realm, Self::get_epoc_microseconds)
-            .name("get epochMicroseconds")
+            .name(js_string!("get epochMicroseconds"))
             .build();
 
         let get_nanos = BuiltInBuilder::callable(realm, Self::get_epoc_nanoseconds)
-            .name("get epochNanoseconds")
+            .name(js_string!("get epochNanoseconds"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -90,14 +88,18 @@ impl IntrinsicObject for Instant {
                 None,
                 Attribute::default(),
             )
-            .method(Self::add, "add", 1)
-            .method(Self::subtract, "subtract", 1)
-            .method(Self::until, "until", 2)
-            .method(Self::since, "since", 2)
-            .method(Self::round, "round", 1)
-            .method(Self::equals, "equals", 1)
-            .method(Self::to_zoned_date_time, "toZonedDateTime", 1)
-            .method(Self::to_zoned_date_time_iso, "toZonedDateTimeISO", 1)
+            .method(Self::add, js_string!("add"), 1)
+            .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::until, js_string!("until"), 2)
+            .method(Self::since, js_string!("since"), 2)
+            .method(Self::round, js_string!("round"), 1)
+            .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::to_zoned_date_time, js_string!("toZonedDateTime"), 1)
+            .method(
+                Self::to_zoned_date_time_iso,
+                js_string!("toZonedDateTimeISO"),
+                1,
+            )
             .build();
     }
 
@@ -344,9 +346,9 @@ impl Instant {
                 .expect("roundTo is confirmed to be a string here.");
             // b. Set roundTo to OrdinaryObjectCreate(null).
             let new_round_to = JsObject::with_null_proto();
-            // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
+            // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit"), paramString).
             new_round_to.create_data_property_or_throw(
-                "smallestUnit",
+                utf16!("smallestUnit"),
                 param_string.clone(),
                 context,
             )?;
@@ -367,7 +369,7 @@ impl Instant {
             get_option::<RoundingMode>(&round_to, utf16!("roundingMode"), false, context)?
                 .unwrap_or_default();
 
-        // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", time, required).
+        // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit"), time, required).
         let smallest_unit = get_temporal_unit(
             &round_to,
             utf16!("smallestUnit"),
@@ -378,19 +380,19 @@ impl Instant {
         )?;
 
         let maximum = match smallest_unit {
-            // 10. If smallestUnit is "hour", then
+            // 10. If smallestUnit is "hour"), then
             // a. Let maximum be HoursPerDay.
             TemporalUnit::Hour => 24,
-            // 11. Else if smallestUnit is "minute", then
+            // 11. Else if smallestUnit is "minute"), then
             // a. Let maximum be MinutesPerHour × HoursPerDay.
             TemporalUnit::Minute => 14400,
-            // 12. Else if smallestUnit is "second", then
+            // 12. Else if smallestUnit is "second"), then
             // a. Let maximum be SecondsPerMinute × MinutesPerHour × HoursPerDay.
             TemporalUnit::Second => 86400,
-            // 13. Else if smallestUnit is "millisecond", then
+            // 13. Else if smallestUnit is "millisecond"), then
             // a. Let maximum be ℝ(msPerDay).
             TemporalUnit::Millisecond => MILLI_PER_DAY,
-            // 14. Else if smallestUnit is "microsecond", then
+            // 14. Else if smallestUnit is "microsecond"), then
             // a. Let maximum be 103 × ℝ(msPerDay).
             TemporalUnit::Microsecond => MICRO_PER_DAY,
             // 15. Else,
@@ -504,7 +506,7 @@ fn create_temporal_instant(
             .constructor()
             .into()
     });
-    // 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Instant.prototype%", « [[InitializedTemporalInstant]], [[Nanoseconds]] »).
+    // 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Instant.prototype%"), « [[InitializedTemporalInstant]], [[Nanoseconds]] »).
     let proto =
         get_prototype_from_constructor(&new_target, StandardConstructors::instant, context)?;
 
@@ -633,27 +635,27 @@ fn round_temporal_instant(
     rounding_mode: RoundingMode,
 ) -> JsResult<JsBigInt> {
     let increment_ns = match unit {
-        // 1. If unit is "hour", then
+        // 1. If unit is "hour"), then
         TemporalUnit::Hour => {
             // a. Let incrementNs be increment × 3.6 × 10^12.
             increment as i64 * NANOSECONDS_PER_HOUR
         }
-        // 2. Else if unit is "minute", then
+        // 2. Else if unit is "minute"), then
         TemporalUnit::Minute => {
             // a. Let incrementNs be increment × 6 × 10^10.
             increment as i64 * NANOSECONDS_PER_MINUTE
         }
-        // 3. Else if unit is "second", then
+        // 3. Else if unit is "second"), then
         TemporalUnit::Second => {
             // a. Let incrementNs be increment × 10^9.
             increment as i64 * NANOSECONDS_PER_SECOND
         }
-        // 4. Else if unit is "millisecond", then
+        // 4. Else if unit is "millisecond"), then
         TemporalUnit::Millisecond => {
             // a. Let incrementNs be increment × 10^6.
             increment as i64 * 1_000_000
         }
-        // 5. Else if unit is "microsecond", then
+        // 5. Else if unit is "microsecond"), then
         TemporalUnit::Microsecond => {
             // a. Let incrementNs be increment × 10^3.
             increment as i64 * 1000
@@ -689,7 +691,7 @@ fn diff_temporal_instant(
     let resolved_options =
         super::snapshot_own_properties(&get_options_object(options)?, None, None, context)?;
 
-    // 4. Let settings be ? GetDifferenceSettings(operation, resolvedOptions, time, « », "nanosecond", "second").
+    // 4. Let settings be ? GetDifferenceSettings(operation, resolvedOptions, time, « », "nanosecond"), "second").
     let settings = super::get_diff_settings(
         op,
         &resolved_options,

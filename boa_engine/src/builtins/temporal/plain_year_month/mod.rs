@@ -1,17 +1,18 @@
-#![allow(dead_code, unused_variables)]
+//! Boa's implementation of the `Temporal.PlainYearMonth` builtin object.
 
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
 
-use super::{plain_date::iso::IsoDateRecord, TemporalFields};
+use super::plain_date::iso::IsoDateRecord;
 
 /// The `Temporal.PlainYearMonth` object.
 #[derive(Debug, Clone)]
@@ -21,43 +22,43 @@ pub struct PlainYearMonth {
 }
 
 impl BuiltInObject for PlainYearMonth {
-    const NAME: &'static str = "Temporal.PlainYearMonth";
+    const NAME: JsString = StaticJsStrings::PLAIN_YM;
 }
 
 impl IntrinsicObject for PlainYearMonth {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
-            .name("get calendarId")
+            .name(js_string!("get calendarId"))
             .build();
 
         let get_year = BuiltInBuilder::callable(realm, Self::get_year)
-            .name("get year")
+            .name(js_string!("get year"))
             .build();
 
         let get_month = BuiltInBuilder::callable(realm, Self::get_month)
-            .name("get month")
+            .name(js_string!("get month"))
             .build();
 
         let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
-            .name("get monthCode")
+            .name(js_string!("get monthCode"))
             .build();
 
         let get_days_in_month = BuiltInBuilder::callable(realm, Self::get_days_in_month)
-            .name("get daysInMonth")
+            .name(js_string!("get daysInMonth"))
             .build();
 
         let get_days_in_year = BuiltInBuilder::callable(realm, Self::get_days_in_year)
-            .name("get daysInYear")
+            .name(js_string!("get daysInYear"))
             .build();
 
         let get_months_in_year = BuiltInBuilder::callable(realm, Self::get_months_in_year)
-            .name("get monthsInYear")
+            .name(js_string!("get monthsInYear"))
             .build();
 
         let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year)
-            .name("get inLeapYear")
+            .name(js_string!("get inLeapYear"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -104,12 +105,12 @@ impl IntrinsicObject for PlainYearMonth {
                 None,
                 Attribute::default(),
             )
-            .method(Self::with, "with", 2)
-            .method(Self::add, "add", 2)
-            .method(Self::subtract, "subtract", 2)
-            .method(Self::until, "until", 2)
-            .method(Self::since, "since", 2)
-            .method(Self::equals, "equals", 1)
+            .method(Self::with, js_string!("with"), 2)
+            .method(Self::add, js_string!("add"), 2)
+            .method(Self::subtract, js_string!("subtract"), 2)
+            .method(Self::until, js_string!("until"), 2)
+            .method(Self::since, js_string!("since"), 2)
+            .method(Self::equals, js_string!("equals"), 1)
             .build();
     }
 
@@ -157,56 +158,65 @@ impl BuiltInConstructor for PlainYearMonth {
 
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
         let record = IsoDateRecord::new(y, m, ref_day);
-        create_temporal_year_month(record, JsValue::from("iso8601"), Some(new_target), context)
+        create_temporal_year_month(
+            record,
+            JsValue::from(js_string!("iso8601")),
+            Some(new_target),
+            context,
+        )
     }
 }
 
 // ==== `PlainYearMonth` Accessor Implementations ====
 
 impl PlainYearMonth {
-    fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_calendar_id(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_year(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_month(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_month_code(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_days_in_year(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_days_in_month(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_months_in_year(
+        _this: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_in_leap_year(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
@@ -216,37 +226,37 @@ impl PlainYearMonth {
 // ==== `PlainYearMonth` Method Implementations ====
 
 impl PlainYearMonth {
-    fn with(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn with(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn add(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn add(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn subtract(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn subtract(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn until(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn until(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn since(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn since(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn equals(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn equals(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
@@ -256,36 +266,7 @@ impl PlainYearMonth {
 // ==== Abstract Operations ====
 
 // 9.5.2 `RegulateISOYearMonth ( year, month, overflow )`
-pub(crate) fn regulate_iso_year_month(
-    year: i32,
-    month: i32,
-    overflow: &JsString,
-) -> JsResult<(i32, i32)> {
-    // 1. Assert: year and month are integers.
-    // 2. Assert: overflow is either "constrain" or "reject".
-    // 3. If overflow is "constrain", then
-    let month = match overflow.to_std_string_escaped().as_str() {
-        "constrain" => {
-            // a. Set month to the result of clamping month between 1 and 12.
-            // b. Return the Record { [[Year]]: year, [[Month]]: month }.
-            month.clamp(1, 12)
-        }
-        "reject" => {
-            // a. Assert: overflow is "reject".
-            // b. If month < 1 or month > 12, throw a RangeError exception.
-            if !(1..=12).contains(&month) {
-                return Err(JsNativeError::range()
-                    .with_message("month is not within the valid range.")
-                    .into());
-            }
-            // c. Return the Record { [[Year]]: year, [[Month]]: month }.
-            month
-        }
-        _ => unreachable!(),
-    };
-
-    Ok((year, month))
-}
+// Implemented on `TemporalFields`.
 
 // 9.5.5 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
 pub(crate) fn create_temporal_year_month(

@@ -5,12 +5,14 @@ mod annotations;
 mod date_time;
 mod duration;
 mod grammar;
-#[cfg(test)]
-mod tests;
 mod time;
 mod time_zone;
 
-use boa_ast::temporal::{DateRecord, DurationParseRecord, IsoParseRecord, TimeZone};
+use boa_ast::temporal::{DurationParseRecord, ISODate, IsoParseRecord, TimeZone};
+
+#[cfg(feature = "experimental")]
+#[cfg(test)]
+mod tests;
 
 // TODO: optimize where possible.
 //
@@ -69,32 +71,33 @@ impl TemporalYearMonthString {
     ///
     /// The parse will error if the provided target is not valid
     /// ISO8601 grammar.
-    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<IsoParseRecord> {
+    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<ISODate> {
         if date_time::peek_year_month(cursor)? {
             let ym = date_time::parse_year_month(cursor)?;
 
-            let (tz_annotation, calendar) = if cursor.check_or(false, |ch| ch == '[') {
+            let calendar = if cursor.check_or(false, |ch| ch == '[') {
                 let set = annotations::parse_annotation_set(false, cursor)?;
-                (set.tz, set.calendar)
+                set.calendar
             } else {
-                (None, None)
+                None
             };
 
-            let tz = tz_annotation.map(|annotation| annotation.tz);
-
-            return Ok(IsoParseRecord {
-                date: DateRecord {
-                    year: ym.0,
-                    month: ym.1,
-                    day: 0,
-                },
-                time: None,
-                tz,
+            return Ok(ISODate {
+                year: ym.0,
+                month: ym.1,
+                day: 0,
                 calendar,
             });
         }
 
-        date_time::parse_annotated_date_time(false, false, false, cursor)
+        let parse_record = date_time::parse_annotated_date_time(false, false, false, cursor)?;
+
+        Ok(ISODate {
+            year: parse_record.date.year,
+            month: parse_record.date.month,
+            day: parse_record.date.day,
+            calendar: parse_record.calendar,
+        })
     }
 }
 
@@ -111,32 +114,33 @@ impl TemporalMonthDayString {
     ///
     /// The parse will error if the provided target is not valid
     /// ISO8601 grammar.
-    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<IsoParseRecord> {
+    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<ISODate> {
         if date_time::peek_month_day(cursor)? {
             let md = date_time::parse_month_day(cursor)?;
 
-            let (tz_annotation, calendar) = if cursor.check_or(false, |ch| ch == '[') {
+            let calendar = if cursor.check_or(false, |ch| ch == '[') {
                 let set = annotations::parse_annotation_set(false, cursor)?;
-                (set.tz, set.calendar)
+                set.calendar
             } else {
-                (None, None)
+                None
             };
 
-            let tz = tz_annotation.map(|annotation| annotation.tz);
-
-            return Ok(IsoParseRecord {
-                date: DateRecord {
-                    year: 0,
-                    month: md.0,
-                    day: md.1,
-                },
-                time: None,
-                tz,
+            return Ok(ISODate {
+                year: 0,
+                month: md.0,
+                day: md.1,
                 calendar,
             });
         }
 
-        date_time::parse_annotated_date_time(false, false, false, cursor)
+        let parse_record = date_time::parse_annotated_date_time(false, false, false, cursor)?;
+
+        Ok(ISODate {
+            year: parse_record.date.year,
+            month: parse_record.date.month,
+            day: parse_record.date.day,
+            calendar: parse_record.calendar,
+        })
     }
 }
 

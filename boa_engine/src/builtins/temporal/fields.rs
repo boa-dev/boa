@@ -1,11 +1,13 @@
+//! A Rust native implementation of the `fields` object used in `Temporal`.
+
 use crate::{
-    js_string, property::PropertyKey, string::utf16, value::PreferredType, Context, JsNativeError,
-    JsObject, JsResult, JsString, JsValue,
+    js_string, property::PropertyKey, value::PreferredType, Context, JsNativeError, JsObject,
+    JsResult, JsString, JsValue,
 };
 
-use super::{options::ArithmeticOverflow, plain_date::iso::IsoDateRecord};
+use super::options::ArithmeticOverflow;
 
-use bitflags::{bitflags, iter::Iter, Flags};
+use bitflags::bitflags;
 use rustc_hash::FxHashSet;
 
 bitflags! {
@@ -273,6 +275,7 @@ impl TemporalFields {
 }
 
 impl TemporalFields {
+    // TODO: Shift to JsString or utf16 over String.
     /// A method for creating a Native representation for `TemporalFields` from
     /// a `JsObject`.
     ///
@@ -329,7 +332,8 @@ impl TemporalFields {
             // b. If property is not equal to previousProperty, then
             if new_value {
                 // i. Let value be ? Get(fields, property).
-                let value = fields.get(PropertyKey::from(field.clone()), context)?;
+                let value =
+                    fields.get(PropertyKey::from(JsString::from(field.clone())), context)?;
                 // ii. If value is not undefined, then
                 if !value.is_undefined() {
                     // 1. Set any to true.
@@ -395,21 +399,21 @@ impl TemporalFields {
             match bit {
                 FieldMap::YEAR => {
                     obj.create_data_property_or_throw(
-                        "year",
+                        js_string!("year"),
                         self.year.map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
                 FieldMap::MONTH => {
                     obj.create_data_property_or_throw(
-                        "month",
+                        js_string!("month"),
                         self.month.map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
                 FieldMap::MONTH_CODE => {
                     obj.create_data_property_or_throw(
-                        "monthCode",
+                        js_string!("monthCode"),
                         self.month_code
                             .as_ref()
                             .map_or(JsValue::undefined(), |f| f.clone().into()),
@@ -418,32 +422,44 @@ impl TemporalFields {
                 }
                 FieldMap::DAY => {
                     obj.create_data_property(
-                        "day",
+                        js_string!("day"),
                         self.day().map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
                 FieldMap::HOUR => {
-                    obj.create_data_property("hour", self.hour, context)?;
+                    obj.create_data_property(js_string!("hour"), self.hour, context)?;
                 }
                 FieldMap::MINUTE => {
-                    obj.create_data_property("minute", self.minute, context)?;
+                    obj.create_data_property(js_string!("minute"), self.minute, context)?;
                 }
                 FieldMap::SECOND => {
-                    obj.create_data_property_or_throw("second", self.second, context)?;
+                    obj.create_data_property_or_throw(js_string!("second"), self.second, context)?;
                 }
                 FieldMap::MILLISECOND => {
-                    obj.create_data_property_or_throw("millisecond", self.millisecond, context)?;
+                    obj.create_data_property_or_throw(
+                        js_string!("millisecond"),
+                        self.millisecond,
+                        context,
+                    )?;
                 }
                 FieldMap::MICROSECOND => {
-                    obj.create_data_property_or_throw("microsecond", self.microsecond, context)?;
+                    obj.create_data_property_or_throw(
+                        js_string!("microsecond"),
+                        self.microsecond,
+                        context,
+                    )?;
                 }
                 FieldMap::NANOSECOND => {
-                    obj.create_data_property_or_throw("nanosecond", self.nanosecond, context)?;
+                    obj.create_data_property_or_throw(
+                        js_string!("nanosecond"),
+                        self.nanosecond,
+                        context,
+                    )?;
                 }
                 FieldMap::OFFSET => {
                     obj.create_data_property_or_throw(
-                        "offset",
+                        js_string!("offset"),
                         self.offset
                             .as_ref()
                             .map_or(JsValue::undefined(), |s| s.clone().into()),
@@ -452,7 +468,7 @@ impl TemporalFields {
                 }
                 FieldMap::ERA => {
                     obj.create_data_property_or_throw(
-                        "era",
+                        js_string!("era"),
                         self.era
                             .as_ref()
                             .map_or(JsValue::undefined(), |s| s.clone().into()),
@@ -461,14 +477,14 @@ impl TemporalFields {
                 }
                 FieldMap::ERA_YEAR => {
                     obj.create_data_property_or_throw(
-                        "eraYear",
+                        js_string!("eraYear"),
                         self.era_year.map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
                 FieldMap::TIME_ZONE => {
                     obj.create_data_property_or_throw(
-                        "timeZone",
+                        js_string!("timeZone"),
                         self.time_zone
                             .as_ref()
                             .map_or(JsValue::undefined(), |s| s.clone().into()),

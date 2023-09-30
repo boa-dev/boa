@@ -245,7 +245,7 @@ impl Segmenter {
         //     b. Let v be the value of segmenter's internal slot whose name is the Internal Slot value of the current row.
         //     c. Assert: v is not undefined.
         //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
-        let options = ObjectInitializer::new(context.realm().clone())
+        let options = ObjectInitializer::new(context)
             .property(
                 js_string!("locale"),
                 js_string!(segmenter.locale.to_string()),
@@ -310,7 +310,7 @@ fn create_segment_data_object(
     let segment = js_string!(&string[range]);
 
     // 5. Let result be OrdinaryObjectCreate(%Object.prototype%).
-    let object = &mut ObjectInitializer::new(context.realm().clone());
+    let object = &mut ObjectInitializer::new(context);
 
     object
         // 7. Perform ! CreateDataPropertyOrThrow(result, "segment", segment).

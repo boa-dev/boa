@@ -96,20 +96,20 @@ fn temporal_annotated_date_time() {
 fn temporal_year_month() {
     let possible_year_months = &[
         "+002020-11",
-        "2020-11[+04:00]",
+        "2020-11[u-ca=iso8601]",
         "+00202011",
-        "202011[+04:00]",
+        "202011[u-ca=iso8601]",
     ];
 
     for ym in possible_year_months {
         let result = TemporalYearMonthString::parse(&mut IsoCursor::new(ym)).unwrap();
 
-        assert_eq!(result.date.year, 2020);
-        assert_eq!(result.date.month, 11);
+        assert_eq!(result.year, 2020);
+        assert_eq!(result.month, 11);
 
-        let offset = &result.tz.unwrap().offset.unwrap();
-
-        assert_eq!(offset.hour, 4);
+        if let Some(calendar) = result.calendar {
+            assert_eq!(calendar, "iso8601");
+        }
     }
 }
 
@@ -120,8 +120,8 @@ fn temporal_month_day() {
     for md in possible_month_day {
         let result = TemporalMonthDayString::parse(&mut IsoCursor::new(md)).unwrap();
 
-        assert_eq!(result.date.month, 11);
-        assert_eq!(result.date.day, 7);
+        assert_eq!(result.month, 11);
+        assert_eq!(result.day, 7);
     }
 }
 

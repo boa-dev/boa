@@ -1,8 +1,5 @@
 #![allow(dead_code)]
 
-use boa_ast::temporal::{TzIdentifier, UtcOffset};
-use chrono::format::parse;
-
 use crate::{
     builtins::{
         temporal::to_zero_padded_decimal_string, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
@@ -10,14 +7,10 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, ObjectData, ObjectInitializer, CONSTRUCTOR,
-    },
+    object::{internal_methods::get_prototype_from_constructor, ObjectData, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
-    string::utf16,
-    value::{AbstractRelation, IntegerOrInfinity},
+    string::{common::StaticJsStrings, utf16},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
@@ -31,31 +24,51 @@ pub struct TimeZone {
 }
 
 impl BuiltInObject for TimeZone {
-    const NAME: &'static str = "Temporal.TimeZone";
+    const NAME: JsString = StaticJsStrings::TIMEZONE;
 }
 
 impl IntrinsicObject for TimeZone {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_id = BuiltInBuilder::callable(realm, Self::get_id)
-            .name("get Id")
+            .name(js_string!("get Id"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .method(
                 Self::get_offset_nanoseconds_for,
-                "getOffsetNanosecondsFor",
+                js_string!("getOffsetNanosecondsFor"),
                 1,
             )
-            .method(Self::get_offset_string_for, "getOffsetStringFor", 1)
-            .method(Self::get_plain_date_time_for, "getPlainDateTimeFor", 2)
-            .method(Self::get_instant_for, "getInstantFor", 2)
-            .method(Self::get_possible_instants_for, "getPossibleInstantFor", 1)
-            .method(Self::get_next_transition, "getNextTransition", 1)
-            .method(Self::get_previous_transition, "getPreviousTransition", 1)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::to_string, "toJSON", 0)
+            .method(
+                Self::get_offset_string_for,
+                js_string!("getOffsetStringFor"),
+                1,
+            )
+            .method(
+                Self::get_plain_date_time_for,
+                js_string!("getPlainDateTimeFor"),
+                2,
+            )
+            .method(Self::get_instant_for, js_string!("getInstantFor"), 2)
+            .method(
+                Self::get_possible_instants_for,
+                js_string!("getPossibleInstantFor"),
+                1,
+            )
+            .method(
+                Self::get_next_transition,
+                js_string!("getNextTransition"),
+                1,
+            )
+            .method(
+                Self::get_previous_transition,
+                js_string!("getPreviousTransition"),
+                1,
+            )
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_string, js_string!("toJSON"), 0)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -118,14 +131,13 @@ impl BuiltInConstructor for TimeZone {
 impl TimeZone {
     // NOTE: id, toJSON, toString currently share the exact same implementation -> Consolidate into one function and define multiple accesors?
     pub(crate) fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
         })?;
-        let o = o.borrow();
         let tz = o.as_time_zone().ok_or_else(|| {
             JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
         })?;
-        Ok(tz.identifier.clone().into())
+        Ok(JsString::from(tz.identifier.clone()).into())
     }
 
     pub(crate) fn get_offset_nanoseconds_for(
@@ -250,7 +262,7 @@ impl TimeZone {
             JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
         })?;
         // 3. Return timeZone.[[Identifier]].
-        Ok(tz.identifier.clone().into())
+        Ok(JsString::from(tz.identifier.clone()).into())
     }
 }
 

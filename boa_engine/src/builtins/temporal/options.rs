@@ -8,10 +8,8 @@
 //
 // https://github.com/tc39/proposal-temporal/blob/main/polyfill/index.d.ts
 
-use boa_macros::utf16;
-
 use crate::{
-    builtins::options::{get_option, ParsableOptionType, ParseRoundingModeError},
+    builtins::options::{get_option, ParsableOptionType},
     js_string, Context, JsNativeError, JsObject, JsResult,
 };
 use std::{fmt, str::FromStr};

@@ -1,6 +1,8 @@
-use crate::builtins::temporal::{
-    self, date_equations, plain_date::iso::IsoDateRecord, TemporalFields,
-};
+//! Calendar utility calculations
+
+// TODO: determine if which are needed.
+
+use crate::builtins::temporal::{self, date_equations, plain_date::iso::IsoDateRecord};
 use crate::JsString;
 
 /// 12.2.31 `ISODaysInMonth ( year, month )`
@@ -20,6 +22,7 @@ pub(crate) fn iso_days_in_month(year: i32, month: i32) -> i32 {
 /// 12.2.32 `ToISOWeekOfYear ( year, month, day )`
 ///
 /// Takes an `[[IsoYear]]`, `[[IsoMonth]]`, and `[[IsoDay]]` and returns a (week, year) record.
+#[allow(unused)]
 pub(crate) fn to_iso_week_of_year(year: i32, month: i32, day: i32) -> (i32, i32) {
     // Function constants
     // 2. Let wednesday be 3.
@@ -56,6 +59,7 @@ pub(crate) fn to_iso_week_of_year(year: i32, month: i32, day: i32) -> (i32, i32)
 }
 
 /// 12.2.33 `ISOMonthCode ( month )`
+#[allow(unused)]
 fn iso_month_code(month: i32) -> JsString {
     // TODO: optimize
     if month < 10 {
@@ -81,6 +85,7 @@ fn iso_month_code(month: i32) -> JsString {
 // TODO: determine usefulness.
 
 /// 12.2.39 `ToISODayOfYear ( year, month, day )`
+#[allow(unused)]
 fn to_iso_day_of_year(year: i32, month: i32, day: i32) -> i32 {
     // TODO: update fn parameter to take IsoDateRecord.
     let iso = IsoDateRecord::new(year, month - 1, day);
@@ -89,6 +94,7 @@ fn to_iso_day_of_year(year: i32, month: i32, day: i32) -> i32 {
 }
 
 /// 12.2.40 `ToISODayOfWeek ( year, month, day )`
+#[allow(unused)]
 pub(crate) fn to_iso_day_of_week(year: i32, month: i32, day: i32) -> i32 {
     let iso = IsoDateRecord::new(year, month - 1, day);
     let epoch_days = iso.as_epoch_days();

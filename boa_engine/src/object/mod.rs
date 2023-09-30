@@ -74,12 +74,6 @@ use crate::{
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
-#[cfg(feature = "temporal")]
-use crate::builtins::temporal::{
-    Calendar, Duration, Instant, PlainDate, PlainDateTime, PlainMonthDay, PlainTime,
-    PlainYearMonth, TimeZone, ZonedDateTime,
-};
-
 use boa_gc::{custom_trace, Finalize, Trace, WeakGc};
 use std::{
     any::{Any, TypeId},
@@ -459,43 +453,43 @@ pub enum ObjectKind {
     PluralRules(PluralRules),
 
     /// The `Temporal.Instant` object kind.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     Instant(Instant),
 
     /// The `Temporal.PlainDateTime` object kind.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     PlainDateTime(PlainDateTime),
 
     /// The `Temporal.PlainDate` object kind.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     PlainDate(PlainDate),
 
     /// The `Temporal.PlainTime` object kind.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     PlainTime(PlainTime),
 
     /// The `Temporal.PlainYearMonth` object kind.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     PlainYearMonth(PlainYearMonth),
 
     /// The `Temporal.PlainMonthDay` object kind.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     PlainMonthDay(PlainMonthDay),
 
     /// The `Temporal.TimeZone` object kind.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     TimeZone(Box<TimeZone>),
 
     /// The `Temporal.Duration` object kind.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     Duration(Duration),
 
     /// The `Temporal.ZonedDateTime` object kind.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     ZonedDateTime(ZonedDateTime),
 
     /// The `Temporal.Calendar` object kind.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     Calendar(Box<Calendar>),
 }
 
@@ -554,7 +548,7 @@ unsafe impl Trace for ObjectKind {
             | Self::Global
             | Self::Number(_)
             | Self::Symbol(_) => {}
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::Instant(_)
             | Self::PlainDateTime(_)
             | Self::PlainDate(_)
@@ -1021,7 +1015,7 @@ impl ObjectData {
     }
 
     /// Create the `Instant` object data
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     #[must_use]
     pub fn instant(instant: Instant) -> Self {
         Self {
@@ -1031,7 +1025,7 @@ impl ObjectData {
     }
 
     /// Create the `PlainDateTime` object data
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     #[must_use]
     pub fn plain_date_time(date_time: PlainDateTime) -> Self {
         Self {
@@ -1040,7 +1034,7 @@ impl ObjectData {
         }
     }
     /// Create the `PlainDate` object data
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     #[must_use]
     pub fn plain_date(date: PlainDate) -> Self {
         Self {
@@ -1050,7 +1044,7 @@ impl ObjectData {
     }
 
     /// Create the `PlainTime` object data
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     #[must_use]
     pub fn plain_time(time: PlainTime) -> Self {
         Self {
@@ -1060,7 +1054,7 @@ impl ObjectData {
     }
 
     /// Create the `PlainYearMonth` object data
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     #[must_use]
     pub fn plain_year_month(year_month: PlainYearMonth) -> Self {
         Self {
@@ -1070,7 +1064,7 @@ impl ObjectData {
     }
 
     /// Create the `PlainMonthDay` object data
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     #[must_use]
     pub fn plain_month_day(month_day: PlainMonthDay) -> Self {
         Self {
@@ -1080,7 +1074,7 @@ impl ObjectData {
     }
 
     /// Create the `TimeZone` object data
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     #[must_use]
     pub fn time_zone(time_zone: TimeZone) -> Self {
         Self {
@@ -1090,7 +1084,7 @@ impl ObjectData {
     }
 
     /// Create the `Duration` object data
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     #[must_use]
     pub fn duration(duration: Duration) -> Self {
         Self {
@@ -1100,7 +1094,7 @@ impl ObjectData {
     }
 
     /// Create the `ZonedDateTime` object data.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     #[must_use]
     pub fn zoned_date_time(zoned_date_time: ZonedDateTime) -> Self {
         Self {
@@ -1110,7 +1104,7 @@ impl ObjectData {
     }
 
     /// Create the `Calendar` object data.
-    #[cfg(feature = "temporal")]
+    #[cfg(feature = "experimental")]
     #[must_use]
     pub fn calendar(calendar: Calendar) -> Self {
         Self {
@@ -1177,25 +1171,25 @@ impl Debug for ObjectKind {
             Self::SegmentIterator(_) => "SegmentIterator",
             #[cfg(feature = "intl")]
             Self::PluralRules(_) => "PluralRules",
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::Instant(_) => "Instant",
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::PlainDateTime(_) => "PlainDateTime",
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::PlainDate(_) => "PlainDate",
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::PlainTime(_) => "PlainTime",
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::PlainYearMonth(_) => "PlainYearMonth",
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::PlainMonthDay(_) => "PlainMonthDay",
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::TimeZone(_) => "TimeZone",
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::Duration(_) => "Duration",
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::ZonedDateTime(_) => "ZonedDateTime",
-            #[cfg(feature = "temporal")]
+            #[cfg(feature = "experimental")]
             Self::Calendar(_) => "Calendar",
         })
     }

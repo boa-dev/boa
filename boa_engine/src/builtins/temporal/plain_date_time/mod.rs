@@ -1,16 +1,16 @@
 #![allow(dead_code, unused_variables)]
 use crate::{
-    builtins::{date::utils, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     realm::Realm,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsSymbol, JsValue,
+    string::common::StaticJsStrings,
+    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
 
 use self::iso::IsoDateTimeRecord;
 
-use super::DateTimeValues;
 pub(crate) mod iso;
 
 /// The `Temporal.PlainDateTime` object.
@@ -21,12 +21,12 @@ pub struct PlainDateTime {
 }
 
 impl BuiltInObject for PlainDateTime {
-    const NAME: &'static str = "Temporal.PlainDateTime";
+    const NAME: JsString = StaticJsStrings::PLAIN_DATETIME;
 }
 
 impl IntrinsicObject for PlainDateTime {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
+        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_property(
