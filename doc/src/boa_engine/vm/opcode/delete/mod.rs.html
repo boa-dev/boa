@@ -101,6 +101,36 @@
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
@@ -114,17 +144,11 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DeletePropertyByName;
 
-<span class="kw">impl </span>Operation <span class="kw">for </span>DeletePropertyByName {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DeletePropertyByName&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DeletePropertyByName&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+<span class="kw">impl </span>DeletePropertyByName {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = value.to_object(context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize]
-            .clone()
-            .into();
+        <span class="kw">let </span>key = context.vm.frame().code_block.names[index].clone().into();
         <span class="kw">let </span>result = object.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
         <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -133,6 +157,26 @@
         }
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>DeletePropertyByName {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DeletePropertyByName&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DeletePropertyByName&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
+        <span class="self">Self</span>::operation(context, index)
+    }
+
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
+        <span class="self">Self</span>::operation(context, index)
+    }
+
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
+        <span class="self">Self</span>::operation(context, index)
     }
 }
 
@@ -170,13 +214,9 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DeleteName;
 
-<span class="kw">impl </span>Operation <span class="kw">for </span>DeleteName {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DeleteName&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DeleteName&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
+<span class="kw">impl </span>DeleteName {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index];
 
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
 
@@ -184,6 +224,26 @@
 
         context.vm.push(deleted);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>DeleteName {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DeleteName&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DeleteName&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;();
+        <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
+    }
+
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
+        <span class="self">Self</span>::operation(context, index)
+    }
+
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
     }
 }
 

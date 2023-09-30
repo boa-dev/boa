@@ -78,6 +78,22 @@
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
@@ -91,12 +107,8 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DefineOwnPropertyByName;
 
-<span class="kw">impl </span>Operation <span class="kw">for </span>DefineOwnPropertyByName {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DefineOwnPropertyByName&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefineOwnPropertyByName&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+<span class="kw">impl </span>DefineOwnPropertyByName {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.as_object() {
@@ -104,7 +116,7 @@
         } <span class="kw">else </span>{
             object.to_object(context)<span class="question-mark">?
         </span>};
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index].clone();
         object.__define_own_property__(
             <span class="kw-2">&amp;</span>name.into(),
             PropertyDescriptor::builder()
@@ -116,6 +128,26 @@
             context,
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>DefineOwnPropertyByName {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DefineOwnPropertyByName&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefineOwnPropertyByName&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
+        <span class="self">Self</span>::operation(context, index)
+    }
+
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
+        <span class="self">Self</span>::operation(context, index)
+    }
+
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
+        <span class="self">Self</span>::operation(context, index)
     }
 }
 

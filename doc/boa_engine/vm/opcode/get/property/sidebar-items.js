@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["GetMethod","GetPropertyByName","GetPropertyByValue","GetPropertyByValuePush"]};
+window.SIDEBAR_ITEMS = {"struct":["GetPropertyByName","GetPropertyByValue","GetPropertyByValuePush"]};

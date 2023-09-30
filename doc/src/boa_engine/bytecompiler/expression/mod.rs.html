@@ -354,7 +354,6 @@
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
@@ -423,9 +422,9 @@
             }
         }
 
-        <span class="self">self</span>.emit(
+        <span class="self">self</span>.emit_with_varying_operand(
             Opcode::ConcatToString,
-            <span class="kw-2">&amp;</span>[Operand::U32(template_literal.elements().len() <span class="kw">as </span>u32)],
+            template_literal.elements().len() <span class="kw">as </span>u32,
         );
 
         <span class="kw">if </span>!use_expr {
@@ -585,7 +584,7 @@
                         <span class="kw">match </span>access.field() {
                             PropertyAccessField::Const(field) =&gt; {
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>field).into());
-                                <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPropertyByName, index);
                             }
                             PropertyAccessField::Expr(field) =&gt; {
                                 <span class="self">self</span>.compile_expr(field, <span class="bool-val">true</span>);
@@ -597,7 +596,7 @@
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit(Opcode::Dup, <span class="kw-2">&amp;</span>[]);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(access.field());
-                        <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPrivateField, index);
                     }
                     expr =&gt; {
                         <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
@@ -624,8 +623,10 @@
                     ));
                 }
 
-                <span class="self">self</span>.emit(Opcode::TemplateCreate, <span class="kw-2">&amp;</span>[Operand::U32(count)]);
-                <span class="self">self</span>.emit_u64(site);
+                <span class="self">self</span>.emit(
+                    Opcode::TemplateCreate,
+                    <span class="kw-2">&amp;</span>[Operand::Varying(count), Operand::U64(site)],
+                );
 
                 <span class="self">self</span>.patch_jump(jump_label);
 
@@ -633,10 +634,7 @@
                     <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                 }
 
-                <span class="self">self</span>.emit(
-                    Opcode::Call,
-                    <span class="kw-2">&amp;</span>[Operand::U32(template.exprs().len() <span class="kw">as </span>u32 + <span class="number">1</span>)],
-                );
+                <span class="self">self</span>.emit_with_varying_operand(Opcode::Call, template.exprs().len() <span class="kw">as </span>u32 + <span class="number">1</span>);
             }
             Expression::Class(class) =&gt; <span class="self">self</span>.class(class, <span class="bool-val">true</span>),
             Expression::SuperCall(super_call) =&gt; {
@@ -667,9 +665,9 @@
                 <span class="kw">if </span>contains_spread {
                     <span class="self">self</span>.emit_opcode(Opcode::SuperCallSpread);
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.emit(
+                    <span class="self">self</span>.emit_with_varying_operand(
                         Opcode::SuperCall,
-                        <span class="kw-2">&amp;</span>[Operand::U32(super_call.arguments().len() <span class="kw">as </span>u32)],
+                        super_call.arguments().len() <span class="kw">as </span>u32,
                     );
                 }
 

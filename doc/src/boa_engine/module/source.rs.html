@@ -2007,7 +2007,7 @@
 
 <span class="kw">use crate</span>::{
     builtins::{promise::PromiseCapability, Promise},
-    bytecompiler::{ByteCompiler, FunctionSpec, Operand},
+    bytecompiler::{ByteCompiler, FunctionSpec},
     environments::{BindingLocator, CompileTimeEnvironment, EnvironmentStack},
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
@@ -3486,7 +3486,7 @@
                         </span><span class="kw">let </span>binding = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
                         <span class="kw">let </span>index = compiler.get_or_insert_binding(binding);
                         compiler.emit_opcode(Opcode::PushUndefined);
-                        compiler.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                        compiler.emit_with_varying_operand(Opcode::DefInitVar, index);
                         <span class="comment">// 3. Append dn to declaredVarNames.
                         </span>declared_var_names.push(name);
                     }

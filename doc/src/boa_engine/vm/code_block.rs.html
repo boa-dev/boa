@@ -1449,6 +1449,15 @@
 <a href="#1449" id="1449">1449</a>
 <a href="#1450" id="1450">1450</a>
 <a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1472,7 +1481,8 @@
 <span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
-</span><span class="kw">use </span><span class="kw">crate</span>::vm::Opcode;
+</span><span class="kw">use super</span>::{Instruction, InstructionIterator};
+
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
 </span><span class="kw">use </span>boa_interner::{Interner, ToInternedString};
 
@@ -1750,10 +1760,11 @@
     ///
     /// Returns an empty `String` if no operands are present.
     </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>instruction_operands(<span class="kw-2">&amp;</span><span class="self">self</span>, pc: <span class="kw-2">&amp;mut </span>usize, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
-        <span class="kw">use </span><span class="kw">super</span>::Instruction;
-
-        <span class="kw">let </span>instruction = Instruction::from_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>.bytecode, pc);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>instruction_operands(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        instruction: <span class="kw-2">&amp;</span>Instruction,
+        interner: <span class="kw-2">&amp;</span>Interner,
+    ) -&gt; String {
         <span class="kw">match </span>instruction {
             Instruction::SetFunctionName { prefix } =&gt; <span class="kw">match </span>prefix {
                 <span class="number">0 </span>=&gt; <span class="string">&quot;prefix: none&quot;</span>,
@@ -1769,11 +1780,11 @@
             Instruction::PushInt8 { value } =&gt; value.to_string(),
             Instruction::PushInt16 { value } =&gt; value.to_string(),
             Instruction::PushInt32 { value } =&gt; value.to_string(),
-            Instruction::PushFloat { value } =&gt; ryu_js::Buffer::new().format(value).to_string(),
-            Instruction::PushDouble { value } =&gt; ryu_js::Buffer::new().format(value).to_string(),
-            Instruction::PushLiteral { index: value }
-            | Instruction::ThrowNewTypeError { message: value }
-            | Instruction::Jump { address: value }
+            Instruction::PushFloat { value } =&gt; ryu_js::Buffer::new().format(<span class="kw-2">*</span>value).to_string(),
+            Instruction::PushDouble { value } =&gt; ryu_js::Buffer::new().format(<span class="kw-2">*</span>value).to_string(),
+            Instruction::PushLiteral { index }
+            | Instruction::ThrowNewTypeError { message: index } =&gt; index.value().to_string(),
+            Instruction::Jump { address: value }
             | Instruction::JumpIfTrue { address: value }
             | Instruction::JumpIfFalse { address: value }
             | Instruction::JumpIfNotUndefined { address: value }
@@ -1782,8 +1793,8 @@
             | Instruction::Default { address: value }
             | Instruction::LogicalAnd { exit: value }
             | Instruction::LogicalOr { exit: value }
-            | Instruction::Coalesce { exit: value }
-            | Instruction::CallEval {
+            | Instruction::Coalesce { exit: value } =&gt; value.to_string(),
+            Instruction::CallEval {
                 argument_count: value,
             }
             | Instruction::Call {
@@ -1795,7 +1806,7 @@
             | Instruction::SuperCall {
                 argument_count: value,
             }
-            | Instruction::ConcatToString { value_count: value } =&gt; value.to_string(),
+            | Instruction::ConcatToString { value_count: value } =&gt; value.value().to_string(),
             Instruction::PushDeclarativeEnvironment {
                 compile_environments_index,
             }
@@ -1805,8 +1816,8 @@
             Instruction::CopyDataProperties {
                 excluded_key_count: value1,
                 excluded_key_count_computed: value2,
-            }
-            | Instruction::GeneratorDelegateNext {
+            } =&gt; <span class="macro">format!</span>(<span class="string">&quot;{}, {}&quot;</span>, value1.value(), value2.value()),
+            Instruction::GeneratorDelegateNext {
                 return_method_undefined: value1,
                 throw_method_undefined: value2,
             }
@@ -1816,29 +1827,28 @@
             } =&gt; {
                 <span class="macro">format!</span>(<span class="string">&quot;{value1}, {value2}&quot;</span>)
             }
-            Instruction::TemplateLookup { exit: value, site }
-            | Instruction::TemplateCreate { count: value, site } =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;{value}, {site}&quot;</span>)
+            Instruction::TemplateLookup { exit: value, site } =&gt; <span class="macro">format!</span>(<span class="string">&quot;{value}, {site}&quot;</span>),
+            Instruction::TemplateCreate { count, site } =&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;{}, {site}&quot;</span>, count.value())
             }
-            Instruction::GetArrowFunction { index, method }
-            | Instruction::GetAsyncArrowFunction { index, method }
-            | Instruction::GetFunction { index, method }
+            Instruction::GetFunction { index, method }
             | Instruction::GetFunctionAsync { index, method } =&gt; {
+                <span class="kw">let </span>index = index.value() <span class="kw">as </span>usize;
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{index:04}: &#39;{}&#39; (length: {}), method: {method}&quot;</span>,
-                    <span class="self">self</span>.functions[index <span class="kw">as </span>usize]
-                        .name()
-                        .to_std_string_escaped(),
-                    <span class="self">self</span>.functions[index <span class="kw">as </span>usize].length
+                    <span class="self">self</span>.functions[index].name().to_std_string_escaped(),
+                    <span class="self">self</span>.functions[index].length
                 )
             }
-            Instruction::GetGenerator { index } | Instruction::GetGeneratorAsync { index } =&gt; {
+            Instruction::GetArrowFunction { index }
+            | Instruction::GetAsyncArrowFunction { index }
+            | Instruction::GetGenerator { index }
+            | Instruction::GetGeneratorAsync { index } =&gt; {
+                <span class="kw">let </span>index = index.value() <span class="kw">as </span>usize;
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{index:04}: &#39;{}&#39; (length: {})&quot;</span>,
-                    <span class="self">self</span>.functions[index <span class="kw">as </span>usize]
-                        .name()
-                        .to_std_string_escaped(),
-                    <span class="self">self</span>.functions[index <span class="kw">as </span>usize].length
+                    <span class="self">self</span>.functions[index].name().to_std_string_escaped(),
+                    <span class="self">self</span>.functions[index].length
                 )
             }
             Instruction::DefVar { index }
@@ -1851,12 +1861,12 @@
             | Instruction::SetName { index }
             | Instruction::DeleteName { index } =&gt; {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{index:04}: &#39;{}&#39;&quot;</span>,
-                    interner.resolve_expect(<span class="self">self</span>.bindings[index <span class="kw">as </span>usize].name().sym()),
+                    <span class="string">&quot;{:04}: &#39;{}&#39;&quot;</span>,
+                    index.value(),
+                    interner.resolve_expect(<span class="self">self</span>.bindings[index.value() <span class="kw">as </span>usize].name().sym()),
                 )
             }
             Instruction::GetPropertyByName { index }
-            | Instruction::GetMethod { index }
             | Instruction::SetPropertyByName { index }
             | Instruction::DefineOwnPropertyByName { index }
             | Instruction::DefineClassStaticMethodByName { index }
@@ -1867,6 +1877,8 @@
             | Instruction::SetPropertySetterByName { index }
             | Instruction::DefineClassStaticSetterByName { index }
             | Instruction::DefineClassSetterByName { index }
+            | Instruction::InPrivate { index }
+            | Instruction::ThrowMutateImmutable { index }
             | Instruction::DeletePropertyByName { index }
             | Instruction::SetPrivateField { index }
             | Instruction::DefinePrivateField { index }
@@ -1877,12 +1889,11 @@
             | Instruction::PushClassFieldPrivate { index }
             | Instruction::PushClassPrivateGetter { index }
             | Instruction::PushClassPrivateSetter { index }
-            | Instruction::PushClassPrivateMethod { index }
-            | Instruction::InPrivate { index }
-            | Instruction::ThrowMutateImmutable { index } =&gt; {
+            | Instruction::PushClassPrivateMethod { index } =&gt; {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{index:04}: &#39;{}&#39;&quot;</span>,
-                    <span class="self">self</span>.names[index <span class="kw">as </span>usize].to_std_string_escaped(),
+                    <span class="string">&quot;{:04}: &#39;{}&#39;&quot;</span>,
+                    index.value(),
+                    <span class="self">self</span>.names[index.value() <span class="kw">as </span>usize].to_std_string_escaped(),
                 )
             }
             Instruction::PushPrivateEnvironment { name_indices } =&gt; {
@@ -2022,7 +2033,10 @@
             | Instruction::GetReturnValue
             | Instruction::SetReturnValue
             | Instruction::Nop =&gt; String::new(),
-            Instruction::Reserved1
+
+            Instruction::U16Operands
+            | Instruction::U32Operands
+            | Instruction::Reserved1
             | Instruction::Reserved2
             | Instruction::Reserved3
             | Instruction::Reserved4
@@ -2078,8 +2092,7 @@
             | Instruction::Reserved54
             | Instruction::Reserved55
             | Instruction::Reserved56
-            | Instruction::Reserved57
-            | Instruction::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Instruction::Reserved57 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }
@@ -2099,15 +2112,14 @@
             <span class="macro">format!</span>(<span class="string">&quot;Compiled Output: &#39;{}&#39;&quot;</span>, name.to_std_string_escaped()),
         ));
 
-        <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
-        <span class="kw">while </span>pc &lt; <span class="self">self</span>.bytecode.len() {
-            <span class="kw">let </span>instruction_start_pc = pc;
+        <span class="kw">let </span><span class="kw-2">mut </span>iterator = InstructionIterator::new(<span class="kw-2">&amp;</span><span class="self">self</span>.bytecode);
 
-            <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[instruction_start_pc].into();
-            <span class="kw">let </span>opcode = opcode.as_str();
-            <span class="kw">let </span>previous_pc = pc;
-            <span class="kw">let </span>operands = <span class="self">self</span>.instruction_operands(<span class="kw-2">&amp;mut </span>pc, interner);
+        <span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>((instruction_start_pc, varying_operand_kind, instruction)) = iterator.next()
+        {
+            <span class="kw">let </span>opcode = instruction.opcode().as_str();
+            <span class="kw">let </span>operands = <span class="self">self</span>.instruction_operands(<span class="kw-2">&amp;</span>instruction, interner);
+            <span class="kw">let </span>pc = iterator.pc();
 
             <span class="kw">let </span>handler = <span class="kw">if let </span><span class="prelude-val">Some</span>((i, handler)) = <span class="self">self</span>.find_handler(instruction_start_pc <span class="kw">as </span>u32)
             {
@@ -2123,8 +2135,14 @@
                 <span class="string">&quot;   none  &quot;</span>.to_string()
             };
 
+            <span class="kw">let </span>varying_operand_kind = <span class="kw">match </span>varying_operand_kind {
+                <span class="kw">super</span>::VaryingOperandKind::U8 =&gt; <span class="string">&quot;&quot;</span>,
+                <span class="kw">super</span>::VaryingOperandKind::U16 =&gt; <span class="string">&quot;.U16&quot;</span>,
+                <span class="kw">super</span>::VaryingOperandKind::U32 =&gt; <span class="string">&quot;.U32&quot;</span>,
+            };
+
             f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;{previous_pc:06}    {count:04}   {handler}    {opcode:&lt;27}{operands}\n&quot;</span>,
+                <span class="string">&quot;{instruction_start_pc:06}    {count:04}   {handler}    {opcode}{varying_operand_kind:&lt;27}{operands}\n&quot;</span>,
             ));
             count += <span class="number">1</span>;
         }

@@ -1770,7 +1770,7 @@
                                     </span><span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(f, <span class="bool-val">true</span>);
                                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
-                                    <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                    <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
                                 }
                             }
 
@@ -1917,18 +1917,18 @@
                 </span><span class="kw">let </span>index = <span class="self">self</span>.functions.len() <span class="kw">as </span>u32;
                 <span class="self">self</span>.functions.push(code);
                 <span class="kw">if </span>r#async &amp;&amp; generator {
-                    <span class="self">self</span>.emit(Opcode::GetGeneratorAsync, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
                 } <span class="kw">else if </span>generator {
-                    <span class="self">self</span>.emit(Opcode::GetGenerator, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGenerator, index);
                 } <span class="kw">else if </span>r#async {
                     <span class="self">self</span>.emit(
                         Opcode::GetFunctionAsync,
-                        <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+                        <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
                     );
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.emit(
                         Opcode::GetFunction,
-                        <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+                        <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
                     );
                 }
 
@@ -1942,11 +1942,11 @@
                     </span><span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
                         <span class="prelude-val">Ok</span>(binding) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                            <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::SetName, index);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
-                            <span class="self">self</span>.emit(Opcode::ThrowMutateImmutable, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
                             <span class="self">self</span>.emit_opcode(Opcode::Pop);
@@ -1959,7 +1959,7 @@
                     </span><span class="self">self</span>.create_mutable_binding(name, !strict);
                     <span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(name, !strict);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
                 }
             }
         }
@@ -1985,7 +1985,7 @@
                     <span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(name, !strict);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
-                    <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
                 }
             }
         }
@@ -2254,14 +2254,14 @@
                         <span class="comment">// a. Let initialValue be ! env.GetBindingValue(n, false).
                         </span><span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(n);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                        <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetName, index);
                     }
 
                     <span class="comment">// 5. Perform ! varEnv.InitializeBinding(n, initialValue).
                     </span><span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(n, <span class="bool-val">true</span>);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
-                    <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
 
                     <span class="comment">// 6. NOTE: A var with the same name as a formal parameter initially has
                     //          the same value as the corresponding initialized parameter.
@@ -2288,7 +2288,7 @@
                     </span><span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(n, <span class="bool-val">true</span>);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
-                    <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
                 }
             }
 
@@ -2320,7 +2320,7 @@
                         </span><span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(f, <span class="bool-val">true</span>);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                         <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
-                        <span class="self">self</span>.emit(Opcode::DefInitVar, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                        <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
 
                         <span class="comment">// c. Append F to instantiatedVarNames.
                         </span>instantiated_var_names.push(f);

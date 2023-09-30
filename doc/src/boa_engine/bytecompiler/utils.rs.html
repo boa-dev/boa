@@ -156,7 +156,7 @@
         <span class="kw">let </span>error_msg = <span class="self">self</span>.get_or_insert_literal(Literal::String(<span class="macro">js_string!</span>(
             <span class="string">&quot;inner result was not an object&quot;
         </span>)));
-        <span class="self">self</span>.emit(Opcode::ThrowNewTypeError, <span class="kw-2">&amp;</span>[Operand::U32(error_msg)]);
+        <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowNewTypeError, error_msg);
 
         <span class="self">self</span>.patch_jump(skip_return);
         <span class="self">self</span>.emit_opcode(Opcode::IteratorPop);

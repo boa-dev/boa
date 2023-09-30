@@ -592,6 +592,24 @@
 <a href="#592" id="592">592</a>
 <a href="#593" id="593">593</a>
 <a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, Operand};
 <span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, CodeBlockFlags, Opcode};
 <span class="kw">use </span>boa_ast::{
@@ -674,7 +692,7 @@
         <span class="self">self</span>.functions.push(code);
         <span class="self">self</span>.emit(
             Opcode::GetFunction,
-            <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+            <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
         );
 
         <span class="kw">let </span>class_env: <span class="prelude-ty">Option</span>&lt;<span class="kw">super</span>::Label&gt; = <span class="kw">match </span>class.name() {
@@ -723,9 +741,9 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(
+                                <span class="self">self</span>.emit_with_varying_operand(
                                     Opcode::DefineClassStaticGetterByName,
-                                    <span class="kw-2">&amp;</span>[Operand::U32(index)],
+                                    index,
                                 );
                             }
                             PropertyName::Computed(name_node) =&gt; {
@@ -739,9 +757,9 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(
+                                <span class="self">self</span>.emit_with_varying_operand(
                                     Opcode::DefineClassStaticSetterByName,
-                                    <span class="kw-2">&amp;</span>[Operand::U32(index)],
+                                    index,
                                 );
                             }
                             PropertyName::Computed(name_node) =&gt; {
@@ -755,9 +773,9 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(
+                                <span class="self">self</span>.emit_with_varying_operand(
                                     Opcode::DefineClassStaticMethodByName,
-                                    <span class="kw-2">&amp;</span>[Operand::U32(index)],
+                                    index,
                                 );
                             }
                             PropertyName::Computed(name_node) =&gt; {
@@ -771,9 +789,9 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(
+                                <span class="self">self</span>.emit_with_varying_operand(
                                     Opcode::DefineClassStaticMethodByName,
-                                    <span class="kw-2">&amp;</span>[Operand::U32(index)],
+                                    index,
                                 );
                             }
                             PropertyName::Computed(name_node) =&gt; {
@@ -787,9 +805,9 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(
+                                <span class="self">self</span>.emit_with_varying_operand(
                                     Opcode::DefineClassStaticMethodByName,
-                                    <span class="kw-2">&amp;</span>[Operand::U32(index)],
+                                    index,
                                 );
                             }
                             PropertyName::Computed(name_node) =&gt; {
@@ -803,9 +821,9 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(
+                                <span class="self">self</span>.emit_with_varying_operand(
                                     Opcode::DefineClassStaticMethodByName,
-                                    <span class="kw-2">&amp;</span>[Operand::U32(index)],
+                                    index,
                                 );
                             }
                             PropertyName::Computed(name_node) =&gt; {
@@ -824,32 +842,32 @@
                         MethodDefinition::Get(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::SetPrivateGetter, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPrivateGetter, index);
                         }
                         MethodDefinition::Set(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::SetPrivateSetter, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPrivateSetter, index);
                         }
                         MethodDefinition::Ordinary(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::SetPrivateMethod, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPrivateMethod, index);
                         }
                         MethodDefinition::Async(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::SetPrivateMethod, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPrivateMethod, index);
                         }
                         MethodDefinition::Generator(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::SetPrivateMethod, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPrivateMethod, index);
                         }
                         MethodDefinition::AsyncGenerator(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::SetPrivateMethod, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPrivateMethod, index);
                         }
                     }
                 }
@@ -893,7 +911,7 @@
                     <span class="self">self</span>.functions.push(code);
                     <span class="self">self</span>.emit(
                         Opcode::GetFunction,
-                        <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+                        <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
                     );
                     <span class="self">self</span>.emit_opcode(Opcode::PushClassField);
                 }
@@ -928,9 +946,9 @@
                     <span class="self">self</span>.functions.push(code);
                     <span class="self">self</span>.emit(
                         Opcode::GetFunction,
-                        <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+                        <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
                     );
-                    <span class="self">self</span>.emit(Opcode::PushClassFieldPrivate, <span class="kw-2">&amp;</span>[Operand::U32(name_index)]);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::PushClassFieldPrivate, name_index);
                 }
                 ClassElement::StaticFieldDefinition(name, field) =&gt; {
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
@@ -973,12 +991,12 @@
                     <span class="self">self</span>.functions.push(code);
                     <span class="self">self</span>.emit(
                         Opcode::GetFunction,
-                        <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+                        <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
                     );
                     <span class="self">self</span>.emit_opcode(Opcode::SetHomeObjectClass);
-                    <span class="self">self</span>.emit(Opcode::Call, <span class="kw-2">&amp;</span>[Operand::U32(<span class="number">0</span>)]);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::Call, <span class="number">0</span>);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(name_index) = name_index {
-                        <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(name_index)]);
+                        <span class="self">self</span>.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, name_index);
                     } <span class="kw">else </span>{
                         <span class="self">self</span>.emit_opcode(Opcode::DefineOwnPropertyByValue);
                     }
@@ -991,7 +1009,7 @@
                         <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                     }
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                    <span class="self">self</span>.emit(Opcode::DefinePrivateField, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::DefinePrivateField, index);
                 }
                 ClassElement::StaticBlock(body) =&gt; {
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
@@ -1023,10 +1041,10 @@
                     <span class="self">self</span>.functions.push(code);
                     <span class="self">self</span>.emit(
                         Opcode::GetFunction,
-                        <span class="kw-2">&amp;</span>[Operand::U32(index), Operand::Bool(<span class="bool-val">false</span>)],
+                        <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
                     );
                     <span class="self">self</span>.emit_opcode(Opcode::SetHomeObjectClass);
-                    <span class="self">self</span>.emit(Opcode::Call, <span class="kw-2">&amp;</span>[Operand::U32(<span class="number">0</span>)]);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::Call, <span class="number">0</span>);
                     <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 }
                 <span class="comment">// TODO: set names for private methods
@@ -1036,32 +1054,32 @@
                         MethodDefinition::Get(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::PushClassPrivateGetter, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::PushClassPrivateGetter, index);
                         }
                         MethodDefinition::Set(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::PushClassPrivateSetter, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::PushClassPrivateSetter, index);
                         }
                         MethodDefinition::Ordinary(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::PushClassPrivateMethod, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
                         MethodDefinition::Async(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::PushClassPrivateMethod, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
                         MethodDefinition::Generator(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::PushClassPrivateMethod, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
                         MethodDefinition::AsyncGenerator(expr) =&gt; {
                             <span class="self">self</span>.method(expr.into(), class_name);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                            <span class="self">self</span>.emit(Opcode::PushClassPrivateMethod, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                            <span class="self">self</span>.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
                     }
                 }
@@ -1081,7 +1099,10 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(Opcode::DefineClassGetterByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                <span class="self">self</span>.emit_with_varying_operand(
+                                    Opcode::DefineClassGetterByName,
+                                    index,
+                                );
                             }
                             PropertyName::Computed(name_node) =&gt; {
                                 <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
@@ -1094,7 +1115,10 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(Opcode::DefineClassSetterByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                <span class="self">self</span>.emit_with_varying_operand(
+                                    Opcode::DefineClassSetterByName,
+                                    index,
+                                );
                             }
                             PropertyName::Computed(name_node) =&gt; {
                                 <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
@@ -1107,7 +1131,10 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(Opcode::DefineClassMethodByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                <span class="self">self</span>.emit_with_varying_operand(
+                                    Opcode::DefineClassMethodByName,
+                                    index,
+                                );
                             }
                             PropertyName::Computed(name_node) =&gt; {
                                 <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
@@ -1120,7 +1147,10 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(Opcode::DefineClassMethodByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                <span class="self">self</span>.emit_with_varying_operand(
+                                    Opcode::DefineClassMethodByName,
+                                    index,
+                                );
                             }
                             PropertyName::Computed(name_node) =&gt; {
                                 <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
@@ -1133,7 +1163,10 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(Opcode::DefineClassMethodByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                <span class="self">self</span>.emit_with_varying_operand(
+                                    Opcode::DefineClassMethodByName,
+                                    index,
+                                );
                             }
                             PropertyName::Computed(name_node) =&gt; {
                                 <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
@@ -1146,7 +1179,10 @@
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.method(expr.into(), class_name);
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(Opcode::DefineClassMethodByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                <span class="self">self</span>.emit_with_varying_operand(
+                                    Opcode::DefineClassMethodByName,
+                                    index,
+                                );
                             }
                             PropertyName::Computed(name_node) =&gt; {
                                 <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);

@@ -55,7 +55,7 @@
 };
 
 <span class="kw">use crate</span>::{
-    bytecompiler::{Access, ByteCompiler, Operand},
+    bytecompiler::{Access, ByteCompiler},
     vm::Opcode,
 };
 
@@ -80,7 +80,7 @@
                     Expression::Identifier(identifier) =&gt; {
                         <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(<span class="kw-2">*</span>identifier);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                        <span class="self">self</span>.emit(Opcode::GetNameOrUndefined, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetNameOrUndefined, index);
                     }
                     expr =&gt; <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>),
                 }

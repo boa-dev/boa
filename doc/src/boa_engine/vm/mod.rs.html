@@ -391,6 +391,16 @@
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
 <a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -425,11 +435,11 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;flowgraph&quot;</span>)]
 </span><span class="kw">pub mod </span>flowgraph;
 
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>opcode::{Instruction, InstructionIterator, Opcode, VaryingOperandKind};
 <span class="kw">pub use </span>runtime_limits::RuntimeLimits;
 <span class="kw">pub use </span>{
     call_frame::{CallFrame, GeneratorResumeKind},
     code_block::CodeBlock,
-    opcode::{Instruction, InstructionIterator, Opcode},
 };
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>{
@@ -639,13 +649,16 @@
     }
 
     <span class="kw">fn </span>trace_execute_instruction(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="self">self</span>.vm.frame().pc <span class="kw">as </span>usize;
-        <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.vm.frame().code_block.read::&lt;u8&gt;(pc).into();
+        <span class="kw">let </span>bytecodes = <span class="kw-2">&amp;</span><span class="self">self</span>.vm.frame().code_block.bytecode;
+        <span class="kw">let </span>pc = <span class="self">self</span>.vm.frame().pc <span class="kw">as </span>usize;
+        <span class="kw">let </span>(<span class="kw">_</span>, varying_operand_kind, instruction) = InstructionIterator::with_pc(bytecodes, pc)
+            .next()
+            .expect(<span class="string">&quot;There should be an instruction left&quot;</span>);
         <span class="kw">let </span>operands = <span class="self">self
             </span>.vm
             .frame()
             .code_block
-            .instruction_operands(<span class="kw-2">&amp;mut </span>pc, <span class="self">self</span>.interner());
+            .instruction_operands(<span class="kw-2">&amp;</span>instruction, <span class="self">self</span>.interner());
 
         <span class="kw">let </span>instant = Instant::now();
         <span class="kw">let </span>result = <span class="self">self</span>.execute_instruction();
@@ -672,10 +685,17 @@
             stack
         };
 
+        <span class="kw">let </span>varying_operand_kind = <span class="kw">match </span>varying_operand_kind {
+            VaryingOperandKind::U8 =&gt; <span class="string">&quot;&quot;</span>,
+            VaryingOperandKind::U16 =&gt; <span class="string">&quot;.U16&quot;</span>,
+            VaryingOperandKind::U32 =&gt; <span class="string">&quot;.U32&quot;</span>,
+        };
+
         <span class="macro">println!</span>(
-            <span class="string">&quot;{:&lt;TIME_COLUMN_WIDTH$} {:&lt;OPCODE_COLUMN_WIDTH$} {operands:&lt;OPERAND_COLUMN_WIDTH$} {stack}&quot;</span>,
+            <span class="string">&quot;{:&lt;TIME_COLUMN_WIDTH$} {}{:&lt;OPCODE_COLUMN_WIDTH$} {operands:&lt;OPERAND_COLUMN_WIDTH$} {stack}&quot;</span>,
             <span class="macro">format!</span>(<span class="string">&quot;{}μs&quot;</span>, duration.as_micros()),
-            opcode.as_str(),
+            instruction.opcode().as_str(),
+            varying_operand_kind,
             TIME_COLUMN_WIDTH = <span class="self">Self</span>::TIME_COLUMN_WIDTH,
             OPCODE_COLUMN_WIDTH = <span class="self">Self</span>::OPCODE_COLUMN_WIDTH,
             OPERAND_COLUMN_WIDTH = <span class="self">Self</span>::OPERAND_COLUMN_WIDTH,

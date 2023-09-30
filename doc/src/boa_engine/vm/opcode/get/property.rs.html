@@ -142,22 +142,10 @@
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     property::PropertyKey,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue,
+    Context, JsResult,
 };
 
 <span class="doccomment">/// `GetPropertyByName` implements the Opcode Operation for `Opcode::GetPropertyByName`
@@ -167,13 +155,8 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GetPropertyByName;
 
-<span class="kw">impl </span>Operation <span class="kw">for </span>GetPropertyByName {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GetPropertyByName&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetPropertyByName&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-
+<span class="kw">impl </span>GetPropertyByName {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>receiver = context.vm.pop();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = value.as_object() {
@@ -182,13 +165,31 @@
             value.to_object(context)<span class="question-mark">?
         </span>};
 
-        <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize]
-            .clone()
-            .into();
+        <span class="kw">let </span>key = context.vm.frame().code_block.names[index].clone().into();
         <span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>GetPropertyByName {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GetPropertyByName&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetPropertyByName&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;();
+        <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
+    }
+
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
+        <span class="self">Self</span>::operation(context, index)
+    }
+
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
     }
 }
 
@@ -234,31 +235,6 @@
         </span><span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
-        <span class="prelude-val">Ok</span>(CompletionType::Normal)
-    }
-}
-
-<span class="doccomment">/// `GetMethod` implements the Opcode Operation for `Opcode::GetMethod`
-///
-/// Operation:
-///  - Get a property method or undefined if the property is null or undefined.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GetMethod;
-
-<span class="kw">impl </span>Operation <span class="kw">for </span>GetMethod {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GetMethod&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetMethod&quot;</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
-        <span class="kw">let </span>value = context.vm.pop();
-
-        <span class="kw">let </span>method = value.get_method(key, context)<span class="question-mark">?</span>;
-        context.vm.push(value);
-        context
-            .vm
-            .push(method.map(JsValue::from).unwrap_or_default());
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

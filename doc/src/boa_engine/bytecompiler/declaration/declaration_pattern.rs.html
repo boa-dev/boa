@@ -280,6 +280,18 @@
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler, Literal, Operand},
     vm::{BindingOpcode, Opcode},
@@ -322,7 +334,10 @@
                             <span class="kw">match </span>name {
                                 PropertyName::Literal(name) =&gt; {
                                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                    <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                    <span class="self">self</span>.emit_with_varying_operand(
+                                        Opcode::GetPropertyByName,
+                                        index,
+                                    );
                                 }
                                 PropertyName::Computed(node) =&gt; {
                                     <span class="self">self</span>.compile_expr(node, <span class="bool-val">true</span>);
@@ -363,8 +378,8 @@
                             <span class="self">self</span>.emit(
                                 Opcode::CopyDataProperties,
                                 <span class="kw-2">&amp;</span>[
-                                    Operand::U32(excluded_keys.len() <span class="kw">as </span>u32),
-                                    Operand::U32(additional_excluded_keys_count),
+                                    Operand::Varying(excluded_keys.len() <span class="kw">as </span>u32),
+                                    Operand::Varying(additional_excluded_keys_count),
                                 ],
                             );
                             <span class="self">self</span>.emit_binding(def, <span class="kw-2">*</span>ident);
@@ -382,7 +397,10 @@
                             }
                             <span class="self">self</span>.emit(
                                 Opcode::CopyDataProperties,
-                                <span class="kw-2">&amp;</span>[Operand::U32(excluded_keys.len() <span class="kw">as </span>u32), Operand::U32(<span class="number">0</span>)],
+                                <span class="kw-2">&amp;</span>[
+                                    Operand::Varying(excluded_keys.len() <span class="kw">as </span>u32),
+                                    Operand::Varying(<span class="number">0</span>),
+                                ],
                             );
                             <span class="self">self</span>.access_set(
                                 Access::Property { access },
@@ -400,7 +418,10 @@
                             <span class="kw">match </span>name {
                                 PropertyName::Literal(name) =&gt; {
                                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                    <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                    <span class="self">self</span>.emit_with_varying_operand(
+                                        Opcode::GetPropertyByName,
+                                        index,
+                                    );
                                 }
                                 PropertyName::Computed(node) =&gt; {
                                     <span class="self">self</span>.compile_expr(node, <span class="bool-val">true</span>);
@@ -440,7 +461,10 @@
                             <span class="kw">match </span>name {
                                 PropertyName::Literal(name) =&gt; {
                                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                    <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[Operand::U32(index)]);
+                                    <span class="self">self</span>.emit_with_varying_operand(
+                                        Opcode::GetPropertyByName,
+                                        index,
+                                    );
                                 }
                                 PropertyName::Computed(node) =&gt; {
                                     <span class="self">self</span>.compile_expr(node, <span class="bool-val">true</span>);
