@@ -377,9 +377,16 @@ impl Context<'_> {
                         match native_error.kind {
                             #[cfg(feature = "fuzz")]
                             JsNativeErrorKind::NoInstructionsRemain => {
+                                self.vm
+                                    .environments
+                                    .truncate(self.vm.frame().env_fp as usize);
+                                self.vm.stack.truncate(self.vm.frame().fp as usize);
                                 return CompletionRecord::Throw(err);
                             }
                             JsNativeErrorKind::RuntimeLimit => {
+                                self.vm
+                                    .environments
+                                    .truncate(self.vm.frame().env_fp as usize);
                                 self.vm.stack.truncate(self.vm.frame().fp as usize);
                                 return CompletionRecord::Throw(err);
                             }
@@ -394,6 +401,9 @@ impl Context<'_> {
                         continue;
                     }
 
+                    self.vm
+                        .environments
+                        .truncate(self.vm.frame().env_fp as usize);
                     self.vm.stack.truncate(self.vm.frame().fp as usize);
                     return CompletionRecord::Throw(err);
                 }

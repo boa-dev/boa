@@ -1347,6 +1347,8 @@ impl JsObject {
                     ),
                 );
 
+                let environment = context.vm.environments.current();
+
                 if code.has_parameters_env_bindings() {
                     last_env -= 1;
                     context
@@ -1391,8 +1393,6 @@ impl JsObject {
                 let argument_count = args.len();
                 let parameters_count = code.params.as_ref().len();
 
-                let has_binding_identifier = code.has_binding_identifier();
-
                 context.vm.push_frame(
                     CallFrame::new(code, script_or_module, Some(self.clone()))
                         .with_argument_count(argument_count as u32)
@@ -1410,16 +1410,6 @@ impl JsObject {
                 context.vm.pop_frame();
 
                 std::mem::swap(&mut environments, &mut context.vm.environments);
-
-                let environment = if has_binding_identifier {
-                    environments.truncate(environments_len + 2);
-                    let environment = environments.pop();
-                    environments.pop();
-                    environment
-                } else {
-                    environments.truncate(environments_len + 1);
-                    environments.pop()
-                };
 
                 let result = record
                     .consume()
