@@ -357,3 +357,12 @@ fn empty_return_values() {
         "#}),
     ]);
 }
+
+#[test]
+fn truncate_environments_on_non_caught_native_error() {
+    let source = "with (new Proxy({}, {has: p => false})) {a}";
+    run_test_actions([
+        TestAction::assert_native_error(source, JsNativeErrorKind::Reference, "a is not defined"),
+        TestAction::assert_native_error(source, JsNativeErrorKind::Reference, "a is not defined"),
+    ]);
+}
