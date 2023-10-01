@@ -595,6 +595,9 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::Pop);
 
         if let Some(class_env) = class_env {
+            self.emit_opcode(Opcode::Dup);
+            self.emit_binding(BindingOpcode::InitConst, class_name.into());
+
             let env_index = self.pop_compile_environment();
             self.patch_jump_with_target(class_env, env_index);
             self.emit_opcode(Opcode::PopEnvironment);
@@ -603,10 +606,7 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::PopPrivateEnvironment);
 
         if !expression {
-            self.emit_binding(
-                BindingOpcode::InitVar,
-                class.name().expect("class statements must have a name"),
-            );
+            self.emit_binding(BindingOpcode::InitVar, class_name.into());
         }
     }
 }
