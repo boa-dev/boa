@@ -1,3 +1,5 @@
+#![allow(unused, unused_tuple_struct_fields)]
+
 use boa_engine::{value::TryFromJs, Context, JsNativeError, JsResult, JsValue};
 
 #[derive(TryFromJs)]

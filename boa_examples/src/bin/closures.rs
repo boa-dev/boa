@@ -161,7 +161,7 @@ fn main() -> Result<(), JsError> {
 
                     // We return the moved variable as a `JsValue`.
                     Ok(JsArray::from_iter(
-                        numbers.borrow().iter().cloned().map(JsValue::from),
+                        numbers.borrow().iter().copied().map(JsValue::from),
                         context,
                     )
                     .into())

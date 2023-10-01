@@ -1,3 +1,5 @@
+#![allow(unused_crate_dependencies)]
+
 use boa_macros::utf16;
 
 #[test]

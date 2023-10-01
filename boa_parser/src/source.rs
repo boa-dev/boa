@@ -90,7 +90,7 @@ impl<'path, R: Read> Source<'path, R> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{fs, io::Cursor};
+    use std::io::Cursor;
 
     #[test]
     fn from_bytes() {
@@ -106,15 +106,16 @@ mod tests {
 
     #[test]
     fn from_filepath() {
-        fs::write("test.js", "'Hello' + 'World';").unwrap();
-        let mut source = Source::from_filepath("test.js".as_ref()).unwrap();
+        let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let filepath = manifest_path.join("src/parser/tests/test.js");
+        let mut source = Source::from_filepath(&filepath).unwrap();
 
-        assert_eq!(source.path, Some("test.js".as_ref()));
+        assert_eq!(source.path, Some(&*filepath));
 
         let mut content = String::new();
         source.reader.read_to_string(&mut content).unwrap();
 
-        assert_eq!(content, "'Hello' + 'World';");
+        assert_eq!(content, "\"Hello\" + \"World\";\n");
     }
 
     #[test]

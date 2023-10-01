@@ -14,3 +14,6 @@ rust-version.workspace = true
 trybuild = "1.0.85"
 boa_macros.workspace = true
 boa_engine.workspace = true
+
+[lints]
+workspace = true

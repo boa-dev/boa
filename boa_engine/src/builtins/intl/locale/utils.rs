@@ -499,8 +499,8 @@ fn lookup_supported_locales<M: KeyedDataMarker>(
     // 3. Return subset.
     requested_locales
         .iter()
-        .cloned()
         .filter(|loc| best_available_locale(loc.id.clone(), provider).is_some())
+        .cloned()
         .collect()
 }
 
@@ -517,8 +517,8 @@ fn best_fit_supported_locales<M: KeyedDataMarker>(
 ) -> Vec<Locale> {
     requested_locales
         .iter()
-        .cloned()
         .filter(|loc| best_locale_for_provider(loc.id.clone(), provider).is_some())
+        .cloned()
         .collect()
 }
 

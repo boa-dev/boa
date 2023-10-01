@@ -37,3 +37,6 @@ jemallocator.workspace = true
 name = "boa"
 doc = false
 path = "src/main.rs"
+
+[lints]
+workspace = true

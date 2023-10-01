@@ -1,3 +1,5 @@
+#![allow(unused_crate_dependencies, missing_docs)]
+
 //! Benchmarks of the whole execution engine in Boa.
 
 use boa_engine::{
@@ -17,7 +19,7 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 fn create_realm(c: &mut Criterion) {
     c.bench_function("Create Realm", move |b| {
         let root_shape = RootShape::default();
-        b.iter(|| Realm::create(&DefaultHooks, &root_shape))
+        b.iter(|| Realm::create(&DefaultHooks, &root_shape));
     });
 }
 

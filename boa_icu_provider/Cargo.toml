@@ -31,3 +31,6 @@ bin = ["dep:icu_datagen", "dep:simple_logger", "dep:log"]
 name = "boa_datagen"
 path = "src/bin/datagen.rs"
 required-features = ["bin"]
+
+[lints]
+workspace = true

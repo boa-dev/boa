@@ -20,3 +20,6 @@ boa_macros.workspace = true
 
 thin-vec = { workspace = true, optional = true }
 hashbrown = { workspace = true, features = ["ahash", "raw"] }
+
+[lints]
+workspace = true

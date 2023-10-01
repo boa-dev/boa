@@ -20,7 +20,7 @@ members = [
 [workspace.package]
 edition = "2021"
 version = "0.17.0"
-rust-version = "1.73.0"
+rust-version = "1.74.0"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
 license = "Unlicense OR MIT"
@@ -116,3 +116,58 @@ opt-level = 1
 lto = "fat"
 # Makes sure that all code is compiled together, for LTO
 codegen-units = 1
+
+[workspace.lints.rust]
+# rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
+warnings = "warn"
+future_incompatible = "warn"
+let_underscore = "warn"
+nonstandard_style = "warn"
+rust_2018_compatibility = "warn"
+rust_2018_idioms = "warn"
+rust_2021_compatibility = "warn"
+unused = "warn"
+
+# rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
+missing_docs = "warn"
+macro_use_extern_crate = "warn"
+meta_variable_misuse = "warn"
+missing_abi = "warn"
+missing_copy_implementations = "warn"
+missing_debug_implementations = "warn"
+non_ascii_idents = "warn"
+noop_method_call = "warn"
+single_use_lifetimes = "warn"
+trivial_casts = "warn"
+trivial_numeric_casts = "warn"
+unreachable_pub = "warn"
+unsafe_op_in_unsafe_fn = "warn"
+unused_crate_dependencies = "warn"
+unused_import_braces = "warn"
+unused_lifetimes = "warn"
+unused_qualifications = "warn"
+unused_tuple_struct_fields = "warn"
+variant_size_differences = "warn"
+
+[workspace.lints.rustdoc]
+# rustdoc lints https://doc.rust-lang.org/rustdoc/lints.html
+broken_intra_doc_links = "warn"
+private_intra_doc_links = "warn"
+missing_crate_level_docs = "warn"
+private_doc_tests = "warn"
+invalid_codeblock_attributes = "warn"
+invalid_rust_codeblocks = "warn"
+bare_urls = "warn"
+
+[workspace.lints.clippy]
+# clippy allowed by default
+dbg_macro = "warn"
+
+# clippy categories https://doc.rust-lang.org/clippy/
+all = "warn"
+correctness = "warn"
+suspicious = "warn"
+style = "warn"
+complexity = "warn"
+perf = "warn"
+pedantic = "warn"
