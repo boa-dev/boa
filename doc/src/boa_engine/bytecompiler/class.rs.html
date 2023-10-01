@@ -1207,6 +1207,9 @@
         <span class="self">self</span>.emit_opcode(Opcode::Pop);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(class_env) = class_env {
+            <span class="self">self</span>.emit_opcode(Opcode::Dup);
+            <span class="self">self</span>.emit_binding(BindingOpcode::InitConst, class_name.into());
+
             <span class="kw">let </span>env_index = <span class="self">self</span>.pop_compile_environment();
             <span class="self">self</span>.patch_jump_with_target(class_env, env_index);
             <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
@@ -1215,10 +1218,7 @@
         <span class="self">self</span>.emit_opcode(Opcode::PopPrivateEnvironment);
 
         <span class="kw">if </span>!expression {
-            <span class="self">self</span>.emit_binding(
-                BindingOpcode::InitVar,
-                class.name().expect(<span class="string">&quot;class statements must have a name&quot;</span>),
-            );
+            <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, class_name.into());
         }
     }
 }
