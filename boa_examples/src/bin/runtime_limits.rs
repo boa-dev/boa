@@ -21,11 +21,11 @@ fn main() {
 
     // Here we exceed the limit by 1 iteration and a `RuntimeLimit` error is thrown.
     //
-    // This error cannot be caught in JavaScript it propagates to rust caller.
+    // This error cannot be caught in JavaScript, it can only be caught in Rust code.
     let result = context.eval(Source::from_bytes(
         r"
             try {
-                for (let i = 0; i < 11; ++i) { }
+                for (let i = 0; i < 12; ++i) { }
             } catch (e) {
 
             }
@@ -33,7 +33,7 @@ fn main() {
     ));
     assert!(result.is_err());
 
-    // Preventing an infinity loops
+    // Preventing an infinite loop
     let result = context.eval(Source::from_bytes(
         r"
             while (true) { }
@@ -44,7 +44,7 @@ fn main() {
     // The limit applies to all types of loops.
     let result = context.eval(Source::from_bytes(
         r"
-            for (let e of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) { }
+            for (let e of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) { }
         ",
     ));
     assert!(result.is_err());

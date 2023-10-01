@@ -398,6 +398,8 @@ macro_rules! generate_opcodes {
         impl Opcode {
             const MAX: usize = 2usize.pow(8) * 3;
 
+            // TODO: see if this can be exposed on all features.
+            #[allow(unused)]
             const NAMES: [&'static str; Self::MAX] = [
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*,
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*,
@@ -406,6 +408,8 @@ macro_rules! generate_opcodes {
 
             /// Name of this opcode.
             #[must_use]
+            // TODO: see if this can be exposed on all features.
+            #[allow(unused)]
             pub(crate) const fn as_str(self) -> &'static str {
                 Self::NAMES[self as usize]
             }
@@ -505,6 +509,8 @@ macro_rules! generate_opcodes {
             /// Get the [`Opcode`] of the [`Instruction`].
             #[inline]
             #[must_use]
+            // TODO: see if this can be exposed on all features.
+            #[allow(unused)]
             pub(crate) const fn opcode(&self) -> Opcode {
                 match self {
                     $(
@@ -2193,6 +2199,8 @@ pub(crate) struct InstructionIterator<'bytecode> {
     pc: usize,
 }
 
+// TODO: see if this can be exposed on all features.
+#[allow(unused)]
 impl<'bytecode> InstructionIterator<'bytecode> {
     /// Create a new [`InstructionIterator`] from bytecode array.
     #[inline]

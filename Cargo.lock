@@ -420,6 +420,7 @@ dependencies = [
  "boa_interner",
  "boa_parser",
  "boa_runtime",
+ "chrono",
  "futures-util",
  "smol",
 ]

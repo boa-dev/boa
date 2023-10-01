@@ -57,22 +57,14 @@ jobs:
       - name: Build tests
         run: cargo test --no-run --profile ci
       # this order is faster according to rust-analyzer
-      - name: Build
-        run: cargo build --all-targets --quiet --profile ci
+      - name: Build (Workspace)
+        run: cargo build --all-targets --quiet --profile ci --features annex-b,intl,experimental
       - name: Install latest nextest
         uses: taiki-e/install-action@nextest
       - name: Test with nextest
         run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl,experimental
       - name: Test docs
         run: cargo test --doc --profile ci --features annex-b,intl,experimental
-      - name: Build boa_ast crate
-        run: cargo build -p boa_ast
-      - name: Build boa_cli crate
-        run: cargo build -p boa_cli
-      - name: Build boa_parser crate
-        run: cargo build -p boa_parser
-      - name: Build boa_runtime crate
-        run: cargo build -p boa_runtime
 
   msrv:
     name: Minimum supported Rust version
@@ -106,27 +98,41 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
-      - uses: actions-rs/install@v0.1
+      - name: Install cargo-workspaces
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-workspaces
+      - name: Install cargo-fuzz
+        uses: actions-rs/install@v0.1
         with:
           crate: cargo-fuzz
           version: latest
       - uses: Swatinem/rust-cache@v2
         with:
           key: misc
+
       - name: Format (rustfmt)
         run: cargo fmt --all --check
+
       - name: Lint (All features)
-        run: cargo clippy --all-features --all-targets
+        run: cargo workspaces exec --no-bail cargo clippy --all-features --all-targets -- -D warnings
       - name: Lint (No features)
-        run: cargo clippy -p boa_engine --no-default-features --all-targets
+        run: cargo workspaces exec --no-bail cargo clippy --no-default-features --all-targets -- -D warnings
+
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
-      - name: Build
-        run: cargo build --all-targets --quiet --profile ci
+
+      - name: Build (No features)
+        run: cargo workspaces exec --no-bail cargo build --all-features --all-targets --profile ci
+      - name: Build (All features)
+        run: cargo workspaces exec --no-bail cargo build --no-default-features --all-targets --profile ci
+
       - name: Build fuzzers
         run: cargo fuzz build -s none
-      - run: cd boa_examples
-      - name: Build examples
-        run: cargo build --quiet --profile ci
-      - name: Run example classes
-        run: cargo run --bin classes --profile ci
+
+      - name: Run examples
+        run: |
+          cd boa_examples
+          cargo run -p boa_examples --bin 2>&1 \
+            | grep -E '^ ' \
+            | xargs -n1 sh -c 'cargo run -p boa_examples --profile ci --bin $0 || exit 255'

@@ -16,5 +16,6 @@ boa_interner.workspace = true
 boa_gc.workspace = true
 boa_parser.workspace = true
 boa_runtime.workspace = true
+chrono.workspace = true
 smol = "1.3.0"
 futures-util = "0.3.28"
