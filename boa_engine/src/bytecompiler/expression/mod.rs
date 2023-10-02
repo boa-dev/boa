@@ -80,7 +80,7 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_expr_impl(&mut self, expr: &Expression, use_expr: bool) {
         match expr {
             Expression::Literal(lit) => self.compile_literal(lit, use_expr),
-            Expression::RegExp(regexp) => {
+            Expression::RegExpLiteral(regexp) => {
                 let pattern_index = self.get_or_insert_name(Identifier::new(regexp.pattern()));
                 let flags_index = self.get_or_insert_name(Identifier::new(regexp.flags()));
                 self.emit(

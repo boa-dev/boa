@@ -41,7 +41,7 @@ use crate::{
     },
     Error,
 };
-use ast::expression::RegExp as AstRegExp;
+use ast::expression::RegExpLiteral as AstRegExp;
 use boa_ast::{
     self as ast,
     declaration::Variable,

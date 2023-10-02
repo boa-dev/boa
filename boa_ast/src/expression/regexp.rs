@@ -4,7 +4,7 @@
 //!  - [ECMAScript reference][spec]
 //!  - [MDN documentation][mdn]
 //!
-//! [spec]: https://tc39.es/ecma262/#sec-regexp-regular-expression-objects
+//! [spec]: https://tc39.es/ecma262/#sec-literals-regular-expression-literals
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions
 
 use std::ops::ControlFlow;
@@ -24,17 +24,17 @@ use super::Expression;
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-regexp-regular-expression-objects
+/// [spec]: https://tc39.es/ecma262/#sec-literals-regular-expression-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct RegExp {
+pub struct RegExpLiteral {
     pattern: Sym,
     flags: Sym,
 }
 
-impl RegExp {
+impl RegExpLiteral {
     /// Create a new [`RegExp`].
     #[inline]
     #[must_use]
@@ -57,7 +57,7 @@ impl RegExp {
     }
 }
 
-impl ToInternedString for RegExp {
+impl ToInternedString for RegExpLiteral {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let pattern = interner.resolve_expect(self.pattern);
@@ -66,14 +66,14 @@ impl ToInternedString for RegExp {
     }
 }
 
-impl From<RegExp> for Expression {
+impl From<RegExpLiteral> for Expression {
     #[inline]
-    fn from(value: RegExp) -> Self {
-        Self::RegExp(value)
+    fn from(value: RegExpLiteral) -> Self {
+        Self::RegExpLiteral(value)
     }
 }
 
-impl VisitWith for RegExp {
+impl VisitWith for RegExpLiteral {
     #[inline]
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where

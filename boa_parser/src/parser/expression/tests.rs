@@ -8,7 +8,7 @@ use boa_ast::{
             binary::{ArithmeticOp, BitwiseOp, LogicalOp, RelationalOp},
             Assign, Binary,
         },
-        Call, Identifier, Parenthesized, RegExp,
+        Call, Identifier, Parenthesized, RegExpLiteral,
     },
     Declaration, Expression, Statement,
 };
@@ -99,7 +99,7 @@ fn check_numeric_operations() {
                     .get_or_intern_static("myRegex", utf16!("myRegex"))
                     .into(),
                 Some(
-                    RegExp::new(
+                    RegExpLiteral::new(
                         interner.get_or_intern_static("=", utf16!("=")),
                         Sym::EMPTY_STRING,
                     )
@@ -118,7 +118,7 @@ fn check_numeric_operations() {
         "fn(/=/);",
         vec![Statement::Expression(Expression::from(Call::new(
             Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
-            vec![RegExp::new(
+            vec![RegExpLiteral::new(
                 interner.get_or_intern_static("=", utf16!("=")),
                 Sym::EMPTY_STRING,
             )
