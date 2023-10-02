@@ -361,9 +361,6 @@ impl CodeBlock {
             | Instruction::ConcatToString { value_count: value } => value.value().to_string(),
             Instruction::PushDeclarativeEnvironment {
                 compile_environments_index,
-            }
-            | Instruction::PushFunctionEnvironment {
-                compile_environments_index,
             } => compile_environments_index.to_string(),
             Instruction::CopyDataProperties {
                 excluded_key_count: value1,
@@ -643,7 +640,8 @@ impl CodeBlock {
             | Instruction::Reserved53
             | Instruction::Reserved54
             | Instruction::Reserved55
-            | Instruction::Reserved56 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved56
+            | Instruction::Reserved57 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

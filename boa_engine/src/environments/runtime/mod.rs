@@ -309,61 +309,6 @@ impl EnvironmentStack {
         )));
     }
 
-    /// Push a function environment that inherits it's internal slots from the outer function
-    /// environment.
-    ///
-    /// # Panics
-    ///
-    /// Panics if no environment exists on the stack.
-    #[track_caller]
-    pub(crate) fn push_function_inherit(
-        &mut self,
-        compile_environment: Rc<CompileTimeEnvironment>,
-    ) {
-        let num_bindings = compile_environment.num_bindings();
-
-        debug_assert!(
-            self.stack.len() as u32 == compile_environment.environment_index(),
-            "tried to push an invalid compile environment"
-        );
-
-        let (poisoned, with, slots) = {
-            let with = self
-                .stack
-                .last()
-                .expect("can only be called inside a function")
-                .as_declarative()
-                .is_none();
-
-            let (environment, slots) = self
-                .stack
-                .iter()
-                .rev()
-                .find_map(|env| {
-                    if let Some(env) = env.as_declarative() {
-                        if let DeclarativeEnvironmentKind::Function(fun) = env.kind() {
-                            return Some((env, fun.slots().clone()));
-                        }
-                    }
-                    None
-                })
-                .expect("can only be called inside a function");
-            (environment.poisoned(), with || environment.with(), slots)
-        };
-
-        self.stack.push(Environment::Declarative(Gc::new(
-            DeclarativeEnvironment::new(
-                DeclarativeEnvironmentKind::Function(FunctionEnvironment::new(
-                    num_bindings,
-                    poisoned,
-                    with,
-                    slots,
-                )),
-                compile_environment,
-            ),
-        )));
-    }
-
     /// Push a module environment on the environments stack.
     ///
     /// # Panics

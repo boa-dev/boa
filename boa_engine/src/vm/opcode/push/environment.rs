@@ -26,30 +26,6 @@ impl Operation for PushDeclarativeEnvironment {
     }
 }
 
-/// `PushFunctionEnvironment` implements the Opcode Operation for `Opcode::PushFunctionEnvironment`
-///
-/// Operation:
-///  - Push a function environment.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct PushFunctionEnvironment;
-
-impl Operation for PushFunctionEnvironment {
-    const NAME: &'static str = "PushFunctionEnvironment";
-    const INSTRUCTION: &'static str = "INST - PushFunctionEnvironment";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let compile_environments_index = context.vm.read::<u32>();
-        let compile_environment = context.vm.frame().code_block.compile_environments
-            [compile_environments_index as usize]
-            .clone();
-        context
-            .vm
-            .environments
-            .push_function_inherit(compile_environment);
-        Ok(CompletionType::Normal)
-    }
-}
-
 /// `PushObjectEnvironment` implements the Opcode Operation for `Opcode::PushObjectEnvironment`
 ///
 /// Operation:

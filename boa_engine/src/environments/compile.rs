@@ -291,9 +291,4 @@ impl CompileTimeEnvironment {
     pub(crate) fn outer(&self) -> Option<Rc<Self>> {
         self.outer.clone()
     }
-
-    /// Gets the environment index of this environment.
-    pub(crate) const fn environment_index(&self) -> u32 {
-        self.environment_index
-    }
 }

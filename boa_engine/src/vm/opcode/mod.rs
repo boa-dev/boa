@@ -1757,13 +1757,6 @@ generate_opcodes! {
     /// Stack: object **=>**
     PushObjectEnvironment,
 
-    /// Push a function environment.
-    ///
-    /// Operands: compile_environments_index: `u32`
-    ///
-    /// Stack: **=>**
-    PushFunctionEnvironment { compile_environments_index: u32 },
-
     /// Pop the current environment.
     ///
     /// Operands:
@@ -2183,6 +2176,8 @@ generate_opcodes! {
     Reserved55 => Reserved,
     /// Reserved [`Opcode`].
     Reserved56 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved57 => Reserved,
 }
 
 /// Specific opcodes for bindings.
