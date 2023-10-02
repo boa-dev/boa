@@ -41,7 +41,7 @@ jobs:
         uses: codecov/codecov-action@v3
 
   tests:
-    name: Run tests
+    name: Test
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
@@ -70,7 +70,7 @@ jobs:
         run: cargo test --doc --profile ci --features annex-b,intl,experimental
 
   msrv:
-    name: Minimum supported Rust version
+    name: MSRV
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -88,10 +88,11 @@ jobs:
         run: cargo check --all-features --all-targets
 
   fmt:
-    name: Format
+    name: Formatting
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
+      - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -120,13 +121,13 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: clippy
-      - name: Lint (All features)
+      - name: Clippy (All features)
         run: cargo workspaces exec cargo clippy --all-features --all-targets -- -D warnings
-      - name: Lint (No features)
+      - name: Clippy (No features)
         run: cargo workspaces exec cargo clippy --no-default-features --all-targets -- -D warnings
 
   docs:
-    name: Check documentation
+    name: Documentation
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -140,12 +141,12 @@ jobs:
           profile: minimal
       - uses: Swatinem/rust-cache@v2
         with:
-          key: rustdoc
+          key: docs
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
 
   build-fuzz:
-    name: Build fuzzers
+    name: Fuzzing
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -163,11 +164,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: build-fuzz
-      - name: Build fuzzers
+      - name: Build fuzz
         run: cargo fuzz build -s none
 
   build-run-examples:
-    name: Build & Run examples
+    name: Build & run examples
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
