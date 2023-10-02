@@ -115,17 +115,17 @@ jobs:
         run: cargo fmt --all --check
 
       - name: Lint (All features)
-        run: cargo workspaces exec --no-bail cargo clippy --all-features --all-targets -- -D warnings
+        run: cargo workspaces exec cargo clippy --all-features --all-targets -- -D warnings
       - name: Lint (No features)
-        run: cargo workspaces exec --no-bail cargo clippy --no-default-features --all-targets -- -D warnings
+        run: cargo workspaces exec cargo clippy --no-default-features --all-targets -- -D warnings
 
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
 
       - name: Build (No features)
-        run: cargo workspaces exec --no-bail cargo build --all-features --all-targets --profile ci
+        run: cargo workspaces exec cargo build --all-features --all-targets --profile ci
       - name: Build (All features)
-        run: cargo workspaces exec --no-bail cargo build --no-default-features --all-targets --profile ci
+        run: cargo workspaces exec cargo build --no-default-features --all-targets --profile ci
 
       - name: Build fuzzers
         run: cargo fuzz build -s none

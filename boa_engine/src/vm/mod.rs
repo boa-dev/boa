@@ -32,6 +32,8 @@ mod runtime_limits;
 #[cfg(feature = "flowgraph")]
 pub mod flowgraph;
 
+// TODO: see if this can be exposed on all features.
+#[allow(unused_imports)]
 pub(crate) use opcode::{Instruction, InstructionIterator, Opcode, VaryingOperandKind};
 pub use runtime_limits::RuntimeLimits;
 pub use {

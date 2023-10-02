@@ -59,9 +59,7 @@
     clippy::pedantic,
     clippy::nursery,
 )]
-#![allow(clippy::option_if_let_else, clippy::redundant_pub_crate)]
-
-use boa_ast as _;
+#![allow(unused_crate_dependencies, clippy::option_if_let_else, clippy::redundant_pub_crate)]
 
 mod debug;
 mod helper;
@@ -92,12 +90,17 @@ use std::{
     target_arch = "x86_64",
     target_os = "linux",
     target_env = "gnu",
+    feature = "dhat"
+))]
+use jemallocator as _;
+
+#[cfg(all(
+    target_arch = "x86_64",
+    target_os = "linux",
+    target_env = "gnu",
     not(feature = "dhat")
 ))]
-#[cfg_attr(
-    all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
-    global_allocator
-)]
+#[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 #[cfg(feature = "dhat")]
