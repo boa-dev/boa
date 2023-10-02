@@ -2247,6 +2247,14 @@
 <a href="#2247" id="2247">2247</a>
 <a href="#2248" id="2248">2248</a>
 <a href="#2249" id="2249">2249</a>
+<a href="#2250" id="2250">2250</a>
+<a href="#2251" id="2251">2251</a>
+<a href="#2252" id="2252">2252</a>
+<a href="#2253" id="2253">2253</a>
+<a href="#2254" id="2254">2254</a>
+<a href="#2255" id="2255">2255</a>
+<a href="#2256" id="2256">2256</a>
+<a href="#2257" id="2257">2257</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 
 <span class="doccomment">/// The opcodes of the vm.
@@ -2647,7 +2655,9 @@
         <span class="kw">impl </span>Opcode {
             <span class="kw">const </span>MAX: usize = <span class="number">2usize</span>.pow(<span class="number">8</span>) * <span class="number">3</span>;
 
-            <span class="kw">const </span>NAMES: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str; <span class="self">Self</span>::MAX] = [
+            <span class="comment">// TODO: see if this can be exposed on all features.
+            </span><span class="attr">#[allow(unused)]
+            </span><span class="kw">const </span>NAMES: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str; <span class="self">Self</span>::MAX] = [
                 $(&lt;<span class="macro">generate_opcodes!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::NAME),<span class="kw-2">*</span>,
                 $(&lt;<span class="macro">generate_opcodes!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::NAME),<span class="kw-2">*</span>,
                 $(&lt;<span class="macro">generate_opcodes!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::NAME),*
@@ -2655,6 +2665,8 @@
 
             <span class="doccomment">/// Name of this opcode.
             </span><span class="attr">#[must_use]
+            </span><span class="comment">// TODO: see if this can be exposed on all features.
+            </span><span class="attr">#[allow(unused)]
             </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
                 <span class="self">Self</span>::NAMES[<span class="self">self </span><span class="kw">as </span>usize]
             }
@@ -2754,6 +2766,8 @@
             <span class="doccomment">/// Get the [`Opcode`] of the [`Instruction`].
             </span><span class="attr">#[inline]
             #[must_use]
+            </span><span class="comment">// TODO: see if this can be exposed on all features.
+            </span><span class="attr">#[allow(unused)]
             </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>opcode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Opcode {
                 <span class="kw">match </span><span class="self">self </span>{
                     $(
@@ -4442,7 +4456,9 @@
     pc: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;bytecode</span>&gt; InstructionIterator&lt;<span class="lifetime">&#39;bytecode</span>&gt; {
+<span class="comment">// TODO: see if this can be exposed on all features.
+</span><span class="attr">#[allow(unused)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;bytecode</span>&gt; InstructionIterator&lt;<span class="lifetime">&#39;bytecode</span>&gt; {
     <span class="doccomment">/// Create a new [`InstructionIterator`] from bytecode array.
     </span><span class="attr">#[inline]
     #[must_use]

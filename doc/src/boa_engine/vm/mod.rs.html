@@ -411,6 +411,8 @@
 <a href="#411" id="411">411</a>
 <a href="#412" id="412">412</a>
 <a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -445,7 +447,9 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;flowgraph&quot;</span>)]
 </span><span class="kw">pub mod </span>flowgraph;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>opcode::{Instruction, InstructionIterator, Opcode, VaryingOperandKind};
+<span class="comment">// TODO: see if this can be exposed on all features.
+</span><span class="attr">#[allow(unused_imports)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>opcode::{Instruction, InstructionIterator, Opcode, VaryingOperandKind};
 <span class="kw">pub use </span>runtime_limits::RuntimeLimits;
 <span class="kw">pub use </span>{
     call_frame::{CallFrame, GeneratorResumeKind},

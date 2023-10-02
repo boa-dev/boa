@@ -710,6 +710,7 @@
 <a href="#710" id="710">710</a>
 <a href="#711" id="711">711</a>
 <a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of JavaScript&#39;s `console` Web API object.
 //!
 //! The `console` object can be accessed from any global object.
@@ -847,6 +848,7 @@
     </span><span class="kw">pub const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;console&quot;</span>;
 
     <span class="doccomment">/// Initializes the `console` built-in object.
+    </span><span class="attr">#[allow(clippy::too_many_lines)]
     </span><span class="kw">pub fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
         <span class="kw">fn </span>console_method(
             f: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>Console, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
