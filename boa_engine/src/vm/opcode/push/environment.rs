@@ -12,17 +12,36 @@ use boa_gc::Gc;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushDeclarativeEnvironment;
 
+impl PushDeclarativeEnvironment {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        context: &mut Context<'_>,
+        compile_environments_index: usize,
+    ) -> JsResult<CompletionType> {
+        let compile_environment =
+            context.vm.frame().code_block.compile_environments[compile_environments_index].clone();
+        context.vm.environments.push_lexical(compile_environment);
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for PushDeclarativeEnvironment {
     const NAME: &'static str = "PushDeclarativeEnvironment";
     const INSTRUCTION: &'static str = "INST - PushDeclarativeEnvironment";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let compile_environments_index = context.vm.read::<u32>();
-        let compile_environment = context.vm.frame().code_block.compile_environments
-            [compile_environments_index as usize]
-            .clone();
-        context.vm.environments.push_lexical(compile_environment);
-        Ok(CompletionType::Normal)
+        let compile_environments_index = context.vm.read::<u8>() as usize;
+        Self::operation(context, compile_environments_index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let compile_environments_index = context.vm.read::<u16>() as usize;
+        Self::operation(context, compile_environments_index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let compile_environments_index = context.vm.read::<u32>() as usize;
+        Self::operation(context, compile_environments_index)
     }
 }
 
@@ -98,7 +117,6 @@ impl Operation for PopPrivateEnvironment {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         context.vm.environments.pop_private();
-
         Ok(CompletionType::Normal)
     }
 }

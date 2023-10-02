@@ -1738,10 +1738,10 @@ generate_opcodes! {
 
     /// Push a declarative environment.
     ///
-    /// Operands: compile_environments_index: `u32`
+    /// Operands: compile_environments_index: `VaryingOperand`
     ///
     /// Stack: **=>**
-    PushDeclarativeEnvironment { compile_environments_index: u32 },
+    PushDeclarativeEnvironment { compile_environments_index: VaryingOperand },
 
     /// Push an object environment.
     ///
