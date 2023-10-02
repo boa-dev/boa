@@ -13,19 +13,6 @@ pub(crate) struct New;
 
 impl New {
     fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
-        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message(format!(
-                    "Maximum recursion limit {} exceeded",
-                    context.vm.runtime_limits.recursion_limit()
-                ))
-                .into());
-        }
-        if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message("Maximum call stack size exceeded")
-                .into());
-        }
         let mut arguments = Vec::with_capacity(argument_count);
         for _ in 0..argument_count {
             arguments.push(context.vm.pop());
@@ -79,19 +66,6 @@ impl Operation for NewSpread {
     const INSTRUCTION: &'static str = "INST - NewSpread";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message(format!(
-                    "Maximum recursion limit {} exceeded",
-                    context.vm.runtime_limits.recursion_limit()
-                ))
-                .into());
-        }
-        if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message("Maximum call stack size exceeded")
-                .into());
-        }
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
