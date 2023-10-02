@@ -14,6 +14,7 @@ use boa_ast::{
         access::{PropertyAccess, PropertyAccessField},
         literal::{Literal as AstLiteral, TemplateElement, TemplateLiteral},
         operator::Conditional,
+        Identifier,
     },
     Expression,
 };
@@ -79,6 +80,17 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_expr_impl(&mut self, expr: &Expression, use_expr: bool) {
         match expr {
             Expression::Literal(lit) => self.compile_literal(lit, use_expr),
+            Expression::RegExp(regexp) => {
+                let pattern_index = self.get_or_insert_name(Identifier::new(regexp.pattern()));
+                let flags_index = self.get_or_insert_name(Identifier::new(regexp.flags()));
+                self.emit(
+                    Opcode::PushRegExp,
+                    &[
+                        Operand::Varying(pattern_index),
+                        Operand::Varying(flags_index),
+                    ],
+                );
+            }
             Expression::Unary(unary) => self.compile_unary(unary, use_expr),
             Expression::Update(update) => self.compile_update(update, use_expr),
             Expression::Binary(binary) => self.compile_binary(binary, use_expr),

@@ -212,3 +212,13 @@ fn search() {
         TestAction::assert_eq("/d/[Symbol.search](undefined)", 2),
     ]);
 }
+
+#[test]
+fn regular_expression_construction_independant_of_global_reg_exp() {
+    let regex = "/abc/";
+    run_test_actions([
+        TestAction::run(regex),
+        TestAction::run("RegExp = null"),
+        TestAction::run(regex),
+    ]);
+}

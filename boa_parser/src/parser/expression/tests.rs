@@ -8,7 +8,7 @@ use boa_ast::{
             binary::{ArithmeticOp, BitwiseOp, LogicalOp, RelationalOp},
             Assign, Binary,
         },
-        Call, Identifier, New, Parenthesized,
+        Call, Identifier, Parenthesized, RegExp,
     },
     Declaration, Expression, Statement,
 };
@@ -99,14 +99,10 @@ fn check_numeric_operations() {
                     .get_or_intern_static("myRegex", utf16!("myRegex"))
                     .into(),
                 Some(
-                    New::from(Call::new(
-                        Identifier::new(Sym::REGEXP).into(),
-                        vec![
-                            Literal::from(interner.get_or_intern_static("=", utf16!("="))).into(),
-                            Literal::from(Sym::EMPTY_STRING).into(),
-                        ]
-                        .into(),
-                    ))
+                    RegExp::new(
+                        interner.get_or_intern_static("=", utf16!("=")),
+                        Sym::EMPTY_STRING,
+                    )
                     .into(),
                 ),
             )]
@@ -122,14 +118,10 @@ fn check_numeric_operations() {
         "fn(/=/);",
         vec![Statement::Expression(Expression::from(Call::new(
             Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
-            vec![New::from(Call::new(
-                Identifier::new(Sym::REGEXP).into(),
-                vec![
-                    Literal::from(interner.get_or_intern_static("=", utf16!("="))).into(),
-                    Literal::from(Sym::EMPTY_STRING).into(),
-                ]
-                .into(),
-            ))
+            vec![RegExp::new(
+                interner.get_or_intern_static("=", utf16!("=")),
+                Sym::EMPTY_STRING,
+            )
             .into()]
             .into(),
         )))
