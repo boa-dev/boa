@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["PushLiteral"]};
+window.SIDEBAR_ITEMS = {"struct":["PushLiteral","PushRegExp"]};

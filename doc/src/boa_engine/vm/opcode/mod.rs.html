@@ -2255,6 +2255,11 @@
 <a href="#2255" id="2255">2255</a>
 <a href="#2256" id="2256">2256</a>
 <a href="#2257" id="2257">2257</a>
+<a href="#2258" id="2258">2258</a>
+<a href="#2259" id="2259">2259</a>
+<a href="#2260" id="2260">2260</a>
+<a href="#2261" id="2261">2261</a>
+<a href="#2262" id="2262">2262</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 
 <span class="doccomment">/// The opcodes of the vm.
@@ -2951,10 +2956,17 @@
     /// Like strings and bigints. The index operand is used to index into the `literals`
     /// array to get the value.
     ///
-    /// Operands: index: `u32`
+    /// Operands: index: `VaryingOperand`
     ///
     /// Stack: **=&gt;** (`literals[index]`)
     </span>PushLiteral { index: VaryingOperand },
+
+    <span class="doccomment">/// Push regexp value on the stack.
+    ///
+    /// Operands: pattern_index: `VaryingOperand`, flags: `VaryingOperand`
+    ///
+    /// Stack: **=&gt;** regexp
+    </span>PushRegExp { pattern_index: VaryingOperand, flags_index: VaryingOperand },
 
     <span class="doccomment">/// Push empty object `{}` value on the stack.
     ///
@@ -4433,8 +4445,6 @@
     </span>Reserved55 =&gt; Reserved,
     <span class="doccomment">/// Reserved [`Opcode`].
     </span>Reserved56 =&gt; Reserved,
-    <span class="doccomment">/// Reserved [`Opcode`].
-    </span>Reserved57 =&gt; Reserved,
 }
 
 <span class="doccomment">/// Specific opcodes for bindings.

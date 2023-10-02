@@ -1448,6 +1448,17 @@
 <a href="#1448" id="1448">1448</a>
 <a href="#1449" id="1449">1449</a>
 <a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1774,6 +1785,18 @@
             Instruction::PushDouble { value } =&gt; ryu_js::Buffer::new().format(<span class="kw-2">*</span>value).to_string(),
             Instruction::PushLiteral { index }
             | Instruction::ThrowNewTypeError { message: index } =&gt; index.value().to_string(),
+            Instruction::PushRegExp {
+                pattern_index: source_index,
+                flags_index: flag_index,
+            } =&gt; {
+                <span class="kw">let </span>pattern = <span class="self">self</span>.names[source_index.value() <span class="kw">as </span>usize]
+                    .clone()
+                    .to_std_string_escaped();
+                <span class="kw">let </span>flags = <span class="self">self</span>.names[flag_index.value() <span class="kw">as </span>usize]
+                    .clone()
+                    .to_std_string_escaped();
+                <span class="macro">format!</span>(<span class="string">&quot;/{pattern}/{flags}&quot;</span>)
+            }
             Instruction::Jump { address: value }
             | Instruction::JumpIfTrue { address: value }
             | Instruction::JumpIfFalse { address: value }
@@ -2081,8 +2104,7 @@
             | Instruction::Reserved53
             | Instruction::Reserved54
             | Instruction::Reserved55
-            | Instruction::Reserved56
-            | Instruction::Reserved57 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Instruction::Reserved56 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }

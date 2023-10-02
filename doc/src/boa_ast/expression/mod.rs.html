@@ -368,6 +368,14 @@
 <a href="#368" id="368">368</a>
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].
 //!
 //! ECMAScript expressions include:
@@ -398,6 +406,7 @@
 <span class="kw">mod </span>new;
 <span class="kw">mod </span>optional;
 <span class="kw">mod </span>parenthesized;
+<span class="kw">mod </span>regexp;
 <span class="kw">mod </span>spread;
 <span class="kw">mod </span>tagged_template;
 <span class="kw">mod </span>r#yield;
@@ -410,6 +419,7 @@
 <span class="kw">pub use </span>parenthesized::Parenthesized;
 <span class="kw">pub use </span>r#await::Await;
 <span class="kw">pub use </span>r#yield::Yield;
+<span class="kw">pub use </span>regexp::RegExpLiteral;
 <span class="kw">pub use </span>spread::Spread;
 <span class="kw">pub use </span>tagged_template::TaggedTemplate;
 
@@ -443,6 +453,9 @@
 
     <span class="doccomment">/// See [`Literal`].
     </span>Literal(Literal),
+
+    <span class="doccomment">/// See [`RegExpLiteral`].
+    </span>RegExpLiteral(RegExpLiteral),
 
     <span class="doccomment">/// See [`ArrayLiteral`].
     </span>ArrayLiteral(ArrayLiteral),
@@ -580,6 +593,7 @@
             <span class="self">Self</span>::Await(aw) =&gt; aw.to_interned_string(interner),
             <span class="self">Self</span>::Yield(yi) =&gt; yi.to_interned_string(interner),
             <span class="self">Self</span>::Parenthesized(expr) =&gt; expr.to_interned_string(interner),
+            <span class="self">Self</span>::RegExpLiteral(regexp) =&gt; regexp.to_interned_string(interner),
             <span class="self">Self</span>::FormalParameterList(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         }
     }
@@ -661,6 +675,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Identifier(id) =&gt; visitor.visit_identifier(id),
             <span class="self">Self</span>::Literal(lit) =&gt; visitor.visit_literal(lit),
+            <span class="self">Self</span>::RegExpLiteral(regexp) =&gt; visitor.visit_reg_exp_literal(regexp),
             <span class="self">Self</span>::ArrayLiteral(arlit) =&gt; visitor.visit_array_literal(arlit),
             <span class="self">Self</span>::ObjectLiteral(olit) =&gt; visitor.visit_object_literal(olit),
             <span class="self">Self</span>::Spread(sp) =&gt; visitor.visit_spread(sp),
@@ -703,6 +718,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Identifier(id) =&gt; visitor.visit_identifier_mut(id),
             <span class="self">Self</span>::Literal(lit) =&gt; visitor.visit_literal_mut(lit),
+            <span class="self">Self</span>::RegExpLiteral(regexp) =&gt; visitor.visit_reg_exp_literal_mut(regexp),
             <span class="self">Self</span>::ArrayLiteral(arlit) =&gt; visitor.visit_array_literal_mut(arlit),
             <span class="self">Self</span>::ObjectLiteral(olit) =&gt; visitor.visit_object_literal_mut(olit),
             <span class="self">Self</span>::Spread(sp) =&gt; visitor.visit_spread_mut(sp),

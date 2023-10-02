@@ -653,11 +653,6 @@
 <a href="#653" id="653">653</a>
 <a href="#654" id="654">654</a>
 <a href="#655" id="655">655</a>
-<a href="#656" id="656">656</a>
-<a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.
 //!
 //! More information:
@@ -701,13 +696,14 @@
     },
     Error,
 };
+<span class="kw">use </span>ast::expression::RegExpLiteral <span class="kw">as </span>AstRegExp;
 <span class="kw">use </span>boa_ast::{
     <span class="self">self </span><span class="kw">as </span>ast,
     declaration::Variable,
     expression::{
         literal::Literal,
         operator::{assign::AssignTarget, binary::BinaryOp},
-        Call, Identifier, New, Parenthesized,
+        Identifier, Parenthesized,
     },
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
@@ -899,10 +895,7 @@
                 <span class="prelude-val">Ok</span>(node)
             }
             TokenKind::RegularExpressionLiteral(body, flags) =&gt; {
-                <span class="kw">let </span>node = ast::Expression::from(New::from(Call::new(
-                    Identifier::new(Sym::REGEXP).into(),
-                    <span class="macro">vec!</span>[Literal::from(<span class="kw-2">*</span>body).into(), Literal::from(<span class="kw-2">*</span>flags).into()].into(),
-                )));
+                <span class="kw">let </span>node = AstRegExp::new(<span class="kw-2">*</span>body, <span class="kw-2">*</span>flags).into();
                 cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(node)
             }
@@ -912,10 +905,7 @@
                 <span class="kw">let </span>tok = cursor.lex_regex(position, interner)<span class="question-mark">?</span>;
 
                 <span class="kw">if let </span>TokenKind::RegularExpressionLiteral(body, flags) = <span class="kw-2">*</span>tok.kind() {
-                    <span class="prelude-val">Ok</span>(ast::Expression::from(New::from(Call::new(
-                        Identifier::new(Sym::REGEXP).into(),
-                        <span class="macro">vec!</span>[Literal::from(body).into(), Literal::from(flags).into()].into(),
-                    ))))
+                    <span class="prelude-val">Ok</span>(AstRegExp::new(body, flags).into())
                 } <span class="kw">else </span>{
                     <span class="comment">// A regex was expected and nothing else.
                     </span><span class="prelude-val">Err</span>(Error::unexpected(

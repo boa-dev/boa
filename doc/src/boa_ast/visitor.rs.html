@@ -649,6 +649,12 @@
 <a href="#649" id="649">649</a>
 <a href="#650" id="650">650</a>
 <a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! ECMAScript Abstract Syntax Tree visitors.
 //!
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
@@ -673,7 +679,8 @@
             Binary, BinaryInPrivate, Conditional, Unary, Update,
         },
         Await, Call, Expression, Identifier, ImportCall, New, Optional, OptionalOperation,
-        OptionalOperationKind, Parenthesized, Spread, SuperCall, TaggedTemplate, Yield,
+        OptionalOperationKind, Parenthesized, RegExpLiteral, Spread, SuperCall, TaggedTemplate,
+        Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
@@ -807,6 +814,7 @@
     Binding,
     Pattern,
     Literal,
+    RegExpLiteral,
     ArrayLiteral,
     ObjectLiteral,
     Spread,
@@ -909,6 +917,7 @@
     <span class="macro">define_visit!</span>(visit_binding, Binding);
     <span class="macro">define_visit!</span>(visit_pattern, Pattern);
     <span class="macro">define_visit!</span>(visit_literal, Literal);
+    <span class="macro">define_visit!</span>(visit_reg_exp_literal, RegExpLiteral);
     <span class="macro">define_visit!</span>(visit_array_literal, ArrayLiteral);
     <span class="macro">define_visit!</span>(visit_object_literal, ObjectLiteral);
     <span class="macro">define_visit!</span>(visit_spread, Spread);
@@ -1008,6 +1017,7 @@
             NodeRef::Binding(n) =&gt; <span class="self">self</span>.visit_binding(n),
             NodeRef::Pattern(n) =&gt; <span class="self">self</span>.visit_pattern(n),
             NodeRef::Literal(n) =&gt; <span class="self">self</span>.visit_literal(n),
+            NodeRef::RegExpLiteral(n) =&gt; <span class="self">self</span>.visit_reg_exp_literal(n),
             NodeRef::ArrayLiteral(n) =&gt; <span class="self">self</span>.visit_array_literal(n),
             NodeRef::ObjectLiteral(n) =&gt; <span class="self">self</span>.visit_object_literal(n),
             NodeRef::Spread(n) =&gt; <span class="self">self</span>.visit_spread(n),
@@ -1112,6 +1122,7 @@
     <span class="macro">define_visit_mut!</span>(visit_binding_mut, Binding);
     <span class="macro">define_visit_mut!</span>(visit_pattern_mut, Pattern);
     <span class="macro">define_visit_mut!</span>(visit_literal_mut, Literal);
+    <span class="macro">define_visit_mut!</span>(visit_reg_exp_literal_mut, RegExpLiteral);
     <span class="macro">define_visit_mut!</span>(visit_array_literal_mut, ArrayLiteral);
     <span class="macro">define_visit_mut!</span>(visit_object_literal_mut, ObjectLiteral);
     <span class="macro">define_visit_mut!</span>(visit_spread_mut, Spread);
@@ -1211,6 +1222,7 @@
             NodeRefMut::Binding(n) =&gt; <span class="self">self</span>.visit_binding_mut(n),
             NodeRefMut::Pattern(n) =&gt; <span class="self">self</span>.visit_pattern_mut(n),
             NodeRefMut::Literal(n) =&gt; <span class="self">self</span>.visit_literal_mut(n),
+            NodeRefMut::RegExpLiteral(n) =&gt; <span class="self">self</span>.visit_reg_exp_literal_mut(n),
             NodeRefMut::ArrayLiteral(n) =&gt; <span class="self">self</span>.visit_array_literal_mut(n),
             NodeRefMut::ObjectLiteral(n) =&gt; <span class="self">self</span>.visit_object_literal_mut(n),
             NodeRefMut::Spread(n) =&gt; <span class="self">self</span>.visit_spread_mut(n),

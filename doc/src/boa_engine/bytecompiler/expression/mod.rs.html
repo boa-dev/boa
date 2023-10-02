@@ -354,6 +354,18 @@
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
@@ -370,6 +382,7 @@
         access::{PropertyAccess, PropertyAccessField},
         literal::{Literal <span class="kw">as </span>AstLiteral, TemplateElement, TemplateLiteral},
         operator::Conditional,
+        Identifier,
     },
     Expression,
 };
@@ -435,6 +448,17 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_expr_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expression, use_expr: bool) {
         <span class="kw">match </span>expr {
             Expression::Literal(lit) =&gt; <span class="self">self</span>.compile_literal(lit, use_expr),
+            Expression::RegExpLiteral(regexp) =&gt; {
+                <span class="kw">let </span>pattern_index = <span class="self">self</span>.get_or_insert_name(Identifier::new(regexp.pattern()));
+                <span class="kw">let </span>flags_index = <span class="self">self</span>.get_or_insert_name(Identifier::new(regexp.flags()));
+                <span class="self">self</span>.emit(
+                    Opcode::PushRegExp,
+                    <span class="kw-2">&amp;</span>[
+                        Operand::Varying(pattern_index),
+                        Operand::Varying(flags_index),
+                    ],
+                );
+            }
             Expression::Unary(unary) =&gt; <span class="self">self</span>.compile_unary(unary, use_expr),
             Expression::Update(update) =&gt; <span class="self">self</span>.compile_update(update, use_expr),
             Expression::Binary(binary) =&gt; <span class="self">self</span>.compile_binary(binary, use_expr),
