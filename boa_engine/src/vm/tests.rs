@@ -366,3 +366,24 @@ fn truncate_environments_on_non_caught_native_error() {
         TestAction::assert_native_error(source, JsNativeErrorKind::Reference, "a is not defined"),
     ]);
 }
+
+#[test]
+fn super_construction_with_paramater_expression() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            class Person {
+                constructor(name) {
+                    this.name = name;
+                }
+            }
+
+            class Student extends Person {
+                constructor(name = 'unknown') {
+                    super(name);
+                }
+            }
+        "#}),
+        TestAction::assert_eq("new Student().name", js_string!("unknown")),
+        TestAction::assert_eq("new Student('Jack').name", js_string!("Jack")),
+    ]);
+}

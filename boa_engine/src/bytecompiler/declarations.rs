@@ -1030,8 +1030,8 @@ impl ByteCompiler<'_, '_> {
             //          visibility of declarations in the function body.
             // b. Let varEnv be NewDeclarativeEnvironment(env).
             // c. Set the VariableEnvironment of calleeContext to varEnv.
-            self.push_compile_environment(true);
-            env_label = Some(self.emit_opcode_with_operand(Opcode::PushFunctionEnvironment));
+            self.push_compile_environment(false);
+            env_label = Some(self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment));
 
             // d. Let instantiatedVarNames be a new empty List.
             let mut instantiated_var_names = Vec::new();
