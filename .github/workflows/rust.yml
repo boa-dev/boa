@@ -10,6 +10,9 @@ on:
   merge_group:
     types: [checks_requested]
 
+env:
+  RUSTFLAGS: -Dwarnings
+
 jobs:
   coverage:
     name: Coverage
@@ -38,7 +41,7 @@ jobs:
         uses: codecov/codecov-action@v3
 
   tests:
-    name: Build and Test
+    name: Run tests
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
@@ -84,12 +87,24 @@ jobs:
       - name: Check compilation
         run: cargo check --all-features --all-targets
 
-  misc:
-    name: Misc
+  fmt:
+    name: Format
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    env:
-      RUSTFLAGS: -D warnings
+    steps:
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: rustfmt
+      - name: Format (rustfmt)
+        run: cargo fmt --all --check
+
+  clippy:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1.0.7
@@ -97,11 +112,49 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-          components: rustfmt, clippy
+          components: clippy
       - name: Install cargo-workspaces
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-workspaces
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: clippy
+      - name: Lint (All features)
+        run: cargo workspaces exec cargo clippy --all-features --all-targets -- -D warnings
+      - name: Lint (No features)
+        run: cargo workspaces exec cargo clippy --no-default-features --all-targets -- -D warnings
+
+  docs:
+    name: Check documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      RUSTDOCFLAGS: -D warnings
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: rustdoc
+      - name: Generate documentation
+        run: cargo doc -v --document-private-items --all-features
+
+  build-fuzz:
+    name: Build fuzzers
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
       - name: Install cargo-fuzz
         uses: actions-rs/install@v0.1
         with:
@@ -109,26 +162,33 @@ jobs:
           version: latest
       - uses: Swatinem/rust-cache@v2
         with:
-          key: misc
+          key: build-fuzz
+      - name: Build fuzzers
+        run: cargo fuzz build -s none
 
-      - name: Format (rustfmt)
-        run: cargo fmt --all --check
-
-      - name: Lint (All features)
-        run: cargo workspaces exec cargo clippy --all-features --all-targets -- -D warnings
-      - name: Lint (No features)
-        run: cargo workspaces exec cargo clippy --no-default-features --all-targets -- -D warnings
-
-      - name: Generate documentation
-        run: cargo doc -v --document-private-items --all-features
+  build-run-examples:
+    name: Build & Run examples
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: Install cargo-workspaces
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-workspaces
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: build-run-examples
 
       - name: Build (All features)
         run: cargo workspaces exec cargo build --all-features --all-targets --profile ci
       - name: Build (No features)
         run: cargo workspaces exec cargo build --no-default-features --all-targets --profile ci
-
-      - name: Build fuzzers
-        run: cargo fuzz build -s none
 
       - name: Run examples
         run: |

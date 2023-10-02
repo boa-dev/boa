@@ -11,8 +11,8 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-default = ["std"]
-std = ["once_cell/std"]
+serde = ["dep:serde"]
+arbitrary = ["dep:arbitrary"]
 
 [dependencies]
 boa_macros.workspace = true
@@ -20,7 +20,7 @@ boa_gc.workspace = true
 phf = { workspace = true, default-features = false, features = ["macros"] }
 rustc-hash = { workspace = true, default-features = false }
 static_assertions.workspace = true
-once_cell = { workspace = true, default-features = false, features = ["critical-section"]}
+once_cell = { workspace = true, features = ["std"]}
 indexmap.workspace = true
 serde = { workspace = true, features = ["derive"], optional = true }
 arbitrary = { workspace = true, features = ["derive"], optional = true }
