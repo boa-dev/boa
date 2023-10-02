@@ -1,12 +1,30 @@
-use boa_engine::{js_string, object::builtins::JsDate, Context, JsResult, JsValue};
+use boa_engine::{
+    context::HostHooks, js_string, object::builtins::JsDate, Context, JsResult, JsValue,
+};
+use chrono::{DateTime, FixedOffset, LocalResult, NaiveDateTime, TimeZone};
+
+struct CustomTimezone;
+
+// This pins the local timezone to a system-agnostic value; in this case, UTC+3
+impl HostHooks for CustomTimezone {
+    fn local_from_utc(&self, utc: NaiveDateTime) -> DateTime<FixedOffset> {
+        FixedOffset::east_opt(3 * 3600)
+            .unwrap()
+            .from_utc_datetime(&utc)
+    }
+
+    fn local_from_naive_local(&self, local: NaiveDateTime) -> LocalResult<DateTime<FixedOffset>> {
+        FixedOffset::east_opt(3 * 3600)
+            .unwrap()
+            .from_local_datetime(&local)
+    }
+}
 
 fn main() -> JsResult<()> {
-    let context = &mut Context::default();
+    let hooks: &dyn HostHooks = &CustomTimezone;
+    let context = &mut Context::builder().host_hooks(hooks).build().unwrap();
 
-    let date = JsDate::new(context);
-
-    // 823230245000.0
-    JsDate::utc(
+    let timestamp = JsDate::utc(
         &[
             JsValue::new(96),
             JsValue::new(1),
@@ -16,42 +34,39 @@ fn main() -> JsResult<()> {
             JsValue::new(5),
         ],
         context,
-    )?;
-    // reference date: 2022-07-16T06:27:32.087241439
+    )?
+    .as_number()
+    .unwrap();
+
+    assert_eq!(timestamp, 823230245000.0);
+
+    // Gets the current time in UTC time.
+    let date = JsDate::new(context);
 
     // sets day of the month to 24
     date.set_date(24, context)?;
-    // 2022-07-24T06:27:11.567
 
     // sets date to 1st of January 2000
     date.set_full_year(&[2000.into(), 0.into(), 1.into()], context)?;
-    // 2000-01-01T06:26:53.984
 
     // sets time to 10H:10M:10S:10mS
     date.set_hours(&[23.into(), 23.into(), 23.into(), 23.into()], context)?;
-    // Is           2000-01-01T17:53:23.023
-    // Should be    2000-01-01T23:23:23.023
 
     // sets milliseconds to 999
     date.set_milliseconds(999, context)?;
-    // 2000-01-01T17:40:10.999
 
     // sets time to 12M:12S:12ms
     date.set_minutes(&[12.into(), 12.into(), 12.into()], context)?;
-    // Is           2000-01-01T17:42:12.012
-    // Should be    2000-01-01T17:12:12:012
 
-    // sets month to 9 and day to 9
+    // sets month to 9 (the 10th) and day to 9
     date.set_month(&[9.into(), 9.into()], context)?;
-    // 2000-10-09T04:42:12.012
 
     // set seconds to 59 and ms to 59
     date.set_seconds(&[59.into(), 59.into()], context)?;
-    // 2000-10-09T04:42:59.059
 
     assert_eq!(
         date.to_json(context)?,
-        JsValue::from(js_string!("2000-10-09T17:42:59.059Z"))
+        JsValue::from(js_string!("2000-10-09T20:12:59.059Z"))
     );
 
     assert_eq!(
@@ -61,17 +76,17 @@ fn main() -> JsResult<()> {
 
     assert_eq!(
         date.to_iso_string(context)?,
-        JsValue::from(js_string!("2000-10-09T17:42:59.059Z"))
+        JsValue::from(js_string!("2000-10-09T20:12:59.059Z"))
     );
 
     assert_eq!(
         date.to_time_string(context)?,
-        JsValue::from(js_string!("23:12:59 GMT+0530"))
+        JsValue::from(js_string!("23:12:59 GMT+0300"))
     );
 
     assert_eq!(
         date.to_string(context)?,
-        JsValue::from(js_string!("Mon Oct 09 2000 23:12:59 GMT+0530"))
+        JsValue::from(js_string!("Mon Oct 09 2000 23:12:59 GMT+0300"))
     );
 
     Ok(())

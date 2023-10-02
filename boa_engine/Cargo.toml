@@ -65,7 +65,7 @@ rustc-hash = { workspace = true, features = ["std"] }
 num-bigint = { workspace = true, features = ["serde"] }
 num-integer = "0.1.45"
 bitflags.workspace = true
-indexmap.workspace = true
+indexmap = { workspace = true, features = ["std"] }
 ryu-js = "0.2.2"
 chrono = { workspace = true, default-features = false, features = ["clock", "std"] }
 fast-float.workspace = true

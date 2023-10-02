@@ -135,6 +135,7 @@ impl Console {
     pub const NAME: &'static str = "console";
 
     /// Initializes the `console` built-in object.
+    #[allow(clippy::too_many_lines)]
     pub fn init(context: &mut Context<'_>) -> JsObject {
         fn console_method(
             f: fn(&JsValue, &[JsValue], &Console, &mut Context<'_>) -> JsResult<JsValue>,

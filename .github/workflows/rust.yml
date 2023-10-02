@@ -10,6 +10,9 @@ on:
   merge_group:
     types: [checks_requested]
 
+env:
+  RUSTFLAGS: -Dwarnings
+
 jobs:
   coverage:
     name: Coverage
@@ -38,7 +41,7 @@ jobs:
         uses: codecov/codecov-action@v3
 
   tests:
-    name: Build and Test
+    name: Test
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
@@ -58,24 +61,16 @@ jobs:
         run: cargo test --no-run --profile ci
       # this order is faster according to rust-analyzer
       - name: Build
-        run: cargo build --all-targets --quiet --profile ci
+        run: cargo build --all-targets --quiet --profile ci --features annex-b,intl,experimental
       - name: Install latest nextest
         uses: taiki-e/install-action@nextest
       - name: Test with nextest
         run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl,experimental
       - name: Test docs
         run: cargo test --doc --profile ci --features annex-b,intl,experimental
-      - name: Build boa_ast crate
-        run: cargo build -p boa_ast
-      - name: Build boa_cli crate
-        run: cargo build -p boa_cli
-      - name: Build boa_parser crate
-        run: cargo build -p boa_parser
-      - name: Build boa_runtime crate
-        run: cargo build -p boa_runtime
 
   msrv:
-    name: Minimum supported Rust version
+    name: MSRV
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -92,12 +87,10 @@ jobs:
       - name: Check compilation
         run: cargo check --all-features --all-targets
 
-  misc:
-    name: Misc
+  fmt:
+    name: Formatting
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    env:
-      RUSTFLAGS: -D warnings
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1.0.7
@@ -105,28 +98,102 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-          components: rustfmt, clippy
-      - uses: actions-rs/install@v0.1
+          components: rustfmt
+      - name: Format (rustfmt)
+        run: cargo fmt --all --check
+
+  clippy:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: clippy
+      - name: Install cargo-workspaces
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-workspaces
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: clippy
+      - name: Clippy (All features)
+        run: cargo workspaces exec cargo clippy --all-features --all-targets -- -D warnings
+      - name: Clippy (No features)
+        run: cargo workspaces exec cargo clippy --no-default-features --all-targets -- -D warnings
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      RUSTDOCFLAGS: -D warnings
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: docs
+      - name: Generate documentation
+        run: cargo doc -v --document-private-items --all-features
+
+  build-fuzz:
+    name: Fuzzing
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: Install cargo-fuzz
+        uses: actions-rs/install@v0.1
         with:
           crate: cargo-fuzz
           version: latest
       - uses: Swatinem/rust-cache@v2
         with:
-          key: misc
-      - name: Format (rustfmt)
-        run: cargo fmt --all --check
-      - name: Lint (All features)
-        run: cargo clippy --all-features --all-targets
-      - name: Lint (No features)
-        run: cargo clippy -p boa_engine --no-default-features --all-targets
-      - name: Generate documentation
-        run: cargo doc -v --document-private-items --all-features
-      - name: Build
-        run: cargo build --all-targets --quiet --profile ci
-      - name: Build fuzzers
+          key: build-fuzz
+      - name: Build fuzz
         run: cargo fuzz build -s none
-      - run: cd boa_examples
-      - name: Build examples
-        run: cargo build --quiet --profile ci
-      - name: Run example classes
-        run: cargo run --bin classes --profile ci
+
+  build-run-examples:
+    name: Build & run examples
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: Install cargo-workspaces
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-workspaces
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: build-run-examples
+
+      - name: Build (All features)
+        run: cargo workspaces exec cargo build --all-features --all-targets --profile ci
+      - name: Build (No features)
+        run: cargo workspaces exec cargo build --no-default-features --all-targets --profile ci
+
+      - name: Run examples
+        run: |
+          cd boa_examples
+          cargo run -p boa_examples --bin 2>&1 \
+            | grep -E '^ ' \
+            | xargs -n1 sh -c 'cargo run -p boa_examples --profile ci --bin $0 || exit 255'

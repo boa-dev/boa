@@ -24,8 +24,7 @@ impl<'ast> Visitor<'ast> for SymbolVisitor {
 }
 
 fn main() {
-    let mut parser =
-        Parser::new(Source::from_filepath(Path::new("boa_examples/scripts/calc.js")).unwrap());
+    let mut parser = Parser::new(Source::from_filepath(Path::new("./scripts/calc.js")).unwrap());
     let mut ctx = Context::default();
 
     let script = parser.parse_script(ctx.interner_mut()).unwrap();
