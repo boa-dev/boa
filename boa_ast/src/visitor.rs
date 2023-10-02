@@ -22,7 +22,8 @@ use crate::{
             Binary, BinaryInPrivate, Conditional, Unary, Update,
         },
         Await, Call, Expression, Identifier, ImportCall, New, Optional, OptionalOperation,
-        OptionalOperationKind, Parenthesized, Spread, SuperCall, TaggedTemplate, Yield,
+        OptionalOperationKind, Parenthesized, RegExpLiteral, Spread, SuperCall, TaggedTemplate,
+        Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
@@ -156,6 +157,7 @@ node_ref! {
     Binding,
     Pattern,
     Literal,
+    RegExpLiteral,
     ArrayLiteral,
     ObjectLiteral,
     Spread,
@@ -258,6 +260,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_binding, Binding);
     define_visit!(visit_pattern, Pattern);
     define_visit!(visit_literal, Literal);
+    define_visit!(visit_reg_exp_literal, RegExpLiteral);
     define_visit!(visit_array_literal, ArrayLiteral);
     define_visit!(visit_object_literal, ObjectLiteral);
     define_visit!(visit_spread, Spread);
@@ -357,6 +360,7 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::Binding(n) => self.visit_binding(n),
             NodeRef::Pattern(n) => self.visit_pattern(n),
             NodeRef::Literal(n) => self.visit_literal(n),
+            NodeRef::RegExpLiteral(n) => self.visit_reg_exp_literal(n),
             NodeRef::ArrayLiteral(n) => self.visit_array_literal(n),
             NodeRef::ObjectLiteral(n) => self.visit_object_literal(n),
             NodeRef::Spread(n) => self.visit_spread(n),
@@ -461,6 +465,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_binding_mut, Binding);
     define_visit_mut!(visit_pattern_mut, Pattern);
     define_visit_mut!(visit_literal_mut, Literal);
+    define_visit_mut!(visit_reg_exp_literal_mut, RegExpLiteral);
     define_visit_mut!(visit_array_literal_mut, ArrayLiteral);
     define_visit_mut!(visit_object_literal_mut, ObjectLiteral);
     define_visit_mut!(visit_spread_mut, Spread);
@@ -560,6 +565,7 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::Binding(n) => self.visit_binding_mut(n),
             NodeRefMut::Pattern(n) => self.visit_pattern_mut(n),
             NodeRefMut::Literal(n) => self.visit_literal_mut(n),
+            NodeRefMut::RegExpLiteral(n) => self.visit_reg_exp_literal_mut(n),
             NodeRefMut::ArrayLiteral(n) => self.visit_array_literal_mut(n),
             NodeRefMut::ObjectLiteral(n) => self.visit_object_literal_mut(n),
             NodeRefMut::Spread(n) => self.visit_spread_mut(n),

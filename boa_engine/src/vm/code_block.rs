@@ -324,6 +324,18 @@ impl CodeBlock {
             Instruction::PushDouble { value } => ryu_js::Buffer::new().format(*value).to_string(),
             Instruction::PushLiteral { index }
             | Instruction::ThrowNewTypeError { message: index } => index.value().to_string(),
+            Instruction::PushRegExp {
+                pattern_index: source_index,
+                flags_index: flag_index,
+            } => {
+                let pattern = self.names[source_index.value() as usize]
+                    .clone()
+                    .to_std_string_escaped();
+                let flags = self.names[flag_index.value() as usize]
+                    .clone()
+                    .to_std_string_escaped();
+                format!("/{pattern}/{flags}")
+            }
             Instruction::Jump { address: value }
             | Instruction::JumpIfTrue { address: value }
             | Instruction::JumpIfFalse { address: value }
@@ -631,8 +643,7 @@ impl CodeBlock {
             | Instruction::Reserved53
             | Instruction::Reserved54
             | Instruction::Reserved55
-            | Instruction::Reserved56
-            | Instruction::Reserved57 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved56 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

@@ -41,13 +41,14 @@ use crate::{
     },
     Error,
 };
+use ast::expression::RegExpLiteral as AstRegExp;
 use boa_ast::{
     self as ast,
     declaration::Variable,
     expression::{
         literal::Literal,
         operator::{assign::AssignTarget, binary::BinaryOp},
-        Call, Identifier, New, Parenthesized,
+        Identifier, Parenthesized,
     },
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
@@ -239,10 +240,7 @@ where
                 Ok(node)
             }
             TokenKind::RegularExpressionLiteral(body, flags) => {
-                let node = ast::Expression::from(New::from(Call::new(
-                    Identifier::new(Sym::REGEXP).into(),
-                    vec![Literal::from(*body).into(), Literal::from(*flags).into()].into(),
-                )));
+                let node = AstRegExp::new(*body, *flags).into();
                 cursor.advance(interner);
                 Ok(node)
             }
@@ -252,10 +250,7 @@ where
                 let tok = cursor.lex_regex(position, interner)?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = *tok.kind() {
-                    Ok(ast::Expression::from(New::from(Call::new(
-                        Identifier::new(Sym::REGEXP).into(),
-                        vec![Literal::from(body).into(), Literal::from(flags).into()].into(),
-                    ))))
+                    Ok(AstRegExp::new(body, flags).into())
                 } else {
                     // A regex was expected and nothing else.
                     Err(Error::unexpected(

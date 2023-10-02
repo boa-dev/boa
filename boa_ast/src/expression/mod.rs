@@ -28,6 +28,7 @@ mod identifier;
 mod new;
 mod optional;
 mod parenthesized;
+mod regexp;
 mod spread;
 mod tagged_template;
 mod r#yield;
@@ -40,6 +41,7 @@ pub use optional::{Optional, OptionalOperation, OptionalOperationKind};
 pub use parenthesized::Parenthesized;
 pub use r#await::Await;
 pub use r#yield::Yield;
+pub use regexp::RegExpLiteral;
 pub use spread::Spread;
 pub use tagged_template::TaggedTemplate;
 
@@ -73,6 +75,9 @@ pub enum Expression {
 
     /// See [`Literal`].
     Literal(Literal),
+
+    /// See [`RegExpLiteral`].
+    RegExpLiteral(RegExpLiteral),
 
     /// See [`ArrayLiteral`].
     ArrayLiteral(ArrayLiteral),
@@ -210,6 +215,7 @@ impl Expression {
             Self::Await(aw) => aw.to_interned_string(interner),
             Self::Yield(yi) => yi.to_interned_string(interner),
             Self::Parenthesized(expr) => expr.to_interned_string(interner),
+            Self::RegExpLiteral(regexp) => regexp.to_interned_string(interner),
             Self::FormalParameterList(_) => unreachable!(),
         }
     }
@@ -291,6 +297,7 @@ impl VisitWith for Expression {
         match self {
             Self::Identifier(id) => visitor.visit_identifier(id),
             Self::Literal(lit) => visitor.visit_literal(lit),
+            Self::RegExpLiteral(regexp) => visitor.visit_reg_exp_literal(regexp),
             Self::ArrayLiteral(arlit) => visitor.visit_array_literal(arlit),
             Self::ObjectLiteral(olit) => visitor.visit_object_literal(olit),
             Self::Spread(sp) => visitor.visit_spread(sp),
@@ -333,6 +340,7 @@ impl VisitWith for Expression {
         match self {
             Self::Identifier(id) => visitor.visit_identifier_mut(id),
             Self::Literal(lit) => visitor.visit_literal_mut(lit),
+            Self::RegExpLiteral(regexp) => visitor.visit_reg_exp_literal_mut(regexp),
             Self::ArrayLiteral(arlit) => visitor.visit_array_literal_mut(arlit),
             Self::ObjectLiteral(olit) => visitor.visit_object_literal_mut(olit),
             Self::Spread(sp) => visitor.visit_spread_mut(sp),

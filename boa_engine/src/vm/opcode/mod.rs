@@ -694,10 +694,17 @@ generate_opcodes! {
     /// Like strings and bigints. The index operand is used to index into the `literals`
     /// array to get the value.
     ///
-    /// Operands: index: `u32`
+    /// Operands: index: `VaryingOperand`
     ///
     /// Stack: **=>** (`literals[index]`)
     PushLiteral { index: VaryingOperand },
+
+    /// Push regexp value on the stack.
+    ///
+    /// Operands: pattern_index: `VaryingOperand`, flags: `VaryingOperand`
+    ///
+    /// Stack: **=>** regexp
+    PushRegExp { pattern_index: VaryingOperand, flags_index: VaryingOperand },
 
     /// Push empty object `{}` value on the stack.
     ///
@@ -2176,8 +2183,6 @@ generate_opcodes! {
     Reserved55 => Reserved,
     /// Reserved [`Opcode`].
     Reserved56 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved57 => Reserved,
 }
 
 /// Specific opcodes for bindings.
