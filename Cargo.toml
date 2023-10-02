@@ -55,7 +55,7 @@ num-traits = "0.2.16"
 once_cell = { version = "1.18.0", default-features = false }
 phf = { version = "0.11.2", default-features = false }
 pollster = "0.3.0"
-regex = "1.9.5"
+regex = "1.9.6"
 regress = "0.7.1"
 rustc-hash = { version = "1.1.0", default-features = false }
 serde_json = "1.0.107"
