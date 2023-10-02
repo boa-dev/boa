@@ -57,7 +57,7 @@ jobs:
       - name: Build tests
         run: cargo test --no-run --profile ci
       # this order is faster according to rust-analyzer
-      - name: Build (Workspace)
+      - name: Build
         run: cargo build --all-targets --quiet --profile ci --features annex-b,intl,experimental
       - name: Install latest nextest
         uses: taiki-e/install-action@nextest
@@ -122,9 +122,9 @@ jobs:
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
 
-      - name: Build (No features)
-        run: cargo workspaces exec cargo build --all-features --all-targets --profile ci
       - name: Build (All features)
+        run: cargo workspaces exec cargo build --all-features --all-targets --profile ci
+      - name: Build (No features)
         run: cargo workspaces exec cargo build --no-default-features --all-targets --profile ci
 
       - name: Build fuzzers
