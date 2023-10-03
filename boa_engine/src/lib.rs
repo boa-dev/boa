@@ -199,8 +199,7 @@ pub trait JsArgs {
     /// `args.get(n).cloned().unwrap_or_default()` or
     /// `args.get(n).unwrap_or(&undefined)`.
     ///
-    /// This returns a reference for efficiency, in case you only need to call methods of `JsValue`,
-    /// so try to minimize calling `clone`.
+    /// This returns a reference for efficiency, in case you only need to call methods of `JsValue`.
     fn get_or_undefined(&self, index: usize) -> &JsValue;
 }
 
