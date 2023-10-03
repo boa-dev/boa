@@ -1014,6 +1014,7 @@ impl JsObject {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        context.check_runtime_limits()?;
         let old_realm = context.realm().clone();
 
         let context = &mut context.guard(move |ctx| {
@@ -1152,6 +1153,7 @@ impl JsObject {
         this_target: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
+        context.check_runtime_limits()?;
         let old_realm = context.realm().clone();
         let context = &mut context.guard(move |ctx| {
             ctx.enter_realm(old_realm);

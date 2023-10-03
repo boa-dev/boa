@@ -293,7 +293,7 @@ fn recursion_runtime_limit() {
         TestAction::assert_native_error(
             "factorial(11)",
             JsNativeErrorKind::RuntimeLimit,
-            "Maximum recursion limit 10 exceeded",
+            "exceeded maximum number of recursive calls",
         ),
         TestAction::assert_eq("factorial(8)", JsValue::new(40_320)),
         TestAction::assert_native_error(
@@ -305,7 +305,7 @@ fn recursion_runtime_limit() {
                 x()
             "#},
             JsNativeErrorKind::RuntimeLimit,
-            "Maximum recursion limit 10 exceeded",
+            "exceeded maximum number of recursive calls",
         ),
     ]);
 }
