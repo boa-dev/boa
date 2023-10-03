@@ -2250,11 +2250,6 @@
 <a href="#2250" id="2250">2250</a>
 <a href="#2251" id="2251">2251</a>
 <a href="#2252" id="2252">2252</a>
-<a href="#2253" id="2253">2253</a>
-<a href="#2254" id="2254">2254</a>
-<a href="#2255" id="2255">2255</a>
-<a href="#2256" id="2256">2256</a>
-<a href="#2257" id="2257">2257</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 
 <span class="doccomment">/// The opcodes of the vm.
@@ -2992,13 +2987,6 @@
     ///
     /// Stack: home, function **=&gt;** home, function
     </span>SetHomeObject,
-
-    <span class="doccomment">/// Set home object internal slot of a class method.
-    ///
-    /// Operands:
-    ///
-    /// Stack: home, function **=&gt;** home, function
-    </span>SetHomeObjectClass,
 
     <span class="doccomment">/// Set the prototype of an object if the value is an object or null.
     ///
@@ -4435,6 +4423,8 @@
     </span>Reserved56 =&gt; Reserved,
     <span class="doccomment">/// Reserved [`Opcode`].
     </span>Reserved57 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved58 =&gt; Reserved,
 }
 
 <span class="doccomment">/// Specific opcodes for bindings.

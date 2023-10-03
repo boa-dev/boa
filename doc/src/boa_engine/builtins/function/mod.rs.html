@@ -1050,14 +1050,6 @@
 <a href="#1050" id="1050">1050</a>
 <a href="#1051" id="1051">1051</a>
 <a href="#1052" id="1052">1052</a>
-<a href="#1053" id="1053">1053</a>
-<a href="#1054" id="1054">1054</a>
-<a href="#1055" id="1055">1055</a>
-<a href="#1056" id="1056">1056</a>
-<a href="#1057" id="1057">1057</a>
-<a href="#1058" id="1058">1058</a>
-<a href="#1059" id="1059">1059</a>
-<a href="#1060" id="1060">1060</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1285,9 +1277,6 @@
     <span class="doccomment">/// The `[[HomeObject]]` internal slot.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 
-    <span class="doccomment">/// The class object that this function is associated with.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-
     <span class="doccomment">/// The `[[ScriptOrModule]]` internal slot.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) script_or_module: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
 
@@ -1380,11 +1369,6 @@
         {
             private_methods.push((name, method));
         }
-    }
-
-    <span class="doccomment">///  Sets the class object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_class_object(<span class="kw-2">&amp;mut </span><span class="self">self</span>, object: JsObject) {
-        <span class="self">self</span>.class_object = <span class="prelude-val">Some</span>(object);
     }
 
     <span class="doccomment">/// Gets the `Realm` from where this function originates.

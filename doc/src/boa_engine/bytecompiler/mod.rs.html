@@ -1557,7 +1557,6 @@
 <a href="#1557" id="1557">1557</a>
 <a href="#1558" id="1558">1558</a>
 <a href="#1559" id="1559">1559</a>
-<a href="#1560" id="1560">1560</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2938,7 +2937,7 @@
     }
 
     <span class="doccomment">/// Compile a class method AST Node into bytecode.
-    </span><span class="kw">fn </span>method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;, class_name: Sym) {
+    </span><span class="kw">fn </span>method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;) {
         <span class="kw">let </span>(generator, r#async, arrow) = (
             function.kind.is_generator(),
             function.kind.is_async(),
@@ -2969,7 +2968,6 @@
             .strict(<span class="bool-val">true</span>)
             .arrow(arrow)
             .binding_identifier(binding_identifier)
-            .class_name(class_name)
             .compile(
                 parameters,
                 body,

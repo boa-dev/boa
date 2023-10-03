@@ -1321,24 +1321,6 @@
 <a href="#1321" id="1321">1321</a>
 <a href="#1322" id="1322">1322</a>
 <a href="#1323" id="1323">1323</a>
-<a href="#1324" id="1324">1324</a>
-<a href="#1325" id="1325">1325</a>
-<a href="#1326" id="1326">1326</a>
-<a href="#1327" id="1327">1327</a>
-<a href="#1328" id="1328">1328</a>
-<a href="#1329" id="1329">1329</a>
-<a href="#1330" id="1330">1330</a>
-<a href="#1331" id="1331">1331</a>
-<a href="#1332" id="1332">1332</a>
-<a href="#1333" id="1333">1333</a>
-<a href="#1334" id="1334">1334</a>
-<a href="#1335" id="1335">1335</a>
-<a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1820,7 +1802,6 @@
             | Instruction::PushClassPrototype
             | Instruction::SetClassPrototype
             | Instruction::SetHomeObject
-            | Instruction::SetHomeObjectClass
             | Instruction::Add
             | Instruction::Sub
             | Instruction::Div
@@ -1984,7 +1965,8 @@
             | Instruction::Reserved54
             | Instruction::Reserved55
             | Instruction::Reserved56
-            | Instruction::Reserved57 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Instruction::Reserved57
+            | Instruction::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }
@@ -2125,7 +2107,6 @@
             code,
             environments: context.vm.environments.clone(),
             home_object: <span class="prelude-val">None</span>,
-            class_object: <span class="prelude-val">None</span>,
             script_or_module,
             kind: FunctionKind::Async,
             realm: context.realm().clone(),
@@ -2135,7 +2116,6 @@
             code,
             environments: context.vm.environments.clone(),
             home_object: <span class="prelude-val">None</span>,
-            class_object: <span class="prelude-val">None</span>,
             script_or_module,
             kind: FunctionKind::Ordinary {
                 constructor_kind: ConstructorKind::Base,
@@ -2212,7 +2192,6 @@
     <span class="kw">let </span>function = OrdinaryFunction {
         code,
         environments: context.vm.environments.clone(),
-        class_object: <span class="prelude-val">None</span>,
         script_or_module,
         home_object: <span class="prelude-val">None</span>,
         kind,
@@ -2306,7 +2285,6 @@
             code,
             environments: context.vm.environments.clone(),
             home_object: <span class="prelude-val">None</span>,
-            class_object: <span class="prelude-val">None</span>,
             script_or_module,
             kind: FunctionKind::AsyncGenerator,
             realm: context.realm().clone(),
@@ -2321,7 +2299,6 @@
             code,
             environments: context.vm.environments.clone(),
             home_object: <span class="prelude-val">None</span>,
-            class_object: <span class="prelude-val">None</span>,
             script_or_module,
             kind: FunctionKind::Generator,
             realm: context.realm().clone(),
@@ -2384,7 +2361,6 @@
         <span class="kw">let </span>code = function.code.clone();
         <span class="kw">let </span><span class="kw-2">mut </span>environments = function.environments.clone();
         <span class="kw">let </span>script_or_module = function.script_or_module.clone();
-        <span class="kw">let </span>class_object = function.class_object.clone();
 
         drop(object);
 
@@ -2409,18 +2385,6 @@
         <span class="kw">let </span>env_fp = context.vm.environments.len() <span class="kw">as </span>u32;
 
         <span class="kw">let </span><span class="kw-2">mut </span>last_env = code.compile_environments.len() - <span class="number">1</span>;
-
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(class_object) = class_object {
-            <span class="kw">let </span>index = context
-                .vm
-                .environments
-                .push_lexical(code.compile_environments[last_env].clone());
-            context
-                .vm
-                .environments
-                .put_lexical_value(index, <span class="number">0</span>, class_object.into());
-            last_env -= <span class="number">1</span>;
-        }
 
         <span class="kw">if </span>code.has_binding_identifier() {
             <span class="kw">let </span>index = context

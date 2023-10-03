@@ -256,21 +256,6 @@
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     js_string,
     object::PrivateElement,
@@ -405,11 +390,6 @@
             object.private_name(name),
             PrivateElement::Method(value.clone()),
         );
-        <span class="kw">let </span><span class="kw-2">mut </span>value_mut = value.borrow_mut();
-        <span class="kw">let </span>function = value_mut
-            .as_function_mut()
-            .expect(<span class="string">&quot;method must be a function&quot;</span>);
-        function.set_class_object(object.clone());
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -460,11 +440,6 @@
                 setter: <span class="prelude-val">Some</span>(value.clone()),
             },
         );
-        <span class="kw">let </span><span class="kw-2">mut </span>value_mut = value.borrow_mut();
-        <span class="kw">let </span>function = value_mut
-            .as_function_mut()
-            .expect(<span class="string">&quot;method must be a function&quot;</span>);
-        function.set_class_object(object.clone());
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -515,11 +490,6 @@
                 setter: <span class="prelude-val">None</span>,
             },
         );
-        <span class="kw">let </span><span class="kw-2">mut </span>value_mut = value.borrow_mut();
-        <span class="kw">let </span>function = value_mut
-            .as_function_mut()
-            .expect(<span class="string">&quot;method must be a function&quot;</span>);
-        function.set_class_object(object.clone());
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }

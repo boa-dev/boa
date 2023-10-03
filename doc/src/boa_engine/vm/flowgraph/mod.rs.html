@@ -891,7 +891,6 @@
                 | Instruction::PushClassPrototype
                 | Instruction::SetClassPrototype
                 | Instruction::SetHomeObject
-                | Instruction::SetHomeObjectClass
                 | Instruction::Add
                 | Instruction::Sub
                 | Instruction::Div
@@ -1056,7 +1055,8 @@
                 | Instruction::Reserved54
                 | Instruction::Reserved55
                 | Instruction::Reserved56
-                | Instruction::Reserved57 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+                | Instruction::Reserved57
+                | Instruction::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
             }
         }
 

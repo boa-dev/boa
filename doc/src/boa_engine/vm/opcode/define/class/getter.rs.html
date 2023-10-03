@@ -228,26 +228,8 @@
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
-<a href="#247" id="247">247</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::set_function_name,
-    object::CONSTRUCTOR,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString,
@@ -276,7 +258,6 @@
                 .as_function_mut()
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             function_mut.set_home_object(class.clone());
-            function_mut.set_class_object(class.clone());
         }
         <span class="kw">let </span>set = class
             .__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?
@@ -340,13 +321,6 @@
                 .as_function_mut()
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             function_mut.set_home_object(class_proto.clone());
-            <span class="kw">let </span>class = class_proto
-                .get(CONSTRUCTOR, context)
-                .expect(<span class="string">&quot;class prototype must have constructor&quot;</span>)
-                .as_object()
-                .expect(<span class="string">&quot;class must be object&quot;</span>)
-                .clone();
-            function_mut.set_class_object(class);
         }
         <span class="kw">let </span>set = class_proto
             .__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?
@@ -416,7 +390,6 @@
                 .as_function_mut()
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             function_mut.set_home_object(class.clone());
-            function_mut.set_class_object(class.clone());
         }
         <span class="kw">let </span>set = class
             .__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?
@@ -466,13 +439,6 @@
                 .as_function_mut()
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             function_mut.set_home_object(class_proto.clone());
-            <span class="kw">let </span>class = class_proto
-                .get(CONSTRUCTOR, context)
-                .expect(<span class="string">&quot;class prototype must have constructor&quot;</span>)
-                .as_object()
-                .expect(<span class="string">&quot;class must be object&quot;</span>)
-                .clone();
-            function_mut.set_class_object(class);
         }
         <span class="kw">let </span>set = class_proto
             .__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?
