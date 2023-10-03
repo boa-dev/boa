@@ -89,6 +89,9 @@ pub(crate) fn native_function_call(
     args: &[JsValue],
     context: &mut Context<'_>,
 ) -> JsResult<JsValue> {
+    // We technically don't need this since native functions don't push any new frames to the
+    // vm, but we'll eventually have to combine the native stack with the vm stack.
+    context.check_runtime_limits()?;
     let this_function_object = obj.clone();
     let object = obj.borrow();
 
@@ -135,6 +138,9 @@ fn native_function_construct(
     new_target: &JsObject,
     context: &mut Context<'_>,
 ) -> JsResult<JsObject> {
+    // We technically don't need this since native functions don't push any new frames to the
+    // vm, but we'll eventually have to combine the native stack with the vm stack.
+    context.check_runtime_limits()?;
     let this_function_object = obj.clone();
     let object = obj.borrow();
 

@@ -1019,16 +1019,7 @@ impl JsObject {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message("exceeded maximum number of recursive calls")
-                .into());
-        }
-        if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message("exceeded maximum call stack length")
-                .into());
-        }
+        context.check_runtime_limits()?;
         let old_realm = context.realm().clone();
 
         let context = &mut context.guard(move |ctx| {
@@ -1180,16 +1171,7 @@ impl JsObject {
         this_target: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
-        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message("exceeded maximum number of recursive calls")
-                .into());
-        }
-        if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message("exceeded maximum call stack length")
-                .into());
-        }
+        context.check_runtime_limits()?;
         let old_realm = context.realm().clone();
         let context = &mut context.guard(move |ctx| {
             ctx.enter_realm(old_realm);

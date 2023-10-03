@@ -10,7 +10,7 @@ use crate::{
     environments::{DeclarativeEnvironment, EnvironmentStack},
     script::Script,
     vm::code_block::Readable,
-    Context, JsError, JsNativeErrorKind, JsObject, JsResult, JsValue, Module,
+    Context, JsError, JsNativeErrorKind, JsObject, JsResult, JsValue, Module, JsNativeError,
 };
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
@@ -411,5 +411,23 @@ impl Context<'_> {
                 }
             }
         }
+    }
+
+    /// Checks if we haven't exceeded the defined runtime limits.
+    pub(crate) fn check_runtime_limits(&self) -> JsResult<()> {
+        // Must throw if the number of recursive calls exceeds the defined limit.
+        if self.vm.runtime_limits.recursion_limit() <= self.vm.frames.len() {
+            return Err(JsNativeError::runtime_limit()
+                .with_message("exceeded maximum number of recursive calls")
+                .into());
+        }
+        // Must throw if the stack size exceeds the defined maximum length.
+        if self.vm.runtime_limits.stack_size_limit() <= self.vm.stack.len() {
+            return Err(JsNativeError::runtime_limit()
+                .with_message("exceeded maximum call stack length")
+                .into());
+        }
+
+        Ok(())
     }
 }
