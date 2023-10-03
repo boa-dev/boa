@@ -1425,9 +1425,9 @@ dependencies = [
 
 [[package]]
 name = "icu_datetime"
-version = "1.3.0"
+version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba79900549709e7b3904c1e4c62b1f8cdf2b082cfa99daff4a10c453c9cf01b8"
+checksum = "127caacb4e15c93b2d1d426cc8bd30985579b59e8d63a6094daa628c8986c37b"
 dependencies = [
  "databake",
  "displaydoc",
