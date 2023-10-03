@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     "#;
 
     // This can be overriden with any custom implementation of `ModuleLoader`.
-    let loader = &SimpleModuleLoader::new("./boa_examples/scripts/modules")?;
+    let loader = &SimpleModuleLoader::new("./scripts/modules")?;
     let dyn_loader: &dyn ModuleLoader = loader;
 
     // Just need to cast to a `ModuleLoader` before passing it to the builder.
@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Now, create the synthetic module and insert it into the loader.
     let operations = create_operations_module(context);
     loader.insert(
-        PathBuf::from("./boa_examples/scripts/modules")
+        PathBuf::from("./scripts/modules")
             .canonicalize()?
             .join("operations.mjs"),
         operations,
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Simulate as if the "fake" module is located in the modules root, just to ensure that
     // the loader won't double load in case someone tries to import "./main.mjs".
     loader.insert(
-        Path::new("./boa_examples/scripts/modules")
+        Path::new("./scripts/modules")
             .canonicalize()?
             .join("main.mjs"),
         module.clone(),

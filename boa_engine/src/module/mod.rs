@@ -240,7 +240,7 @@ impl Module {
                 // Concrete method [`LoadRequestedModules ( [ hostDefined ] )`][spec].
                 //
                 // [spec]: https://tc39.es/ecma262/#sec-LoadRequestedModules
-                // TODO: 1. If hostDefined is not present, let hostDefined be empty.
+                // 1. If hostDefined is not present, let hostDefined be empty.
 
                 // 2. Let pc be ! NewPromiseCapability(%Promise%).
                 let pc = PromiseCapability::new(
