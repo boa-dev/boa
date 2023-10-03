@@ -26,6 +26,15 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_class(&mut self, class: &Class, expression: bool) {
         let class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
 
+        let class_env: Option<super::Label> = match class.name() {
+            Some(name) if class.has_binding_identifier() => {
+                self.push_compile_environment(false);
+                self.create_immutable_binding(name, true);
+                Some(self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment))
+            }
+            _ => None,
+        };
+
         let mut compiler = ByteCompiler::new(
             class_name,
             true,
@@ -33,14 +42,6 @@ impl ByteCompiler<'_, '_> {
             self.current_environment.clone(),
             self.context,
         );
-
-        if let Some(class_name) = class.name() {
-            if class.has_binding_identifier() {
-                compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
-                compiler.push_compile_environment(false);
-                compiler.create_immutable_binding(class_name, true);
-            }
-        }
 
         compiler.push_compile_environment(true);
 
@@ -80,10 +81,6 @@ impl ByteCompiler<'_, '_> {
         }
         compiler.emit_opcode(Opcode::SetReturnValue);
 
-        if class.name().is_some() && class.has_binding_identifier() {
-            compiler.pop_compile_environment();
-        }
-
         let code = Gc::new(compiler.finish());
         let index = self.functions.len() as u32;
         self.functions.push(code);
@@ -91,15 +88,6 @@ impl ByteCompiler<'_, '_> {
             Opcode::GetFunction,
             &[Operand::Varying(index), Operand::Bool(false)],
         );
-
-        let class_env: Option<super::Label> = match class.name() {
-            Some(name) if class.has_binding_identifier() => {
-                self.push_compile_environment(false);
-                self.create_immutable_binding(name, true);
-                Some(self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment))
-            }
-            _ => None,
-        };
 
         self.emit_opcode(Opcode::Dup);
         if let Some(node) = class.super_ref() {
@@ -131,6 +119,12 @@ impl ByteCompiler<'_, '_> {
         let mut static_elements = Vec::new();
         let mut static_field_name_count = 0;
 
+        if class_env.is_some() {
+            self.emit_opcode(Opcode::Dup);
+            self.emit_binding(BindingOpcode::InitConst, class_name.into());
+        }
+
+        // TODO: set function name for getter and setters
         for element in class.elements() {
             match element {
                 ClassElement::StaticMethodDefinition(name, method_definition) => {
@@ -138,7 +132,7 @@ impl ByteCompiler<'_, '_> {
                     match method_definition {
                         MethodDefinition::Get(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassStaticGetterByName,
@@ -148,13 +142,13 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassStaticGetterByValue);
                             }
                         },
                         MethodDefinition::Set(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassStaticSetterByName,
@@ -164,13 +158,13 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassStaticSetterByValue);
                             }
                         },
                         MethodDefinition::Ordinary(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassStaticMethodByName,
@@ -180,13 +174,13 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassStaticMethodByValue);
                             }
                         },
                         MethodDefinition::Async(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassStaticMethodByName,
@@ -196,13 +190,13 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassStaticMethodByValue);
                             }
                         },
                         MethodDefinition::Generator(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassStaticMethodByName,
@@ -212,13 +206,13 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassStaticMethodByValue);
                             }
                         },
                         MethodDefinition::AsyncGenerator(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassStaticMethodByName,
@@ -228,7 +222,7 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassStaticMethodByValue);
                             }
                         },
@@ -238,32 +232,32 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::Dup);
                     match method_definition {
                         MethodDefinition::Get(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::SetPrivateGetter, index);
                         }
                         MethodDefinition::Set(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::SetPrivateSetter, index);
                         }
                         MethodDefinition::Ordinary(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::SetPrivateMethod, index);
                         }
                         MethodDefinition::Async(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::SetPrivateMethod, index);
                         }
                         MethodDefinition::Generator(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::SetPrivateMethod, index);
                         }
                         MethodDefinition::AsyncGenerator(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::SetPrivateMethod, index);
                         }
@@ -288,8 +282,6 @@ impl ByteCompiler<'_, '_> {
                         self.current_environment.clone(),
                         self.context,
                     );
-                    field_compiler.push_compile_environment(false);
-                    field_compiler.create_immutable_binding(class_name.into(), true);
                     field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
                         field_compiler.compile_expr(node, true);
@@ -298,7 +290,6 @@ impl ByteCompiler<'_, '_> {
                     }
                     field_compiler.emit_opcode(Opcode::SetReturnValue);
 
-                    field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
@@ -323,15 +314,12 @@ impl ByteCompiler<'_, '_> {
                         self.current_environment.clone(),
                         self.context,
                     );
-                    field_compiler.push_compile_environment(false);
-                    field_compiler.create_immutable_binding(class_name.into(), true);
                     field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
                         field_compiler.compile_expr(node, true);
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
 
                     field_compiler.emit_opcode(Opcode::SetReturnValue);
@@ -370,8 +358,6 @@ impl ByteCompiler<'_, '_> {
                         self.current_environment.clone(),
                         self.context,
                     );
-                    field_compiler.push_compile_environment(false);
-                    field_compiler.create_immutable_binding(class_name.into(), true);
                     field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
                         field_compiler.compile_expr(node, true);
@@ -380,7 +366,6 @@ impl ByteCompiler<'_, '_> {
                     }
                     field_compiler.emit_opcode(Opcode::SetReturnValue);
 
-                    field_compiler.pop_compile_environment();
                     field_compiler.pop_compile_environment();
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
@@ -408,8 +393,6 @@ impl ByteCompiler<'_, '_> {
                         self.current_environment.clone(),
                         self.context,
                     );
-                    compiler.push_compile_environment(false);
-                    compiler.create_immutable_binding(class_name.into(), true);
                     compiler.push_compile_environment(true);
 
                     compiler.function_declaration_instantiation(
@@ -422,7 +405,6 @@ impl ByteCompiler<'_, '_> {
 
                     compiler.compile_statement_list(body.statements(), false, false);
                     compiler.pop_compile_environment();
-                    compiler.pop_compile_environment();
 
                     let code = Gc::new(compiler.finish());
                     static_elements.push(StaticElement::StaticBlock(code));
@@ -431,32 +413,32 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::Dup);
                     match method_definition {
                         MethodDefinition::Get(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::PushClassPrivateGetter, index);
                         }
                         MethodDefinition::Set(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::PushClassPrivateSetter, index);
                         }
                         MethodDefinition::Ordinary(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
                         MethodDefinition::Async(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
                         MethodDefinition::Generator(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
                         MethodDefinition::AsyncGenerator(expr) => {
-                            self.method(expr.into(), class_name);
+                            self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
@@ -468,7 +450,7 @@ impl ByteCompiler<'_, '_> {
                     match method_definition {
                         MethodDefinition::Get(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassGetterByName,
@@ -478,13 +460,13 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassGetterByValue);
                             }
                         },
                         MethodDefinition::Set(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassSetterByName,
@@ -494,13 +476,13 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassSetterByValue);
                             }
                         },
                         MethodDefinition::Ordinary(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassMethodByName,
@@ -510,13 +492,13 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassMethodByValue);
                             }
                         },
                         MethodDefinition::Async(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassMethodByName,
@@ -526,13 +508,13 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassMethodByValue);
                             }
                         },
                         MethodDefinition::Generator(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassMethodByName,
@@ -542,13 +524,13 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassMethodByValue);
                             }
                         },
                         MethodDefinition::AsyncGenerator(expr) => match name {
                             PropertyName::Literal(name) => {
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit_with_varying_operand(
                                     Opcode::DefineClassMethodByName,
@@ -558,7 +540,7 @@ impl ByteCompiler<'_, '_> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true);
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.method(expr.into(), class_name);
+                                self.method(expr.into());
                                 self.emit_opcode(Opcode::DefineClassMethodByValue);
                             }
                         },
@@ -578,7 +560,7 @@ impl ByteCompiler<'_, '_> {
                         Opcode::GetFunction,
                         &[Operand::Varying(index), Operand::Bool(false)],
                     );
-                    self.emit_opcode(Opcode::SetHomeObjectClass);
+                    self.emit_opcode(Opcode::SetHomeObject);
                     self.emit_with_varying_operand(Opcode::Call, 0);
                     self.emit_opcode(Opcode::Pop);
                 }
@@ -591,7 +573,7 @@ impl ByteCompiler<'_, '_> {
                         Opcode::GetFunction,
                         &[Operand::Varying(index), Operand::Bool(false)],
                     );
-                    self.emit_opcode(Opcode::SetHomeObjectClass);
+                    self.emit_opcode(Opcode::SetHomeObject);
                     self.emit_with_varying_operand(Opcode::Call, 0);
                     if let Some(name_index) = name_index {
                         self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, name_index);
@@ -608,9 +590,6 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::Pop);
 
         if let Some(class_env) = class_env {
-            self.emit_opcode(Opcode::Dup);
-            self.emit_binding(BindingOpcode::InitConst, class_name.into());
-
             let env_index = self.pop_compile_environment();
             self.patch_jump_with_target(class_env, env_index);
             self.emit_opcode(Opcode::PopEnvironment);

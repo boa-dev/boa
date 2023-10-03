@@ -225,9 +225,6 @@ pub struct OrdinaryFunction {
     /// The `[[HomeObject]]` internal slot.
     pub(crate) home_object: Option<JsObject>,
 
-    /// The class object that this function is associated with.
-    pub(crate) class_object: Option<JsObject>,
-
     /// The `[[ScriptOrModule]]` internal slot.
     pub(crate) script_or_module: Option<ActiveRunnable>,
 
@@ -320,11 +317,6 @@ impl OrdinaryFunction {
         {
             private_methods.push((name, method));
         }
-    }
-
-    ///  Sets the class object.
-    pub(crate) fn set_class_object(&mut self, object: JsObject) {
-        self.class_object = Some(object);
     }
 
     /// Gets the `Realm` from where this function originates.

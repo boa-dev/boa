@@ -1,6 +1,5 @@
 use crate::{
     builtins::function::set_function_name,
-    object::CONSTRUCTOR,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -29,7 +28,6 @@ impl DefineClassStaticMethodByName {
                 .as_function_mut()
                 .expect("method must be function object");
             function_mut.set_home_object(class.clone());
-            function_mut.set_class_object(class.clone());
         }
 
         class.__define_own_property__(
@@ -89,13 +87,6 @@ impl DefineClassMethodByName {
                 .as_function_mut()
                 .expect("method must be function object");
             function_mut.set_home_object(class_proto.clone());
-            let class = class_proto
-                .get(CONSTRUCTOR, context)
-                .expect("class prototype must have constructor")
-                .as_object()
-                .expect("class must be object")
-                .clone();
-            function_mut.set_class_object(class);
         }
 
         class_proto.__define_own_property__(
@@ -161,7 +152,6 @@ impl Operation for DefineClassStaticMethodByValue {
                 .as_function_mut()
                 .expect("method must be function object");
             function_mut.set_home_object(class.clone());
-            function_mut.set_class_object(class.clone());
         }
 
         class.define_property_or_throw(
@@ -207,13 +197,6 @@ impl Operation for DefineClassMethodByValue {
                 .as_function_mut()
                 .expect("method must be function object");
             function_mut.set_home_object(class_proto.clone());
-            let class = class_proto
-                .get(CONSTRUCTOR, context)
-                .expect("class prototype must have constructor")
-                .as_object()
-                .expect("class must be object")
-                .clone();
-            function_mut.set_class_object(class);
         }
 
         class_proto.__define_own_property__(
