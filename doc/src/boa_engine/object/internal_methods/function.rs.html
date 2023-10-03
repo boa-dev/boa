@@ -186,6 +186,12 @@
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     context::intrinsics::StandardConstructors,
     object::{
@@ -277,6 +283,9 @@
     args: <span class="kw-2">&amp;</span>[JsValue],
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="comment">// We technically don&#39;t need this since native functions don&#39;t push any new frames to the
+    // vm, but we&#39;ll eventually have to combine the native stack with the vm stack.
+    </span>context.check_runtime_limits()<span class="question-mark">?</span>;
     <span class="kw">let </span>this_function_object = obj.clone();
     <span class="kw">let </span>object = obj.borrow();
 
@@ -323,6 +332,9 @@
     new_target: <span class="kw-2">&amp;</span>JsObject,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsObject&gt; {
+    <span class="comment">// We technically don&#39;t need this since native functions don&#39;t push any new frames to the
+    // vm, but we&#39;ll eventually have to combine the native stack with the vm stack.
+    </span>context.check_runtime_limits()<span class="question-mark">?</span>;
     <span class="kw">let </span>this_function_object = obj.clone();
     <span class="kw">let </span>object = obj.borrow();
 
