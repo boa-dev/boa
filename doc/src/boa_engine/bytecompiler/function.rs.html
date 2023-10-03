@@ -175,7 +175,6 @@
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
@@ -278,12 +277,12 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding_identifier) = <span class="self">self</span>.binding_identifier {
             compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
-            compiler.push_compile_environment(<span class="bool-val">false</span>);
+            <span class="kw">let _ </span>= compiler.push_compile_environment(<span class="bool-val">false</span>);
             compiler.create_immutable_binding(binding_identifier.into(), <span class="self">self</span>.strict);
         }
 
         <span class="comment">// Function environment
-        </span>compiler.push_compile_environment(<span class="bool-val">true</span>);
+        </span><span class="kw">let _ </span>= compiler.push_compile_environment(<span class="bool-val">true</span>);
 
         <span class="comment">// Taken from:
         //  - 15.9.3 Runtime Semantics: EvaluateAsyncConciseBody: &lt;https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncconcisebody&gt;
@@ -333,9 +332,8 @@
 
         compiler.compile_statement_list(body.statements(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(env_labels) = env_label {
-            <span class="kw">let </span>env_index = compiler.pop_compile_environment();
-            compiler.patch_jump_with_target(env_labels, env_index);
+        <span class="kw">if </span>env_label {
+            compiler.pop_compile_environment();
         }
 
         <span class="kw">if </span>additional_env {

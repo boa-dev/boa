@@ -601,7 +601,6 @@
 <a href="#601" id="601">601</a>
 <a href="#602" id="602">602</a>
 <a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, Operand};
 <span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode};
 <span class="kw">use </span>boa_ast::{
@@ -630,13 +629,14 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, class: <span class="kw-2">&amp;</span>Class, expression: bool) {
         <span class="kw">let </span>class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
 
-        <span class="kw">let </span>class_env: <span class="prelude-ty">Option</span>&lt;<span class="kw">super</span>::Label&gt; = <span class="kw">match </span>class.name() {
+        <span class="kw">let </span>class_env = <span class="kw">match </span>class.name() {
             <span class="prelude-val">Some</span>(name) <span class="kw">if </span>class.has_binding_identifier() =&gt; {
-                <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+                <span class="kw">let </span>env_index = <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
                 <span class="self">self</span>.create_immutable_binding(name, <span class="bool-val">true</span>);
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment))
-            }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+                <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+                <span class="bool-val">true
+            </span>}
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
@@ -647,7 +647,8 @@
             <span class="self">self</span>.context,
         );
 
-        compiler.push_compile_environment(<span class="bool-val">true</span>);
+        <span class="comment">// Function environment
+        </span><span class="kw">let _ </span>= compiler.push_compile_environment(<span class="bool-val">true</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = class.constructor() {
             compiler.length = expr.parameters().length();
@@ -663,15 +664,11 @@
 
             compiler.compile_statement_list(expr.body().statements(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
-            <span class="kw">let </span>env_index = compiler.pop_compile_environment();
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(env_label) = env_label {
-                compiler.patch_jump_with_target(env_label, env_index);
+            <span class="kw">if </span>env_label {
                 compiler.pop_compile_environment();
             } <span class="kw">else </span>{
                 compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
             }
-
             compiler.emit_opcode(Opcode::PushUndefined);
         } <span class="kw">else </span>{
             <span class="kw">if </span>class.super_ref().is_some() {
@@ -680,10 +677,10 @@
                 compiler.emit_opcode(Opcode::RestParameterPop);
                 compiler.emit_opcode(Opcode::PushUndefined);
             }
-            compiler.pop_compile_environment();
             compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
         }
         compiler.emit_opcode(Opcode::SetReturnValue);
+        compiler.pop_compile_environment();
 
         <span class="kw">let </span>code = Gc::new(compiler.finish());
         <span class="kw">let </span>index = <span class="self">self</span>.functions.len() <span class="kw">as </span>u32;
@@ -723,7 +720,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>static_elements = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>static_field_name_count = <span class="number">0</span>;
 
-        <span class="kw">if </span>class_env.is_some() {
+        <span class="kw">if </span>class_env {
             <span class="self">self</span>.emit_opcode(Opcode::Dup);
             <span class="self">self</span>.emit_binding(BindingOpcode::InitConst, class_name.into());
         }
@@ -886,7 +883,9 @@
                         <span class="self">self</span>.current_environment.clone(),
                         <span class="self">self</span>.context,
                     );
-                    field_compiler.push_compile_environment(<span class="bool-val">true</span>);
+
+                    <span class="comment">// Function environment
+                    </span><span class="kw">let _ </span>= field_compiler.push_compile_environment(<span class="bool-val">true</span>);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = field {
                         field_compiler.compile_expr(node, <span class="bool-val">true</span>);
                     } <span class="kw">else </span>{
@@ -918,7 +917,7 @@
                         <span class="self">self</span>.current_environment.clone(),
                         <span class="self">self</span>.context,
                     );
-                    field_compiler.push_compile_environment(<span class="bool-val">true</span>);
+                    <span class="kw">let _ </span>= field_compiler.push_compile_environment(<span class="bool-val">true</span>);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = field {
                         field_compiler.compile_expr(node, <span class="bool-val">true</span>);
                     } <span class="kw">else </span>{
@@ -962,7 +961,7 @@
                         <span class="self">self</span>.current_environment.clone(),
                         <span class="self">self</span>.context,
                     );
-                    field_compiler.push_compile_environment(<span class="bool-val">true</span>);
+                    <span class="kw">let _ </span>= field_compiler.push_compile_environment(<span class="bool-val">true</span>);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = field {
                         field_compiler.compile_expr(node, <span class="bool-val">true</span>);
                     } <span class="kw">else </span>{
@@ -997,7 +996,7 @@
                         <span class="self">self</span>.current_environment.clone(),
                         <span class="self">self</span>.context,
                     );
-                    compiler.push_compile_environment(<span class="bool-val">true</span>);
+                    <span class="kw">let _ </span>= compiler.push_compile_environment(<span class="bool-val">true</span>);
 
                     compiler.function_declaration_instantiation(
                         body,
@@ -1193,9 +1192,8 @@
         <span class="self">self</span>.emit_opcode(Opcode::Swap);
         <span class="self">self</span>.emit_opcode(Opcode::Pop);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(class_env) = class_env {
-            <span class="kw">let </span>env_index = <span class="self">self</span>.pop_compile_environment();
-            <span class="self">self</span>.patch_jump_with_target(class_env, env_index);
+        <span class="kw">if </span>class_env {
+            <span class="self">self</span>.pop_compile_environment();
             <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
         }
 

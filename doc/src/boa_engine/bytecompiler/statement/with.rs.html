@@ -14,6 +14,7 @@
 <a href="#14" id="14">14</a>
 <a href="#15" id="15">15</a>
 <a href="#16" id="16">16</a>
+<a href="#17" id="17">17</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 <span class="kw">use </span>boa_ast::statement::With;
 
@@ -21,7 +22,8 @@
     <span class="doccomment">/// Compile a [`With`] `boa_ast` node
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, with: <span class="kw-2">&amp;</span>With, use_expr: bool) {
         <span class="self">self</span>.compile_expr(with.expression(), <span class="bool-val">true</span>);
-        <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+
+        <span class="kw">let _ </span>= <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
         <span class="self">self</span>.emit_opcode(Opcode::PushObjectEnvironment);
 
         <span class="self">self</span>.compile_stmt(with.statement(), use_expr, <span class="bool-val">true</span>);

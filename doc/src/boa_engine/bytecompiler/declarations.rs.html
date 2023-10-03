@@ -1196,8 +1196,9 @@
 <a href="#1196" id="1196">1196</a>
 <a href="#1197" id="1197">1197</a>
 <a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
+    bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     environments::BindingLocatorError,
     vm::{
         create_function_object_fast, create_generator_function_object, BindingOpcode,
@@ -2007,8 +2008,8 @@
         arrow: bool,
         strict: bool,
         generator: bool,
-    ) -&gt; (<span class="prelude-ty">Option</span>&lt;Label&gt;, bool) {
-        <span class="kw">let </span><span class="kw-2">mut </span>env_label = <span class="prelude-val">None</span>;
+    ) -&gt; (bool, bool) {
+        <span class="kw">let </span><span class="kw-2">mut </span>env_label = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>additional_env = <span class="bool-val">false</span>;
 
         <span class="comment">// 1. Let calleeContext be the running execution context.
@@ -2108,7 +2109,7 @@
             // c. Let env be NewDeclarativeEnvironment(calleeEnv).
             // d. Assert: The VariableEnvironment of calleeContext is calleeEnv.
             // e. Set the LexicalEnvironment of calleeContext to env.
-            </span><span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+            </span><span class="kw">let _ </span>= <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
             additional_env = <span class="bool-val">true</span>;
         }
 
@@ -2228,8 +2229,9 @@
             //          visibility of declarations in the function body.
             // b. Let varEnv be NewDeclarativeEnvironment(env).
             // c. Set the VariableEnvironment of calleeContext to varEnv.
-            </span><span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
-            env_label = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment));
+            </span><span class="kw">let </span>env_index = <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+            <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+            env_label = <span class="bool-val">true</span>;
 
             <span class="comment">// d. Let instantiatedVarNames be a new empty List.
             </span><span class="kw">let </span><span class="kw-2">mut </span>instantiated_var_names = Vec::new();

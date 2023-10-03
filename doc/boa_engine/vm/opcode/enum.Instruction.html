@@ -294,7 +294,7 @@
     GetReturnValue,
     SetReturnValue,
     PushDeclarativeEnvironment {
-        compile_environments_index: <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u32.html">u32</a>,
+        compile_environments_index: <a class="struct" href="struct.VaryingOperand.html" title="struct boa_engine::vm::opcode::VaryingOperand">VaryingOperand</a>,
     },
     PushObjectEnvironment,
     PopEnvironment,
@@ -939,8 +939,8 @@ if true jumps to address, otherwise push the second pop’ed value.</p>
 </div><section id="variant.SetReturnValue" class="variant"><a href="#variant.SetReturnValue" class="anchor">§</a><h3 class="code-header">SetReturnValue</h3></section><div class="docblock"><p>Set return value of a function.</p>
 <p>Operands:</p>
 <p>Stack: value <strong>=&gt;</strong></p>
-</div><section id="variant.PushDeclarativeEnvironment" class="variant"><a href="#variant.PushDeclarativeEnvironment" class="anchor">§</a><h3 class="code-header">PushDeclarativeEnvironment</h3></section><div class="sub-variant" id="variant.PushDeclarativeEnvironment.fields"><h4>Fields</h4><div class="sub-variant-field"><span id="variant.PushDeclarativeEnvironment.field.compile_environments_index" class="small-section-header"><a href="#variant.PushDeclarativeEnvironment.field.compile_environments_index" class="anchor field">§</a><code>compile_environments_index: <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u32.html">u32</a></code></span></div></div><div class="docblock"><p>Push a declarative environment.</p>
-<p>Operands: compile_environments_index: <code>u32</code></p>
+</div><section id="variant.PushDeclarativeEnvironment" class="variant"><a href="#variant.PushDeclarativeEnvironment" class="anchor">§</a><h3 class="code-header">PushDeclarativeEnvironment</h3></section><div class="sub-variant" id="variant.PushDeclarativeEnvironment.fields"><h4>Fields</h4><div class="sub-variant-field"><span id="variant.PushDeclarativeEnvironment.field.compile_environments_index" class="small-section-header"><a href="#variant.PushDeclarativeEnvironment.field.compile_environments_index" class="anchor field">§</a><code>compile_environments_index: <a class="struct" href="struct.VaryingOperand.html" title="struct boa_engine::vm::opcode::VaryingOperand">VaryingOperand</a></code></span></div></div><div class="docblock"><p>Push a declarative environment.</p>
+<p>Operands: compile_environments_index: <code>VaryingOperand</code></p>
 <p>Stack: <strong>=&gt;</strong></p>
 </div><section id="variant.PushObjectEnvironment" class="variant"><a href="#variant.PushObjectEnvironment" class="anchor">§</a><h3 class="code-header">PushObjectEnvironment</h3></section><div class="docblock"><p>Push an object environment.</p>
 <p>Operands:</p>

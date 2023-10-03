@@ -1688,7 +1688,7 @@
             | Instruction::ConcatToString { value_count: value } =&gt; value.value().to_string(),
             Instruction::PushDeclarativeEnvironment {
                 compile_environments_index,
-            } =&gt; compile_environments_index.to_string(),
+            } =&gt; compile_environments_index.value().to_string(),
             Instruction::CopyDataProperties {
                 excluded_key_count: value1,
                 excluded_key_count_computed: value2,
@@ -2387,7 +2387,7 @@
 
         <span class="kw">let </span>env_fp = context.vm.environments.len() <span class="kw">as </span>u32;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>last_env = code.compile_environments.len() - <span class="number">1</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_env = <span class="number">0</span>;
 
         <span class="kw">if </span>code.has_binding_identifier() {
             <span class="kw">let </span>index = context
@@ -2398,7 +2398,7 @@
                 .vm
                 .environments
                 .put_lexical_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
-            last_env -= <span class="number">1</span>;
+            last_env += <span class="number">1</span>;
         }
 
         context.vm.environments.push_function(
@@ -2407,7 +2407,7 @@
         );
 
         <span class="kw">if </span>code.has_parameters_env_bindings() {
-            last_env -= <span class="number">1</span>;
+            last_env += <span class="number">1</span>;
             context
                 .vm
                 .environments
@@ -2529,7 +2529,7 @@
 
         <span class="kw">let </span>new_target = this_target.as_object().expect(<span class="string">&quot;must be object&quot;</span>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>last_env = code.compile_environments.len() - <span class="number">1</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_env = <span class="number">0</span>;
 
         <span class="kw">if </span>code.has_binding_identifier() {
             <span class="kw">let </span>index = context
@@ -2540,7 +2540,7 @@
                 .vm
                 .environments
                 .put_lexical_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
-            last_env -= <span class="number">1</span>;
+            last_env += <span class="number">1</span>;
         }
 
         context.vm.environments.push_function(
@@ -2557,7 +2557,7 @@
         <span class="kw">let </span>environment = context.vm.environments.current();
 
         <span class="kw">if </span>code.has_parameters_env_bindings() {
-            last_env -= <span class="number">1</span>;
+            last_env += <span class="number">1</span>;
             context
                 .vm
                 .environments
