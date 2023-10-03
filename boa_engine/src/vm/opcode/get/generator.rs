@@ -13,7 +13,11 @@ pub(crate) struct GetGenerator;
 impl GetGenerator {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let code = context.vm.frame().code_block.functions[index].clone();
+        let code = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_function_expect(index);
         let function = create_generator_function_object(code, false, None, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
@@ -51,7 +55,11 @@ pub(crate) struct GetGeneratorAsync;
 impl GetGeneratorAsync {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let code = context.vm.frame().code_block.functions[index].clone();
+        let code = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_function_expect(index);
         let function = create_generator_function_object(code, true, None, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)

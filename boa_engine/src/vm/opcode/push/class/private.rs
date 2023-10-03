@@ -17,7 +17,11 @@ pub(crate) struct PushClassPrivateMethod;
 impl PushClassPrivateMethod {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block.names[index].clone();
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string_expect(index);
         let method = context.vm.pop();
         let method_object = method.as_callable().expect("method must be callable");
 
@@ -79,7 +83,11 @@ pub(crate) struct PushClassPrivateGetter;
 impl PushClassPrivateGetter {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block.names[index].clone();
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string_expect(index);
         let getter = context.vm.pop();
         let getter_object = getter.as_callable().expect("getter must be callable");
         let class = context.vm.pop();
@@ -132,7 +140,11 @@ pub(crate) struct PushClassPrivateSetter;
 impl PushClassPrivateSetter {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block.names[index].clone();
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string_expect(index);
         let setter = context.vm.pop();
         let setter_object = setter.as_callable().expect("getter must be callable");
         let class = context.vm.pop();

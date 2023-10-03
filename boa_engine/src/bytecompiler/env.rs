@@ -13,8 +13,9 @@ impl ByteCompiler<'_, '_> {
             function_scope,
         ));
 
-        let index = self.compile_environments.len() as u32;
-        self.compile_environments.push(env.clone());
+        let index = self.constants.len() as u32;
+        self.constants
+            .push(crate::vm::Constant::CompileTimeEnvironment(env.clone()));
 
         if function_scope {
             self.variable_environment = env.clone();

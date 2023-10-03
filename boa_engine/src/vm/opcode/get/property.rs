@@ -21,7 +21,12 @@ impl GetPropertyByName {
             value.to_object(context)?
         };
 
-        let key = context.vm.frame().code_block.names[index].clone().into();
+        let key = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string_expect(index)
+            .into();
         let result = object.__get__(&key, receiver, context)?;
 
         context.vm.push(result);

@@ -8,7 +8,7 @@ use crate::{
     object::{JsObject, ObjectData, PROTOTYPE},
     property::PropertyDescriptor,
     string::utf16,
-    Context, JsString, JsValue,
+    Context, JsBigInt, JsString, JsValue,
 };
 use bitflags::bitflags;
 use boa_ast::function::FormalParameterList;
@@ -108,6 +108,21 @@ impl Handler {
     }
 }
 
+#[derive(Clone, Debug, Trace, Finalize)]
+pub(crate) enum Constant {
+    /// Property field names and private names `[[description]]`s.
+    String(JsString),
+    Function(Gc<CodeBlock>),
+    BigInt(#[unsafe_ignore_trace] JsBigInt),
+
+    /// Compile time environments in this function.
+    ///
+    // Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
+    //
+    // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.
+    CompileTimeEnvironment(#[unsafe_ignore_trace] Rc<CompileTimeEnvironment>),
+}
+
 /// The internal representation of a JavaScript function.
 ///
 /// A `CodeBlock` is generated for each function compiled by the
@@ -135,29 +150,15 @@ pub struct CodeBlock {
     /// Bytecode
     pub(crate) bytecode: Box<[u8]>,
 
-    /// Literals
-    pub(crate) literals: Box<[JsValue]>,
-
-    /// Property field names and private names `[[description]]`s.
-    pub(crate) names: Box<[JsString]>,
+    pub(crate) constants: ThinVec<Constant>,
 
     /// Locators for all bindings in the codeblock.
     #[unsafe_ignore_trace]
     pub(crate) bindings: Box<[BindingLocator]>,
 
-    /// Functions inside this function
-    pub(crate) functions: Box<[Gc<Self>]>,
-
     /// Exception [`Handler`]s.
     #[unsafe_ignore_trace]
     pub(crate) handlers: ThinVec<Handler>,
-
-    /// Compile time environments in this function.
-    // Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
-    //
-    // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.
-    #[unsafe_ignore_trace]
-    pub(crate) compile_environments: Box<[Rc<CompileTimeEnvironment>]>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -169,17 +170,14 @@ impl CodeBlock {
         flags.set(CodeBlockFlags::STRICT, strict);
         Self {
             bytecode: Box::default(),
-            literals: Box::default(),
-            names: Box::default(),
+            constants: ThinVec::default(),
             bindings: Box::default(),
-            functions: Box::default(),
             name,
             flags: Cell::new(flags),
             length,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             handlers: ThinVec::default(),
-            compile_environments: Box::default(),
         }
     }
 
@@ -251,6 +249,33 @@ impl CodeBlock {
             .enumerate()
             .rev()
             .find(|(_, handler)| handler.contains(pc))
+    }
+
+    pub(crate) fn constant_string_expect(&self, index: usize) -> JsString {
+        if let Constant::String(value) = &self.constants[index] {
+            return value.clone();
+        }
+
+        panic!("there should be a string constant at index {index}")
+    }
+
+    pub(crate) fn constant_function_expect(&self, index: usize) -> Gc<Self> {
+        if let Constant::Function(value) = &self.constants[index] {
+            return value.clone();
+        }
+
+        panic!("there should be a function constant at index {index}")
+    }
+
+    pub(crate) fn constant_compile_time_environment_expect(
+        &self,
+        index: usize,
+    ) -> Rc<CompileTimeEnvironment> {
+        if let Constant::CompileTimeEnvironment(value) = &self.constants[index] {
+            return value.clone();
+        }
+
+        panic!("there should be a compile time environment constant at index {index}")
     }
 }
 
@@ -325,11 +350,11 @@ impl CodeBlock {
                 pattern_index: source_index,
                 flags_index: flag_index,
             } => {
-                let pattern = self.names[source_index.value() as usize]
-                    .clone()
+                let pattern = self
+                    .constant_string_expect(source_index.value() as usize)
                     .to_std_string_escaped();
-                let flags = self.names[flag_index.value() as usize]
-                    .clone()
+                let flags = self
+                    .constant_string_expect(flag_index.value() as usize)
                     .to_std_string_escaped();
                 format!("/{pattern}/{flags}")
             }
@@ -383,8 +408,10 @@ impl CodeBlock {
                 let index = index.value() as usize;
                 format!(
                     "{index:04}: '{}' (length: {}), method: {method}",
-                    self.functions[index].name().to_std_string_escaped(),
-                    self.functions[index].length
+                    self.constant_function_expect(index)
+                        .name()
+                        .to_std_string_escaped(),
+                    self.constant_function_expect(index).length
                 )
             }
             Instruction::GetArrowFunction { index }
@@ -394,8 +421,10 @@ impl CodeBlock {
                 let index = index.value() as usize;
                 format!(
                     "{index:04}: '{}' (length: {})",
-                    self.functions[index].name().to_std_string_escaped(),
-                    self.functions[index].length
+                    self.constant_function_expect(index)
+                        .name()
+                        .to_std_string_escaped(),
+                    self.constant_function_expect(index).length
                 )
             }
             Instruction::DefVar { index }
@@ -440,7 +469,8 @@ impl CodeBlock {
                 format!(
                     "{:04}: '{}'",
                     index.value(),
-                    self.names[index.value() as usize].to_std_string_escaped(),
+                    self.constant_string_expect(index.value() as usize)
+                        .to_std_string_escaped(),
                 )
             }
             Instruction::PushPrivateEnvironment { name_indices } => {
@@ -693,17 +723,34 @@ impl ToInternedString for CodeBlock {
             count += 1;
         }
 
-        f.push_str("\nLiterals:\n");
+        f.push_str("\nConstants:");
 
-        if self.literals.is_empty() {
-            f.push_str("    <empty>\n");
+        if self.constants.is_empty() {
+            f.push_str(" <empty>\n");
         } else {
-            for (i, value) in self.literals.iter().enumerate() {
-                f.push_str(&format!(
-                    "    {i:04}: <{}> {}\n",
-                    value.type_of(),
-                    value.display()
-                ));
+            f.push('\n');
+            for (i, value) in self.constants.iter().enumerate() {
+                f.push_str(&format!("    {i:04}: "));
+                let value = match value {
+                    Constant::String(v) => {
+                        format!("[STRING] \"{}\"", v.to_std_string_escaped().escape_debug())
+                    }
+                    Constant::BigInt(v) => format!("[BIGINT] {v}n"),
+                    Constant::Function(code) => format!(
+                        "[FUNCTION] name: '{}' (length: {})\n",
+                        code.name().to_std_string_escaped(),
+                        code.length
+                    ),
+                    Constant::CompileTimeEnvironment(v) => {
+                        format!(
+                            "[ENVIRONMENT] index: {}, bindings: {}",
+                            v.environment_index(),
+                            v.num_bindings()
+                        )
+                    }
+                };
+                f.push_str(&value);
+                f.push('\n');
             }
         }
 
@@ -715,19 +762,6 @@ impl ToInternedString for CodeBlock {
                 f.push_str(&format!(
                     "    {i:04}: {}\n",
                     interner.resolve_expect(binding_locator.name().sym())
-                ));
-            }
-        }
-
-        f.push_str("\nFunctions:\n");
-        if self.functions.is_empty() {
-            f.push_str("    <empty>\n");
-        } else {
-            for (i, code) in self.functions.iter().enumerate() {
-                f.push_str(&format!(
-                    "    {i:04}: name: '{}' (length: {})\n",
-                    code.name().to_std_string_escaped(),
-                    code.length
                 ));
             }
         }

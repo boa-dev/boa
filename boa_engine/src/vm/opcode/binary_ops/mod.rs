@@ -111,7 +111,11 @@ pub(crate) struct InPrivate;
 
 impl InPrivate {
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block.names[index].clone();
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string_expect(index);
         let rhs = context.vm.pop();
 
         let Some(rhs) = rhs.as_object() else {

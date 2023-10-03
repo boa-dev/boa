@@ -13,7 +13,11 @@ pub(crate) struct ThrowMutateImmutable;
 
 impl ThrowMutateImmutable {
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = &context.vm.frame().code_block.names[index];
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string_expect(index);
 
         Err(JsNativeError::typ()
             .with_message(format!(
