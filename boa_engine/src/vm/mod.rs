@@ -4,8 +4,6 @@
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
 
-#[cfg(feature = "fuzz")]
-use crate::JsNativeError;
 use crate::{
     environments::{DeclarativeEnvironment, EnvironmentStack},
     script::Script,
