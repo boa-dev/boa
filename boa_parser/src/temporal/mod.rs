@@ -1,4 +1,5 @@
 //! Implementation of ISO8601 grammar lexing/parsing
+
 use crate::error::ParseResult;
 
 mod annotations;
@@ -8,18 +9,31 @@ mod grammar;
 mod time;
 mod time_zone;
 
-use boa_ast::temporal::{DurationParseRecord, ISODate, IsoParseRecord, TimeZone};
+use boa_ast::temporal::{ISODate, ISODateTime, ISODuration, ISOTime, TimeZone};
+
+use date_time::DateRecord;
+use time::TimeSpec;
 
 #[cfg(feature = "experimental")]
 #[cfg(test)]
 mod tests;
 
 // TODO: optimize where possible.
-//
-// NOTE:
-// Rough max length source given iso calendar and no extraneous annotations
-// is ~100 characters (+10-20 for some calendars):
-// +001970-01-01T00:00:00.000000000+00:00:00.000000000[!America/Argentina/ComodRivadavia][!u-ca=iso8601]
+
+/// An `ISOParseRecord` is an intermediary record returned by ISO parsing functions.
+///
+/// `ISOParseRecord` is converted into the ISO AST Nodes.
+#[derive(Default, Debug)]
+pub(crate) struct IsoParseRecord {
+    /// Parsed Date Record
+    pub(crate) date: DateRecord,
+    /// Parsed Time
+    pub(crate) time: Option<TimeSpec>,
+    /// Parsed `TimeZone` data (UTCOffset | IANA name)
+    pub(crate) tz: Option<TimeZone>,
+    /// The parsed calendar value.
+    pub(crate) calendar: Option<String>,
+}
 
 /// Parse a [`TemporalDateTimeString`][proposal].
 ///
@@ -34,8 +48,25 @@ impl TemporalDateTimeString {
     ///
     /// The parse will error if the provided target is not valid
     /// ISO8601 grammar.
-    pub fn parse(zoned: bool, cursor: &mut IsoCursor) -> ParseResult<IsoParseRecord> {
-        date_time::parse_annotated_date_time(zoned, false, false, cursor)
+    pub fn parse(zoned: bool, cursor: &mut IsoCursor) -> ParseResult<ISODateTime> {
+        let parse_record = date_time::parse_annotated_date_time(zoned, false, false, cursor)?;
+
+        let date = ISODate {
+            year: parse_record.date.year,
+            month: parse_record.date.month,
+            day: parse_record.date.day,
+            calendar: parse_record.calendar,
+        };
+
+        let time = parse_record.time.map_or_else(ISOTime::default, |time| {
+            ISOTime::from_components(time.hour, time.minute, time.second, time.fraction)
+        });
+
+        Ok(ISODateTime {
+            date,
+            time,
+            tz: parse_record.tz,
+        })
     }
 }
 
@@ -45,7 +76,6 @@ impl TemporalDateTimeString {
 #[derive(Debug, Clone, Copy)]
 pub struct TemporalTimeZoneString;
 
-// TODO: Return a IsoParseRecord instead of a `TzIdentifier`.
 impl TemporalTimeZoneString {
     /// Parses a targeted string as a `TimeZone`.
     ///
@@ -157,8 +187,25 @@ impl TemporalInstantString {
     ///
     /// The parse will error if the provided target is not valid
     /// ISO8601 grammar.
-    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<IsoParseRecord> {
-        date_time::parse_annotated_date_time(false, true, true, cursor)
+    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<ISODateTime> {
+        let parse_record = date_time::parse_annotated_date_time(false, true, true, cursor)?;
+
+        let date = ISODate {
+            year: parse_record.date.year,
+            month: parse_record.date.month,
+            day: parse_record.date.day,
+            calendar: parse_record.calendar,
+        };
+
+        let time = parse_record.time.map_or_else(ISOTime::default, |time| {
+            ISOTime::from_components(time.hour, time.minute, time.second, time.fraction)
+        });
+
+        Ok(ISODateTime {
+            date,
+            time,
+            tz: parse_record.tz,
+        })
     }
 }
 
@@ -177,8 +224,46 @@ impl TemporalDurationString {
     ///
     /// The parse will error if the provided target is not valid
     /// ISO8601 grammar.
-    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<DurationParseRecord> {
-        duration::parse_duration(cursor)
+    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<ISODuration> {
+        let parse_record = duration::parse_duration(cursor)?;
+
+        let minutes = if parse_record.time.fhours > 0.0 {
+            parse_record.time.fhours * 60.0
+        } else {
+            f64::from(parse_record.time.minutes)
+        };
+
+        let seconds = if parse_record.time.fminutes > 0.0 {
+            parse_record.time.fminutes * 60.0
+        } else if parse_record.time.seconds > 0 {
+            f64::from(parse_record.time.seconds)
+        } else {
+            minutes.rem_euclid(1.0) * 60.0
+        };
+
+        let milliseconds = if parse_record.time.fseconds > 0.0 {
+            parse_record.time.fseconds * 1000.0
+        } else {
+            seconds.rem_euclid(1.0) * 1000.0
+        };
+
+        let micro = milliseconds.rem_euclid(1.0) * 1000.0;
+        let nano = micro.rem_euclid(1.0) * 1000.0;
+
+        let sign = if parse_record.sign { 1 } else { -1 };
+
+        Ok(ISODuration {
+            years: parse_record.date.years * sign,
+            months: parse_record.date.months * sign,
+            weeks: parse_record.date.weeks * sign,
+            days: parse_record.date.days * sign,
+            hours: parse_record.time.hours * sign,
+            minutes: minutes.floor() * f64::from(sign),
+            seconds: seconds.floor() * f64::from(sign),
+            milliseconds: milliseconds.floor() * f64::from(sign),
+            microseconds: micro.floor() * f64::from(sign),
+            nanoseconds: nano.floor() * f64::from(sign),
+        })
     }
 }
 

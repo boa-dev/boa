@@ -7,16 +7,26 @@ use crate::{
             is_a_key_char, is_a_key_leading_char, is_annotation_close,
             is_annotation_key_value_separator, is_annotation_value_component, is_critical_flag,
         },
-        time_zone, IsoCursor,
+        time_zone,
+        time_zone::TimeZoneAnnotation,
+        IsoCursor,
     },
 };
 
-use boa_ast::{
-    temporal::{KeyValueAnnotation, TimeZoneAnnotation},
-    Position, Span,
-};
+use boa_ast::{Position, Span};
 
 use super::grammar::{is_annotation_open, is_hyphen};
+
+/// A `KeyValueAnnotation` Parse Node.
+#[derive(Debug, Clone)]
+pub(crate) struct KeyValueAnnotation {
+    /// An `Annotation`'s Key.
+    pub(crate) key: String,
+    /// An `Annotation`'s value.
+    pub(crate) value: String,
+    /// Whether the annotation was flagged as critical.
+    pub(crate) critical: bool,
+}
 
 /// Strictly a Parsing Intermediary for the checking the common annotation backing.
 pub(crate) struct AnnotationSet {

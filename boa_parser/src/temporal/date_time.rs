@@ -6,16 +6,37 @@ use crate::{
     temporal::{
         annotations,
         grammar::{is_date_time_separator, is_sign, is_utc_designator},
-        time, time_zone, IsoCursor,
+        time,
+        time::TimeSpec,
+        time_zone, IsoCursor, IsoParseRecord,
     },
 };
 
-use boa_ast::{
-    temporal::{DateRecord, DateTimeRecord, IsoParseRecord, TimeZone},
-    Position, Span,
-};
+use boa_ast::{temporal::TimeZone, Position, Span};
 
 use super::grammar::{is_annotation_open, is_hyphen};
+
+#[derive(Debug, Default, Clone)]
+/// A `DateTime` Parse Node that contains the date, time, and offset info.
+pub(crate) struct DateTimeRecord {
+    /// Date
+    pub(crate) date: DateRecord,
+    /// Time
+    pub(crate) time: Option<TimeSpec>,
+    /// Tz Offset
+    pub(crate) time_zone: Option<TimeZone>,
+}
+
+#[derive(Default, Debug, Clone, Copy)]
+/// The record of a parsed date.
+pub(crate) struct DateRecord {
+    /// Date Year
+    pub(crate) year: i32,
+    /// Date Month
+    pub(crate) month: i32,
+    /// Date Day
+    pub(crate) day: i32,
+}
 
 /// This function handles parsing for [`AnnotatedDateTime`][datetime],
 /// [`AnnotatedDateTimeTimeRequred`][time], and

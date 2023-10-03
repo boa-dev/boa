@@ -1,21 +1,6 @@
 //! AST nodes for Temporal's implementation of ISO8601 grammar.
 
-/// An `ISOParseRecord` is the full record of a node that is returned via the parse records.
-///
-/// This node comes complete with the parsed date, time, time zone, and calendar data.
-#[derive(Default, Debug)]
-pub struct IsoParseRecord {
-    /// Parsed Date Record
-    pub date: DateRecord,
-    /// Parsed Time
-    pub time: Option<TimeSpec>,
-    /// Parsed `TimeZone` data (UTCOffset | IANA name)
-    pub tz: Option<TimeZone>,
-    /// The parsed calendar value.
-    pub calendar: Option<String>,
-}
-
-/// An ISO Date Node consisting of only date fields and any calendar value.
+/// An ISO Date Node consisting of non-validated date fields and calendar value.
 #[derive(Default, Debug)]
 pub struct ISODate {
     /// Date Year
@@ -28,51 +13,54 @@ pub struct ISODate {
     pub calendar: Option<String>,
 }
 
+/// The `ISOTime` node consists of non-validated time fields.
 #[derive(Default, Debug, Clone, Copy)]
-/// The record of a parsed date.
-pub struct DateRecord {
-    /// Date Year
-    pub year: i32,
-    /// Date Month
-    pub month: i32,
-    /// Date Day
-    pub day: i32,
+pub struct ISOTime {
+    /// An hour value between 0-23
+    pub hour: u8,
+    /// A minute value between 0-59
+    pub minute: u8,
+    /// A second value between 0-60
+    pub second: u8,
+    /// A millisecond value between 0-999
+    pub millisecond: u16,
+    /// A microsecond value between 0-999
+    pub microsecond: u16,
+    /// A nanosecond value between 0-999
+    pub nanosecond: u16,
 }
 
-/// Parsed Time info
-#[derive(Debug, Default, Clone, Copy)]
-#[allow(dead_code)]
-pub struct TimeSpec {
-    /// An hour
-    pub hour: i8,
-    /// A minute value
-    pub minute: i8,
-    /// A floating point second value.
-    pub second: f64,
+impl ISOTime {
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    /// A utility initialization function to create `ISOTime` from the `TimeSpec` components.
+    pub fn from_components(hour: u8, minute: u8, second: u8, fraction: f64) -> Self {
+        // Note: Precision on nanoseconds drifts, so opting for round over floor or ceil for now.
+        // e.g. 0.329402834 becomes 329.402833.999
+        let millisecond = fraction * 1000.0;
+        let micros = millisecond.rem_euclid(1.0) * 1000.0;
+        let nanos = micros.rem_euclid(1.0) * 1000.0;
+
+        Self {
+            hour,
+            minute,
+            second,
+            millisecond: millisecond.floor() as u16,
+            microsecond: micros.floor() as u16,
+            nanosecond: nanos.round() as u16,
+        }
+    }
 }
 
-/// `TimeZone` UTC Offset info.
-#[derive(Debug, Clone, Copy)]
-pub struct DateTimeUtcOffset;
-
-#[derive(Debug, Default, Clone)]
-/// A `DateTime` Parse Node that contains the date, time, and offset info.
-pub struct DateTimeRecord {
-    /// Date
-    pub date: DateRecord,
-    /// Time
-    pub time: Option<TimeSpec>,
-    /// Tz Offset
-    pub time_zone: Option<TimeZone>,
-}
-
-/// A `TimeZoneAnnotation`.
-#[derive(Debug, Clone)]
-pub struct TimeZoneAnnotation {
-    /// Critical Flag for the annotation.
-    pub critical: bool,
-    /// TimeZone Data
-    pub tz: TimeZone,
+/// The `ISODateTime` node output by the ISO parser
+#[derive(Default, Debug)]
+pub struct ISODateTime {
+    /// The `ISODate` record
+    pub date: ISODate,
+    /// The `ISOTime` record
+    pub time: ISOTime,
+    /// The `TimeZone` value for this `ISODateTime`
+    pub tz: Option<TimeZone>,
 }
 
 /// `TimeZone` data
@@ -84,55 +72,24 @@ pub struct TimeZone {
     pub offset: Option<UTCOffset>,
 }
 
-/// A valid `TimeZoneIdentifier` that is defined by
-/// the specification as either a UTC Offset to minute
-/// precision or a `TimeZoneIANAName`
-#[derive(Debug, Clone)]
-pub enum TzIdentifier {
-    /// A valid UTC `TimeZoneIdentifier` value
-    UtcOffset(UTCOffset),
-    /// A valid IANA name `TimeZoneIdentifier` value
-    TzIANAName(String),
-}
-
 /// A full precision `UtcOffset`
 #[derive(Debug, Clone, Copy)]
 pub struct UTCOffset {
     /// The `+`/`-` sign of this `UtcOffset`
     pub sign: i8,
     /// The hour value of the `UtcOffset`
-    pub hour: i8,
+    pub hour: u8,
     /// The minute value of the `UtcOffset`.
-    pub minute: i8,
-    /// A float representing the second value of the `UtcOffset`.
-    pub second: f64,
+    pub minute: u8,
+    /// The second value of the `UtcOffset`.
+    pub second: u8,
+    /// Any sub second components of the `UTCOffset`
+    pub fraction: f64,
 }
 
-/// A `KeyValueAnnotation` Parse Node.
-#[derive(Debug, Clone)]
-pub struct KeyValueAnnotation {
-    /// An `Annotation`'s Key.
-    pub key: String,
-    /// An `Annotation`'s value.
-    pub value: String,
-    /// Whether the annotation was flagged as critical.
-    pub critical: bool,
-}
-
-/// A ISO8601 `DurationRecord` Parse Node.
-#[derive(Debug, Clone, Copy)]
-pub struct DurationParseRecord {
-    /// Duration Sign
-    pub sign: bool,
-    /// A `DateDuration` record.
-    pub date: DateDuration,
-    /// A `TimeDuration` record.
-    pub time: TimeDuration,
-}
-
-/// A `DateDuration` Parse Node.
-#[derive(Default, Debug, Clone, Copy)]
-pub struct DateDuration {
+/// An `ISODuration` Node output by the ISO parser.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct ISODuration {
     /// Years value.
     pub years: i32,
     /// Months value.
@@ -141,15 +98,16 @@ pub struct DateDuration {
     pub weeks: i32,
     /// Days value.
     pub days: i32,
-}
-
-/// A `TimeDuration` Parse Node
-#[derive(Default, Debug, Clone, Copy)]
-pub struct TimeDuration {
-    /// Hours value with fraction.
-    pub hours: f64,
-    /// Minutes value with fraction.
+    /// Hours value.
+    pub hours: i32,
+    /// Minutes value.
     pub minutes: f64,
-    /// Seconds value with fraction.
+    /// Seconds value.
     pub seconds: f64,
+    /// Milliseconds value.
+    pub milliseconds: f64,
+    /// Microseconds value.
+    pub microseconds: f64,
+    /// Nanoseconds value.
+    pub nanoseconds: f64,
 }

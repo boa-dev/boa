@@ -521,6 +521,7 @@ pub(crate) fn to_temporal_date(
             // 8. Let calendar be result.[[Calendar]].
             // 9. If calendar is undefined, set calendar to "iso8601".
             let identifier = result
+                .date
                 .calendar
                 .map_or_else(|| js_string!("iso8601"), JsString::from);
 

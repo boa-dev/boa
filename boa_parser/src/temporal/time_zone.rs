@@ -16,9 +16,19 @@ use crate::{
 };
 
 use boa_ast::{
-    temporal::{TimeZone, TimeZoneAnnotation, UTCOffset},
+    temporal::{TimeZone, UTCOffset},
     Position,
 };
+
+/// A `TimeZoneAnnotation`.
+#[derive(Debug, Clone)]
+#[allow(unused)]
+pub(crate) struct TimeZoneAnnotation {
+    /// Critical Flag for the annotation.
+    pub(crate) critical: bool,
+    /// TimeZone Data
+    pub(crate) tz: TimeZone,
+}
 
 // ==== Time Zone Annotation Parsing ====
 
@@ -193,15 +203,16 @@ pub(crate) fn parse_date_time_utc(cursor: &mut IsoCursor) -> ParseResult<TimeZon
     }
 
     // If `UtcOffsetWithSubMinuteComponents`, continue parsing.
-    let sec = parse_minute_second(cursor, true)?;
+    utc_to_minute.second = parse_minute_second(cursor, true)?;
 
-    let double = if cursor.check_or(false, is_decimal_separator) {
-        f64::from(sec) + parse_fraction(cursor)?
+    let sub_second = if cursor.check_or(false, is_decimal_separator) {
+        parse_fraction(cursor)?
     } else {
-        f64::from(sec)
+        0.0
     };
 
-    utc_to_minute.second = double;
+    utc_to_minute.fraction = sub_second;
+
     Ok(TimeZone {
         name: None,
         offset: Some(utc_to_minute),
@@ -230,7 +241,8 @@ pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut IsoCursor) -> Parse
             sign,
             hour,
             minute: 0,
-            second: 0.0,
+            second: 0,
+            fraction: 0.0,
         });
     }
 
@@ -245,6 +257,7 @@ pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut IsoCursor) -> Parse
         sign,
         hour,
         minute,
-        second: 0.0,
+        second: 0,
+        fraction: 0.0,
     })
 }

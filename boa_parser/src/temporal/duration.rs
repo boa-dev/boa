@@ -1,5 +1,4 @@
 use boa_ast::Position;
-use core::ops::Add;
 
 use crate::{
     error::{Error, ParseResult},
@@ -14,7 +13,46 @@ use crate::{
     },
 };
 
-use boa_ast::temporal::{DateDuration, DurationParseRecord, TimeDuration};
+/// A ISO8601 `DurationRecord` Parse Node.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct DurationParseRecord {
+    /// Duration Sign
+    pub(crate) sign: bool,
+    /// A `DateDuration` record.
+    pub(crate) date: DateDuration,
+    /// A `TimeDuration` record.
+    pub(crate) time: TimeDuration,
+}
+
+/// A `DateDuration` Parse Node.
+#[derive(Default, Debug, Clone, Copy)]
+pub(crate) struct DateDuration {
+    /// Years value.
+    pub(crate) years: i32,
+    /// Months value.
+    pub(crate) months: i32,
+    /// Weeks value.
+    pub(crate) weeks: i32,
+    /// Days value.
+    pub(crate) days: i32,
+}
+
+/// A `TimeDuration` Parse Node
+#[derive(Default, Debug, Clone, Copy)]
+pub(crate) struct TimeDuration {
+    /// Hours value.
+    pub(crate) hours: i32,
+    /// Hours fraction value.
+    pub(crate) fhours: f64,
+    /// Minutes value with fraction.
+    pub(crate) minutes: i32,
+    /// Minutes fraction value.
+    pub(crate) fminutes: f64,
+    /// Seconds value with fraction.
+    pub(crate) seconds: i32,
+    /// Seconds fraction value,
+    pub(crate) fseconds: f64,
+}
 
 pub(crate) fn parse_duration(cursor: &mut IsoCursor) -> ParseResult<DurationParseRecord> {
     let sign = if cursor.check(is_sign).ok_or_else(|| Error::AbruptEnd)? {
@@ -168,18 +206,19 @@ pub(crate) fn parse_time_duration(cursor: &mut IsoCursor) -> ParseResult<TimeDur
             cursor.advance();
         }
 
-        let mut value = cursor
+        let value = cursor
             .slice(digit_start, cursor.pos())
-            .parse::<f64>()
+            .parse::<i32>()
             .map_err(|err| {
                 Error::general(err.to_string(), Position::new(digit_start, cursor.pos()))
             })?;
 
-        if cursor.check_or(false, is_decimal_separator) {
-            let fraction = parse_fraction(cursor)?;
-            value = value.add(fraction);
+        let fraction = if cursor.check_or(false, is_decimal_separator) {
             fraction_present = true;
-        }
+            parse_fraction(cursor)?
+        } else {
+            0.0
+        };
 
         match cursor.peek() {
             Some(ch) if is_hour_designator(ch) => {
@@ -190,6 +229,7 @@ pub(crate) fn parse_time_duration(cursor: &mut IsoCursor) -> ParseResult<TimeDur
                     ));
                 }
                 time.hours = value;
+                time.fhours = fraction;
                 previous_unit = TimeUnit::Hour;
             }
             Some(ch) if is_minute_designator(ch) => {
@@ -200,6 +240,7 @@ pub(crate) fn parse_time_duration(cursor: &mut IsoCursor) -> ParseResult<TimeDur
                     ));
                 }
                 time.minutes = value;
+                time.fminutes = fraction;
                 previous_unit = TimeUnit::Minute;
             }
             Some(ch) if is_second_designator(ch) => {
@@ -210,6 +251,7 @@ pub(crate) fn parse_time_duration(cursor: &mut IsoCursor) -> ParseResult<TimeDur
                     ));
                 }
                 time.seconds = value;
+                time.fseconds = fraction;
                 previous_unit = TimeUnit::Second;
             }
             Some(_) | None => return Err(Error::AbruptEnd),

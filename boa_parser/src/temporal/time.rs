@@ -9,7 +9,20 @@ use crate::{
     lexer::Error as LexError,
 };
 
-use boa_ast::{temporal::TimeSpec, Position};
+/// Parsed Time info
+#[derive(Debug, Default, Clone, Copy)]
+pub(crate) struct TimeSpec {
+    /// An hour
+    pub(crate) hour: u8,
+    /// A minute value
+    pub(crate) minute: u8,
+    /// A second value.
+    pub(crate) second: u8,
+    /// A floating point number representing the sub-second values
+    pub(crate) fraction: f64,
+}
+
+use boa_ast::Position;
 
 /// Parse `TimeSpec`
 pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
@@ -25,7 +38,8 @@ pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
         return Ok(TimeSpec {
             hour,
             minute: 0,
-            second: 0.0,
+            second: 0,
+            fraction: 0.0,
         });
     }
 
@@ -44,29 +58,31 @@ pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
         return Ok(TimeSpec {
             hour,
             minute,
-            second: 0.0,
+            second: 0,
+            fraction: 0.0,
         });
     }
 
     let second = parse_minute_second(cursor, true)?;
 
-    let double = if cursor.check_or(false, is_decimal_separator) {
-        f64::from(second) + parse_fraction(cursor)?
+    let fraction = if cursor.check_or(false, is_decimal_separator) {
+        parse_fraction(cursor)?
     } else {
-        f64::from(second)
+        0.0
     };
 
     Ok(TimeSpec {
         hour,
         minute,
-        second: double,
+        second,
+        fraction,
     })
 }
 
-pub(crate) fn parse_hour(cursor: &mut IsoCursor) -> ParseResult<i8> {
+pub(crate) fn parse_hour(cursor: &mut IsoCursor) -> ParseResult<u8> {
     let hour_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
-        .parse::<i8>()
+        .parse::<u8>()
         .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos())))?;
     if !(0..=23).contains(&hour_value) {
         return Err(LexError::syntax(
@@ -81,10 +97,10 @@ pub(crate) fn parse_hour(cursor: &mut IsoCursor) -> ParseResult<i8> {
 
 // NOTE: `TimeSecond` is a 60 inclusive `MinuteSecond`.
 /// Parse `MinuteSecond`
-pub(crate) fn parse_minute_second(cursor: &mut IsoCursor, inclusive: bool) -> ParseResult<i8> {
+pub(crate) fn parse_minute_second(cursor: &mut IsoCursor, inclusive: bool) -> ParseResult<u8> {
     let min_sec_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
-        .parse::<i8>()
+        .parse::<u8>()
         .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos())))?;
 
     let valid_range = if inclusive { 0..=60 } else { 0..=59 };

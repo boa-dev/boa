@@ -938,7 +938,7 @@ pub(crate) fn to_temporal_duration(item: &JsValue) -> JsResult<DurationRecord> {
             // a. Return item.
             let obj = o.borrow();
             let duration = obj.as_duration().expect("must be a duration.");
-            return Ok(duration.inner.clone());
+            return Ok(duration.inner);
         }
     }
 

@@ -25,18 +25,19 @@ fn temporal_parser_basic() {
 #[allow(clippy::cast_possible_truncation)]
 fn temporal_date_time_max() {
     // Fractions not accurate, but for testing purposes.
-    let date_time = "+002020-11-08T12:28:32.329402834-03:00:00.123456789[!America/Argentina/ComodRivadavia][!u-ca=iso8601]";
+    let date_time =
+        "+002020-11-08T12:28:32.329402834[!America/Argentina/ComodRivadavia][!u-ca=iso8601]";
 
     let result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(date_time)).unwrap();
 
-    let time_results = &result.time.unwrap();
+    let time_results = &result.time;
 
     assert_eq!(time_results.hour, 12);
     assert_eq!(time_results.minute, 28);
-    assert_eq!(
-        time_results.second.mul_add(f64::from(100_000), 0.0).trunc() as i64,
-        32.329_402_834_f64.mul_add(100_000_f64, 0.0).trunc() as i64
-    );
+    assert_eq!(time_results.second, 32);
+    assert_eq!(time_results.millisecond, 329);
+    assert_eq!(time_results.microsecond, 402);
+    assert_eq!(time_results.nanosecond, 834);
 
     let tz = &result.tz.unwrap();
 
@@ -47,7 +48,7 @@ fn temporal_date_time_max() {
 
     assert_eq!(tz_name, "America/Argentina/ComodRivadavia");
 
-    assert_eq!(&result.calendar, &Some("iso8601".to_string()));
+    assert_eq!(&result.date.calendar, &Some("iso8601".to_string()));
 }
 
 #[test]
@@ -73,16 +74,13 @@ fn temporal_annotated_date_time() {
 
     assert_eq!(tz, "America/Argentina/ComodRivadavia");
 
-    assert_eq!(&result.calendar, &Some("iso8601".to_string()));
+    assert_eq!(&result.date.calendar, &Some("iso8601".to_string()));
 
     let omit_result = TemporalDateTimeString::parse(false, &mut IsoCursor::new(omitted)).unwrap();
 
-    println!("omit result is:");
-    println!("{omit_result:?\n\n}");
-
     assert!(&omit_result.tz.is_none());
 
-    assert_eq!(&omit_result.calendar, &Some("iso8601".to_string()));
+    assert_eq!(&omit_result.date.calendar, &Some("iso8601".to_string()));
 }
 
 #[test]
@@ -152,22 +150,28 @@ fn temporal_duration_parsing() {
     let durations = [
         "p1y1m1dt1h1m1s",
         "P1Y1M1W1DT1H1M1.1S",
-        "P1Y1M1W1DT1H1M1.123456789S",
+        "-P1Y1M1W1DT1H1M1.123456789S",
         "-P1Y3wT0,5H",
     ];
 
     for dur in durations {
-        let _ok_result = TemporalDurationString::parse(&mut IsoCursor::new(dur)).unwrap();
-        //assert!(ok_result.is_ok())
+        let ok_result = TemporalDurationString::parse(&mut IsoCursor::new(dur));
+        assert!(ok_result.is_ok());
     }
+
+    let sub = durations[2];
+    let sub_second = TemporalDurationString::parse(&mut IsoCursor::new(sub)).unwrap();
+
+    assert_eq!(sub_second.milliseconds, -123.0);
+    assert_eq!(sub_second.microseconds, -456.0);
+    assert_eq!(sub_second.nanoseconds, -789.0);
 
     let dur = durations[3];
     let test_result = TemporalDurationString::parse(&mut IsoCursor::new(dur)).unwrap();
 
-    assert!(!test_result.sign);
-    assert_eq!(test_result.date.years, 1);
-    assert_eq!(test_result.date.weeks, 3);
-    assert_eq!(test_result.time.hours.mul_add(10.0, 0.0).trunc() as i32, 5);
+    assert_eq!(test_result.years, -1);
+    assert_eq!(test_result.weeks, -3);
+    assert_eq!(test_result.minutes, -30.0);
 }
 
 #[test]
