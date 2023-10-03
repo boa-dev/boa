@@ -1,5 +1,5 @@
 use super::{ByteCompiler, Literal, Operand};
-use crate::vm::{BindingOpcode, CodeBlockFlags, Opcode};
+use crate::vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode};
 use boa_ast::{
     expression::Identifier,
     function::{Class, ClassElement, FormalParameterList},
@@ -7,6 +7,15 @@ use boa_ast::{
 };
 use boa_gc::Gc;
 use boa_interner::Sym;
+
+// Static class elements that are initialized at a later time in the class creation.
+enum StaticElement {
+    // A static class block with it's function code.
+    StaticBlock(Gc<CodeBlock>),
+
+    // A static class field with it's function code and optional name index.
+    StaticField((Gc<CodeBlock>, Option<u32>)),
+}
 
 impl ByteCompiler<'_, '_> {
     /// This function compiles a class declaration or expression.
@@ -119,7 +128,9 @@ impl ByteCompiler<'_, '_> {
         }
         self.patch_jump_with_target(count_label, count);
 
-        // TODO: set function name for getter and setters
+        let mut static_elements = Vec::new();
+        let mut static_field_name_count = 0;
+
         for element in class.elements() {
             match element {
                 ClassElement::StaticMethodDefinition(name, method_definition) => {
@@ -223,7 +234,6 @@ impl ByteCompiler<'_, '_> {
                         },
                     }
                 }
-                // TODO: set names for private methods
                 ClassElement::PrivateStaticMethodDefinition(name, method_definition) => {
                     self.emit_opcode(Opcode::Dup);
                     match method_definition {
@@ -339,15 +349,17 @@ impl ByteCompiler<'_, '_> {
                     self.emit_with_varying_operand(Opcode::PushClassFieldPrivate, name_index);
                 }
                 ClassElement::StaticFieldDefinition(name, field) => {
-                    self.emit_opcode(Opcode::Dup);
-                    self.emit_opcode(Opcode::Dup);
                     let name_index = match name {
                         PropertyName::Literal(name) => {
                             Some(self.get_or_insert_name((*name).into()))
                         }
                         PropertyName::Computed(name) => {
                             self.compile_expr(name, true);
-                            self.emit_opcode(Opcode::Swap);
+                            self.emit(
+                                Opcode::RotateRight,
+                                &[Operand::U8(3 + static_field_name_count)],
+                            );
+                            static_field_name_count += 1;
                             None
                         }
                     };
@@ -375,19 +387,8 @@ impl ByteCompiler<'_, '_> {
 
                     let code = field_compiler.finish();
                     let code = Gc::new(code);
-                    let index = self.functions.len() as u32;
-                    self.functions.push(code);
-                    self.emit(
-                        Opcode::GetFunction,
-                        &[Operand::Varying(index), Operand::Bool(false)],
-                    );
-                    self.emit_opcode(Opcode::SetHomeObjectClass);
-                    self.emit_with_varying_operand(Opcode::Call, 0);
-                    if let Some(name_index) = name_index {
-                        self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, name_index);
-                    } else {
-                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                    }
+
+                    static_elements.push(StaticElement::StaticField((code, name_index)));
                 }
                 ClassElement::PrivateStaticFieldDefinition(name, field) => {
                     self.emit_opcode(Opcode::Dup);
@@ -400,7 +401,6 @@ impl ByteCompiler<'_, '_> {
                     self.emit_with_varying_operand(Opcode::DefinePrivateField, index);
                 }
                 ClassElement::StaticBlock(body) => {
-                    self.emit_opcode(Opcode::Dup);
                     let mut compiler = ByteCompiler::new(
                         Sym::EMPTY_STRING,
                         true,
@@ -425,17 +425,8 @@ impl ByteCompiler<'_, '_> {
                     compiler.pop_compile_environment();
 
                     let code = Gc::new(compiler.finish());
-                    let index = self.functions.len() as u32;
-                    self.functions.push(code);
-                    self.emit(
-                        Opcode::GetFunction,
-                        &[Operand::Varying(index), Operand::Bool(false)],
-                    );
-                    self.emit_opcode(Opcode::SetHomeObjectClass);
-                    self.emit_with_varying_operand(Opcode::Call, 0);
-                    self.emit_opcode(Opcode::Pop);
+                    static_elements.push(StaticElement::StaticBlock(code));
                 }
-                // TODO: set names for private methods
                 ClassElement::PrivateMethodDefinition(name, method_definition) => {
                     self.emit_opcode(Opcode::Dup);
                     match method_definition {
@@ -471,17 +462,9 @@ impl ByteCompiler<'_, '_> {
                         }
                     }
                 }
-                ClassElement::MethodDefinition(..) => {}
-            }
-        }
-
-        self.emit_opcode(Opcode::Swap);
-
-        for element in class.elements() {
-            match element {
                 ClassElement::MethodDefinition(name, method_definition) => {
+                    self.emit_opcode(Opcode::Swap);
                     self.emit_opcode(Opcode::Dup);
-                    // TODO: set names for getters and setters
                     match method_definition {
                         MethodDefinition::Get(expr) => match name {
                             PropertyName::Literal(name) => {
@@ -580,18 +563,48 @@ impl ByteCompiler<'_, '_> {
                             }
                         },
                     }
+                    self.emit_opcode(Opcode::Swap);
                 }
-                ClassElement::PrivateMethodDefinition(..)
-                | ClassElement::PrivateFieldDefinition(..)
-                | ClassElement::StaticFieldDefinition(..)
-                | ClassElement::PrivateStaticFieldDefinition(..)
-                | ClassElement::StaticMethodDefinition(..)
-                | ClassElement::PrivateStaticMethodDefinition(..)
-                | ClassElement::StaticBlock(..)
-                | ClassElement::FieldDefinition(..) => {}
             }
         }
 
+        for element in static_elements {
+            match element {
+                StaticElement::StaticBlock(code) => {
+                    self.emit_opcode(Opcode::Dup);
+                    let index = self.functions.len() as u32;
+                    self.functions.push(code);
+                    self.emit(
+                        Opcode::GetFunction,
+                        &[Operand::Varying(index), Operand::Bool(false)],
+                    );
+                    self.emit_opcode(Opcode::SetHomeObjectClass);
+                    self.emit_with_varying_operand(Opcode::Call, 0);
+                    self.emit_opcode(Opcode::Pop);
+                }
+                StaticElement::StaticField((code, name_index)) => {
+                    self.emit_opcode(Opcode::Dup);
+                    self.emit_opcode(Opcode::Dup);
+                    let index = self.functions.len() as u32;
+                    self.functions.push(code);
+                    self.emit(
+                        Opcode::GetFunction,
+                        &[Operand::Varying(index), Operand::Bool(false)],
+                    );
+                    self.emit_opcode(Opcode::SetHomeObjectClass);
+                    self.emit_with_varying_operand(Opcode::Call, 0);
+                    if let Some(name_index) = name_index {
+                        self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, name_index);
+                    } else {
+                        self.emit(Opcode::RotateLeft, &[Operand::U8(5)]);
+                        self.emit_opcode(Opcode::Swap);
+                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                    }
+                }
+            }
+        }
+
+        self.emit_opcode(Opcode::Swap);
         self.emit_opcode(Opcode::Pop);
 
         if let Some(class_env) = class_env {
