@@ -13,7 +13,6 @@ rust-version.workspace = true
 
 [dependencies]
 boa_engine = { workspace = true, features = ["deser", "flowgraph", "trace"] }
-boa_ast = { workspace = true, features = ["serde"] }
 boa_parser.workspace = true
 boa_gc.workspace = true
 boa_interner.workspace = true

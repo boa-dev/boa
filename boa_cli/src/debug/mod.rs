@@ -59,6 +59,7 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
         .build()
 }
 
+#[allow(clippy::redundant_pub_crate)]
 pub(crate) fn init_boa_debug_object(context: &mut Context<'_>) {
     let boa_object = create_boa_object(context);
     context
