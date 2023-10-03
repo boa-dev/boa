@@ -1,4 +1,4 @@
-use crate::{Statistics, VersionedStats};
+use crate::{Statistics, TestOutcomeResult, VersionedStats};
 
 use super::SuiteResult;
 use color_eyre::{eyre::WrapErr, Result};
@@ -453,39 +453,26 @@ fn compute_result_diff(
     base_result: &SuiteResult,
     new_result: &SuiteResult,
 ) -> ResultDiff {
-    use super::TestOutcomeResult;
-
     let mut final_diff = ResultDiff::default();
 
     for base_test in &base_result.tests {
         if let Some(new_test) = new_result
             .tests
             .iter()
-            .find(|new_test| new_test.strict == base_test.strict && new_test.name == base_test.name)
+            .find(|new_test| new_test.name == base_test.name)
         {
-            let test_name = format!(
-                "test/{}/{}.js {}(previously {:?})",
-                base.display(),
-                new_test.name,
-                if base_test.strict {
-                    "[strict mode] "
-                } else {
-                    ""
-                },
-                base_test.result
-            )
-            .into_boxed_str();
+            let test_name = format!("test/{}/{}.js", base.display(), new_test.name);
 
-            match (base_test.result, new_test.result) {
-                (a, b) if a == b => {}
-                (TestOutcomeResult::Ignored, TestOutcomeResult::Failed) => {}
+            if let (Some(base_result), Some(new_result)) = (base_test.strict, new_test.strict) {
+                let test_name = format!("{test_name} [strict mode] (previously {base_result:?})");
 
-                (_, TestOutcomeResult::Passed) => final_diff.fixed.push(test_name),
-                (TestOutcomeResult::Panic, _) => final_diff.panic_fixes.push(test_name),
-                (_, TestOutcomeResult::Failed) => final_diff.broken.push(test_name),
-                (_, TestOutcomeResult::Panic) => final_diff.new_panics.push(test_name),
+                add_results(&mut final_diff, test_name, base_result, new_result);
+            }
 
-                _ => {}
+            if let (Some(base_result), Some(new_result)) = (base_test.strict, new_test.strict) {
+                let test_name = format!("{test_name} (previously {base_result:?})");
+
+                add_results(&mut final_diff, test_name, base_result, new_result);
             }
         }
     }
@@ -504,4 +491,28 @@ fn compute_result_diff(
     }
 
     final_diff
+}
+
+/// Adds the results to the final diff.
+fn add_results<N>(
+    final_diff: &mut ResultDiff,
+    test_name: N,
+    base_result: TestOutcomeResult,
+    new_result: TestOutcomeResult,
+) where
+    N: Into<Box<str>>,
+{
+    let test_name = test_name.into();
+
+    match (base_result, new_result) {
+        (a, b) if a == b => {}
+        (TestOutcomeResult::Ignored, TestOutcomeResult::Failed) => {}
+
+        (_, TestOutcomeResult::Passed) => final_diff.fixed.push(test_name),
+        (TestOutcomeResult::Panic, _) => final_diff.panic_fixes.push(test_name),
+        (_, TestOutcomeResult::Failed) => final_diff.broken.push(test_name),
+        (_, TestOutcomeResult::Panic) => final_diff.new_panics.push(test_name),
+
+        _ => {}
+    }
 }

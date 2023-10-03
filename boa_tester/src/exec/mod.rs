@@ -52,13 +52,13 @@ impl TestSuite {
             self.tests
                 .par_iter()
                 .filter(|test| test.edition <= max_edition)
-                .flat_map(|test| test.run(harness, verbose, optimizer_options))
+                .map(|test| test.run(harness, verbose, optimizer_options))
                 .collect()
         } else {
             self.tests
                 .iter()
                 .filter(|test| test.edition <= max_edition)
-                .flat_map(|test| test.run(harness, verbose, optimizer_options))
+                .map(|test| test.run(harness, verbose, optimizer_options))
                 .collect()
         };
 
@@ -76,26 +76,28 @@ impl TestSuite {
         let mut es_next = Statistics::default();
 
         for test in &tests {
-            match test.result {
-                TestOutcomeResult::Passed => {
+            match (test.strict.as_ref(), test.no_strict.as_ref()) {
+                (Some(TestOutcomeResult::Passed), None | Some(TestOutcomeResult::Passed))
+                | (None, Some(TestOutcomeResult::Passed)) => {
                     versioned_stats.apply(test.edition, |stats| {
                         stats.passed += 1;
                     });
                     es_next.passed += 1;
                 }
-                TestOutcomeResult::Ignored => {
+                (Some(TestOutcomeResult::Ignored), _) | (_, Some(TestOutcomeResult::Ignored)) => {
                     versioned_stats.apply(test.edition, |stats| {
                         stats.ignored += 1;
                     });
                     es_next.ignored += 1;
                 }
-                TestOutcomeResult::Panic => {
+                (Some(TestOutcomeResult::Panic), _) | (_, Some(TestOutcomeResult::Panic)) => {
                     versioned_stats.apply(test.edition, |stats| {
                         stats.panic += 1;
                     });
                     es_next.panic += 1;
                 }
-                TestOutcomeResult::Failed => {}
+                (Some(TestOutcomeResult::Failed), _) | (_, Some(TestOutcomeResult::Failed)) => {}
+                (None, None) => unreachable!("test should have at least one result"),
             }
             versioned_stats.apply(test.edition, |stats| {
                 stats.total += 1;
@@ -146,21 +148,27 @@ impl Test {
         harness: &Harness,
         verbose: u8,
         optimizer_options: OptimizerOptions,
-    ) -> Vec<TestResult> {
-        let mut results = Vec::new();
+    ) -> TestResult {
+        let mut result = TestResult {
+            name: self.name.clone(),
+            edition: self.edition,
+            strict: None,
+            no_strict: None,
+        };
+
         if self.flags.contains(TestFlags::MODULE) {
-            results.push(self.run_once(harness, false, verbose, optimizer_options));
+            result.no_strict = Some(self.run_once(harness, false, verbose, optimizer_options));
         } else {
             if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
-                results.push(self.run_once(harness, true, verbose, optimizer_options));
+                result.strict = Some(self.run_once(harness, true, verbose, optimizer_options));
             }
 
             if self.flags.contains(TestFlags::NO_STRICT) || self.flags.contains(TestFlags::RAW) {
-                results.push(self.run_once(harness, false, verbose, optimizer_options));
+                result.no_strict = Some(self.run_once(harness, false, verbose, optimizer_options));
             }
         }
 
-        results
+        result
     }
 
     /// Runs the test once, in strict or non-strict mode
@@ -170,7 +178,7 @@ impl Test {
         strict: bool,
         verbose: u8,
         optimizer_options: OptimizerOptions,
-    ) -> TestResult {
+    ) -> TestOutcomeResult {
         let Ok(source) = Source::from_filepath(&self.path) else {
             if verbose > 1 {
                 println!(
@@ -182,13 +190,7 @@ impl Test {
             } else {
                 print!("{}", "F".red());
             }
-            return TestResult {
-                name: self.name.clone(),
-                edition: self.edition,
-                strict,
-                result: TestOutcomeResult::Failed,
-                result_text: Box::from("Could not read test file."),
-            };
+            return TestOutcomeResult::Failed;
         };
         if self.ignored {
             if verbose > 1 {
@@ -201,13 +203,7 @@ impl Test {
             } else {
                 print!("{}", "-".yellow());
             }
-            return TestResult {
-                name: self.name.clone(),
-                edition: self.edition,
-                strict,
-                result: TestOutcomeResult::Ignored,
-                result_text: Box::default(),
-            };
+            return TestOutcomeResult::Ignored;
         }
         if verbose > 1 {
             println!(
@@ -527,13 +523,7 @@ impl Test {
             println!();
         }
 
-        TestResult {
-            name: self.name.clone(),
-            edition: self.edition,
-            strict,
-            result,
-            result_text: result_text.into_boxed_str(),
-        }
+        result
     }
 
     /// Sets the environment up to run the test.

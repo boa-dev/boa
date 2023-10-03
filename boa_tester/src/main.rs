@@ -776,7 +776,7 @@ struct SuiteResult {
     features: FxHashSet<String>,
 }
 
-/// Outcome of a test.
+/// Result of a test, including the outcome for strict and non-strict mode.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(dead_code)]
 struct TestResult {
@@ -785,11 +785,9 @@ struct TestResult {
     #[serde(rename = "v", default)]
     edition: SpecEdition,
     #[serde(rename = "s", default)]
-    strict: bool,
-    #[serde(skip)]
-    result_text: Box<str>,
-    #[serde(rename = "r")]
-    result: TestOutcomeResult,
+    strict: Option<TestOutcomeResult>,
+    #[serde(rename = "r", default)]
+    no_strict: Option<TestOutcomeResult>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
