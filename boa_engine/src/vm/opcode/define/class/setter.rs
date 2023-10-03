@@ -1,6 +1,5 @@
 use crate::{
     builtins::function::set_function_name,
-    object::CONSTRUCTOR,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString,
@@ -29,7 +28,6 @@ impl DefineClassStaticSetterByName {
                 .as_function_mut()
                 .expect("method must be function object");
             function_mut.set_home_object(class.clone());
-            function_mut.set_class_object(class.clone());
         }
         let get = class
             .__get_own_property__(&key, context)?
@@ -94,13 +92,6 @@ impl DefineClassSetterByName {
                 .as_function_mut()
                 .expect("method must be function object");
             function_mut.set_home_object(class_proto.clone());
-            let class = class_proto
-                .get(CONSTRUCTOR, context)
-                .expect("class prototype must have constructor")
-                .as_object()
-                .expect("class must be object")
-                .clone();
-            function_mut.set_class_object(class);
         }
         let get = class_proto
             .__get_own_property__(&key, context)?
@@ -172,7 +163,6 @@ impl Operation for DefineClassStaticSetterByValue {
                 .as_function_mut()
                 .expect("method must be function object");
             function_mut.set_home_object(class.clone());
-            function_mut.set_class_object(class.clone());
         }
         let get = class
             .__get_own_property__(&key, context)?
@@ -224,13 +214,6 @@ impl Operation for DefineClassSetterByValue {
                 .as_function_mut()
                 .expect("method must be function object");
             function_mut.set_home_object(class_proto.clone());
-            let class = class_proto
-                .get(CONSTRUCTOR, context)
-                .expect("class prototype must have constructor")
-                .as_object()
-                .expect("class must be object")
-                .clone();
-            function_mut.set_class_object(class);
         }
         let get = class_proto
             .__get_own_property__(&key, context)?

@@ -21,7 +21,6 @@ pub(crate) struct FunctionCompiler {
     strict: bool,
     arrow: bool,
     binding_identifier: Option<Sym>,
-    class_name: Option<Sym>,
 }
 
 impl FunctionCompiler {
@@ -34,7 +33,6 @@ impl FunctionCompiler {
             strict: false,
             arrow: false,
             binding_identifier: None,
-            class_name: None,
         }
     }
 
@@ -79,12 +77,6 @@ impl FunctionCompiler {
         self
     }
 
-    /// Indicate if the function has a class associated with it.
-    pub(crate) const fn class_name(mut self, class_name: Sym) -> Self {
-        self.class_name = Some(class_name);
-        self
-    }
-
     /// Compile a function statement list and it's parameters into bytecode.
     pub(crate) fn compile(
         mut self,
@@ -104,11 +96,6 @@ impl FunctionCompiler {
 
         if self.arrow {
             compiler.this_mode = ThisMode::Lexical;
-        }
-
-        if let Some(class_name) = self.class_name {
-            compiler.push_compile_environment(false);
-            compiler.create_immutable_binding(class_name.into(), true);
         }
 
         if let Some(binding_identifier) = self.binding_identifier {
@@ -181,10 +168,6 @@ impl FunctionCompiler {
         compiler.pop_compile_environment();
 
         if self.binding_identifier.is_some() {
-            compiler.pop_compile_environment();
-        }
-
-        if self.class_name.is_some() {
             compiler.pop_compile_environment();
         }
 

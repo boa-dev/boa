@@ -1378,7 +1378,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     /// Compile a class method AST Node into bytecode.
-    fn method(&mut self, function: FunctionSpec<'_>, class_name: Sym) {
+    fn method(&mut self, function: FunctionSpec<'_>) {
         let (generator, r#async, arrow) = (
             function.kind.is_generator(),
             function.kind.is_async(),
@@ -1409,7 +1409,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .strict(true)
             .arrow(arrow)
             .binding_identifier(binding_identifier)
-            .class_name(class_name)
             .compile(
                 parameters,
                 body,

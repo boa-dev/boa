@@ -736,13 +736,6 @@ generate_opcodes! {
     /// Stack: home, function **=>** home, function
     SetHomeObject,
 
-    /// Set home object internal slot of a class method.
-    ///
-    /// Operands:
-    ///
-    /// Stack: home, function **=>** home, function
-    SetHomeObjectClass,
-
     /// Set the prototype of an object if the value is an object or null.
     ///
     /// Operands:
@@ -2178,6 +2171,8 @@ generate_opcodes! {
     Reserved56 => Reserved,
     /// Reserved [`Opcode`].
     Reserved57 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved58 => Reserved,
 }
 
 /// Specific opcodes for bindings.

@@ -32,7 +32,6 @@ impl Operation for PushClassField {
             .as_object()
             .expect("class must be function object");
         field_function.set_home_object(class_object.clone());
-        field_function.set_class_object(class_object.clone());
         class_object
             .borrow_mut()
             .as_function_mut()
@@ -70,7 +69,6 @@ impl PushClassFieldPrivate {
             .as_object()
             .expect("class must be function object");
         field_function.set_home_object(class_object.clone());
-        field_function.set_class_object(class_object.clone());
 
         class_object
             .borrow_mut()

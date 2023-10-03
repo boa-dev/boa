@@ -479,7 +479,6 @@ impl CodeBlock {
             | Instruction::PushClassPrototype
             | Instruction::SetClassPrototype
             | Instruction::SetHomeObject
-            | Instruction::SetHomeObjectClass
             | Instruction::Add
             | Instruction::Sub
             | Instruction::Div
@@ -643,7 +642,8 @@ impl CodeBlock {
             | Instruction::Reserved54
             | Instruction::Reserved55
             | Instruction::Reserved56
-            | Instruction::Reserved57 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved57
+            | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
@@ -784,7 +784,6 @@ pub(crate) fn create_function_object(
             code,
             environments: context.vm.environments.clone(),
             home_object: None,
-            class_object: None,
             script_or_module,
             kind: FunctionKind::Async,
             realm: context.realm().clone(),
@@ -794,7 +793,6 @@ pub(crate) fn create_function_object(
             code,
             environments: context.vm.environments.clone(),
             home_object: None,
-            class_object: None,
             script_or_module,
             kind: FunctionKind::Ordinary {
                 constructor_kind: ConstructorKind::Base,
@@ -871,7 +869,6 @@ pub(crate) fn create_function_object_fast(
     let function = OrdinaryFunction {
         code,
         environments: context.vm.environments.clone(),
-        class_object: None,
         script_or_module,
         home_object: None,
         kind,
@@ -965,7 +962,6 @@ pub(crate) fn create_generator_function_object(
             code,
             environments: context.vm.environments.clone(),
             home_object: None,
-            class_object: None,
             script_or_module,
             kind: FunctionKind::AsyncGenerator,
             realm: context.realm().clone(),
@@ -980,7 +976,6 @@ pub(crate) fn create_generator_function_object(
             code,
             environments: context.vm.environments.clone(),
             home_object: None,
-            class_object: None,
             script_or_module,
             kind: FunctionKind::Generator,
             realm: context.realm().clone(),
@@ -1043,7 +1038,6 @@ impl JsObject {
         let code = function.code.clone();
         let mut environments = function.environments.clone();
         let script_or_module = function.script_or_module.clone();
-        let class_object = function.class_object.clone();
 
         drop(object);
 
@@ -1068,18 +1062,6 @@ impl JsObject {
         let env_fp = context.vm.environments.len() as u32;
 
         let mut last_env = code.compile_environments.len() - 1;
-
-        if let Some(class_object) = class_object {
-            let index = context
-                .vm
-                .environments
-                .push_lexical(code.compile_environments[last_env].clone());
-            context
-                .vm
-                .environments
-                .put_lexical_value(index, 0, class_object.into());
-            last_env -= 1;
-        }
 
         if code.has_binding_identifier() {
             let index = context

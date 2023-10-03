@@ -132,11 +132,6 @@ impl SetPrivateMethod {
             object.private_name(name),
             PrivateElement::Method(value.clone()),
         );
-        let mut value_mut = value.borrow_mut();
-        let function = value_mut
-            .as_function_mut()
-            .expect("method must be a function");
-        function.set_class_object(object.clone());
 
         Ok(CompletionType::Normal)
     }
@@ -187,11 +182,6 @@ impl SetPrivateSetter {
                 setter: Some(value.clone()),
             },
         );
-        let mut value_mut = value.borrow_mut();
-        let function = value_mut
-            .as_function_mut()
-            .expect("method must be a function");
-        function.set_class_object(object.clone());
 
         Ok(CompletionType::Normal)
     }
@@ -242,11 +232,6 @@ impl SetPrivateGetter {
                 setter: None,
             },
         );
-        let mut value_mut = value.borrow_mut();
-        let function = value_mut
-            .as_function_mut()
-            .expect("method must be a function");
-        function.set_class_object(object.clone());
 
         Ok(CompletionType::Normal)
     }

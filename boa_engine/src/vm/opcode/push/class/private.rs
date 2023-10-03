@@ -44,11 +44,6 @@ impl PushClassPrivateMethod {
                 PrivateElement::Method(method_object.clone()),
             );
 
-        let mut method_object_mut = method_object.borrow_mut();
-        let function = method_object_mut
-            .as_function_mut()
-            .expect("method must be function object");
-        function.set_class_object(class_object.clone());
         Ok(CompletionType::Normal)
     }
 }
@@ -100,11 +95,7 @@ impl PushClassPrivateGetter {
                     setter: None,
                 },
             );
-        let mut getter_object_mut = getter_object.borrow_mut();
-        let function = getter_object_mut
-            .as_function_mut()
-            .expect("getter must be function object");
-        function.set_class_object(class_object.clone());
+
         Ok(CompletionType::Normal)
     }
 }
@@ -156,11 +147,7 @@ impl PushClassPrivateSetter {
                     setter: Some(setter_object.clone()),
                 },
             );
-        let mut setter_object_mut = setter_object.borrow_mut();
-        let function = setter_object_mut
-            .as_function_mut()
-            .expect("setter must be function object");
-        function.set_class_object(class_object.clone());
+
         Ok(CompletionType::Normal)
     }
 }
