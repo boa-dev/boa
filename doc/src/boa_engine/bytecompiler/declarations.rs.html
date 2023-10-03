@@ -2228,8 +2228,8 @@
             //          visibility of declarations in the function body.
             // b. Let varEnv be NewDeclarativeEnvironment(env).
             // c. Set the VariableEnvironment of calleeContext to varEnv.
-            </span><span class="self">self</span>.push_compile_environment(<span class="bool-val">true</span>);
-            env_label = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(Opcode::PushFunctionEnvironment));
+            </span><span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+            env_label = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment));
 
             <span class="comment">// d. Let instantiatedVarNames be a new empty List.
             </span><span class="kw">let </span><span class="kw-2">mut </span>instantiated_var_names = Vec::new();

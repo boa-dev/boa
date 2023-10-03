@@ -1457,8 +1457,6 @@
 <a href="#1457" id="1457">1457</a>
 <a href="#1458" id="1458">1458</a>
 <a href="#1459" id="1459">1459</a>
-<a href="#1460" id="1460">1460</a>
-<a href="#1461" id="1461">1461</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1822,9 +1820,6 @@
             | Instruction::ConcatToString { value_count: value } =&gt; value.value().to_string(),
             Instruction::PushDeclarativeEnvironment {
                 compile_environments_index,
-            }
-            | Instruction::PushFunctionEnvironment {
-                compile_environments_index,
             } =&gt; compile_environments_index.to_string(),
             Instruction::CopyDataProperties {
                 excluded_key_count: value1,
@@ -2104,7 +2099,8 @@
             | Instruction::Reserved53
             | Instruction::Reserved54
             | Instruction::Reserved55
-            | Instruction::Reserved56 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Instruction::Reserved56
+            | Instruction::Reserved57 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }
