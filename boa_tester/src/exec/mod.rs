@@ -76,7 +76,7 @@ impl TestSuite {
         let mut es_next = Statistics::default();
 
         for test in &tests {
-            match (test.strict.as_ref(), test.no_strict.as_ref()) {
+            match (test.strict, test.no_strict) {
                 (Some(TestOutcomeResult::Passed), None | Some(TestOutcomeResult::Passed))
                 | (None, Some(TestOutcomeResult::Passed)) => {
                     versioned_stats.apply(test.edition, |stats| {
