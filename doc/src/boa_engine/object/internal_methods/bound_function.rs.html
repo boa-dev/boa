@@ -108,14 +108,14 @@
 /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
     InternalObjectMethods {
-        __call__: <span class="prelude-val">Some</span>(bound_function_exotic_call),
+        __call__: bound_function_exotic_call,
         ..ORDINARY_INTERNAL_METHODS
     };
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
     InternalObjectMethods {
-        __call__: <span class="prelude-val">Some</span>(bound_function_exotic_call),
-        __construct__: <span class="prelude-val">Some</span>(bound_function_exotic_construct),
+        __call__: bound_function_exotic_call,
+        __construct__: bound_function_exotic_construct,
         ..ORDINARY_INTERNAL_METHODS
     };
 

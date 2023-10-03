@@ -1089,18 +1089,6 @@
 <a href="#1089" id="1089">1089</a>
 <a href="#1090" id="1090">1090</a>
 <a href="#1091" id="1091">1091</a>
-<a href="#1092" id="1092">1092</a>
-<a href="#1093" id="1093">1093</a>
-<a href="#1094" id="1094">1094</a>
-<a href="#1095" id="1095">1095</a>
-<a href="#1096" id="1096">1096</a>
-<a href="#1097" id="1097">1097</a>
-<a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a>
-<a href="#1100" id="1100">1100</a>
-<a href="#1101" id="1101">1101</a>
-<a href="#1102" id="1102">1102</a>
-<a href="#1103" id="1103">1103</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
 </span><span class="kw">pub mod </span>array;
@@ -1646,15 +1634,10 @@
 
 <span class="kw">impl</span>&lt;S: ApplyToObject + IsConstructor&gt; ApplyToObject <span class="kw">for </span>Callable&lt;S&gt; {
     <span class="kw">fn </span>apply_to(<span class="self">self</span>, object: <span class="kw-2">&amp;mut </span>BuiltInObjectInitializer) {
-        <span class="kw">let </span>function = ObjectData::function(
-            function::Function::new(
-                function::FunctionKind::Native {
-                    function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
-                    constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
-                },
-                <span class="self">self</span>.realm,
-            ),
+        <span class="kw">let </span>function = ObjectData::native_function(
+            NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
             S::IS_CONSTRUCTOR,
+            <span class="self">self</span>.realm,
         );
         object.set_data(function);
         object.insert(
@@ -1918,13 +1901,11 @@
     </span>}
 
     <span class="kw">fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>function = function::Function::new(
-            function::FunctionKind::Native {
-                function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
-                constructor: (<span class="bool-val">true</span>).then_some(function::ConstructorKind::Base),
-            },
-            <span class="self">self</span>.realm.clone(),
-        );
+        <span class="kw">let </span>function = ObjectKind::NativeFunction {
+            function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
+            constructor: <span class="prelude-val">Some</span>(function::ConstructorKind::Base),
+            realm: <span class="self">self</span>.realm.clone(),
+        };
 
         <span class="kw">let </span>length = <span class="self">self</span>.length;
         <span class="kw">let </span>name = <span class="self">self</span>.name.clone();
@@ -1955,7 +1936,7 @@
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>object = <span class="self">self</span>.object.borrow_mut();
-        <span class="kw-2">*</span>object.kind_mut() = ObjectKind::Function(function);
+        <span class="kw-2">*</span>object.kind_mut() = function;
         object
             .properties_mut()
             .shape
@@ -1970,13 +1951,11 @@
     }
 
     <span class="kw">fn </span>build_without_prototype(<span class="kw-2">mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>function = function::Function::new(
-            function::FunctionKind::Native {
-                function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
-                constructor: (<span class="bool-val">true</span>).then_some(function::ConstructorKind::Base),
-            },
-            <span class="self">self</span>.realm.clone(),
-        );
+        <span class="kw">let </span>function = ObjectKind::NativeFunction {
+            function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
+            constructor: <span class="prelude-val">Some</span>(function::ConstructorKind::Base),
+            realm: <span class="self">self</span>.realm.clone(),
+        };
 
         <span class="kw">let </span>length = <span class="self">self</span>.length;
         <span class="kw">let </span>name = <span class="self">self</span>.name.clone();
@@ -1984,7 +1963,7 @@
         <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), name, Attribute::CONFIGURABLE);
 
         <span class="kw">let </span><span class="kw-2">mut </span>object = <span class="self">self</span>.object.borrow_mut();
-        <span class="kw-2">*</span>object.kind_mut() = ObjectKind::Function(function);
+        <span class="kw-2">*</span>object.kind_mut() = function;
         object
             .properties_mut()
             .shape
@@ -2025,15 +2004,12 @@
     </span>}
 
     <span class="kw">fn </span>build(<span class="self">self</span>) -&gt; JsFunction {
-        <span class="kw">let </span>function = function::FunctionKind::Native {
-            function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
-            constructor: <span class="prelude-val">None</span>,
-        };
-
-        <span class="kw">let </span>function = function::Function::new(function, <span class="self">self</span>.realm.clone());
-
         <span class="kw">let </span>object = <span class="self">self</span>.realm.intrinsics().templates().function().create(
-            ObjectData::function(function, <span class="bool-val">false</span>),
+            ObjectData::native_function(
+                NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
+                <span class="bool-val">false</span>,
+                <span class="self">self</span>.realm.clone(),
+            ),
             <span class="macro">vec!</span>[JsValue::new(<span class="self">self</span>.length), JsValue::new(<span class="self">self</span>.name)],
         );
 

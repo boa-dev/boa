@@ -1058,97 +1058,6 @@
 <a href="#1058" id="1058">1058</a>
 <a href="#1059" id="1059">1059</a>
 <a href="#1060" id="1060">1060</a>
-<a href="#1061" id="1061">1061</a>
-<a href="#1062" id="1062">1062</a>
-<a href="#1063" id="1063">1063</a>
-<a href="#1064" id="1064">1064</a>
-<a href="#1065" id="1065">1065</a>
-<a href="#1066" id="1066">1066</a>
-<a href="#1067" id="1067">1067</a>
-<a href="#1068" id="1068">1068</a>
-<a href="#1069" id="1069">1069</a>
-<a href="#1070" id="1070">1070</a>
-<a href="#1071" id="1071">1071</a>
-<a href="#1072" id="1072">1072</a>
-<a href="#1073" id="1073">1073</a>
-<a href="#1074" id="1074">1074</a>
-<a href="#1075" id="1075">1075</a>
-<a href="#1076" id="1076">1076</a>
-<a href="#1077" id="1077">1077</a>
-<a href="#1078" id="1078">1078</a>
-<a href="#1079" id="1079">1079</a>
-<a href="#1080" id="1080">1080</a>
-<a href="#1081" id="1081">1081</a>
-<a href="#1082" id="1082">1082</a>
-<a href="#1083" id="1083">1083</a>
-<a href="#1084" id="1084">1084</a>
-<a href="#1085" id="1085">1085</a>
-<a href="#1086" id="1086">1086</a>
-<a href="#1087" id="1087">1087</a>
-<a href="#1088" id="1088">1088</a>
-<a href="#1089" id="1089">1089</a>
-<a href="#1090" id="1090">1090</a>
-<a href="#1091" id="1091">1091</a>
-<a href="#1092" id="1092">1092</a>
-<a href="#1093" id="1093">1093</a>
-<a href="#1094" id="1094">1094</a>
-<a href="#1095" id="1095">1095</a>
-<a href="#1096" id="1096">1096</a>
-<a href="#1097" id="1097">1097</a>
-<a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a>
-<a href="#1100" id="1100">1100</a>
-<a href="#1101" id="1101">1101</a>
-<a href="#1102" id="1102">1102</a>
-<a href="#1103" id="1103">1103</a>
-<a href="#1104" id="1104">1104</a>
-<a href="#1105" id="1105">1105</a>
-<a href="#1106" id="1106">1106</a>
-<a href="#1107" id="1107">1107</a>
-<a href="#1108" id="1108">1108</a>
-<a href="#1109" id="1109">1109</a>
-<a href="#1110" id="1110">1110</a>
-<a href="#1111" id="1111">1111</a>
-<a href="#1112" id="1112">1112</a>
-<a href="#1113" id="1113">1113</a>
-<a href="#1114" id="1114">1114</a>
-<a href="#1115" id="1115">1115</a>
-<a href="#1116" id="1116">1116</a>
-<a href="#1117" id="1117">1117</a>
-<a href="#1118" id="1118">1118</a>
-<a href="#1119" id="1119">1119</a>
-<a href="#1120" id="1120">1120</a>
-<a href="#1121" id="1121">1121</a>
-<a href="#1122" id="1122">1122</a>
-<a href="#1123" id="1123">1123</a>
-<a href="#1124" id="1124">1124</a>
-<a href="#1125" id="1125">1125</a>
-<a href="#1126" id="1126">1126</a>
-<a href="#1127" id="1127">1127</a>
-<a href="#1128" id="1128">1128</a>
-<a href="#1129" id="1129">1129</a>
-<a href="#1130" id="1130">1130</a>
-<a href="#1131" id="1131">1131</a>
-<a href="#1132" id="1132">1132</a>
-<a href="#1133" id="1133">1133</a>
-<a href="#1134" id="1134">1134</a>
-<a href="#1135" id="1135">1135</a>
-<a href="#1136" id="1136">1136</a>
-<a href="#1137" id="1137">1137</a>
-<a href="#1138" id="1138">1138</a>
-<a href="#1139" id="1139">1139</a>
-<a href="#1140" id="1140">1140</a>
-<a href="#1141" id="1141">1141</a>
-<a href="#1142" id="1142">1142</a>
-<a href="#1143" id="1143">1143</a>
-<a href="#1144" id="1144">1144</a>
-<a href="#1145" id="1145">1145</a>
-<a href="#1146" id="1146">1146</a>
-<a href="#1147" id="1147">1147</a>
-<a href="#1148" id="1148">1148</a>
-<a href="#1149" id="1149">1149</a>
-<a href="#1150" id="1150">1150</a>
-<a href="#1151" id="1151">1151</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1169,8 +1078,7 @@
     environments::{EnvironmentStack, PrivateEnvironment},
     error::JsNativeError,
     js_string,
-    native_function::NativeFunction,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     object::{JsFunction, PrivateElement, PrivateName},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -1297,107 +1205,31 @@
 
 <span class="attr">#[derive(Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>FunctionKind {
-    <span class="doccomment">/// A rust function.
-    </span>Native {
-        <span class="doccomment">/// The rust function.
-        </span>function: NativeFunction,
-
-        <span class="doccomment">/// The kind of the function constructor if it is a constructor.
-        </span>constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
-    },
     <span class="doccomment">/// A bytecode function.
     </span>Ordinary {
-        <span class="doccomment">/// The code block containing the compiled function.
-        </span>code: Gc&lt;CodeBlock&gt;,
-
-        <span class="doccomment">/// The `[[Environment]]` internal slot.
-        </span>environments: EnvironmentStack,
-
         <span class="doccomment">/// The `[[ConstructorKind]]` internal slot.
         </span>constructor_kind: ConstructorKind,
-
-        <span class="doccomment">/// The `[[HomeObject]]` internal slot.
-        </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 
         <span class="doccomment">/// The `[[Fields]]` internal slot.
         </span>fields: ThinVec&lt;ClassFieldDefinition&gt;,
 
         <span class="doccomment">/// The `[[PrivateMethods]]` internal slot.
         </span>private_methods: ThinVec&lt;(PrivateName, PrivateElement)&gt;,
-
-        <span class="doccomment">/// The class object that this function is associated with.
-        </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-
-        <span class="doccomment">/// The `[[ScriptOrModule]]` internal slot.
-        </span>script_or_module: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
     },
 
     <span class="doccomment">/// A bytecode async function.
-    </span>Async {
-        <span class="doccomment">/// The code block containing the compiled function.
-        </span>code: Gc&lt;CodeBlock&gt;,
-
-        <span class="doccomment">/// The `[[Environment]]` internal slot.
-        </span>environments: EnvironmentStack,
-
-        <span class="doccomment">/// The `[[HomeObject]]` internal slot.
-        </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-
-        <span class="doccomment">/// The class object that this function is associated with.
-        </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-
-        <span class="doccomment">/// The `[[ScriptOrModule]]` internal slot.
-        </span>script_or_module: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
-    },
+    </span>Async,
 
     <span class="doccomment">/// A bytecode generator function.
-    </span>Generator {
-        <span class="doccomment">/// The code block containing the compiled function.
-        </span>code: Gc&lt;CodeBlock&gt;,
-
-        <span class="doccomment">/// The `[[Environment]]` internal slot.
-        </span>environments: EnvironmentStack,
-
-        <span class="doccomment">/// The `[[HomeObject]]` internal slot.
-        </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-
-        <span class="doccomment">/// The class object that this function is associated with.
-        </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-
-        <span class="doccomment">/// The `[[ScriptOrModule]]` internal slot.
-        </span>script_or_module: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
-    },
+    </span>Generator,
 
     <span class="doccomment">/// A bytecode async generator function.
-    </span>AsyncGenerator {
-        <span class="doccomment">/// The code block containing the compiled function.
-        </span>code: Gc&lt;CodeBlock&gt;,
-
-        <span class="doccomment">/// The `[[Environment]]` internal slot.
-        </span>environments: EnvironmentStack,
-
-        <span class="doccomment">/// The `[[HomeObject]]` internal slot.
-        </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-
-        <span class="doccomment">/// The class object that this function is associated with.
-        </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-
-        <span class="doccomment">/// The `[[ScriptOrModule]]` internal slot.
-        </span>script_or_module: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
-    },
+    </span>AsyncGenerator,
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>FunctionKind {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Native {
-                function,
-                constructor,
-            } =&gt; f
-                .debug_struct(<span class="string">&quot;FunctionKind::Native&quot;</span>)
-                .field(<span class="string">&quot;function&quot;</span>, <span class="kw-2">&amp;</span>function)
-                .field(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;</span>constructor)
-                .finish(),
             <span class="self">Self</span>::Ordinary { .. } =&gt; f
                 .debug_struct(<span class="string">&quot;FunctionKind::Ordinary&quot;</span>)
                 .finish_non_exhaustive(),
@@ -1417,77 +1249,65 @@
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>FunctionKind {
     <span class="macro">custom_trace! </span>{this, {
         <span class="kw">match </span>this {
-            <span class="self">Self</span>::Native { function, .. } =&gt; {mark(function)}
             <span class="self">Self</span>::Ordinary {
-                code,
-                environments,
-                home_object,
                 fields,
                 private_methods,
-                class_object,
-                script_or_module,
                 ..
             } =&gt; {
-                mark(code);
-                mark(environments);
-                mark(home_object);
                 <span class="kw">for </span>elem <span class="kw">in </span>fields {
                     mark(elem);
                 }
                 <span class="kw">for </span>(<span class="kw">_</span>, elem) <span class="kw">in </span>private_methods {
                     mark(elem);
                 }
-                mark(class_object);
-                mark(script_or_module);
             }
-            <span class="self">Self</span>::Async { code, environments, home_object, class_object, script_or_module }
-            | <span class="self">Self</span>::Generator { code, environments, home_object, class_object, script_or_module}
-            | <span class="self">Self</span>::AsyncGenerator { code, environments, home_object, class_object, script_or_module} =&gt; {
-                mark(code);
-                mark(environments);
-                mark(home_object);
-                mark(class_object);
-                mark(script_or_module);
-            }
+            <span class="self">Self</span>::Async
+            | <span class="self">Self</span>::Generator
+            | <span class="self">Self</span>::AsyncGenerator =&gt; {}
         }
     }}
 }
 
-<span class="doccomment">/// Boa representation of a Function Object.
+<span class="doccomment">/// Boa representation of a JavaScript Function Object.
 ///
 /// `FunctionBody` is specific to this interpreter, it will either be Rust code or JavaScript code
 /// (AST Node).
 ///
 /// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects&gt;
 </span><span class="attr">#[derive(Debug, Trace, Finalize)]
-</span><span class="kw">pub struct </span>Function {
-    kind: FunctionKind,
-    realm: Realm,
+</span><span class="kw">pub struct </span>OrdinaryFunction {
+    <span class="doccomment">/// The code block containing the compiled function.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) code: Gc&lt;CodeBlock&gt;,
+
+    <span class="doccomment">/// The `[[Environment]]` internal slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) environments: EnvironmentStack,
+
+    <span class="doccomment">/// The `[[HomeObject]]` internal slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+
+    <span class="doccomment">/// The class object that this function is associated with.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+
+    <span class="doccomment">/// The `[[ScriptOrModule]]` internal slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) script_or_module: <span class="prelude-ty">Option</span>&lt;ActiveRunnable&gt;,
+
+    <span class="doccomment">/// The [`Realm`] the function is defined in.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) realm: Realm,
+
+    <span class="doccomment">/// The kind of ordinary function.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) kind: FunctionKind,
 }
 
-<span class="kw">impl </span>Function {
-    <span class="doccomment">/// Returns the codeblock of the function, or `None` if the function is a [`NativeFunction`].
+<span class="kw">impl </span>OrdinaryFunction {
+    <span class="doccomment">/// Returns the codeblock of the function.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>codeblock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CodeBlock&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
-            FunctionKind::Native { .. } =&gt; <span class="prelude-val">None</span>,
-            FunctionKind::Ordinary { code, .. }
-            | FunctionKind::Async { code, .. }
-            | FunctionKind::Generator { code, .. }
-            | FunctionKind::AsyncGenerator { code, .. } =&gt; <span class="prelude-val">Some</span>(code),
-        }
-    }
-
-    <span class="doccomment">/// Creates a new `Function`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(kind: FunctionKind, realm: Realm) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ kind, realm }
+    </span><span class="kw">pub fn </span>codeblock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CodeBlock {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.code
     }
 
     <span class="doccomment">/// Push a private environment to the function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_private_environment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, environment: Gc&lt;PrivateEnvironment&gt;) {
-        <span class="kw">if let </span>FunctionKind::Ordinary { environments, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
-            environments.push_private(environment);
-        }
+        <span class="self">self</span>.environments.push_private(environment);
     }
 
     <span class="doccomment">/// Returns true if the function object is a derived constructor.
@@ -1504,33 +1324,17 @@
 
     <span class="doccomment">/// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>in_class_field_initializer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">if let </span>FunctionKind::Ordinary { code, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.kind {
-            code.in_class_field_initializer()
-        } <span class="kw">else </span>{
-            <span class="bool-val">false
-        </span>}
+        <span class="self">self</span>.code.in_class_field_initializer()
     }
 
     <span class="doccomment">/// Returns a reference to the function `[[HomeObject]]` slot if present.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>get_home_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
-            FunctionKind::Ordinary { home_object, .. }
-            | FunctionKind::Async { home_object, .. }
-            | FunctionKind::Generator { home_object, .. }
-            | FunctionKind::AsyncGenerator { home_object, .. } =&gt; home_object.as_ref(),
-            FunctionKind::Native { .. } =&gt; <span class="prelude-val">None</span>,
-        }
+        <span class="self">self</span>.home_object.as_ref()
     }
 
     <span class="doccomment">///  Sets the `[[HomeObject]]` slot if present.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_home_object(<span class="kw-2">&amp;mut </span><span class="self">self</span>, object: JsObject) {
-        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
-            FunctionKind::Ordinary { home_object, .. }
-            | FunctionKind::Async { home_object, .. }
-            | FunctionKind::Generator { home_object, .. }
-            | FunctionKind::AsyncGenerator { home_object, .. } =&gt; <span class="kw-2">*</span>home_object = <span class="prelude-val">Some</span>(object),
-            FunctionKind::Native { .. } =&gt; {}
-        }
+        <span class="self">self</span>.home_object = <span class="prelude-val">Some</span>(object);
     }
 
     <span class="doccomment">/// Returns the values of the `[[Fields]]` internal slot.
@@ -1580,13 +1384,7 @@
 
     <span class="doccomment">///  Sets the class object.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_class_object(<span class="kw-2">&amp;mut </span><span class="self">self</span>, object: JsObject) {
-        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
-            FunctionKind::Ordinary { class_object, .. }
-            | FunctionKind::Async { class_object, .. }
-            | FunctionKind::Generator { class_object, .. }
-            | FunctionKind::AsyncGenerator { class_object, .. } =&gt; <span class="kw-2">*</span>class_object = <span class="prelude-val">Some</span>(object),
-            FunctionKind::Native { .. } =&gt; {}
-        }
+        <span class="self">self</span>.class_object = <span class="prelude-val">Some</span>(object);
     }
 
     <span class="doccomment">/// Gets the `Realm` from where this function originates.
@@ -2112,44 +1910,64 @@
 
     <span class="attr">#[allow(clippy::wrong_self_convention)]
     </span><span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>object = this.as_object().map(JsObject::borrow);
-        <span class="kw">let </span>function = object
-            .as_deref()
-            .and_then(Object::as_function)
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;Not a function&quot;</span>))<span class="question-mark">?</span>;
+        <span class="comment">// 1. Let func be the this value.
+        </span><span class="kw">let </span>func = this;
 
-        <span class="kw">let </span>name = {
-            <span class="comment">// Is there a case here where if there is no name field on a value
-            // name should default to None? Do all functions have names set?
-            </span><span class="kw">let </span>value = this
-                .as_object()
-                .expect(<span class="string">&quot;checked that `this` was an object above&quot;</span>)
-                .get(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="kw-2">&amp;mut *</span>context)<span class="question-mark">?</span>;
-            <span class="kw">if </span>value.is_null_or_undefined() {
-                <span class="prelude-val">None
-            </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(value.to_string(context)<span class="question-mark">?</span>)
-            }
+        <span class="comment">// 2. If func is an Object, func has a [[SourceText]] internal slot, func.[[SourceText]] is a sequence of Unicode code points,and HostHasSourceTextAvailable(func) is true, then
+        //     a. Return CodePointsToString(func.[[SourceText]]).
+
+        // 3. If func is a built-in function object, return an implementation-defined String source code representation of func.
+        //    The representation must have the syntax of a NativeFunction. Additionally, if func has an [[InitialName]] internal slot and
+        //    func.[[InitialName]] is a String, the portion of the returned String that would be matched by
+        //    NativeFunctionAccessor_opt PropertyName must be the value of func.[[InitialName]].
+
+        // 4. If func is an Object and IsCallable(func) is true, return an implementation-defined String source code representation of func.
+        //    The representation must have the syntax of a NativeFunction.
+        // 5. Throw a TypeError exception.
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_object() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;not a function&quot;</span>).into());
         };
 
-        <span class="kw">let </span>name = name
-            .filter(|n| !n.is_empty())
-            .unwrap_or_else(|| <span class="string">&quot;anonymous&quot;</span>.into());
+        <span class="kw">if </span>object.borrow().is_native_function() {
+            <span class="kw">let </span>name = {
+                <span class="comment">// Is there a case here where if there is no name field on a value
+                // name should default to None? Do all functions have names set?
+                </span><span class="kw">let </span>value = this
+                    .as_object()
+                    .expect(<span class="string">&quot;checked that `this` was an object above&quot;</span>)
+                    .get(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="kw-2">&amp;mut *</span>context)<span class="question-mark">?</span>;
+                <span class="kw">if </span>value.is_null_or_undefined() {
+                    <span class="macro">js_string!</span>()
+                } <span class="kw">else </span>{
+                    value.to_string(context)<span class="question-mark">?
+                </span>}
+            };
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(
+                <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;function &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;() { [native code] }&quot;</span>)).into(),
+            );
+        }
 
-        <span class="kw">match </span>function.kind {
-            FunctionKind::Native { .. } | FunctionKind::Ordinary { .. } =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[Function: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
+        <span class="kw">let </span>object = object.borrow();
+        <span class="kw">let </span>function = object
+            .as_function()
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;not a function&quot;</span>))<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>code = function.codeblock();
+
+        <span class="kw">let </span>prefix = <span class="kw">match </span>function.kind {
+            FunctionKind::Ordinary { .. } =&gt; {
+                <span class="macro">utf16!</span>(<span class="string">&quot;function &quot;</span>)
             }
             FunctionKind::Async { .. } =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[AsyncFunction: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
+                <span class="macro">utf16!</span>(<span class="string">&quot;async function &quot;</span>)
             }
             FunctionKind::Generator { .. } =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[GeneratorFunction: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
+                <span class="macro">utf16!</span>(<span class="string">&quot;function* &quot;</span>)
             }
-            FunctionKind::AsyncGenerator { .. } =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[AsyncGeneratorFunction: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
-            }
-        }
+            FunctionKind::AsyncGenerator { .. } =&gt; <span class="macro">utf16!</span>(<span class="string">&quot;async function* &quot;</span>),
+        };
+
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(prefix, code.name(), <span class="macro">utf16!</span>(<span class="string">&quot;() { [native code] }&quot;</span>)).into())
     }
 
     <span class="doccomment">/// `Function.prototype [ @@hasInstance ] ( V )`

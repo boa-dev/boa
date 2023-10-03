@@ -91,10 +91,14 @@
 <a href="#91" id="91">91</a>
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Function` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     object::{
-        internal_methods::function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
+        internal_methods::function::{
+            NATIVE_CONSTRUCTOR_INTERNAL_METHODS, NATIVE_FUNCTION_INTERNAL_METHODS,
+        },
         JsObject, JsObjectType, Object,
     },
     value::TryFromJs,
@@ -125,9 +129,9 @@
             inner: JsObject::from_object_and_vtable(
                 Object::default(),
                 <span class="kw">if </span>constructor {
-                    <span class="kw-2">&amp;</span>CONSTRUCTOR_INTERNAL_METHODS
+                    <span class="kw-2">&amp;</span>NATIVE_CONSTRUCTOR_INTERNAL_METHODS
                 } <span class="kw">else </span>{
-                    <span class="kw-2">&amp;</span>FUNCTION_INTERNAL_METHODS
+                    <span class="kw-2">&amp;</span>NATIVE_FUNCTION_INTERNAL_METHODS
                 },
             ),
         }

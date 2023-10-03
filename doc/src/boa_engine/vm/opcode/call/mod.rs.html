@@ -477,30 +477,8 @@
 <a href="#477" id="477">477</a>
 <a href="#478" id="478">478</a>
 <a href="#479" id="479">479</a>
-<a href="#480" id="480">480</a>
-<a href="#481" id="481">481</a>
-<a href="#482" id="482">482</a>
-<a href="#483" id="483">483</a>
-<a href="#484" id="484">484</a>
-<a href="#485" id="485">485</a>
-<a href="#486" id="486">486</a>
-<a href="#487" id="487">487</a>
-<a href="#488" id="488">488</a>
-<a href="#489" id="489">489</a>
-<a href="#490" id="490">490</a>
-<a href="#491" id="491">491</a>
-<a href="#492" id="492">492</a>
-<a href="#493" id="493">493</a>
-<a href="#494" id="494">494</a>
-<a href="#495" id="495">495</a>
-<a href="#496" id="496">496</a>
-<a href="#497" id="497">497</a>
-<a href="#498" id="498">498</a>
-<a href="#499" id="499">499</a>
-<a href="#500" id="500">500</a>
-<a href="#501" id="501">501</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    builtins::{function::FunctionKind, promise::PromiseCapability, Promise},
+    builtins::{promise::PromiseCapability, Promise},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
@@ -539,26 +517,18 @@
         <span class="kw">let </span>func = context.vm.pop();
         <span class="kw">let </span>this = context.vm.pop();
 
-        <span class="kw">let </span>object = <span class="kw">match </span>func {
-            JsValue::Object(<span class="kw-2">ref </span>object) <span class="kw">if </span>object.is_callable() =&gt; object.clone(),
-            <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;not a callable function&quot;</span>)
-                    .into());
-            }
+        <span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_object() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;not a callable function&quot;</span>)
+                .into());
         };
 
         <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.
-        </span><span class="kw">let </span>eval = object
-            .borrow()
-            .as_function()
-            .map(|f| <span class="macro">matches!</span>(f.kind(), FunctionKind::Native { .. }))
-            .unwrap_or_default();
-
-        <span class="kw">let </span>strict = context.vm.frame().code_block.strict();
+        </span><span class="kw">let </span>eval = object.borrow().is_native_function();
 
         <span class="kw">if </span>eval {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arguments.get(<span class="number">0</span>) {
+                <span class="kw">let </span>strict = context.vm.frame().code_block.strict();
                 <span class="kw">let </span>result = <span class="kw">crate</span>::builtins::eval::Eval::perform_eval(x, <span class="bool-val">true</span>, strict, context)<span class="question-mark">?</span>;
                 context.vm.push(result);
             } <span class="kw">else </span>{
@@ -633,26 +603,18 @@
         <span class="kw">let </span>func = context.vm.pop();
         <span class="kw">let </span>this = context.vm.pop();
 
-        <span class="kw">let </span>object = <span class="kw">match </span>func {
-            JsValue::Object(<span class="kw-2">ref </span>object) <span class="kw">if </span>object.is_callable() =&gt; object.clone(),
-            <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;not a callable function&quot;</span>)
-                    .into());
-            }
+        <span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_object() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;not a callable function&quot;</span>)
+                .into());
         };
 
         <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.
-        </span><span class="kw">let </span>eval = object
-            .borrow()
-            .as_function()
-            .map(|f| <span class="macro">matches!</span>(f.kind(), FunctionKind::Native { .. }))
-            .unwrap_or_default();
-
-        <span class="kw">let </span>strict = context.vm.frame().code_block.strict();
+        </span><span class="kw">let </span>eval = object.borrow().is_native_function();
 
         <span class="kw">if </span>eval {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arguments.get(<span class="number">0</span>) {
+                <span class="kw">let </span>strict = context.vm.frame().code_block.strict();
                 <span class="kw">let </span>result = <span class="kw">crate</span>::builtins::eval::Eval::perform_eval(x, <span class="bool-val">true</span>, strict, context)<span class="question-mark">?</span>;
                 context.vm.push(result);
             } <span class="kw">else </span>{
@@ -697,13 +659,10 @@
         <span class="kw">let </span>func = context.vm.pop();
         <span class="kw">let </span>this = context.vm.pop();
 
-        <span class="kw">let </span>object = <span class="kw">match </span>func {
-            JsValue::Object(<span class="kw-2">ref </span>object) <span class="kw">if </span>object.is_callable() =&gt; object.clone(),
-            <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;not a callable function&quot;</span>)
-                    .into());
-            }
+        <span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_object() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;not a callable function&quot;</span>)
+                .into());
         };
 
         <span class="kw">let </span>result = object.__call__(<span class="kw-2">&amp;</span>this, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;
@@ -770,13 +729,10 @@
         <span class="kw">let </span>func = context.vm.pop();
         <span class="kw">let </span>this = context.vm.pop();
 
-        <span class="kw">let </span>object = <span class="kw">match </span>func {
-            JsValue::Object(<span class="kw-2">ref </span>object) <span class="kw">if </span>object.is_callable() =&gt; object.clone(),
-            <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;not a callable function&quot;</span>)
-                    .into())
-            }
+        <span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_object() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;not a callable function&quot;</span>)
+                .into());
         };
 
         <span class="kw">let </span>result = object.__call__(<span class="kw-2">&amp;</span>this, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;

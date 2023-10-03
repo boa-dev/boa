@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["function_call","function_construct"],"static":["CONSTRUCTOR_INTERNAL_METHODS","FUNCTION_INTERNAL_METHODS"]};
+window.SIDEBAR_ITEMS = {"fn":["function_call","function_construct","native_function_call","native_function_construct"],"static":["CONSTRUCTOR_INTERNAL_METHODS","FUNCTION_INTERNAL_METHODS","NATIVE_CONSTRUCTOR_INTERNAL_METHODS","NATIVE_FUNCTION_INTERNAL_METHODS"]};

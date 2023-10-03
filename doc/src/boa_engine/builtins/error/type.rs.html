@@ -144,11 +144,6 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypeError` object.
 //!
 //! The `TypeError` object represents an error when an operation could not be performed,
@@ -167,10 +162,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
 
 </span><span class="kw">use crate</span>::{
-    builtins::{
-        function::{Function, FunctionKind},
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-    },
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -287,13 +279,11 @@
         <span class="kw">let </span><span class="kw-2">mut </span>obj = obj.borrow_mut();
 
         obj.extensible = <span class="bool-val">false</span>;
-        <span class="kw-2">*</span>obj.kind_mut() = ObjectKind::Function(Function::new(
-            FunctionKind::Native {
-                function: NativeFunction::from_fn_ptr(throw_type_error),
-                constructor: <span class="prelude-val">None</span>,
-            },
-            realm.clone(),
-        ));
+        <span class="kw-2">*</span>obj.kind_mut() = ObjectKind::NativeFunction {
+            function: NativeFunction::from_fn_ptr(throw_type_error),
+            constructor: <span class="prelude-val">None</span>,
+            realm: realm.clone(),
+        }
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
