@@ -10,7 +10,7 @@ use crate::{
     environments::{DeclarativeEnvironment, EnvironmentStack},
     script::Script,
     vm::code_block::Readable,
-    Context, JsError, JsNativeErrorKind, JsObject, JsResult, JsValue, Module, JsNativeError,
+    Context, JsError, JsNativeError, JsNativeErrorKind, JsObject, JsResult, JsValue, Module,
 };
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
