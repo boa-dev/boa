@@ -59,11 +59,6 @@
     clippy::pedantic,
     clippy::nursery,
 )]
-#![allow(
-    unused_crate_dependencies,
-    clippy::option_if_let_else,
-    clippy::redundant_pub_crate
-)]
 
 mod debug;
 mod helper;

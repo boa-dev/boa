@@ -334,7 +334,6 @@ dependencies = [
 name = "boa_cli"
 version = "0.17.0"
 dependencies = [
- "boa_ast",
  "boa_engine",
  "boa_gc",
  "boa_interner",

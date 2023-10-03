@@ -1,6 +1,6 @@
 use colored::{Color, Colorize};
 use phf::{phf_set, Set};
-use regex::{Captures, Regex};
+use regex::{Captures, Regex, Replacer};
 use rustyline::{
     error::ReadlineError,
     highlight::Highlighter,
@@ -35,7 +35,7 @@ const IDENTIFIER_COLOR: Color = Color::TrueColor {
 
 const READLINE_COLOR: Color = Color::Cyan;
 
-#[allow(clippy::upper_case_acronyms)]
+#[allow(clippy::upper_case_acronyms, clippy::redundant_pub_crate)]
 #[derive(Completer, Helper, Hinter)]
 pub(crate) struct RLHelper {
     highlighter: LineHighlighter,
@@ -46,7 +46,7 @@ pub(crate) struct RLHelper {
 impl RLHelper {
     pub(crate) fn new(prompt: &str) -> Self {
         Self {
-            highlighter: LineHighlighter,
+            highlighter: LineHighlighter::new(),
             validator: MatchingBracketValidator::new(),
             colored_prompt: prompt.color(READLINE_COLOR).bold().to_string(),
         }
@@ -139,13 +139,14 @@ static KEYWORDS: Set<&'static str> = phf_set! {
     "let",
 };
 
-struct LineHighlighter;
+struct LineHighlighter {
+    regex: Regex,
+}
 
-impl Highlighter for LineHighlighter {
-    fn highlight<'l>(&self, line: &'l str, _: usize) -> Cow<'l, str> {
-        let mut coloured = line.to_string();
-
-        let reg = Regex::new(
+impl LineHighlighter {
+    fn new() -> Self {
+        // Precompiles the regex to avoid creating it again after every highlight
+        let regex = Regex::new(
             r#"(?x)
             (?P<identifier>\b[$_\p{ID_Start}][$_\p{ID_Continue}\u{200C}\u{200D}]*\b) |
             (?P<string_double_quote>"([^"\\]|\\.)*") |
@@ -153,38 +154,58 @@ impl Highlighter for LineHighlighter {
             (?P<template_literal>`([^`\\]|\\.)*`) |
             (?P<op>[+\-/*%~^!&|=<>;:]) |
             (?P<number>0[bB][01](_?[01])*n?|0[oO][0-7](_?[0-7])*n?|0[xX][0-9a-fA-F](_?[0-9a-fA-F])*n?|(([0-9](_?[0-9])*\.([0-9](_?[0-9])*)?)|(([0-9](_?[0-9])*)?\.[0-9](_?[0-9])*)|([0-9](_?[0-9])*))([eE][+-]?[0-9](_?[0-9])*)?n?)"#,
-        )
-        .expect("could not compile regular expression");
+        ).expect("could not compile regular expression");
 
-        coloured = reg
-            .replace_all(&coloured, |caps: &Captures<'_>| {
-                if let Some(cap) = caps.name("identifier") {
-                    match cap.as_str() {
+        Self { regex }
+    }
+}
+
+impl Highlighter for LineHighlighter {
+    fn highlight<'l>(&self, line: &'l str, _: usize) -> Cow<'l, str> {
+        use std::fmt::Write;
+
+        struct Colorizer;
+
+        impl Replacer for Colorizer {
+            // Changing to map_or_else moves the handling of "identifier" after all other kinds,
+            // which reads worse than this version.
+            #[allow(clippy::option_if_let_else)]
+            fn replace_append(&mut self, caps: &Captures<'_>, dst: &mut String) {
+                let colored = if let Some(cap) = caps.name("identifier") {
+                    let cap = cap.as_str();
+
+                    let colored = match cap {
                         "true" | "false" | "null" | "Infinity" | "globalThis" => {
-                            cap.as_str().color(PROPERTY_COLOR).to_string()
+                            cap.color(PROPERTY_COLOR)
                         }
-                        "undefined" => cap.as_str().color(UNDEFINED_COLOR).to_string(),
+                        "undefined" => cap.color(UNDEFINED_COLOR),
                         identifier if KEYWORDS.contains(identifier) => {
-                            cap.as_str().color(KEYWORD_COLOR).bold().to_string()
+                            cap.color(KEYWORD_COLOR).bold()
                         }
-                        _ => cap.as_str().color(IDENTIFIER_COLOR).to_string(),
-                    }
-                } else if let Some(cap) = caps.name("string_double_quote") {
-                    cap.as_str().color(STRING_COLOR).to_string()
-                } else if let Some(cap) = caps.name("string_single_quote") {
-                    cap.as_str().color(STRING_COLOR).to_string()
-                } else if let Some(cap) = caps.name("template_literal") {
-                    cap.as_str().color(STRING_COLOR).to_string()
-                } else if let Some(cap) = caps.name("op") {
-                    cap.as_str().color(OPERATOR_COLOR).to_string()
-                } else if let Some(cap) = caps.name("number") {
-                    cap.as_str().color(NUMBER_COLOR).to_string()
-                } else {
-                    caps[0].to_string()
-                }
-            })
-            .to_string();
+                        _ => cap.color(IDENTIFIER_COLOR),
+                    };
 
-        coloured.into()
+                    Some(colored)
+                } else if let Some(cap) = caps
+                    .name("string_double_quote")
+                    .or_else(|| caps.name("string_single_quote"))
+                    .or_else(|| caps.name("template_literal"))
+                {
+                    Some(cap.as_str().color(STRING_COLOR))
+                } else if let Some(cap) = caps.name("op") {
+                    Some(cap.as_str().color(OPERATOR_COLOR))
+                } else {
+                    caps.name("number")
+                        .map(|cap| cap.as_str().color(NUMBER_COLOR))
+                };
+
+                if let Some(colored) = colored {
+                    write!(dst, "{colored}").expect("could not append data to dst");
+                } else {
+                    dst.push_str(&caps[0]);
+                }
+            }
+        }
+        self.regex.replace_all(line, Colorizer)
     }
 }
