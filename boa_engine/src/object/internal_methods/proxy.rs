@@ -9,6 +9,8 @@ use crate::{
 };
 use rustc_hash::FxHashSet;
 
+use super::ORDINARY_INTERNAL_METHODS;
+
 /// Definitions of the internal object methods for array exotic objects.
 ///
 /// More information:
@@ -28,20 +30,19 @@ pub(crate) static PROXY_EXOTIC_INTERNAL_METHODS_BASIC: InternalObjectMethods =
         __set__: proxy_exotic_set,
         __delete__: proxy_exotic_delete,
         __own_property_keys__: proxy_exotic_own_property_keys,
-        __call__: None,
-        __construct__: None,
+        ..ORDINARY_INTERNAL_METHODS
     };
 
 pub(crate) static PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL: InternalObjectMethods =
     InternalObjectMethods {
-        __call__: Some(proxy_exotic_call),
+        __call__: proxy_exotic_call,
         ..PROXY_EXOTIC_INTERNAL_METHODS_BASIC
     };
 
 pub(crate) static PROXY_EXOTIC_INTERNAL_METHODS_ALL: InternalObjectMethods =
     InternalObjectMethods {
-        __call__: Some(proxy_exotic_call),
-        __construct__: Some(proxy_exotic_construct),
+        __call__: proxy_exotic_call,
+        __construct__: proxy_exotic_construct,
         ..PROXY_EXOTIC_INTERNAL_METHODS_BASIC
     };
 

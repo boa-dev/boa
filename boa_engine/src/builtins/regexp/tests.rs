@@ -42,7 +42,7 @@ fn species() {
         // symbol-species
         TestAction::assert_eq("descriptor.set", JsValue::undefined()),
         TestAction::assert_with_op("accessor", |v, _| {
-            v.as_object().map_or(false, JsObject::is_function)
+            v.as_object().map_or(false, JsObject::is_native_function)
         }),
         TestAction::assert("!descriptor.enumerable"),
         TestAction::assert("descriptor.configurable"),

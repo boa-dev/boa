@@ -1,5 +1,5 @@
 use crate::{
-    builtins::{function::FunctionKind, promise::PromiseCapability, Promise},
+    builtins::{promise::PromiseCapability, Promise},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
@@ -38,26 +38,18 @@ impl CallEval {
         let func = context.vm.pop();
         let this = context.vm.pop();
 
-        let object = match func {
-            JsValue::Object(ref object) if object.is_callable() => object.clone(),
-            _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("not a callable function")
-                    .into());
-            }
+        let Some(object) = func.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message("not a callable function")
+                .into());
         };
 
         // A native function with the name "eval" implies, that is this the built-in eval function.
-        let eval = object
-            .borrow()
-            .as_function()
-            .map(|f| matches!(f.kind(), FunctionKind::Native { .. }))
-            .unwrap_or_default();
-
-        let strict = context.vm.frame().code_block.strict();
+        let eval = object.borrow().is_native_function();
 
         if eval {
             if let Some(x) = arguments.get(0) {
+                let strict = context.vm.frame().code_block.strict();
                 let result = crate::builtins::eval::Eval::perform_eval(x, true, strict, context)?;
                 context.vm.push(result);
             } else {
@@ -132,26 +124,18 @@ impl Operation for CallEvalSpread {
         let func = context.vm.pop();
         let this = context.vm.pop();
 
-        let object = match func {
-            JsValue::Object(ref object) if object.is_callable() => object.clone(),
-            _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("not a callable function")
-                    .into());
-            }
+        let Some(object) = func.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message("not a callable function")
+                .into());
         };
 
         // A native function with the name "eval" implies, that is this the built-in eval function.
-        let eval = object
-            .borrow()
-            .as_function()
-            .map(|f| matches!(f.kind(), FunctionKind::Native { .. }))
-            .unwrap_or_default();
-
-        let strict = context.vm.frame().code_block.strict();
+        let eval = object.borrow().is_native_function();
 
         if eval {
             if let Some(x) = arguments.get(0) {
+                let strict = context.vm.frame().code_block.strict();
                 let result = crate::builtins::eval::Eval::perform_eval(x, true, strict, context)?;
                 context.vm.push(result);
             } else {
@@ -196,13 +180,10 @@ impl Call {
         let func = context.vm.pop();
         let this = context.vm.pop();
 
-        let object = match func {
-            JsValue::Object(ref object) if object.is_callable() => object.clone(),
-            _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("not a callable function")
-                    .into());
-            }
+        let Some(object) = func.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message("not a callable function")
+                .into());
         };
 
         let result = object.__call__(&this, &arguments, context)?;
@@ -269,13 +250,10 @@ impl Operation for CallSpread {
         let func = context.vm.pop();
         let this = context.vm.pop();
 
-        let object = match func {
-            JsValue::Object(ref object) if object.is_callable() => object.clone(),
-            _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("not a callable function")
-                    .into())
-            }
+        let Some(object) = func.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message("not a callable function")
+                .into());
         };
 
         let result = object.__call__(&this, &arguments, context)?;

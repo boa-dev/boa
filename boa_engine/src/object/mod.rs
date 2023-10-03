@@ -14,7 +14,10 @@ use self::{
         bound_function::{
             BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
         },
-        function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
+        function::{
+            CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS,
+            NATIVE_CONSTRUCTOR_INTERNAL_METHODS, NATIVE_FUNCTION_INTERNAL_METHODS,
+        },
         immutable_prototype::IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
         integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
         module_namespace::MODULE_NAMESPACE_EXOTIC_INTERNAL_METHODS,
@@ -41,8 +44,8 @@ use crate::{
         array_buffer::ArrayBuffer,
         async_generator::AsyncGenerator,
         error::ErrorKind,
-        function::{arguments::Arguments, FunctionKind},
-        function::{arguments::ParameterMap, BoundFunction, ConstructorKind, Function},
+        function::arguments::Arguments,
+        function::{arguments::ParameterMap, BoundFunction, ConstructorKind, OrdinaryFunction},
         generator::Generator,
         iterable::AsyncFromSyncIterator,
         map::ordered_map::OrderedMap,
@@ -297,7 +300,7 @@ pub enum ObjectKind {
     AsyncGenerator(AsyncGenerator),
 
     /// The `AsyncGeneratorFunction` object kind.
-    AsyncGeneratorFunction(Function),
+    AsyncGeneratorFunction(OrdinaryFunction),
 
     /// The `Array` object kind.
     Array,
@@ -333,7 +336,7 @@ pub enum ObjectKind {
     ForInIterator(ForInIterator),
 
     /// The `Function` object kind.
-    Function(Function),
+    OrdinaryFunction(OrdinaryFunction),
 
     /// The `BoundFunction` object kind.
     BoundFunction(BoundFunction),
@@ -342,7 +345,19 @@ pub enum ObjectKind {
     Generator(Generator),
 
     /// The `GeneratorFunction` object kind.
-    GeneratorFunction(Function),
+    GeneratorFunction(OrdinaryFunction),
+
+    /// A native rust function.
+    NativeFunction {
+        /// The rust function.
+        function: NativeFunction,
+
+        /// The kind of the function constructor if it is a constructor.
+        constructor: Option<ConstructorKind>,
+
+        /// The [`Realm`] in which the function is defined.
+        realm: Realm,
+    },
 
     /// The `Set` object kind.
     Set(OrderedSet),
@@ -445,9 +460,13 @@ unsafe impl Trace for ObjectKind {
             Self::RegExpStringIterator(i) => mark(i),
             Self::DataView(v) => mark(v),
             Self::ForInIterator(i) => mark(i),
-            Self::Function(f) | Self::GeneratorFunction(f) | Self::AsyncGeneratorFunction(f) => mark(f),
+            Self::OrdinaryFunction(f) | Self::GeneratorFunction(f) | Self::AsyncGeneratorFunction(f) => mark(f),
             Self::BoundFunction(f) => mark(f),
             Self::Generator(g) => mark(g),
+            Self::NativeFunction { function, constructor: _, realm } => {
+                mark(function);
+                mark(realm);
+            }
             Self::Set(s) => mark(s),
             Self::SetIterator(i) => mark(i),
             Self::StringIterator(i) => mark(i),
@@ -518,7 +537,7 @@ impl ObjectData {
 
     /// Create the `AsyncGeneratorFunction` object data
     #[must_use]
-    pub fn async_generator_function(function: Function) -> Self {
+    pub fn async_generator_function(function: OrdinaryFunction) -> Self {
         Self {
             internal_methods: &FUNCTION_INTERNAL_METHODS,
             kind: ObjectKind::GeneratorFunction(function),
@@ -633,16 +652,37 @@ impl ObjectData {
         }
     }
 
-    /// Create the `Function` object data
+    /// Create the ordinary function object data
     #[must_use]
-    pub fn function(function: Function, constructor: bool) -> Self {
+    pub fn ordinary_function(function: OrdinaryFunction, constructor: bool) -> Self {
+        let internal_methods = if constructor {
+            &CONSTRUCTOR_INTERNAL_METHODS
+        } else {
+            &FUNCTION_INTERNAL_METHODS
+        };
+
         Self {
-            internal_methods: if constructor {
-                &CONSTRUCTOR_INTERNAL_METHODS
-            } else {
-                &FUNCTION_INTERNAL_METHODS
+            internal_methods,
+            kind: ObjectKind::OrdinaryFunction(function),
+        }
+    }
+
+    /// Create the native function object data
+    #[must_use]
+    pub fn native_function(function: NativeFunction, constructor: bool, realm: Realm) -> Self {
+        let internal_methods = if constructor {
+            &NATIVE_CONSTRUCTOR_INTERNAL_METHODS
+        } else {
+            &NATIVE_FUNCTION_INTERNAL_METHODS
+        };
+
+        Self {
+            internal_methods,
+            kind: ObjectKind::NativeFunction {
+                function,
+                constructor: constructor.then_some(ConstructorKind::Base),
+                realm,
             },
-            kind: ObjectKind::Function(function),
         }
     }
 
@@ -670,7 +710,7 @@ impl ObjectData {
 
     /// Create the `GeneratorFunction` object data
     #[must_use]
-    pub fn generator_function(function: Function) -> Self {
+    pub fn generator_function(function: OrdinaryFunction) -> Self {
         Self {
             internal_methods: &FUNCTION_INTERNAL_METHODS,
             kind: ObjectKind::GeneratorFunction(function),
@@ -930,10 +970,11 @@ impl Debug for ObjectKind {
             Self::ArrayIterator(_) => "ArrayIterator",
             Self::ArrayBuffer(_) => "ArrayBuffer",
             Self::ForInIterator(_) => "ForInIterator",
-            Self::Function(_) => "Function",
+            Self::OrdinaryFunction(_) => "Function",
             Self::BoundFunction(_) => "BoundFunction",
             Self::Generator(_) => "Generator",
             Self::GeneratorFunction(_) => "GeneratorFunction",
+            Self::NativeFunction { .. } => "NativeFunction",
             Self::RegExp(_) => "RegExp",
             Self::RegExpStringIterator(_) => "RegExpStringIterator",
             Self::Map(_) => "Map",
@@ -1267,27 +1308,29 @@ impl Object {
     /// Checks if the object is a `Function` object.
     #[inline]
     #[must_use]
-    pub const fn is_function(&self) -> bool {
-        matches!(self.kind, ObjectKind::Function(_))
+    pub const fn is_ordinary_function(&self) -> bool {
+        matches!(
+            self.kind,
+            ObjectKind::OrdinaryFunction(_) | ObjectKind::GeneratorFunction(_)
+        )
     }
 
     /// Gets the function data if the object is a `Function`.
     #[inline]
     #[must_use]
-    pub const fn as_function(&self) -> Option<&Function> {
+    pub const fn as_function(&self) -> Option<&OrdinaryFunction> {
         match self.kind {
-            ObjectKind::Function(ref function) | ObjectKind::GeneratorFunction(ref function) => {
-                Some(function)
-            }
+            ObjectKind::OrdinaryFunction(ref function)
+            | ObjectKind::GeneratorFunction(ref function) => Some(function),
             _ => None,
         }
     }
 
     /// Gets the mutable function data if the object is a `Function`.
     #[inline]
-    pub fn as_function_mut(&mut self) -> Option<&mut Function> {
+    pub fn as_function_mut(&mut self) -> Option<&mut OrdinaryFunction> {
         match self.kind {
-            ObjectKind::Function(ref mut function)
+            ObjectKind::OrdinaryFunction(ref mut function)
             | ObjectKind::GeneratorFunction(ref mut function) => Some(function),
             _ => None,
         }
@@ -1721,6 +1764,13 @@ impl Object {
         matches!(self.kind, ObjectKind::NativeObject(_))
     }
 
+    /// Returns `true` if it holds a native Rust function.
+    #[inline]
+    #[must_use]
+    pub const fn is_native_function(&self) -> bool {
+        matches!(self.kind, ObjectKind::NativeFunction { .. })
+    }
+
     /// Gets the native object data if the object is a `NativeObject`.
     #[inline]
     #[must_use]
@@ -2107,15 +2157,12 @@ impl<'realm> FunctionObjectBuilder<'realm> {
     /// Build the function object.
     #[must_use]
     pub fn build(self) -> JsFunction {
-        let function = Function::new(
-            FunctionKind::Native {
-                function: self.function,
-                constructor: self.constructor,
-            },
-            self.realm.clone(),
-        );
         let object = self.realm.intrinsics().templates().function().create(
-            ObjectData::function(function, self.constructor.is_some()),
+            ObjectData::native_function(
+                self.function,
+                self.constructor.is_some(),
+                self.realm.clone(),
+            ),
             vec![self.length.into(), self.name.into()],
         );
 
@@ -2522,15 +2569,6 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
     /// Build the constructor function object.
     #[must_use]
     pub fn build(mut self) -> StandardConstructor {
-        // Create the native function
-        let function = Function::new(
-            FunctionKind::Native {
-                function: self.function,
-                constructor: self.kind,
-            },
-            self.context.realm().clone(),
-        );
-
         let length = PropertyDescriptor::builder()
             .value(self.length)
             .writable(false)
@@ -2562,7 +2600,11 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             let mut constructor = self.constructor_object;
             constructor.insert(utf16!("length"), length);
             constructor.insert(utf16!("name"), name);
-            let data = ObjectData::function(function, self.kind.is_some());
+            let data = ObjectData::native_function(
+                self.function,
+                self.kind.is_some(),
+                self.context.realm().clone(),
+            );
 
             constructor.kind = data.kind;
 

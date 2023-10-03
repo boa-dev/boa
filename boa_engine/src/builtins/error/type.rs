@@ -16,10 +16,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
 
 use crate::{
-    builtins::{
-        function::{Function, FunctionKind},
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-    },
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -136,13 +133,11 @@ impl IntrinsicObject for ThrowTypeError {
         let mut obj = obj.borrow_mut();
 
         obj.extensible = false;
-        *obj.kind_mut() = ObjectKind::Function(Function::new(
-            FunctionKind::Native {
-                function: NativeFunction::from_fn_ptr(throw_type_error),
-                constructor: None,
-            },
-            realm.clone(),
-        ));
+        *obj.kind_mut() = ObjectKind::NativeFunction {
+            function: NativeFunction::from_fn_ptr(throw_type_error),
+            constructor: None,
+            realm: realm.clone(),
+        }
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

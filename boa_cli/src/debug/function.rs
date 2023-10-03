@@ -85,13 +85,11 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
 
     let Some(function) = object.as_function() else {
         return Err(JsNativeError::typ()
-            .with_message("expected function object")
+            .with_message("expected an ordinary function object")
             .into());
     };
 
-    let code = function.codeblock().ok_or_else(|| {
-        JsNativeError::typ().with_message("native functions do not have bytecode")
-    })?;
+    let code = function.codeblock();
 
     let mut graph = Graph::new(direction);
     code.to_graph(context.interner(), graph.subgraph(String::default()));
@@ -118,12 +116,10 @@ fn bytecode(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
     let object = object.borrow();
     let Some(function) = object.as_function() else {
         return Err(JsNativeError::typ()
-            .with_message("expected function object")
+            .with_message("expected an ordinary function object")
             .into());
     };
-    let code = function.codeblock().ok_or_else(|| {
-        JsNativeError::typ().with_message("native functions do not have bytecode")
-    })?;
+    let code = function.codeblock();
 
     Ok(js_string!(code.to_interned_string(context.interner())).into())
 }
@@ -132,12 +128,10 @@ fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult
     let object = object.borrow();
     let Some(function) = object.as_function() else {
         return Err(JsNativeError::typ()
-            .with_message("expected function object")
+            .with_message("expected an ordinary function object")
             .into());
     };
-    let code = function.codeblock().ok_or_else(|| {
-        JsNativeError::typ().with_message("native functions do not have bytecode")
-    })?;
+    let code = function.codeblock();
     code.set_traceable(value);
     Ok(())
 }

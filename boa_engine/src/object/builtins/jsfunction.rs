@@ -1,7 +1,9 @@
 //! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
 use crate::{
     object::{
-        internal_methods::function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
+        internal_methods::function::{
+            NATIVE_CONSTRUCTOR_INTERNAL_METHODS, NATIVE_FUNCTION_INTERNAL_METHODS,
+        },
         JsObject, JsObjectType, Object,
     },
     value::TryFromJs,
@@ -32,9 +34,9 @@ impl JsFunction {
             inner: JsObject::from_object_and_vtable(
                 Object::default(),
                 if constructor {
-                    &CONSTRUCTOR_INTERNAL_METHODS
+                    &NATIVE_CONSTRUCTOR_INTERNAL_METHODS
                 } else {
-                    &FUNCTION_INTERNAL_METHODS
+                    &NATIVE_FUNCTION_INTERNAL_METHODS
                 },
             ),
         }
