@@ -111,8 +111,8 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_catch_stmt(&mut self, catch: &Catch, _has_finally: bool, use_expr: bool) {
         // stack: exception
 
-        self.push_compile_environment(false);
-        let push_env = self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment);
+        let env_index = self.push_compile_environment(false);
+        self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
 
         if let Some(binding) = catch.parameter() {
             match binding {
@@ -133,8 +133,7 @@ impl ByteCompiler<'_, '_> {
 
         self.compile_catch_finally_block(catch.block(), use_expr);
 
-        let env_index = self.pop_compile_environment();
-        self.patch_jump_with_target(push_env, env_index);
+        self.pop_compile_environment();
         self.emit_opcode(Opcode::PopEnvironment);
     }
 

@@ -5,7 +5,8 @@ impl ByteCompiler<'_, '_> {
     /// Compile a [`With`] `boa_ast` node
     pub(crate) fn compile_with(&mut self, with: &With, use_expr: bool) {
         self.compile_expr(with.expression(), true);
-        self.push_compile_environment(false);
+
+        let _ = self.push_compile_environment(false);
         self.emit_opcode(Opcode::PushObjectEnvironment);
 
         self.compile_stmt(with.statement(), use_expr, true);

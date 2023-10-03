@@ -22,8 +22,7 @@ impl ByteCompiler<'_, '_> {
         use_expr: bool,
     ) {
         let mut let_binding_indices = None;
-        let mut env_labels = None;
-        let mut iteration_env_labels = None;
+        let mut has_lexical_environment_binding = false;
 
         if let Some(init) = for_loop.init() {
             match init {
@@ -32,9 +31,9 @@ impl ByteCompiler<'_, '_> {
                     self.compile_var_decl(decl);
                 }
                 ForLoopInitializer::Lexical(decl) => {
-                    self.push_compile_environment(false);
-                    env_labels =
-                        Some(self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment));
+                    let env_index = self.push_compile_environment(false);
+                    self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+                    has_lexical_environment_binding = true;
 
                     let names = bound_names(decl);
                     if decl.is_const() {
@@ -49,7 +48,7 @@ impl ByteCompiler<'_, '_> {
                             let index = self.get_or_insert_binding(binding);
                             indices.push(index);
                         }
-                        let_binding_indices = Some(indices);
+                        let_binding_indices = Some((indices, env_index));
                     }
                     self.compile_lexical_decl(decl);
                 }
@@ -67,13 +66,14 @@ impl ByteCompiler<'_, '_> {
             .expect("jump_control must exist as it was just pushed")
             .set_start_address(start_address);
 
-        if let Some(let_binding_indices) = let_binding_indices {
-            for index in &let_binding_indices {
+        if let Some((let_binding_indices, env_index)) = &let_binding_indices {
+            for index in let_binding_indices {
                 self.emit_with_varying_operand(Opcode::GetName, *index);
             }
+
             self.emit_opcode(Opcode::PopEnvironment);
-            iteration_env_labels =
-                Some(self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment));
+            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, *env_index);
+
             for index in let_binding_indices.iter().rev() {
                 self.emit_with_varying_operand(Opcode::PutLexicalValue, *index);
             }
@@ -100,16 +100,10 @@ impl ByteCompiler<'_, '_> {
 
         self.patch_jump(exit);
         self.pop_loop_control_info();
-        if env_labels.is_some() {
-            self.emit_opcode(Opcode::PopEnvironment);
-        }
 
-        if let Some(env_labels) = env_labels {
-            let env_index = self.pop_compile_environment();
-            self.patch_jump_with_target(env_labels, env_index);
-            if let Some(iteration_env_labels) = iteration_env_labels {
-                self.patch_jump_with_target(iteration_env_labels, env_index);
-            }
+        if has_lexical_environment_binding {
+            self.pop_compile_environment();
+            self.emit_opcode(Opcode::PopEnvironment);
         }
     }
 
@@ -136,16 +130,15 @@ impl ByteCompiler<'_, '_> {
         if initializer_bound_names.is_empty() {
             self.compile_expr(for_in_loop.target(), true);
         } else {
-            self.push_compile_environment(false);
-            let push_env = self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment);
+            let env_index = self.push_compile_environment(false);
+            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
 
             for name in &initializer_bound_names {
                 self.create_mutable_binding(*name, false);
             }
             self.compile_expr(for_in_loop.target(), true);
 
-            let env_index = self.pop_compile_environment();
-            self.patch_jump_with_target(push_env, env_index);
+            self.pop_compile_environment();
             self.emit_opcode(Opcode::PopEnvironment);
         }
 
@@ -162,12 +155,10 @@ impl ByteCompiler<'_, '_> {
 
         self.emit_opcode(Opcode::IteratorValue);
 
-        let iteration_environment = if initializer_bound_names.is_empty() {
-            None
-        } else {
-            self.push_compile_environment(false);
-            Some(self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment))
-        };
+        if !initializer_bound_names.is_empty() {
+            let env_index = self.push_compile_environment(false);
+            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+        }
 
         match for_in_loop.initializer() {
             IterableLoopInitializer::Identifier(ident) => {
@@ -219,9 +210,8 @@ impl ByteCompiler<'_, '_> {
 
         self.compile_stmt(for_in_loop.body(), use_expr, true);
 
-        if let Some(iteration_environment) = iteration_environment {
-            let env_index = self.pop_compile_environment();
-            self.patch_jump_with_target(iteration_environment, env_index);
+        if !initializer_bound_names.is_empty() {
+            self.pop_compile_environment();
             self.emit_opcode(Opcode::PopEnvironment);
         }
 
@@ -252,16 +242,15 @@ impl ByteCompiler<'_, '_> {
         if initializer_bound_names.is_empty() {
             self.compile_expr(for_of_loop.iterable(), true);
         } else {
-            self.push_compile_environment(false);
-            let push_env = self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment);
+            let env_index = self.push_compile_environment(false);
+            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
 
             for name in &initializer_bound_names {
                 self.create_mutable_binding(*name, false);
             }
             self.compile_expr(for_of_loop.iterable(), true);
 
-            let env_index = self.pop_compile_environment();
-            self.patch_jump_with_target(push_env, env_index);
+            self.pop_compile_environment();
             self.emit_opcode(Opcode::PopEnvironment);
         }
 
@@ -290,11 +279,9 @@ impl ByteCompiler<'_, '_> {
         let exit = self.jump_if_true();
         self.emit_opcode(Opcode::IteratorValue);
 
-        let iteration_environment = if initializer_bound_names.is_empty() {
-            None
-        } else {
-            self.push_compile_environment(false);
-            Some(self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment))
+        if !initializer_bound_names.is_empty() {
+            let env_index = self.push_compile_environment(false);
+            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
         };
 
         let mut handler_index = None;
@@ -388,9 +375,8 @@ impl ByteCompiler<'_, '_> {
 
         self.compile_stmt(for_of_loop.body(), use_expr, true);
 
-        if let Some(iteration_environment) = iteration_environment {
-            let env_index = self.pop_compile_environment();
-            self.patch_jump_with_target(iteration_environment, env_index);
+        if !initializer_bound_names.is_empty() {
+            self.pop_compile_environment();
             self.emit_opcode(Opcode::PopEnvironment);
         }
 

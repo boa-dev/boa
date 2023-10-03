@@ -26,13 +26,14 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_class(&mut self, class: &Class, expression: bool) {
         let class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
 
-        let class_env: Option<super::Label> = match class.name() {
+        let class_env = match class.name() {
             Some(name) if class.has_binding_identifier() => {
-                self.push_compile_environment(false);
+                let env_index = self.push_compile_environment(false);
                 self.create_immutable_binding(name, true);
-                Some(self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment))
+                self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+                true
             }
-            _ => None,
+            _ => false,
         };
 
         let mut compiler = ByteCompiler::new(
@@ -43,7 +44,8 @@ impl ByteCompiler<'_, '_> {
             self.context,
         );
 
-        compiler.push_compile_environment(true);
+        // Function environment
+        let _ = compiler.push_compile_environment(true);
 
         if let Some(expr) = class.constructor() {
             compiler.length = expr.parameters().length();
@@ -59,15 +61,11 @@ impl ByteCompiler<'_, '_> {
 
             compiler.compile_statement_list(expr.body().statements(), false, false);
 
-            let env_index = compiler.pop_compile_environment();
-
-            if let Some(env_label) = env_label {
-                compiler.patch_jump_with_target(env_label, env_index);
+            if env_label {
                 compiler.pop_compile_environment();
             } else {
                 compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
             }
-
             compiler.emit_opcode(Opcode::PushUndefined);
         } else {
             if class.super_ref().is_some() {
@@ -76,10 +74,10 @@ impl ByteCompiler<'_, '_> {
                 compiler.emit_opcode(Opcode::RestParameterPop);
                 compiler.emit_opcode(Opcode::PushUndefined);
             }
-            compiler.pop_compile_environment();
             compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
         }
         compiler.emit_opcode(Opcode::SetReturnValue);
+        compiler.pop_compile_environment();
 
         let code = Gc::new(compiler.finish());
         let index = self.functions.len() as u32;
@@ -119,7 +117,7 @@ impl ByteCompiler<'_, '_> {
         let mut static_elements = Vec::new();
         let mut static_field_name_count = 0;
 
-        if class_env.is_some() {
+        if class_env {
             self.emit_opcode(Opcode::Dup);
             self.emit_binding(BindingOpcode::InitConst, class_name.into());
         }
@@ -282,7 +280,9 @@ impl ByteCompiler<'_, '_> {
                         self.current_environment.clone(),
                         self.context,
                     );
-                    field_compiler.push_compile_environment(true);
+
+                    // Function environment
+                    let _ = field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
                         field_compiler.compile_expr(node, true);
                     } else {
@@ -314,7 +314,7 @@ impl ByteCompiler<'_, '_> {
                         self.current_environment.clone(),
                         self.context,
                     );
-                    field_compiler.push_compile_environment(true);
+                    let _ = field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
                         field_compiler.compile_expr(node, true);
                     } else {
@@ -358,7 +358,7 @@ impl ByteCompiler<'_, '_> {
                         self.current_environment.clone(),
                         self.context,
                     );
-                    field_compiler.push_compile_environment(true);
+                    let _ = field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
                         field_compiler.compile_expr(node, true);
                     } else {
@@ -393,7 +393,7 @@ impl ByteCompiler<'_, '_> {
                         self.current_environment.clone(),
                         self.context,
                     );
-                    compiler.push_compile_environment(true);
+                    let _ = compiler.push_compile_environment(true);
 
                     compiler.function_declaration_instantiation(
                         body,
@@ -589,9 +589,8 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::Swap);
         self.emit_opcode(Opcode::Pop);
 
-        if let Some(class_env) = class_env {
-            let env_index = self.pop_compile_environment();
-            self.patch_jump_with_target(class_env, env_index);
+        if class_env {
+            self.pop_compile_environment();
             self.emit_opcode(Opcode::PopEnvironment);
         }
 

@@ -100,12 +100,12 @@ impl FunctionCompiler {
 
         if let Some(binding_identifier) = self.binding_identifier {
             compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
-            compiler.push_compile_environment(false);
+            let _ = compiler.push_compile_environment(false);
             compiler.create_immutable_binding(binding_identifier.into(), self.strict);
         }
 
         // Function environment
-        compiler.push_compile_environment(true);
+        let _ = compiler.push_compile_environment(true);
 
         // Taken from:
         //  - 15.9.3 Runtime Semantics: EvaluateAsyncConciseBody: <https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncconcisebody>
@@ -155,9 +155,8 @@ impl FunctionCompiler {
 
         compiler.compile_statement_list(body.statements(), false, false);
 
-        if let Some(env_labels) = env_label {
-            let env_index = compiler.pop_compile_environment();
-            compiler.patch_jump_with_target(env_labels, env_index);
+        if env_label {
+            compiler.pop_compile_environment();
         }
 
         if additional_env {

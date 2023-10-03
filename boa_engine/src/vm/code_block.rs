@@ -363,7 +363,7 @@ impl CodeBlock {
             | Instruction::ConcatToString { value_count: value } => value.value().to_string(),
             Instruction::PushDeclarativeEnvironment {
                 compile_environments_index,
-            } => compile_environments_index.to_string(),
+            } => compile_environments_index.value().to_string(),
             Instruction::CopyDataProperties {
                 excluded_key_count: value1,
                 excluded_key_count_computed: value2,
@@ -1062,7 +1062,7 @@ impl JsObject {
 
         let env_fp = context.vm.environments.len() as u32;
 
-        let mut last_env = code.compile_environments.len() - 1;
+        let mut last_env = 0;
 
         if code.has_binding_identifier() {
             let index = context
@@ -1073,7 +1073,7 @@ impl JsObject {
                 .vm
                 .environments
                 .put_lexical_value(index, 0, self.clone().into());
-            last_env -= 1;
+            last_env += 1;
         }
 
         context.vm.environments.push_function(
@@ -1082,7 +1082,7 @@ impl JsObject {
         );
 
         if code.has_parameters_env_bindings() {
-            last_env -= 1;
+            last_env += 1;
             context
                 .vm
                 .environments
@@ -1204,7 +1204,7 @@ impl JsObject {
 
         let new_target = this_target.as_object().expect("must be object");
 
-        let mut last_env = code.compile_environments.len() - 1;
+        let mut last_env = 0;
 
         if code.has_binding_identifier() {
             let index = context
@@ -1215,7 +1215,7 @@ impl JsObject {
                 .vm
                 .environments
                 .put_lexical_value(index, 0, self.clone().into());
-            last_env -= 1;
+            last_env += 1;
         }
 
         context.vm.environments.push_function(
@@ -1232,7 +1232,7 @@ impl JsObject {
         let environment = context.vm.environments.current();
 
         if code.has_parameters_env_bindings() {
-            last_env -= 1;
+            last_env += 1;
             context
                 .vm
                 .environments

@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
+    bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     environments::BindingLocatorError,
     vm::{
         create_function_object_fast, create_generator_function_object, BindingOpcode,
@@ -809,8 +809,8 @@ impl ByteCompiler<'_, '_> {
         arrow: bool,
         strict: bool,
         generator: bool,
-    ) -> (Option<Label>, bool) {
-        let mut env_label = None;
+    ) -> (bool, bool) {
+        let mut env_label = false;
         let mut additional_env = false;
 
         // 1. Let calleeContext be the running execution context.
@@ -910,7 +910,7 @@ impl ByteCompiler<'_, '_> {
             // c. Let env be NewDeclarativeEnvironment(calleeEnv).
             // d. Assert: The VariableEnvironment of calleeContext is calleeEnv.
             // e. Set the LexicalEnvironment of calleeContext to env.
-            self.push_compile_environment(false);
+            let _ = self.push_compile_environment(false);
             additional_env = true;
         }
 
@@ -1030,8 +1030,9 @@ impl ByteCompiler<'_, '_> {
             //          visibility of declarations in the function body.
             // b. Let varEnv be NewDeclarativeEnvironment(env).
             // c. Set the VariableEnvironment of calleeContext to varEnv.
-            self.push_compile_environment(false);
-            env_label = Some(self.emit_opcode_with_operand(Opcode::PushDeclarativeEnvironment));
+            let env_index = self.push_compile_environment(false);
+            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+            env_label = true;
 
             // d. Let instantiatedVarNames be a new empty List.
             let mut instantiated_var_names = Vec::new();
