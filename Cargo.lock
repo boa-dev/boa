@@ -1347,9 +1347,9 @@ dependencies = [
 
 [[package]]
 name = "icu_collator"
-version = "1.3.0"
+version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e060e573c704996a75c6f21d8ddbe09f89be21b53c149299764032184431332"
+checksum = "2223603c703f1f6395206b2c0196b4cacc70f3ac4560f92c9386c1a416f92ef6"
 dependencies = [
  "databake",
  "displaydoc",
@@ -1367,9 +1367,9 @@ dependencies = [
 
 [[package]]
 name = "icu_collections"
-version = "1.3.0"
+version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b222d891e7bd8c3fb8122cbf255c5e7763ee4824f3620d54a009077c30539fe1"
+checksum = "3907b2246e8dd5a29ead8a965e7c0c8a90e9b928e614a4279257d45c5e553e91"
 dependencies = [
  "databake",
  "displaydoc",
@@ -1493,9 +1493,9 @@ dependencies = [
 
 [[package]]
 name = "icu_locid_transform"
-version = "1.3.1"
+version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19b10b2a476daefcfe19707e095f5fdc1f446870a56e250250ae64782016bcf9"
+checksum = "6551daf80882d8e68eee186cc19e132d8bde1b1f059a79b93384a5ca0e8fc5e7"
 dependencies = [
  "databake",
  "displaydoc",
@@ -1509,15 +1509,15 @@ dependencies = [
 
 [[package]]
 name = "icu_locid_transform_data"
-version = "1.3.0"
+version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce5d8151979828a4645be945302e05c903cbb5c4a86a936965f7605bd5142e06"
+checksum = "2a741eba5431f75eb2f1f9022d3cffabcadda6771e54fb4e77c8ba8653e4da44"
 
 [[package]]
 name = "icu_normalizer"
-version = "1.3.0"
+version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dbdf1b59783a3c7d5fa3f7be40731e1de77d87dc224918f352a115352b4e1a8"
+checksum = "080fc33a720d50a7342b0c58df010fbcfb842d6f78ef81555f8b1ac6bba57d3c"
 dependencies = [
  "databake",
  "displaydoc",
@@ -1535,9 +1535,9 @@ dependencies = [
 
 [[package]]
 name = "icu_normalizer_data"
-version = "1.3.0"
+version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d38769c980bc60be520708cdda18e54ab2724e7c5173f58a13ac045933851d8"
+checksum = "6f8d22f74066c2e6442db2a9aa14950278e86719e811e304e48bae03094b369d"
 
 [[package]]
 name = "icu_plurals"
@@ -1556,9 +1556,9 @@ dependencies = [
 
 [[package]]
 name = "icu_properties"
-version = "1.3.0"
+version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00a2167b0f6a44eebc1f8153e742ce07c6218d5be61eac92b9744b086b802cfc"
+checksum = "3477ae70f8ca8dc08ff7574b5398ed0a2f2e4e6b66bdff2558a92ed67e262be1"
 dependencies = [
  "databake",
  "displaydoc",
@@ -1573,9 +1573,9 @@ dependencies = [
 
 [[package]]
 name = "icu_properties_data"
-version = "1.3.0"
+version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e7f4134189d15b08d2abf068c444ba408fdc125d00d4dbd9176765a190023c2"
+checksum = "7c8bb3b67a8347e94d580434369e5c7ee89999b9309d04b7cfc88dfaa0f31b59"
 
 [[package]]
 name = "icu_provider"
