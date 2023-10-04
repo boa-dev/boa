@@ -24,7 +24,7 @@ once_cell.workspace = true
 colored.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 rayon = "1.8.0"
-toml = "0.8.0"
+toml = "0.8.2"
 color-eyre = "0.6.2"
 phf = { workspace = true, features = ["macros"] }
 comfy-table = "7.0.1"
