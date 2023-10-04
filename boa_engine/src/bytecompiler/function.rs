@@ -153,11 +153,14 @@ impl FunctionCompiler {
             compiler.async_handler = Some(compiler.push_handler());
         }
 
-        let can_optimize_params = can_optimize_local_variables(parameters);
-        let can_optimize_body = can_optimize_local_variables(body);
+        let can_optimize_params = can_optimize_local_variables(parameters, self.strict).0;
+        let (can_optimize_body, uses_arguments) = can_optimize_local_variables(body, self.strict);
         // println!("Can optimize params: {can_optimize_params}");
         // println!("Can optimize body: {can_optimize_body}");
 
+        compiler
+            .flags
+            .set(ByteCompilerFlags::USES_ARGUMENTS, uses_arguments);
         let can_optimize =
             can_optimize_params && can_optimize_body && parameters.is_simple() && self.can_optimize;
 

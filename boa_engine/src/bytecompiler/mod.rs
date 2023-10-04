@@ -279,6 +279,7 @@ bitflags! {
         const IN_EVAL = 0b0001_0000;
         const HAS_EVAL = 0b0010_0000;
         const JSON_PARSE = 0b0100_0000;
+        const USES_ARGUMENTS = 0b1000_0000;
     }
 }
 

@@ -912,6 +912,14 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
+        if self.can_optimize_local_variables
+            && !self
+                .flags
+                .contains(super::ByteCompilerFlags::USES_ARGUMENTS)
+        {
+            arguments_object_needed = false;
+        }
+
         // 19. If strict is true or hasParameterExpressions is false, then
         //     a. NOTE: Only a single Environment Record is needed for the parameters,
         //        since calls to eval in strict mode code cannot create new bindings which are visible outside of the eval.
