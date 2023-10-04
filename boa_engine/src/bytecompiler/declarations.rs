@@ -932,8 +932,11 @@ impl ByteCompiler<'_, '_> {
             // c. Let env be NewDeclarativeEnvironment(calleeEnv).
             // d. Assert: The VariableEnvironment of calleeContext is calleeEnv.
             // e. Set the LexicalEnvironment of calleeContext to env.
-            let _ = self.push_compile_environment(false);
-            additional_env = true;
+
+            if self.can_optimize_local_variables {
+                let _ = self.push_compile_environment(false);
+                additional_env = true;
+            }
         }
 
         // 22. If argumentsObjectNeeded is true, then
