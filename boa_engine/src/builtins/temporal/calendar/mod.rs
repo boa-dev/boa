@@ -371,9 +371,8 @@ impl Calendar {
         };
 
         // 8. Let overflow be ? ToTemporalOverflow(options).
-        let overflow =
-            get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), false, context)?
-                .unwrap_or(ArithmeticOverflow::Constrain);
+        let overflow = get_option(&options, utf16!("overflow"), context)?
+            .unwrap_or(ArithmeticOverflow::Constrain);
 
         // NOTE: implement the below on the calenar itself
         // 9. If calendar.[[Identifier]] is "iso8601", then
@@ -453,9 +452,8 @@ impl Calendar {
         };
 
         // 7. Let overflow be ? ToTemporalOverflow(options).
-        let overflow =
-            get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), false, context)?
-                .unwrap_or(ArithmeticOverflow::Constrain);
+        let overflow = get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), context)?
+            .unwrap_or(ArithmeticOverflow::Constrain);
 
         this_calendar.year_month_from_fields(&mut fields, overflow, context)
     }
@@ -530,9 +528,8 @@ impl Calendar {
         };
 
         // 8. Let overflow be ? ToTemporalOverflow(options).
-        let overflow =
-            get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), false, context)?
-                .unwrap_or(ArithmeticOverflow::Constrain);
+        let overflow = get_option(&options, utf16!("overflow"), context)?
+            .unwrap_or(ArithmeticOverflow::Constrain);
 
         this_calendar.month_day_from_fields(&mut fields, overflow, context)
     }
@@ -569,9 +566,8 @@ impl Calendar {
         let options_obj = get_options_object(options)?;
 
         // 7. Let overflow be ? ToTemporalOverflow(options).
-        let overflow =
-            get_option::<ArithmeticOverflow>(&options_obj, utf16!("overflow"), false, context)?
-                .unwrap_or(ArithmeticOverflow::Constrain);
+        let overflow = get_option(&options_obj, utf16!("overflow"), context)?
+            .unwrap_or(ArithmeticOverflow::Constrain);
 
         // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
         duration.balance_time_duration(TemporalUnit::Day, None)?;
@@ -616,17 +612,10 @@ impl Calendar {
             &options,
             utf16!("largestUnit"),
             TemporalUnitGroup::Date,
-            false,
-            Some(TemporalUnit::Day),
             None,
             context,
-        )?;
-
-        let Some(largest_unit) = largest_unit else {
-            return Err(JsNativeError::range()
-                .with_message("largestUnit cannot be undefined in this context.")
-                .into());
-        };
+        )?
+        .unwrap_or(TemporalUnit::Day);
 
         this_calendar.date_until(&one, &two, largest_unit, context)
     }

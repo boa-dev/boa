@@ -57,8 +57,6 @@ pub(crate) fn get_temporal_unit(
     options: &JsObject,
     key: &[u16],
     unit_group: TemporalUnitGroup,
-    required: bool,
-    default: Option<TemporalUnit>,
     extra_values: Option<Vec<TemporalUnit>>,
     context: &mut Context<'_>,
 ) -> JsResult<Option<TemporalUnit>> {
@@ -66,7 +64,7 @@ pub(crate) fn get_temporal_unit(
     let mut unit_values = unit_group.group();
     unit_values.extend(extra);
 
-    let unit = get_option::<TemporalUnit>(options, key, required, context)?.map_or(default, Some);
+    let unit = get_option(options, key, context)?;
 
     if let Some(u) = &unit {
         if !unit_values.contains(u) {
@@ -74,10 +72,6 @@ pub(crate) fn get_temporal_unit(
                 .with_message("TemporalUnit was not part of the valid UnitGroup.")
                 .into());
         }
-    } else if unit.is_none() && required {
-        return Err(JsNativeError::range()
-            .with_message("TemporalUnit cannot be undefined when required.")
-            .into());
     }
 
     Ok(unit)

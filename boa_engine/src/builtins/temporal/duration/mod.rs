@@ -610,10 +610,10 @@ impl Duration {
             }
         };
 
+        // NOTE: 6 & 7 unused in favor of `is_none()`.
         // 6. Let smallestUnitPresent be true.
-        let mut smallest_unit_present = true;
         // 7. Let largestUnitPresent be true.
-        let mut largest_unit_present = true;
+
         // 8. NOTE: The following steps read options and perform independent validation in alphabetical order
         //   (ToRelativeTemporalObject reads "relativeTo", ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
 
@@ -622,8 +622,6 @@ impl Duration {
             &round_to,
             utf16!("largestUnit"),
             TemporalUnitGroup::DateTime,
-            false,
-            None,
             Some([TemporalUnit::Auto].into()),
             context,
         )?;
@@ -635,27 +633,32 @@ impl Duration {
         let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
 
         // 12. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let rounding_mode =
-            get_option::<RoundingMode>(&round_to, utf16!("roundingMode"), false, context)?
-                .unwrap_or(RoundingMode::HalfExpand);
+        let rounding_mode = get_option(&round_to, utf16!("roundingMode"), context)?
+            .unwrap_or(RoundingMode::HalfExpand);
 
         // 13. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
         let smallest_unit = get_temporal_unit(
             &round_to,
             utf16!("smallestUnit"),
             TemporalUnitGroup::DateTime,
-            false,
-            None,
             None,
             context,
         )?;
+
+        // NOTE: execute step 19 earlier before initial values are shadowed.
+        // 19. If smallestUnitPresent is false and largestUnitPresent is false, then
+        if smallest_unit.is_none() && largest_unit.is_none() {
+            // a. Throw a RangeError exception.
+            return Err(JsNativeError::range()
+                .with_message("smallestUnit or largestUnit must be present.")
+                .into());
+        }
 
         // 14. If smallestUnit is undefined, then
         let smallest_unit = if let Some(unit) = smallest_unit {
             unit
         } else {
             // a. Set smallestUnitPresent to false.
-            smallest_unit_present = false;
             // b. Set smallestUnit to "nanosecond".
             TemporalUnit::Nanosecond
         };
@@ -668,23 +671,14 @@ impl Duration {
 
         // 17. If largestUnit is undefined, then
         let largest_unit = match largest_unit {
-            Some(u) if u == TemporalUnit::Auto => default_largest_unit,
+            Some(TemporalUnit::Auto) => default_largest_unit,
             Some(u) => u,
             None => {
                 // a. Set largestUnitPresent to false.
-                largest_unit_present = false;
                 // b. Set largestUnit to defaultLargestUnit.
                 default_largest_unit
             }
         };
-
-        // 19. If smallestUnitPresent is false and largestUnitPresent is false, then
-        if !smallest_unit_present && !largest_unit_present {
-            // a. Throw a RangeError exception.
-            return Err(JsNativeError::range()
-                .with_message("smallestUnit or largestUnit must be present.")
-                .into());
-        }
 
         // 20. If LargerOfTwoTemporalUnits(largestUnit, smallestUnit) is not largestUnit, throw a RangeError exception.
         if core::cmp::max(largest_unit, smallest_unit) != largest_unit {
@@ -799,17 +793,10 @@ impl Duration {
             &total_of,
             utf16!("unit"),
             TemporalUnitGroup::DateTime,
-            true,
-            None,
             None,
             context,
-        )?;
-
-        let Some(unit) = unit else {
-            return Err(JsNativeError::range()
-                .with_message("TemporalUnit cannot be undefined in this context.")
-                .into());
-        };
+        )?
+        .ok_or_else(|| JsNativeError::range().with_message("unit cannot be undefined."))?;
 
         let mut unbalance_duration = DurationRecord::from_date_duration(duration.inner.date());
 

@@ -55,9 +55,16 @@ pub(crate) fn mathematical_in_leap_year(t: f64) -> i32 {
 
 pub(crate) fn epoch_time_to_month_in_year(t: f64) -> i32 {
     const DAYS: [i32; 11] = [30, 58, 89, 120, 150, 181, 212, 242, 272, 303, 333];
+    const LEAP_DAYS: [i32; 11] = [30, 59, 90, 121, 151, 182, 213, 242, 272, 303, 334];
+
+    let in_leap_year = mathematical_in_leap_year(t) == 1;
     let day = epoch_time_to_day_in_year(t);
 
-    let result = DAYS.binary_search(&day);
+    let result = if in_leap_year {
+        LEAP_DAYS.binary_search(&day)
+    } else {
+        DAYS.binary_search(&day)
+    };
 
     match result {
         Ok(i) | Err(i) => i as i32,

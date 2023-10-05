@@ -478,9 +478,8 @@ pub(crate) fn to_temporal_date(
             // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
         } else if object.is_plain_date_time() {
             // i. Perform ? ToTemporalOverflow(options).
-            let _o =
-                get_option::<ArithmeticOverflow>(&options_obj, utf16!("overflow"), false, context)?
-                    .unwrap_or(ArithmeticOverflow::Constrain);
+            let _o = get_option(&options_obj, utf16!("overflow"), context)?
+                .unwrap_or(ArithmeticOverflow::Constrain);
 
             let obj = object.borrow();
             let date_time = obj
@@ -537,9 +536,8 @@ pub(crate) fn to_temporal_date(
             // 11. Set calendar to the ASCII-lowercase of calendar.
 
             // 12. Perform ? ToTemporalOverflow(options).
-            let _result =
-                get_option::<ArithmeticOverflow>(&options_obj, utf16!("overflow"), false, context)?
-                    .unwrap_or(ArithmeticOverflow::Constrain);
+            let _result = get_option(&options_obj, utf16!("overflow"), context)?
+                .unwrap_or(ArithmeticOverflow::Constrain);
 
             // 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
             Ok(PlainDate {

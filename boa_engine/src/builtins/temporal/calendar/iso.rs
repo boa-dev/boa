@@ -36,7 +36,7 @@ impl BuiltinCalendar for IsoCalendar {
         // NOTE: we are in ISO by default here.
         // a. Perform ? ISOResolveMonth(fields).
         // b. Let result be ? ISODateFromFields(fields, overflow).
-        fields.resolve_month()?;
+        fields.iso_resolve_month()?;
 
         // Extra: handle reulating/overflow until implemented on `icu_calendar`
         fields.regulate(overflow)?;
@@ -69,7 +69,7 @@ impl BuiltinCalendar for IsoCalendar {
     ) -> JsResult<JsValue> {
         // 9. If calendar.[[Identifier]] is "iso8601", then
         // a. Perform ? ISOResolveMonth(fields).
-        fields.resolve_month()?;
+        fields.iso_resolve_month()?;
 
         // b. Let result be ? ISOYearMonthFromFields(fields, overflow).
         fields.regulate_year_month(overflow);
@@ -100,7 +100,7 @@ impl BuiltinCalendar for IsoCalendar {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 8. Perform ? ISOResolveMonth(fields).
-        fields.resolve_month()?;
+        fields.iso_resolve_month()?;
 
         fields.regulate(overflow)?;
 
@@ -331,7 +331,7 @@ impl BuiltinCalendar for IsoCalendar {
 
     // Resolve the fields for the iso calendar.
     fn resolve_fields(&self, fields: &mut temporal::TemporalFields, _: &str) -> JsResult<()> {
-        fields.resolve_month()?;
+        fields.iso_resolve_month()?;
         Ok(())
     }
 

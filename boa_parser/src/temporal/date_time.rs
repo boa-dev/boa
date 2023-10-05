@@ -182,7 +182,7 @@ fn parse_date(cursor: &mut IsoCursor) -> ParseResult<DateRecord> {
 }
 
 /// Determines if the string can be parsed as a `DateSpecYearMonth`.
-pub(crate) fn peek_year_month(cursor: &mut IsoCursor) -> ParseResult<bool> {
+pub(crate) fn peek_year_month(cursor: &IsoCursor) -> ParseResult<bool> {
     let mut ym_peek = if is_sign(cursor.peek().ok_or_else(|| Error::AbruptEnd)?) {
         7
     } else {
@@ -220,7 +220,7 @@ pub(crate) fn parse_year_month(cursor: &mut IsoCursor) -> ParseResult<(i32, i32)
 }
 
 /// Determines if the string can be parsed as a `DateSpecYearMonth`.
-pub(crate) fn peek_month_day(cursor: &mut IsoCursor) -> ParseResult<bool> {
+pub(crate) fn peek_month_day(cursor: &IsoCursor) -> ParseResult<bool> {
     let mut md_peek = if cursor
         .peek_n(1)
         .map(is_hyphen)

@@ -366,25 +366,17 @@ impl Instant {
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let rounding_mode =
-            get_option::<RoundingMode>(&round_to, utf16!("roundingMode"), false, context)?
-                .unwrap_or_default();
+            get_option(&round_to, utf16!("roundingMode"), context)?.unwrap_or_default();
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit"), time, required).
         let smallest_unit = get_temporal_unit(
             &round_to,
             utf16!("smallestUnit"),
             TemporalUnitGroup::Time,
-            true,
-            None,
             None,
             context,
-        )?;
-
-        let Some(smallest_unit) = smallest_unit else {
-            return Err(JsNativeError::range()
-                .with_message("smallestUnit cannot be undefined.")
-                .into());
-        };
+        )?
+        .ok_or_else(|| JsNativeError::range().with_message("smallestUnit cannot be undefined."))?;
 
         let maximum = match smallest_unit {
             // 10. If smallestUnit is "hour"), then

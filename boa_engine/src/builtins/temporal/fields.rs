@@ -532,7 +532,7 @@ impl TemporalFields {
     }
 
     /// Resolve the month and monthCode on this `TemporalFields`.
-    pub(crate) fn resolve_month(&mut self) -> JsResult<()> {
+    pub(crate) fn iso_resolve_month(&mut self) -> JsResult<()> {
         if self.month_code.is_none() {
             if self.month.is_some() {
                 return Ok(());
