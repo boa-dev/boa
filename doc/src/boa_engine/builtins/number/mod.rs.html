@@ -938,14 +938,6 @@
 <a href="#938" id="938">938</a>
 <a href="#939" id="939">939</a>
 <a href="#940" id="940">940</a>
-<a href="#941" id="941">941</a>
-<a href="#942" id="942">942</a>
-<a href="#943" id="943">943</a>
-<a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
-<a href="#947" id="947">947</a>
-<a href="#948" id="948">948</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Number` object.
 //!
 //! The `Number` ECMAScript object is a wrapper object allowing you to work with numerical values.
@@ -1225,20 +1217,12 @@
             .ok_or_else(|| {
                 JsNativeError::range()
                     .with_message(<span class="string">&quot;toFixed() digits argument must be between 0 and 100&quot;</span>)
-            })<span class="question-mark">? </span><span class="kw">as </span>usize;
+            })<span class="question-mark">? </span><span class="kw">as </span>u8;
 
-        <span class="comment">// 6. If x is not finite, return ! Number::toString(x).
-        </span><span class="kw">if </span>!this_num.is_finite() {
-            <span class="prelude-val">Ok</span>(JsValue::new(<span class="self">Self</span>::to_js_string(this_num)))
-        <span class="comment">// 10. If x ≥ 10^21, then let m be ! ToString(𝔽(x)).
-        </span>} <span class="kw">else if </span>this_num &gt;= <span class="number">1.0e21 </span>{
-            <span class="prelude-val">Ok</span>(JsValue::new(f64_to_exponential(this_num)))
-        } <span class="kw">else </span>{
-            <span class="comment">// Get rid of the &#39;-&#39; sign for -0.0 because of 9. If x &lt; 0, then set s to &quot;-&quot;.
-            </span><span class="kw">let </span>this_num = <span class="kw">if </span>this_num == <span class="number">0_f64 </span>{ <span class="number">0_f64 </span>} <span class="kw">else </span>{ this_num };
-            <span class="kw">let </span>this_fixed_num = <span class="macro">format!</span>(<span class="string">&quot;{this_num:.precision$}&quot;</span>);
-            <span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(this_fixed_num)))
-        }
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = ryu_js::Buffer::new();
+        <span class="kw">let </span>string = buffer.format_to_fixed(this_num, precision);
+
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(string).into())
     }
 
     <span class="doccomment">/// `Number.prototype.toLocaleString( [locales [, options]] )`
