@@ -1615,9 +1615,9 @@ dependencies = [
 
 [[package]]
 name = "icu_provider_blob"
-version = "1.3.0"
+version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cd69321b38b334c1257a53182273e3cfbcde4a5975c6193b43b6dfd3829d8e5"
+checksum = "c31326d28c7f95a964a4f0ee86c24002da5f6db907e3bcb079949b4ff103b6a9"
 dependencies = [
  "icu_provider",
  "log",
