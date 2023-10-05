@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/intl/locale/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/intl/locale/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0 (cc66ad468 2023-10-03)" data-channel="1.73.0" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -796,23 +796,6 @@
 <a href="#796" id="796">796</a>
 <a href="#797" id="797">797</a>
 <a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
-<a href="#806" id="806">806</a>
-<a href="#807" id="807">807</a>
-<a href="#808" id="808">808</a>
-<a href="#809" id="809">809</a>
-<a href="#810" id="810">810</a>
-<a href="#811" id="811">811</a>
-<a href="#812" id="812">812</a>
-<a href="#813" id="813">813</a>
-<a href="#814" id="814">814</a>
-<a href="#815" id="815">815</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::options::get_option,
     realm::Realm,
@@ -822,9 +805,7 @@
 <span class="kw">use </span>icu_collator::CaseFirst;
 <span class="kw">use </span>icu_datetime::options::preferences::HourCycle;
 <span class="kw">use </span>icu_locid::{
-    extensions::unicode::Value,
-    extensions_unicode_key <span class="kw">as </span>key, extensions_unicode_value <span class="kw">as </span>value,
-    subtags::{Language, Region, Script},
+    extensions::unicode::Value, extensions_unicode_key <span class="kw">as </span>key, extensions_unicode_value <span class="kw">as </span>value,
 };
 
 <span class="attr">#[cfg(test)]
@@ -1052,27 +1033,18 @@
             // 3. If ! IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
             // 4. Let language be ? GetOption(options, &quot;language&quot;, string, empty, undefined).
             // 5. If language is not undefined, then
-            </span><span class="kw">let </span>language = get_option::&lt;JsString&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;language&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
-                </span><span class="comment">// a. If language does not match the unicode_language_subtag production, throw a RangeError exception.
-                </span>.map(|s| s.to_std_string_escaped().parse::&lt;Language&gt;())
-                .transpose()
-                .map_err(|e| JsNativeError::range().with_message(e.to_string()))<span class="question-mark">?</span>;
+            //    a. If language does not match the unicode_language_subtag production, throw a RangeError exception.
+            </span><span class="kw">let </span>language = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;language&quot;</span>), context)<span class="question-mark">?</span>;
 
             <span class="comment">// 6. Let script be ? GetOption(options, &quot;script&quot;, string, empty, undefined).
             // 7. If script is not undefined, then
-            </span><span class="kw">let </span>script = get_option::&lt;JsString&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;script&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
-                </span>.map(|s| s.to_std_string_escaped().parse::&lt;Script&gt;())
-                .transpose()
-                <span class="comment">// a. If script does not match the unicode_script_subtag production, throw a RangeError exception.
-                </span>.map_err(|e| JsNativeError::range().with_message(e.to_string()))<span class="question-mark">?</span>;
+            //    a. If script does not match the unicode_script_subtag production, throw a RangeError exception.
+            </span><span class="kw">let </span>script = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;script&quot;</span>), context)<span class="question-mark">?</span>;
 
             <span class="comment">// 8. Let region be ? GetOption(options, &quot;region&quot;, string, empty, undefined).
             // 9. If region is not undefined, then
-            </span><span class="kw">let </span>region = get_option::&lt;JsString&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;region&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
-                </span>.map(|s| s.to_std_string_escaped().parse::&lt;Region&gt;())
-                .transpose()
-                <span class="comment">// a. If region does not match the unicode_region_subtag production, throw a RangeError exception.
-                </span>.map_err(|e| JsNativeError::range().with_message(e.to_string()))<span class="question-mark">?</span>;
+            //    a. If region does not match the unicode_region_subtag production, throw a RangeError exception.
+            </span><span class="kw">let </span>region = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;region&quot;</span>), context)<span class="question-mark">?</span>;
 
             <span class="comment">// 10. Set tag to ! CanonicalizeUnicodeLocaleId(tag).
             </span>context.icu().locale_canonicalizer().canonicalize(<span class="kw-2">&amp;mut </span>tag);
@@ -1114,42 +1086,36 @@
         // 14. If calendar is not undefined, then
         // 15. Set opt.[[ca]] to calendar.
         //     a. If calendar does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        </span><span class="kw">let </span>ca = get_option::&lt;Value&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;calendar&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>ca = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;calendar&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 16. Let collation be ? GetOption(options, &quot;collation&quot;, string, empty, undefined).
         // 17. If collation is not undefined, then
         // 18. Set opt.[[co]] to collation.
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        </span><span class="kw">let </span>co = get_option::&lt;Value&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;collation&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>co = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;collation&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 19. Let hc be ? GetOption(options, &quot;hourCycle&quot;, string, « &quot;h11&quot;, &quot;h12&quot;, &quot;h23&quot;, &quot;h24&quot; », undefined).
         // 20. Set opt.[[hc]] to hc.
-        </span><span class="kw">let </span>hc =
-            get_option::&lt;HourCycle&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;hourCycle&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.map(
-                |hc| <span class="kw">match </span>hc {
-                    HourCycle::H24 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h24&quot;</span>),
-                    HourCycle::H23 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h23&quot;</span>),
-                    HourCycle::H12 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h12&quot;</span>),
-                    HourCycle::H11 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h11&quot;</span>),
-                },
-            );
+        </span><span class="kw">let </span>hc = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;hourCycle&quot;</span>), context)<span class="question-mark">?</span>.map(|hc| <span class="kw">match </span>hc {
+            HourCycle::H24 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h24&quot;</span>),
+            HourCycle::H23 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h23&quot;</span>),
+            HourCycle::H12 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h12&quot;</span>),
+            HourCycle::H11 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h11&quot;</span>),
+        });
 
         <span class="comment">// 21. Let kf be ? GetOption(options, &quot;caseFirst&quot;, string, « &quot;upper&quot;, &quot;lower&quot;, &quot;false&quot; », undefined).
         // 22. Set opt.[[kf]] to kf.
-        </span><span class="kw">let </span>kf =
-            get_option::&lt;CaseFirst&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;caseFirst&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.map(
-                |kf| <span class="kw">match </span>kf {
-                    CaseFirst::UpperFirst =&gt; <span class="macro">value!</span>(<span class="string">&quot;upper&quot;</span>),
-                    CaseFirst::LowerFirst =&gt; <span class="macro">value!</span>(<span class="string">&quot;lower&quot;</span>),
-                    CaseFirst::Off =&gt; <span class="macro">value!</span>(<span class="string">&quot;false&quot;</span>),
-                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-                },
-            );
+        </span><span class="kw">let </span>kf = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;caseFirst&quot;</span>), context)<span class="question-mark">?</span>.map(|kf| <span class="kw">match </span>kf {
+            CaseFirst::UpperFirst =&gt; <span class="macro">value!</span>(<span class="string">&quot;upper&quot;</span>),
+            CaseFirst::LowerFirst =&gt; <span class="macro">value!</span>(<span class="string">&quot;lower&quot;</span>),
+            CaseFirst::Off =&gt; <span class="macro">value!</span>(<span class="string">&quot;false&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+        });
 
         <span class="comment">// 23. Let kn be ? GetOption(options, &quot;numeric&quot;, boolean, empty, undefined).
         // 24. If kn is not undefined, set kn to ! ToString(kn).
         // 25. Set opt.[[kn]] to kn.
-        </span><span class="kw">let </span>kn = get_option::&lt;bool&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;numeric&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.map(|b| {
+        </span><span class="kw">let </span>kn = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;numeric&quot;</span>), context)<span class="question-mark">?</span>.map(|b| {
             <span class="kw">if </span>b {
                 <span class="macro">value!</span>(<span class="string">&quot;true&quot;</span>)
             } <span class="kw">else </span>{
@@ -1161,7 +1127,7 @@
         // 27. If numberingSystem is not undefined, then
         // 28. Set opt.[[nu]] to numberingSystem.
         //     a. If numberingSystem does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        </span><span class="kw">let </span>nu = get_option::&lt;Value&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;numberingSystem&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>nu = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;numberingSystem&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 29. Let r be ! ApplyUnicodeExtensionToTag(tag, opt, relevantExtensionKeys).
         // 30. Set locale.[[Locale]] to r.[[locale]].
