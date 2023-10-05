@@ -1,4 +1,6 @@
+//! Boa's implementation of the ECMAScript `Temporal.PlainDateTime` builtin object.
 #![allow(dead_code, unused_variables)]
+
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},

@@ -53,9 +53,9 @@ use boa_profiler::Profiler;
 /// Nanoseconds per day constant: 8.64e+13
 pub(crate) const NS_PER_DAY: i64 = 86_400_000_000_000;
 /// Microseconds per day constant: 8.64e+10
-pub(crate) const MICRO_PER_DAY: i64 = 8_640_000_000;
+pub(crate) const MIS_PER_DAY: i64 = 8_640_000_000;
 /// Milliseconds per day constant: 8.64e+7
-pub(crate) const MILLI_PER_DAY: i64 = 24 * 60 * 60 * 1000;
+pub(crate) const MS_PER_DAY: i32 = 24 * 60 * 60 * 1000;
 
 pub(crate) fn ns_max_instant() -> JsBigInt {
     JsBigInt::from(i128::from(NS_PER_DAY) * 100_000_000_i128)
@@ -190,7 +190,9 @@ fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
     format!("{n:0min_length$}")
 }
 
-// TODO: 13.1 `IteratorToListOfType`
+/// Abstract Operation 13.1 [`IteratorToListOfType`][proposal]
+///
+/// [proposal]: https://tc39.es/proposal-temporal/#sec-iteratortolistoftype
 pub(crate) fn iterator_to_list_of_types(
     iterator: &mut IteratorRecord,
     element_types: &[Type],
@@ -227,123 +229,19 @@ pub(crate) fn iterator_to_list_of_types(
 /// 13.2 `ISODateToEpochDays ( year, month, date )`
 // Note: implemented on IsoDateRecord.
 
-// TODO: 13.3 `EpochDaysToEpochMs`
+// Abstract Operation 13.3 `EpochDaysToEpochMs`
 pub(crate) fn epoch_days_to_epoch_ms(day: i32, time: i32) -> f64 {
-    f64::from(day).mul_add(MILLI_PER_DAY as f64, f64::from(time))
+    f64::from(day).mul_add(f64::from(MS_PER_DAY), f64::from(time))
 }
 
-// TODO: 13.4 Date Equations -> See ./date_equations.rs
+// 13.4 Date Equations
+// implemented in temporal/date_equations.rs
 
-/*
-/// Abstract Operation 13.5 `GetOptionsObject ( options )`
-#[inline]
-pub(crate) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
-    // 1. If options is undefined, then
-    if options.is_undefined() {
-        // a. Return OrdinaryObjectCreate(null).
-        return Ok(JsObject::with_null_proto());
-    // 2. If Type(options) is Object, then
-    } else if options.is_object() {
-        // a. Return options.
-        return Ok(options
-            .as_object()
-            .expect("options is confirmed as an object.")
-            .clone());
-    }
-    // 3. Throw a TypeError exception.
-    Err(JsNativeError::typ()
-        .with_message("options value was not an object.")
-        .into())
-}
+// Abstract Operation 13.5 `GetOptionsObject ( options )`
+// Implemented in builtin/options.rs
 
-/// ---- `CopyOptions ( options )` REMOVED -
-#[inline]
-pub(crate) fn copy_options(options: &JsValue, context: &mut Context<'_>) -> JsResult<JsObject> {
-    // 1. Let optionsCopy be OrdinaryObjectCreate(null).
-    let options_copy = JsObject::with_null_proto();
-    // 2. Perform ? CopyDataProperties(optionsCopy, ? GetOptionsObject(options), « »).
-    let option_object = get_options_object(options)?;
-    let excluded_keys: Vec<PropertyKey> = Vec::new();
-    options_copy.copy_data_properties(&option_object.into(), excluded_keys, context)?;
-    // 3. Return optionsCopy.
-    Ok(options_copy)
-}
-
-#[derive(Debug, Clone, Copy)]
-pub(crate) enum OptionType {
-    String,
-    Bool,
-    Number,
-}
-
-/// 13.6 `GetOption ( options, property, type, values, default )`
-#[inline]
-pub(crate) fn get_option(
-    options: &JsObject,
-    property: PropertyKey,
-    r#type: OptionType,
-    values: Option<&[JsString]>,
-    default: Option<&JsValue>,
-    context: &mut Context<'_>,
-) -> JsResult<JsValue> {
-    // 1. Let value be ? Get(options, property).
-    let initial_value = options.get(property, context)?;
-
-    // 2. If value is undefined, then
-    if initial_value.is_undefined() {
-        match default {
-            // a. If default is required, throw a RangeError exception.
-            None => {
-                return Err(JsNativeError::range()
-                    .with_message("options object is required.")
-                    .into())
-            }
-            // b. Return default.
-            Some(option_value) => return Ok(option_value.clone()),
-        }
-    }
-
-    let value: JsValue = match r#type {
-        // 3. If type is "boolean", then
-        OptionType::Bool => {
-            // a. Set value to ToBoolean(value).
-            initial_value.to_boolean().into()
-        }
-        // 4. Else if type is "number", then
-        OptionType::Number => {
-            // a. Set value to ? ToNumber(value).
-            let value = initial_value.to_number(context)?;
-            // b. If value is NaN, throw a RangeError exception.
-            if value.is_nan() {
-                return Err(JsNativeError::range()
-                    .with_message("option value is NaN")
-                    .into());
-            };
-
-            value.into()
-        }
-        // 5. Else,
-        // a. Assert: type is "string".
-        OptionType::String => {
-            // b. Set value to ? ToString(value).
-            initial_value.to_string(context)?.into()
-        }
-    };
-
-    // 6. If values is not undefined and values does not contain an element equal to value, throw a RangeError exception.
-    // NOTE: per spec, values is only provided/defined in string cases, so the below should be correct.
-    if let (Some(vals), Some(value_as_string)) = (values, value.as_string()) {
-        if !vals.contains(value_as_string) {
-            return Err(JsNativeError::range()
-                .with_message("Option value is not in the provided options.")
-                .into());
-        }
-    }
-
-    // 7. Return value.
-    Ok(value)
-}
-*/
+// 13.6 `GetOption ( options, property, type, values, default )`
+// Implemented in builtin/options.rs
 
 /// 13.7 `ToTemporalOverflow (options)`
 // Now implemented in temporal/options.rs
@@ -355,6 +253,7 @@ pub(crate) fn get_option(
 // Now implemented in builtin/options.rs
 
 // 13.16 `ToTemporalRoundingIncrement ( normalizedOptions )`
+// Now implemented in temporal/options.rs
 
 /// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
 #[inline]
@@ -392,160 +291,18 @@ pub(crate) fn validate_temporal_rounding_increment(
     Ok(())
 }
 
-/*
-/// Abstract operation 13.20 `GetTemporalUnit ( normalizedOptions, key, unitGroup, default [ , extraValues ] )`
-#[inline]
-pub(crate) fn get_temporal_unit(
-    normalized_options: &JsObject,
-    key: PropertyKey,
-    unit_group: &JsString,               // JsString or temporal
-    default: Option<&JsValue>,           // Must be required (none), undefined, or JsString.
-    extra_values: Option<Vec<JsString>>, // Vec<JsString>
-    context: &mut Context<'_>,
-) -> JsResult<Option<JsString>> {
-    // 1. Let singularNames be a new empty List.
-    let temporal_units = TemporalUnits::default();
-    // 2. For each row of Table 13, except the header row, in table order, do
-    // a. Let unit be the value in the Singular column of the row.  // b. If the Category column of the row is date and unitGroup is date or datetime, append unit to singularNames.
-    // c. Else if the Category column of the row is time and unitGroup is time or datetime, append unit to singularNames.
-    let mut singular_names = if unit_group.as_slice() == utf16!("date") {
-        temporal_units.date_singulars()
-    } else if unit_group.as_slice() == utf16!("time") {
-        temporal_units.time_singulars()
-    } else {
-        temporal_units.datetime_singulars()
-    };
-    // 3. If extraValues is present, then
-    // a. Set singularNames to the list-concatenation of singularNames and extraValues.
-    if let Some(values) = extra_values {
-        singular_names.extend(values);
-    }
-    // 4. If default is required, then
-    // a. Let defaultValue be undefined.
-    // 5. Else,
-    // a. Let defaultValue be default.
-    // b. If defaultValue is not undefined and singularNames does not contain defaultValue, then
-    // i. Append defaultValue to singularNames.
-    let default_value = if let Some(value) = default {
-        // NOTE: singular name must be either undefined or a JsString, any other value is an implementation error.
-        if !value.is_undefined() {
-            if let Some(value_string) = value.as_string() {
-                if singular_names.contains(value_string) {
-                    singular_names.push(value_string.clone());
-                }
-            }
-        }
-        Some(value)
-    } else {
-        None
-    };
-
-    // 6. Let allowedValues be a copy of singularNames.
-    // 7. For each element singularName of singularNames, do
-    // a. If singularName is listed in the Singular column of Table 13, then
-    // i. Let pluralName be the value in the Plural column of the corresponding row.
-    // ii. Append pluralName to allowedValues.
-    // 8. NOTE: For each singular Temporal unit name that is contained within allowedValues, the
-    // corresponding plural name is also contained within it.
-    temporal_units.append_plural_units(&mut singular_names);
-
-    // 9. Let value be ? GetOption(normalizedOptions, key, "string", allowedValues, defaultValue).
-    let value = get_option(
-        normalized_options,
-        key,
-        OptionType::String,
-        Some(&singular_names),
-        default_value,
-        context,
-    )?;
-
-    // 10. If value is undefined and default is required, throw a RangeError exception.
-    if value.is_undefined() && default.is_none() {
-        return Err(JsNativeError::range()
-            .with_message("option cannot be undefined when required.")
-            .into());
-    }
-
-    // 11. If value is listed in the Plural column of Table 13, then
-    // a. Set value to the value in the Singular column of the corresponding row.
-    // 12. Return value.
-    match value {
-        JsValue::String(lookup_value) => Ok(Some(temporal_units.plural_lookup(&lookup_value))),
-        JsValue::Undefined => Ok(None),
-        // TODO: verify that this is correct to specification, i.e. is it possible for default value to exist and value to be undefined?
-        _ => unreachable!("The value returned from getTemporalUnit must be a string or undefined"),
-    }
-}
-*/
-
 /// 13.21 `ToRelativeTemporalObject ( options )`
 pub(crate) fn to_relative_temporal_object(
-    options: &JsObject,
-    context: &mut Context<'_>,
+    _options: &JsObject,
+    _context: &mut Context<'_>,
 ) -> JsResult<JsValue> {
-    // 1. Assert: Type(options) is Object.
-    // 2. Let value be ? Get(options, "relativeTo").
-    let value = options.get(js_string!("relativeTo"), context)?;
-    // 3. If value is undefined, then
-    if value.is_undefined() {
-        // a. Return value.
-        return Ok(value);
-    }
-    // 4. Let offsetBehaviour be option.
-    // 5. Let matchBehaviour be match exactly.
-    // 6. If Type(value) is Object, then
-    // a. If value has either an [[InitializedTemporalDate]] or [[InitializedTemporalZonedDateTime]] internal slot, then
-    // i. Return value.
-    // b. If value has an [[InitializedTemporalDateTime]] internal slot, then
-    // i. Return ! CreateTemporalDate(value.[[ISOYear]], value.[[ISOMonth]], value.[[ISODay]], value.[[Calendar]]).
-    // c. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(value).
-    // d. Let fieldNames be ? CalendarFields(calendar, « "day", "hour", "microsecond", "millisecond", "minute", "month", "monthCode", "nanosecond", "second", "year" »).
-    // e. Append "timeZone" to fieldNames.
-    // f. Append "offset" to fieldNames.
-    // g. Let fields be ? PrepareTemporalFields(value, fieldNames, «»).
-    // h. Let dateOptions be OrdinaryObjectCreate(null).
-    // i. Perform ! CreateDataPropertyOrThrow(dateOptions, "overflow", "constrain").
-    // j. Let result be ? InterpretTemporalDateTimeFields(calendar, fields, dateOptions).
-    // k. Let offsetString be ! Get(fields, "offset").
-    // l. Let timeZone be ! Get(fields, "timeZone").
-    // m. If timeZone is not undefined, then
-    // i. Set timeZone to ? ToTemporalTimeZoneSlotValue(timeZone).
-    // n. If offsetString is undefined, then
-    // i. Set offsetBehaviour to wall.
-    // 7. Else,
-    // a. Let string be ? ToString(value).
-    // b. Let result be ? ParseTemporalRelativeToString(string).
-    // c. Let offsetString be result.[[TimeZone]].[[OffsetString]].
-    // d. Let timeZoneName be result.[[TimeZone]].[[Name]].
-    // e. If timeZoneName is undefined, then
-    // i. Let timeZone be undefined.
-    // f. Else,
-    // i. Let timeZone be ? ToTemporalTimeZoneSlotValue(timeZoneName).
-    // ii. If result.[[TimeZone]].[[Z]] is true, then
-    // 1. Set offsetBehaviour to exact.
-    // iii. Else if offsetString is undefined, then
-    // 1. Set offsetBehaviour to wall.
-    // iv. Set matchBehaviour to match minutes.
-    // g. Let calendar be result.[[Calendar]].
-    // h. If calendar is undefined, set calendar to "iso8601".
-    // i. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
-    // j. Set calendar to the ASCII-lowercase of calendar.
-    // 8. If timeZone is undefined, then
-    // a. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
-    // 9. If offsetBehaviour is option, then
-    // a. If IsTimeZoneOffsetString(offsetString) is false, throw a RangeError exception.
-    // b. Let offsetNs be ParseTimeZoneOffsetString(offsetString).
-    // 10. Else,
-    // a. Let offsetNs be 0.
-    // 11. Let epochNanoseconds be ? InterpretISODateTimeOffset(result.[[Year]], result.[[Month]], result.[[Day]], result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]], offsetBehaviour, offsetNs, timeZone, "compatible", "reject", matchBehaviour).
-    // 12. Return ! CreateTemporalZonedDateTime(epochNanoseconds, timeZone, calendar).
     Err(JsNativeError::range()
         .with_message("not yet implemented.")
         .into())
 }
 
 // 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`
-// core::cmp::max
+// use core::cmp::max
 
 // 13.23 `MaximumTemporalDurationRoundingIncrement ( unit )`
 // Implemented on TemporalUnit in temporal/options.rs
@@ -729,7 +486,7 @@ pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -
 // 13.46 `PrepareTemporalFields ( fields, fieldNames, requiredFields [ , duplicateBehaviour ] )`
 // See fields.rs
 
-// IMPLEMENTATION NOTE: op -> true == until | false == since
+// NOTE: op -> true == until | false == since
 /// 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`
 #[inline]
 pub(crate) fn get_diff_settings(
@@ -743,14 +500,21 @@ pub(crate) fn get_diff_settings(
 ) -> JsResult<(TemporalUnit, TemporalUnit, RoundingMode, f64)> {
     // 1. NOTE: The following steps read options and perform independent validation in alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
     // 2. Let largestUnit be ? GetTemporalUnit(options, "largestUnit", unitGroup, "auto").
-    let mut largest_unit = get_temporal_unit(
+    let largest_unit = get_temporal_unit(
         options,
         utf16!("largestUnit"),
         unit_group,
+        false,
         Some(TemporalUnit::Auto),
         None,
         context,
     )?;
+
+    let Some(mut largest_unit) = largest_unit else {
+        return Err(JsNativeError::range()
+            .with_message("largestUnit cannot be undefined in this context.")
+            .into());
+    };
 
     // 3. If disallowedUnits contains largestUnit, throw a RangeError exception.
     if disallowed_units.contains(&largest_unit) {
@@ -777,10 +541,17 @@ pub(crate) fn get_diff_settings(
         options,
         utf16!("smallestUnit"),
         unit_group,
+        false,
         Some(fallback_smallest_unit),
         None,
         context,
     )?;
+
+    let Some(smallest_unit) = smallest_unit else {
+        return Err(JsNativeError::range()
+            .with_message("smallestUnit cannot be undefined in this context.")
+            .into());
+    };
 
     // 8. If disallowedUnits contains smallestUnit, throw a RangeError exception.
     if disallowed_units.contains(&smallest_unit) {
@@ -809,7 +580,7 @@ pub(crate) fn get_diff_settings(
 
     // 13. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
     if let Some(max) = maximum {
-        validate_temporal_rounding_increment(rounding_increment, max, false)?;
+        validate_temporal_rounding_increment(rounding_increment, f64::from(max), false)?;
     }
 
     // 14. Return the Record { [[SmallestUnit]]: smallestUnit, [[LargestUnit]]: largestUnit, [[RoundingMode]]: roundingMode, [[RoundingIncrement]]: roundingIncrement, }.
@@ -821,6 +592,7 @@ pub(crate) fn get_diff_settings(
     ))
 }
 
+// NOTE: used for MergeFields methods. Potentially can be omitted in favor of `TemporalFields`.
 /// 14.6 `CopyDataProperties ( target, source, excludedKeys [ , excludedValues ] )`
 pub(crate) fn copy_data_properties(
     target: &JsObject,

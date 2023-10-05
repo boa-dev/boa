@@ -1,5 +1,5 @@
+//! Boa's implementation of ECMAScript's `Temporal.Instant` builtin object.
 #![allow(dead_code)]
-//! Boa's implementation of ECMAScript's `Temporal.Instant` object.
 
 use crate::{
     builtins::{
@@ -22,7 +22,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::{duration, ns_max_instant, ns_min_instant, MICRO_PER_DAY, MILLI_PER_DAY, NS_PER_DAY};
+use super::{duration, ns_max_instant, ns_min_instant, MIS_PER_DAY, MS_PER_DAY, NS_PER_DAY};
 
 const NANOSECONDS_PER_SECOND: i64 = 10_000_000_000;
 const NANOSECONDS_PER_MINUTE: i64 = 600_000_000_000;
@@ -374,10 +374,17 @@ impl Instant {
             &round_to,
             utf16!("smallestUnit"),
             TemporalUnitGroup::Time,
+            true,
             None,
             None,
             context,
         )?;
+
+        let Some(smallest_unit) = smallest_unit else {
+            return Err(JsNativeError::range()
+                .with_message("smallestUnit cannot be undefined.")
+                .into());
+        };
 
         let maximum = match smallest_unit {
             // 10. If smallestUnit is "hour"), then
@@ -391,10 +398,10 @@ impl Instant {
             TemporalUnit::Second => 86400,
             // 13. Else if smallestUnit is "millisecond"), then
             // a. Let maximum be ℝ(msPerDay).
-            TemporalUnit::Millisecond => MILLI_PER_DAY,
+            TemporalUnit::Millisecond => i64::from(MS_PER_DAY),
             // 14. Else if smallestUnit is "microsecond"), then
-            // a. Let maximum be 103 × ℝ(msPerDay).
-            TemporalUnit::Microsecond => MICRO_PER_DAY,
+            // a. Let maximum be 10^3 × ℝ(msPerDay).
+            TemporalUnit::Microsecond => MIS_PER_DAY,
             // 15. Else,
             // a. Assert: smallestUnit is "nanosecond".
             // b. Let maximum be nsPerDay.

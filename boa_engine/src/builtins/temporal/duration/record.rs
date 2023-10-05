@@ -1,17 +1,23 @@
-use boa_macros::utf16;
-
 use crate::{
     builtins::{
         options::RoundingMode,
         temporal::{self, create_temporal_date, options::TemporalUnit, to_temporal_date},
     },
-    js_string, Context, JsNativeError, JsObject, JsResult, JsValue,
+    js_string,
+    string::utf16,
+    Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 
 use super::super::{calendar, to_integer_if_integral, zoned_date_time};
 
 // ==== `DateDuration` ====
 
+/// `DateDuration` represents the [date duration record][spec] of the `DurationRecord.`
+///
+/// These fields are laid out in the [Temporal Proposal][field spec] as 64-bit floating point numbers.
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-date-duration-records
+/// [field spec]: https://tc39.es/proposal-temporal/#sec-properties-of-temporal-duration-instances
 #[derive(Debug, Default, Clone, Copy)]
 pub(crate) struct DateDuration {
     years: f64,
@@ -75,6 +81,12 @@ impl Iterator for DateIter<'_> {
 
 // ==== `TimeDuration` ====
 
+/// `TimeDuration` represents the [Time Duration record][spec] of the `DurationRecord.`
+///
+/// These fields are laid out in the [Temporal Proposal][field spec] as 64-bit floating point numbers.
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-time-duration-records
+/// [field spec]: https://tc39.es/proposal-temporal/#sec-properties-of-temporal-duration-instances
 #[derive(Debug, Default, Clone, Copy)]
 pub(crate) struct TimeDuration {
     hours: f64,
@@ -153,7 +165,8 @@ impl Iterator for TimeIter<'_> {
 
 // ==== `DurationRecord` ====
 
-/// The `DurationRecord` is defined by Abtract Operation 7.5.1 `DurationRecords`
+/// The `DurationRecord` is a native Rust implementation of the `Duration` builtin
+/// object internal fields and is primarily defined by Abtract Operation 7.5.1-5.
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) struct DurationRecord {
     date: DateDuration,
@@ -298,7 +311,7 @@ impl DurationRecord {
         self.set_minutes(self.minutes() % 60_f64);
     }
 
-    // Balance/bubble the current unit from one step down.
+    /// Balance/bubble the current unit from one step down.
     fn balance_minutes(&mut self) {
         // 1. Set minutes to floor(seconds / 60).
         self.set_minutes((self.seconds() / 60_f64).floor());
@@ -306,7 +319,7 @@ impl DurationRecord {
         self.set_seconds(self.seconds() % 60_f64);
     }
 
-    // Balance/bubble the current unit from one step down.
+    /// Balance/bubble the current unit from one step down.
     fn balance_seconds(&mut self) {
         // 1. Set seconds to floor(milliseconds / 1000).
         self.set_seconds((self.milliseconds() / 1_000_f64).floor());
@@ -314,7 +327,7 @@ impl DurationRecord {
         self.set_milliseconds(self.milliseconds() % 1_000_f64);
     }
 
-    // Balance/bubble the current unit from one step down.
+    /// Balance/bubble the current unit from one step down.
     fn balance_milliseconds(&mut self) {
         // c. Set milliseconds to floor(microseconds / 1000).
         self.set_milliseconds((self.microseconds() / 1_000_f64).floor());
@@ -322,7 +335,7 @@ impl DurationRecord {
         self.set_microseconds(self.microseconds() % 1_000_f64);
     }
 
-    // Balance/bubble the current unit from one step down.
+    /// Balance/bubble the current unit from one step down.
     fn balance_microseconds(&mut self) {
         // a. Set microseconds to floor(nanoseconds / 1000).
         self.set_microseconds((self.nanoseconds() / 1_000_f64).floor());
@@ -528,10 +541,10 @@ impl DurationRecord {
         self.time.into_iter().collect()
     }
 
-    /// Determines if the `DurationRecord` has overflowed.
     // Note(nekevss): This currently assumes that an overflow has been stored into the years
     // column as the duration is nonviable and storing it in years allows for invalidating
     // the duration the fastest.
+    /// Determines if the `DurationRecord` has overflowed.
     #[inline]
     fn is_overfowed(&self) -> bool {
         self.years().is_infinite()
@@ -700,11 +713,8 @@ impl DurationRecord {
         }
 
         // 6. Set hours, minutes, seconds, milliseconds, and microseconds to 0.
-        self.set_hours(0_f64);
-        self.set_minutes(0_f64);
-        self.set_seconds(0_f64);
-        self.set_milliseconds(0_f64);
-        self.set_microseconds(0_f64);
+        let new_time = TimeDuration::new(0_f64, 0_f64, 0_f64, 0_f64, 0_f64, self.nanoseconds());
+        self.time = new_time;
 
         // 7. If nanoseconds < 0, let sign be -1; else, let sign be 1.
         let sign = if self.nanoseconds() < 0_f64 {
@@ -1727,7 +1737,7 @@ impl DurationRecord {
                 // d. Set remainder to remainder - nanoseconds.
                 remainder - self.nanoseconds()
             }
-            _ => unreachable!(),
+            TemporalUnit::Auto => unreachable!(),
         };
 
         // 19. Assert: days is an integer.

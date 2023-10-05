@@ -616,10 +616,17 @@ impl Calendar {
             &options,
             utf16!("largestUnit"),
             TemporalUnitGroup::Date,
+            false,
             Some(TemporalUnit::Day),
             None,
             context,
         )?;
+
+        let Some(largest_unit) = largest_unit else {
+            return Err(JsNativeError::range()
+                .with_message("largestUnit cannot be undefined in this context.")
+                .into());
+        };
 
         this_calendar.date_until(&one, &two, largest_unit, context)
     }

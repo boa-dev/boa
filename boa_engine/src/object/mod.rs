@@ -478,7 +478,7 @@ pub enum ObjectKind {
 
     /// The `Temporal.TimeZone` object kind.
     #[cfg(feature = "experimental")]
-    TimeZone(Box<TimeZone>),
+    TimeZone(TimeZone),
 
     /// The `Temporal.Duration` object kind.
     #[cfg(feature = "experimental")]
@@ -490,7 +490,7 @@ pub enum ObjectKind {
 
     /// The `Temporal.Calendar` object kind.
     #[cfg(feature = "experimental")]
-    Calendar(Box<Calendar>),
+    Calendar(Calendar),
 }
 
 unsafe impl Trace for ObjectKind {
@@ -1078,7 +1078,7 @@ impl ObjectData {
     #[must_use]
     pub fn time_zone(time_zone: TimeZone) -> Self {
         Self {
-            kind: ObjectKind::TimeZone(Box::new(time_zone)),
+            kind: ObjectKind::TimeZone(time_zone),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -1108,7 +1108,7 @@ impl ObjectData {
     #[must_use]
     pub fn calendar(calendar: Calendar) -> Self {
         Self {
-            kind: ObjectKind::Calendar(Box::new(calendar)),
+            kind: ObjectKind::Calendar(calendar),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -2126,7 +2126,7 @@ impl Object {
     #[inline]
     #[must_use]
     #[cfg(feature = "experimental")]
-    pub fn as_time_zone(&self) -> Option<&TimeZone> {
+    pub const fn as_time_zone(&self) -> Option<&TimeZone> {
         match self.kind {
             ObjectKind::TimeZone(ref tz) => Some(tz),
             _ => None,
@@ -2333,7 +2333,7 @@ impl Object {
     #[inline]
     #[must_use]
     #[cfg(feature = "experimental")]
-    pub fn as_calendar(&self) -> Option<&Calendar> {
+    pub const fn as_calendar(&self) -> Option<&Calendar> {
         match &self.kind {
             ObjectKind::Calendar(calendar) => Some(calendar),
             _ => None,

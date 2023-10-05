@@ -618,11 +618,12 @@ impl Duration {
         //   (ToRelativeTemporalObject reads "relativeTo", ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
 
         // 9. Let largestUnit be ? GetTemporalUnit(roundTo, "largestUnit", datetime, undefined, « "auto" »).
-        let mut largest_unit = get_temporal_unit(
+        let largest_unit = get_temporal_unit(
             &round_to,
             utf16!("largestUnit"),
             TemporalUnitGroup::DateTime,
-            Some(TemporalUnit::Undefined),
+            false,
+            None,
             Some([TemporalUnit::Auto].into()),
             context,
         )?;
@@ -639,22 +640,25 @@ impl Duration {
                 .unwrap_or(RoundingMode::HalfExpand);
 
         // 13. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
-        let mut smallest_unit = get_temporal_unit(
+        let smallest_unit = get_temporal_unit(
             &round_to,
             utf16!("smallestUnit"),
             TemporalUnitGroup::DateTime,
-            Some(TemporalUnit::Undefined),
+            false,
+            None,
             None,
             context,
         )?;
 
         // 14. If smallestUnit is undefined, then
-        if smallest_unit.is_undefined() {
+        let smallest_unit = if let Some(unit) = smallest_unit {
+            unit
+        } else {
             // a. Set smallestUnitPresent to false.
             smallest_unit_present = false;
             // b. Set smallestUnit to "nanosecond".
-            smallest_unit = TemporalUnit::Nanosecond;
-        }
+            TemporalUnit::Nanosecond
+        };
 
         // 15. Let defaultLargestUnit be ! DefaultTemporalLargestUnit(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]]).
         let mut default_largest_unit = duration.inner.default_temporal_largest_unit();
@@ -663,15 +667,16 @@ impl Duration {
         default_largest_unit = core::cmp::max(default_largest_unit, smallest_unit);
 
         // 17. If largestUnit is undefined, then
-        if largest_unit.is_undefined() {
-            // a. Set largestUnitPresent to false.
-            largest_unit_present = false;
-            // b. Set largestUnit to defaultLargestUnit.
-            largest_unit = default_largest_unit;
-        } else if largest_unit.is_auto() {
-            // a. Set largestUnit to defaultLargestUnit.
-            largest_unit = default_largest_unit;
-        }
+        let largest_unit = match largest_unit {
+            Some(u) if u == TemporalUnit::Auto => default_largest_unit,
+            Some(u) => u,
+            None => {
+                // a. Set largestUnitPresent to false.
+                largest_unit_present = false;
+                // b. Set largestUnit to defaultLargestUnit.
+                default_largest_unit
+            }
+        };
 
         // 19. If smallestUnitPresent is false and largestUnitPresent is false, then
         if !smallest_unit_present && !largest_unit_present {
@@ -693,7 +698,7 @@ impl Duration {
 
         // 22. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
         if let Some(max) = maximum {
-            validate_temporal_rounding_increment(rounding_increment, max, false)?;
+            validate_temporal_rounding_increment(rounding_increment, f64::from(max), false)?;
         }
 
         let mut unbalance_duration = DurationRecord::from_date_duration(duration.inner.date());
@@ -794,10 +799,17 @@ impl Duration {
             &total_of,
             utf16!("unit"),
             TemporalUnitGroup::DateTime,
+            true,
             None,
             None,
             context,
         )?;
+
+        let Some(unit) = unit else {
+            return Err(JsNativeError::range()
+                .with_message("TemporalUnit cannot be undefined in this context.")
+                .into());
+        };
 
         let mut unbalance_duration = DurationRecord::from_date_duration(duration.inner.date());
 
@@ -894,7 +906,7 @@ impl Duration {
             // b. Let whole be roundResult.[[Nanoseconds]].
             TemporalUnit::Nanosecond => round_record.nanoseconds(),
             // a. Assert: unit is "nanosecond".
-            _=> unreachable!("Unit must be a valid temporal unit. Any other value would be an implementation error."),
+            TemporalUnit::Auto=> unreachable!("Unit must be a valid temporal unit. Any other value would be an implementation error."),
         };
 
         // 28. Return 𝔽(whole + roundRecord.[[Remainder]]).

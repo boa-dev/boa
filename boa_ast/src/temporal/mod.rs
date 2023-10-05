@@ -2,7 +2,7 @@
 
 /// An ISO Date Node consisting of non-validated date fields and calendar value.
 #[derive(Default, Debug)]
-pub struct ISODate {
+pub struct IsoDate {
     /// Date Year
     pub year: i32,
     /// Date Month
@@ -13,9 +13,9 @@ pub struct ISODate {
     pub calendar: Option<String>,
 }
 
-/// The `ISOTime` node consists of non-validated time fields.
+/// The `IsoTime` node consists of non-validated time fields.
 #[derive(Default, Debug, Clone, Copy)]
-pub struct ISOTime {
+pub struct IsoTime {
     /// An hour value between 0-23
     pub hour: u8,
     /// A minute value between 0-59
@@ -30,7 +30,7 @@ pub struct ISOTime {
     pub nanosecond: u16,
 }
 
-impl ISOTime {
+impl IsoTime {
     #[must_use]
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     /// A utility initialization function to create `ISOTime` from the `TimeSpec` components.
@@ -52,13 +52,13 @@ impl ISOTime {
     }
 }
 
-/// The `ISODateTime` node output by the ISO parser
+/// The `IsoDateTime` node output by the ISO parser
 #[derive(Default, Debug)]
-pub struct ISODateTime {
+pub struct IsoDateTime {
     /// The `ISODate` record
-    pub date: ISODate,
+    pub date: IsoDate,
     /// The `ISOTime` record
-    pub time: ISOTime,
+    pub time: IsoTime,
     /// The `TimeZone` value for this `ISODateTime`
     pub tz: Option<TimeZone>,
 }
@@ -87,9 +87,9 @@ pub struct UTCOffset {
     pub fraction: f64,
 }
 
-/// An `ISODuration` Node output by the ISO parser.
+/// An `IsoDuration` Node output by the ISO parser.
 #[derive(Debug, Default, Clone, Copy)]
-pub struct ISODuration {
+pub struct IsoDuration {
     /// Years value.
     pub years: i32,
     /// Months value.

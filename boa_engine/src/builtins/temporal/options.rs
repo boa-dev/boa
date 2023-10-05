@@ -40,8 +40,8 @@ pub(crate) fn get_temporal_rounding_increment(
     // 3. Let integerIncrement be truncate(ℝ(increment)).
     let integer_increment = increment.trunc();
 
-    // 4. If integerIncrement < 1 or integerIncrement > 109, throw a RangeError exception.
-    if (1.0..=109.0).contains(&integer_increment) {
+    // 4. If integerIncrement < 1 or integerIncrement > 10^9, throw a RangeError exception.
+    if (1.0..=1_000_000_000.0).contains(&integer_increment) {
         return Err(JsNativeError::range()
             .with_message("rounding increment was out of range.")
             .into());
@@ -57,26 +57,26 @@ pub(crate) fn get_temporal_unit(
     options: &JsObject,
     key: &[u16],
     unit_group: TemporalUnitGroup,
-    required: Option<TemporalUnit>,
+    required: bool,
+    default: Option<TemporalUnit>,
     extra_values: Option<Vec<TemporalUnit>>,
     context: &mut Context<'_>,
-) -> JsResult<TemporalUnit> {
+) -> JsResult<Option<TemporalUnit>> {
     let extra = extra_values.unwrap_or_default();
     let mut unit_values = unit_group.group();
     unit_values.extend(extra);
 
-    let (required, default) = if let Some(unit) = required {
-        (false, unit)
-    } else {
-        // Note: using auto here should be fine as the default value will not be used.
-        (true, TemporalUnit::Auto)
-    };
+    let unit = get_option::<TemporalUnit>(options, key, required, context)?.map_or(default, Some);
 
-    let unit = get_option::<TemporalUnit>(options, key, required, context)?.unwrap_or(default);
-
-    if !unit_values.contains(&unit) {
+    if let Some(u) = &unit {
+        if !unit_values.contains(u) {
+            return Err(JsNativeError::range()
+                .with_message("TemporalUnit was not part of the valid UnitGroup.")
+                .into());
+        }
+    } else if unit.is_none() && required {
         return Err(JsNativeError::range()
-            .with_message("TemporalUnit was not part of the valid UnitGroup.")
+            .with_message("TemporalUnit cannot be undefined when required.")
             .into());
     }
 
@@ -131,24 +131,24 @@ fn datetime_units() -> impl Iterator<Item = TemporalUnit> {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum TemporalUnit {
-    Year,
-    Month,
-    Week,
-    Day,
-    Hour,
-    Minute,
-    Second,
-    Millisecond,
-    Microsecond,
+    Auto = 0,
     Nanosecond,
-    Auto,
-    Undefined,
+    Microsecond,
+    Millisecond,
+    Second,
+    Minute,
+    Hour,
+    Day,
+    Week,
+    Month,
+    Year,
 }
 
 impl TemporalUnit {
-    pub(crate) fn to_maximum_rounding_increment(self) -> Option<f64> {
+    pub(crate) fn to_maximum_rounding_increment(self) -> Option<u16> {
         use TemporalUnit::{
-            Day, Hour, Microsecond, Millisecond, Minute, Month, Nanosecond, Second, Week, Year,
+            Auto, Day, Hour, Microsecond, Millisecond, Minute, Month, Nanosecond, Second, Week,
+            Year,
         };
         // 1. If unit is "year", "month", "week", or "day", then
         // a. Return undefined.
@@ -160,21 +160,11 @@ impl TemporalUnit {
         // 5. Return 1000.
         match self {
             Year | Month | Week | Day => None,
-            Hour => Some(24.0),
-            Minute | Second => Some(60.0),
-            Millisecond | Microsecond | Nanosecond => Some(1000.0),
-            _ => unreachable!(),
+            Hour => Some(24),
+            Minute | Second => Some(60),
+            Millisecond | Microsecond | Nanosecond => Some(1000),
+            Auto => unreachable!(),
         }
-    }
-
-    /// Returns if value of unit is "Undefined".
-    pub(crate) fn is_undefined(self) -> bool {
-        self == Self::Undefined
-    }
-
-    /// Returns if value of enum is "auto"
-    pub(crate) fn is_auto(self) -> bool {
-        self == Self::Auto
     }
 }
 
@@ -203,7 +193,6 @@ impl FromStr for TemporalUnit {
             "millisecond" | "milliseconds" => Ok(Self::Millisecond),
             "microsecond" | "microseconds" => Ok(Self::Microsecond),
             "nanosecond" | "nanoseconds" => Ok(Self::Nanosecond),
-            // Note: undefined is an implementation value. It would be an error to parse undefined.
             _ => Err(ParseTemporalUnitError),
         }
     }
@@ -214,6 +203,7 @@ impl ParsableOptionType for TemporalUnit {}
 impl fmt::Display for TemporalUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Auto => "auto",
             Self::Year => "constrain",
             Self::Month => "month",
             Self::Week => "week",
@@ -224,8 +214,6 @@ impl fmt::Display for TemporalUnit {
             Self::Millisecond => "millsecond",
             Self::Microsecond => "microsecond",
             Self::Nanosecond => "nanosecond",
-            Self::Auto => "auto",
-            Self::Undefined => "undefined",
         }
         .fmt(f)
     }

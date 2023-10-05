@@ -5,7 +5,7 @@
 use std::ops::Mul;
 
 pub(crate) fn epoch_time_to_day_number(t: f64) -> i32 {
-    (t / super::NS_PER_DAY as f64).floor() as i32
+    (t / f64::from(super::MS_PER_DAY)).floor() as i32
 }
 
 pub(crate) fn mathematical_days_in_year(y: i32) -> i32 {
@@ -22,15 +22,17 @@ pub(crate) fn mathematical_days_in_year(y: i32) -> i32 {
     }
 }
 
-pub(crate) const fn epoch_day_number_for_year(y: i32) -> i32 {
-    365 * (y - 1970) + ((y - 1970) / 4) - ((y - 1901) / 100) + ((y - 1601) / 400)
+pub(crate) fn epoch_day_number_for_year(y: f64) -> f64 {
+    365.0f64.mul_add(y - 1970.0, ((y - 1969.0) / 4.0).floor()) - ((y - 1901.0) / 100.0).floor()
+        + ((y - 1601.0) / 400.0).floor()
 }
 
-// TODO: potentially inaccurate -> Need to further test this and epoch_day_number_for_year
 pub(crate) fn epoch_time_for_year(y: i32) -> f64 {
-    super::NS_PER_DAY as f64 * f64::from(epoch_day_number_for_year(y))
+    f64::from(super::MS_PER_DAY) * epoch_day_number_for_year(f64::from(y))
 }
 
+// NOTE: The below returns the epoch years (years since 1970). The spec
+// appears to assume the below returns with the epoch applied.
 pub(crate) fn epoch_time_to_epoch_year(t: f64) -> i32 {
     // roughly calculate the largest possible year given the time t,
     // then check and refine the year.
@@ -43,7 +45,7 @@ pub(crate) fn epoch_time_to_epoch_year(t: f64) -> i32 {
         year -= 1;
     }
 
-    year
+    year + 1970
 }
 
 /// Returns either 1 (true) or 0 (false)
@@ -52,39 +54,18 @@ pub(crate) fn mathematical_in_leap_year(t: f64) -> i32 {
 }
 
 pub(crate) fn epoch_time_to_month_in_year(t: f64) -> i32 {
-    let days = epoch_time_to_day_in_year(t);
-    let in_leap_year = mathematical_in_leap_year(t) == 1;
+    const DAYS: [i32; 11] = [30, 58, 89, 120, 150, 181, 212, 242, 272, 303, 333];
+    let day = epoch_time_to_day_in_year(t);
 
-    match days {
-        0..=30 => 0,
-        31..=59 if in_leap_year => 1,
-        31..=58 => 1,
-        60..=90 if in_leap_year => 2,
-        59..=89 => 2,
-        91..=121 if in_leap_year => 3,
-        90..=120 => 3,
-        122..=151 if in_leap_year => 4,
-        121..=150 => 4,
-        152..=182 if in_leap_year => 5,
-        151..=181 => 5,
-        183..=213 if in_leap_year => 6,
-        182..=212 => 6,
-        214..=243 if in_leap_year => 7,
-        213..=242 => 7,
-        244..=273 if in_leap_year => 8,
-        243..=272 => 8,
-        274..=304 if in_leap_year => 9,
-        273..=303 => 9,
-        305..=334 if in_leap_year => 10,
-        304..=333 => 10,
-        335..=366 if in_leap_year => 11,
-        334..=365 => 11,
-        _ => unreachable!(),
+    let result = DAYS.binary_search(&day);
+
+    match result {
+        Ok(i) | Err(i) => i as i32,
     }
 }
 
 pub(crate) fn epoch_time_for_month_given_year(m: i32, y: i32) -> f64 {
-    let leap_day = i32::from(mathematical_days_in_year(y) == 366);
+    let leap_day = mathematical_days_in_year(y) - 365;
 
     let days = match m {
         0 => 1,
@@ -128,7 +109,8 @@ pub(crate) fn epoch_time_to_date(t: f64) -> i32 {
 }
 
 pub(crate) fn epoch_time_to_day_in_year(t: f64) -> i32 {
-    epoch_time_to_day_number(t) - epoch_day_number_for_year(epoch_time_to_epoch_year(t))
+    epoch_time_to_day_number(t)
+        - (epoch_day_number_for_year(f64::from(epoch_time_to_epoch_year(t))) as i32)
 }
 
 pub(crate) fn epoch_time_to_week_day(t: f64) -> i32 {

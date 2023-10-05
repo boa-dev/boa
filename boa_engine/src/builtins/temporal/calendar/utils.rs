@@ -1,6 +1,6 @@
 //! Calendar utility calculations
 
-// TODO: determine if which are needed.
+// TODO: determine if any of the below are needed.
 
 use crate::builtins::temporal::{self, date_equations, plain_date::iso::IsoDateRecord};
 use crate::JsString;

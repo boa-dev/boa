@@ -1,4 +1,7 @@
+use super::date_equations::epoch_time_to_month_in_year;
 use crate::{js_string, run_test_actions, JsValue, TestAction};
+
+// Temporal Object tests.
 
 #[test]
 fn temporal_object() {
@@ -28,4 +31,16 @@ fn now_object() {
         ),
         TestAction::assert_eq("Temporal.Now.prototype", JsValue::undefined()),
     ]);
+}
+
+// Date Equations
+
+#[test]
+fn time_to_month() {
+    let milliseconds = [1696459917000_f64];
+
+    for test_epochs in milliseconds {
+        println!("{}", epoch_time_to_month_in_year(test_epochs));
+        assert_eq!(epoch_time_to_month_in_year(test_epochs), 9);
+    }
 }

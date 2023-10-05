@@ -1,3 +1,5 @@
+//! An `IsoDateRecord` that represents the `[[ISOYear]]`, `[[ISOMonth]]`, and `[[ISODay]]` internal slots.
+
 use crate::{
     builtins::temporal::{self, TemporalFields},
     JsNativeError, JsResult, JsString,
@@ -7,11 +9,13 @@ use icu_calendar::{Date, Iso};
 
 // TODO: Move ISODateRecord to a more generalized location.
 
-// TODO: shift month and day to u8's to better align with `ICU4x`.
+// TODO: Determine whether month/day should be u8 or i32.
 
-/// `IsoDateRecord` serves as an inner Record for the `Temporal.PlainDate`
-/// object, the `Temporal.YearMonth` object, and the `Temporal.MonthDay`
-/// object.
+/// `IsoDateRecord` serves as an record for the `[[ISOYear]]`, `[[ISOMonth]]`,
+/// and `[[ISODay]]` internal fields.
+///
+/// These fields are used for the `Temporal.PlainDate` object, the
+/// `Temporal.YearMonth` object, and the `Temporal.MonthDay` object.
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) struct IsoDateRecord {
     year: i32,
@@ -92,6 +96,7 @@ impl IsoDateRecord {
         )
     }
 
+    /// Create a Month-Day record from a `TemporalFields` object.
     pub(crate) fn month_day_from_temporal_fields(
         fields: &TemporalFields,
         overflow: &JsString,

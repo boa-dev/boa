@@ -1,3 +1,4 @@
+//! Boa's implementation of the ECMAScript `Temporal.PlainDate` builtin object.
 #![allow(dead_code, unused_variables)]
 
 use crate::{
