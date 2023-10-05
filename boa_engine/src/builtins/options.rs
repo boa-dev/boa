@@ -38,8 +38,9 @@ where
 /// Extracts the value of the property named `property` from the provided `options` object,
 /// converts it to the required `type` and checks whether it is one of a `List` of allowed
 /// `values`. If `values` is undefined, there is no fixed set of values and any is permitted.
-/// If the value is `undefined`, `required` determines if the function should return `None` or
-/// an `Err`. Use [`Option::unwrap_or`] and friends to manage the default value.
+/// If the value is `undefined`, `required` would technically determine if the function should
+/// return `None` or an `Err`, but handling this on the caller's side using [`Option::ok_or_else`]
+/// should provide better context for error messages.
 ///
 /// This is a safer alternative to `GetOption`, which tries to parse from the
 /// provided property a valid variant of the provided type `T`. It doesn't accept
@@ -50,7 +51,6 @@ where
 pub(crate) fn get_option<T: OptionType>(
     options: &JsObject,
     property: &[u16],
-    required: bool,
     context: &mut Context<'_>,
 ) -> JsResult<Option<T>> {
     // 1. Let value be ? Get(options, property).
@@ -58,15 +58,9 @@ pub(crate) fn get_option<T: OptionType>(
 
     // 2. If value is undefined, then
     if value.is_undefined() {
-        return if required {
-            //     a. If default is required, throw a RangeError exception.
-            Err(JsNativeError::range()
-                .with_message("GetOption: option value cannot be undefined")
-                .into())
-        } else {
-            //     b. Return default.
-            Ok(None)
-        };
+        // a. If default is required, throw a RangeError exception.
+        // b. Return default.
+        return Ok(None);
     }
 
     // The steps 3 to 7 must be made for each `OptionType`.

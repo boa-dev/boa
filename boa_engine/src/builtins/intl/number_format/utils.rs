@@ -44,7 +44,7 @@ pub(crate) fn get_digit_format_options(
 
     // 7. Let roundingPriority be ? GetOption(options, "roundingPriority", string, « "auto", "morePrecision", "lessPrecision" », "auto").
     let mut rounding_priority =
-        get_option(options, utf16!("roundingPriority"), false, context)?.unwrap_or_default();
+        get_option(options, utf16!("roundingPriority"), context)?.unwrap_or_default();
 
     // 8. Let roundingIncrement be ? GetNumberOption(options, "roundingIncrement", 1, 5000, 1).
     // 9. If roundingIncrement is not in « 1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000 », throw a RangeError exception.
@@ -58,12 +58,11 @@ pub(crate) fn get_digit_format_options(
     }
 
     // 10. Let roundingMode be ? GetOption(options, "roundingMode", string, « "ceil", "floor", "expand", "trunc", "halfCeil", "halfFloor", "halfExpand", "halfTrunc", "halfEven" », "halfExpand").
-    let rounding_mode =
-        get_option(options, utf16!("roundingMode"), false, context)?.unwrap_or_default();
+    let rounding_mode = get_option(options, utf16!("roundingMode"), context)?.unwrap_or_default();
 
     // 11. Let trailingZeroDisplay be ? GetOption(options, "trailingZeroDisplay", string, « "auto", "stripIfInteger" », "auto").
     let trailing_zero_display =
-        get_option(options, utf16!("trailingZeroDisplay"), false, context)?.unwrap_or_default();
+        get_option(options, utf16!("trailingZeroDisplay"), context)?.unwrap_or_default();
 
     // 12. NOTE: All fields required by SetNumberFormatDigitOptions have now been read from options. The remainder of this AO interprets the options and may throw exceptions.
 

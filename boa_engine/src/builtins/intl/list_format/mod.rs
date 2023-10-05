@@ -22,7 +22,7 @@ use crate::{
 
 use super::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales},
-    options::{IntlOptions, LocaleMatcher},
+    options::IntlOptions,
     Service,
 };
 
@@ -111,9 +111,7 @@ impl BuiltInConstructor for ListFormat {
 
         // 5. Let opt be a new Record.
         // 6. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
-        let matcher =
-            get_option::<LocaleMatcher>(&options, utf16!("localeMatcher"), false, context)?
-                .unwrap_or_default();
+        let matcher = get_option(&options, utf16!("localeMatcher"), context)?.unwrap_or_default();
 
         // 7. Set opt.[[localeMatcher]] to matcher.
         // 8. Let localeData be %ListFormat%.[[LocaleData]].
@@ -130,13 +128,11 @@ impl BuiltInConstructor for ListFormat {
 
         // 11. Let type be ? GetOption(options, "type", string, « "conjunction", "disjunction", "unit" », "conjunction").
         // 12. Set listFormat.[[Type]] to type.
-        let typ = get_option::<ListFormatType>(&options, utf16!("type"), false, context)?
-            .unwrap_or_default();
+        let typ = get_option(&options, utf16!("type"), context)?.unwrap_or_default();
 
         // 13. Let style be ? GetOption(options, "style", string, « "long", "short", "narrow" », "long").
         // 14. Set listFormat.[[Style]] to style.
-        let style = get_option::<ListLength>(&options, utf16!("style"), false, context)?
-            .unwrap_or(ListLength::Wide);
+        let style = get_option(&options, utf16!("style"), context)?.unwrap_or(ListLength::Wide);
 
         // 15. Let dataLocale be r.[[dataLocale]].
         // 16. Let dataLocaleData be localeData.[[<dataLocale>]].

@@ -29,7 +29,7 @@ use super::{
         f64_to_formatted_fixed_decimal, get_digit_format_options, DigitFormatOptions, Extrema,
         Notation,
     },
-    options::{coerce_options_to_object, IntlOptions, LocaleMatcher},
+    options::{coerce_options_to_object, IntlOptions},
     Service,
 };
 
@@ -113,14 +113,12 @@ impl BuiltInConstructor for PluralRules {
         // 3. Let opt be a new Record.
         // 4. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
         // 5. Set opt.[[localeMatcher]] to matcher.
-        let matcher =
-            get_option::<LocaleMatcher>(&options, utf16!("localeMatcher"), false, context)?
-                .unwrap_or_default();
+        let matcher = get_option(&options, utf16!("localeMatcher"), context)?.unwrap_or_default();
 
         // 6. Let t be ? GetOption(options, "type", string, « "cardinal", "ordinal" », "cardinal").
         // 7. Set pluralRules.[[Type]] to t.
-        let rule_type = get_option::<PluralRuleType>(&options, utf16!("type"), false, context)?
-            .unwrap_or(PluralRuleType::Cardinal);
+        let rule_type =
+            get_option(&options, utf16!("type"), context)?.unwrap_or(PluralRuleType::Cardinal);
 
         // 8. Perform ? SetNumberFormatDigitOptions(pluralRules, options, +0𝔽, 3𝔽, "standard").
         let format_options = get_digit_format_options(&options, 0, 3, Notation::Standard, context)?;
