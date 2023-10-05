@@ -277,20 +277,12 @@ impl Number {
             .ok_or_else(|| {
                 JsNativeError::range()
                     .with_message("toFixed() digits argument must be between 0 and 100")
-            })? as usize;
+            })? as u8;
 
-        // 6. If x is not finite, return ! Number::toString(x).
-        if !this_num.is_finite() {
-            Ok(JsValue::new(Self::to_js_string(this_num)))
-        // 10. If x ≥ 10^21, then let m be ! ToString(𝔽(x)).
-        } else if this_num >= 1.0e21 {
-            Ok(JsValue::new(f64_to_exponential(this_num)))
-        } else {
-            // Get rid of the '-' sign for -0.0 because of 9. If x < 0, then set s to "-".
-            let this_num = if this_num == 0_f64 { 0_f64 } else { this_num };
-            let this_fixed_num = format!("{this_num:.precision$}");
-            Ok(JsValue::new(js_string!(this_fixed_num)))
-        }
+        let mut buffer = ryu_js::Buffer::new();
+        let string = buffer.format_to_fixed(this_num, precision);
+
+        Ok(js_string!(string).into())
     }
 
     /// `Number.prototype.toLocaleString( [locales [, options]] )`
