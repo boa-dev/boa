@@ -32,7 +32,7 @@ pub(crate) use segments::*;
 
 use super::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales},
-    options::{IntlOptions, LocaleMatcher},
+    options::IntlOptions,
     Service,
 };
 
@@ -133,9 +133,7 @@ impl BuiltInConstructor for Segmenter {
 
         // 6. Let opt be a new Record.
         // 7. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
-        let matcher =
-            get_option::<LocaleMatcher>(&options, utf16!("localeMatcher"), false, context)?
-                .unwrap_or_default();
+        let matcher = get_option(&options, utf16!("localeMatcher"), context)?.unwrap_or_default();
 
         // 8. Set opt.[[localeMatcher]] to matcher.
         // 9. Let localeData be %Segmenter%.[[LocaleData]].
@@ -151,9 +149,7 @@ impl BuiltInConstructor for Segmenter {
         );
 
         // 12. Let granularity be ? GetOption(options, "granularity", string, « "grapheme", "word", "sentence" », "grapheme").
-        let granularity =
-            get_option::<Granularity>(&options, utf16!("granularity"), false, context)?
-                .unwrap_or_default();
+        let granularity = get_option(&options, utf16!("granularity"), context)?.unwrap_or_default();
         // 13. Set segmenter.[[SegmenterGranularity]] to granularity.
 
         let native = match granularity {

@@ -34,7 +34,7 @@ use crate::{
 
 use super::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales, validate_extension},
-    options::{coerce_options_to_object, IntlOptions, LocaleMatcher},
+    options::{coerce_options_to_object, IntlOptions},
     Service,
 };
 
@@ -241,31 +241,28 @@ impl BuiltInConstructor for Collator {
         //     a. Let localeData be %Collator%.[[SortLocaleData]].
         // 6. Else,
         //     a. Let localeData be %Collator%.[[SearchLocaleData]].
-        let usage =
-            get_option::<Usage>(&options, utf16!("usage"), false, context)?.unwrap_or_default();
+        let usage = get_option(&options, utf16!("usage"), context)?.unwrap_or_default();
 
         // 7. Let opt be a new Record.
         // 8. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
         // 9. Set opt.[[localeMatcher]] to matcher.
-        let matcher =
-            get_option::<LocaleMatcher>(&options, utf16!("localeMatcher"), false, context)?
-                .unwrap_or_default();
+        let matcher = get_option(&options, utf16!("localeMatcher"), context)?.unwrap_or_default();
 
         // 10. Let collation be ? GetOption(options, "collation", string, empty, undefined).
         // 11. If collation is not undefined, then
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
         // 12. Set opt.[[co]] to collation.
-        let collation = get_option::<Value>(&options, utf16!("collation"), false, context)?;
+        let collation = get_option(&options, utf16!("collation"), context)?;
 
         // 13. Let numeric be ? GetOption(options, "numeric", boolean, empty, undefined).
         // 14. If numeric is not undefined, then
         //     a. Let numeric be ! ToString(numeric).
         // 15. Set opt.[[kn]] to numeric.
-        let numeric = get_option::<bool>(&options, utf16!("numeric"), false, context)?;
+        let numeric = get_option(&options, utf16!("numeric"), context)?;
 
         // 16. Let caseFirst be ? GetOption(options, "caseFirst", string, « "upper", "lower", "false" », undefined).
         // 17. Set opt.[[kf]] to caseFirst.
-        let case_first = get_option::<CaseFirst>(&options, utf16!("caseFirst"), false, context)?;
+        let case_first = get_option(&options, utf16!("caseFirst"), context)?;
 
         let mut intl_options = IntlOptions {
             matcher,
@@ -314,22 +311,20 @@ impl BuiltInConstructor for Collator {
 
         // 26. Let sensitivity be ? GetOption(options, "sensitivity", string, « "base", "accent", "case", "variant" », undefined).
         // 28. Set collator.[[Sensitivity]] to sensitivity.
-        let sensitivity =
-            get_option::<Sensitivity>(&options, utf16!("sensitivity"), false, context)?
-                // 27. If sensitivity is undefined, then
-                //     a. If usage is "sort", then
-                //         i. Let sensitivity be "variant".
-                //     b. Else,
-                //         i. Let dataLocale be r.[[dataLocale]].
-                //         ii. Let dataLocaleData be localeData.[[<dataLocale>]].
-                //         iii. Let sensitivity be dataLocaleData.[[sensitivity]].
-                .or_else(|| (usage == Usage::Sort).then_some(Sensitivity::Variant));
+        let sensitivity = get_option(&options, utf16!("sensitivity"), context)?
+            // 27. If sensitivity is undefined, then
+            //     a. If usage is "sort", then
+            //         i. Let sensitivity be "variant".
+            //     b. Else,
+            //         i. Let dataLocale be r.[[dataLocale]].
+            //         ii. Let dataLocaleData be localeData.[[<dataLocale>]].
+            //         iii. Let sensitivity be dataLocaleData.[[sensitivity]].
+            .or_else(|| (usage == Usage::Sort).then_some(Sensitivity::Variant));
 
         // 29. Let ignorePunctuation be ? GetOption(options, "ignorePunctuation", boolean, empty, false).
         // 30. Set collator.[[IgnorePunctuation]] to ignorePunctuation.
-        let ignore_punctuation =
-            get_option::<bool>(&options, utf16!("ignorePunctuation"), false, context)?
-                .unwrap_or_default();
+        let ignore_punctuation: bool =
+            get_option(&options, utf16!("ignorePunctuation"), context)?.unwrap_or_default();
 
         let (strength, case_level) = sensitivity.map(Sensitivity::to_collator_options).unzip();
 

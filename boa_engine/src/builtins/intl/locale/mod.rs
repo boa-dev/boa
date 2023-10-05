@@ -7,9 +7,7 @@ use boa_profiler::Profiler;
 use icu_collator::CaseFirst;
 use icu_datetime::options::preferences::HourCycle;
 use icu_locid::{
-    extensions::unicode::Value,
-    extensions_unicode_key as key, extensions_unicode_value as value,
-    subtags::{Language, Region, Script},
+    extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
 };
 
 #[cfg(test)]
@@ -237,27 +235,18 @@ impl BuiltInConstructor for Locale {
             // 3. If ! IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
             // 4. Let language be ? GetOption(options, "language", string, empty, undefined).
             // 5. If language is not undefined, then
-            let language = get_option::<JsString>(options, utf16!("language"), false, context)?
-                // a. If language does not match the unicode_language_subtag production, throw a RangeError exception.
-                .map(|s| s.to_std_string_escaped().parse::<Language>())
-                .transpose()
-                .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
+            //    a. If language does not match the unicode_language_subtag production, throw a RangeError exception.
+            let language = get_option(options, utf16!("language"), context)?;
 
             // 6. Let script be ? GetOption(options, "script", string, empty, undefined).
             // 7. If script is not undefined, then
-            let script = get_option::<JsString>(options, utf16!("script"), false, context)?
-                .map(|s| s.to_std_string_escaped().parse::<Script>())
-                .transpose()
-                // a. If script does not match the unicode_script_subtag production, throw a RangeError exception.
-                .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
+            //    a. If script does not match the unicode_script_subtag production, throw a RangeError exception.
+            let script = get_option(options, utf16!("script"), context)?;
 
             // 8. Let region be ? GetOption(options, "region", string, empty, undefined).
             // 9. If region is not undefined, then
-            let region = get_option::<JsString>(options, utf16!("region"), false, context)?
-                .map(|s| s.to_std_string_escaped().parse::<Region>())
-                .transpose()
-                // a. If region does not match the unicode_region_subtag production, throw a RangeError exception.
-                .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
+            //    a. If region does not match the unicode_region_subtag production, throw a RangeError exception.
+            let region = get_option(options, utf16!("region"), context)?;
 
             // 10. Set tag to ! CanonicalizeUnicodeLocaleId(tag).
             context.icu().locale_canonicalizer().canonicalize(&mut tag);
@@ -299,42 +288,36 @@ impl BuiltInConstructor for Locale {
         // 14. If calendar is not undefined, then
         // 15. Set opt.[[ca]] to calendar.
         //     a. If calendar does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let ca = get_option::<Value>(options, utf16!("calendar"), false, context)?;
+        let ca = get_option(options, utf16!("calendar"), context)?;
 
         // 16. Let collation be ? GetOption(options, "collation", string, empty, undefined).
         // 17. If collation is not undefined, then
         // 18. Set opt.[[co]] to collation.
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let co = get_option::<Value>(options, utf16!("collation"), false, context)?;
+        let co = get_option(options, utf16!("collation"), context)?;
 
         // 19. Let hc be ? GetOption(options, "hourCycle", string, « "h11", "h12", "h23", "h24" », undefined).
         // 20. Set opt.[[hc]] to hc.
-        let hc =
-            get_option::<HourCycle>(options, utf16!("hourCycle"), false, context)?.map(
-                |hc| match hc {
-                    HourCycle::H24 => value!("h24"),
-                    HourCycle::H23 => value!("h23"),
-                    HourCycle::H12 => value!("h12"),
-                    HourCycle::H11 => value!("h11"),
-                },
-            );
+        let hc = get_option(options, utf16!("hourCycle"), context)?.map(|hc| match hc {
+            HourCycle::H24 => value!("h24"),
+            HourCycle::H23 => value!("h23"),
+            HourCycle::H12 => value!("h12"),
+            HourCycle::H11 => value!("h11"),
+        });
 
         // 21. Let kf be ? GetOption(options, "caseFirst", string, « "upper", "lower", "false" », undefined).
         // 22. Set opt.[[kf]] to kf.
-        let kf =
-            get_option::<CaseFirst>(options, utf16!("caseFirst"), false, context)?.map(
-                |kf| match kf {
-                    CaseFirst::UpperFirst => value!("upper"),
-                    CaseFirst::LowerFirst => value!("lower"),
-                    CaseFirst::Off => value!("false"),
-                    _ => unreachable!(),
-                },
-            );
+        let kf = get_option(options, utf16!("caseFirst"), context)?.map(|kf| match kf {
+            CaseFirst::UpperFirst => value!("upper"),
+            CaseFirst::LowerFirst => value!("lower"),
+            CaseFirst::Off => value!("false"),
+            _ => unreachable!(),
+        });
 
         // 23. Let kn be ? GetOption(options, "numeric", boolean, empty, undefined).
         // 24. If kn is not undefined, set kn to ! ToString(kn).
         // 25. Set opt.[[kn]] to kn.
-        let kn = get_option::<bool>(options, utf16!("numeric"), false, context)?.map(|b| {
+        let kn = get_option(options, utf16!("numeric"), context)?.map(|b| {
             if b {
                 value!("true")
             } else {
@@ -346,7 +329,7 @@ impl BuiltInConstructor for Locale {
         // 27. If numberingSystem is not undefined, then
         // 28. Set opt.[[nu]] to numberingSystem.
         //     a. If numberingSystem does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let nu = get_option::<Value>(options, utf16!("numberingSystem"), false, context)?;
+        let nu = get_option(options, utf16!("numberingSystem"), context)?;
 
         // 29. Let r be ! ApplyUnicodeExtensionToTag(tag, opt, relevantExtensionKeys).
         // 30. Set locale.[[Locale]] to r.[[locale]].
