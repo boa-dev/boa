@@ -70,7 +70,6 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery,
 )]
 #![allow(elided_lifetimes_in_paths)]
 #![cfg_attr(not(feature = "bin"), no_std)]

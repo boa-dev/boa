@@ -1098,7 +1098,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         for variable in decl.0.as_ref() {
             match variable.binding() {
                 Binding::Identifier(ident) => {
-                    let ident = ident;
                     if let Some(expr) = variable.init() {
                         self.compile_expr(expr, true);
                         self.emit_binding(BindingOpcode::InitVar, *ident);
@@ -1126,7 +1125,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 for variable in decls.as_ref() {
                     match variable.binding() {
                         Binding::Identifier(ident) => {
-                            let ident = ident;
                             if let Some(expr) = variable.init() {
                                 self.compile_expr(expr, true);
                             } else {

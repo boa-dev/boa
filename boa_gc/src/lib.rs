@@ -62,7 +62,6 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery,
 )]
 #![allow(
     clippy::module_name_repetitions,
@@ -329,7 +328,7 @@ impl Collector {
         }
     }
 
-    fn trace_non_roots(gc: &mut BoaGc) {
+    fn trace_non_roots(gc: &BoaGc) {
         // Count all the handles located in GC heap.
         // Then, we can find whether there is a reference from other places, and they are the roots.
         let mut strong = &gc.strong_start;
@@ -522,7 +521,7 @@ impl Collector {
     }
 
     // Clean up the heap when BoaGc is dropped
-    fn dump(gc: &mut BoaGc) {
+    fn dump(gc: &BoaGc) {
         // Weak maps have to be dropped first, since the process dereferences GcBoxes.
         // This can be done without initializing a dropguard since no GcBox's are being dropped.
         let weak_map_head = &gc.weak_map_start;

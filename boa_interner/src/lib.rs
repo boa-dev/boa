@@ -67,7 +67,6 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery,
 )]
 #![allow(
     clippy::redundant_pub_crate,

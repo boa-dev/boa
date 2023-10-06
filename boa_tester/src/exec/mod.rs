@@ -634,7 +634,7 @@ fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
                 let mut result = async_result.inner.borrow_mut();
 
                 match *result {
-                    UninitResult::Uninit | UninitResult::Ok(_) => {
+                    UninitResult::Uninit | UninitResult::Ok(()) => {
                         if message == "Test262:AsyncTestComplete" {
                             *result = UninitResult::Ok(());
                         } else {

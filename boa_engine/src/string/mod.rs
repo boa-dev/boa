@@ -843,7 +843,7 @@ impl PartialEq<JsString> for str {
 
 impl PartialOrd for JsString {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self[..].partial_cmp(other)
+        Some(self.cmp(other))
     }
 }
 

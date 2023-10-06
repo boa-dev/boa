@@ -57,7 +57,6 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery,
 )]
 
 use proc_macro::TokenStream;

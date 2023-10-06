@@ -64,7 +64,6 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery,
 )]
 #![cfg_attr(not(feature = "profiler"), no_std)]
 

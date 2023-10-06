@@ -103,7 +103,6 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery,
 )]
 #![allow(
     // Currently throws a false positive regarding dependencies that are only used in benchmarks.

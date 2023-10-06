@@ -57,7 +57,6 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery,
 )]
 
 use boa_engine::{Context, Source};
