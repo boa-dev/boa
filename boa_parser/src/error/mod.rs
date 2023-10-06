@@ -183,38 +183,31 @@ impl fmt::Display for Error {
                 found,
                 span,
                 context,
-            } => write!(
-                f,
-                "expected {}, got '{found}' in {context} at line {}, col {}",
-                if expected.len() == 1 {
-                    format!(
-                        "token '{}'",
-                        expected.first().expect("already checked that length is 1")
-                    )
-                } else {
-                    format!(
-                        "one of {}",
-                        expected
-                            .iter()
-                            .enumerate()
-                            .map(|(i, t)| {
-                                format!(
-                                    "{}'{t}'",
-                                    if i == 0 {
-                                        ""
-                                    } else if i == expected.len() - 1 {
-                                        " or "
-                                    } else {
-                                        ", "
-                                    },
-                                )
-                            })
-                            .collect::<String>()
-                    )
-                },
-                span.start().line_number(),
-                span.start().column_number()
-            ),
+            } => {
+                write!(f, "expected ")?;
+                match &**expected {
+                    [single] => write!(f, "token '{single}'")?,
+                    expected => {
+                        write!(f, "one of ")?;
+                        for (i, token) in expected.iter().enumerate() {
+                            let prefix = if i == 0 {
+                                ""
+                            } else if i == expected.len() - 1 {
+                                " or "
+                            } else {
+                                ", "
+                            };
+                            write!(f, "{prefix}'{token}'")?;
+                        }
+                    }
+                }
+                write!(
+                    f,
+                    ", got '{found}' in {context} at line {}, col {}",
+                    span.start().line_number(),
+                    span.start().column_number()
+                )
+            }
             Self::Unexpected {
                 found,
                 span,

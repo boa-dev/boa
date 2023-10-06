@@ -165,6 +165,7 @@ impl From<JsObject> for JsValue {
 
 impl From<()> for JsValue {
     #[inline]
+    #[allow(clippy::pedantic)] // didn't want to increase our MSRV for just a lint.
     fn from(_: ()) -> Self {
         let _timer = Profiler::global().start_event("From<()>", "value");
 

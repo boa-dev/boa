@@ -60,7 +60,6 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery,
 )]
 #![allow(
     clippy::too_many_lines,

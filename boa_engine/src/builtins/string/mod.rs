@@ -730,7 +730,7 @@ impl String {
                 Ok(js_string!(result).into())
             }
             // 5. If n is 0, return the empty String.
-            IntegerOrInfinity::Integer(n) if n == 0 => Ok(js_string!().into()),
+            IntegerOrInfinity::Integer(0) => Ok(js_string!().into()),
             // 4. If n < 0 or n is +∞, throw a RangeError exception.
             _ => Err(JsNativeError::range()
                 .with_message(
