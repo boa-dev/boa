@@ -3544,7 +3544,7 @@
                 </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(result).into())
             }
             <span class="comment">// 5. If n is 0, return the empty String.
-            </span>IntegerOrInfinity::Integer(n) <span class="kw">if </span>n == <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().into()),
+            </span>IntegerOrInfinity::Integer(<span class="number">0</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().into()),
             <span class="comment">// 4. If n &lt; 0 or n is +∞, throw a RangeError exception.
             </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::range()
                 .with_message(

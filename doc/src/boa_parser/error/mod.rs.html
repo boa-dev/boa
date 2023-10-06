@@ -229,13 +229,6 @@
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.
 
 </span><span class="attr">#[cfg(test)]
@@ -421,38 +414,31 @@
                 found,
                 span,
                 context,
-            } =&gt; <span class="macro">write!</span>(
-                f,
-                <span class="string">&quot;expected {}, got &#39;{found}&#39; in {context} at line {}, col {}&quot;</span>,
-                <span class="kw">if </span>expected.len() == <span class="number">1 </span>{
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;token &#39;{}&#39;&quot;</span>,
-                        expected.first().expect(<span class="string">&quot;already checked that length is 1&quot;</span>)
-                    )
-                } <span class="kw">else </span>{
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;one of {}&quot;</span>,
-                        expected
-                            .iter()
-                            .enumerate()
-                            .map(|(i, t)| {
-                                <span class="macro">format!</span>(
-                                    <span class="string">&quot;{}&#39;{t}&#39;&quot;</span>,
-                                    <span class="kw">if </span>i == <span class="number">0 </span>{
-                                        <span class="string">&quot;&quot;
-                                    </span>} <span class="kw">else if </span>i == expected.len() - <span class="number">1 </span>{
-                                        <span class="string">&quot; or &quot;
-                                    </span>} <span class="kw">else </span>{
-                                        <span class="string">&quot;, &quot;
-                                    </span>},
-                                )
-                            })
-                            .collect::&lt;String&gt;()
-                    )
-                },
-                span.start().line_number(),
-                span.start().column_number()
-            ),
+            } =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;expected &quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">match </span><span class="kw-2">&amp;**</span>expected {
+                    [single] =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;token &#39;{single}&#39;&quot;</span>)<span class="question-mark">?</span>,
+                    expected =&gt; {
+                        <span class="macro">write!</span>(f, <span class="string">&quot;one of &quot;</span>)<span class="question-mark">?</span>;
+                        <span class="kw">for </span>(i, token) <span class="kw">in </span>expected.iter().enumerate() {
+                            <span class="kw">let </span>prefix = <span class="kw">if </span>i == <span class="number">0 </span>{
+                                <span class="string">&quot;&quot;
+                            </span>} <span class="kw">else if </span>i == expected.len() - <span class="number">1 </span>{
+                                <span class="string">&quot; or &quot;
+                            </span>} <span class="kw">else </span>{
+                                <span class="string">&quot;, &quot;
+                            </span>};
+                            <span class="macro">write!</span>(f, <span class="string">&quot;{prefix}&#39;{token}&#39;&quot;</span>)<span class="question-mark">?</span>;
+                        }
+                    }
+                }
+                <span class="macro">write!</span>(
+                    f,
+                    <span class="string">&quot;, got &#39;{found}&#39; in {context} at line {}, col {}&quot;</span>,
+                    span.start().line_number(),
+                    span.start().column_number()
+                )
+            }
             <span class="self">Self</span>::Unexpected {
                 found,
                 span,

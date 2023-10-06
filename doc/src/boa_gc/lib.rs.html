@@ -580,7 +580,6 @@
 <a href="#580" id="580">580</a>
 <a href="#581" id="581">581</a>
 <a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_gc`** crate implements a garbage collector.
 //!
 //! # Crate Overview
@@ -645,7 +644,6 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery,
 )]
 #![allow(
     clippy::module_name_repetitions,
@@ -912,7 +910,7 @@
         }
     }
 
-    <span class="kw">fn </span>trace_non_roots(gc: <span class="kw-2">&amp;mut </span>BoaGc) {
+    <span class="kw">fn </span>trace_non_roots(gc: <span class="kw-2">&amp;</span>BoaGc) {
         <span class="comment">// Count all the handles located in GC heap.
         // Then, we can find whether there is a reference from other places, and they are the roots.
         </span><span class="kw">let </span><span class="kw-2">mut </span>strong = <span class="kw-2">&amp;</span>gc.strong_start;
@@ -1105,7 +1103,7 @@
     }
 
     <span class="comment">// Clean up the heap when BoaGc is dropped
-    </span><span class="kw">fn </span>dump(gc: <span class="kw-2">&amp;mut </span>BoaGc) {
+    </span><span class="kw">fn </span>dump(gc: <span class="kw-2">&amp;</span>BoaGc) {
         <span class="comment">// Weak maps have to be dropped first, since the process dereferences GcBoxes.
         // This can be done without initializing a dropguard since no GcBox&#39;s are being dropped.
         </span><span class="kw">let </span>weak_map_head = <span class="kw-2">&amp;</span>gc.weak_map_start;

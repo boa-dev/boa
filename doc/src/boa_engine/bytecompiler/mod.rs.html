@@ -1555,8 +1555,6 @@
 <a href="#1555" id="1555">1555</a>
 <a href="#1556" id="1556">1556</a>
 <a href="#1557" id="1557">1557</a>
-<a href="#1558" id="1558">1558</a>
-<a href="#1559" id="1559">1559</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2657,7 +2655,6 @@
         <span class="kw">for </span>variable <span class="kw">in </span>decl.<span class="number">0</span>.as_ref() {
             <span class="kw">match </span>variable.binding() {
                 Binding::Identifier(ident) =&gt; {
-                    <span class="kw">let </span>ident = ident;
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = variable.init() {
                         <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, <span class="kw-2">*</span>ident);
@@ -2685,7 +2682,6 @@
                 <span class="kw">for </span>variable <span class="kw">in </span>decls.as_ref() {
                     <span class="kw">match </span>variable.binding() {
                         Binding::Identifier(ident) =&gt; {
-                            <span class="kw">let </span>ident = ident;
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = variable.init() {
                                 <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                             } <span class="kw">else </span>{

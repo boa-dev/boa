@@ -1155,7 +1155,7 @@
             ),
             <span class="self">Self</span>::String(<span class="kw-2">ref </span>str) =&gt; <span class="self">Self</span>::new(-str.to_number()),
             <span class="self">Self</span>::Rational(num) =&gt; <span class="self">Self</span>::new(-num),
-            <span class="self">Self</span>::Integer(num) <span class="kw">if </span>num == <span class="number">0 </span>=&gt; <span class="self">Self</span>::new(-f64::from(<span class="number">0</span>)),
+            <span class="self">Self</span>::Integer(<span class="number">0</span>) =&gt; <span class="self">Self</span>::new(-f64::from(<span class="number">0</span>)),
             <span class="self">Self</span>::Integer(num) =&gt; <span class="self">Self</span>::new(-num),
             <span class="self">Self</span>::Boolean(<span class="bool-val">true</span>) =&gt; <span class="self">Self</span>::new(<span class="number">1</span>),
             <span class="self">Self</span>::Boolean(<span class="bool-val">false</span>) | <span class="self">Self</span>::Null =&gt; <span class="self">Self</span>::new(<span class="number">0</span>),
