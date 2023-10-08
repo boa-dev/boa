@@ -30,7 +30,9 @@ impl ByteCompiler<'_, '_> {
             Some(name) if class.has_binding_identifier() => {
                 let env_index = self.push_compile_environment(false);
                 self.create_immutable_binding(name, true);
-                self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+                if !self.can_optimize_local_variables {
+                    self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+                }
                 true
             }
             _ => false,
@@ -39,7 +41,7 @@ impl ByteCompiler<'_, '_> {
         let mut compiler = ByteCompiler::new(
             class_name,
             true,
-            self.json_parse,
+            self.json_parse(),
             self.current_environment.clone(),
             self.context,
         );
@@ -276,7 +278,7 @@ impl ByteCompiler<'_, '_> {
                     let mut field_compiler = ByteCompiler::new(
                         Sym::EMPTY_STRING,
                         true,
-                        self.json_parse,
+                        self.json_parse(),
                         self.current_environment.clone(),
                         self.context,
                     );
@@ -310,7 +312,7 @@ impl ByteCompiler<'_, '_> {
                     let mut field_compiler = ByteCompiler::new(
                         class_name,
                         true,
-                        self.json_parse,
+                        self.json_parse(),
                         self.current_environment.clone(),
                         self.context,
                     );
@@ -354,7 +356,7 @@ impl ByteCompiler<'_, '_> {
                     let mut field_compiler = ByteCompiler::new(
                         class_name,
                         true,
-                        self.json_parse,
+                        self.json_parse(),
                         self.current_environment.clone(),
                         self.context,
                     );
@@ -591,7 +593,9 @@ impl ByteCompiler<'_, '_> {
 
         if class_env {
             self.pop_compile_environment();
-            self.emit_opcode(Opcode::PopEnvironment);
+            if !self.can_optimize_local_variables {
+                self.emit_opcode(Opcode::PopEnvironment);
+            }
         }
 
         self.emit_opcode(Opcode::PopPrivateEnvironment);

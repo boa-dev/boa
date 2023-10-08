@@ -163,6 +163,8 @@ pub struct CodeBlock {
     // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.
     #[unsafe_ignore_trace]
     pub(crate) compile_environments: Box<[Rc<CompileTimeEnvironment>]>,
+
+    pub(crate) local_variable_count: u32,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -185,6 +187,7 @@ impl CodeBlock {
             params: FormalParameterList::default(),
             handlers: ThinVec::default(),
             compile_environments: Box::default(),
+            local_variable_count: 0,
         }
     }
 
@@ -428,8 +431,6 @@ impl CodeBlock {
             | Instruction::SetPropertySetterByName { index }
             | Instruction::DefineClassStaticSetterByName { index }
             | Instruction::DefineClassSetterByName { index }
-            | Instruction::InPrivate { index }
-            | Instruction::ThrowMutateImmutable { index }
             | Instruction::DeletePropertyByName { index }
             | Instruction::SetPrivateField { index }
             | Instruction::DefinePrivateField { index }
@@ -440,7 +441,13 @@ impl CodeBlock {
             | Instruction::PushClassFieldPrivate { index }
             | Instruction::PushClassPrivateGetter { index }
             | Instruction::PushClassPrivateSetter { index }
-            | Instruction::PushClassPrivateMethod { index } => {
+            | Instruction::PushClassPrivateMethod { index }
+            | Instruction::InPrivate { index }
+            | Instruction::ThrowMutateImmutable { index }
+            | Instruction::GetGlobalName { index }
+            | Instruction::GetGlobalNameOrUndefined { index }
+            | Instruction::SetGlobalName { index }
+            | Instruction::DeleteGlobalName { index } => {
                 format!(
                     "{:04}: '{}'",
                     index.value(),
@@ -462,6 +469,9 @@ impl CodeBlock {
             }
             Instruction::CreateIteratorResult { done } => {
                 format!("done: {done}")
+            }
+            Instruction::GetLocal { index } | Instruction::SetLocal { index } => {
+                index.value().to_string()
             }
             Instruction::Pop
             | Instruction::Dup
@@ -637,13 +647,7 @@ impl CodeBlock {
             | Instruction::Reserved49
             | Instruction::Reserved50
             | Instruction::Reserved51
-            | Instruction::Reserved52
-            | Instruction::Reserved53
-            | Instruction::Reserved54
-            | Instruction::Reserved55
-            | Instruction::Reserved56
-            | Instruction::Reserved57
-            | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved52 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
@@ -1123,12 +1127,17 @@ impl JsObject {
 
         let argument_count = args.len();
         let parameters_count = code.params.as_ref().len();
+        let local_variable_count = code.local_variable_count;
 
         let frame = CallFrame::new(code, script_or_module, Some(self.clone()))
             .with_argument_count(argument_count as u32)
             .with_env_fp(env_fp);
 
         context.vm.push_frame(frame);
+
+        for _ in 0..local_variable_count {
+            context.vm.push(JsValue::undefined());
+        }
 
         // Push function arguments to the stack.
         for _ in argument_count..parameters_count {
@@ -1274,12 +1283,17 @@ impl JsObject {
 
         let argument_count = args.len();
         let parameters_count = code.params.as_ref().len();
+        let local_variable_count = code.local_variable_count;
 
         context.vm.push_frame(
             CallFrame::new(code, script_or_module, Some(self.clone()))
                 .with_argument_count(argument_count as u32)
                 .with_env_fp(environments_len as u32),
         );
+
+        for _ in 0..local_variable_count {
+            context.vm.push(JsValue::undefined());
+        }
 
         // Push function arguments to the stack.
         for _ in argument_count..parameters_count {

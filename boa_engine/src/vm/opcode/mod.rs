@@ -2036,6 +2036,48 @@ generate_opcodes! {
     /// Stack: **=>**
     PopPrivateEnvironment,
 
+    /// Delete global variable.
+    ///
+    /// Operands: index: `VaryingOperand`
+    ///
+    /// Stack: **=>**
+    DeleteGlobalName { index: VaryingOperand },
+
+    /// Get global variable.
+    ///
+    /// Operands: index: `VaryingOperand`
+    ///
+    /// Stack: **=>** value
+    GetGlobalName { index: VaryingOperand },
+
+    /// Get global variable or undefined if it does not exist.
+    ///
+    /// Operands: index: `VaryingOperand`
+    ///
+    /// Stack: **=>** value
+    GetGlobalNameOrUndefined { index: VaryingOperand },
+
+    /// Set global variable.
+    ///
+    /// Operands: index: `VaryingOperand`
+    ///
+    /// Stack: value **=>**
+    SetGlobalName { index: VaryingOperand },
+
+    /// Get fast local variable.
+    ///
+    /// Operands: index: `VaryingOperand`
+    ///
+    /// Stack: **=>** value
+    GetLocal { index: VaryingOperand },
+
+    /// Get fast local variable.
+    ///
+    /// Operands: index: `VaryingOperand`
+    ///
+    /// Stack: value **=>**
+    SetLocal { index: VaryingOperand },
+
     /// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -2161,18 +2203,6 @@ generate_opcodes! {
     Reserved51 => Reserved,
     /// Reserved [`Opcode`].
     Reserved52 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved53 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved54 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved55 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved56 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved57 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved58 => Reserved,
 }
 
 /// Specific opcodes for bindings.

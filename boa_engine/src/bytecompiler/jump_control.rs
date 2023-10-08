@@ -102,6 +102,10 @@ impl JumpRecord {
                     return;
                 }
                 JumpRecordAction::PopEnvironments { count } => {
+                    if compiler.can_optimize_local_variables {
+                        continue;
+                    }
+
                     for _ in 0..count {
                         compiler.emit_opcode(Opcode::PopEnvironment);
                     }
@@ -129,7 +133,7 @@ impl JumpRecord {
                     compiler.emit_opcode(Opcode::SetReturnValue);
                 }
 
-                match (compiler.in_async(), compiler.in_generator()) {
+                match (compiler.is_async(), compiler.is_generator()) {
                     // Taken from:
                     //  - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): https://tc39.es/ecma262/#sec-asyncgeneratorstart
                     //

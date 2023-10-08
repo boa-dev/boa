@@ -570,9 +570,13 @@ impl ByteCompiler<'_, '_> {
 
                                     // ii. Perform ! varEnv.InitializeBinding(F, undefined).
                                     let binding = self.initialize_mutable_binding(f, true);
-                                    let index = self.get_or_insert_binding(binding);
                                     self.emit_opcode(Opcode::PushUndefined);
-                                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                                    self.get_or_insert_binding(binding).emit(
+                                        Opcode::SetLocal,
+                                        Opcode::SetGlobalName,
+                                        Opcode::DefInitVar,
+                                        self,
+                                    );
                                 }
                             }
 
@@ -742,10 +746,12 @@ impl ByteCompiler<'_, '_> {
                 if binding_exists {
                     // 1. Perform ! varEnv.SetMutableBinding(fn, fo, false).
                     match self.set_mutable_binding(name) {
-                        Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
-                            self.emit_with_varying_operand(Opcode::SetName, index);
-                        }
+                        Ok(binding) => self.get_or_insert_binding(binding).emit(
+                            Opcode::SetLocal,
+                            Opcode::SetGlobalName,
+                            Opcode::SetName,
+                            self,
+                        ),
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_name(name);
                             self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
@@ -760,8 +766,12 @@ impl ByteCompiler<'_, '_> {
                     // 3. Perform ! varEnv.InitializeBinding(fn, fo).
                     self.create_mutable_binding(name, !strict);
                     let binding = self.initialize_mutable_binding(name, !strict);
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                    self.get_or_insert_binding(binding).emit(
+                        Opcode::SetLocal,
+                        Opcode::SetGlobalName,
+                        Opcode::DefInitVar,
+                        self,
+                    );
                 }
             }
         }
@@ -785,9 +795,13 @@ impl ByteCompiler<'_, '_> {
                     // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
                     self.create_mutable_binding(name, !strict);
                     let binding = self.initialize_mutable_binding(name, !strict);
-                    let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                    self.get_or_insert_binding(binding).emit(
+                        Opcode::SetLocal,
+                        Opcode::SetGlobalName,
+                        Opcode::DefInitVar,
+                        self,
+                    );
                 }
             }
         }
@@ -898,6 +912,14 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
+        if self.can_optimize_local_variables
+            && !self
+                .flags
+                .contains(super::ByteCompilerFlags::USES_ARGUMENTS)
+        {
+            arguments_object_needed = false;
+        }
+
         // 19. If strict is true or hasParameterExpressions is false, then
         //     a. NOTE: Only a single Environment Record is needed for the parameters,
         //        since calls to eval in strict mode code cannot create new bindings which are visible outside of the eval.
@@ -910,8 +932,11 @@ impl ByteCompiler<'_, '_> {
             // c. Let env be NewDeclarativeEnvironment(calleeEnv).
             // d. Assert: The VariableEnvironment of calleeContext is calleeEnv.
             // e. Set the LexicalEnvironment of calleeContext to env.
-            let _ = self.push_compile_environment(false);
-            additional_env = true;
+
+            if self.can_optimize_local_variables {
+                let _ = self.push_compile_environment(false);
+                additional_env = true;
+            }
         }
 
         // 22. If argumentsObjectNeeded is true, then
@@ -919,6 +944,13 @@ impl ByteCompiler<'_, '_> {
         // NOTE(HalidOdat): Has been moved up, so "arguments" gets registed as
         //     the first binding in the environment with index 0.
         if arguments_object_needed {
+            if !strict {
+                self.can_optimize_local_variables = false;
+            }
+
+            let can_optimize_local_variables = self.can_optimize_local_variables;
+            self.can_optimize_local_variables = false;
+
             // Note: This happens at runtime.
             // a. If strict is true or simpleParameterList is false, then
             //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
@@ -940,6 +972,10 @@ impl ByteCompiler<'_, '_> {
                 // i. Perform ! env.CreateMutableBinding("arguments", false).
                 self.create_mutable_binding(arguments, false);
             }
+
+            let binding = self.get_binding_value(arguments);
+            self.get_or_insert_binding(binding);
+            self.can_optimize_local_variables = can_optimize_local_variables;
 
             self.code_block_flags |= CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT;
         }
@@ -1017,7 +1053,7 @@ impl ByteCompiler<'_, '_> {
         }
 
         if generator {
-            self.emit(Opcode::Generator, &[Operand::U8(self.in_async().into())]);
+            self.emit(Opcode::Generator, &[Operand::Bool(self.is_async())]);
             self.emit_opcode(Opcode::Pop);
         }
 
@@ -1031,7 +1067,9 @@ impl ByteCompiler<'_, '_> {
             // b. Let varEnv be NewDeclarativeEnvironment(env).
             // c. Set the VariableEnvironment of calleeContext to varEnv.
             let env_index = self.push_compile_environment(false);
-            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+            if !self.can_optimize_local_variables {
+                self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+            }
             env_label = true;
 
             // d. Let instantiatedVarNames be a new empty List.
@@ -1056,15 +1094,23 @@ impl ByteCompiler<'_, '_> {
                     else {
                         // a. Let initialValue be ! env.GetBindingValue(n, false).
                         let binding = self.get_binding_value(n);
-                        let index = self.get_or_insert_binding(binding);
-                        self.emit_with_varying_operand(Opcode::GetName, index);
+                        self.get_or_insert_binding(binding).emit(
+                            Opcode::GetLocal,
+                            Opcode::GetGlobalName,
+                            Opcode::GetName,
+                            self,
+                        );
                     }
 
                     // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
                     let binding = self.initialize_mutable_binding(n, true);
-                    let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                    self.get_or_insert_binding(binding).emit(
+                        Opcode::SetLocal,
+                        Opcode::SetGlobalName,
+                        Opcode::DefInitVar,
+                        self,
+                    );
 
                     // 6. NOTE: A var with the same name as a formal parameter initially has
                     //          the same value as the corresponding initialized parameter.
@@ -1089,9 +1135,13 @@ impl ByteCompiler<'_, '_> {
 
                     // 3. Perform ! env.InitializeBinding(n, undefined).
                     let binding = self.initialize_mutable_binding(n, true);
-                    let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                    self.get_or_insert_binding(binding).emit(
+                        Opcode::SetLocal,
+                        Opcode::SetGlobalName,
+                        Opcode::DefInitVar,
+                        self,
+                    );
                 }
             }
 
@@ -1121,9 +1171,13 @@ impl ByteCompiler<'_, '_> {
 
                         // b. Perform ! varEnv.InitializeBinding(F, undefined).
                         let binding = self.initialize_mutable_binding(f, true);
-                        let index = self.get_or_insert_binding(binding);
                         self.emit_opcode(Opcode::PushUndefined);
-                        self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                        self.get_or_insert_binding(binding).emit(
+                            Opcode::SetLocal,
+                            Opcode::SetGlobalName,
+                            Opcode::DefInitVar,
+                            self,
+                        );
 
                         // c. Append F to instantiatedVarNames.
                         instantiated_var_names.push(f);
