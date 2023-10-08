@@ -2,7 +2,6 @@ use crate::{Statistics, TestOutcomeResult, VersionedStats};
 
 use super::SuiteResult;
 use color_eyre::{eyre::WrapErr, Result};
-use rustc_hash::FxHashSet;
 use serde::{Deserialize, Serialize};
 use std::{
     env, fs,
@@ -46,37 +45,11 @@ impl From<ResultInfo> for ReducedResultInfo {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-struct FeaturesInfo {
-    #[serde(rename = "c")]
-    commit: Box<str>,
-    #[serde(rename = "u")]
-    test262_commit: Box<str>,
-    #[serde(rename = "n")]
-    suite_name: Box<str>,
-    #[serde(rename = "f")]
-    features: FxHashSet<String>,
-}
-
-impl From<ResultInfo> for FeaturesInfo {
-    fn from(info: ResultInfo) -> Self {
-        Self {
-            commit: info.commit,
-            test262_commit: info.test262_commit,
-            suite_name: info.results.name,
-            features: info.results.features,
-        }
-    }
-}
-
 /// File name of the "latest results" JSON file.
 const LATEST_FILE_NAME: &str = "latest.json";
 
 /// File name of the "all results" JSON file.
 const RESULTS_FILE_NAME: &str = "results.json";
-
-/// File name of the "features" JSON file.
-const FEATURES_FILE_NAME: &str = "features.json";
 
 /// Writes the results of running the test suite to the given JSON output file.
 ///
@@ -130,32 +103,13 @@ pub(crate) fn write_json(
         Vec::new()
     };
 
-    all_results.push(new_results.clone().into());
+    all_results.push(new_results.into());
 
     let output = BufWriter::new(fs::File::create(&all_path)?);
     serde_json::to_writer(output, &all_results)?;
 
     if verbose != 0 {
         println!("Results written correctly");
-    }
-
-    // Write the full list of features, existing features go first.
-
-    let features = output_dir.join(FEATURES_FILE_NAME);
-
-    let mut all_features: Vec<FeaturesInfo> = if features.exists() {
-        serde_json::from_reader(BufReader::new(fs::File::open(&features)?))?
-    } else {
-        Vec::new()
-    };
-
-    all_features.push(new_results.into());
-
-    let features = BufWriter::new(fs::File::create(&features)?);
-    serde_json::to_writer(features, &all_features)?;
-
-    if verbose != 0 {
-        println!("Features written correctly");
     }
 
     Ok(())
@@ -455,13 +409,13 @@ fn compute_result_diff(
 ) -> ResultDiff {
     let mut final_diff = ResultDiff::default();
 
-    for base_test in &base_result.tests {
-        if let Some(new_test) = new_result
+    for (base_name, base_test) in &base_result.tests {
+        if let Some((new_name, new_test)) = new_result
             .tests
             .iter()
-            .find(|new_test| new_test.name == base_test.name)
+            .find(|(new_name, _new_test)| new_name == &base_name)
         {
-            let test_name = format!("test/{}/{}.js", base.display(), new_test.name);
+            let test_name = format!("test/{}/{}.js", base.display(), new_name);
 
             if let (Some(base_result), Some(new_result)) = (base_test.strict, new_test.strict) {
                 let test_name = format!("{test_name} [strict mode] (previously {base_result:?})");
@@ -477,13 +431,13 @@ fn compute_result_diff(
         }
     }
 
-    for base_suite in &base_result.suites {
-        if let Some(new_suite) = new_result
+    for (base_name, base_suite) in &base_result.suites {
+        if let Some((new_name, new_suite)) = new_result
             .suites
             .iter()
-            .find(|new_suite| new_suite.name == base_suite.name)
+            .find(|(new_name, _new_suite)| new_name == &base_name)
         {
-            let new_base = base.join(new_suite.name.as_ref());
+            let new_base = base.join(new_name.as_ref());
             let diff = compute_result_diff(new_base.as_path(), base_suite, new_suite);
 
             final_diff.extend(diff);

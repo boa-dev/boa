@@ -477,7 +477,7 @@ fn run_test_suite(
         if verbose != 0 {
             println!("Test suite loaded, starting tests...");
         }
-        let results = suite.run(&harness, verbose, parallel, edition, optimizer_options);
+        let (_name, results) = suite.run(&harness, verbose, parallel, edition, optimizer_options);
 
         if versioned {
             let mut table = comfy_table::Table::new();
@@ -609,15 +609,25 @@ impl AddAssign for Statistics {
 /// Represents tests statistics separated by ECMAScript edition
 #[derive(Default, Debug, Copy, Clone, Serialize)]
 struct VersionedStats {
+    #[serde(rename = "5")]
     es5: Statistics,
+    #[serde(rename = "6")]
     es6: Statistics,
+    #[serde(rename = "7")]
     es7: Statistics,
+    #[serde(rename = "8")]
     es8: Statistics,
+    #[serde(rename = "9")]
     es9: Statistics,
+    #[serde(rename = "10")]
     es10: Statistics,
+    #[serde(rename = "11")]
     es11: Statistics,
+    #[serde(rename = "12")]
     es12: Statistics,
+    #[serde(rename = "13")]
     es13: Statistics,
+    #[serde(rename = "14")]
     es14: Statistics,
 }
 
@@ -628,16 +638,26 @@ impl<'de> Deserialize<'de> for VersionedStats {
     {
         #[derive(Deserialize)]
         struct Inner {
+            #[serde(rename = "5")]
             es5: Statistics,
+            #[serde(rename = "6")]
             es6: Statistics,
+            #[serde(rename = "7")]
             es7: Statistics,
+            #[serde(rename = "8")]
             es8: Statistics,
+            #[serde(rename = "9")]
             es9: Statistics,
+            #[serde(rename = "10")]
             es10: Statistics,
+            #[serde(rename = "11")]
             es11: Statistics,
+            #[serde(rename = "12")]
             es12: Statistics,
+            #[serde(rename = "13")]
             es13: Statistics,
             #[serde(default)]
+            #[serde(rename = "14")]
             es14: Option<Statistics>,
         }
 
@@ -759,29 +779,22 @@ impl AddAssign for VersionedStats {
 /// Outcome of a test suite.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct SuiteResult {
-    #[serde(rename = "n")]
-    name: Box<str>,
     #[serde(rename = "a")]
     stats: Statistics,
     #[serde(rename = "av", default)]
     versioned_stats: VersionedStats,
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[serde(skip_serializing_if = "FxHashMap::is_empty", default)]
     #[serde(rename = "s")]
-    suites: Vec<SuiteResult>,
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    suites: FxHashMap<Box<str>, SuiteResult>,
+    #[serde(skip_serializing_if = "FxHashMap::is_empty", default)]
     #[serde(rename = "t")]
-    tests: Vec<TestResult>,
-    #[serde(skip_serializing_if = "FxHashSet::is_empty", default)]
-    #[serde(rename = "f")]
-    features: FxHashSet<String>,
+    tests: FxHashMap<Box<str>, TestResult>,
 }
 
 /// Result of a test, including the outcome for strict and non-strict mode.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(dead_code)]
 struct TestResult {
-    #[serde(rename = "n")]
-    name: Box<str>,
     #[serde(rename = "v", default)]
     edition: SpecEdition,
     #[serde(rename = "s", default)]
