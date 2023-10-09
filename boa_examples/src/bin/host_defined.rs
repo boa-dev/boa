@@ -32,35 +32,35 @@ fn main() -> Result<(), JsError> {
     // Get the realm from the context.
     let realm = context.realm().clone();
 
+    // Get the [[HostDefined]] field from the realm.
+    let mut host_defined = realm.host_defined().borrow_mut();
+
     // Insert a default CustomHostDefinedStruct.
-    realm
-        .host_defined()
-        .insert_default::<CustomHostDefinedStruct>();
+    host_defined.insert_default::<CustomHostDefinedStruct>();
 
     {
-        assert!(realm.host_defined().has::<CustomHostDefinedStruct>());
+        assert!(host_defined.has::<CustomHostDefinedStruct>());
 
         // Get the [[HostDefined]] field from the realm and downcast it to our concrete type.
-        let Some(host_defined) = realm.host_defined().get::<CustomHostDefinedStruct>() else {
+        let Some(custom_host_defined_struct) = host_defined.get::<CustomHostDefinedStruct>() else {
             return Err(JsNativeError::typ()
                 .with_message("Realm does not have HostDefined field")
                 .into());
         };
 
         // Assert that the [[HostDefined]] field is in it's initial state.
-        assert_eq!(host_defined.counter, 0);
+        assert_eq!(custom_host_defined_struct.counter, 0);
     }
 
     // Insert another struct with state into [[HostDefined]] field.
-    realm
-        .host_defined()
-        .insert(AnotherCustomHostDefinedStruct::new(10));
+    host_defined.insert(AnotherCustomHostDefinedStruct::new(10));
 
     {
-        assert!(realm.host_defined().has::<AnotherCustomHostDefinedStruct>());
+        assert!(host_defined.has::<AnotherCustomHostDefinedStruct>());
 
         // Get the [[HostDefined]] field from the realm and downcast it to our concrete type.
-        let Some(host_defined) = realm.host_defined().get::<AnotherCustomHostDefinedStruct>()
+        let Some(another_custom_host_defined_struct) =
+            host_defined.get::<AnotherCustomHostDefinedStruct>()
         else {
             return Err(JsNativeError::typ()
                 .with_message("Realm does not have HostDefined field")
@@ -68,14 +68,17 @@ fn main() -> Result<(), JsError> {
         };
 
         // Assert that the [[HostDefined]] field is in it's initial state.
-        assert_eq!(host_defined.counter, 10);
+        assert_eq!(another_custom_host_defined_struct.counter, 10);
     }
 
     // Remove a type from the [[HostDefined]] field.
-    assert!(realm
-        .host_defined()
+    assert!(host_defined
         .remove::<AnotherCustomHostDefinedStruct>()
         .is_some());
+
+    // We need to explicitly drop the borrow of the [[HostDefined]] field
+    // to avoid a double borrow when running the JavaScript code.
+    drop(host_defined);
 
     // Create and register function for getting and setting the realm value.
     //
@@ -86,7 +89,7 @@ fn main() -> Result<(), JsError> {
         NativeFunction::from_fn_ptr(|_, args, context| {
             let value: usize = args.get_or_undefined(0).try_js_into(context)?;
 
-            let host_defined = context.realm().host_defined();
+            let host_defined = context.realm().host_defined().borrow_mut();
             let Some(mut host_defined) = host_defined.get_mut::<CustomHostDefinedStruct>() else {
                 return Err(JsNativeError::typ()
                     .with_message("Realm does not have HostDefined field")
@@ -103,7 +106,7 @@ fn main() -> Result<(), JsError> {
         js_string!("getRealmValue"),
         0,
         NativeFunction::from_fn_ptr(|_, _, context| {
-            let host_defined = context.realm().host_defined();
+            let host_defined = context.realm().host_defined().borrow_mut();
             let Some(host_defined) = host_defined.get::<CustomHostDefinedStruct>() else {
                 return Err(JsNativeError::typ()
                     .with_message("Realm does not have HostDefined field")
@@ -122,7 +125,10 @@ fn main() -> Result<(), JsError> {
     ",
     ))?;
 
-    let Some(host_defined) = realm.host_defined().get::<CustomHostDefinedStruct>() else {
+    // Get the [[HostDefined]] field from the realm
+    let host_defined = realm.host_defined().borrow();
+
+    let Some(host_defined) = host_defined.get::<CustomHostDefinedStruct>() else {
         return Err(JsNativeError::typ()
             .with_message("Realm does not have HostDefined field")
             .into());
