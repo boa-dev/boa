@@ -263,8 +263,11 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// Compile time environments in this function.
     pub(crate) compile_environments: Vec<Rc<CompileTimeEnvironment>>,
 
-    /// The environment that is currently active.
-    pub(crate) current_environment: Rc<CompileTimeEnvironment>,
+    /// The current variable environment.
+    pub(crate) variable_environment: Rc<CompileTimeEnvironment>,
+
+    /// The current lexical environment.
+    pub(crate) lexical_environment: Rc<CompileTimeEnvironment>,
 
     current_open_environments_count: u32,
     current_stack_value_count: u32,
@@ -301,7 +304,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         name: Sym,
         strict: bool,
         json_parse: bool,
-        current_environment: Rc<CompileTimeEnvironment>,
+        variable_environment: Rc<CompileTimeEnvironment>,
+        lexical_environment: Rc<CompileTimeEnvironment>,
         // TODO: remove when we separate scripts from the context
         context: &'ctx mut Context<'host>,
     ) -> ByteCompiler<'ctx, 'host> {
@@ -332,7 +336,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             in_generator: false,
             async_handler: None,
             json_parse,
-            current_environment,
+            variable_environment,
+            lexical_environment,
             context,
 
             #[cfg(feature = "annex-b")]
@@ -408,42 +413,29 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     fn emit_binding(&mut self, opcode: BindingOpcode, name: Identifier) {
         match opcode {
             BindingOpcode::Var => {
-                let binding = self.initialize_mutable_binding(name, true);
+                let (binding, _) = self.variable_environment.get_identifier_reference(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit_with_varying_operand(Opcode::DefVar, index);
             }
-            BindingOpcode::InitVar => {
-                if self.has_binding(name) {
-                    match self.set_mutable_binding(name) {
-                        Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
-                            self.emit_with_varying_operand(Opcode::DefInitVar, index);
-                        }
-                        Err(BindingLocatorError::MutateImmutable) => {
-                            let index = self.get_or_insert_name(name);
-                            self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
-                        }
-                        Err(BindingLocatorError::Silent) => {
-                            self.emit_opcode(Opcode::Pop);
-                        }
-                    }
-                } else {
-                    let binding = self.initialize_mutable_binding(name, true);
+            BindingOpcode::InitVar => match self.lexical_environment.set_mutable_binding(name) {
+                Ok(binding) => {
                     let index = self.get_or_insert_binding(binding);
                     self.emit_with_varying_operand(Opcode::DefInitVar, index);
-                };
-            }
-            BindingOpcode::InitLet => {
-                let binding = self.initialize_mutable_binding(name, false);
+                }
+                Err(BindingLocatorError::MutateImmutable) => {
+                    let index = self.get_or_insert_name(name);
+                    self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
+                }
+                Err(BindingLocatorError::Silent) => {
+                    self.emit_opcode(Opcode::Pop);
+                }
+            },
+            BindingOpcode::InitLexical => {
+                let (binding, _) = self.lexical_environment.get_identifier_reference(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit_with_varying_operand(Opcode::PutLexicalValue, index);
             }
-            BindingOpcode::InitConst => {
-                let binding = self.initialize_immutable_binding(name);
-                let index = self.get_or_insert_binding(binding);
-                self.emit_with_varying_operand(Opcode::PutLexicalValue, index);
-            }
-            BindingOpcode::SetName => match self.set_mutable_binding(name) {
+            BindingOpcode::SetName => match self.lexical_environment.set_mutable_binding(name) {
                 Ok(binding) => {
                     let index = self.get_or_insert_binding(binding);
                     self.emit_with_varying_operand(Opcode::SetName, index);
@@ -698,7 +690,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) {
         match access {
             Access::Variable { name } => {
-                let binding = self.get_binding_value(name);
+                let (binding, _) = self.lexical_environment.get_identifier_reference(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit_with_varying_operand(Opcode::GetName, index);
             }
@@ -763,9 +755,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     {
         match access {
             Access::Variable { name } => {
-                let binding = self.get_binding_value(name);
+                let (binding, lex) = self.lexical_environment.get_identifier_reference(name);
                 let index = self.get_or_insert_binding(binding);
-                let lex = self.current_environment.is_lex_binding(name);
 
                 if !lex {
                     self.emit_with_varying_operand(Opcode::GetLocator, index);
@@ -777,7 +768,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 }
 
                 if lex {
-                    match self.set_mutable_binding(name) {
+                    match self.lexical_environment.set_mutable_binding(name) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
                             self.emit_with_varying_operand(Opcode::SetName, index);
@@ -876,7 +867,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 }
             },
             Access::Variable { name } => {
-                let binding = self.get_binding_value(name);
+                let (binding, _) = self.lexical_environment.get_identifier_reference(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit_with_varying_operand(Opcode::DeleteName, index);
             }
@@ -1130,7 +1121,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                             } else {
                                 self.emit_opcode(Opcode::PushUndefined);
                             }
-                            self.emit_binding(BindingOpcode::InitLet, *ident);
+                            self.emit_binding(BindingOpcode::InitLexical, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             if let Some(init) = variable.init() {
@@ -1139,7 +1130,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                                 self.emit_opcode(Opcode::PushUndefined);
                             };
 
-                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                         }
                     }
                 }
@@ -1152,7 +1143,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                                 .init()
                                 .expect("const declaration must have initializer");
                             self.compile_expr(init, true);
-                            self.emit_binding(BindingOpcode::InitConst, *ident);
+                            self.emit_binding(BindingOpcode::InitLexical, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             if let Some(init) = variable.init() {
@@ -1161,7 +1152,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                                 self.emit_opcode(Opcode::PushUndefined);
                             };
 
-                            self.compile_declaration_pattern(pattern, BindingOpcode::InitConst);
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                         }
                     }
                 }
@@ -1180,7 +1171,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     /// Compile a [`Declaration`].
-    #[allow(unused_variables)]
     pub fn compile_decl(&mut self, decl: &Declaration, block: bool) {
         match decl {
             #[cfg(feature = "annex-b")]
@@ -1189,11 +1179,11 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     .name()
                     .expect("function declaration must have name");
                 if self.annex_b_function_names.contains(&name) {
-                    let binding = self.get_binding_value(name);
+                    let (binding, _) = self.lexical_environment.get_identifier_reference(name);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_with_varying_operand(Opcode::GetName, index);
 
-                    match self.set_mutable_binding_var(name) {
+                    match self.variable_environment.set_mutable_binding_var(name) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
                             self.emit_with_varying_operand(Opcode::SetName, index);
@@ -1250,7 +1240,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .compile(
                 parameters,
                 body,
-                self.current_environment.clone(),
+                self.variable_environment.clone(),
+                self.lexical_environment.clone(),
                 self.context,
             );
 
@@ -1347,7 +1338,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .compile(
                 parameters,
                 body,
-                self.current_environment.clone(),
+                self.variable_environment.clone(),
+                self.lexical_environment.clone(),
                 self.context,
             );
 
@@ -1410,7 +1402,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .compile(
                 parameters,
                 body,
-                self.current_environment.clone(),
+                self.variable_environment.clone(),
+                self.lexical_environment.clone(),
                 self.context,
             );
 

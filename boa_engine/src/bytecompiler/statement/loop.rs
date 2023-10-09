@@ -22,7 +22,7 @@ impl ByteCompiler<'_, '_> {
         use_expr: bool,
     ) {
         let mut let_binding_indices = None;
-        let mut has_lexical_environment_binding = false;
+        let mut old_lex_env = None;
 
         if let Some(init) = for_loop.init() {
             match init {
@@ -31,20 +31,22 @@ impl ByteCompiler<'_, '_> {
                     self.compile_var_decl(decl);
                 }
                 ForLoopInitializer::Lexical(decl) => {
+                    old_lex_env = Some(self.lexical_environment.clone());
                     let env_index = self.push_compile_environment(false);
                     self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-                    has_lexical_environment_binding = true;
 
                     let names = bound_names(decl);
                     if decl.is_const() {
                         for name in &names {
-                            self.create_immutable_binding(*name, true);
+                            self.lexical_environment
+                                .create_immutable_binding(*name, true);
                         }
                     } else {
                         let mut indices = Vec::new();
                         for name in &names {
-                            self.create_mutable_binding(*name, false);
-                            let binding = self.initialize_mutable_binding(*name, false);
+                            let binding = self
+                                .lexical_environment
+                                .create_mutable_binding(*name, false);
                             let index = self.get_or_insert_binding(binding);
                             indices.push(index);
                         }
@@ -101,8 +103,9 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(exit);
         self.pop_loop_control_info();
 
-        if has_lexical_environment_binding {
+        if let Some(old_lex_env) = old_lex_env {
             self.pop_compile_environment();
+            self.lexical_environment = old_lex_env;
             self.emit_opcode(Opcode::PopEnvironment);
         }
     }
@@ -130,15 +133,18 @@ impl ByteCompiler<'_, '_> {
         if initializer_bound_names.is_empty() {
             self.compile_expr(for_in_loop.target(), true);
         } else {
+            let old_lex_env = self.lexical_environment.clone();
             let env_index = self.push_compile_environment(false);
             self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
 
             for name in &initializer_bound_names {
-                self.create_mutable_binding(*name, false);
+                self.lexical_environment
+                    .create_mutable_binding(*name, false);
             }
             self.compile_expr(for_in_loop.target(), true);
 
             self.pop_compile_environment();
+            self.lexical_environment = old_lex_env;
             self.emit_opcode(Opcode::PopEnvironment);
         }
 
@@ -155,7 +161,10 @@ impl ByteCompiler<'_, '_> {
 
         self.emit_opcode(Opcode::IteratorValue);
 
+        let mut old_lex_env = None;
+
         if !initializer_bound_names.is_empty() {
+            old_lex_env = Some(self.lexical_environment.clone());
             let env_index = self.push_compile_environment(false);
             self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
         }
@@ -181,26 +190,30 @@ impl ByteCompiler<'_, '_> {
             },
             IterableLoopInitializer::Let(declaration) => match declaration {
                 Binding::Identifier(ident) => {
-                    self.create_mutable_binding(*ident, false);
-                    self.emit_binding(BindingOpcode::InitLet, *ident);
+                    self.lexical_environment
+                        .create_mutable_binding(*ident, false);
+                    self.emit_binding(BindingOpcode::InitLexical, *ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
-                        self.create_mutable_binding(ident, false);
+                        self.lexical_environment
+                            .create_mutable_binding(ident, false);
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                 }
             },
             IterableLoopInitializer::Const(declaration) => match declaration {
                 Binding::Identifier(ident) => {
-                    self.create_immutable_binding(*ident, true);
-                    self.emit_binding(BindingOpcode::InitConst, *ident);
+                    self.lexical_environment
+                        .create_immutable_binding(*ident, true);
+                    self.emit_binding(BindingOpcode::InitLexical, *ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
-                        self.create_immutable_binding(ident, true);
+                        self.lexical_environment
+                            .create_immutable_binding(ident, true);
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitConst);
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                 }
             },
             IterableLoopInitializer::Pattern(pattern) => {
@@ -210,8 +223,9 @@ impl ByteCompiler<'_, '_> {
 
         self.compile_stmt(for_in_loop.body(), use_expr, true);
 
-        if !initializer_bound_names.is_empty() {
+        if let Some(old_lex_env) = old_lex_env {
             self.pop_compile_environment();
+            self.lexical_environment = old_lex_env;
             self.emit_opcode(Opcode::PopEnvironment);
         }
 
@@ -242,15 +256,18 @@ impl ByteCompiler<'_, '_> {
         if initializer_bound_names.is_empty() {
             self.compile_expr(for_of_loop.iterable(), true);
         } else {
+            let old_lex_env = self.lexical_environment.clone();
             let env_index = self.push_compile_environment(false);
             self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
 
             for name in &initializer_bound_names {
-                self.create_mutable_binding(*name, false);
+                self.lexical_environment
+                    .create_mutable_binding(*name, false);
             }
             self.compile_expr(for_of_loop.iterable(), true);
 
             self.pop_compile_environment();
+            self.lexical_environment = old_lex_env;
             self.emit_opcode(Opcode::PopEnvironment);
         }
 
@@ -279,7 +296,10 @@ impl ByteCompiler<'_, '_> {
         let exit = self.jump_if_true();
         self.emit_opcode(Opcode::IteratorValue);
 
+        let mut old_lex_env = None;
+
         if !initializer_bound_names.is_empty() {
+            old_lex_env = Some(self.lexical_environment.clone());
             let env_index = self.push_compile_environment(false);
             self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
         };
@@ -287,7 +307,7 @@ impl ByteCompiler<'_, '_> {
         let mut handler_index = None;
         match for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(ref ident) => {
-                match self.set_mutable_binding(*ident) {
+                match self.lexical_environment.set_mutable_binding(*ident) {
                     Ok(binding) => {
                         let index = self.get_or_insert_binding(binding);
                         self.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -323,26 +343,30 @@ impl ByteCompiler<'_, '_> {
             }
             IterableLoopInitializer::Let(declaration) => match declaration {
                 Binding::Identifier(ident) => {
-                    self.create_mutable_binding(*ident, false);
-                    self.emit_binding(BindingOpcode::InitLet, *ident);
+                    self.lexical_environment
+                        .create_mutable_binding(*ident, false);
+                    self.emit_binding(BindingOpcode::InitLexical, *ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
-                        self.create_mutable_binding(ident, false);
+                        self.lexical_environment
+                            .create_mutable_binding(ident, false);
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                 }
             },
             IterableLoopInitializer::Const(declaration) => match declaration {
                 Binding::Identifier(ident) => {
-                    self.create_immutable_binding(*ident, true);
-                    self.emit_binding(BindingOpcode::InitConst, *ident);
+                    self.lexical_environment
+                        .create_immutable_binding(*ident, true);
+                    self.emit_binding(BindingOpcode::InitLexical, *ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
-                        self.create_immutable_binding(ident, true);
+                        self.lexical_environment
+                            .create_immutable_binding(ident, true);
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitConst);
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                 }
             },
             IterableLoopInitializer::Pattern(pattern) => {
@@ -375,8 +399,9 @@ impl ByteCompiler<'_, '_> {
 
         self.compile_stmt(for_of_loop.body(), use_expr, true);
 
-        if !initializer_bound_names.is_empty() {
+        if let Some(old_lex_env) = old_lex_env {
             self.pop_compile_environment();
+            self.lexical_environment = old_lex_env;
             self.emit_opcode(Opcode::PopEnvironment);
         }
 

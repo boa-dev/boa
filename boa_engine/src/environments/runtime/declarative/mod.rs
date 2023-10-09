@@ -127,6 +127,17 @@ impl DeclarativeEnvironment {
     pub(crate) fn poison(&self) {
         self.kind.poison();
     }
+
+    /// Extends the environment with the bindings from the compile time environment.
+    pub(crate) fn extend_from_compile(&self) {
+        if let Some(env) = self.kind().as_function() {
+            let compile_bindings_number = self.compile_env().num_bindings() as usize;
+            let mut bindings = env.poisonable_environment().bindings().borrow_mut();
+            if compile_bindings_number > bindings.len() {
+                bindings.resize(compile_bindings_number, None);
+            }
+        }
+    }
 }
 
 /// The kind of the declarative environment.

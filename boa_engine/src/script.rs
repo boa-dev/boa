@@ -113,10 +113,14 @@ impl Script {
             self.inner.source.strict(),
             false,
             self.inner.realm.environment().compile_env(),
+            self.inner.realm.environment().compile_env(),
             context,
         );
         // TODO: move to `Script::evaluate` to make this operation infallible.
-        compiler.global_declaration_instantiation(&self.inner.source)?;
+        compiler.global_declaration_instantiation(
+            &self.inner.source,
+            &self.inner.realm.environment().compile_env(),
+        )?;
         compiler.compile_statement_list(self.inner.source.statements(), true, false);
 
         let cb = Gc::new(compiler.finish());

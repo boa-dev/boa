@@ -46,14 +46,14 @@ impl ByteCompiler<'_, '_> {
                         self.class(cl, cl.name().is_none());
                         if cl.name().is_none() {
                             self.emit_binding(
-                                BindingOpcode::InitLet,
+                                BindingOpcode::InitLexical,
                                 Identifier::from(Sym::DEFAULT_EXPORT),
                             );
                         }
                     }
                     ExportDeclaration::DefaultAssignmentExpression(expr) => {
                         let name = Identifier::from(Sym::DEFAULT_EXPORT);
-                        self.create_mutable_binding(name, false);
+                        self.lexical_environment.create_mutable_binding(name, false);
                         self.compile_expr(expr, true);
 
                         if expr.is_anonymous_function_definition() {
@@ -66,7 +66,7 @@ impl ByteCompiler<'_, '_> {
                             self.emit(Opcode::SetFunctionName, &[Operand::U8(0)]);
                         }
 
-                        self.emit_binding(BindingOpcode::InitLet, name);
+                        self.emit_binding(BindingOpcode::InitLexical, name);
                     }
                 }
             }

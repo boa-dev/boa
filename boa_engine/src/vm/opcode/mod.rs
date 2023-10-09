@@ -2182,8 +2182,7 @@ generate_opcodes! {
 pub(crate) enum BindingOpcode {
     Var,
     InitVar,
-    InitLet,
-    InitConst,
+    InitLexical,
     SetName,
 }
 

@@ -122,6 +122,7 @@ impl Json {
                 script.strict(),
                 true,
                 context.realm().environment().compile_env(),
+                context.realm().environment().compile_env(),
                 context,
             );
             compiler.compile_statement_list(script.statements(), true, false);

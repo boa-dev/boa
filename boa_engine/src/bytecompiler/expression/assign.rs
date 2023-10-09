@@ -55,9 +55,8 @@ impl ByteCompiler<'_, '_> {
 
             match access {
                 Access::Variable { name } => {
-                    let binding = self.get_binding_value(name);
+                    let (binding, lex) = self.lexical_environment.get_identifier_reference(name);
                     let index = self.get_or_insert_binding(binding);
-                    let lex = self.current_environment.is_lex_binding(name);
 
                     if lex {
                         self.emit_with_varying_operand(Opcode::GetName, index);
@@ -76,7 +75,7 @@ impl ByteCompiler<'_, '_> {
                         self.emit_opcode(Opcode::Dup);
                     }
                     if lex {
-                        match self.set_mutable_binding(name) {
+                        match self.lexical_environment.set_mutable_binding(name) {
                             Ok(binding) => {
                                 let index = self.get_or_insert_binding(binding);
                                 self.emit_with_varying_operand(Opcode::SetName, index);

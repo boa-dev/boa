@@ -1410,10 +1410,10 @@ impl SourceTextModule {
         // 6. Set module.[[Environment]] to env.
         let global_env = realm.environment().clone();
         let global_compile_env = global_env.compile_env();
-        let module_compile_env = Rc::new(CompileTimeEnvironment::new(global_compile_env, true));
+        let env = Rc::new(CompileTimeEnvironment::new(global_compile_env, true));
 
         let mut compiler =
-            ByteCompiler::new(Sym::MAIN, true, false, module_compile_env.clone(), context);
+            ByteCompiler::new(Sym::MAIN, true, false, env.clone(), env.clone(), context);
 
         compiler.in_async = true;
         compiler.async_handler = Some(compiler.push_handler());
@@ -1449,8 +1449,7 @@ impl SourceTextModule {
 
                     // 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    compiler.create_immutable_binding(entry.local_name(), true);
-                    let locator = compiler.initialize_immutable_binding(entry.local_name());
+                    let locator = env.create_immutable_binding(entry.local_name(), true);
 
                     if let BindingName::Name(_) = resolution.binding_name {
                         // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
@@ -1471,9 +1470,8 @@ impl SourceTextModule {
                 } else {
                     // b. If in.[[ImportName]] is namespace-object, then
                     //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
-                    compiler.create_immutable_binding(entry.local_name(), true);
                     //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    let locator = compiler.initialize_immutable_binding(entry.local_name());
+                    let locator = env.create_immutable_binding(entry.local_name(), true);
 
                     //    i. Let namespace be GetModuleNamespace(importedModule).
                     //       deferred to initialization below
@@ -1496,12 +1494,12 @@ impl SourceTextModule {
                     // i. If declaredVarNames does not contain dn, then
                     if !declared_var_names.contains(&name) {
                         // 1. Perform ! env.CreateMutableBinding(dn, false).
-                        compiler.create_mutable_binding(name, false);
                         // 2. Perform ! env.InitializeBinding(dn, undefined).
-                        let binding = compiler.initialize_mutable_binding(name, false);
+                        let binding = env.create_mutable_binding(name, false);
                         let index = compiler.get_or_insert_binding(binding);
                         compiler.emit_opcode(Opcode::PushUndefined);
                         compiler.emit_with_varying_operand(Opcode::DefInitVar, index);
+
                         // 3. Append dn to declaredVarNames.
                         declared_var_names.push(name);
                     }
@@ -1527,35 +1525,31 @@ impl SourceTextModule {
                 let (spec, locator): (FunctionSpec<'_>, _) = match declaration {
                     LexicallyScopedDeclaration::Function(f) => {
                         let name = bound_names(f)[0];
-                        compiler.create_mutable_binding(name, false);
-                        let locator = compiler.initialize_mutable_binding(name, false);
+                        let locator = env.create_mutable_binding(name, false);
 
                         (f.into(), locator)
                     }
                     LexicallyScopedDeclaration::Generator(g) => {
                         let name = bound_names(g)[0];
-                        compiler.create_mutable_binding(name, false);
-                        let locator = compiler.initialize_mutable_binding(name, false);
+                        let locator = env.create_mutable_binding(name, false);
 
                         (g.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncFunction(af) => {
                         let name = bound_names(af)[0];
-                        compiler.create_mutable_binding(name, false);
-                        let locator = compiler.initialize_mutable_binding(name, false);
+                        let locator = env.create_mutable_binding(name, false);
 
                         (af.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncGenerator(ag) => {
                         let name = bound_names(ag)[0];
-                        compiler.create_mutable_binding(name, false);
-                        let locator = compiler.initialize_mutable_binding(name, false);
+                        let locator = env.create_mutable_binding(name, false);
 
                         (ag.into(), locator)
                     }
                     LexicallyScopedDeclaration::Class(class) => {
                         for name in bound_names(class) {
-                            compiler.create_mutable_binding(name, false);
+                            env.create_mutable_binding(name, false);
                         }
                         continue;
                     }
@@ -1566,19 +1560,19 @@ impl SourceTextModule {
                         // a. For each element dn of the BoundNames of d, do
                         for name in bound_names(c) {
                             // 1. Perform ! env.CreateImmutableBinding(dn, true).
-                            compiler.create_immutable_binding(name, true);
+                            env.create_immutable_binding(name, true);
                         }
                         continue;
                     }
                     LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Let(l)) => {
                         for name in bound_names(l) {
-                            compiler.create_mutable_binding(name, false);
+                            env.create_mutable_binding(name, false);
                         }
                         continue;
                     }
                     LexicallyScopedDeclaration::AssignmentExpression(expr) => {
                         for name in bound_names(expr) {
-                            compiler.create_mutable_binding(name, false);
+                            env.create_mutable_binding(name, false);
                         }
                         continue;
                     }
@@ -1605,7 +1599,7 @@ impl SourceTextModule {
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
         let mut envs = EnvironmentStack::new(global_env);
-        envs.push_module(module_compile_env);
+        envs.push_module(env);
 
         // 9. Set the Function of moduleContext to null.
         // 12. Set the ScriptOrModule of moduleContext to module.
