@@ -61,7 +61,7 @@ struct Inner {
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_classes: GcRefCell<FxHashMap<TypeId, StandardConstructor>>,
 
-    host_defined: HostDefined,
+    host_defined: GcRefCell<HostDefined>,
 }
 
 impl Realm {
@@ -86,7 +86,7 @@ impl Realm {
                 template_map: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 host_classes: GcRefCell::default(),
-                host_defined: HostDefined::default(),
+                host_defined: GcRefCell::default(),
             }),
         };
 
@@ -107,7 +107,7 @@ impl Realm {
     /// [spec]: https://tc39.es/ecma262/#table-realm-record-fields
     #[inline]
     #[must_use]
-    pub fn host_defined(&self) -> &HostDefined {
+    pub fn host_defined(&self) -> &GcRefCell<HostDefined> {
         &self.inner.host_defined
     }
 
