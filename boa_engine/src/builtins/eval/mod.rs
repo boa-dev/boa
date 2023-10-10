@@ -239,11 +239,9 @@ impl Eval {
         let env_index = compiler.push_compile_environment(strict);
         compiler.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
         let lex_env = compiler.lexical_environment.clone();
-        compiler.lexical_environment = lex_env.clone();
-
         if strict {
             var_env = lex_env.clone();
-            compiler.variable_environment = var_env.clone();
+            compiler.variable_environment = lex_env.clone();
         }
 
         compiler.eval_declaration_instantiation(&body, strict, &var_env, &lex_env)?;
