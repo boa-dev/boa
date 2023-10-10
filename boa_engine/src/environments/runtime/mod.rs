@@ -7,7 +7,6 @@ use crate::{
 };
 use boa_ast::expression::Identifier;
 use boa_gc::{empty_trace, Finalize, Gc, Trace};
-use rustc_hash::FxHashSet;
 
 mod declarative;
 mod private;
@@ -90,69 +89,19 @@ impl EnvironmentStack {
         }
     }
 
-    /// Extends the length of the next outer function environment to the number of compiled bindings.
-    ///
-    /// This is only useful when compiled bindings are added after the initial compilation (eval).
-    pub(crate) fn extend_outer_function_environment(&mut self) {
+    /// Gets the next outer function environment.
+    pub(crate) fn outer_function_environment(&self) -> Gc<DeclarativeEnvironment> {
         for env in self
             .stack
             .iter()
             .filter_map(Environment::as_declarative)
             .rev()
         {
-            if let DeclarativeEnvironmentKind::Function(fun) = &env.kind() {
-                let compile_bindings_number = env.compile_env().num_bindings() as usize;
-                let mut bindings = fun.poisonable_environment().bindings().borrow_mut();
-
-                if compile_bindings_number > bindings.len() {
-                    bindings.resize(compile_bindings_number, None);
-                }
-                break;
+            if let DeclarativeEnvironmentKind::Function(_) = &env.kind() {
+                return env.clone();
             }
         }
-    }
-
-    /// Check if any of the provided binding names are defined as lexical bindings.
-    ///
-    /// Start at the current environment.
-    /// Stop at the next outer function environment.
-    pub(crate) fn has_lex_binding_until_function_environment(
-        &self,
-        names: &FxHashSet<Identifier>,
-    ) -> Option<Identifier> {
-        for env in self
-            .stack
-            .iter()
-            .filter_map(Environment::as_declarative)
-            .rev()
-        {
-            let compile = env.compile_env();
-            for name in names {
-                if compile.has_lex_binding(*name) {
-                    return Some(*name);
-                }
-            }
-            if compile.is_function() {
-                break;
-            }
-        }
-        None
-    }
-
-    /// Check if the next outer function environment is the global environment.
-    pub(crate) fn is_next_outer_function_environment_global(&self) -> bool {
-        for env in self
-            .stack
-            .iter()
-            .rev()
-            .filter_map(Environment::as_declarative)
-        {
-            let compile = env.compile_env();
-            if compile.is_function() {
-                return compile.outer().is_none();
-            }
-        }
-        true
+        self.global()
     }
 
     /// Pop all current environments except the global environment.
@@ -527,6 +476,7 @@ impl BindingLocator {
 }
 
 /// Action that is returned when a fallible binding operation.
+#[derive(Debug)]
 pub(crate) enum BindingLocatorError {
     /// Trying to mutate immutable binding,
     MutateImmutable,

@@ -224,31 +224,35 @@ impl Eval {
             }
         });
 
+        let var_environment = context.vm.environments.outer_function_environment();
+        let mut var_env = var_environment.compile_env();
+
         let mut compiler = ByteCompiler::new(
             Sym::MAIN,
             body.strict(),
             false,
+            var_env.clone(),
             context.vm.environments.current_compile_environment(),
             context,
         );
 
         let env_index = compiler.push_compile_environment(strict);
         compiler.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+        let lex_env = compiler.lexical_environment.clone();
+        if strict {
+            var_env = lex_env.clone();
+            compiler.variable_environment = lex_env.clone();
+        }
 
-        compiler.eval_declaration_instantiation(&body, strict)?;
+        compiler.eval_declaration_instantiation(&body, strict, &var_env, &lex_env)?;
         compiler.compile_statement_list(body.statements(), true, false);
-
-        compiler.pop_compile_environment();
-        compiler.emit_opcode(Opcode::PopEnvironment);
 
         let code_block = Gc::new(compiler.finish());
 
-        // Indirect calls don't need extensions, because a non-strict indirect call modifies only
-        // the global object.
-        // Strict direct calls also don't need extensions, since all strict eval calls push a new
+        // Strict calls don't need extensions, since all strict eval calls push a new
         // function environment before evaluating.
-        if direct && !strict {
-            context.vm.environments.extend_outer_function_environment();
+        if !strict {
+            var_environment.extend_from_compile();
         }
 
         let env_fp = context.vm.environments.len() as u32;

@@ -82,14 +82,22 @@ impl FunctionCompiler {
         mut self,
         parameters: &FormalParameterList,
         body: &FunctionBody,
-        outer_env: Rc<CompileTimeEnvironment>,
+        variable_environment: Rc<CompileTimeEnvironment>,
+        lexical_environment: Rc<CompileTimeEnvironment>,
         context: &mut Context<'_>,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
 
         let length = parameters.length();
 
-        let mut compiler = ByteCompiler::new(self.name, self.strict, false, outer_env, context);
+        let mut compiler = ByteCompiler::new(
+            self.name,
+            self.strict,
+            false,
+            variable_environment,
+            lexical_environment,
+            context,
+        );
         compiler.length = length;
         compiler.in_async = self.r#async;
         compiler.in_generator = self.generator;
@@ -101,7 +109,9 @@ impl FunctionCompiler {
         if let Some(binding_identifier) = self.binding_identifier {
             compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
             let _ = compiler.push_compile_environment(false);
-            compiler.create_immutable_binding(binding_identifier.into(), self.strict);
+            compiler
+                .lexical_environment
+                .create_immutable_binding(binding_identifier.into(), self.strict);
         }
 
         // Function environment
@@ -132,7 +142,7 @@ impl FunctionCompiler {
             compiler.async_handler = Some(compiler.push_handler());
         }
 
-        let (env_label, additional_env) = compiler.function_declaration_instantiation(
+        compiler.function_declaration_instantiation(
             body,
             parameters,
             self.arrow,
@@ -154,21 +164,6 @@ impl FunctionCompiler {
         }
 
         compiler.compile_statement_list(body.statements(), false, false);
-
-        if env_label {
-            compiler.pop_compile_environment();
-        }
-
-        if additional_env {
-            compiler.pop_compile_environment();
-            compiler.code_block_flags |= CodeBlockFlags::PARAMETERS_ENV_BINDINGS;
-        }
-
-        compiler.pop_compile_environment();
-
-        if self.binding_identifier.is_some() {
-            compiler.pop_compile_environment();
-        }
 
         compiler.params = parameters.clone();
 

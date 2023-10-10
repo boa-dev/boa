@@ -1,6 +1,8 @@
+use std::rc::Rc;
+
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
-    environments::BindingLocatorError,
+    environments::CompileTimeEnvironment,
     vm::{
         create_function_object_fast, create_generator_function_object, BindingOpcode,
         CodeBlockFlags, Opcode,
@@ -32,7 +34,11 @@ impl ByteCompiler<'_, '_> {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
-    pub(crate) fn global_declaration_instantiation(&mut self, script: &Script) -> JsResult<()> {
+    pub(crate) fn global_declaration_instantiation(
+        &mut self,
+        script: &Script,
+        env: &Rc<CompileTimeEnvironment>,
+    ) -> JsResult<()> {
         // 1. Let lexNames be the LexicallyDeclaredNames of script.
         let lex_names = lexically_declared_names(script);
 
@@ -43,9 +49,8 @@ impl ByteCompiler<'_, '_> {
         for name in lex_names {
             // Note: Our implementation differs from the spec here.
             // a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
-
             // b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            if self.has_binding(name) {
+            if env.has_binding(name) {
                 return Err(JsNativeError::syntax()
                     .with_message("duplicate lexical declaration")
                     .into());
@@ -65,7 +70,7 @@ impl ByteCompiler<'_, '_> {
         // 4. For each element name of varNames, do
         for name in var_names {
             // a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            if self.has_binding(name) {
+            if env.has_lex_binding(name) {
                 return Err(JsNativeError::syntax()
                     .with_message("duplicate lexical declaration")
                     .into());
@@ -176,7 +181,7 @@ impl ByteCompiler<'_, '_> {
                 //    would not produce any Early Errors for script, then
                 if !lex_names.contains(&f) {
                     // a. If env.HasLexicalDeclaration(F) is false, then
-                    if !self.current_environment.has_lex_binding(f) {
+                    if !env.has_lex_binding(f) {
                         // i. Let fnDefinable be ? env.CanDeclareGlobalVar(F).
                         let fn_definable = self.context.can_declare_global_function(f)?;
 
@@ -222,17 +227,17 @@ impl ByteCompiler<'_, '_> {
                 match declaration {
                     Declaration::Class(class) => {
                         for name in bound_names(class) {
-                            self.create_mutable_binding(name, false);
+                            env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
                         for name in bound_names(declaration) {
-                            self.create_mutable_binding(name, false);
+                            env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
                         for name in bound_names(declaration) {
-                            self.create_immutable_binding(name, true);
+                            env.create_immutable_binding(name, true);
                         }
                     }
                     _ => {}
@@ -271,7 +276,8 @@ impl ByteCompiler<'_, '_> {
                 .compile(
                     parameters,
                     body,
-                    self.current_environment.clone(),
+                    self.variable_environment.clone(),
+                    self.lexical_environment.clone(),
                     self.context,
                 );
 
@@ -306,12 +312,13 @@ impl ByteCompiler<'_, '_> {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-blockdeclarationinstantiation
-    pub(crate) fn block_declaration_instantiation<'a, N>(&mut self, block: &'a N)
-    where
+    pub(crate) fn block_declaration_instantiation<'a, N>(
+        &mut self,
+        block: &'a N,
+        env: &Rc<CompileTimeEnvironment>,
+    ) where
         &'a N: Into<NodeRef<'a>>,
     {
-        let env = &self.current_environment;
-
         // 1. Let declarations be the LexicallyScopedDeclarations of code.
         let declarations = lexically_scoped_declarations(block);
 
@@ -386,14 +393,9 @@ impl ByteCompiler<'_, '_> {
         &mut self,
         body: &Script,
         strict: bool,
+        var_env: &Rc<CompileTimeEnvironment>,
+        lex_env: &Rc<CompileTimeEnvironment>,
     ) -> JsResult<()> {
-        let var_environment_is_global = self
-            .context
-            .vm
-            .environments
-            .is_next_outer_function_environment_global()
-            && !strict;
-
         // 2. Let varDeclarations be the VarScopedDeclarations of body.
         let var_declarations = var_scoped_declarations(body);
 
@@ -403,30 +405,47 @@ impl ByteCompiler<'_, '_> {
             let var_names = var_declared_names(body);
 
             // a. If varEnv is a Global Environment Record, then
-            //      i. For each element name of varNames, do
-            //          1. If varEnv.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            //          2. NOTE: eval will not create a global var declaration that would be shadowed by a global lexical declaration.
+            if var_env.is_global() {
+                // i. For each element name of varNames, do
+                for name in &var_names {
+                    // 1. If varEnv.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+                    // 2. NOTE: eval will not create a global var declaration that would be shadowed by a global lexical declaration.
+                    if var_env.has_lex_binding(*name) {
+                        return Err(JsNativeError::syntax()
+                            .with_message("duplicate lexical declaration")
+                            .into());
+                    }
+                }
+            }
+
             // b. Let thisEnv be lexEnv.
+            let mut this_env = lex_env.clone();
+
             // c. Assert: The following loop will terminate.
             // d. Repeat, while thisEnv is not varEnv,
-            //     i. If thisEnv is not an Object Environment Record, then
-            //         1. NOTE: The environment of with statements cannot contain any lexical
-            //            declaration so it doesn't need to be checked for var/let hoisting conflicts.
-            //         2. For each element name of varNames, do
-            //             a. If ! thisEnv.HasBinding(name) is true, then
-            //                 i. Throw a SyntaxError exception.
-            //                 ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
-            //             b. NOTE: A direct eval will not hoist var declaration over a like-named lexical declaration.
-            //     ii. Set thisEnv to thisEnv.[[OuterEnv]].
-            if let Some(name) = self
-                .context
-                .vm
-                .environments
-                .has_lex_binding_until_function_environment(&var_names)
-            {
-                let name = self.context.interner().resolve_expect(name.sym());
-                let msg = format!("variable declaration {name} in eval function already exists as a lexical variable");
-                return Err(JsNativeError::syntax().with_message(msg).into());
+            while this_env.environment_index() != var_env.environment_index() {
+                // i. If thisEnv is not an Object Environment Record, then
+                // 1. NOTE: The environment of with statements cannot contain any lexical
+                //    declaration so it doesn't need to be checked for var/let hoisting conflicts.
+                // 2. For each element name of varNames, do
+                for name in &var_names {
+                    // a. If ! thisEnv.HasBinding(name) is true, then
+                    if this_env.has_binding(*name) {
+                        // i. Throw a SyntaxError exception.
+                        // ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
+                        let name = self.context.interner().resolve_expect(name.sym());
+                        let msg = format!("variable declaration {name} in eval function already exists as a lexical variable");
+                        return Err(JsNativeError::syntax().with_message(msg).into());
+                    }
+                    // b. NOTE: A direct eval will not hoist var declaration over a like-named lexical declaration.
+                }
+
+                // ii. Set thisEnv to thisEnv.[[OuterEnv]].
+                if let Some(outer) = this_env.outer() {
+                    this_env = outer;
+                } else {
+                    break;
+                }
             }
         }
 
@@ -482,7 +501,7 @@ impl ByteCompiler<'_, '_> {
             // a.iv. If declaredFunctionNames does not contain fn, then
             if !declared_function_names.contains(&name) {
                 // 1. If varEnv is a Global Environment Record, then
-                if var_environment_is_global {
+                if var_env.is_global() {
                     // a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
                     let fn_definable = self.context.can_declare_global_function(name)?;
 
@@ -519,20 +538,35 @@ impl ByteCompiler<'_, '_> {
                 //     as a BindingIdentifier would not produce any Early Errors for body, then
                 if !lexically_declared_names.contains(&f) {
                     // 1. Let bindingExists be false.
+                    let mut binding_exists = false;
+
                     // 2. Let thisEnv be lexEnv.
+                    let mut this_env = lex_env.clone();
+
                     // 3. Assert: The following loop will terminate.
                     // 4. Repeat, while thisEnv is not varEnv,
-                    // a. If thisEnv is not an Object Environment Record, then
-                    // i. If ! thisEnv.HasBinding(F) is true, then
-                    // i. Let bindingExists be true.
-                    // b. Set thisEnv to thisEnv.[[OuterEnv]].
-                    let binding_exists = self.has_binding_until_var(f);
+                    while this_env.environment_index() != lex_env.environment_index() {
+                        // a. If thisEnv is not an Object Environment Record, then
+                        // i. If ! thisEnv.HasBinding(F) is true, then
+                        if this_env.has_binding(f) {
+                            // i. Let bindingExists be true.
+                            binding_exists = true;
+                            break;
+                        }
+
+                        // b. Set thisEnv to thisEnv.[[OuterEnv]].
+                        if let Some(outer) = this_env.outer() {
+                            this_env = outer;
+                        } else {
+                            break;
+                        }
+                    }
 
                     // 5. If bindingExists is false and varEnv is a Global Environment Record, then
-                    let fn_definable = if !binding_exists && var_environment_is_global {
+                    let fn_definable = if !binding_exists && var_env.is_global() {
                         // a. If varEnv.HasLexicalDeclaration(F) is false, then
                         // b. Else,
-                        if self.current_environment.has_lex_binding(f) {
+                        if self.variable_environment.has_lex_binding(f) {
                             // i. Let fnDefinable be false.
                             false
                         } else {
@@ -556,7 +590,7 @@ impl ByteCompiler<'_, '_> {
                             && !function_names.contains(&f)
                         {
                             // i. If varEnv is a Global Environment Record, then
-                            if var_environment_is_global {
+                            if var_env.is_global() {
                                 // i. Perform ? varEnv.CreateGlobalVarBinding(F, true).
                                 self.context.create_global_var_binding(f, true)?;
                             }
@@ -564,12 +598,10 @@ impl ByteCompiler<'_, '_> {
                             else {
                                 // i. Let bindingExists be ! varEnv.HasBinding(F).
                                 // ii. If bindingExists is false, then
-                                if !self.has_binding(f) {
+                                if !var_env.has_binding(f) {
                                     // i. Perform ! varEnv.CreateMutableBinding(F, true).
-                                    self.create_mutable_binding(f, true);
-
                                     // ii. Perform ! varEnv.InitializeBinding(F, undefined).
-                                    let binding = self.initialize_mutable_binding(f, true);
+                                    let binding = var_env.create_mutable_binding(f, true);
                                     let index = self.get_or_insert_binding(binding);
                                     self.emit_opcode(Opcode::PushUndefined);
                                     self.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -608,7 +640,7 @@ impl ByteCompiler<'_, '_> {
                 // 1. If declaredFunctionNames does not contain vn, then
                 if !declared_function_names.contains(&name) {
                     // a. If varEnv is a Global Environment Record, then
-                    if var_environment_is_global {
+                    if var_env.is_global() {
                         // i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
                         let vn_definable = self.context.can_declare_global_var(name)?;
 
@@ -645,17 +677,17 @@ impl ByteCompiler<'_, '_> {
                 match declaration {
                     Declaration::Class(class) => {
                         for name in bound_names(class) {
-                            self.create_mutable_binding(name, false);
+                            lex_env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
                         for name in bound_names(declaration) {
-                            self.create_mutable_binding(name, false);
+                            lex_env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
                         for name in bound_names(declaration) {
-                            self.create_immutable_binding(name, true);
+                            lex_env.create_immutable_binding(name, true);
                         }
                     }
                     _ => {}
@@ -693,12 +725,13 @@ impl ByteCompiler<'_, '_> {
                 .compile(
                     parameters,
                     body,
-                    self.context.vm.environments.current_compile_environment(),
+                    self.variable_environment.clone(),
+                    self.lexical_environment.clone(),
                     self.context,
                 );
 
             // c. If varEnv is a Global Environment Record, then
-            if var_environment_is_global {
+            if var_env.is_global() {
                 // Ensures global functions are printed when generating the global flowgraph.
                 self.functions.push(code.clone());
 
@@ -735,31 +768,20 @@ impl ByteCompiler<'_, '_> {
                 }
 
                 // i. Let bindingExists be ! varEnv.HasBinding(fn).
-                let binding_exists = self.has_binding_eval(name, strict);
+                let binding_exists = var_env.has_binding(name);
 
                 // ii. If bindingExists is false, then
                 // iii. Else,
                 if binding_exists {
                     // 1. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-                    match self.set_mutable_binding(name) {
-                        Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
-                            self.emit_with_varying_operand(Opcode::SetName, index);
-                        }
-                        Err(BindingLocatorError::MutateImmutable) => {
-                            let index = self.get_or_insert_name(name);
-                            self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
-                        }
-                        Err(BindingLocatorError::Silent) => {
-                            self.emit_opcode(Opcode::Pop);
-                        }
-                    }
+                    let binding = var_env.set_mutable_binding(name).expect("must not fail");
+                    let index = self.get_or_insert_binding(binding);
+                    self.emit_with_varying_operand(Opcode::SetName, index);
                 } else {
                     // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
                     // 2. Perform ! varEnv.CreateMutableBinding(fn, true).
                     // 3. Perform ! varEnv.InitializeBinding(fn, fo).
-                    self.create_mutable_binding(name, !strict);
-                    let binding = self.initialize_mutable_binding(name, !strict);
+                    let binding = var_env.create_mutable_binding(name, !strict);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_with_varying_operand(Opcode::DefInitVar, index);
                 }
@@ -769,22 +791,21 @@ impl ByteCompiler<'_, '_> {
         // 18. For each String vn of declaredVarNames, do
         for name in declared_var_names {
             // a. If varEnv is a Global Environment Record, then
-            if var_environment_is_global {
+            if var_env.is_global() {
                 // i. Perform ? varEnv.CreateGlobalVarBinding(vn, true).
                 self.context.create_global_var_binding(name, true)?;
             }
             // b. Else,
             else {
                 // i. Let bindingExists be ! varEnv.HasBinding(vn).
-                let binding_exists = self.has_binding_eval(name, strict);
+                let binding_exists = var_env.has_binding(name);
 
                 // ii. If bindingExists is false, then
                 if !binding_exists {
                     // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
                     // 2. Perform ! varEnv.CreateMutableBinding(vn, true).
                     // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
-                    self.create_mutable_binding(name, !strict);
-                    let binding = self.initialize_mutable_binding(name, !strict);
+                    let binding = var_env.create_mutable_binding(name, true);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
                     self.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -809,10 +830,7 @@ impl ByteCompiler<'_, '_> {
         arrow: bool,
         strict: bool,
         generator: bool,
-    ) -> (bool, bool) {
-        let mut env_label = false;
-        let mut additional_env = false;
-
+    ) {
         // 1. Let calleeContext be the running execution context.
         // 2. Let code be func.[[ECMAScriptCode]].
         // 3. Let strict be func.[[Strict]].
@@ -899,11 +917,13 @@ impl ByteCompiler<'_, '_> {
         }
 
         // 19. If strict is true or hasParameterExpressions is false, then
-        //     a. NOTE: Only a single Environment Record is needed for the parameters,
-        //        since calls to eval in strict mode code cannot create new bindings which are visible outside of the eval.
-        //     b. Let env be the LexicalEnvironment of calleeContext.
+        if strict || !has_parameter_expressions {
+            // a. NOTE: Only a single Environment Record is needed for the parameters,
+            //    since calls to eval in strict mode code cannot create new bindings which are visible outside of the eval.
+            // b. Let env be the LexicalEnvironment of calleeContext.
+        }
         // 20. Else,
-        if !strict && has_parameter_expressions {
+        else {
             // a. NOTE: A separate Environment Record is needed to ensure that bindings created by
             //    direct eval calls in the formal parameter list are outside the environment where parameters are declared.
             // b. Let calleeEnv be the LexicalEnvironment of calleeContext.
@@ -911,8 +931,10 @@ impl ByteCompiler<'_, '_> {
             // d. Assert: The VariableEnvironment of calleeContext is calleeEnv.
             // e. Set the LexicalEnvironment of calleeContext to env.
             let _ = self.push_compile_environment(false);
-            additional_env = true;
-        }
+            self.code_block_flags |= CodeBlockFlags::PARAMETERS_ENV_BINDINGS;
+        };
+
+        let env = self.lexical_environment.clone();
 
         // 22. If argumentsObjectNeeded is true, then
         //
@@ -933,12 +955,12 @@ impl ByteCompiler<'_, '_> {
                 // i. Perform ! env.CreateImmutableBinding("arguments", false).
                 // ii. NOTE: In strict mode code early errors prevent attempting to assign
                 //           to this binding, so its mutability is not observable.
-                self.create_immutable_binding(arguments, false);
+                env.create_immutable_binding(arguments, false);
             }
             // d. Else,
             else {
                 // i. Perform ! env.CreateMutableBinding("arguments", false).
-                self.create_mutable_binding(arguments, false);
+                env.create_mutable_binding(arguments, false);
             }
 
             self.code_block_flags |= CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT;
@@ -947,7 +969,7 @@ impl ByteCompiler<'_, '_> {
         // 21. For each String paramName of parameterNames, do
         for param_name in &parameter_names {
             // a. Let alreadyDeclared be ! env.HasBinding(paramName).
-            let already_declared = self.has_binding(*param_name);
+            let already_declared = env.has_binding(*param_name);
 
             // b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict
             //    functions that do not have parameter default values or rest parameters.
@@ -955,7 +977,7 @@ impl ByteCompiler<'_, '_> {
             // c. If alreadyDeclared is false, then
             if !already_declared {
                 // i. Perform ! env.CreateMutableBinding(paramName, false).
-                self.create_mutable_binding(*param_name, false);
+                env.create_mutable_binding(*param_name, false);
 
                 // Note: These steps are not necessary in our implementation.
                 // ii. If hasDuplicates is true, then
@@ -991,24 +1013,20 @@ impl ByteCompiler<'_, '_> {
             }
             match parameter.variable().binding() {
                 Binding::Identifier(ident) => {
-                    self.create_mutable_binding(*ident, false);
                     if let Some(init) = parameter.variable().init() {
                         let skip = self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                         self.compile_expr(init, true);
                         self.patch_jump(skip);
                     }
-                    self.emit_binding(BindingOpcode::InitLet, *ident);
+                    self.emit_binding(BindingOpcode::InitLexical, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in bound_names(pattern) {
-                        self.create_mutable_binding(ident, false);
-                    }
                     if let Some(init) = parameter.variable().init() {
                         let skip = self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                         self.compile_expr(init, true);
                         self.patch_jump(skip);
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                 }
             }
         }
@@ -1024,7 +1042,7 @@ impl ByteCompiler<'_, '_> {
         // 27. If hasParameterExpressions is false, then
         // 28. Else,
         #[allow(unused_variables, unused_mut)]
-        let mut instantiated_var_names = if has_parameter_expressions {
+        let (mut instantiated_var_names, mut var_env) = if has_parameter_expressions {
             // a. NOTE: A separate Environment Record is needed to ensure that closures created by
             //          expressions in the formal parameter list do not have
             //          visibility of declarations in the function body.
@@ -1032,7 +1050,8 @@ impl ByteCompiler<'_, '_> {
             // c. Set the VariableEnvironment of calleeContext to varEnv.
             let env_index = self.push_compile_environment(false);
             self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-            env_label = true;
+
+            let mut var_env = self.lexical_environment.clone();
 
             // d. Let instantiatedVarNames be a new empty List.
             let mut instantiated_var_names = Vec::new();
@@ -1045,7 +1064,7 @@ impl ByteCompiler<'_, '_> {
                     instantiated_var_names.push(n);
 
                     // 2. Perform ! varEnv.CreateMutableBinding(n, false).
-                    self.create_mutable_binding(n, true);
+                    let binding = var_env.create_mutable_binding(n, false);
 
                     // 3. If parameterBindings does not contain n, or if functionNames contains n, then
                     if !parameter_bindings.contains(&n) || function_names.contains(&n) {
@@ -1055,13 +1074,12 @@ impl ByteCompiler<'_, '_> {
                     // 4. Else,
                     else {
                         // a. Let initialValue be ! env.GetBindingValue(n, false).
-                        let binding = self.get_binding_value(n);
+                        let binding = env.get_binding(n).expect("must have binding");
                         let index = self.get_or_insert_binding(binding);
                         self.emit_with_varying_operand(Opcode::GetName, index);
                     }
 
                     // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
-                    let binding = self.initialize_mutable_binding(n, true);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
                     self.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -1071,7 +1089,7 @@ impl ByteCompiler<'_, '_> {
                 }
             }
 
-            instantiated_var_names
+            (instantiated_var_names, var_env)
         } else {
             // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
             // b. Let instantiatedVarNames be a copy of the List parameterBindings.
@@ -1085,10 +1103,8 @@ impl ByteCompiler<'_, '_> {
                     instantiated_var_names.push(n);
 
                     // 2. Perform ! env.CreateMutableBinding(n, false).
-                    self.create_mutable_binding(n, true);
-
                     // 3. Perform ! env.InitializeBinding(n, undefined).
-                    let binding = self.initialize_mutable_binding(n, true);
+                    let binding = env.create_mutable_binding(n, true);
                     let index = self.get_or_insert_binding(binding);
                     self.emit_opcode(Opcode::PushUndefined);
                     self.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -1096,7 +1112,7 @@ impl ByteCompiler<'_, '_> {
             }
 
             // d. Let varEnv be env.
-            instantiated_var_names
+            (instantiated_var_names, env)
         };
 
         // 29. NOTE: Annex B.3.2.1 adds additional steps at this point.
@@ -1117,10 +1133,8 @@ impl ByteCompiler<'_, '_> {
                     // 2. If initializedBindings does not contain F and F is not "arguments", then
                     if !instantiated_var_names.contains(&f) && f != arguments {
                         // a. Perform ! varEnv.CreateMutableBinding(F, false).
-                        self.create_mutable_binding(f, true);
-
                         // b. Perform ! varEnv.InitializeBinding(F, undefined).
-                        let binding = self.initialize_mutable_binding(f, true);
+                        let binding = var_env.create_mutable_binding(f, false);
                         let index = self.get_or_insert_binding(binding);
                         self.emit_opcode(Opcode::PushUndefined);
                         self.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -1142,14 +1156,22 @@ impl ByteCompiler<'_, '_> {
         }
 
         // 30. If strict is false, then
-        // 30.a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
-        // 30.b. NOTE: Non-strict functions use a separate Environment Record for top-level lexical
-        //      declarations so that a direct eval can determine whether any var scoped declarations
-        //      introduced by the eval code conflict with pre-existing top-level lexically scoped declarations.
-        //      This is not needed for strict functions because a strict direct eval always
-        //      places all declarations into a new Environment Record.
         // 31. Else,
-        //     a. Let lexEnv be varEnv.
+        let lex_env = if strict {
+            // a. Let lexEnv be varEnv.
+            var_env
+        } else {
+            // a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
+            // b. NOTE: Non-strict functions use a separate Environment Record for top-level lexical
+            //    declarations so that a direct eval can determine whether any var scoped declarations
+            //    introduced by the eval code conflict with pre-existing top-level lexically scoped declarations.
+            //    This is not needed for strict functions because a strict direct eval always
+            //    places all declarations into a new Environment Record.
+            let env_index = self.push_compile_environment(false);
+            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+            self.lexical_environment.clone()
+        };
+
         // 32. Set the LexicalEnvironment of calleeContext to lexEnv.
 
         // 33. Let lexDeclarations be the LexicallyScopedDeclarations of code.
@@ -1166,17 +1188,17 @@ impl ByteCompiler<'_, '_> {
                 match declaration {
                     Declaration::Class(class) => {
                         for name in bound_names(class) {
-                            self.create_mutable_binding(name, false);
+                            lex_env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
                         for name in bound_names(declaration) {
-                            self.create_mutable_binding(name, false);
+                            lex_env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
                         for name in bound_names(declaration) {
-                            self.create_immutable_binding(name, true);
+                            lex_env.create_immutable_binding(name, true);
                         }
                     }
                     _ => {}
@@ -1194,6 +1216,5 @@ impl ByteCompiler<'_, '_> {
         }
 
         // 37. Return unused.
-        (env_label, additional_env)
     }
 }

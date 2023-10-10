@@ -111,20 +111,22 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_catch_stmt(&mut self, catch: &Catch, _has_finally: bool, use_expr: bool) {
         // stack: exception
 
+        let old_lex_env = self.lexical_environment.clone();
         let env_index = self.push_compile_environment(false);
         self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+        let env = self.lexical_environment.clone();
 
         if let Some(binding) = catch.parameter() {
             match binding {
                 Binding::Identifier(ident) => {
-                    self.create_mutable_binding(*ident, false);
-                    self.emit_binding(BindingOpcode::InitLet, *ident);
+                    env.create_mutable_binding(*ident, false);
+                    self.emit_binding(BindingOpcode::InitLexical, *ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
-                        self.create_mutable_binding(ident, false);
+                        env.create_mutable_binding(ident, false);
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                 }
             }
         } else {
@@ -134,6 +136,7 @@ impl ByteCompiler<'_, '_> {
         self.compile_catch_finally_block(catch.block(), use_expr);
 
         self.pop_compile_environment();
+        self.lexical_environment = old_lex_env;
         self.emit_opcode(Opcode::PopEnvironment);
     }
 

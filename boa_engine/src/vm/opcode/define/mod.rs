@@ -66,9 +66,7 @@ impl DefInitVar {
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let mut binding_locator = context.vm.frame().code_block.bindings[index];
-
         context.find_runtime_binding(&mut binding_locator)?;
-
         context.set_binding(
             binding_locator,
             value,

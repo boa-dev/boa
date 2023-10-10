@@ -6,10 +6,12 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_switch(&mut self, switch: &Switch, use_expr: bool) {
         self.compile_expr(switch.val(), true);
 
+        let old_lex_env = self.lexical_environment.clone();
         let env_index = self.push_compile_environment(false);
         self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+        let env = self.lexical_environment.clone();
 
-        self.block_declaration_instantiation(switch);
+        self.block_declaration_instantiation(switch, &env);
 
         let start_address = self.next_opcode_location();
         self.push_switch_control_info(None, start_address, use_expr);
@@ -51,6 +53,7 @@ impl ByteCompiler<'_, '_> {
         self.pop_switch_control_info();
 
         self.pop_compile_environment();
+        self.lexical_environment = old_lex_env;
         self.emit_opcode(Opcode::PopEnvironment);
     }
 }

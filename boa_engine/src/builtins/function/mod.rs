@@ -636,6 +636,7 @@ impl BuiltInFunctionObject {
                     &parameters,
                     &body,
                     context.realm().environment().compile_env(),
+                    context.realm().environment().compile_env(),
                     context,
                 );
 
@@ -659,6 +660,7 @@ impl BuiltInFunctionObject {
                     &FormalParameterList::default(),
                     &FunctionBody::default(),
                     context.realm().environment().compile_env(),
+                    context.realm().environment().compile_env(),
                     context,
                 );
 
@@ -679,6 +681,7 @@ impl BuiltInFunctionObject {
                 .compile(
                     &FormalParameterList::default(),
                     &FunctionBody::default(),
+                    context.realm().environment().compile_env(),
                     context.realm().environment().compile_env(),
                     context,
                 );

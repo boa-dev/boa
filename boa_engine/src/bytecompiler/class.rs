@@ -26,23 +26,28 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_class(&mut self, class: &Class, expression: bool) {
         let class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
 
-        let class_env = match class.name() {
+        let old_lex_env = match class.name() {
             Some(name) if class.has_binding_identifier() => {
+                let old_lex_env = self.lexical_environment.clone();
                 let env_index = self.push_compile_environment(false);
-                self.create_immutable_binding(name, true);
                 self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-                true
+                self.lexical_environment
+                    .create_immutable_binding(name, true);
+                Some(old_lex_env)
             }
-            _ => false,
+            _ => None,
         };
 
         let mut compiler = ByteCompiler::new(
             class_name,
             true,
             self.json_parse,
-            self.current_environment.clone(),
+            self.variable_environment.clone(),
+            self.lexical_environment.clone(),
             self.context,
         );
+
+        compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
 
         // Function environment
         let _ = compiler.push_compile_environment(true);
@@ -51,7 +56,7 @@ impl ByteCompiler<'_, '_> {
             compiler.length = expr.parameters().length();
             compiler.params = expr.parameters().clone();
 
-            let (env_label, _) = compiler.function_declaration_instantiation(
+            compiler.function_declaration_instantiation(
                 expr.body(),
                 expr.parameters(),
                 false,
@@ -61,23 +66,14 @@ impl ByteCompiler<'_, '_> {
 
             compiler.compile_statement_list(expr.body().statements(), false, false);
 
-            if env_label {
-                compiler.pop_compile_environment();
-            } else {
-                compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
-            }
             compiler.emit_opcode(Opcode::PushUndefined);
+        } else if class.super_ref().is_some() {
+            compiler.emit_opcode(Opcode::SuperCallDerived);
         } else {
-            if class.super_ref().is_some() {
-                compiler.emit_opcode(Opcode::SuperCallDerived);
-            } else {
-                compiler.emit_opcode(Opcode::RestParameterPop);
-                compiler.emit_opcode(Opcode::PushUndefined);
-            }
-            compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
+            compiler.emit_opcode(Opcode::RestParameterPop);
+            compiler.emit_opcode(Opcode::PushUndefined);
         }
         compiler.emit_opcode(Opcode::SetReturnValue);
-        compiler.pop_compile_environment();
 
         let code = Gc::new(compiler.finish());
         let index = self.functions.len() as u32;
@@ -117,9 +113,9 @@ impl ByteCompiler<'_, '_> {
         let mut static_elements = Vec::new();
         let mut static_field_name_count = 0;
 
-        if class_env {
+        if old_lex_env.is_some() {
             self.emit_opcode(Opcode::Dup);
-            self.emit_binding(BindingOpcode::InitConst, class_name.into());
+            self.emit_binding(BindingOpcode::InitLexical, class_name.into());
         }
 
         // TODO: set function name for getter and setters
@@ -277,7 +273,8 @@ impl ByteCompiler<'_, '_> {
                         Sym::EMPTY_STRING,
                         true,
                         self.json_parse,
-                        self.current_environment.clone(),
+                        self.variable_environment.clone(),
+                        self.lexical_environment.clone(),
                         self.context,
                     );
 
@@ -289,8 +286,6 @@ impl ByteCompiler<'_, '_> {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
                     field_compiler.emit_opcode(Opcode::SetReturnValue);
-
-                    field_compiler.pop_compile_environment();
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
@@ -311,7 +306,8 @@ impl ByteCompiler<'_, '_> {
                         class_name,
                         true,
                         self.json_parse,
-                        self.current_environment.clone(),
+                        self.variable_environment.clone(),
+                        self.lexical_environment.clone(),
                         self.context,
                     );
                     let _ = field_compiler.push_compile_environment(true);
@@ -320,8 +316,6 @@ impl ByteCompiler<'_, '_> {
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    field_compiler.pop_compile_environment();
-
                     field_compiler.emit_opcode(Opcode::SetReturnValue);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
@@ -355,7 +349,8 @@ impl ByteCompiler<'_, '_> {
                         class_name,
                         true,
                         self.json_parse,
-                        self.current_environment.clone(),
+                        self.variable_environment.clone(),
+                        self.lexical_environment.clone(),
                         self.context,
                     );
                     let _ = field_compiler.push_compile_environment(true);
@@ -365,8 +360,6 @@ impl ByteCompiler<'_, '_> {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
                     field_compiler.emit_opcode(Opcode::SetReturnValue);
-
-                    field_compiler.pop_compile_environment();
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
@@ -390,7 +383,8 @@ impl ByteCompiler<'_, '_> {
                         Sym::EMPTY_STRING,
                         true,
                         false,
-                        self.current_environment.clone(),
+                        self.variable_environment.clone(),
+                        self.lexical_environment.clone(),
                         self.context,
                     );
                     let _ = compiler.push_compile_environment(true);
@@ -404,7 +398,6 @@ impl ByteCompiler<'_, '_> {
                     );
 
                     compiler.compile_statement_list(body.statements(), false, false);
-                    compiler.pop_compile_environment();
 
                     let code = Gc::new(compiler.finish());
                     static_elements.push(StaticElement::StaticBlock(code));
@@ -589,8 +582,9 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::Swap);
         self.emit_opcode(Opcode::Pop);
 
-        if class_env {
+        if let Some(old_lex_env) = old_lex_env {
             self.pop_compile_environment();
+            self.lexical_environment = old_lex_env;
             self.emit_opcode(Opcode::PopEnvironment);
         }
 
