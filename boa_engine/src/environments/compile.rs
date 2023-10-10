@@ -30,12 +30,6 @@ pub(crate) struct CompileTimeEnvironment {
     function_scope: bool,
 }
 
-impl PartialEq for CompileTimeEnvironment {
-    fn eq(&self, other: &Self) -> bool {
-        self.environment_index == other.environment_index
-    }
-}
-
 // Safety: Nothing in this struct needs tracing, so this is safe.
 unsafe impl Trace for CompileTimeEnvironment {
     empty_trace!();
@@ -78,22 +72,27 @@ impl CompileTimeEnvironment {
 
     /// Get the binding locator for a binding with the given name.
     /// Fall back to the global environment if the binding is not found.
-    pub(crate) fn get_identifier_reference(&self, name: Identifier) -> (BindingLocator, bool) {
+    pub(crate) fn get_identifier_reference(&self, name: Identifier) -> IdentifierReference {
         if let Some(binding) = self.bindings.borrow().get(&name) {
-            (
+            IdentifierReference::new(
                 BindingLocator::declarative(name, self.environment_index, binding.index),
                 binding.lex,
             )
         } else if let Some(outer) = &self.outer {
             outer.get_identifier_reference(name)
         } else {
-            (BindingLocator::global(name), false)
+            IdentifierReference::new(BindingLocator::global(name), false)
         }
     }
 
     /// Returns the number of bindings in this environment.
     pub(crate) fn num_bindings(&self) -> u32 {
         self.bindings.borrow().len() as u32
+    }
+
+    /// Returns the index of this environment.
+    pub(crate) fn environment_index(&self) -> u32 {
+        self.environment_index
     }
 
     /// Check if the environment is a function environment.
@@ -199,5 +198,28 @@ impl CompileTimeEnvironment {
     /// Gets the outer environment of this environment.
     pub(crate) fn outer(&self) -> Option<Rc<Self>> {
         self.outer.clone()
+    }
+}
+
+/// A reference to an identifier in a compile time environment.
+pub(crate) struct IdentifierReference {
+    locator: BindingLocator,
+    lexical: bool,
+}
+
+impl IdentifierReference {
+    /// Create a new identifier reference.
+    pub(crate) fn new(locator: BindingLocator, lexical: bool) -> Self {
+        Self { locator, lexical }
+    }
+
+    /// Get the binding locator for this identifier reference.
+    pub(crate) fn locator(&self) -> BindingLocator {
+        self.locator
+    }
+
+    /// Check if this identifier reference is lexical.
+    pub(crate) fn is_lexical(&self) -> bool {
+        self.lexical
     }
 }

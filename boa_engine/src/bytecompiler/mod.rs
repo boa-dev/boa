@@ -413,8 +413,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     fn emit_binding(&mut self, opcode: BindingOpcode, name: Identifier) {
         match opcode {
             BindingOpcode::Var => {
-                let (binding, _) = self.variable_environment.get_identifier_reference(name);
-                let index = self.get_or_insert_binding(binding);
+                let binding = self.variable_environment.get_identifier_reference(name);
+                let index = self.get_or_insert_binding(binding.locator());
                 self.emit_with_varying_operand(Opcode::DefVar, index);
             }
             BindingOpcode::InitVar => match self.lexical_environment.set_mutable_binding(name) {
@@ -431,8 +431,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 }
             },
             BindingOpcode::InitLexical => {
-                let (binding, _) = self.lexical_environment.get_identifier_reference(name);
-                let index = self.get_or_insert_binding(binding);
+                let binding = self.lexical_environment.get_identifier_reference(name);
+                let index = self.get_or_insert_binding(binding.locator());
                 self.emit_with_varying_operand(Opcode::PutLexicalValue, index);
             }
             BindingOpcode::SetName => match self.lexical_environment.set_mutable_binding(name) {
@@ -690,8 +690,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) {
         match access {
             Access::Variable { name } => {
-                let (binding, _) = self.lexical_environment.get_identifier_reference(name);
-                let index = self.get_or_insert_binding(binding);
+                let binding = self.lexical_environment.get_identifier_reference(name);
+                let index = self.get_or_insert_binding(binding.locator());
                 self.emit_with_varying_operand(Opcode::GetName, index);
             }
             Access::Property { access } => match access {
@@ -755,10 +755,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     {
         match access {
             Access::Variable { name } => {
-                let (binding, lex) = self.lexical_environment.get_identifier_reference(name);
-                let index = self.get_or_insert_binding(binding);
+                let binding = self.lexical_environment.get_identifier_reference(name);
+                let index = self.get_or_insert_binding(binding.locator());
 
-                if !lex {
+                if !binding.is_lexical() {
                     self.emit_with_varying_operand(Opcode::GetLocator, index);
                 }
 
@@ -767,7 +767,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     self.emit(Opcode::Dup, &[]);
                 }
 
-                if lex {
+                if binding.is_lexical() {
                     match self.lexical_environment.set_mutable_binding(name) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
@@ -867,8 +867,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 }
             },
             Access::Variable { name } => {
-                let (binding, _) = self.lexical_environment.get_identifier_reference(name);
-                let index = self.get_or_insert_binding(binding);
+                let binding = self.lexical_environment.get_identifier_reference(name);
+                let index = self.get_or_insert_binding(binding.locator());
                 self.emit_with_varying_operand(Opcode::DeleteName, index);
             }
             Access::This => {
@@ -1171,6 +1171,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     /// Compile a [`Declaration`].
+    #[allow(unused_variables)]
     pub fn compile_decl(&mut self, decl: &Declaration, block: bool) {
         match decl {
             #[cfg(feature = "annex-b")]
@@ -1179,8 +1180,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     .name()
                     .expect("function declaration must have name");
                 if self.annex_b_function_names.contains(&name) {
-                    let (binding, _) = self.lexical_environment.get_identifier_reference(name);
-                    let index = self.get_or_insert_binding(binding);
+                    let binding = self.lexical_environment.get_identifier_reference(name);
+                    let index = self.get_or_insert_binding(binding.locator());
                     self.emit_with_varying_operand(Opcode::GetName, index);
 
                     match self.variable_environment.set_mutable_binding_var(name) {

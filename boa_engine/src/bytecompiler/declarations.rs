@@ -423,7 +423,7 @@ impl ByteCompiler<'_, '_> {
 
             // c. Assert: The following loop will terminate.
             // d. Repeat, while thisEnv is not varEnv,
-            while &this_env != var_env {
+            while this_env.environment_index() != var_env.environment_index() {
                 // i. If thisEnv is not an Object Environment Record, then
                 // 1. NOTE: The environment of with statements cannot contain any lexical
                 //    declaration so it doesn't need to be checked for var/let hoisting conflicts.
@@ -545,7 +545,7 @@ impl ByteCompiler<'_, '_> {
 
                     // 3. Assert: The following loop will terminate.
                     // 4. Repeat, while thisEnv is not varEnv,
-                    while &this_env != lex_env {
+                    while this_env.environment_index() != lex_env.environment_index() {
                         // a. If thisEnv is not an Object Environment Record, then
                         // i. If ! thisEnv.HasBinding(F) is true, then
                         if this_env.has_binding(f) {
