@@ -121,14 +121,14 @@
                         <span class="self">self</span>.class(cl, cl.name().is_none());
                         <span class="kw">if </span>cl.name().is_none() {
                             <span class="self">self</span>.emit_binding(
-                                BindingOpcode::InitLet,
+                                BindingOpcode::InitLexical,
                                 Identifier::from(Sym::DEFAULT_EXPORT),
                             );
                         }
                     }
                     ExportDeclaration::DefaultAssignmentExpression(expr) =&gt; {
                         <span class="kw">let </span>name = Identifier::from(Sym::DEFAULT_EXPORT);
-                        <span class="self">self</span>.create_mutable_binding(name, <span class="bool-val">false</span>);
+                        <span class="self">self</span>.lexical_environment.create_mutable_binding(name, <span class="bool-val">false</span>);
                         <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
 
                         <span class="kw">if </span>expr.is_anonymous_function_definition() {
@@ -141,7 +141,7 @@
                             <span class="self">self</span>.emit(Opcode::SetFunctionName, <span class="kw-2">&amp;</span>[Operand::U8(<span class="number">0</span>)]);
                         }
 
-                        <span class="self">self</span>.emit_binding(BindingOpcode::InitLet, name);
+                        <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, name);
                     }
                 }
             }

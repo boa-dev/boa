@@ -194,6 +194,9 @@
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{jump_control::JumpControlInfoFlags, ByteCompiler},
     vm::{BindingOpcode, Opcode},
@@ -307,20 +310,22 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_catch_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, catch: <span class="kw-2">&amp;</span>Catch, _has_finally: bool, use_expr: bool) {
         <span class="comment">// stack: exception
 
-        </span><span class="kw">let </span>env_index = <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+        </span><span class="kw">let </span>old_lex_env = <span class="self">self</span>.lexical_environment.clone();
+        <span class="kw">let </span>env_index = <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
         <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+        <span class="kw">let </span>env = <span class="self">self</span>.lexical_environment.clone();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = catch.parameter() {
             <span class="kw">match </span>binding {
                 Binding::Identifier(ident) =&gt; {
-                    <span class="self">self</span>.create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>);
-                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLet, <span class="kw-2">*</span>ident);
+                    env.create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>);
+                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
-                        <span class="self">self</span>.create_mutable_binding(ident, <span class="bool-val">false</span>);
+                        env.create_mutable_binding(ident, <span class="bool-val">false</span>);
                     }
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                 }
             }
         } <span class="kw">else </span>{
@@ -330,6 +335,7 @@
         <span class="self">self</span>.compile_catch_finally_block(catch.block(), use_expr);
 
         <span class="self">self</span>.pop_compile_environment();
+        <span class="self">self</span>.lexical_environment = old_lex_env;
         <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
     }
 

@@ -325,6 +325,17 @@
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
 <a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>function;
 <span class="kw">mod </span>global;
 <span class="kw">mod </span>lexical;
@@ -453,6 +464,17 @@
     <span class="doccomment">/// Poisons this environment for future binding searchs.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poison(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.kind.poison();
+    }
+
+    <span class="doccomment">/// Extends the environment with the bindings from the compile time environment.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extend_from_compile(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(env) = <span class="self">self</span>.kind().as_function() {
+            <span class="kw">let </span>compile_bindings_number = <span class="self">self</span>.compile_env().num_bindings() <span class="kw">as </span>usize;
+            <span class="kw">let </span><span class="kw-2">mut </span>bindings = env.poisonable_environment().bindings().borrow_mut();
+            <span class="kw">if </span>compile_bindings_number &gt; bindings.len() {
+                bindings.resize(compile_bindings_number, <span class="prelude-val">None</span>);
+            }
+        }
     }
 }
 

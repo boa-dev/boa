@@ -2249,7 +2249,6 @@
 <a href="#2249" id="2249">2249</a>
 <a href="#2250" id="2250">2250</a>
 <a href="#2251" id="2251">2251</a>
-<a href="#2252" id="2252">2252</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 
 <span class="doccomment">/// The opcodes of the vm.
@@ -4434,8 +4433,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>BindingOpcode {
     Var,
     InitVar,
-    InitLet,
-    InitConst,
+    InitLexical,
     SetName,
 }
 

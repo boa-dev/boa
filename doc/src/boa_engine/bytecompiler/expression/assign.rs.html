@@ -228,7 +228,6 @@
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler, Operand},
     environments::BindingLocatorError,
@@ -286,11 +285,10 @@
 
             <span class="kw">match </span>access {
                 Access::Variable { name } =&gt; {
-                    <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(name);
-                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="kw">let </span>lex = <span class="self">self</span>.current_environment.is_lex_binding(name);
+                    <span class="kw">let </span>binding = <span class="self">self</span>.lexical_environment.get_identifier_reference(name);
+                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
 
-                    <span class="kw">if </span>lex {
+                    <span class="kw">if </span>binding.is_lexical() {
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::GetName, index);
                     } <span class="kw">else </span>{
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::GetNameAndLocator, index);
@@ -306,8 +304,8 @@
                     <span class="kw">if </span>use_expr {
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
                     }
-                    <span class="kw">if </span>lex {
-                        <span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
+                    <span class="kw">if </span>binding.is_lexical() {
+                        <span class="kw">match </span><span class="self">self</span>.lexical_environment.set_mutable_binding(name) {
                             <span class="prelude-val">Ok</span>(binding) =&gt; {
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                                 <span class="self">self</span>.emit_with_varying_operand(Opcode::SetName, index);

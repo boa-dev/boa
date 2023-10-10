@@ -157,6 +157,10 @@
 <a href="#157" id="157">157</a>
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s Scripts.
 //!
 //! This module contains the [`Script`] type, which represents a [**Script Record**][script].
@@ -272,10 +276,14 @@
             <span class="self">self</span>.inner.source.strict(),
             <span class="bool-val">false</span>,
             <span class="self">self</span>.inner.realm.environment().compile_env(),
+            <span class="self">self</span>.inner.realm.environment().compile_env(),
             context,
         );
         <span class="comment">// TODO: move to `Script::evaluate` to make this operation infallible.
-        </span>compiler.global_declaration_instantiation(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.source)<span class="question-mark">?</span>;
+        </span>compiler.global_declaration_instantiation(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.source,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.realm.environment().compile_env(),
+        )<span class="question-mark">?</span>;
         compiler.compile_statement_list(<span class="self">self</span>.inner.source.statements(), <span class="bool-val">true</span>, <span class="bool-val">false</span>);
 
         <span class="kw">let </span>cb = Gc::new(compiler.finish());

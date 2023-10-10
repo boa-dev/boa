@@ -263,6 +263,10 @@
 <a href="#263" id="263">263</a>
 <a href="#264" id="264">264</a>
 <a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -489,31 +493,35 @@
             }
         });
 
+        <span class="kw">let </span>var_environment = context.vm.environments.outer_function_environment();
+        <span class="kw">let </span><span class="kw-2">mut </span>var_env = var_environment.compile_env();
+
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
             Sym::MAIN,
             body.strict(),
             <span class="bool-val">false</span>,
+            var_env.clone(),
             context.vm.environments.current_compile_environment(),
             context,
         );
 
         <span class="kw">let </span>env_index = compiler.push_compile_environment(strict);
         compiler.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+        <span class="kw">let </span>lex_env = compiler.lexical_environment.clone();
+        <span class="kw">if </span>strict {
+            var_env = lex_env.clone();
+            compiler.variable_environment = lex_env.clone();
+        }
 
-        compiler.eval_declaration_instantiation(<span class="kw-2">&amp;</span>body, strict)<span class="question-mark">?</span>;
+        compiler.eval_declaration_instantiation(<span class="kw-2">&amp;</span>body, strict, <span class="kw-2">&amp;</span>var_env, <span class="kw-2">&amp;</span>lex_env)<span class="question-mark">?</span>;
         compiler.compile_statement_list(body.statements(), <span class="bool-val">true</span>, <span class="bool-val">false</span>);
-
-        compiler.pop_compile_environment();
-        compiler.emit_opcode(Opcode::PopEnvironment);
 
         <span class="kw">let </span>code_block = Gc::new(compiler.finish());
 
-        <span class="comment">// Indirect calls don&#39;t need extensions, because a non-strict indirect call modifies only
-        // the global object.
-        // Strict direct calls also don&#39;t need extensions, since all strict eval calls push a new
+        <span class="comment">// Strict calls don&#39;t need extensions, since all strict eval calls push a new
         // function environment before evaluating.
-        </span><span class="kw">if </span>direct &amp;&amp; !strict {
-            context.vm.environments.extend_outer_function_environment();
+        </span><span class="kw">if </span>!strict {
+            var_environment.extend_from_compile();
         }
 
         <span class="kw">let </span>env_fp = context.vm.environments.len() <span class="kw">as </span>u32;

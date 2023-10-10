@@ -49,6 +49,8 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     expression::operator::{unary::UnaryOp, Unary},
     Expression,
@@ -78,8 +80,10 @@
             UnaryOp::TypeOf =&gt; {
                 <span class="kw">match </span>unary.target().flatten() {
                     Expression::Identifier(identifier) =&gt; {
-                        <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(<span class="kw-2">*</span>identifier);
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                        <span class="kw">let </span>binding = <span class="self">self
+                            </span>.lexical_environment
+                            .get_identifier_reference(<span class="kw-2">*</span>identifier);
+                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::GetNameOrUndefined, index);
                     }
                     expr =&gt; <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>),

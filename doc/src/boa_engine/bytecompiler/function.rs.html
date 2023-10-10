@@ -170,11 +170,6 @@
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
@@ -259,14 +254,22 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         parameters: <span class="kw-2">&amp;</span>FormalParameterList,
         body: <span class="kw-2">&amp;</span>FunctionBody,
-        outer_env: Rc&lt;CompileTimeEnvironment&gt;,
+        variable_environment: Rc&lt;CompileTimeEnvironment&gt;,
+        lexical_environment: Rc&lt;CompileTimeEnvironment&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Gc&lt;CodeBlock&gt; {
         <span class="self">self</span>.strict = <span class="self">self</span>.strict || body.strict();
 
         <span class="kw">let </span>length = parameters.length();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(<span class="self">self</span>.name, <span class="self">self</span>.strict, <span class="bool-val">false</span>, outer_env, context);
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
+            <span class="self">self</span>.name,
+            <span class="self">self</span>.strict,
+            <span class="bool-val">false</span>,
+            variable_environment,
+            lexical_environment,
+            context,
+        );
         compiler.length = length;
         compiler.in_async = <span class="self">self</span>.r#async;
         compiler.in_generator = <span class="self">self</span>.generator;
@@ -278,7 +281,9 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding_identifier) = <span class="self">self</span>.binding_identifier {
             compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
             <span class="kw">let _ </span>= compiler.push_compile_environment(<span class="bool-val">false</span>);
-            compiler.create_immutable_binding(binding_identifier.into(), <span class="self">self</span>.strict);
+            compiler
+                .lexical_environment
+                .create_immutable_binding(binding_identifier.into(), <span class="self">self</span>.strict);
         }
 
         <span class="comment">// Function environment
@@ -309,7 +314,7 @@
             </span>compiler.async_handler = <span class="prelude-val">Some</span>(compiler.push_handler());
         }
 
-        <span class="kw">let </span>(env_label, additional_env) = compiler.function_declaration_instantiation(
+        compiler.function_declaration_instantiation(
             body,
             parameters,
             <span class="self">self</span>.arrow,
@@ -331,21 +336,6 @@
         }
 
         compiler.compile_statement_list(body.statements(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
-
-        <span class="kw">if </span>env_label {
-            compiler.pop_compile_environment();
-        }
-
-        <span class="kw">if </span>additional_env {
-            compiler.pop_compile_environment();
-            compiler.code_block_flags |= CodeBlockFlags::PARAMETERS_ENV_BINDINGS;
-        }
-
-        compiler.pop_compile_environment();
-
-        <span class="kw">if </span><span class="self">self</span>.binding_identifier.is_some() {
-            compiler.pop_compile_environment();
-        }
 
         compiler.params = parameters.clone();
 

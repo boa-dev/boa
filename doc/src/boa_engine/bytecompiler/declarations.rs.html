@@ -1197,9 +1197,32 @@
 <a href="#1197" id="1197">1197</a>
 <a href="#1198" id="1198">1198</a>
 <a href="#1199" id="1199">1199</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
+
+<span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
-    environments::BindingLocatorError,
+    environments::CompileTimeEnvironment,
     vm::{
         create_function_object_fast, create_generator_function_object, BindingOpcode,
         CodeBlockFlags, Opcode,
@@ -1231,7 +1254,11 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_declaration_instantiation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, script: <span class="kw-2">&amp;</span>Script) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_declaration_instantiation(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        script: <span class="kw-2">&amp;</span>Script,
+        env: <span class="kw-2">&amp;</span>Rc&lt;CompileTimeEnvironment&gt;,
+    ) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. Let lexNames be the LexicallyDeclaredNames of script.
         </span><span class="kw">let </span>lex_names = lexically_declared_names(script);
 
@@ -1242,9 +1269,8 @@
         </span><span class="kw">for </span>name <span class="kw">in </span>lex_names {
             <span class="comment">// Note: Our implementation differs from the spec here.
             // a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
-
             // b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            </span><span class="kw">if </span><span class="self">self</span>.has_binding(name) {
+            </span><span class="kw">if </span>env.has_binding(name) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
                     .with_message(<span class="string">&quot;duplicate lexical declaration&quot;</span>)
                     .into());
@@ -1264,7 +1290,7 @@
         <span class="comment">// 4. For each element name of varNames, do
         </span><span class="kw">for </span>name <span class="kw">in </span>var_names {
             <span class="comment">// a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            </span><span class="kw">if </span><span class="self">self</span>.has_binding(name) {
+            </span><span class="kw">if </span>env.has_lex_binding(name) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
                     .with_message(<span class="string">&quot;duplicate lexical declaration&quot;</span>)
                     .into());
@@ -1375,7 +1401,7 @@
                 //    would not produce any Early Errors for script, then
                 </span><span class="kw">if </span>!lex_names.contains(<span class="kw-2">&amp;</span>f) {
                     <span class="comment">// a. If env.HasLexicalDeclaration(F) is false, then
-                    </span><span class="kw">if </span>!<span class="self">self</span>.current_environment.has_lex_binding(f) {
+                    </span><span class="kw">if </span>!env.has_lex_binding(f) {
                         <span class="comment">// i. Let fnDefinable be ? env.CanDeclareGlobalVar(F).
                         </span><span class="kw">let </span>fn_definable = <span class="self">self</span>.context.can_declare_global_function(f)<span class="question-mark">?</span>;
 
@@ -1421,17 +1447,17 @@
                 <span class="kw">match </span>declaration {
                     Declaration::Class(class) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
-                            <span class="self">self</span>.create_mutable_binding(name, <span class="bool-val">false</span>);
+                            env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
-                            <span class="self">self</span>.create_mutable_binding(name, <span class="bool-val">false</span>);
+                            env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
-                            <span class="self">self</span>.create_immutable_binding(name, <span class="bool-val">true</span>);
+                            env.create_immutable_binding(name, <span class="bool-val">true</span>);
                         }
                     }
                     <span class="kw">_ </span>=&gt; {}
@@ -1470,7 +1496,8 @@
                 .compile(
                     parameters,
                     body,
-                    <span class="self">self</span>.current_environment.clone(),
+                    <span class="self">self</span>.variable_environment.clone(),
+                    <span class="self">self</span>.lexical_environment.clone(),
                     <span class="self">self</span>.context,
                 );
 
@@ -1505,12 +1532,13 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-blockdeclarationinstantiation
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>block_declaration_instantiation&lt;<span class="lifetime">&#39;a</span>, N&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N)
-    <span class="kw">where
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>block_declaration_instantiation&lt;<span class="lifetime">&#39;a</span>, N&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        block: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N,
+        env: <span class="kw-2">&amp;</span>Rc&lt;CompileTimeEnvironment&gt;,
+    ) <span class="kw">where
         </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
     {
-        <span class="kw">let </span>env = <span class="kw-2">&amp;</span><span class="self">self</span>.current_environment;
-
         <span class="comment">// 1. Let declarations be the LexicallyScopedDeclarations of code.
         </span><span class="kw">let </span>declarations = lexically_scoped_declarations(block);
 
@@ -1585,14 +1613,9 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         body: <span class="kw-2">&amp;</span>Script,
         strict: bool,
+        var_env: <span class="kw-2">&amp;</span>Rc&lt;CompileTimeEnvironment&gt;,
+        lex_env: <span class="kw-2">&amp;</span>Rc&lt;CompileTimeEnvironment&gt;,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>var_environment_is_global = <span class="self">self
-            </span>.context
-            .vm
-            .environments
-            .is_next_outer_function_environment_global()
-            &amp;&amp; !strict;
-
         <span class="comment">// 2. Let varDeclarations be the VarScopedDeclarations of body.
         </span><span class="kw">let </span>var_declarations = var_scoped_declarations(body);
 
@@ -1602,30 +1625,47 @@
             </span><span class="kw">let </span>var_names = var_declared_names(body);
 
             <span class="comment">// a. If varEnv is a Global Environment Record, then
-            //      i. For each element name of varNames, do
-            //          1. If varEnv.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            //          2. NOTE: eval will not create a global var declaration that would be shadowed by a global lexical declaration.
-            // b. Let thisEnv be lexEnv.
-            // c. Assert: The following loop will terminate.
+            </span><span class="kw">if </span>var_env.is_global() {
+                <span class="comment">// i. For each element name of varNames, do
+                </span><span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>var_names {
+                    <span class="comment">// 1. If varEnv.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+                    // 2. NOTE: eval will not create a global var declaration that would be shadowed by a global lexical declaration.
+                    </span><span class="kw">if </span>var_env.has_lex_binding(<span class="kw-2">*</span>name) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                            .with_message(<span class="string">&quot;duplicate lexical declaration&quot;</span>)
+                            .into());
+                    }
+                }
+            }
+
+            <span class="comment">// b. Let thisEnv be lexEnv.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>this_env = lex_env.clone();
+
+            <span class="comment">// c. Assert: The following loop will terminate.
             // d. Repeat, while thisEnv is not varEnv,
-            //     i. If thisEnv is not an Object Environment Record, then
-            //         1. NOTE: The environment of with statements cannot contain any lexical
-            //            declaration so it doesn&#39;t need to be checked for var/let hoisting conflicts.
-            //         2. For each element name of varNames, do
-            //             a. If ! thisEnv.HasBinding(name) is true, then
-            //                 i. Throw a SyntaxError exception.
-            //                 ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
-            //             b. NOTE: A direct eval will not hoist var declaration over a like-named lexical declaration.
-            //     ii. Set thisEnv to thisEnv.[[OuterEnv]].
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <span class="self">self
-                </span>.context
-                .vm
-                .environments
-                .has_lex_binding_until_function_environment(<span class="kw-2">&amp;</span>var_names)
-            {
-                <span class="kw">let </span>name = <span class="self">self</span>.context.interner().resolve_expect(name.sym());
-                <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;variable declaration {name} in eval function already exists as a lexical variable&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(msg).into());
+            </span><span class="kw">while </span>this_env.environment_index() != var_env.environment_index() {
+                <span class="comment">// i. If thisEnv is not an Object Environment Record, then
+                // 1. NOTE: The environment of with statements cannot contain any lexical
+                //    declaration so it doesn&#39;t need to be checked for var/let hoisting conflicts.
+                // 2. For each element name of varNames, do
+                </span><span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>var_names {
+                    <span class="comment">// a. If ! thisEnv.HasBinding(name) is true, then
+                    </span><span class="kw">if </span>this_env.has_binding(<span class="kw-2">*</span>name) {
+                        <span class="comment">// i. Throw a SyntaxError exception.
+                        // ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
+                        </span><span class="kw">let </span>name = <span class="self">self</span>.context.interner().resolve_expect(name.sym());
+                        <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;variable declaration {name} in eval function already exists as a lexical variable&quot;</span>);
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(msg).into());
+                    }
+                    <span class="comment">// b. NOTE: A direct eval will not hoist var declaration over a like-named lexical declaration.
+                </span>}
+
+                <span class="comment">// ii. Set thisEnv to thisEnv.[[OuterEnv]].
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(outer) = this_env.outer() {
+                    this_env = outer;
+                } <span class="kw">else </span>{
+                    <span class="kw">break</span>;
+                }
             }
         }
 
@@ -1681,7 +1721,7 @@
             <span class="comment">// a.iv. If declaredFunctionNames does not contain fn, then
             </span><span class="kw">if </span>!declared_function_names.contains(<span class="kw-2">&amp;</span>name) {
                 <span class="comment">// 1. If varEnv is a Global Environment Record, then
-                </span><span class="kw">if </span>var_environment_is_global {
+                </span><span class="kw">if </span>var_env.is_global() {
                     <span class="comment">// a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
                     </span><span class="kw">let </span>fn_definable = <span class="self">self</span>.context.can_declare_global_function(name)<span class="question-mark">?</span>;
 
@@ -1718,20 +1758,35 @@
                 //     as a BindingIdentifier would not produce any Early Errors for body, then
                 </span><span class="kw">if </span>!lexically_declared_names.contains(<span class="kw-2">&amp;</span>f) {
                     <span class="comment">// 1. Let bindingExists be false.
-                    // 2. Let thisEnv be lexEnv.
-                    // 3. Assert: The following loop will terminate.
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>binding_exists = <span class="bool-val">false</span>;
+
+                    <span class="comment">// 2. Let thisEnv be lexEnv.
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>this_env = lex_env.clone();
+
+                    <span class="comment">// 3. Assert: The following loop will terminate.
                     // 4. Repeat, while thisEnv is not varEnv,
-                    // a. If thisEnv is not an Object Environment Record, then
-                    // i. If ! thisEnv.HasBinding(F) is true, then
-                    // i. Let bindingExists be true.
-                    // b. Set thisEnv to thisEnv.[[OuterEnv]].
-                    </span><span class="kw">let </span>binding_exists = <span class="self">self</span>.has_binding_until_var(f);
+                    </span><span class="kw">while </span>this_env.environment_index() != lex_env.environment_index() {
+                        <span class="comment">// a. If thisEnv is not an Object Environment Record, then
+                        // i. If ! thisEnv.HasBinding(F) is true, then
+                        </span><span class="kw">if </span>this_env.has_binding(f) {
+                            <span class="comment">// i. Let bindingExists be true.
+                            </span>binding_exists = <span class="bool-val">true</span>;
+                            <span class="kw">break</span>;
+                        }
+
+                        <span class="comment">// b. Set thisEnv to thisEnv.[[OuterEnv]].
+                        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(outer) = this_env.outer() {
+                            this_env = outer;
+                        } <span class="kw">else </span>{
+                            <span class="kw">break</span>;
+                        }
+                    }
 
                     <span class="comment">// 5. If bindingExists is false and varEnv is a Global Environment Record, then
-                    </span><span class="kw">let </span>fn_definable = <span class="kw">if </span>!binding_exists &amp;&amp; var_environment_is_global {
+                    </span><span class="kw">let </span>fn_definable = <span class="kw">if </span>!binding_exists &amp;&amp; var_env.is_global() {
                         <span class="comment">// a. If varEnv.HasLexicalDeclaration(F) is false, then
                         // b. Else,
-                        </span><span class="kw">if </span><span class="self">self</span>.current_environment.has_lex_binding(f) {
+                        </span><span class="kw">if </span><span class="self">self</span>.variable_environment.has_lex_binding(f) {
                             <span class="comment">// i. Let fnDefinable be false.
                             </span><span class="bool-val">false
                         </span>} <span class="kw">else </span>{
@@ -1755,7 +1810,7 @@
                             </span>&amp;&amp; !function_names.contains(<span class="kw-2">&amp;</span>f)
                         {
                             <span class="comment">// i. If varEnv is a Global Environment Record, then
-                            </span><span class="kw">if </span>var_environment_is_global {
+                            </span><span class="kw">if </span>var_env.is_global() {
                                 <span class="comment">// i. Perform ? varEnv.CreateGlobalVarBinding(F, true).
                                 </span><span class="self">self</span>.context.create_global_var_binding(f, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                             }
@@ -1763,12 +1818,10 @@
                             </span><span class="kw">else </span>{
                                 <span class="comment">// i. Let bindingExists be ! varEnv.HasBinding(F).
                                 // ii. If bindingExists is false, then
-                                </span><span class="kw">if </span>!<span class="self">self</span>.has_binding(f) {
+                                </span><span class="kw">if </span>!var_env.has_binding(f) {
                                     <span class="comment">// i. Perform ! varEnv.CreateMutableBinding(F, true).
-                                    </span><span class="self">self</span>.create_mutable_binding(f, <span class="bool-val">true</span>);
-
-                                    <span class="comment">// ii. Perform ! varEnv.InitializeBinding(F, undefined).
-                                    </span><span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(f, <span class="bool-val">true</span>);
+                                    // ii. Perform ! varEnv.InitializeBinding(F, undefined).
+                                    </span><span class="kw">let </span>binding = var_env.create_mutable_binding(f, <span class="bool-val">true</span>);
                                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                                     <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -1807,7 +1860,7 @@
                 <span class="comment">// 1. If declaredFunctionNames does not contain vn, then
                 </span><span class="kw">if </span>!declared_function_names.contains(<span class="kw-2">&amp;</span>name) {
                     <span class="comment">// a. If varEnv is a Global Environment Record, then
-                    </span><span class="kw">if </span>var_environment_is_global {
+                    </span><span class="kw">if </span>var_env.is_global() {
                         <span class="comment">// i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
                         </span><span class="kw">let </span>vn_definable = <span class="self">self</span>.context.can_declare_global_var(name)<span class="question-mark">?</span>;
 
@@ -1844,17 +1897,17 @@
                 <span class="kw">match </span>declaration {
                     Declaration::Class(class) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
-                            <span class="self">self</span>.create_mutable_binding(name, <span class="bool-val">false</span>);
+                            lex_env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
-                            <span class="self">self</span>.create_mutable_binding(name, <span class="bool-val">false</span>);
+                            lex_env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
-                            <span class="self">self</span>.create_immutable_binding(name, <span class="bool-val">true</span>);
+                            lex_env.create_immutable_binding(name, <span class="bool-val">true</span>);
                         }
                     }
                     <span class="kw">_ </span>=&gt; {}
@@ -1892,12 +1945,13 @@
                 .compile(
                     parameters,
                     body,
-                    <span class="self">self</span>.context.vm.environments.current_compile_environment(),
+                    <span class="self">self</span>.variable_environment.clone(),
+                    <span class="self">self</span>.lexical_environment.clone(),
                     <span class="self">self</span>.context,
                 );
 
             <span class="comment">// c. If varEnv is a Global Environment Record, then
-            </span><span class="kw">if </span>var_environment_is_global {
+            </span><span class="kw">if </span>var_env.is_global() {
                 <span class="comment">// Ensures global functions are printed when generating the global flowgraph.
                 </span><span class="self">self</span>.functions.push(code.clone());
 
@@ -1934,31 +1988,20 @@
                 }
 
                 <span class="comment">// i. Let bindingExists be ! varEnv.HasBinding(fn).
-                </span><span class="kw">let </span>binding_exists = <span class="self">self</span>.has_binding_eval(name, strict);
+                </span><span class="kw">let </span>binding_exists = var_env.has_binding(name);
 
                 <span class="comment">// ii. If bindingExists is false, then
                 // iii. Else,
                 </span><span class="kw">if </span>binding_exists {
                     <span class="comment">// 1. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-                    </span><span class="kw">match </span><span class="self">self</span>.set_mutable_binding(name) {
-                        <span class="prelude-val">Ok</span>(binding) =&gt; {
-                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                            <span class="self">self</span>.emit_with_varying_operand(Opcode::SetName, index);
-                        }
-                        <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
-                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
-                            <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
-                        }
-                        <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
-                            <span class="self">self</span>.emit_opcode(Opcode::Pop);
-                        }
-                    }
+                    </span><span class="kw">let </span>binding = var_env.set_mutable_binding(name).expect(<span class="string">&quot;must not fail&quot;</span>);
+                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::SetName, index);
                 } <span class="kw">else </span>{
                     <span class="comment">// 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
                     // 2. Perform ! varEnv.CreateMutableBinding(fn, true).
                     // 3. Perform ! varEnv.InitializeBinding(fn, fo).
-                    </span><span class="self">self</span>.create_mutable_binding(name, !strict);
-                    <span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(name, !strict);
+                    </span><span class="kw">let </span>binding = var_env.create_mutable_binding(name, !strict);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                     <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
                 }
@@ -1968,22 +2011,21 @@
         <span class="comment">// 18. For each String vn of declaredVarNames, do
         </span><span class="kw">for </span>name <span class="kw">in </span>declared_var_names {
             <span class="comment">// a. If varEnv is a Global Environment Record, then
-            </span><span class="kw">if </span>var_environment_is_global {
+            </span><span class="kw">if </span>var_env.is_global() {
                 <span class="comment">// i. Perform ? varEnv.CreateGlobalVarBinding(vn, true).
                 </span><span class="self">self</span>.context.create_global_var_binding(name, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
             }
             <span class="comment">// b. Else,
             </span><span class="kw">else </span>{
                 <span class="comment">// i. Let bindingExists be ! varEnv.HasBinding(vn).
-                </span><span class="kw">let </span>binding_exists = <span class="self">self</span>.has_binding_eval(name, strict);
+                </span><span class="kw">let </span>binding_exists = var_env.has_binding(name);
 
                 <span class="comment">// ii. If bindingExists is false, then
                 </span><span class="kw">if </span>!binding_exists {
                     <span class="comment">// 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
                     // 2. Perform ! varEnv.CreateMutableBinding(vn, true).
                     // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
-                    </span><span class="self">self</span>.create_mutable_binding(name, !strict);
-                    <span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(name, !strict);
+                    </span><span class="kw">let </span>binding = var_env.create_mutable_binding(name, <span class="bool-val">true</span>);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                     <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -2008,10 +2050,7 @@
         arrow: bool,
         strict: bool,
         generator: bool,
-    ) -&gt; (bool, bool) {
-        <span class="kw">let </span><span class="kw-2">mut </span>env_label = <span class="bool-val">false</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>additional_env = <span class="bool-val">false</span>;
-
+    ) {
         <span class="comment">// 1. Let calleeContext be the running execution context.
         // 2. Let code be func.[[ECMAScriptCode]].
         // 3. Let strict be func.[[Strict]].
@@ -2098,11 +2137,13 @@
         }
 
         <span class="comment">// 19. If strict is true or hasParameterExpressions is false, then
-        //     a. NOTE: Only a single Environment Record is needed for the parameters,
-        //        since calls to eval in strict mode code cannot create new bindings which are visible outside of the eval.
-        //     b. Let env be the LexicalEnvironment of calleeContext.
-        // 20. Else,
-        </span><span class="kw">if </span>!strict &amp;&amp; has_parameter_expressions {
+        </span><span class="kw">if </span>strict || !has_parameter_expressions {
+            <span class="comment">// a. NOTE: Only a single Environment Record is needed for the parameters,
+            //    since calls to eval in strict mode code cannot create new bindings which are visible outside of the eval.
+            // b. Let env be the LexicalEnvironment of calleeContext.
+        </span>}
+        <span class="comment">// 20. Else,
+        </span><span class="kw">else </span>{
             <span class="comment">// a. NOTE: A separate Environment Record is needed to ensure that bindings created by
             //    direct eval calls in the formal parameter list are outside the environment where parameters are declared.
             // b. Let calleeEnv be the LexicalEnvironment of calleeContext.
@@ -2110,8 +2151,10 @@
             // d. Assert: The VariableEnvironment of calleeContext is calleeEnv.
             // e. Set the LexicalEnvironment of calleeContext to env.
             </span><span class="kw">let _ </span>= <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
-            additional_env = <span class="bool-val">true</span>;
-        }
+            <span class="self">self</span>.code_block_flags |= CodeBlockFlags::PARAMETERS_ENV_BINDINGS;
+        };
+
+        <span class="kw">let </span>env = <span class="self">self</span>.lexical_environment.clone();
 
         <span class="comment">// 22. If argumentsObjectNeeded is true, then
         //
@@ -2132,12 +2175,12 @@
                 <span class="comment">// i. Perform ! env.CreateImmutableBinding(&quot;arguments&quot;, false).
                 // ii. NOTE: In strict mode code early errors prevent attempting to assign
                 //           to this binding, so its mutability is not observable.
-                </span><span class="self">self</span>.create_immutable_binding(arguments, <span class="bool-val">false</span>);
+                </span>env.create_immutable_binding(arguments, <span class="bool-val">false</span>);
             }
             <span class="comment">// d. Else,
             </span><span class="kw">else </span>{
                 <span class="comment">// i. Perform ! env.CreateMutableBinding(&quot;arguments&quot;, false).
-                </span><span class="self">self</span>.create_mutable_binding(arguments, <span class="bool-val">false</span>);
+                </span>env.create_mutable_binding(arguments, <span class="bool-val">false</span>);
             }
 
             <span class="self">self</span>.code_block_flags |= CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT;
@@ -2146,7 +2189,7 @@
         <span class="comment">// 21. For each String paramName of parameterNames, do
         </span><span class="kw">for </span>param_name <span class="kw">in </span><span class="kw-2">&amp;</span>parameter_names {
             <span class="comment">// a. Let alreadyDeclared be ! env.HasBinding(paramName).
-            </span><span class="kw">let </span>already_declared = <span class="self">self</span>.has_binding(<span class="kw-2">*</span>param_name);
+            </span><span class="kw">let </span>already_declared = env.has_binding(<span class="kw-2">*</span>param_name);
 
             <span class="comment">// b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict
             //    functions that do not have parameter default values or rest parameters.
@@ -2154,7 +2197,7 @@
             // c. If alreadyDeclared is false, then
             </span><span class="kw">if </span>!already_declared {
                 <span class="comment">// i. Perform ! env.CreateMutableBinding(paramName, false).
-                </span><span class="self">self</span>.create_mutable_binding(<span class="kw-2">*</span>param_name, <span class="bool-val">false</span>);
+                </span>env.create_mutable_binding(<span class="kw-2">*</span>param_name, <span class="bool-val">false</span>);
 
                 <span class="comment">// Note: These steps are not necessary in our implementation.
                 // ii. If hasDuplicates is true, then
@@ -2190,24 +2233,20 @@
             }
             <span class="kw">match </span>parameter.variable().binding() {
                 Binding::Identifier(ident) =&gt; {
-                    <span class="self">self</span>.create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = parameter.variable().init() {
                         <span class="kw">let </span>skip = <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                         <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                         <span class="self">self</span>.patch_jump(skip);
                     }
-                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLet, <span class="kw-2">*</span>ident);
+                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
-                    <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
-                        <span class="self">self</span>.create_mutable_binding(ident, <span class="bool-val">false</span>);
-                    }
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = parameter.variable().init() {
                         <span class="kw">let </span>skip = <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                         <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                         <span class="self">self</span>.patch_jump(skip);
                     }
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                 }
             }
         }
@@ -2223,7 +2262,7 @@
         <span class="comment">// 27. If hasParameterExpressions is false, then
         // 28. Else,
         </span><span class="attr">#[allow(unused_variables, unused_mut)]
-        </span><span class="kw">let </span><span class="kw-2">mut </span>instantiated_var_names = <span class="kw">if </span>has_parameter_expressions {
+        </span><span class="kw">let </span>(<span class="kw-2">mut </span>instantiated_var_names, <span class="kw-2">mut </span>var_env) = <span class="kw">if </span>has_parameter_expressions {
             <span class="comment">// a. NOTE: A separate Environment Record is needed to ensure that closures created by
             //          expressions in the formal parameter list do not have
             //          visibility of declarations in the function body.
@@ -2231,7 +2270,8 @@
             // c. Set the VariableEnvironment of calleeContext to varEnv.
             </span><span class="kw">let </span>env_index = <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
             <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-            env_label = <span class="bool-val">true</span>;
+
+            <span class="kw">let </span><span class="kw-2">mut </span>var_env = <span class="self">self</span>.lexical_environment.clone();
 
             <span class="comment">// d. Let instantiatedVarNames be a new empty List.
             </span><span class="kw">let </span><span class="kw-2">mut </span>instantiated_var_names = Vec::new();
@@ -2244,7 +2284,7 @@
                     </span>instantiated_var_names.push(n);
 
                     <span class="comment">// 2. Perform ! varEnv.CreateMutableBinding(n, false).
-                    </span><span class="self">self</span>.create_mutable_binding(n, <span class="bool-val">true</span>);
+                    </span><span class="kw">let </span>binding = var_env.create_mutable_binding(n, <span class="bool-val">false</span>);
 
                     <span class="comment">// 3. If parameterBindings does not contain n, or if functionNames contains n, then
                     </span><span class="kw">if </span>!parameter_bindings.contains(<span class="kw-2">&amp;</span>n) || function_names.contains(<span class="kw-2">&amp;</span>n) {
@@ -2254,14 +2294,13 @@
                     <span class="comment">// 4. Else,
                     </span><span class="kw">else </span>{
                         <span class="comment">// a. Let initialValue be ! env.GetBindingValue(n, false).
-                        </span><span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(n);
+                        </span><span class="kw">let </span>binding = env.get_binding(n).expect(<span class="string">&quot;must have binding&quot;</span>);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::GetName, index);
                     }
 
                     <span class="comment">// 5. Perform ! varEnv.InitializeBinding(n, initialValue).
-                    </span><span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(n, <span class="bool-val">true</span>);
-                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                    </span><span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                     <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
 
@@ -2270,7 +2309,7 @@
                 </span>}
             }
 
-            instantiated_var_names
+            (instantiated_var_names, var_env)
         } <span class="kw">else </span>{
             <span class="comment">// a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
             // b. Let instantiatedVarNames be a copy of the List parameterBindings.
@@ -2284,10 +2323,8 @@
                     </span>instantiated_var_names.push(n);
 
                     <span class="comment">// 2. Perform ! env.CreateMutableBinding(n, false).
-                    </span><span class="self">self</span>.create_mutable_binding(n, <span class="bool-val">true</span>);
-
-                    <span class="comment">// 3. Perform ! env.InitializeBinding(n, undefined).
-                    </span><span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(n, <span class="bool-val">true</span>);
+                    // 3. Perform ! env.InitializeBinding(n, undefined).
+                    </span><span class="kw">let </span>binding = env.create_mutable_binding(n, <span class="bool-val">true</span>);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                     <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -2295,7 +2332,7 @@
             }
 
             <span class="comment">// d. Let varEnv be env.
-            </span>instantiated_var_names
+            </span>(instantiated_var_names, env)
         };
 
         <span class="comment">// 29. NOTE: Annex B.3.2.1 adds additional steps at this point.
@@ -2316,10 +2353,8 @@
                     // 2. If initializedBindings does not contain F and F is not &quot;arguments&quot;, then
                     </span><span class="kw">if </span>!instantiated_var_names.contains(<span class="kw-2">&amp;</span>f) &amp;&amp; f != arguments {
                         <span class="comment">// a. Perform ! varEnv.CreateMutableBinding(F, false).
-                        </span><span class="self">self</span>.create_mutable_binding(f, <span class="bool-val">true</span>);
-
-                        <span class="comment">// b. Perform ! varEnv.InitializeBinding(F, undefined).
-                        </span><span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(f, <span class="bool-val">true</span>);
+                        // b. Perform ! varEnv.InitializeBinding(F, undefined).
+                        </span><span class="kw">let </span>binding = var_env.create_mutable_binding(f, <span class="bool-val">false</span>);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                         <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -2341,15 +2376,23 @@
         }
 
         <span class="comment">// 30. If strict is false, then
-        // 30.a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
-        // 30.b. NOTE: Non-strict functions use a separate Environment Record for top-level lexical
-        //      declarations so that a direct eval can determine whether any var scoped declarations
-        //      introduced by the eval code conflict with pre-existing top-level lexically scoped declarations.
-        //      This is not needed for strict functions because a strict direct eval always
-        //      places all declarations into a new Environment Record.
         // 31. Else,
-        //     a. Let lexEnv be varEnv.
-        // 32. Set the LexicalEnvironment of calleeContext to lexEnv.
+        </span><span class="kw">let </span>lex_env = <span class="kw">if </span>strict {
+            <span class="comment">// a. Let lexEnv be varEnv.
+            </span>var_env
+        } <span class="kw">else </span>{
+            <span class="comment">// a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
+            // b. NOTE: Non-strict functions use a separate Environment Record for top-level lexical
+            //    declarations so that a direct eval can determine whether any var scoped declarations
+            //    introduced by the eval code conflict with pre-existing top-level lexically scoped declarations.
+            //    This is not needed for strict functions because a strict direct eval always
+            //    places all declarations into a new Environment Record.
+            </span><span class="kw">let </span>env_index = <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+            <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+            <span class="self">self</span>.lexical_environment.clone()
+        };
+
+        <span class="comment">// 32. Set the LexicalEnvironment of calleeContext to lexEnv.
 
         // 33. Let lexDeclarations be the LexicallyScopedDeclarations of code.
         // 34. For each element d of lexDeclarations, do
@@ -2365,17 +2408,17 @@
                 <span class="kw">match </span>declaration {
                     Declaration::Class(class) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
-                            <span class="self">self</span>.create_mutable_binding(name, <span class="bool-val">false</span>);
+                            lex_env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
-                            <span class="self">self</span>.create_mutable_binding(name, <span class="bool-val">false</span>);
+                            lex_env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
-                            <span class="self">self</span>.create_immutable_binding(name, <span class="bool-val">true</span>);
+                            lex_env.create_immutable_binding(name, <span class="bool-val">true</span>);
                         }
                     }
                     <span class="kw">_ </span>=&gt; {}
@@ -2393,7 +2436,6 @@
         }
 
         <span class="comment">// 37. Return unused.
-        </span>(env_label, additional_env)
-    }
+    </span>}
 }
 </code></pre></div></section></main></body></html>

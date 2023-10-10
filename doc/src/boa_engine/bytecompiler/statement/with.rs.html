@@ -15,6 +15,8 @@
 <a href="#15" id="15">15</a>
 <a href="#16" id="16">16</a>
 <a href="#17" id="17">17</a>
+<a href="#18" id="18">18</a>
+<a href="#19" id="19">19</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 <span class="kw">use </span>boa_ast::statement::With;
 
@@ -23,12 +25,14 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, with: <span class="kw-2">&amp;</span>With, use_expr: bool) {
         <span class="self">self</span>.compile_expr(with.expression(), <span class="bool-val">true</span>);
 
+        <span class="kw">let </span>old_lex_env = <span class="self">self</span>.lexical_environment.clone();
         <span class="kw">let _ </span>= <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
         <span class="self">self</span>.emit_opcode(Opcode::PushObjectEnvironment);
 
         <span class="self">self</span>.compile_stmt(with.statement(), use_expr, <span class="bool-val">true</span>);
 
         <span class="self">self</span>.pop_compile_environment();
+        <span class="self">self</span>.lexical_environment = old_lex_env;
         <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
     }
 }

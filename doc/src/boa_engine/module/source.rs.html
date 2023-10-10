@@ -1977,12 +1977,6 @@
 <a href="#1977" id="1977">1977</a>
 <a href="#1978" id="1978">1978</a>
 <a href="#1979" id="1979">1979</a>
-<a href="#1980" id="1980">1980</a>
-<a href="#1981" id="1981">1981</a>
-<a href="#1982" id="1982">1982</a>
-<a href="#1983" id="1983">1983</a>
-<a href="#1984" id="1984">1984</a>
-<a href="#1985" id="1985">1985</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -3395,10 +3389,10 @@
         // 6. Set module.[[Environment]] to env.
         </span><span class="kw">let </span>global_env = realm.environment().clone();
         <span class="kw">let </span>global_compile_env = global_env.compile_env();
-        <span class="kw">let </span>module_compile_env = Rc::new(CompileTimeEnvironment::new(global_compile_env, <span class="bool-val">true</span>));
+        <span class="kw">let </span>env = Rc::new(CompileTimeEnvironment::new(global_compile_env, <span class="bool-val">true</span>));
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler =
-            ByteCompiler::new(Sym::MAIN, <span class="bool-val">true</span>, <span class="bool-val">false</span>, module_compile_env.clone(), context);
+            ByteCompiler::new(Sym::MAIN, <span class="bool-val">true</span>, <span class="bool-val">false</span>, env.clone(), env.clone(), context);
 
         compiler.in_async = <span class="bool-val">true</span>;
         compiler.async_handler = <span class="prelude-val">Some</span>(compiler.push_handler());
@@ -3434,8 +3428,7 @@
 
                     <span class="comment">// 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    </span>compiler.create_immutable_binding(entry.local_name(), <span class="bool-val">true</span>);
-                    <span class="kw">let </span>locator = compiler.initialize_immutable_binding(entry.local_name());
+                    </span><span class="kw">let </span>locator = env.create_immutable_binding(entry.local_name(), <span class="bool-val">true</span>);
 
                     <span class="kw">if let </span>BindingName::Name(<span class="kw">_</span>) = resolution.binding_name {
                         <span class="comment">// 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
@@ -3456,9 +3449,8 @@
                 } <span class="kw">else </span>{
                     <span class="comment">// b. If in.[[ImportName]] is namespace-object, then
                     //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
-                    </span>compiler.create_immutable_binding(entry.local_name(), <span class="bool-val">true</span>);
-                    <span class="comment">//    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    </span><span class="kw">let </span>locator = compiler.initialize_immutable_binding(entry.local_name());
+                    //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
+                    </span><span class="kw">let </span>locator = env.create_immutable_binding(entry.local_name(), <span class="bool-val">true</span>);
 
                     <span class="comment">//    i. Let namespace be GetModuleNamespace(importedModule).
                     //       deferred to initialization below
@@ -3481,12 +3473,12 @@
                     <span class="comment">// i. If declaredVarNames does not contain dn, then
                     </span><span class="kw">if </span>!declared_var_names.contains(<span class="kw-2">&amp;</span>name) {
                         <span class="comment">// 1. Perform ! env.CreateMutableBinding(dn, false).
-                        </span>compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        <span class="comment">// 2. Perform ! env.InitializeBinding(dn, undefined).
-                        </span><span class="kw">let </span>binding = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
+                        // 2. Perform ! env.InitializeBinding(dn, undefined).
+                        </span><span class="kw">let </span>binding = env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         <span class="kw">let </span>index = compiler.get_or_insert_binding(binding);
                         compiler.emit_opcode(Opcode::PushUndefined);
                         compiler.emit_with_varying_operand(Opcode::DefInitVar, index);
+
                         <span class="comment">// 3. Append dn to declaredVarNames.
                         </span>declared_var_names.push(name);
                     }
@@ -3512,35 +3504,31 @@
                 </span><span class="kw">let </span>(spec, locator): (FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw">_</span>) = <span class="kw">match </span>declaration {
                     LexicallyScopedDeclaration::Function(f) =&gt; {
                         <span class="kw">let </span>name = bound_names(f)[<span class="number">0</span>];
-                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        <span class="kw">let </span>locator = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
+                        <span class="kw">let </span>locator = env.create_mutable_binding(name, <span class="bool-val">false</span>);
 
                         (f.into(), locator)
                     }
                     LexicallyScopedDeclaration::Generator(g) =&gt; {
                         <span class="kw">let </span>name = bound_names(g)[<span class="number">0</span>];
-                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        <span class="kw">let </span>locator = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
+                        <span class="kw">let </span>locator = env.create_mutable_binding(name, <span class="bool-val">false</span>);
 
                         (g.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncFunction(af) =&gt; {
                         <span class="kw">let </span>name = bound_names(af)[<span class="number">0</span>];
-                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        <span class="kw">let </span>locator = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
+                        <span class="kw">let </span>locator = env.create_mutable_binding(name, <span class="bool-val">false</span>);
 
                         (af.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncGenerator(ag) =&gt; {
                         <span class="kw">let </span>name = bound_names(ag)[<span class="number">0</span>];
-                        compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
-                        <span class="kw">let </span>locator = compiler.initialize_mutable_binding(name, <span class="bool-val">false</span>);
+                        <span class="kw">let </span>locator = env.create_mutable_binding(name, <span class="bool-val">false</span>);
 
                         (ag.into(), locator)
                     }
                     LexicallyScopedDeclaration::Class(class) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
-                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
+                            env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                         <span class="kw">continue</span>;
                     }
@@ -3551,19 +3539,19 @@
                         <span class="comment">// a. For each element dn of the BoundNames of d, do
                         </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(c) {
                             <span class="comment">// 1. Perform ! env.CreateImmutableBinding(dn, true).
-                            </span>compiler.create_immutable_binding(name, <span class="bool-val">true</span>);
+                            </span>env.create_immutable_binding(name, <span class="bool-val">true</span>);
                         }
                         <span class="kw">continue</span>;
                     }
                     LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Let(l)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(l) {
-                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
+                            env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                         <span class="kw">continue</span>;
                     }
                     LexicallyScopedDeclaration::AssignmentExpression(expr) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(expr) {
-                            compiler.create_mutable_binding(name, <span class="bool-val">false</span>);
+                            env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                         <span class="kw">continue</span>;
                     }
@@ -3590,7 +3578,7 @@
 
         <span class="comment">// 8. Let moduleContext be a new ECMAScript code execution context.
         </span><span class="kw">let </span><span class="kw-2">mut </span>envs = EnvironmentStack::new(global_env);
-        envs.push_module(module_compile_env);
+        envs.push_module(env);
 
         <span class="comment">// 9. Set the Function of moduleContext to null.
         // 12. Set the ScriptOrModule of moduleContext to module.
