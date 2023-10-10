@@ -114,7 +114,7 @@ jobs:
           cd ..
       - name: Upload results
         if: github.event_name == 'push'
-        uses: ad-m/github-push-action@v0.6.0
+        uses: ad-m/github-push-action@v0.8.0
         with:
           directory: gh-pages
           branch: gh-pages
