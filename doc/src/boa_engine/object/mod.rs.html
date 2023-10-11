@@ -2649,6 +2649,13 @@
 <a href="#2649" id="2649">2649</a>
 <a href="#2650" id="2650">2650</a>
 <a href="#2651" id="2651">2651</a>
+<a href="#2652" id="2652">2652</a>
+<a href="#2653" id="2653">2653</a>
+<a href="#2654" id="2654">2654</a>
+<a href="#2655" id="2655">2655</a>
+<a href="#2656" id="2656">2656</a>
+<a href="#2657" id="2657">2657</a>
+<a href="#2658" id="2658">2658</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -3985,6 +3992,13 @@
             | ObjectKind::GeneratorFunction(<span class="kw-2">ref mut </span>function) =&gt; <span class="prelude-val">Some</span>(function),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
+    }
+
+    <span class="doccomment">/// Checks if the object is a `BoundFunction` object.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>is_bound_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::BoundFunction(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Gets the bound function data if the object is a `BoundFunction`.

@@ -1053,6 +1053,9 @@
 <a href="#1053" id="1053">1053</a>
 <a href="#1054" id="1054">1054</a>
 <a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1898,13 +1901,22 @@
         </span>func.call(this_arg, args.get(<span class="number">1</span>..).unwrap_or(<span class="kw-2">&amp;</span>[]), context)
     }
 
-    <span class="attr">#[allow(clippy::wrong_self_convention)]
+    <span class="doccomment">/// `Function.prototype.toString()`
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
+    </span><span class="attr">#[allow(clippy::wrong_self_convention)]
     </span><span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let func be the this value.
         </span><span class="kw">let </span>func = this;
 
-        <span class="comment">// 2. If func is an Object, func has a [[SourceText]] internal slot, func.[[SourceText]] is a sequence of Unicode code points,and HostHasSourceTextAvailable(func) is true, then
-        //     a. Return CodePointsToString(func.[[SourceText]]).
+        <span class="comment">// TODO:
+        //    2. If func is an Object, func has a [[SourceText]] internal slot, func.[[SourceText]] is a sequence of Unicode code points,and HostHasSourceTextAvailable(func) is true, then
+        //        a. Return CodePointsToString(func.[[SourceText]]).
 
         // 3. If func is a built-in function object, return an implementation-defined String source code representation of func.
         //    The representation must have the syntax of a NativeFunction. Additionally, if func has an [[InitialName]] internal slot and
@@ -1914,11 +1926,12 @@
         // 4. If func is an Object and IsCallable(func) is true, return an implementation-defined String source code representation of func.
         //    The representation must have the syntax of a NativeFunction.
         // 5. Throw a TypeError exception.
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_object() <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_callable() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;not a function&quot;</span>).into());
         };
 
-        <span class="kw">if </span>object.borrow().is_native_function() {
+        <span class="kw">let </span>object = object.borrow();
+        <span class="kw">if </span>object.is_native_function() {
             <span class="kw">let </span>name = {
                 <span class="comment">// Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
@@ -1935,29 +1948,22 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(
                 <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;function &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;() { [native code] }&quot;</span>)).into(),
             );
+        } <span class="kw">else if </span>object.is_proxy() || object.is_bound_function() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;function () { [native code] }&quot;</span>)).into());
         }
 
-        <span class="kw">let </span>object = object.borrow();
         <span class="kw">let </span>function = object
             .as_function()
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;not a function&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>code = function.codeblock();
 
-        <span class="kw">let </span>prefix = <span class="kw">match </span>function.kind {
-            FunctionKind::Ordinary { .. } =&gt; {
-                <span class="macro">utf16!</span>(<span class="string">&quot;function &quot;</span>)
-            }
-            FunctionKind::Async { .. } =&gt; {
-                <span class="macro">utf16!</span>(<span class="string">&quot;async function &quot;</span>)
-            }
-            FunctionKind::Generator { .. } =&gt; {
-                <span class="macro">utf16!</span>(<span class="string">&quot;function* &quot;</span>)
-            }
-            FunctionKind::AsyncGenerator { .. } =&gt; <span class="macro">utf16!</span>(<span class="string">&quot;async function* &quot;</span>),
-        };
-
-        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(prefix, code.name(), <span class="macro">utf16!</span>(<span class="string">&quot;() { [native code] }&quot;</span>)).into())
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(
+            <span class="macro">utf16!</span>(<span class="string">&quot;function &quot;</span>),
+            code.name(),
+            <span class="macro">utf16!</span>(<span class="string">&quot;() { [native code] }&quot;</span>)
+        )
+        .into())
     }
 
     <span class="doccomment">/// `Function.prototype [ @@hasInstance ] ( V )`

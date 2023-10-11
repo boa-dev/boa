@@ -19,8 +19,8 @@
 ) -&gt; Self</h4></section></summary><div class="docblock"><p>Indicate if the function has a binding identifier.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.compile" class="method"><a class="src rightside" href="../../../src/boa_engine/bytecompiler/function.rs.html#81-171">source</a><h4 class="code-header">pub(crate) fn <a href="#method.compile" class="fn">compile</a>(
     self,
-    parameters: &amp;<a class="struct" href="../../../boa_ast/function/parameters/struct.FormalParameterList.html" title="struct boa_ast::function::parameters::FormalParameterList">FormalParameterList</a>,
-    body: &amp;<a class="type" href="../../../boa_ast/function/type.FunctionBody.html" title="type boa_ast::function::FunctionBody">FunctionBody</a>,
+    parameters: &amp;FormalParameterList,
+    body: &amp;FunctionBody,
     variable_environment: <a class="struct" href="https://doc.rust-lang.org/1.73.0/alloc/rc/struct.Rc.html" title="struct alloc::rc::Rc">Rc</a>&lt;<a class="struct" href="../../environments/compile/struct.CompileTimeEnvironment.html" title="struct boa_engine::environments::compile::CompileTimeEnvironment">CompileTimeEnvironment</a>&gt;,
     lexical_environment: <a class="struct" href="https://doc.rust-lang.org/1.73.0/alloc/rc/struct.Rc.html" title="struct alloc::rc::Rc">Rc</a>&lt;<a class="struct" href="../../environments/compile/struct.CompileTimeEnvironment.html" title="struct boa_engine::environments::compile::CompileTimeEnvironment">CompileTimeEnvironment</a>&gt;,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
