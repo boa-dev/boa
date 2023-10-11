@@ -4,7 +4,7 @@ use crate::{
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue, NativeFunction,
+    Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
 /// `CallEval` implements the Opcode Operation for `Opcode::CallEval`
@@ -31,21 +31,34 @@ impl CallEval {
                 .into());
         };
 
-        // A native function with the name "eval" implies, that is this the built-in eval function.
-        let eval = object.borrow().is_native_function();
-
-        if eval {
+        // Taken from `13.3.6.1 Runtime Semantics: Evaluation`
+        //            `CallExpression : CoverCallExpressionAndAsyncArrowHead`
+        //
+        // <https://tc39.es/ecma262/#sec-function-calls-runtime-semantics-evaluation>
+        //
+        // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is "eval", then
+        //     a. If SameValue(func, %eval%) is true, then
+        let eval = context.intrinsics().objects().eval();
+        if JsObject::equals(object, &eval) {
             if let Some(x) = arguments.get(0) {
+                // i. Let argList be ? ArgumentListEvaluation of arguments.
+                // ii. If argList has no elements, return undefined.
+                // iii. Let evalArg be the first element of argList.
+                // iv. If the source text matched by this CallExpression is strict mode code,
+                //     let strictCaller be true. Otherwise let strictCaller be false.
+                // v. Return ? PerformEval(evalArg, strictCaller, true).
                 let strict = context.vm.frame().code_block.strict();
                 let result = crate::builtins::eval::Eval::perform_eval(x, true, strict, context)?;
                 context.vm.push(result);
             } else {
+                // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
                 context.vm.push(JsValue::Undefined);
             }
-        } else {
-            let result = object.__call__(&this, &arguments, context)?;
-            context.vm.push(result);
+            return Ok(CompletionType::Normal);
         }
+
+        let result = object.__call__(&this, &arguments, context)?;
+        context.vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
@@ -103,21 +116,34 @@ impl Operation for CallEvalSpread {
                 .into());
         };
 
-        // A native function with the name "eval" implies, that is this the built-in eval function.
-        let eval = object.borrow().is_native_function();
-
-        if eval {
+        // Taken from `13.3.6.1 Runtime Semantics: Evaluation`
+        //            `CallExpression : CoverCallExpressionAndAsyncArrowHead`
+        //
+        // <https://tc39.es/ecma262/#sec-function-calls-runtime-semantics-evaluation>
+        //
+        // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is "eval", then
+        //     a. If SameValue(func, %eval%) is true, then
+        let eval = context.intrinsics().objects().eval();
+        if JsObject::equals(object, &eval) {
             if let Some(x) = arguments.get(0) {
+                // i. Let argList be ? ArgumentListEvaluation of arguments.
+                // ii. If argList has no elements, return undefined.
+                // iii. Let evalArg be the first element of argList.
+                // iv. If the source text matched by this CallExpression is strict mode code,
+                //     let strictCaller be true. Otherwise let strictCaller be false.
+                // v. Return ? PerformEval(evalArg, strictCaller, true).
                 let strict = context.vm.frame().code_block.strict();
                 let result = crate::builtins::eval::Eval::perform_eval(x, true, strict, context)?;
                 context.vm.push(result);
             } else {
+                // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
                 context.vm.push(JsValue::Undefined);
             }
-        } else {
-            let result = object.__call__(&this, &arguments, context)?;
-            context.vm.push(result);
+            return Ok(CompletionType::Normal);
         }
+
+        let result = object.__call__(&this, &arguments, context)?;
+        context.vm.push(result);
         Ok(CompletionType::Normal)
     }
 }
