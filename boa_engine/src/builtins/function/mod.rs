@@ -843,13 +843,22 @@ impl BuiltInFunctionObject {
         func.call(this_arg, args.get(1..).unwrap_or(&[]), context)
     }
 
+    /// `Function.prototype.toString()`
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
     #[allow(clippy::wrong_self_convention)]
     fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         let func = this;
 
-        // 2. If func is an Object, func has a [[SourceText]] internal slot, func.[[SourceText]] is a sequence of Unicode code points,and HostHasSourceTextAvailable(func) is true, then
-        //     a. Return CodePointsToString(func.[[SourceText]]).
+        // TODO:
+        //    2. If func is an Object, func has a [[SourceText]] internal slot, func.[[SourceText]] is a sequence of Unicode code points,and HostHasSourceTextAvailable(func) is true, then
+        //        a. Return CodePointsToString(func.[[SourceText]]).
 
         // 3. If func is a built-in function object, return an implementation-defined String source code representation of func.
         //    The representation must have the syntax of a NativeFunction. Additionally, if func has an [[InitialName]] internal slot and
@@ -859,11 +868,12 @@ impl BuiltInFunctionObject {
         // 4. If func is an Object and IsCallable(func) is true, return an implementation-defined String source code representation of func.
         //    The representation must have the syntax of a NativeFunction.
         // 5. Throw a TypeError exception.
-        let Some(object) = func.as_object() else {
+        let Some(object) = func.as_callable() else {
             return Err(JsNativeError::typ().with_message("not a function").into());
         };
 
-        if object.borrow().is_native_function() {
+        let object = object.borrow();
+        if object.is_native_function() {
             let name = {
                 // Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
@@ -880,29 +890,22 @@ impl BuiltInFunctionObject {
             return Ok(
                 js_string!(utf16!("function "), &name, utf16!("() { [native code] }")).into(),
             );
+        } else if object.is_proxy() || object.is_bound_function() {
+            return Ok(js_string!(utf16!("function () { [native code] }")).into());
         }
 
-        let object = object.borrow();
         let function = object
             .as_function()
             .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
 
         let code = function.codeblock();
 
-        let prefix = match function.kind {
-            FunctionKind::Ordinary { .. } => {
-                utf16!("function ")
-            }
-            FunctionKind::Async { .. } => {
-                utf16!("async function ")
-            }
-            FunctionKind::Generator { .. } => {
-                utf16!("function* ")
-            }
-            FunctionKind::AsyncGenerator { .. } => utf16!("async function* "),
-        };
-
-        Ok(js_string!(prefix, code.name(), utf16!("() { [native code] }")).into())
+        Ok(js_string!(
+            utf16!("function "),
+            code.name(),
+            utf16!("() { [native code] }")
+        )
+        .into())
     }
 
     /// `Function.prototype [ @@hasInstance ] ( V )`

@@ -1336,6 +1336,13 @@ impl Object {
         }
     }
 
+    /// Checks if the object is a `BoundFunction` object.
+    #[inline]
+    #[must_use]
+    pub const fn is_bound_function(&self) -> bool {
+        matches!(self.kind, ObjectKind::BoundFunction(_))
+    }
+
     /// Gets the bound function data if the object is a `BoundFunction`.
     #[inline]
     #[must_use]
