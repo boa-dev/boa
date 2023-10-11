@@ -843,13 +843,22 @@ impl BuiltInFunctionObject {
         func.call(this_arg, args.get(1..).unwrap_or(&[]), context)
     }
 
+    /// `Function.prototype.toString()`
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
     #[allow(clippy::wrong_self_convention)]
     fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         let func = this;
 
-        // 2. If func is an Object, func has a [[SourceText]] internal slot, func.[[SourceText]] is a sequence of Unicode code points,and HostHasSourceTextAvailable(func) is true, then
-        //     a. Return CodePointsToString(func.[[SourceText]]).
+        // TODO:
+        //    2. If func is an Object, func has a [[SourceText]] internal slot, func.[[SourceText]] is a sequence of Unicode code points,and HostHasSourceTextAvailable(func) is true, then
+        //        a. Return CodePointsToString(func.[[SourceText]]).
 
         // 3. If func is a built-in function object, return an implementation-defined String source code representation of func.
         //    The representation must have the syntax of a NativeFunction. Additionally, if func has an [[InitialName]] internal slot and
