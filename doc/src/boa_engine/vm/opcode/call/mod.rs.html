@@ -423,13 +423,39 @@
 <a href="#423" id="423">423</a>
 <a href="#424" id="424">424</a>
 <a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{promise::PromiseCapability, Promise},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue, NativeFunction,
+    Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
 <span class="doccomment">/// `CallEval` implements the Opcode Operation for `Opcode::CallEval`
@@ -456,21 +482,34 @@
                 .into());
         };
 
-        <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.
-        </span><span class="kw">let </span>eval = object.borrow().is_native_function();
-
-        <span class="kw">if </span>eval {
+        <span class="comment">// Taken from `13.3.6.1 Runtime Semantics: Evaluation`
+        //            `CallExpression : CoverCallExpressionAndAsyncArrowHead`
+        //
+        // &lt;https://tc39.es/ecma262/#sec-function-calls-runtime-semantics-evaluation&gt;
+        //
+        // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is &quot;eval&quot;, then
+        //     a. If SameValue(func, %eval%) is true, then
+        </span><span class="kw">let </span>eval = context.intrinsics().objects().eval();
+        <span class="kw">if </span>JsObject::equals(object, <span class="kw-2">&amp;</span>eval) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arguments.get(<span class="number">0</span>) {
-                <span class="kw">let </span>strict = context.vm.frame().code_block.strict();
+                <span class="comment">// i. Let argList be ? ArgumentListEvaluation of arguments.
+                // ii. If argList has no elements, return undefined.
+                // iii. Let evalArg be the first element of argList.
+                // iv. If the source text matched by this CallExpression is strict mode code,
+                //     let strictCaller be true. Otherwise let strictCaller be false.
+                // v. Return ? PerformEval(evalArg, strictCaller, true).
+                </span><span class="kw">let </span>strict = context.vm.frame().code_block.strict();
                 <span class="kw">let </span>result = <span class="kw">crate</span>::builtins::eval::Eval::perform_eval(x, <span class="bool-val">true</span>, strict, context)<span class="question-mark">?</span>;
                 context.vm.push(result);
             } <span class="kw">else </span>{
-                context.vm.push(JsValue::Undefined);
+                <span class="comment">// NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
+                </span>context.vm.push(JsValue::Undefined);
             }
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>result = object.__call__(<span class="kw-2">&amp;</span>this, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;
-            context.vm.push(result);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
+
+        <span class="kw">let </span>result = object.__call__(<span class="kw-2">&amp;</span>this, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;
+        context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -528,21 +567,34 @@
                 .into());
         };
 
-        <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.
-        </span><span class="kw">let </span>eval = object.borrow().is_native_function();
-
-        <span class="kw">if </span>eval {
+        <span class="comment">// Taken from `13.3.6.1 Runtime Semantics: Evaluation`
+        //            `CallExpression : CoverCallExpressionAndAsyncArrowHead`
+        //
+        // &lt;https://tc39.es/ecma262/#sec-function-calls-runtime-semantics-evaluation&gt;
+        //
+        // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is &quot;eval&quot;, then
+        //     a. If SameValue(func, %eval%) is true, then
+        </span><span class="kw">let </span>eval = context.intrinsics().objects().eval();
+        <span class="kw">if </span>JsObject::equals(object, <span class="kw-2">&amp;</span>eval) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arguments.get(<span class="number">0</span>) {
-                <span class="kw">let </span>strict = context.vm.frame().code_block.strict();
+                <span class="comment">// i. Let argList be ? ArgumentListEvaluation of arguments.
+                // ii. If argList has no elements, return undefined.
+                // iii. Let evalArg be the first element of argList.
+                // iv. If the source text matched by this CallExpression is strict mode code,
+                //     let strictCaller be true. Otherwise let strictCaller be false.
+                // v. Return ? PerformEval(evalArg, strictCaller, true).
+                </span><span class="kw">let </span>strict = context.vm.frame().code_block.strict();
                 <span class="kw">let </span>result = <span class="kw">crate</span>::builtins::eval::Eval::perform_eval(x, <span class="bool-val">true</span>, strict, context)<span class="question-mark">?</span>;
                 context.vm.push(result);
             } <span class="kw">else </span>{
-                context.vm.push(JsValue::Undefined);
+                <span class="comment">// NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
+                </span>context.vm.push(JsValue::Undefined);
             }
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>result = object.__call__(<span class="kw-2">&amp;</span>this, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;
-            context.vm.push(result);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
+
+        <span class="kw">let </span>result = object.__call__(<span class="kw-2">&amp;</span>this, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;
+        context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
