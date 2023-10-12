@@ -27,7 +27,6 @@ use rustc_hash::FxHashMap;
 mod iso;
 pub(crate) mod utils;
 
-#[cfg(feature = "experimental")]
 #[cfg(test)]
 mod tests;
 

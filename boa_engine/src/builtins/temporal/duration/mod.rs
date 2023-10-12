@@ -26,7 +26,6 @@ use super::{
 
 mod record;
 
-#[cfg(feature = "experimental")]
 #[cfg(test)]
 mod tests;
 

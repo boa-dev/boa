@@ -94,25 +94,21 @@ pub(crate) fn epoch_time_for_month_given_year(m: i32, y: i32) -> f64 {
 }
 
 pub(crate) fn epoch_time_to_date(t: f64) -> i32 {
+    const OFFSETS: [i16; 12] = [
+        1, -30, -58, -89, -119, -150, -180, -211, -242, -272, -303, -333,
+    ];
     let day_in_year = epoch_time_to_day_in_year(t);
     let in_leap_year = mathematical_in_leap_year(t);
     let month = epoch_time_to_month_in_year(t);
 
-    match month {
-        0 => day_in_year + 1,
-        1 => day_in_year - 30,
-        2 => day_in_year - 59 - in_leap_year,
-        3 => day_in_year - 89 - in_leap_year,
-        4 => day_in_year - 119 - in_leap_year,
-        5 => day_in_year - 150 - in_leap_year,
-        6 => day_in_year - 180 - in_leap_year,
-        7 => day_in_year - 211 - in_leap_year,
-        8 => day_in_year - 242 - in_leap_year,
-        9 => day_in_year - 272 - in_leap_year,
-        10 => day_in_year - 303 - in_leap_year,
-        11 => day_in_year - 333 - in_leap_year,
-        _ => unreachable!(),
+    // Cast from i32 to usize should be safe as the return must be 0-11
+    let mut date = day_in_year + i32::from(OFFSETS[month as usize]);
+
+    if month >= 2 {
+        date -= in_leap_year;
     }
+
+    date
 }
 
 pub(crate) fn epoch_time_to_day_in_year(t: f64) -> i32 {
