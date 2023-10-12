@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["NANOSECONDS_PER_HOUR","NANOSECONDS_PER_MINUTE","NANOSECONDS_PER_SECOND"],"fn":["add_instant","add_or_subtract_duration_from_instant","create_temporal_instant","diff_instant","diff_temporal_instant","is_valid_epoch_nanos","round_temporal_instant","to_temporal_instant"],"struct":["Instant"]};

@@ -239,7 +239,7 @@
 <span class="doccomment">/// Abstract operation [`MakeTime`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-maketime
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>make_time(hour: i64, min: i64, sec: i64, ms: i64) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_time(hour: i64, min: i64, sec: i64, ms: i64) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
     <span class="comment">// 1. If hour is not finite or min is not finite or sec is not finite or ms is not finite, return NaN.
     // 2. Let h be 𝔽(! ToIntegerOrInfinity(hour)).
     // 3. Let m be 𝔽(! ToIntegerOrInfinity(min)).
@@ -259,7 +259,7 @@
 <span class="doccomment">/// Abstract operation [`MakeDay`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-makeday
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>make_day(<span class="kw-2">mut </span>year: i64, <span class="kw-2">mut </span>month: i64, date: i64) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_day(<span class="kw-2">mut </span>year: i64, <span class="kw-2">mut </span>month: i64, date: i64) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
     <span class="comment">// 1. If year is not finite or month is not finite or date is not finite, return NaN.
     // 2. Let y be 𝔽(! ToIntegerOrInfinity(year)).
     // 3. Let m be 𝔽(! ToIntegerOrInfinity(month)).
@@ -301,7 +301,7 @@
 <span class="doccomment">/// Abstract operation [`MakeDate`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-makedate
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>make_date(day: i64, time: i64) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_date(day: i64, time: i64) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
     <span class="comment">// 1. If day is not finite or time is not finite, return NaN.
     // 2. Let tv be day × msPerDay + time.
     // 3. If tv is not finite, return NaN.

@@ -85,6 +85,8 @@
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_parser`** crate is a parser targeting the latest [ECMAScript language specification][spec].
 //!
 //! # Crate Overview
@@ -167,6 +169,8 @@
 <span class="kw">pub mod </span>lexer;
 <span class="kw">pub mod </span>parser;
 <span class="kw">mod </span>source;
+<span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+</span><span class="kw">pub mod </span>temporal;
 
 <span class="kw">pub use </span>error::Error;
 <span class="kw">pub use </span>lexer::Lexer;

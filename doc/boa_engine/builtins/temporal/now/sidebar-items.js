@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["clamp_epoc_nanos","host_system_utc_epoch_nanoseconds","system_date_time","system_instant","system_time_zone","system_utc_epoch_millis","system_utc_epoch_nanos","system_zoned_date_time"],"struct":["Now"]};

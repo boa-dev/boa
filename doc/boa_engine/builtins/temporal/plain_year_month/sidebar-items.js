@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["create_temporal_year_month"],"struct":["PlainYearMonth"]};

@@ -520,6 +520,10 @@
 <a href="#520" id="520">520</a>
 <a href="#521" id="521">521</a>
 <a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.
 
 </span><span class="kw">mod </span>cursor;
@@ -568,6 +572,10 @@
     </span><span class="doccomment">/// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
+    ///
+    /// # Errors
+    ///
+    /// It will fail if the cursor is not placed at the beginning of the expected non-terminal.
     </span><span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt;;
 }
 

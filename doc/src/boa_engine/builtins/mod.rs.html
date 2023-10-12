@@ -1089,6 +1089,30 @@
 <a href="#1089" id="1089">1089</a>
 <a href="#1090" id="1090">1090</a>
 <a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
 </span><span class="kw">pub mod </span>array;
@@ -1133,6 +1157,9 @@
 <span class="comment">// TODO: remove `cfg` when `Temporal` gets to stage 4.
 </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;intl&quot;</span>, feature = <span class="string">&quot;experimental&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>options;
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+</span><span class="kw">pub mod </span>temporal;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{
     array::Array,
@@ -1366,6 +1393,22 @@
             intl::segmenter::SegmentIterator::init(<span class="self">self</span>);
             intl::PluralRules::init(<span class="self">self</span>);
         }
+
+        <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+        </span>{
+            temporal::TimeZone::init(<span class="self">self</span>);
+            temporal::Temporal::init(<span class="self">self</span>);
+            temporal::Now::init(<span class="self">self</span>);
+            temporal::Instant::init(<span class="self">self</span>);
+            temporal::Duration::init(<span class="self">self</span>);
+            temporal::PlainDate::init(<span class="self">self</span>);
+            temporal::PlainTime::init(<span class="self">self</span>);
+            temporal::PlainDateTime::init(<span class="self">self</span>);
+            temporal::PlainMonthDay::init(<span class="self">self</span>);
+            temporal::PlainYearMonth::init(<span class="self">self</span>);
+            temporal::ZonedDateTime::init(<span class="self">self</span>);
+            temporal::Calendar::init(<span class="self">self</span>);
+        }
     }
 }
 
@@ -1464,6 +1507,11 @@
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>global_binding::&lt;intl::Intl&gt;(context)<span class="question-mark">?</span>;
+
+    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span>{
+        global_binding::&lt;temporal::Temporal&gt;(context)<span class="question-mark">?</span>;
+    }
 
     <span class="prelude-val">Ok</span>(())
 }

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["create_temporal_duration","days_until","move_relative_date","to_temporal_duration","to_temporal_duration_record"],"mod":["record"],"struct":["Duration"]};

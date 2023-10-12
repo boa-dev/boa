@@ -229,6 +229,7 @@
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.
 
 </span><span class="attr">#[cfg(test)]
@@ -241,7 +242,8 @@
 <span class="doccomment">/// Result of a parsing operation.
 </span><span class="kw">pub type </span>ParseResult&lt;T&gt; = <span class="prelude-ty">Result</span>&lt;T, Error&gt;;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>ErrorContext {
+<span class="doccomment">/// Adds context to a parser error.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>ErrorContext {
     <span class="doccomment">/// Sets the context of the error, if possible.
     </span><span class="kw">fn </span>set_context(<span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self</span>;
 

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["create_temporal_date","to_temporal_date"],"mod":["iso"],"struct":["PlainDate"]};

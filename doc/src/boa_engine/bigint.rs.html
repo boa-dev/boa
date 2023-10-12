@@ -481,6 +481,17 @@
 <a href="#481" id="481">481</a>
 <a href="#482" id="482">482</a>
 <a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s bigint primitive type.
 
 </span><span class="kw">use crate</span>::{builtins::Number, error::JsNativeError, JsResult};
@@ -706,6 +717,17 @@
     #[must_use]
     </span><span class="kw">pub fn </span>add(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(x.inner.as_ref().clone().add(y.inner.as_ref()))
+    }
+
+    <span class="doccomment">/// Utility function for performing `+` operation on more than two values.
+    </span><span class="attr">#[inline]
+    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_n(values: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">Self</span>::zero();
+        <span class="kw">for </span>big_int <span class="kw">in </span>values {
+            result = <span class="self">Self</span>::add(<span class="kw-2">&amp;</span>result, big_int);
+        }
+        result
     }
 
     <span class="doccomment">/// Performs the `-` operation.
