@@ -3088,7 +3088,7 @@
     plural_rules::PluralRules,
     segmenter::{SegmentIterator, Segmenter, Segments},
 };
-<span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::builtins::temporal::{
     Calendar, Duration, Instant, PlainDate, PlainDateTime, PlainMonthDay, PlainTime,
     PlainYearMonth, TimeZone, ZonedDateTime,
@@ -3503,43 +3503,43 @@
     </span>PluralRules(PluralRules),
 
     <span class="doccomment">/// The `Temporal.Instant` object kind.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>Instant(Instant),
 
     <span class="doccomment">/// The `Temporal.PlainDateTime` object kind.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>PlainDateTime(PlainDateTime),
 
     <span class="doccomment">/// The `Temporal.PlainDate` object kind.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>PlainDate(PlainDate),
 
     <span class="doccomment">/// The `Temporal.PlainTime` object kind.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>PlainTime(PlainTime),
 
     <span class="doccomment">/// The `Temporal.PlainYearMonth` object kind.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>PlainYearMonth(PlainYearMonth),
 
     <span class="doccomment">/// The `Temporal.PlainMonthDay` object kind.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>PlainMonthDay(PlainMonthDay),
 
     <span class="doccomment">/// The `Temporal.TimeZone` object kind.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>TimeZone(TimeZone),
 
     <span class="doccomment">/// The `Temporal.Duration` object kind.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>Duration(Duration),
 
     <span class="doccomment">/// The `Temporal.ZonedDateTime` object kind.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>ZonedDateTime(ZonedDateTime),
 
     <span class="doccomment">/// The `Temporal.Calendar` object kind.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>Calendar(Calendar),
 }
 
@@ -3598,7 +3598,7 @@
             | <span class="self">Self</span>::Global
             | <span class="self">Self</span>::Number(<span class="kw">_</span>)
             | <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; {}
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::Instant(<span class="kw">_</span>)
             | <span class="self">Self</span>::PlainDateTime(<span class="kw">_</span>)
             | <span class="self">Self</span>::PlainDate(<span class="kw">_</span>)
@@ -4065,7 +4065,7 @@
     }
 
     <span class="doccomment">/// Create the `Instant` object data
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>instant(instant: Instant) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -4075,7 +4075,7 @@
     }
 
     <span class="doccomment">/// Create the `PlainDateTime` object data
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>plain_date_time(date_time: PlainDateTime) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -4084,7 +4084,7 @@
         }
     }
     <span class="doccomment">/// Create the `PlainDate` object data
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>plain_date(date: PlainDate) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -4094,7 +4094,7 @@
     }
 
     <span class="doccomment">/// Create the `PlainTime` object data
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>plain_time(time: PlainTime) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -4104,7 +4104,7 @@
     }
 
     <span class="doccomment">/// Create the `PlainYearMonth` object data
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>plain_year_month(year_month: PlainYearMonth) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -4114,7 +4114,7 @@
     }
 
     <span class="doccomment">/// Create the `PlainMonthDay` object data
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>plain_month_day(month_day: PlainMonthDay) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -4124,7 +4124,7 @@
     }
 
     <span class="doccomment">/// Create the `TimeZone` object data
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>time_zone(time_zone: TimeZone) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -4134,7 +4134,7 @@
     }
 
     <span class="doccomment">/// Create the `Duration` object data
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>duration(duration: Duration) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -4144,7 +4144,7 @@
     }
 
     <span class="doccomment">/// Create the `ZonedDateTime` object data.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>zoned_date_time(zoned_date_time: ZonedDateTime) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -4154,7 +4154,7 @@
     }
 
     <span class="doccomment">/// Create the `Calendar` object data.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>calendar(calendar: Calendar) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -4221,25 +4221,25 @@
             </span><span class="self">Self</span>::SegmentIterator(<span class="kw">_</span>) =&gt; <span class="string">&quot;SegmentIterator&quot;</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span><span class="self">Self</span>::PluralRules(<span class="kw">_</span>) =&gt; <span class="string">&quot;PluralRules&quot;</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::Instant(<span class="kw">_</span>) =&gt; <span class="string">&quot;Instant&quot;</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::PlainDateTime(<span class="kw">_</span>) =&gt; <span class="string">&quot;PlainDateTime&quot;</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::PlainDate(<span class="kw">_</span>) =&gt; <span class="string">&quot;PlainDate&quot;</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::PlainTime(<span class="kw">_</span>) =&gt; <span class="string">&quot;PlainTime&quot;</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::PlainYearMonth(<span class="kw">_</span>) =&gt; <span class="string">&quot;PlainYearMonth&quot;</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::PlainMonthDay(<span class="kw">_</span>) =&gt; <span class="string">&quot;PlainMonthDay&quot;</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::TimeZone(<span class="kw">_</span>) =&gt; <span class="string">&quot;TimeZone&quot;</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::Duration(<span class="kw">_</span>) =&gt; <span class="string">&quot;Duration&quot;</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::ZonedDateTime(<span class="kw">_</span>) =&gt; <span class="string">&quot;ZonedDateTime&quot;</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::Calendar(<span class="kw">_</span>) =&gt; <span class="string">&quot;Calendar&quot;</span>,
         })
     }
@@ -5182,7 +5182,7 @@
     <span class="doccomment">/// Gets the `TimeZone` data if the object is a `Temporal.TimeZone`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>as_time_zone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TimeZone&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind {
             ObjectKind::TimeZone(<span class="kw-2">ref </span>tz) =&gt; <span class="prelude-val">Some</span>(tz),
@@ -5193,7 +5193,7 @@
     <span class="doccomment">/// Checks if the object is a `TimeZone` object.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>is_time_zone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::TimeZone(<span class="kw">_</span>))
     }
@@ -5201,7 +5201,7 @@
     <span class="doccomment">/// Gets a mutable reference to `Instant` data if the object is a `Temporal.Instant`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub fn </span>as_instant_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Instant&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
             ObjectKind::Instant(instant) =&gt; <span class="prelude-val">Some</span>(instant),
@@ -5212,7 +5212,7 @@
     <span class="doccomment">/// Gets the `Instant` data if the object is a `Temporal.Instant`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>as_instant(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Instant&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             ObjectKind::Instant(instant) =&gt; <span class="prelude-val">Some</span>(instant),
@@ -5223,7 +5223,7 @@
     <span class="doccomment">/// Checks if the object is a `Duration` object.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>is_duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::Duration(<span class="kw">_</span>))
     }
@@ -5231,7 +5231,7 @@
     <span class="doccomment">/// Gets a mutable reference to `Duration` data if the object is a `Temporal.Duration`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub fn </span>as_duration_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Duration&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
             ObjectKind::Duration(dur) =&gt; <span class="prelude-val">Some</span>(dur),
@@ -5242,7 +5242,7 @@
     <span class="doccomment">/// Gets the `Duration` data if the object is a `Temporal.Duration`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>as_duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Duration&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             ObjectKind::Duration(dur) =&gt; <span class="prelude-val">Some</span>(dur),
@@ -5253,7 +5253,7 @@
     <span class="doccomment">/// Checks if object is a `PlainDateTime` object.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>is_plain_date_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::PlainDateTime(<span class="kw">_</span>))
     }
@@ -5261,7 +5261,7 @@
     <span class="doccomment">/// Gets a reference to `PlainDateTime` data if the object is a `Temporal.PlainDateTime`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>as_plain_date_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PlainDateTime&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             ObjectKind::PlainDateTime(date) =&gt; <span class="prelude-val">Some</span>(date),
@@ -5272,7 +5272,7 @@
     <span class="doccomment">/// Checks if object is a `PlainDate` object.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>is_plain_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::PlainDate(<span class="kw">_</span>))
     }
@@ -5280,7 +5280,7 @@
     <span class="doccomment">/// Gets a mutable reference to `PlainDate` data if the object is a `Temporal.PlainDate`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub fn </span>as_plain_date_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PlainDate&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
             ObjectKind::PlainDate(date) =&gt; <span class="prelude-val">Some</span>(date),
@@ -5291,7 +5291,7 @@
     <span class="doccomment">/// Gets the `PlainDate` data if the object is a `Temporal.PlainDate`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>as_plain_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PlainDate&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             ObjectKind::PlainDate(date) =&gt; <span class="prelude-val">Some</span>(date),
@@ -5302,7 +5302,7 @@
     <span class="doccomment">/// Checks if object is a `PlainYearMonth` object.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>is_plain_year_month(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::PlainYearMonth(<span class="kw">_</span>))
     }
@@ -5310,7 +5310,7 @@
     <span class="doccomment">/// Gets a mutable reference to `PlainYearMonth` data if the object is a `Temporal.PlainYearMonth`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub fn </span>as_plain_year_month_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PlainYearMonth&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
             ObjectKind::PlainYearMonth(year_month) =&gt; <span class="prelude-val">Some</span>(year_month),
@@ -5321,7 +5321,7 @@
     <span class="doccomment">/// Gets the `PlainYearMonth` data if the object is a `Temporal.PlainYearMonth`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>as_plain_year_month(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PlainYearMonth&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             ObjectKind::PlainYearMonth(ym) =&gt; <span class="prelude-val">Some</span>(ym),
@@ -5332,7 +5332,7 @@
     <span class="doccomment">/// Checks if object is a `PlainMonthDay` object.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>is_plain_month_day(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::PlainMonthDay(<span class="kw">_</span>))
     }
@@ -5340,7 +5340,7 @@
     <span class="doccomment">/// Gets the `PlainMonthDay` data if the object is a `Temporal.PlainMonthDay`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>as_plain_month_day(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PlainMonthDay&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             ObjectKind::PlainMonthDay(md) =&gt; <span class="prelude-val">Some</span>(md),
@@ -5351,7 +5351,7 @@
     <span class="doccomment">/// Gets a mutable reference to `PlainMonthDay` data if the object is a `Temporal.PlainMonthDay`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub fn </span>as_plain_month_day_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PlainMonthDay&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
             ObjectKind::PlainMonthDay(month_day) =&gt; <span class="prelude-val">Some</span>(month_day),
@@ -5362,7 +5362,7 @@
     <span class="doccomment">/// Gets the `PlainDate` data if the object is a `Temporal.PlainDate`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>as_zoned_date_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ZonedDateTime&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             ObjectKind::ZonedDateTime(zdt) =&gt; <span class="prelude-val">Some</span>(zdt),
@@ -5373,7 +5373,7 @@
     <span class="doccomment">/// Checks if the object is a `ZonedDateTime` object.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>is_zoned_date_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::ZonedDateTime(<span class="kw">_</span>))
     }
@@ -5381,7 +5381,7 @@
     <span class="doccomment">/// Checks if the object is a `Calendar` object.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>is_calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::Calendar(<span class="kw">_</span>))
     }
@@ -5389,7 +5389,7 @@
     <span class="doccomment">/// Gets the `Calendar` data if the object is a `Temporal.Calendar`.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>as_calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Calendar&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             ObjectKind::Calendar(calendar) =&gt; <span class="prelude-val">Some</span>(calendar),

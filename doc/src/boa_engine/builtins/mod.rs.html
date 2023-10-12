@@ -1155,10 +1155,10 @@
 </span><span class="kw">pub mod </span>intl;
 
 <span class="comment">// TODO: remove `cfg` when `Temporal` gets to stage 4.
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;intl&quot;</span>, feature = <span class="string">&quot;experimental&quot;</span>))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;intl&quot;</span>, feature = <span class="string">&quot;temporal&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>options;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
 </span><span class="kw">pub mod </span>temporal;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{
@@ -1394,7 +1394,7 @@
             intl::PluralRules::init(<span class="self">self</span>);
         }
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
         </span>{
             temporal::TimeZone::init(<span class="self">self</span>);
             temporal::Temporal::init(<span class="self">self</span>);
@@ -1508,7 +1508,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>global_binding::&lt;intl::Intl&gt;(context)<span class="question-mark">?</span>;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>{
         global_binding::&lt;temporal::Temporal&gt;(context)<span class="question-mark">?</span>;
     }

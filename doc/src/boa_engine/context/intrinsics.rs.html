@@ -1828,25 +1828,25 @@
     </span>segmenter: StandardConstructor,
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>plural_rules: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>instant: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>plain_date_time: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>plain_date: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>plain_time: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>plain_year_month: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>plain_month_day: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>time_zone: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>duration: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>zoned_date_time: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>calendar: StandardConstructor,
 }
 
@@ -1924,25 +1924,25 @@
             </span>segmenter: StandardConstructor::default(),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>plural_rules: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>instant: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>plain_date_time: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>plain_date: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>plain_time: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>plain_year_month: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>plain_month_day: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>time_zone: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>duration: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>zoned_date_time: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>calendar: StandardConstructor::default(),
         }
     }
@@ -2538,7 +2538,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-instant-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>instant(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.instant
     }
@@ -2551,7 +2551,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plaindatetime-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>plain_date_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plain_date_time
     }
@@ -2564,7 +2564,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plaindate-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>plain_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plain_date
     }
@@ -2577,7 +2577,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plaintime-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>plain_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plain_time
     }
@@ -2590,7 +2590,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plainyearmonth-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>plain_year_month(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plain_year_month
     }
@@ -2603,7 +2603,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plainmonthday-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>plain_month_day(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plain_month_day
     }
@@ -2616,7 +2616,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-timezone-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>time_zone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.time_zone
     }
@@ -2629,7 +2629,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-duration-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.duration
     }
@@ -2642,7 +2642,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-zoneddatetime-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>zoned_date_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.zoned_date_time
     }
@@ -2655,7 +2655,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-calendar-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span><span class="kw">pub const fn </span>calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.calendar
     }
@@ -2726,11 +2726,11 @@
     </span>segments_prototype: JsObject,
 
     <span class="doccomment">/// [`%Temporal%`](https://tc39.es/proposal-temporal/#sec-temporal-objects)
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>temporal: JsObject,
 
     <span class="doccomment">/// [`%Temporal.Now%`](https://tc39.es/proposal-temporal/#sec-temporal-now-object)
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     </span>now: JsObject,
 }
 
@@ -2760,9 +2760,9 @@
             </span>intl: JsObject::default(),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>segments_prototype: JsObject::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>temporal: JsObject::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span>now: JsObject::default(),
         }
     }
@@ -2942,7 +2942,7 @@
     <span class="doccomment">/// Gets the [`%Temporal%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-objects
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     #[inline]
     </span><span class="kw">pub fn </span>temporal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
@@ -2952,7 +2952,7 @@
     <span class="doccomment">/// Gets the [`%Temporal.Now%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-now-object
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
     #[must_use]
     #[inline]
     </span><span class="kw">pub fn </span>now(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
