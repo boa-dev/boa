@@ -744,7 +744,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn is_duration(&self) -> bool {
         self.borrow().is_duration()
     }
@@ -757,7 +757,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn is_time_zone(&self) -> bool {
         self.borrow().is_time_zone()
     }
@@ -770,7 +770,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn is_plain_date_time(&self) -> bool {
         self.borrow().is_plain_date_time()
     }
@@ -783,7 +783,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn is_plain_date(&self) -> bool {
         self.borrow().is_plain_date()
     }
@@ -796,7 +796,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn is_plain_year_month(&self) -> bool {
         self.borrow().is_plain_year_month()
     }
@@ -809,7 +809,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn is_plain_month_day(&self) -> bool {
         self.borrow().is_plain_month_day()
     }
@@ -822,7 +822,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn is_zoned_date_time(&self) -> bool {
         self.borrow().is_zoned_date_time()
     }
@@ -835,7 +835,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn is_calendar(&self) -> bool {
         self.borrow().is_calendar()
     }

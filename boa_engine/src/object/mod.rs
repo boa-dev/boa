@@ -38,7 +38,7 @@ use crate::builtins::intl::{
     plural_rules::PluralRules,
     segmenter::{SegmentIterator, Segmenter, Segments},
 };
-#[cfg(feature = "experimental")]
+#[cfg(feature = "temporal")]
 use crate::builtins::temporal::{
     Calendar, Duration, Instant, PlainDate, PlainDateTime, PlainMonthDay, PlainTime,
     PlainYearMonth, TimeZone, ZonedDateTime,
@@ -453,43 +453,43 @@ pub enum ObjectKind {
     PluralRules(PluralRules),
 
     /// The `Temporal.Instant` object kind.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     Instant(Instant),
 
     /// The `Temporal.PlainDateTime` object kind.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     PlainDateTime(PlainDateTime),
 
     /// The `Temporal.PlainDate` object kind.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     PlainDate(PlainDate),
 
     /// The `Temporal.PlainTime` object kind.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     PlainTime(PlainTime),
 
     /// The `Temporal.PlainYearMonth` object kind.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     PlainYearMonth(PlainYearMonth),
 
     /// The `Temporal.PlainMonthDay` object kind.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     PlainMonthDay(PlainMonthDay),
 
     /// The `Temporal.TimeZone` object kind.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     TimeZone(TimeZone),
 
     /// The `Temporal.Duration` object kind.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     Duration(Duration),
 
     /// The `Temporal.ZonedDateTime` object kind.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     ZonedDateTime(ZonedDateTime),
 
     /// The `Temporal.Calendar` object kind.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     Calendar(Calendar),
 }
 
@@ -548,7 +548,7 @@ unsafe impl Trace for ObjectKind {
             | Self::Global
             | Self::Number(_)
             | Self::Symbol(_) => {}
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::Instant(_)
             | Self::PlainDateTime(_)
             | Self::PlainDate(_)
@@ -1015,7 +1015,7 @@ impl ObjectData {
     }
 
     /// Create the `Instant` object data
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     #[must_use]
     pub fn instant(instant: Instant) -> Self {
         Self {
@@ -1025,7 +1025,7 @@ impl ObjectData {
     }
 
     /// Create the `PlainDateTime` object data
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     #[must_use]
     pub fn plain_date_time(date_time: PlainDateTime) -> Self {
         Self {
@@ -1034,7 +1034,7 @@ impl ObjectData {
         }
     }
     /// Create the `PlainDate` object data
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     #[must_use]
     pub fn plain_date(date: PlainDate) -> Self {
         Self {
@@ -1044,7 +1044,7 @@ impl ObjectData {
     }
 
     /// Create the `PlainTime` object data
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     #[must_use]
     pub fn plain_time(time: PlainTime) -> Self {
         Self {
@@ -1054,7 +1054,7 @@ impl ObjectData {
     }
 
     /// Create the `PlainYearMonth` object data
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     #[must_use]
     pub fn plain_year_month(year_month: PlainYearMonth) -> Self {
         Self {
@@ -1064,7 +1064,7 @@ impl ObjectData {
     }
 
     /// Create the `PlainMonthDay` object data
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     #[must_use]
     pub fn plain_month_day(month_day: PlainMonthDay) -> Self {
         Self {
@@ -1074,7 +1074,7 @@ impl ObjectData {
     }
 
     /// Create the `TimeZone` object data
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     #[must_use]
     pub fn time_zone(time_zone: TimeZone) -> Self {
         Self {
@@ -1084,7 +1084,7 @@ impl ObjectData {
     }
 
     /// Create the `Duration` object data
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     #[must_use]
     pub fn duration(duration: Duration) -> Self {
         Self {
@@ -1094,7 +1094,7 @@ impl ObjectData {
     }
 
     /// Create the `ZonedDateTime` object data.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     #[must_use]
     pub fn zoned_date_time(zoned_date_time: ZonedDateTime) -> Self {
         Self {
@@ -1104,7 +1104,7 @@ impl ObjectData {
     }
 
     /// Create the `Calendar` object data.
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     #[must_use]
     pub fn calendar(calendar: Calendar) -> Self {
         Self {
@@ -1171,25 +1171,25 @@ impl Debug for ObjectKind {
             Self::SegmentIterator(_) => "SegmentIterator",
             #[cfg(feature = "intl")]
             Self::PluralRules(_) => "PluralRules",
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::Instant(_) => "Instant",
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::PlainDateTime(_) => "PlainDateTime",
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::PlainDate(_) => "PlainDate",
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::PlainTime(_) => "PlainTime",
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::PlainYearMonth(_) => "PlainYearMonth",
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::PlainMonthDay(_) => "PlainMonthDay",
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::TimeZone(_) => "TimeZone",
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::Duration(_) => "Duration",
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::ZonedDateTime(_) => "ZonedDateTime",
-            #[cfg(feature = "experimental")]
+            #[cfg(feature = "temporal")]
             Self::Calendar(_) => "Calendar",
         })
     }
@@ -2132,7 +2132,7 @@ impl Object {
     /// Gets the `TimeZone` data if the object is a `Temporal.TimeZone`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn as_time_zone(&self) -> Option<&TimeZone> {
         match self.kind {
             ObjectKind::TimeZone(ref tz) => Some(tz),
@@ -2143,7 +2143,7 @@ impl Object {
     /// Checks if the object is a `TimeZone` object.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn is_time_zone(&self) -> bool {
         matches!(self.kind, ObjectKind::TimeZone(_))
     }
@@ -2151,7 +2151,7 @@ impl Object {
     /// Gets a mutable reference to `Instant` data if the object is a `Temporal.Instant`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn as_instant_mut(&mut self) -> Option<&mut Instant> {
         match &mut self.kind {
             ObjectKind::Instant(instant) => Some(instant),
@@ -2162,7 +2162,7 @@ impl Object {
     /// Gets the `Instant` data if the object is a `Temporal.Instant`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn as_instant(&self) -> Option<&Instant> {
         match &self.kind {
             ObjectKind::Instant(instant) => Some(instant),
@@ -2173,7 +2173,7 @@ impl Object {
     /// Checks if the object is a `Duration` object.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn is_duration(&self) -> bool {
         matches!(self.kind, ObjectKind::Duration(_))
     }
@@ -2181,7 +2181,7 @@ impl Object {
     /// Gets a mutable reference to `Duration` data if the object is a `Temporal.Duration`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn as_duration_mut(&mut self) -> Option<&mut Duration> {
         match &mut self.kind {
             ObjectKind::Duration(dur) => Some(dur),
@@ -2192,7 +2192,7 @@ impl Object {
     /// Gets the `Duration` data if the object is a `Temporal.Duration`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn as_duration(&self) -> Option<&Duration> {
         match &self.kind {
             ObjectKind::Duration(dur) => Some(dur),
@@ -2203,7 +2203,7 @@ impl Object {
     /// Checks if object is a `PlainDateTime` object.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn is_plain_date_time(&self) -> bool {
         matches!(self.kind, ObjectKind::PlainDateTime(_))
     }
@@ -2211,7 +2211,7 @@ impl Object {
     /// Gets a reference to `PlainDateTime` data if the object is a `Temporal.PlainDateTime`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn as_plain_date_time(&self) -> Option<&PlainDateTime> {
         match &self.kind {
             ObjectKind::PlainDateTime(date) => Some(date),
@@ -2222,7 +2222,7 @@ impl Object {
     /// Checks if object is a `PlainDate` object.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn is_plain_date(&self) -> bool {
         matches!(self.kind, ObjectKind::PlainDate(_))
     }
@@ -2230,7 +2230,7 @@ impl Object {
     /// Gets a mutable reference to `PlainDate` data if the object is a `Temporal.PlainDate`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn as_plain_date_mut(&mut self) -> Option<&mut PlainDate> {
         match &mut self.kind {
             ObjectKind::PlainDate(date) => Some(date),
@@ -2241,7 +2241,7 @@ impl Object {
     /// Gets the `PlainDate` data if the object is a `Temporal.PlainDate`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn as_plain_date(&self) -> Option<&PlainDate> {
         match &self.kind {
             ObjectKind::PlainDate(date) => Some(date),
@@ -2252,7 +2252,7 @@ impl Object {
     /// Checks if object is a `PlainYearMonth` object.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn is_plain_year_month(&self) -> bool {
         matches!(self.kind, ObjectKind::PlainYearMonth(_))
     }
@@ -2260,7 +2260,7 @@ impl Object {
     /// Gets a mutable reference to `PlainYearMonth` data if the object is a `Temporal.PlainYearMonth`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn as_plain_year_month_mut(&mut self) -> Option<&mut PlainYearMonth> {
         match &mut self.kind {
             ObjectKind::PlainYearMonth(year_month) => Some(year_month),
@@ -2271,7 +2271,7 @@ impl Object {
     /// Gets the `PlainYearMonth` data if the object is a `Temporal.PlainYearMonth`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn as_plain_year_month(&self) -> Option<&PlainYearMonth> {
         match &self.kind {
             ObjectKind::PlainYearMonth(ym) => Some(ym),
@@ -2282,7 +2282,7 @@ impl Object {
     /// Checks if object is a `PlainMonthDay` object.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn is_plain_month_day(&self) -> bool {
         matches!(self.kind, ObjectKind::PlainMonthDay(_))
     }
@@ -2290,7 +2290,7 @@ impl Object {
     /// Gets the `PlainMonthDay` data if the object is a `Temporal.PlainMonthDay`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn as_plain_month_day(&self) -> Option<&PlainMonthDay> {
         match &self.kind {
             ObjectKind::PlainMonthDay(md) => Some(md),
@@ -2301,7 +2301,7 @@ impl Object {
     /// Gets a mutable reference to `PlainMonthDay` data if the object is a `Temporal.PlainMonthDay`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub fn as_plain_month_day_mut(&mut self) -> Option<&mut PlainMonthDay> {
         match &mut self.kind {
             ObjectKind::PlainMonthDay(month_day) => Some(month_day),
@@ -2312,7 +2312,7 @@ impl Object {
     /// Gets the `PlainDate` data if the object is a `Temporal.PlainDate`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn as_zoned_date_time(&self) -> Option<&ZonedDateTime> {
         match &self.kind {
             ObjectKind::ZonedDateTime(zdt) => Some(zdt),
@@ -2323,7 +2323,7 @@ impl Object {
     /// Checks if the object is a `ZonedDateTime` object.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn is_zoned_date_time(&self) -> bool {
         matches!(self.kind, ObjectKind::ZonedDateTime(_))
     }
@@ -2331,7 +2331,7 @@ impl Object {
     /// Checks if the object is a `Calendar` object.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn is_calendar(&self) -> bool {
         matches!(self.kind, ObjectKind::Calendar(_))
     }
@@ -2339,7 +2339,7 @@ impl Object {
     /// Gets the `Calendar` data if the object is a `Temporal.Calendar`.
     #[inline]
     #[must_use]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub const fn as_calendar(&self) -> Option<&Calendar> {
         match &self.kind {
             ObjectKind::Calendar(calendar) => Some(calendar),

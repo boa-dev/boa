@@ -25,4 +25,4 @@ icu_properties.workspace = true
 
 [features]
 annex-b = []
-experimental = ["boa_ast/experimental"]
+temporal = ["boa_ast/temporal"]
