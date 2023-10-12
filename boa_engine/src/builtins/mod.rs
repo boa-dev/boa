@@ -40,10 +40,10 @@ pub mod escape;
 pub mod intl;
 
 // TODO: remove `cfg` when `Temporal` gets to stage 4.
-#[cfg(any(feature = "intl", feature = "experimental"))]
+#[cfg(any(feature = "intl", feature = "temporal"))]
 pub(crate) mod options;
 
-#[cfg(feature = "experimental")]
+#[cfg(feature = "temporal")]
 pub mod temporal;
 
 pub(crate) use self::{
@@ -279,7 +279,7 @@ impl Realm {
             intl::PluralRules::init(self);
         }
 
-        #[cfg(feature = "experimental")]
+        #[cfg(feature = "temporal")]
         {
             temporal::TimeZone::init(self);
             temporal::Temporal::init(self);
@@ -393,7 +393,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     #[cfg(feature = "intl")]
     global_binding::<intl::Intl>(context)?;
 
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     {
         global_binding::<temporal::Temporal>(context)?;
     }

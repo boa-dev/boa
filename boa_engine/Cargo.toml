@@ -46,8 +46,11 @@ trace = []
 # Enable Boa's additional ECMAScript features for web browsers.
 annex-b = ["boa_parser/annex-b"]
 
+# Stage 3 proposals
+temporal = ["boa_parser/temporal", "dep:icu_calendar"]
+
 # Enable experimental features, like Stage 3 proposals.
-experimental = ["boa_parser/experimental", "dep:icu_calendar"]
+experimental = ["temporal"]
 
 [dependencies]
 boa_interner.workspace = true

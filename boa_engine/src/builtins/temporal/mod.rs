@@ -19,7 +19,6 @@ mod plain_year_month;
 mod time_zone;
 mod zoned_date_time;
 
-#[cfg(feature = "experimental")]
 #[cfg(test)]
 mod tests;
 

@@ -227,7 +227,7 @@ impl JsBigInt {
 
     /// Utility function for performing `+` operation on more than two values.
     #[inline]
-    #[cfg(feature = "experimental")]
+    #[cfg(feature = "temporal")]
     pub(crate) fn add_n(values: &[Self]) -> Self {
         let mut result = Self::zero();
         for big_int in values {
