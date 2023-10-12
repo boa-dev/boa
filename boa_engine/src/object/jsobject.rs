@@ -75,6 +75,7 @@ impl JsObject {
             }),
         }
     }
+
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.
     ///
     /// This is equivalent to calling the specification's abstract operation
@@ -733,6 +734,110 @@ impl JsObject {
     #[track_caller]
     pub fn is_ordinary(&self) -> bool {
         self.borrow().is_ordinary()
+    }
+
+    /// Checks if current object is a `Temporal.Duration` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[cfg(feature = "experimental")]
+    pub fn is_duration(&self) -> bool {
+        self.borrow().is_duration()
+    }
+
+    /// Checks if current object is a `Temporal.TimeZone` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[cfg(feature = "experimental")]
+    pub fn is_time_zone(&self) -> bool {
+        self.borrow().is_time_zone()
+    }
+
+    /// Checks if current object is a `Temporal.PlainDateTime` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[cfg(feature = "experimental")]
+    pub fn is_plain_date_time(&self) -> bool {
+        self.borrow().is_plain_date_time()
+    }
+
+    /// Checks if current object is a `Temporal.PlainDate` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[cfg(feature = "experimental")]
+    pub fn is_plain_date(&self) -> bool {
+        self.borrow().is_plain_date()
+    }
+
+    /// Checks if current object is a `Temporal.PlainYearMonth` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[cfg(feature = "experimental")]
+    pub fn is_plain_year_month(&self) -> bool {
+        self.borrow().is_plain_year_month()
+    }
+
+    /// Checks if current object is a `Temporal.PlainMonthDay` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[cfg(feature = "experimental")]
+    pub fn is_plain_month_day(&self) -> bool {
+        self.borrow().is_plain_month_day()
+    }
+
+    /// Checks if current object is a `Temporal.ZonedDateTime` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[cfg(feature = "experimental")]
+    pub fn is_zoned_date_time(&self) -> bool {
+        self.borrow().is_zoned_date_time()
+    }
+
+    /// Checks if current object is a `Temporal.Calendar` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[cfg(feature = "experimental")]
+    pub fn is_calendar(&self) -> bool {
+        self.borrow().is_calendar()
     }
 
     /// Checks if it's a proxy object.

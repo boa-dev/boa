@@ -225,6 +225,17 @@ impl JsBigInt {
         Self::new(x.inner.as_ref().clone().add(y.inner.as_ref()))
     }
 
+    /// Utility function for performing `+` operation on more than two values.
+    #[inline]
+    #[cfg(feature = "experimental")]
+    pub(crate) fn add_n(values: &[Self]) -> Self {
+        let mut result = Self::zero();
+        for big_int in values {
+            result = Self::add(&result, big_int);
+        }
+        result
+    }
+
     /// Performs the `-` operation.
     #[inline]
     #[must_use]

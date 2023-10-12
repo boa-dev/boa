@@ -47,7 +47,7 @@ trace = []
 annex-b = ["boa_parser/annex-b"]
 
 # Enable experimental features, like Stage 3 proposals.
-experimental = []
+experimental = ["boa_parser/experimental", "dep:icu_calendar"]
 
 [dependencies]
 boa_interner.workspace = true

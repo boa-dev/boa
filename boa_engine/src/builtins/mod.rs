@@ -43,6 +43,9 @@ pub mod intl;
 #[cfg(any(feature = "intl", feature = "experimental"))]
 pub(crate) mod options;
 
+#[cfg(feature = "experimental")]
+pub mod temporal;
+
 pub(crate) use self::{
     array::Array,
     async_function::AsyncFunction,
@@ -275,6 +278,22 @@ impl Realm {
             intl::segmenter::SegmentIterator::init(self);
             intl::PluralRules::init(self);
         }
+
+        #[cfg(feature = "experimental")]
+        {
+            temporal::TimeZone::init(self);
+            temporal::Temporal::init(self);
+            temporal::Now::init(self);
+            temporal::Instant::init(self);
+            temporal::Duration::init(self);
+            temporal::PlainDate::init(self);
+            temporal::PlainTime::init(self);
+            temporal::PlainDateTime::init(self);
+            temporal::PlainMonthDay::init(self);
+            temporal::PlainYearMonth::init(self);
+            temporal::ZonedDateTime::init(self);
+            temporal::Calendar::init(self);
+        }
     }
 }
 
@@ -373,6 +392,11 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
 
     #[cfg(feature = "intl")]
     global_binding::<intl::Intl>(context)?;
+
+    #[cfg(feature = "experimental")]
+    {
+        global_binding::<temporal::Temporal>(context)?;
+    }
 
     Ok(())
 }

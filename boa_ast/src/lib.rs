@@ -91,6 +91,8 @@ pub mod operations;
 pub mod pattern;
 pub mod property;
 pub mod statement;
+#[cfg(feature = "experimental")]
+pub mod temporal;
 pub mod visitor;
 
 use boa_interner::{Interner, ToIndentedString, ToInternedString};

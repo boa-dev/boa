@@ -124,6 +124,53 @@ pub(crate) enum RoundingMode {
     HalfEven,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum UnsignedRoundingMode {
+    Infinity,
+    Zero,
+    HalfInfinity,
+    HalfZero,
+    HalfEven,
+}
+
+impl RoundingMode {
+    pub(crate) const fn negate(self) -> Self {
+        use RoundingMode::{
+            Ceil, Expand, Floor, HalfCeil, HalfEven, HalfExpand, HalfFloor, HalfTrunc, Trunc,
+        };
+
+        match self {
+            Ceil => Self::Floor,
+            Floor => Self::Ceil,
+            HalfCeil => Self::HalfFloor,
+            HalfFloor => Self::HalfCeil,
+            Trunc => Self::Trunc,
+            Expand => Self::Expand,
+            HalfTrunc => Self::HalfTrunc,
+            HalfExpand => Self::HalfExpand,
+            HalfEven => Self::HalfEven,
+        }
+    }
+
+    pub(crate) const fn get_unsigned_round_mode(self, is_negative: bool) -> UnsignedRoundingMode {
+        use RoundingMode::{
+            Ceil, Expand, Floor, HalfCeil, HalfEven, HalfExpand, HalfFloor, HalfTrunc, Trunc,
+        };
+
+        match self {
+            Ceil if !is_negative => UnsignedRoundingMode::Infinity,
+            Ceil => UnsignedRoundingMode::Zero,
+            Floor if !is_negative => UnsignedRoundingMode::Zero,
+            Floor | Trunc | Expand => UnsignedRoundingMode::Infinity,
+            HalfCeil if !is_negative => UnsignedRoundingMode::HalfInfinity,
+            HalfCeil | HalfTrunc => UnsignedRoundingMode::HalfZero,
+            HalfFloor if !is_negative => UnsignedRoundingMode::HalfZero,
+            HalfFloor | HalfExpand => UnsignedRoundingMode::HalfInfinity,
+            HalfEven => UnsignedRoundingMode::HalfEven,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct ParseRoundingModeError;
 
