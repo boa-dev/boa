@@ -110,6 +110,7 @@ impl StaticJsStrings {
         // Builtins
         (ARRAY, "Array"),
         (ARRAY_BUFFER, "ArrayBuffer"),
+        (SHARED_ARRAY_BUFFER, "SharedArrayBuffer"),
         (ASYNC_FUNCTION, "AsyncFunction"),
         (ASYNC_GENERATOR, "AsyncGenerator"),
         (ASYNC_GENERATOR_FUNCTION, "AsyncGeneratorFunction"),
@@ -250,6 +251,7 @@ const RAW_STATICS: &[&[u16]] = &[
     // Well known builtins
     utf16!("Array"),
     utf16!("ArrayBuffer"),
+    utf16!("SharedArrayBuffer"),
     utf16!("AsyncFunction"),
     utf16!("AsyncGenerator"),
     utf16!("AsyncGeneratorFunction"),

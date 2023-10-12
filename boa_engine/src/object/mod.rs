@@ -46,7 +46,7 @@ use crate::builtins::temporal::{
 use crate::{
     builtins::{
         array::ArrayIterator,
-        array_buffer::ArrayBuffer,
+        array_buffer::{ArrayBuffer, BufferRef, BufferRefMut, SharedArrayBuffer},
         async_generator::AsyncGenerator,
         error::ErrorKind,
         function::arguments::Arguments,
@@ -61,7 +61,7 @@ use crate::{
         set::ordered_set::OrderedSet,
         set::SetIterator,
         string::StringIterator,
-        typed_array::{integer_indexed_object::IntegerIndexed, TypedArrayKind},
+        typed_array::{IntegerIndexed, TypedArrayKind},
         DataView, Date, Promise, RegExp,
     },
     context::intrinsics::StandardConstructor,
@@ -316,6 +316,9 @@ pub enum ObjectKind {
     /// The `ArrayBuffer` object kind.
     ArrayBuffer(ArrayBuffer),
 
+    /// The `SharedArrayBuffer` object kind.
+    SharedArrayBuffer(SharedArrayBuffer),
+
     /// The `Map` object kind.
     Map(OrderedMap<JsValue>),
 
@@ -547,7 +550,8 @@ unsafe impl Trace for ObjectKind {
             | Self::Ordinary
             | Self::Global
             | Self::Number(_)
-            | Self::Symbol(_) => {}
+            | Self::Symbol(_)
+            | Self::SharedArrayBuffer(_) => {}
             #[cfg(feature = "temporal")]
             Self::Instant(_)
             | Self::PlainDateTime(_)
@@ -622,6 +626,15 @@ impl ObjectData {
     pub fn array_buffer(array_buffer: ArrayBuffer) -> Self {
         Self {
             kind: ObjectKind::ArrayBuffer(array_buffer),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `SharedArrayBuffer` object data
+    #[must_use]
+    pub fn shared_array_buffer(shared_array_buffer: SharedArrayBuffer) -> Self {
+        Self {
+            kind: ObjectKind::SharedArrayBuffer(shared_array_buffer),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -1123,6 +1136,7 @@ impl Debug for ObjectKind {
             Self::Array => "Array",
             Self::ArrayIterator(_) => "ArrayIterator",
             Self::ArrayBuffer(_) => "ArrayBuffer",
+            Self::SharedArrayBuffer(_) => "SharedArrayBuffer",
             Self::ForInIterator(_) => "ForInIterator",
             Self::OrdinaryFunction(_) => "Function",
             Self::BoundFunction(_) => "BoundFunction",
@@ -1296,11 +1310,42 @@ impl Object {
         }
     }
 
+    /// Gets the shared array buffer data if the object is a `SharedArrayBuffer`.
+    #[inline]
+    #[must_use]
+    pub const fn as_shared_array_buffer(&self) -> Option<&SharedArrayBuffer> {
+        match &self.kind {
+            ObjectKind::SharedArrayBuffer(buffer) => Some(buffer),
+            _ => None,
+        }
+    }
+
     /// Gets the mutable array buffer data if the object is a `ArrayBuffer`.
     #[inline]
     pub fn as_array_buffer_mut(&mut self) -> Option<&mut ArrayBuffer> {
         match &mut self.kind {
             ObjectKind::ArrayBuffer(buffer) => Some(buffer),
+            _ => None,
+        }
+    }
+
+    /// Gets the buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
+    #[inline]
+    #[must_use]
+    pub(crate) const fn as_buffer(&self) -> Option<BufferRef<'_>> {
+        match &self.kind {
+            ObjectKind::ArrayBuffer(buffer) => Some(BufferRef::Common(buffer)),
+            ObjectKind::SharedArrayBuffer(buffer) => Some(BufferRef::Shared(buffer)),
+            _ => None,
+        }
+    }
+
+    /// Gets the mutable buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
+    #[inline]
+    pub(crate) fn as_buffer_mut(&mut self) -> Option<BufferRefMut<'_>> {
+        match &mut self.kind {
+            ObjectKind::ArrayBuffer(buffer) => Some(BufferRefMut::Common(buffer)),
+            ObjectKind::SharedArrayBuffer(buffer) => Some(BufferRefMut::Shared(buffer)),
             _ => None,
         }
     }
@@ -1693,7 +1738,7 @@ impl Object {
     #[must_use]
     pub const fn is_typed_uint8_array(&self) -> bool {
         if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.typed_array_name(), TypedArrayKind::Uint8)
+            matches!(int.kind(), TypedArrayKind::Uint8)
         } else {
             false
         }
@@ -1704,7 +1749,7 @@ impl Object {
     #[must_use]
     pub const fn is_typed_int8_array(&self) -> bool {
         if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.typed_array_name(), TypedArrayKind::Int8)
+            matches!(int.kind(), TypedArrayKind::Int8)
         } else {
             false
         }
@@ -1715,7 +1760,7 @@ impl Object {
     #[must_use]
     pub const fn is_typed_uint16_array(&self) -> bool {
         if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.typed_array_name(), TypedArrayKind::Uint16)
+            matches!(int.kind(), TypedArrayKind::Uint16)
         } else {
             false
         }
@@ -1726,7 +1771,7 @@ impl Object {
     #[must_use]
     pub const fn is_typed_int16_array(&self) -> bool {
         if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.typed_array_name(), TypedArrayKind::Int16)
+            matches!(int.kind(), TypedArrayKind::Int16)
         } else {
             false
         }
@@ -1737,7 +1782,7 @@ impl Object {
     #[must_use]
     pub const fn is_typed_uint32_array(&self) -> bool {
         if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.typed_array_name(), TypedArrayKind::Uint32)
+            matches!(int.kind(), TypedArrayKind::Uint32)
         } else {
             false
         }
@@ -1748,7 +1793,7 @@ impl Object {
     #[must_use]
     pub const fn is_typed_int32_array(&self) -> bool {
         if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.typed_array_name(), TypedArrayKind::Int32)
+            matches!(int.kind(), TypedArrayKind::Int32)
         } else {
             false
         }
@@ -1759,7 +1804,7 @@ impl Object {
     #[must_use]
     pub const fn is_typed_float32_array(&self) -> bool {
         if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.typed_array_name(), TypedArrayKind::Float32)
+            matches!(int.kind(), TypedArrayKind::Float32)
         } else {
             false
         }
@@ -1770,7 +1815,7 @@ impl Object {
     #[must_use]
     pub const fn is_typed_float64_array(&self) -> bool {
         if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.typed_array_name(), TypedArrayKind::Float64)
+            matches!(int.kind(), TypedArrayKind::Float64)
         } else {
             false
         }

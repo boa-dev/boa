@@ -150,6 +150,7 @@ pub struct StandardConstructors {
     typed_float32_array: StandardConstructor,
     typed_float64_array: StandardConstructor,
     array_buffer: StandardConstructor,
+    shared_array_buffer: StandardConstructor,
     data_view: StandardConstructor,
     date_time_format: StandardConstructor,
     promise: StandardConstructor,
@@ -246,6 +247,7 @@ impl Default for StandardConstructors {
             typed_float32_array: StandardConstructor::default(),
             typed_float64_array: StandardConstructor::default(),
             array_buffer: StandardConstructor::default(),
+            shared_array_buffer: StandardConstructor::default(),
             data_view: StandardConstructor::default(),
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
@@ -729,6 +731,18 @@ impl StandardConstructors {
     #[must_use]
     pub const fn array_buffer(&self) -> &StandardConstructor {
         &self.array_buffer
+    }
+
+    /// Returns the `SharedArrayBuffer` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-sharedarraybuffer-constructor
+    #[inline]
+    #[must_use]
+    pub const fn shared_array_buffer(&self) -> &StandardConstructor {
+        &self.shared_array_buffer
     }
 
     /// Returns the `DataView` constructor.

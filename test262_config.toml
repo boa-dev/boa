@@ -7,7 +7,6 @@ flags = []
 features = [
     ### Unimplemented features:
 
-    "SharedArrayBuffer",
     "FinalizationRegistry",
     "IsHTMLDDA",
     "Atomics",

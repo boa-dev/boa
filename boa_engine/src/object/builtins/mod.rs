@@ -15,6 +15,7 @@ mod jsproxy;
 mod jsregexp;
 mod jsset;
 mod jsset_iterator;
+mod jssharedarraybuffer;
 mod jstypedarray;
 
 pub use jsarray::*;
@@ -30,4 +31,5 @@ pub use jsproxy::{JsProxy, JsProxyBuilder, JsRevocableProxy};
 pub use jsregexp::JsRegExp;
 pub use jsset::*;
 pub use jsset_iterator::*;
+pub use jssharedarraybuffer::*;
 pub use jstypedarray::*;

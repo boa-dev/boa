@@ -1,4 +1,4 @@
-//! Boa's implementation of ECMAScript's global `ArrayBuffer` object.
+//! Boa's implementation of ECMAScript's global `ArrayBuffer` and `SharedArrayBuffer` objects
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -7,11 +7,16 @@
 //! [spec]: https://tc39.es/ecma262/#sec-arraybuffer-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
 
+pub(crate) mod shared;
+pub(crate) mod utils;
+
 #[cfg(test)]
 mod tests;
 
+pub use shared::SharedArrayBuffer;
+
 use crate::{
-    builtins::{typed_array::TypedArrayKind, BuiltInObject},
+    builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -20,31 +25,106 @@ use crate::{
     realm::Realm,
     string::common::StaticJsStrings,
     symbol::JsSymbol,
-    value::{IntegerOrInfinity, Numeric},
+    value::IntegerOrInfinity,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use num_traits::{Signed, ToPrimitive};
+
+use self::utils::{SliceRef, SliceRefMut};
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum BufferRef<'a> {
+    Common(&'a ArrayBuffer),
+    Shared(&'a SharedArrayBuffer),
+}
+
+impl BufferRef<'_> {
+    pub(crate) fn data(&self) -> Option<SliceRef<'_>> {
+        match self {
+            Self::Common(buf) => buf.data().map(SliceRef::Common),
+            Self::Shared(buf) => Some(SliceRef::Atomic(buf.data())),
+        }
+    }
+
+    pub(crate) fn is_detached(&self) -> bool {
+        self.data().is_none()
+    }
+}
+
+#[derive(Debug)]
+pub(crate) enum BufferRefMut<'a> {
+    Common(&'a mut ArrayBuffer),
+    Shared(&'a mut SharedArrayBuffer),
+}
+
+impl BufferRefMut<'_> {
+    pub(crate) fn data_mut(&mut self) -> Option<SliceRefMut<'_>> {
+        match self {
+            Self::Common(buf) => buf.data_mut().map(SliceRefMut::Common),
+            Self::Shared(buf) => Some(SliceRefMut::Atomic(buf.data())),
+        }
+    }
+}
 
 /// The internal representation of an `ArrayBuffer` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct ArrayBuffer {
     /// The `[[ArrayBufferData]]` internal slot.
-    pub array_buffer_data: Option<Vec<u8>>,
-
-    /// The `[[ArrayBufferByteLength]]` internal slot.
-    pub array_buffer_byte_length: u64,
+    data: Option<Vec<u8>>,
 
     /// The `[[ArrayBufferDetachKey]]` internal slot.
-    pub array_buffer_detach_key: JsValue,
+    detach_key: JsValue,
 }
 
 impl ArrayBuffer {
-    pub(crate) const fn array_buffer_byte_length(&self) -> u64 {
-        self.array_buffer_byte_length
+    pub(crate) fn from_data(data: Vec<u8>, detach_key: JsValue) -> Self {
+        Self {
+            data: Some(data),
+            detach_key,
+        }
+    }
+
+    pub(crate) fn len(&self) -> usize {
+        self.data.as_ref().map_or(0, Vec::len)
+    }
+
+    pub(crate) fn data(&self) -> Option<&[u8]> {
+        self.data.as_deref()
+    }
+
+    pub(crate) fn data_mut(&mut self) -> Option<&mut [u8]> {
+        self.data.as_deref_mut()
+    }
+
+    /// Detaches the inner data of this `ArrayBuffer`, returning the original buffer if still
+    /// present.
+    ///
+    /// # Errors
+    ///
+    /// Throws an error if the provided detach key is invalid.
+    pub fn detach(&mut self, key: &JsValue) -> JsResult<Option<Vec<u8>>> {
+        if !JsValue::same_value(&self.detach_key, key) {
+            return Err(JsNativeError::typ()
+                .with_message("Cannot detach array buffer with different key")
+                .into());
+        }
+
+        Ok(self.data.take())
+    }
+
+    /// `25.1.2.2 IsDetachedBuffer ( arrayBuffer )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer
+    pub(crate) const fn is_detached(&self) -> bool {
+        // 1. If arrayBuffer.[[ArrayBufferData]] is null, return true.
+        // 2. Return false.
+        self.data.is_none()
     }
 }
 
@@ -175,21 +255,15 @@ impl ArrayBuffer {
             JsNativeError::typ().with_message("ArrayBuffer.byteLength called with non-object value")
         })?;
         let obj = obj.borrow();
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
         let buf = obj.as_array_buffer().ok_or_else(|| {
             JsNativeError::typ().with_message("ArrayBuffer.byteLength called with invalid object")
         })?;
 
-        // TODO: Shared Array Buffer
-        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-
         // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
-        if Self::is_detached_buffer(buf) {
-            return Ok(0.into());
-        }
-
         // 5. Let length be O.[[ArrayBufferByteLength]].
         // 6. Return 𝔽(length).
-        Ok(buf.array_buffer_byte_length.into())
+        Ok(buf.len().into())
     }
 
     /// `25.1.5.3 ArrayBuffer.prototype.slice ( start, end )`
@@ -205,56 +279,28 @@ impl ArrayBuffer {
             JsNativeError::typ().with_message("ArrayBuffer.slice called with non-object value")
         })?;
         let obj_borrow = obj.borrow();
+
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
         let buf = obj_borrow.as_array_buffer().ok_or_else(|| {
             JsNativeError::typ().with_message("ArrayBuffer.slice called with invalid object")
         })?;
 
-        // TODO: Shared Array Buffer
-        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-
         // 4. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-        if Self::is_detached_buffer(buf) {
+        if buf.is_detached() {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer.slice called with detached buffer")
                 .into());
         }
 
-        // 5. Let len be O.[[ArrayBufferByteLength]].
-        let len = buf.array_buffer_byte_length as i64;
-
-        // 6. Let relativeStart be ? ToIntegerOrInfinity(start).
-        let relative_start = args.get_or_undefined(0).to_integer_or_infinity(context)?;
-
-        let first = match relative_start {
-            // 7. If relativeStart is -∞, let first be 0.
-            IntegerOrInfinity::NegativeInfinity => 0,
-            // 8. Else if relativeStart < 0, let first be max(len + relativeStart, 0).
-            IntegerOrInfinity::Integer(i) if i < 0 => std::cmp::max(len + i, 0),
-            // 9. Else, let first be min(relativeStart, len).
-            IntegerOrInfinity::Integer(i) => std::cmp::min(i, len),
-            IntegerOrInfinity::PositiveInfinity => len,
-        };
-
-        // 10. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
-        let end = args.get_or_undefined(1);
-        let relative_end = if end.is_undefined() {
-            IntegerOrInfinity::Integer(len)
-        } else {
-            end.to_integer_or_infinity(context)?
-        };
-
-        let r#final = match relative_end {
-            // 11. If relativeEnd is -∞, let final be 0.
-            IntegerOrInfinity::NegativeInfinity => 0,
-            // 12. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
-            IntegerOrInfinity::Integer(i) if i < 0 => std::cmp::max(len + i, 0),
-            // 13. Else, let final be min(relativeEnd, len).
-            IntegerOrInfinity::Integer(i) => std::cmp::min(i, len),
-            IntegerOrInfinity::PositiveInfinity => len,
-        };
-
-        // 14. Let newLen be max(final - first, 0).
-        let new_len = std::cmp::max(r#final - first, 0) as u64;
+        let SliceRange {
+            start: first,
+            length: new_len,
+        } = get_slice_range(
+            buf.len() as u64,
+            args.get_or_undefined(0),
+            args.get_or_undefined(1),
+            context,
+        )?;
 
         // 15. Let ctor be ? SpeciesConstructor(O, %ArrayBuffer%).
         let ctor = obj.species_constructor(StandardConstructors::array_buffer, context)?;
@@ -265,15 +311,13 @@ impl ArrayBuffer {
         {
             let new_obj = new.borrow();
             // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
+            // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
             let new_array_buffer = new_obj.as_array_buffer().ok_or_else(|| {
                 JsNativeError::typ().with_message("ArrayBuffer constructor returned invalid object")
             })?;
 
-            // TODO: Shared Array Buffer
-            // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
-
             // 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.
-            if new_array_buffer.is_detached_buffer() {
+            if new_array_buffer.is_detached() {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer constructor returned detached ArrayBuffer")
                     .into());
@@ -286,7 +330,7 @@ impl ArrayBuffer {
             .unwrap_or_default()
         {
             return Err(JsNativeError::typ()
-                .with_message("New ArrayBuffer is the same as this ArrayBuffer")
+                .with_message("new ArrayBuffer is the same as this ArrayBuffer")
                 .into());
         }
 
@@ -297,34 +341,31 @@ impl ArrayBuffer {
                 .expect("Already checked that `new_obj` was an `ArrayBuffer`");
 
             // 21. If new.[[ArrayBufferByteLength]] < newLen, throw a TypeError exception.
-            if new_array_buffer.array_buffer_byte_length < new_len {
+            if (new_array_buffer.len() as u64) < new_len {
                 return Err(JsNativeError::typ()
-                    .with_message("New ArrayBuffer length too small")
+                    .with_message("new ArrayBuffer length too small")
                     .into());
             }
 
             // 22. NOTE: Side-effects of the above steps may have detached O.
-            // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-            if Self::is_detached_buffer(buf) {
+            // 24. Let fromBuf be O.[[ArrayBufferData]].
+            let Some(from_buf) = buf.data() else {
+                // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer detached while ArrayBuffer.slice was running")
                     .into());
-            }
-
-            // 24. Let fromBuf be O.[[ArrayBufferData]].
-            let from_buf = buf
-                .array_buffer_data
-                .as_ref()
-                .expect("ArrayBuffer cannot be detached here");
+            };
 
             // 25. Let toBuf be new.[[ArrayBufferData]].
             let to_buf = new_array_buffer
-                .array_buffer_data
+                .data
                 .as_mut()
                 .expect("ArrayBuffer cannot be detached here");
 
             // 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
-            copy_data_block_bytes(to_buf, 0, from_buf, first as usize, new_len as usize);
+            let first = first as usize;
+            let new_len = new_len as usize;
+            to_buf[..new_len].copy_from_slice(&from_buf[first..first + new_len]);
         }
 
         // 27. Return new.
@@ -350,7 +391,7 @@ impl ArrayBuffer {
         )?;
 
         // 2. Let block be ? CreateByteDataBlock(byteLength).
-        let block = create_byte_data_block(byte_length)?;
+        let block = create_byte_data_block(byte_length, context)?;
 
         // 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
@@ -358,422 +399,67 @@ impl ArrayBuffer {
             context.root_shape(),
             prototype,
             ObjectData::array_buffer(Self {
-                array_buffer_data: Some(block),
-                array_buffer_byte_length: byte_length,
-                array_buffer_detach_key: JsValue::Undefined,
+                data: Some(block),
+                detach_key: JsValue::Undefined,
             }),
         );
 
         // 5. Return obj.
         Ok(obj)
     }
+}
 
-    /// `25.1.2.2 IsDetachedBuffer ( arrayBuffer )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer
-    pub(crate) const fn is_detached_buffer(&self) -> bool {
-        // 1. If arrayBuffer.[[ArrayBufferData]] is null, return true.
-        // 2. Return false.
-        self.array_buffer_data.is_none()
-    }
+/// Utility struct to return the result of the [`get_slice_range`] function.
+#[derive(Debug, Clone, Copy)]
+struct SliceRange {
+    start: u64,
+    length: u64,
+}
 
-    /// `25.1.2.4 CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer
-    pub(crate) fn clone_array_buffer(
-        &self,
-        src_byte_offset: u64,
-        src_length: u64,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsObject> {
-        // 1. Assert: IsDetachedBuffer(srcBuffer) is false.
-        debug_assert!(!self.is_detached_buffer());
+/// Gets the slice copy range from the original length, the relative start and the end.
+fn get_slice_range(
+    len: u64,
+    relative_start: &JsValue,
+    end: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<SliceRange> {
+    // 5. Let len be O.[[ArrayBufferByteLength]].
 
-        // 2. Let targetBuffer be ? AllocateArrayBuffer(%ArrayBuffer%, srcLength).
-        let target_buffer = Self::allocate(
-            &context
-                .realm()
-                .intrinsics()
-                .constructors()
-                .array_buffer()
-                .constructor()
-                .into(),
-            src_length,
-            context,
-        )?;
+    // 6. Let relativeStart be ? ToIntegerOrInfinity(start).
+    let relative_start = relative_start.to_integer_or_infinity(context)?;
 
-        // 3. Let srcBlock be srcBuffer.[[ArrayBufferData]].
-        let src_block = self
-            .array_buffer_data
-            .as_deref()
-            .expect("ArrayBuffer cannot be detached");
+    let first = match relative_start {
+        // 7. If relativeStart is -∞, let first be 0.
+        IntegerOrInfinity::NegativeInfinity => 0,
+        // 8. Else if relativeStart < 0, let first be max(len + relativeStart, 0).
+        IntegerOrInfinity::Integer(i) if i < 0 => len.checked_add_signed(i).unwrap_or(0),
+        // 9. Else, let first be min(relativeStart, len).
+        IntegerOrInfinity::Integer(i) => std::cmp::min(i as u64, len),
+        IntegerOrInfinity::PositiveInfinity => len,
+    };
 
-        // 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].
-        let mut target_buffer_mut = target_buffer.borrow_mut();
-        let target_array_buffer = target_buffer_mut
-            .as_array_buffer_mut()
-            .expect("This must be an ArrayBuffer");
-        let target_block = target_array_buffer
-            .array_buffer_data
-            .as_mut()
-            .expect("ArrayBuffer cannot me detached here");
-
-        // 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).
-        copy_data_block_bytes(
-            target_block,
-            0,
-            src_block,
-            src_byte_offset as usize,
-            src_length as usize,
-        );
-
-        // 6. Return targetBuffer.
-        drop(target_buffer_mut);
-        Ok(target_buffer)
-    }
-
-    /// `25.1.2.6 IsUnclampedIntegerElementType ( type )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-isunclampedintegerelementtype
-    const fn is_unclamped_integer_element_type(t: TypedArrayKind) -> bool {
-        // 1. If type is Int8, Uint8, Int16, Uint16, Int32, or Uint32, return true.
-        // 2. Return false.
-        matches!(
-            t,
-            TypedArrayKind::Int8
-                | TypedArrayKind::Uint8
-                | TypedArrayKind::Int16
-                | TypedArrayKind::Uint16
-                | TypedArrayKind::Int32
-                | TypedArrayKind::Uint32
-        )
-    }
-
-    /// `25.1.2.7 IsBigIntElementType ( type )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-isbigintelementtype
-    const fn is_big_int_element_type(t: TypedArrayKind) -> bool {
-        // 1. If type is BigUint64 or BigInt64, return true.
-        // 2. Return false.
-        matches!(t, TypedArrayKind::BigUint64 | TypedArrayKind::BigInt64)
-    }
-
-    /// `25.1.2.8 IsNoTearConfiguration ( type, order )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-isnotearconfiguration
-    // TODO: Allow unused function until shared array buffers are implemented.
-    #[allow(dead_code)]
-    const fn is_no_tear_configuration(t: TypedArrayKind, order: SharedMemoryOrder) -> bool {
-        // 1. If ! IsUnclampedIntegerElementType(type) is true, return true.
-        if Self::is_unclamped_integer_element_type(t) {
-            return true;
+    // 10. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
+    let r#final = if end.is_undefined() {
+        len
+    } else {
+        match end.to_integer_or_infinity(context)? {
+            // 11. If relativeEnd is -∞, let final be 0.
+            IntegerOrInfinity::NegativeInfinity => 0,
+            // 12. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
+            IntegerOrInfinity::Integer(i) if i < 0 => len.checked_add_signed(i).unwrap_or(0),
+            // 13. Else, let final be min(relativeEnd, len).
+            IntegerOrInfinity::Integer(i) => std::cmp::min(i as u64, len),
+            IntegerOrInfinity::PositiveInfinity => len,
         }
+    };
 
-        // 2. If ! IsBigIntElementType(type) is true and order is not Init or Unordered, return true.
-        if Self::is_big_int_element_type(t)
-            && !matches!(
-                order,
-                SharedMemoryOrder::Init | SharedMemoryOrder::Unordered
-            )
-        {
-            return true;
-        }
+    // 14. Let newLen be max(final - first, 0).
+    let new_len = r#final.saturating_sub(first);
 
-        // 3. Return false.
-        false
-    }
-
-    /// `25.1.2.9 RawBytesToNumeric ( type, rawBytes, isLittleEndian )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-rawbytestonumeric
-    fn raw_bytes_to_numeric(t: TypedArrayKind, bytes: &[u8], is_little_endian: bool) -> JsValue {
-        let n: Numeric = match t {
-            TypedArrayKind::Int8 => {
-                if is_little_endian {
-                    i8::from_le_bytes(bytes.try_into().expect("slice with incorrect length")).into()
-                } else {
-                    i8::from_be_bytes(bytes.try_into().expect("slice with incorrect length")).into()
-                }
-            }
-            TypedArrayKind::Uint8 | TypedArrayKind::Uint8Clamped => {
-                if is_little_endian {
-                    u8::from_le_bytes(bytes.try_into().expect("slice with incorrect length")).into()
-                } else {
-                    u8::from_be_bytes(bytes.try_into().expect("slice with incorrect length")).into()
-                }
-            }
-            TypedArrayKind::Int16 => {
-                if is_little_endian {
-                    i16::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                } else {
-                    i16::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                }
-            }
-            TypedArrayKind::Uint16 => {
-                if is_little_endian {
-                    u16::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                } else {
-                    u16::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                }
-            }
-            TypedArrayKind::Int32 => {
-                if is_little_endian {
-                    i32::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                } else {
-                    i32::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                }
-            }
-            TypedArrayKind::Uint32 => {
-                if is_little_endian {
-                    u32::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                } else {
-                    u32::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                }
-            }
-            TypedArrayKind::BigInt64 => {
-                if is_little_endian {
-                    i64::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                } else {
-                    i64::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                }
-            }
-            TypedArrayKind::BigUint64 => {
-                if is_little_endian {
-                    u64::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                } else {
-                    u64::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                }
-            }
-            TypedArrayKind::Float32 => {
-                if is_little_endian {
-                    f32::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                } else {
-                    f32::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                }
-            }
-            TypedArrayKind::Float64 => {
-                if is_little_endian {
-                    f64::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                } else {
-                    f64::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
-                        .into()
-                }
-            }
-        };
-
-        n.into()
-    }
-
-    /// `25.1.2.10 GetValueFromBuffer ( arrayBuffer, byteIndex, type, isTypedArray, order [ , isLittleEndian ] )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-getvaluefrombuffer
-    pub(crate) fn get_value_from_buffer(
-        &self,
-        byte_index: u64,
-        t: TypedArrayKind,
-        _is_typed_array: bool,
-        _order: SharedMemoryOrder,
-        is_little_endian: Option<bool>,
-    ) -> JsValue {
-        // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
-        // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
-        // 3. Let block be arrayBuffer.[[ArrayBufferData]].
-        let block = self
-            .array_buffer_data
-            .as_ref()
-            .expect("ArrayBuffer cannot be detached here");
-
-        // 4. Let elementSize be the Element Size value specified in Table 73 for Element Type type.
-        let element_size = t.element_size() as usize;
-
-        // TODO: Shared Array Buffer
-        // 5. If IsSharedArrayBuffer(arrayBuffer) is true, then
-
-        // 6. Else, let rawValue be a List whose elements are bytes from block at indices byteIndex (inclusive) through byteIndex + elementSize (exclusive).
-        // 7. Assert: The number of elements in rawValue is elementSize.
-        let byte_index = byte_index as usize;
-        let raw_value = &block[byte_index..byte_index + element_size];
-
-        // TODO: Agent Record [[LittleEndian]] filed
-        // 8. If isLittleEndian is not present, set isLittleEndian to the value of the [[LittleEndian]] field of the surrounding agent's Agent Record.
-        let is_little_endian = is_little_endian.unwrap_or(true);
-
-        // 9. Return RawBytesToNumeric(type, rawValue, isLittleEndian).
-        Self::raw_bytes_to_numeric(t, raw_value, is_little_endian)
-    }
-
-    /// `25.1.2.11 NumericToRawBytes ( type, value, isLittleEndian )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-numerictorawbytes
-    fn numeric_to_raw_bytes(
-        t: TypedArrayKind,
-        value: &JsValue,
-        is_little_endian: bool,
-        context: &mut Context<'_>,
-    ) -> JsResult<Vec<u8>> {
-        Ok(match t {
-            TypedArrayKind::Int8 if is_little_endian => {
-                value.to_int8(context)?.to_le_bytes().to_vec()
-            }
-            TypedArrayKind::Int8 => value.to_int8(context)?.to_be_bytes().to_vec(),
-            TypedArrayKind::Uint8 if is_little_endian => {
-                value.to_uint8(context)?.to_le_bytes().to_vec()
-            }
-            TypedArrayKind::Uint8 => value.to_uint8(context)?.to_be_bytes().to_vec(),
-            TypedArrayKind::Uint8Clamped if is_little_endian => {
-                value.to_uint8_clamp(context)?.to_le_bytes().to_vec()
-            }
-            TypedArrayKind::Uint8Clamped => value.to_uint8_clamp(context)?.to_be_bytes().to_vec(),
-            TypedArrayKind::Int16 if is_little_endian => {
-                value.to_int16(context)?.to_le_bytes().to_vec()
-            }
-            TypedArrayKind::Int16 => value.to_int16(context)?.to_be_bytes().to_vec(),
-            TypedArrayKind::Uint16 if is_little_endian => {
-                value.to_uint16(context)?.to_le_bytes().to_vec()
-            }
-            TypedArrayKind::Uint16 => value.to_uint16(context)?.to_be_bytes().to_vec(),
-            TypedArrayKind::Int32 if is_little_endian => {
-                value.to_i32(context)?.to_le_bytes().to_vec()
-            }
-            TypedArrayKind::Int32 => value.to_i32(context)?.to_be_bytes().to_vec(),
-            TypedArrayKind::Uint32 if is_little_endian => {
-                value.to_u32(context)?.to_le_bytes().to_vec()
-            }
-            TypedArrayKind::Uint32 => value.to_u32(context)?.to_be_bytes().to_vec(),
-            TypedArrayKind::BigInt64 if is_little_endian => {
-                let big_int = value.to_big_int64(context)?;
-                big_int
-                    .to_i64()
-                    .unwrap_or_else(|| {
-                        if big_int.is_positive() {
-                            i64::MAX
-                        } else {
-                            i64::MIN
-                        }
-                    })
-                    .to_le_bytes()
-                    .to_vec()
-            }
-            TypedArrayKind::BigInt64 => {
-                let big_int = value.to_big_int64(context)?;
-                big_int
-                    .to_i64()
-                    .unwrap_or_else(|| {
-                        if big_int.is_positive() {
-                            i64::MAX
-                        } else {
-                            i64::MIN
-                        }
-                    })
-                    .to_be_bytes()
-                    .to_vec()
-            }
-            TypedArrayKind::BigUint64 if is_little_endian => value
-                .to_big_uint64(context)?
-                .to_u64()
-                .unwrap_or(u64::MAX)
-                .to_le_bytes()
-                .to_vec(),
-            TypedArrayKind::BigUint64 => value
-                .to_big_uint64(context)?
-                .to_u64()
-                .unwrap_or(u64::MAX)
-                .to_be_bytes()
-                .to_vec(),
-            TypedArrayKind::Float32 => match value.to_number(context)? {
-                f if is_little_endian => (f as f32).to_le_bytes().to_vec(),
-                f => (f as f32).to_be_bytes().to_vec(),
-            },
-            TypedArrayKind::Float64 => match value.to_number(context)? {
-                f if is_little_endian => f.to_le_bytes().to_vec(),
-                f => f.to_be_bytes().to_vec(),
-            },
-        })
-    }
-
-    /// `25.1.2.12 SetValueInBuffer ( arrayBuffer, byteIndex, type, value, isTypedArray, order [ , isLittleEndian ] )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-setvalueinbuffer
-    pub(crate) fn set_value_in_buffer(
-        &mut self,
-        byte_index: u64,
-        t: TypedArrayKind,
-        value: &JsValue,
-        _order: SharedMemoryOrder,
-        is_little_endian: Option<bool>,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
-        // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
-        // 3. Assert: Type(value) is BigInt if ! IsBigIntElementType(type) is true; otherwise, Type(value) is Number.
-        // 4. Let block be arrayBuffer.[[ArrayBufferData]].
-        let block = self
-            .array_buffer_data
-            .as_mut()
-            .expect("ArrayBuffer cannot be detached here");
-
-        // 5. Let elementSize be the Element Size value specified in Table 73 for Element Type type.
-
-        // TODO: Agent Record [[LittleEndian]] filed
-        // 6. If isLittleEndian is not present, set isLittleEndian to the value of the [[LittleEndian]] field of the surrounding agent's Agent Record.
-        let is_little_endian = is_little_endian.unwrap_or(true);
-
-        // 7. Let rawBytes be NumericToRawBytes(type, value, isLittleEndian).
-        let raw_bytes = Self::numeric_to_raw_bytes(t, value, is_little_endian, context)?;
-
-        // TODO: Shared Array Buffer
-        // 8. If IsSharedArrayBuffer(arrayBuffer) is true, then
-
-        // 9. Else, store the individual bytes of rawBytes into block, starting at block[byteIndex].
-        for (i, raw_byte) in raw_bytes.iter().enumerate() {
-            block[byte_index as usize + i] = *raw_byte;
-        }
-
-        // 10. Return NormalCompletion(undefined).
-        Ok(JsValue::undefined())
-    }
+    Ok(SliceRange {
+        start: first,
+        length: new_len,
+    })
 }
 
 /// `CreateByteDataBlock ( size )` abstract operation.
@@ -782,7 +468,14 @@ impl ArrayBuffer {
 /// integer). For more information, check the [spec][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock
-pub fn create_byte_data_block(size: u64) -> JsResult<Vec<u8>> {
+pub(crate) fn create_byte_data_block(size: u64, context: &mut Context<'_>) -> JsResult<Vec<u8>> {
+    if size > context.host_hooks().max_buffer_size() {
+        return Err(JsNativeError::range()
+            .with_message(
+                "cannot allocate a buffer that exceeds the maximum buffer size".to_string(),
+            )
+            .into());
+    }
     // 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to
     //    create such a Data Block, throw a RangeError exception.
     let size = size.try_into().map_err(|e| {
@@ -799,62 +492,4 @@ pub fn create_byte_data_block(size: u64) -> JsResult<Vec<u8>> {
 
     // 3. Return db.
     Ok(data_block)
-}
-
-/// `6.2.8.3 CopyDataBlockBytes ( toBlock, toIndex, fromBlock, fromIndex, count )`
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-copydatablockbytes
-fn copy_data_block_bytes(
-    to_block: &mut [u8],
-    mut to_index: usize,
-    from_block: &[u8],
-    mut from_index: usize,
-    mut count: usize,
-) {
-    // 1. Assert: fromBlock and toBlock are distinct values.
-    // 2. Let fromSize be the number of bytes in fromBlock.
-    let from_size = from_block.len();
-
-    // 3. Assert: fromIndex + count ≤ fromSize.
-    assert!(from_index + count <= from_size);
-
-    // 4. Let toSize be the number of bytes in toBlock.
-    let to_size = to_block.len();
-
-    // 5. Assert: toIndex + count ≤ toSize.
-    assert!(to_index + count <= to_size);
-
-    // 6. Repeat, while count > 0,
-    while count > 0 {
-        // a. If fromBlock is a Shared Data Block, then
-        // TODO: Shared Data Block
-
-        // b. Else,
-        // i. Assert: toBlock is not a Shared Data Block.
-        // ii. Set toBlock[toIndex] to fromBlock[fromIndex].
-        to_block[to_index] = from_block[from_index];
-
-        // c. Set toIndex to toIndex + 1.
-        to_index += 1;
-
-        // d. Set fromIndex to fromIndex + 1.
-        from_index += 1;
-
-        // e. Set count to count - 1.
-        count -= 1;
-    }
-
-    // 7. Return NormalCompletion(empty).
-}
-
-// TODO: Allow unused variants until shared array buffers are implemented.
-#[allow(dead_code)]
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub(crate) enum SharedMemoryOrder {
-    Init,
-    SeqCst,
-    Unordered,
 }

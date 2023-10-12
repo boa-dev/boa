@@ -29,7 +29,7 @@ use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use num_bigint::BigInt;
 use num_integer::Integer;
-use num_traits::Zero;
+use num_traits::{ToPrimitive, Zero};
 use once_cell::sync::Lazy;
 use std::{
     collections::HashSet,
@@ -757,7 +757,7 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobigint64
-    pub fn to_big_int64(&self, context: &mut Context<'_>) -> JsResult<BigInt> {
+    pub fn to_big_int64(&self, context: &mut Context<'_>) -> JsResult<i64> {
         // 1. Let n be ? ToBigInt(argument).
         let n = self.to_bigint(context)?;
 
@@ -765,11 +765,15 @@ impl JsValue {
         let int64_bit = n.as_inner().mod_floor(&TWO_E_64);
 
         // 3. If int64bit ≥ 2^63, return ℤ(int64bit - 2^64); otherwise return ℤ(int64bit).
-        if int64_bit >= *TWO_E_63 {
-            Ok(int64_bit.sub(&*TWO_E_64))
+        let value = if int64_bit >= *TWO_E_63 {
+            int64_bit.sub(&*TWO_E_64)
         } else {
-            Ok(int64_bit)
-        }
+            int64_bit
+        };
+
+        Ok(value
+            .to_i64()
+            .expect("should be within the range of `i64` by the mod operation"))
     }
 
     /// `7.1.16 ToBigUint64 ( argument )`
@@ -778,16 +782,16 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobiguint64
-    pub fn to_big_uint64(&self, context: &mut Context<'_>) -> JsResult<BigInt> {
-        let two_e_64: u128 = 0x1_0000_0000_0000_0000;
-        let two_e_64 = BigInt::from(two_e_64);
-
+    pub fn to_big_uint64(&self, context: &mut Context<'_>) -> JsResult<u64> {
         // 1. Let n be ? ToBigInt(argument).
         let n = self.to_bigint(context)?;
 
         // 2. Let int64bit be ℝ(n) modulo 2^64.
         // 3. Return ℤ(int64bit).
-        Ok(n.as_inner().mod_floor(&two_e_64))
+        Ok(n.as_inner()
+            .mod_floor(&TWO_E_64)
+            .to_u64()
+            .expect("should be within the range of `u64` by the mod operation"))
     }
 
     /// Converts a value to a non-negative integer if it is a valid integer index value.

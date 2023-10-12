@@ -80,7 +80,7 @@ pub(crate) use self::{
 use crate::{
     builtins::{
         array::ArrayIterator,
-        array_buffer::ArrayBuffer,
+        array_buffer::{ArrayBuffer, SharedArrayBuffer},
         async_generator::AsyncGenerator,
         async_generator_function::AsyncGeneratorFunction,
         error::r#type::ThrowTypeError,
@@ -92,7 +92,7 @@ use crate::{
         regexp::RegExpStringIterator,
         set::SetIterator,
         string::StringIterator,
-        typed_array::TypedArray,
+        typed_array::BuiltinTypedArray,
         uri::{DecodeUri, DecodeUriComponent, EncodeUri, EncodeUriComponent},
         weak::WeakRef,
         weak_map::WeakMap,
@@ -205,6 +205,7 @@ impl Realm {
         ArrayIterator::init(self);
         Proxy::init(self);
         ArrayBuffer::init(self);
+        SharedArrayBuffer::init(self);
         BigInt::init(self);
         Boolean::init(self);
         Date::init(self);
@@ -223,7 +224,7 @@ impl Realm {
         StringIterator::init(self);
         RegExp::init(self);
         RegExpStringIterator::init(self);
-        TypedArray::init(self);
+        BuiltinTypedArray::init(self);
         Int8Array::init(self);
         Uint8Array::init(self);
         Uint8ClampedArray::init(self);
@@ -339,6 +340,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     global_binding::<Array>(context)?;
     global_binding::<Proxy>(context)?;
     global_binding::<ArrayBuffer>(context)?;
+    global_binding::<SharedArrayBuffer>(context)?;
     global_binding::<BigInt>(context)?;
     global_binding::<Boolean>(context)?;
     global_binding::<Date>(context)?;
@@ -353,7 +355,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     global_binding::<Set>(context)?;
     global_binding::<String>(context)?;
     global_binding::<RegExp>(context)?;
-    global_binding::<TypedArray>(context)?;
+    global_binding::<BuiltinTypedArray>(context)?;
     global_binding::<Int8Array>(context)?;
     global_binding::<Uint8Array>(context)?;
     global_binding::<Uint8ClampedArray>(context)?;

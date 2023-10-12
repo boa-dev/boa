@@ -63,10 +63,10 @@ fn main() -> JsResult<()> {
     let data_block: Vec<u8> = (0..5).collect();
     let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
 
-    let internal_buffer = array_buffer.take()?;
+    let internal_buffer = array_buffer.take(&JsValue::undefined())?;
 
     assert_eq!(internal_buffer, (0..5).collect::<Vec<u8>>());
-    let detached_err = array_buffer.take();
+    let detached_err = array_buffer.take(&JsValue::undefined());
     assert!(detached_err.is_err());
 
     Ok(())

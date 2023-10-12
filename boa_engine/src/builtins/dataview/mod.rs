@@ -7,8 +7,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-dataview-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
 
+use std::mem;
+
 use crate::{
-    builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltInObject},
+    builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -21,8 +23,13 @@ use crate::{
     Context, JsArgs, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
+use bytemuck::{bytes_of, bytes_of_mut};
 
-use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+use super::{
+    array_buffer::utils::{memcpy, SliceRef, SliceRefMut},
+    typed_array::{self, TypedArrayElement},
+    BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
+};
 
 /// The internal representation of a `DataView` object.
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -134,28 +141,30 @@ impl BuiltInConstructor for DataView {
             .ok_or_else(|| JsNativeError::typ().with_message("buffer must be an ArrayBuffer"))?;
 
         // 1. If NewTarget is undefined, throw a TypeError exception.
+        if new_target.is_undefined() {
+            return Err(JsNativeError::typ()
+                .with_message("new target is undefined")
+                .into());
+        }
+
         let (offset, view_byte_length) = {
-            if new_target.is_undefined() {
-                return Err(JsNativeError::typ()
-                    .with_message("new target is undefined")
-                    .into());
-            }
             // 2. Perform ? RequireInternalSlot(buffer, [[ArrayBufferData]]).
             let buffer_borrow = buffer_obj.borrow();
-            let buffer = buffer_borrow.as_array_buffer().ok_or_else(|| {
+            let buffer = buffer_borrow.as_buffer().ok_or_else(|| {
                 JsNativeError::typ().with_message("buffer must be an ArrayBuffer")
             })?;
 
             // 3. Let offset be ? ToIndex(byteOffset).
             let offset = args.get_or_undefined(1).to_index(context)?;
             // 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-            if buffer.is_detached_buffer() {
+            let Some(buffer) = buffer.data() else {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer is detached")
                     .into());
-            }
+            };
+
             // 5. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].
-            let buffer_byte_length = buffer.array_buffer_byte_length();
+            let buffer_byte_length = buffer.len() as u64;
             // 6. If offset > bufferByteLength, throw a RangeError exception.
             if offset > buffer_byte_length {
                 return Err(JsNativeError::range()
@@ -188,9 +197,9 @@ impl BuiltInConstructor for DataView {
         // 10. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         if buffer_obj
             .borrow()
-            .as_array_buffer()
-            .ok_or_else(|| JsNativeError::typ().with_message("buffer must be an ArrayBuffer"))?
-            .is_detached_buffer()
+            .as_buffer()
+            .expect("already checked that `buffer_obj` was a buffer")
+            .is_detached()
         {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer can't be detached")
@@ -272,10 +281,10 @@ impl DataView {
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         let buffer_borrow = dataview.viewed_array_buffer.borrow();
         let borrow = buffer_borrow
-            .as_array_buffer()
-            .expect("DataView must be constructed with an ArrayBuffer");
+            .as_buffer()
+            .expect("DataView must be constructed with a Buffer");
         // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if borrow.is_detached_buffer() {
+        if borrow.is_detached() {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer is detached")
                 .into());
@@ -313,12 +322,12 @@ impl DataView {
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         let buffer_borrow = dataview.viewed_array_buffer.borrow();
         let borrow = buffer_borrow
-            .as_array_buffer()
-            .expect("DataView must be constructed with an ArrayBuffer");
+            .as_buffer()
+            .expect("DataView must be constructed with a Buffer");
         // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if borrow.is_detached_buffer() {
+        if borrow.is_detached() {
             return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer is detached")
+                .with_message("Buffer is detached")
                 .into());
         }
         // 6. Let offset be O.[[ByteOffset]].
@@ -337,11 +346,10 @@ impl DataView {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getviewvalue
-    fn get_view_value(
+    fn get_view_value<T: typed_array::Element>(
         view: &JsValue,
         request_index: &JsValue,
         is_little_endian: &JsValue,
-        t: TypedArrayKind,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
@@ -360,16 +368,15 @@ impl DataView {
         // 5. Let buffer be view.[[ViewedArrayBuffer]].
         let buffer = &view.viewed_array_buffer;
         let buffer_borrow = buffer.borrow();
-        let buffer = buffer_borrow
-            .as_array_buffer()
-            .expect("Should be unreachable");
+        let buffer = buffer_borrow.as_buffer().expect("Should be unreachable");
 
         // 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if buffer.is_detached_buffer() {
+        let Some(data) = buffer.data() else {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer is detached")
                 .into());
-        }
+        };
+
         // 7. Let viewOffset be view.[[ByteOffset]].
         let view_offset = view.byte_offset;
 
@@ -377,7 +384,7 @@ impl DataView {
         let view_size = view.byte_length;
 
         // 9. Let elementSize be the Element Size value specified in Table 72 for Element Type type.
-        let element_size = t.element_size();
+        let element_size = mem::size_of::<T>() as u64;
 
         // 10. If getIndex + elementSize > viewSize, throw a RangeError exception.
         if get_index + element_size > view_size {
@@ -387,16 +394,27 @@ impl DataView {
         }
 
         // 11. Let bufferIndex be getIndex + viewOffset.
-        let buffer_index = get_index + view_offset;
+        let buffer_index = (get_index + view_offset) as usize;
 
         // 12. Return GetValueFromBuffer(buffer, bufferIndex, type, false, Unordered, isLittleEndian).
-        Ok(buffer.get_value_from_buffer(
-            buffer_index,
-            t,
-            false,
-            SharedMemoryOrder::Unordered,
-            Some(is_little_endian),
-        ))
+        // SAFETY: All previous checks ensure the element fits in the buffer.
+        let value: TypedArrayElement = unsafe {
+            let mut value = T::zeroed();
+            memcpy(
+                data.subslice(buffer_index..),
+                SliceRefMut::Common(bytes_of_mut(&mut value)),
+                mem::size_of::<T>(),
+            );
+
+            if is_little_endian {
+                value.to_little_endian()
+            } else {
+                value.to_big_endian()
+            }
+            .into()
+        };
+
+        Ok(value.into())
     }
 
     /// `25.3.4.5 DataView.prototype.getBigInt64 ( byteOffset [ , littleEndian ] )`
@@ -419,13 +437,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
-        Self::get_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::BigInt64,
-            context,
-        )
+        Self::get_view_value::<i64>(this, byte_offset, is_little_endian, context)
     }
 
     /// `25.3.4.6 DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`
@@ -448,13 +460,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
-        Self::get_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::BigUint64,
-            context,
-        )
+        Self::get_view_value::<u64>(this, byte_offset, is_little_endian, context)
     }
 
     /// `25.3.4.7 DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`
@@ -477,13 +483,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
-        Self::get_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Float32,
-            context,
-        )
+        Self::get_view_value::<f32>(this, byte_offset, is_little_endian, context)
     }
 
     /// `25.3.4.8 DataView.prototype.getFloat64 ( byteOffset [ , littleEndian ] )`
@@ -506,13 +506,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
-        Self::get_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Float64,
-            context,
-        )
+        Self::get_view_value::<f64>(this, byte_offset, is_little_endian, context)
     }
 
     /// `25.3.4.9 DataView.prototype.getInt8 ( byteOffset [ , littleEndian ] )`
@@ -535,13 +529,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
-        Self::get_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Int8,
-            context,
-        )
+        Self::get_view_value::<i8>(this, byte_offset, is_little_endian, context)
     }
 
     /// `25.3.4.10 DataView.prototype.getInt16 ( byteOffset [ , littleEndian ] )`
@@ -564,13 +552,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
-        Self::get_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Int16,
-            context,
-        )
+        Self::get_view_value::<i16>(this, byte_offset, is_little_endian, context)
     }
 
     /// `25.3.4.11 DataView.prototype.getInt32 ( byteOffset [ , littleEndian ] )`
@@ -593,13 +575,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
-        Self::get_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Int32,
-            context,
-        )
+        Self::get_view_value::<i32>(this, byte_offset, is_little_endian, context)
     }
 
     /// `25.3.4.12 DataView.prototype.getUint8 ( byteOffset [ , littleEndian ] )`
@@ -622,13 +598,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
-        Self::get_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Uint8,
-            context,
-        )
+        Self::get_view_value::<u8>(this, byte_offset, is_little_endian, context)
     }
 
     /// `25.3.4.13 DataView.prototype.getUint16 ( byteOffset [ , littleEndian ] )`
@@ -651,13 +621,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
-        Self::get_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Uint16,
-            context,
-        )
+        Self::get_view_value::<u16>(this, byte_offset, is_little_endian, context)
     }
 
     /// `25.3.4.14 DataView.prototype.getUint32 ( byteOffset [ , littleEndian ] )`
@@ -680,13 +644,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
-        Self::get_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Uint32,
-            context,
-        )
+        Self::get_view_value::<u32>(this, byte_offset, is_little_endian, context)
     }
 
     /// `25.3.1.1 SetViewValue ( view, requestIndex, isLittleEndian, type )`
@@ -699,11 +657,10 @@ impl DataView {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-setviewvalue
-    fn set_view_value(
+    fn set_view_value<T: typed_array::Element>(
         view: &JsValue,
         request_index: &JsValue,
         is_little_endian: &JsValue,
-        t: TypedArrayKind,
         value: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
@@ -717,29 +674,25 @@ impl DataView {
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
 
-        let number_value = if t.is_big_int_element_type() {
-            // 4. If ! IsBigIntElementType(type) is true, let numberValue be ? ToBigInt(value).
-            value.to_bigint(context)?.into()
-        } else {
-            // 5. Otherwise, let numberValue be ? ToNumber(value).
-            value.to_number(context)?.into()
-        };
+        // 4. If ! IsBigIntElementType(type) is true, let numberValue be ? ToBigInt(value).
+        // 5. Otherwise, let numberValue be ? ToNumber(value).
+        let value = T::from_js_value(value, context)?;
 
         // 6. Set isLittleEndian to ! ToBoolean(isLittleEndian).
         let is_little_endian = is_little_endian.to_boolean();
         // 7. Let buffer be view.[[ViewedArrayBuffer]].
         let buffer = &view.viewed_array_buffer;
         let mut buffer_borrow = buffer.borrow_mut();
-        let buffer = buffer_borrow
-            .as_array_buffer_mut()
+        let mut buffer = buffer_borrow
+            .as_buffer_mut()
             .expect("Should be unreachable");
 
         // 8. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if buffer.is_detached_buffer() {
+        let Some(mut data) = buffer.data_mut() else {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer is detached")
                 .into());
-        }
+        };
 
         // 9. Let viewOffset be view.[[ByteOffset]].
         let view_offset = view.byte_offset;
@@ -748,27 +701,34 @@ impl DataView {
         let view_size = view.byte_length;
 
         // 11. Let elementSize be the Element Size value specified in Table 72 for Element Type type.
-        let element_size = t.element_size();
-
         // 12. If getIndex + elementSize > viewSize, throw a RangeError exception.
-        if get_index + element_size > view_size {
+        if get_index + mem::size_of::<T>() as u64 > view_size {
             return Err(JsNativeError::range()
                 .with_message("Offset is outside the bounds of DataView")
                 .into());
         }
 
         // 13. Let bufferIndex be getIndex + viewOffset.
-        let buffer_index = get_index + view_offset;
+        let buffer_index = (get_index + view_offset) as usize;
 
         // 14. Return SetValueInBuffer(buffer, bufferIndex, type, numberValue, false, Unordered, isLittleEndian).
-        buffer.set_value_in_buffer(
-            buffer_index,
-            t,
-            &number_value,
-            SharedMemoryOrder::Unordered,
-            Some(is_little_endian),
-            context,
-        )
+
+        // SAFETY: All previous checks ensure the element fits in the buffer.
+        unsafe {
+            let value = if is_little_endian {
+                value.to_little_endian()
+            } else {
+                value.to_big_endian()
+            };
+
+            memcpy(
+                SliceRef::Common(bytes_of(&value)),
+                data.subslice_mut(buffer_index..),
+                mem::size_of::<T>(),
+            );
+        }
+
+        Ok(JsValue::undefined())
     }
 
     /// `25.3.4.15 DataView.prototype.setBigInt64 ( byteOffset, value [ , littleEndian ] )`
@@ -792,14 +752,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(2);
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).
-        Self::set_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::BigInt64,
-            value,
-            context,
-        )
+        Self::set_view_value::<i64>(this, byte_offset, is_little_endian, value, context)
     }
 
     /// `25.3.4.16 DataView.prototype.setBigUint64 ( byteOffset, value [ , littleEndian ] )`
@@ -823,14 +776,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(2);
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).
-        Self::set_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::BigUint64,
-            value,
-            context,
-        )
+        Self::set_view_value::<u64>(this, byte_offset, is_little_endian, value, context)
     }
 
     /// `25.3.4.17 DataView.prototype.setFloat32 ( byteOffset, value [ , littleEndian ] )`
@@ -854,14 +800,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(2);
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float32, value).
-        Self::set_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Float32,
-            value,
-            context,
-        )
+        Self::set_view_value::<f32>(this, byte_offset, is_little_endian, value, context)
     }
 
     /// `25.3.4.18 DataView.prototype.setFloat64 ( byteOffset, value [ , littleEndian ] )`
@@ -885,14 +824,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(2);
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float64, value).
-        Self::set_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Float64,
-            value,
-            context,
-        )
+        Self::set_view_value::<f64>(this, byte_offset, is_little_endian, value, context)
     }
 
     /// `25.3.4.19 DataView.prototype.setInt8 ( byteOffset, value [ , littleEndian ] )`
@@ -916,14 +848,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(2);
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int8, value).
-        Self::set_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Int8,
-            value,
-            context,
-        )
+        Self::set_view_value::<i8>(this, byte_offset, is_little_endian, value, context)
     }
 
     /// `25.3.4.20 DataView.prototype.setInt16 ( byteOffset, value [ , littleEndian ] )`
@@ -947,14 +872,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(2);
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int16, value).
-        Self::set_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Int16,
-            value,
-            context,
-        )
+        Self::set_view_value::<i16>(this, byte_offset, is_little_endian, value, context)
     }
 
     /// `25.3.4.21 DataView.prototype.setInt32 ( byteOffset, value [ , littleEndian ] )`
@@ -978,14 +896,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(2);
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int32, value).
-        Self::set_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Int32,
-            value,
-            context,
-        )
+        Self::set_view_value::<i32>(this, byte_offset, is_little_endian, value, context)
     }
 
     /// `25.3.4.22 DataView.prototype.setUint8 ( byteOffset, value [ , littleEndian ] )`
@@ -1009,14 +920,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(2);
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint8, value).
-        Self::set_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Uint8,
-            value,
-            context,
-        )
+        Self::set_view_value::<u8>(this, byte_offset, is_little_endian, value, context)
     }
 
     /// `25.3.4.23 DataView.prototype.setUint16 ( byteOffset, value [ , littleEndian ] )`
@@ -1040,14 +944,7 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(2);
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint16, value).
-        Self::set_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Uint16,
-            value,
-            context,
-        )
+        Self::set_view_value::<u16>(this, byte_offset, is_little_endian, value, context)
     }
 
     /// `25.3.4.24 DataView.prototype.setUint32 ( byteOffset, value [ , littleEndian ] )`
@@ -1071,13 +968,6 @@ impl DataView {
         let is_little_endian = args.get_or_undefined(2);
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint32, value).
-        Self::set_view_value(
-            this,
-            byte_offset,
-            is_little_endian,
-            TypedArrayKind::Uint32,
-            value,
-            context,
-        )
+        Self::set_view_value::<u32>(this, byte_offset, is_little_endian, value, context)
     }
 }

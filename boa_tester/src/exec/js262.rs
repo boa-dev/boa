@@ -72,24 +72,17 @@ fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> Js
         .and_then(JsValue::as_object)
         .ok_or_else(type_err)?;
     let mut array_buffer = array_buffer.borrow_mut();
+
+    // 1. Assert: IsSharedArrayBuffer(arrayBuffer) is false.
     let array_buffer = array_buffer.as_array_buffer_mut().ok_or_else(type_err)?;
 
-    // 1. Assert: IsSharedArrayBuffer(arrayBuffer) is false. TODO
     // 2. If key is not present, set key to undefined.
     let key = args.get_or_undefined(1);
 
     // 3. If SameValue(arrayBuffer.[[ArrayBufferDetachKey]], key) is false, throw a TypeError exception.
-    if !JsValue::same_value(&array_buffer.array_buffer_detach_key, key) {
-        return Err(JsNativeError::typ()
-            .with_message("Cannot detach array buffer with different key")
-            .into());
-    }
-
     // 4. Set arrayBuffer.[[ArrayBufferData]] to null.
-    array_buffer.array_buffer_data = None;
-
     // 5. Set arrayBuffer.[[ArrayBufferByteLength]] to 0.
-    array_buffer.array_buffer_byte_length = 0;
+    array_buffer.detach(key)?;
 
     // 6. Return NormalCompletion(null).
     Ok(JsValue::null())

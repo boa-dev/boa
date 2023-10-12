@@ -1,9 +1,9 @@
+use std::sync::atomic;
+
 use boa_macros::utf16;
 
 use crate::{
-    builtins::{
-        array_buffer::SharedMemoryOrder, typed_array::integer_indexed_object::ContentType, Number,
-    },
+    builtins::Number,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult, JsString, JsValue,
@@ -380,38 +380,38 @@ fn integer_indexed_element_get(obj: &JsObject, index: f64) -> Option<JsValue> {
     }
 
     let obj = obj.borrow();
-    let inner = obj
-        .as_typed_array()
-        .expect("Already checked for detached buffer");
-    let buffer_obj = inner
-        .viewed_array_buffer()
-        .expect("Already checked for detached buffer");
-    let buffer_obj_borrow = buffer_obj.borrow();
-    let buffer = buffer_obj_borrow
-        .as_array_buffer()
-        .expect("Already checked for detached buffer");
+    let inner = obj.as_typed_array().expect("Must be a typed array");
+    let buffer = inner.viewed_array_buffer();
+    let buffer = buffer.borrow();
+    let buffer = buffer.as_buffer().expect("Must be a buffer");
+    let buffer = buffer
+        .data()
+        .expect("already checked that it's not detached");
 
     // 2. Let offset be O.[[ByteOffset]].
     let offset = inner.byte_offset();
 
     // 3. Let arrayTypeName be the String value of O.[[TypedArrayName]].
     // 6. Let elementType be the Element Type value in Table 73 for arrayTypeName.
-    let elem_type = inner.typed_array_name();
+    let elem_type = inner.kind();
 
     // 4. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.
     let size = elem_type.element_size();
 
     // 5. Let indexedPosition be (ℝ(index) × elementSize) + offset.
-    let indexed_position = (index as u64 * size) + offset;
+    let indexed_position = ((index as u64 * size) + offset) as usize;
 
     // 7. Return GetValueFromBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, true, Unordered).
-    Some(buffer.get_value_from_buffer(
-        indexed_position,
-        elem_type,
-        true,
-        SharedMemoryOrder::Unordered,
-        None,
-    ))
+
+    // SAFETY: The integer indexed object guarantees that the buffer is aligned.
+    // The call to `is_valid_integer_index` guarantees that the index is in-bounds.
+    let value = unsafe {
+        buffer
+            .subslice(indexed_position..)
+            .get_value(elem_type, atomic::Ordering::Relaxed)
+    };
+
+    Some(value.into())
 }
 
 /// Abstract operation `IntegerIndexedElementSet ( O, index, value )`.
@@ -431,48 +431,43 @@ pub(crate) fn integer_indexed_element_set(
         "integer indexed exotic method should only be callable from integer indexed objects",
     );
 
-    let num_value = if inner.typed_array_name().content_type() == ContentType::BigInt {
-        // 1. If O.[[ContentType]] is BigInt, let numValue be ? ToBigInt(value).
-        value.to_bigint(context)?.into()
-    } else {
-        // 2. Otherwise, let numValue be ? ToNumber(value).
-        value.to_number(context)?.into()
-    };
+    // 1. If O.[[ContentType]] is BigInt, let numValue be ? ToBigInt(value).
+    // 2. Otherwise, let numValue be ? ToNumber(value).
+    let value = inner.kind().get_element(value, context)?;
+
+    if !is_valid_integer_index(obj, index) {
+        return Ok(());
+    }
 
     // 3. If ! IsValidIntegerIndex(O, index) is true, then
-    if is_valid_integer_index(obj, index) {
-        // a. Let offset be O.[[ByteOffset]].
-        let offset = inner.byte_offset();
+    // a. Let offset be O.[[ByteOffset]].
+    let offset = inner.byte_offset();
 
-        // b. Let arrayTypeName be the String value of O.[[TypedArrayName]].
-        // e. Let elementType be the Element Type value in Table 73 for arrayTypeName.
-        let elem_type = inner.typed_array_name();
+    // b. Let arrayTypeName be the String value of O.[[TypedArrayName]].
+    // e. Let elementType be the Element Type value in Table 73 for arrayTypeName.
+    let elem_type = inner.kind();
 
-        // c. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.
-        let size = elem_type.element_size();
+    // c. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.
+    let size = elem_type.element_size();
 
-        // d. Let indexedPosition be (ℝ(index) × elementSize) + offset.
-        let indexed_position = (index as u64 * size) + offset;
+    // d. Let indexedPosition be (ℝ(index) × elementSize) + offset.
+    let indexed_position = ((index as u64 * size) + offset) as usize;
 
-        let buffer_obj = inner
-            .viewed_array_buffer()
-            .expect("Already checked for detached buffer");
-        let mut buffer_obj_borrow = buffer_obj.borrow_mut();
-        let buffer = buffer_obj_borrow
-            .as_array_buffer_mut()
-            .expect("Already checked for detached buffer");
+    let buffer = inner.viewed_array_buffer();
+    let mut buffer = buffer.borrow_mut();
+    let mut buffer = buffer.as_buffer_mut().expect("Must be a buffer");
+    let mut buffer = buffer
+        .data_mut()
+        .expect("already checked that it's not detached");
 
-        // f. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, numValue, true, Unordered).
+    // f. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, numValue, true, Unordered).
+
+    // SAFETY: The integer indexed object guarantees that the buffer is aligned.
+    // The call to `is_valid_integer_index` guarantees that the index is in-bounds.
+    unsafe {
         buffer
-            .set_value_in_buffer(
-                indexed_position,
-                elem_type,
-                &num_value,
-                SharedMemoryOrder::Unordered,
-                None,
-                context,
-            )
-            .expect("SetValueInBuffer cannot fail here");
+            .subslice_mut(indexed_position..)
+            .set_value(value, atomic::Ordering::Relaxed);
     }
 
     // 4. Return NormalCompletion(undefined).
