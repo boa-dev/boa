@@ -595,6 +595,14 @@
 <a href="#595" id="595">595</a>
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, Operand};
 <span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode};
 <span class="kw">use </span>boa_ast::{
@@ -621,6 +629,11 @@
     /// A class declaration binds the resulting class object to it&#39;s identifier.
     /// A class expression leaves the resulting class object on the stack for following operations.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, class: <span class="kw-2">&amp;</span>Class, expression: bool) {
+        <span class="comment">// 11.2.2 Strict Mode Code - &lt;https://tc39.es/ecma262/#sec-strict-mode-code&gt;
+        //  - All parts of a ClassDeclaration or a ClassExpression are strict mode code.
+        </span><span class="kw">let </span>strict = <span class="self">self</span>.strict();
+        <span class="self">self</span>.code_block_flags |= CodeBlockFlags::STRICT;
+
         <span class="kw">let </span>class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
 
         <span class="kw">let </span>old_lex_env = <span class="kw">match </span>class.name() {
@@ -1190,6 +1203,9 @@
         <span class="kw">if </span>!expression {
             <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, class_name.into());
         }
+
+        <span class="comment">// NOTE: Reset strict mode to before class declaration/expression evalutation.
+        </span><span class="self">self</span>.code_block_flags.set(CodeBlockFlags::STRICT, strict);
     }
 }
 </code></pre></div></section></main></body></html>
