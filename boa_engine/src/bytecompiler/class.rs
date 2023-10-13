@@ -24,6 +24,11 @@ impl ByteCompiler<'_, '_> {
     /// A class declaration binds the resulting class object to it's identifier.
     /// A class expression leaves the resulting class object on the stack for following operations.
     pub(crate) fn compile_class(&mut self, class: &Class, expression: bool) {
+        // 11.2.2 Strict Mode Code - <https://tc39.es/ecma262/#sec-strict-mode-code>
+        //  - All parts of a ClassDeclaration or a ClassExpression are strict mode code.
+        let strict = self.strict();
+        self.code_block_flags |= CodeBlockFlags::STRICT;
+
         let class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
 
         let old_lex_env = match class.name() {
@@ -593,5 +598,8 @@ impl ByteCompiler<'_, '_> {
         if !expression {
             self.emit_binding(BindingOpcode::InitVar, class_name.into());
         }
+
+        // NOTE: Reset strict mode to before class declaration/expression evalutation.
+        self.code_block_flags.set(CodeBlockFlags::STRICT, strict);
     }
 }
