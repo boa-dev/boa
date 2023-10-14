@@ -161,6 +161,13 @@
 <a href="#161" id="161">161</a>
 <a href="#162" id="162">162</a>
 <a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s Scripts.
 //!
 //! This module contains the [`Script`] type, which represents a [**Script Record**][script].
@@ -183,7 +190,7 @@
     bytecompiler::ByteCompiler,
     realm::Realm,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
-    Context, JsResult, JsString, JsValue, Module,
+    Context, HostDefined, JsResult, JsString, JsValue, Module,
 };
 
 <span class="doccomment">/// ECMAScript&#39;s [**Script Record**][spec].
@@ -200,7 +207,6 @@
             .field(<span class="string">&quot;realm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.realm.addr())
             .field(<span class="string">&quot;code&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.source)
             .field(<span class="string">&quot;loaded_modules&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.loaded_modules)
-            .field(<span class="string">&quot;host_defined&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.host_defined)
             .finish()
     }
 }
@@ -212,7 +218,7 @@
     </span>source: boa_ast::Script,
     codeblock: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;Gc&lt;CodeBlock&gt;&gt;&gt;,
     loaded_modules: GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt;,
-    host_defined: (),
+    host_defined: HostDefined,
 }
 
 <span class="kw">impl </span>Script {
@@ -220,6 +226,14 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>realm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Realm {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.realm
+    }
+
+    <span class="doccomment">/// Returns the [`ECMAScript specification`][spec] defined [`\[\[HostDefined\]\]`][`HostDefined`] field of the [`Module`].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#script-record
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>host_defined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HostDefined {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.host_defined
     }
 
     <span class="doccomment">/// Gets the loaded modules of this script.
@@ -254,7 +268,7 @@
                 source: code,
                 codeblock: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
-                host_defined: (),
+                host_defined: HostDefined::default(),
             }),
         })
     }

@@ -809,6 +809,14 @@
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
 <a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript&#39;s module system.
 //!
 //! This module contains the [`Module`] type, which represents an [**Abstract Module Record**][module],
@@ -861,7 +869,7 @@
     realm::Realm,
     Context, JsError, JsResult, JsString, JsValue,
 };
-<span class="kw">use crate</span>::{js_string, JsNativeError, NativeFunction};
+<span class="kw">use crate</span>::{js_string, HostDefined, JsNativeError, NativeFunction};
 
 <span class="doccomment">/// The referrer from which a load request of a module originates.
 </span><span class="attr">#[derive(Debug, Clone)]
@@ -1087,7 +1095,6 @@
             .field(<span class="string">&quot;environment&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.environment)
             .field(<span class="string">&quot;namespace&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.namespace)
             .field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.kind)
-            .field(<span class="string">&quot;host_defined&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.host_defined)
             .finish()
     }
 }
@@ -1098,7 +1105,7 @@
     environment: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;Gc&lt;DeclarativeEnvironment&gt;&gt;&gt;,
     namespace: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;,
     kind: ModuleKind,
-    host_defined: (),
+    host_defined: HostDefined,
 }
 
 <span class="doccomment">/// The kind of a [`Module`].
@@ -1183,7 +1190,7 @@
                 environment: GcRefCell::default(),
                 namespace: GcRefCell::default(),
                 kind: ModuleKind::SourceText(src.clone()),
-                host_defined: (),
+                host_defined: HostDefined::default(),
             }),
         };
 
@@ -1197,6 +1204,15 @@
     #[must_use]
     </span><span class="kw">pub fn </span>realm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Realm {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.realm
+    }
+
+    <span class="doccomment">/// Returns the [`ECMAScript specification`][spec] defined [`\[\[HostDefined\]\]`][`HostDefined`] field of the [`Module`].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-abstract-module-records
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>host_defined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HostDefined {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.host_defined
     }
 
     <span class="doccomment">/// Gets the kind of this `Module`.
