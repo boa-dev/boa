@@ -4,7 +4,6 @@ use boa_engine::{
     vm::flowgraph::{Direction, Graph},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
-use boa_interner::ToInternedString;
 
 use crate::FlowgraphFormat;
 
@@ -92,7 +91,7 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
     let code = function.codeblock();
 
     let mut graph = Graph::new(direction);
-    code.to_graph(context.interner(), graph.subgraph(String::default()));
+    code.to_graph(graph.subgraph(String::default()));
     let result = match format {
         FlowgraphFormat::Graphviz => graph.to_graphviz_format(),
         FlowgraphFormat::Mermaid => graph.to_mermaid_format(),
@@ -101,7 +100,7 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
     Ok(JsValue::new(js_string!(result)))
 }
 
-fn bytecode(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn bytecode(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     let Some(value) = args.get(0) else {
         return Err(JsNativeError::typ()
             .with_message("expected function argument")
@@ -121,7 +120,7 @@ fn bytecode(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Js
     };
     let code = function.codeblock();
 
-    Ok(js_string!(code.to_interned_string(context.interner())).into())
+    Ok(js_string!(code.to_string()).into())
 }
 
 fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult<()> {

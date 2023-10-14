@@ -1,14 +1,13 @@
-use std::cell::Cell;
+use std::cell::RefCell;
 
-use boa_ast::expression::Identifier;
 use boa_gc::{Finalize, GcRefCell, Trace};
 
-use crate::{module::Module, JsValue};
+use crate::{module::Module, JsString, JsValue};
 
 /// Type of accessor used to access an indirect binding.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 enum BindingAccessor {
-    Identifier(Identifier),
+    Identifier(JsString),
     Index(u32),
 }
 
@@ -17,7 +16,7 @@ enum BindingAccessor {
 struct IndirectBinding {
     module: Module,
     #[unsafe_ignore_trace]
-    accessor: Cell<BindingAccessor>,
+    accessor: RefCell<BindingAccessor>,
 }
 
 /// The type of binding a [`ModuleEnvironment`] can contain.
@@ -61,7 +60,7 @@ impl ModuleEnvironment {
             BindingType::Indirect(IndirectBinding { module, accessor }) => {
                 let env = module.environment()?;
 
-                match accessor.get() {
+                match &*accessor.clone().borrow() {
                     BindingAccessor::Identifier(name) => {
                         let index = env
                             .compile_env()
@@ -70,11 +69,11 @@ impl ModuleEnvironment {
 
                         let value = env.get(index.binding_index)?;
 
-                        accessor.set(BindingAccessor::Index(index.binding_index));
+                        *accessor.borrow_mut() = BindingAccessor::Index(index.binding_index);
 
                         Some(value)
                     }
-                    BindingAccessor::Index(index) => env.get(index),
+                    BindingAccessor::Index(index) => env.get(*index),
                 }
             }
         }
@@ -103,17 +102,12 @@ impl ModuleEnvironment {
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    pub(crate) fn set_indirect(
-        &self,
-        index: u32,
-        target_module: Module,
-        target_binding: Identifier,
-    ) {
+    pub(crate) fn set_indirect(&self, index: u32, target_module: Module, target_binding: JsString) {
         let mut bindings = self.bindings.borrow_mut();
 
         bindings[index as usize] = BindingType::Indirect(IndirectBinding {
             module: target_module,
-            accessor: Cell::new(BindingAccessor::Identifier(target_binding)),
+            accessor: RefCell::new(BindingAccessor::Identifier(target_binding)),
         });
     }
 }

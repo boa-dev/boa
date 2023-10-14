@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{jump_control::JumpControlInfoFlags, ByteCompiler},
+    bytecompiler::{jump_control::JumpControlInfoFlags, ByteCompiler, ToJsString},
     vm::{BindingOpcode, Opcode},
 };
 use boa_ast::{
@@ -119,11 +119,13 @@ impl ByteCompiler<'_> {
         if let Some(binding) = catch.parameter() {
             match binding {
                 Binding::Identifier(ident) => {
-                    env.create_mutable_binding(*ident, false);
-                    self.emit_binding(BindingOpcode::InitLexical, *ident);
+                    let ident = ident.to_js_string(self.interner());
+                    env.create_mutable_binding(ident.clone(), false);
+                    self.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
+                        let ident = ident.to_js_string(self.interner());
                         env.create_mutable_binding(ident, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);

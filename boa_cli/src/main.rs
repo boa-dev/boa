@@ -241,7 +241,7 @@ fn generate_flowgraph(
     };
 
     let mut graph = Graph::new(direction);
-    code.to_graph(context.interner(), graph.subgraph(String::default()));
+    code.to_graph(graph.subgraph(String::default()));
     let result = match format {
         FlowgraphFormat::Graphviz => graph.to_graphviz_format(),
         FlowgraphFormat::Mermaid => graph.to_mermaid_format(),

@@ -46,6 +46,22 @@ pub(crate) use function::FunctionCompiler;
 pub(crate) use jump_control::JumpControlInfo;
 use thin_vec::ThinVec;
 
+pub(crate) trait ToJsString {
+    fn to_js_string(&self, interner: &Interner) -> JsString;
+}
+
+impl ToJsString for Sym {
+    fn to_js_string(&self, interner: &Interner) -> JsString {
+        js_string!(interner.resolve_expect(*self).utf16())
+    }
+}
+
+impl ToJsString for Identifier {
+    fn to_js_string(&self, interner: &Interner) -> JsString {
+        self.sym().to_js_string(interner)
+    }
+}
+
 /// Describes how a node has been defined in the source code.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum NodeKind {
@@ -234,7 +250,7 @@ pub(crate) enum Operand {
 #[allow(clippy::struct_excessive_bools)]
 pub struct ByteCompiler<'ctx> {
     /// Name of this function.
-    pub(crate) function_name: Sym,
+    pub(crate) function_name: JsString,
 
     /// The number of arguments expected.
     pub(crate) length: u32,
@@ -289,7 +305,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// Creates a new [`ByteCompiler`].
     #[inline]
     pub(crate) fn new(
-        name: Sym,
+        name: JsString,
         strict: bool,
         json_parse: bool,
         variable_environment: Rc<CompileTimeEnvironment>,
@@ -378,6 +394,10 @@ impl<'ctx> ByteCompiler<'ctx> {
         index
     }
 
+    fn get_or_insert_string(&mut self, value: JsString) -> u32 {
+        self.get_or_insert_literal(Literal::String(value))
+    }
+
     #[inline]
     fn get_or_insert_private_name(&mut self, name: PrivateName) -> u32 {
         self.get_or_insert_name(Identifier::new(name.description()))
@@ -390,7 +410,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
 
         let index = self.bindings.len() as u32;
-        self.bindings.push(binding);
+        self.bindings.push(binding.clone());
         self.bindings_map.insert(binding, index);
         index
     }
@@ -403,7 +423,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         index
     }
 
-    fn emit_binding(&mut self, opcode: BindingOpcode, name: Identifier) {
+    fn emit_binding(&mut self, opcode: BindingOpcode, name: JsString) {
         match opcode {
             BindingOpcode::Var => {
                 let binding = self.variable_environment.get_identifier_reference(name);
@@ -412,37 +432,41 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.emit_with_varying_operand(Opcode::DefVar, index);
                 }
             }
-            BindingOpcode::InitVar => match self.lexical_environment.set_mutable_binding(name) {
-                Ok(binding) => {
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
+            BindingOpcode::InitVar => {
+                match self.lexical_environment.set_mutable_binding(name.clone()) {
+                    Ok(binding) => {
+                        let index = self.get_or_insert_binding(binding);
+                        self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                    }
+                    Err(BindingLocatorError::MutateImmutable) => {
+                        let index = self.get_or_insert_string(name);
+                        self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
+                    }
+                    Err(BindingLocatorError::Silent) => {
+                        self.emit_opcode(Opcode::Pop);
+                    }
                 }
-                Err(BindingLocatorError::MutateImmutable) => {
-                    let index = self.get_or_insert_name(name);
-                    self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
-                }
-                Err(BindingLocatorError::Silent) => {
-                    self.emit_opcode(Opcode::Pop);
-                }
-            },
+            }
             BindingOpcode::InitLexical => {
                 let binding = self.lexical_environment.get_identifier_reference(name);
                 let index = self.get_or_insert_binding(binding.locator());
                 self.emit_with_varying_operand(Opcode::PutLexicalValue, index);
             }
-            BindingOpcode::SetName => match self.lexical_environment.set_mutable_binding(name) {
-                Ok(binding) => {
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_with_varying_operand(Opcode::SetName, index);
+            BindingOpcode::SetName => {
+                match self.lexical_environment.set_mutable_binding(name.clone()) {
+                    Ok(binding) => {
+                        let index = self.get_or_insert_binding(binding);
+                        self.emit_with_varying_operand(Opcode::SetName, index);
+                    }
+                    Err(BindingLocatorError::MutateImmutable) => {
+                        let index = self.get_or_insert_string(name);
+                        self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
+                    }
+                    Err(BindingLocatorError::Silent) => {
+                        self.emit_opcode(Opcode::Pop);
+                    }
                 }
-                Err(BindingLocatorError::MutateImmutable) => {
-                    let index = self.get_or_insert_name(name);
-                    self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
-                }
-                Err(BindingLocatorError::Silent) => {
-                    self.emit_opcode(Opcode::Pop);
-                }
-            },
+            }
         }
     }
 
@@ -682,9 +706,14 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.patch_jump_with_target(label, target);
     }
 
+    fn resolve_identifier_expect(&self, identifier: Identifier) -> JsString {
+        js_string!(self.interner().resolve_expect(identifier.sym()).utf16())
+    }
+
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) {
         match access {
             Access::Variable { name } => {
+                let name = self.resolve_identifier_expect(name);
                 let binding = self.lexical_environment.get_identifier_reference(name);
                 let index = self.get_or_insert_binding(binding.locator());
                 self.emit_with_varying_operand(Opcode::GetName, index);
@@ -750,7 +779,10 @@ impl<'ctx> ByteCompiler<'ctx> {
     {
         match access {
             Access::Variable { name } => {
-                let binding = self.lexical_environment.get_identifier_reference(name);
+                let name = self.resolve_identifier_expect(name);
+                let binding = self
+                    .lexical_environment
+                    .get_identifier_reference(name.clone());
                 let index = self.get_or_insert_binding(binding.locator());
 
                 if !binding.is_lexical() {
@@ -763,13 +795,13 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
 
                 if binding.is_lexical() {
-                    match self.lexical_environment.set_mutable_binding(name) {
+                    match self.lexical_environment.set_mutable_binding(name.clone()) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
                             self.emit_with_varying_operand(Opcode::SetName, index);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
-                            let index = self.get_or_insert_name(name);
+                            let index = self.get_or_insert_string(name);
                             self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
                         Err(BindingLocatorError::Silent) => {
@@ -862,6 +894,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
             },
             Access::Variable { name } => {
+                let name = name.to_js_string(self.interner());
                 let binding = self.lexical_environment.get_identifier_reference(name);
                 let index = self.get_or_insert_binding(binding.locator());
                 self.emit_with_varying_operand(Opcode::DeleteName, index);
@@ -1084,14 +1117,17 @@ impl<'ctx> ByteCompiler<'ctx> {
         for variable in decl.0.as_ref() {
             match variable.binding() {
                 Binding::Identifier(ident) => {
+                    let ident = ident.to_js_string(self.interner());
                     if let Some(expr) = variable.init() {
-                        let binding = self.lexical_environment.get_identifier_reference(*ident);
+                        let binding = self
+                            .lexical_environment
+                            .get_identifier_reference(ident.clone());
                         let index = self.get_or_insert_binding(binding.locator());
                         self.emit_with_varying_operand(Opcode::GetLocator, index);
                         self.compile_expr(expr, true);
                         self.emit_opcode(Opcode::SetNameByLocator);
                     } else {
-                        self.emit_binding(BindingOpcode::Var, *ident);
+                        self.emit_binding(BindingOpcode::Var, ident);
                     }
                 }
                 Binding::Pattern(pattern) => {
@@ -1114,12 +1150,13 @@ impl<'ctx> ByteCompiler<'ctx> {
                 for variable in decls.as_ref() {
                     match variable.binding() {
                         Binding::Identifier(ident) => {
+                            let ident = ident.to_js_string(self.interner());
                             if let Some(expr) = variable.init() {
                                 self.compile_expr(expr, true);
                             } else {
                                 self.emit_opcode(Opcode::PushUndefined);
                             }
-                            self.emit_binding(BindingOpcode::InitLexical, *ident);
+                            self.emit_binding(BindingOpcode::InitLexical, ident);
                         }
                         Binding::Pattern(pattern) => {
                             if let Some(init) = variable.init() {
@@ -1137,11 +1174,12 @@ impl<'ctx> ByteCompiler<'ctx> {
                 for variable in decls.as_ref() {
                     match variable.binding() {
                         Binding::Identifier(ident) => {
+                            let ident = ident.to_js_string(self.interner());
                             let init = variable
                                 .init()
                                 .expect("const declaration must have initializer");
                             self.compile_expr(init, true);
-                            self.emit_binding(BindingOpcode::InitLexical, *ident);
+                            self.emit_binding(BindingOpcode::InitLexical, ident);
                         }
                         Binding::Pattern(pattern) => {
                             if let Some(init) = variable.init() {
@@ -1178,17 +1216,23 @@ impl<'ctx> ByteCompiler<'ctx> {
                     .name()
                     .expect("function declaration must have name");
                 if self.annex_b_function_names.contains(&name) {
-                    let binding = self.lexical_environment.get_identifier_reference(name);
+                    let name = name.to_js_string(self.interner());
+                    let binding = self
+                        .lexical_environment
+                        .get_identifier_reference(name.clone());
                     let index = self.get_or_insert_binding(binding.locator());
                     self.emit_with_varying_operand(Opcode::GetName, index);
 
-                    match self.variable_environment.set_mutable_binding_var(name) {
+                    match self
+                        .variable_environment
+                        .set_mutable_binding_var(name.clone())
+                    {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
                             self.emit_with_varying_operand(Opcode::SetName, index);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
-                            let index = self.get_or_insert_name(name);
+                            let index = self.get_or_insert_string(name);
                             self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
                         Err(BindingLocatorError::Silent) => {
@@ -1219,18 +1263,20 @@ impl<'ctx> ByteCompiler<'ctx> {
             ..
         } = function;
 
+        let name = if let Some(name) = name {
+            Some(name.sym().to_js_string(self.interner()))
+        } else {
+            Some(js_string!())
+        };
+
         let binding_identifier = if has_binding_identifier {
-            if let Some(name) = name {
-                Some(name.sym())
-            } else {
-                Some(Sym::EMPTY_STRING)
-            }
+            name.clone()
         } else {
             None
         };
 
         let code = FunctionCompiler::new()
-            .name(name.map(Identifier::sym))
+            .name(name)
             .generator(generator)
             .r#async(r#async)
             .strict(self.strict())
@@ -1264,7 +1310,8 @@ impl<'ctx> ByteCompiler<'ctx> {
             NodeKind::Declaration => {
                 self.emit_binding(
                     BindingOpcode::InitVar,
-                    name.expect("function declaration must have a name"),
+                    name.expect("function declaration must have a name")
+                        .to_js_string(self.interner()),
                 );
             }
             NodeKind::Expression => {
@@ -1290,18 +1337,20 @@ impl<'ctx> ByteCompiler<'ctx> {
             ..
         } = function;
 
+        let name = if let Some(name) = name {
+            Some(name.sym().to_js_string(self.interner()))
+        } else {
+            Some(js_string!())
+        };
+
         let binding_identifier = if has_binding_identifier {
-            if let Some(name) = name {
-                Some(name.sym())
-            } else {
-                Some(Sym::EMPTY_STRING)
-            }
+            name.clone()
         } else {
             None
         };
 
         let code = FunctionCompiler::new()
-            .name(name.map(Identifier::sym))
+            .name(name)
             .generator(generator)
             .r#async(r#async)
             .strict(self.strict())
@@ -1335,18 +1384,20 @@ impl<'ctx> ByteCompiler<'ctx> {
             ..
         } = function;
 
+        let name = if let Some(name) = name {
+            Some(name.sym().to_js_string(self.interner()))
+        } else {
+            Some(js_string!())
+        };
+
         let binding_identifier = if has_binding_identifier {
-            if let Some(name) = name {
-                Some(name.sym())
-            } else {
-                Some(Sym::EMPTY_STRING)
-            }
+            name.clone()
         } else {
             None
         };
 
         let code = FunctionCompiler::new()
-            .name(name.map(Identifier::sym))
+            .name(name)
             .generator(generator)
             .r#async(r#async)
             .strict(true)
@@ -1451,15 +1502,8 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
         self.r#return(false);
 
-        let name = self
-            .context
-            .interner()
-            .resolve_expect(self.function_name)
-            .utf16()
-            .into();
-
         CodeBlock {
-            name,
+            name: self.function_name,
             length: self.length,
             this_mode: self.this_mode,
             params: self.params,

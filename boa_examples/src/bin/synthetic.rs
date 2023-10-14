@@ -163,13 +163,13 @@ fn create_operations_module(context: &mut Context) -> Module {
         // The initializer is evaluated every time a module imports this synthetic module,
         // so we avoid creating duplicate objects by capturing and cloning them instead.
         SyntheticModuleInitializer::from_copy_closure_with_captures(
-            |module, fns, context| {
+            |module, fns, _| {
                 println!("Running initializer!");
-                module.set_export(&js_string!("sum"), fns.0.clone().into(), context)?;
-                module.set_export(&js_string!("sub"), fns.1.clone().into(), context)?;
-                module.set_export(&js_string!("mult"), fns.2.clone().into(), context)?;
-                module.set_export(&js_string!("div"), fns.3.clone().into(), context)?;
-                module.set_export(&js_string!("sqrt"), fns.4.clone().into(), context)?;
+                module.set_export(&js_string!("sum"), fns.0.clone().into())?;
+                module.set_export(&js_string!("sub"), fns.1.clone().into())?;
+                module.set_export(&js_string!("mult"), fns.2.clone().into())?;
+                module.set_export(&js_string!("div"), fns.3.clone().into())?;
+                module.set_export(&js_string!("sqrt"), fns.4.clone().into())?;
                 Ok(())
             },
             (sum, sub, mult, div, sqrt),

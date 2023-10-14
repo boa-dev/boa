@@ -19,7 +19,7 @@ use itertools::Itertools;
 
 use crate::{
     builtins::BuiltInObject,
-    bytecompiler::ByteCompiler,
+    bytecompiler::{ByteCompiler, ToJsString},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
@@ -114,7 +114,7 @@ impl Json {
         let script = parser.parse_script(context.interner_mut())?;
         let code_block = {
             let mut compiler = ByteCompiler::new(
-                Sym::MAIN,
+                Sym::MAIN.to_js_string(context.interner()),
                 script.strict(),
                 true,
                 context.realm().environment().compile_env(),

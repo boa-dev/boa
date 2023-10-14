@@ -1,13 +1,12 @@
 use std::rc::Rc;
 
-use boa_ast::expression::Identifier;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace, WeakGc};
 use boa_interner::Sym;
 use rustc_hash::FxHashSet;
 
 use crate::{
     builtins::promise::ResolvingFunctions,
-    bytecompiler::ByteCompiler,
+    bytecompiler::{ByteCompiler, ToJsString},
     environments::{CompileTimeEnvironment, EnvironmentStack},
     object::JsPromise,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
@@ -159,7 +158,7 @@ impl std::fmt::Debug for SyntheticModule {
 struct Inner {
     parent: WeakGc<ModuleRepr>,
     #[unsafe_ignore_trace]
-    export_names: FxHashSet<Sym>,
+    export_names: FxHashSet<JsString>,
     eval_context: GcRefCell<Option<(EnvironmentStack, Gc<CodeBlock>)>>,
     eval_steps: SyntheticModuleInitializer,
 }
@@ -178,7 +177,7 @@ impl SyntheticModule {
 
     /// Creates a new synthetic module.
     pub(super) fn new(
-        names: FxHashSet<Sym>,
+        names: FxHashSet<JsString>,
         eval_steps: SyntheticModuleInitializer,
         parent: WeakGc<ModuleRepr>,
     ) -> Self {
@@ -203,7 +202,7 @@ impl SyntheticModule {
     /// Concrete method [`GetExportedNames ( [ exportStarSet ] )`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-getexportednames
-    pub(super) fn get_exported_names(&self) -> FxHashSet<Sym> {
+    pub(super) fn get_exported_names(&self) -> FxHashSet<JsString> {
         // 1. Return module.[[ExportNames]].
         self.inner.export_names.clone()
     }
@@ -214,13 +213,13 @@ impl SyntheticModule {
     #[allow(clippy::mutable_key_type)]
     pub(super) fn resolve_export(
         &self,
-        export_name: Sym,
+        export_name: JsString,
     ) -> Result<ResolvedBinding, ResolveExportError> {
         if self.inner.export_names.contains(&export_name) {
             // 2. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: exportName }.
             Ok(ResolvedBinding {
                 module: self.parent(),
-                binding_name: BindingName::Name(Identifier::new(export_name)),
+                binding_name: BindingName::Name(export_name),
             })
         } else {
             // 1. If module.[[ExportNames]] does not contain exportName, return null.
@@ -243,7 +242,7 @@ impl SyntheticModule {
         // TODO: A bit of a hack to be able to pass the currently active runnable without an
         // available codeblock to execute.
         let compiler = ByteCompiler::new(
-            Sym::MAIN,
+            Sym::MAIN.to_js_string(context.interner()),
             true,
             false,
             module_compile_env.clone(),
@@ -257,9 +256,8 @@ impl SyntheticModule {
             .export_names
             .iter()
             .map(|name| {
-                let ident = Identifier::new(*name);
                 //     a. Perform ! env.CreateMutableBinding(exportName, false).
-                module_compile_env.create_mutable_binding(ident, false)
+                module_compile_env.create_mutable_binding(name.clone(), false)
             })
             .collect::<Vec<_>>();
 
@@ -353,22 +351,14 @@ impl SyntheticModule {
     /// be passed to the list of exported names in [`Module::synthetic`] beforehand.
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-createsyntheticmodule
-    pub fn set_export(
-        &self,
-        export_name: &JsString,
-        export_value: JsValue,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let identifier = context.interner_mut().get_or_intern(&**export_name);
-        let identifier = Identifier::new(identifier);
-
+    pub fn set_export(&self, export_name: &JsString, export_value: JsValue) -> JsResult<()> {
         let environment = self
             .parent()
             .environment()
             .expect("this must be initialized before evaluating");
         let locator = environment
             .compile_env()
-            .get_binding(identifier)
+            .get_binding(export_name)
             .ok_or_else(|| {
                 JsNativeError::reference().with_message(format!(
                     "cannot set name `{}` which was not included in the list of exports",

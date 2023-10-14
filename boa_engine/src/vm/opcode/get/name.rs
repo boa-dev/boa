@@ -13,13 +13,10 @@ pub(crate) struct GetName;
 
 impl GetName {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let mut binding_locator = context.vm.frame().code_block.bindings[index];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.find_runtime_binding(&mut binding_locator)?;
-        let value = context.get_binding(binding_locator)?.ok_or_else(|| {
-            let name = context
-                .interner()
-                .resolve_expect(binding_locator.name().sym())
-                .to_string();
+        let value = context.get_binding(&binding_locator)?.ok_or_else(|| {
+            let name = binding_locator.name().to_std_string_escaped();
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
@@ -58,7 +55,7 @@ pub(crate) struct GetLocator;
 
 impl GetLocator {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let mut binding_locator = context.vm.frame().code_block.bindings[index];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.find_runtime_binding(&mut binding_locator)?;
 
         context.vm.frame_mut().binding_stack.push(binding_locator);
@@ -98,13 +95,10 @@ pub(crate) struct GetNameAndLocator;
 
 impl GetNameAndLocator {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let mut binding_locator = context.vm.frame().code_block.bindings[index];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.find_runtime_binding(&mut binding_locator)?;
-        let value = context.get_binding(binding_locator)?.ok_or_else(|| {
-            let name = context
-                .interner()
-                .resolve_expect(binding_locator.name().sym())
-                .to_string();
+        let value = context.get_binding(&binding_locator)?.ok_or_else(|| {
+            let name = binding_locator.name().to_std_string_escaped();
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
@@ -144,21 +138,18 @@ pub(crate) struct GetNameOrUndefined;
 
 impl GetNameOrUndefined {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let mut binding_locator = context.vm.frame().code_block.bindings[index];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
 
         let is_global = binding_locator.is_global();
 
         context.find_runtime_binding(&mut binding_locator)?;
 
-        let value = if let Some(value) = context.get_binding(binding_locator)? {
+        let value = if let Some(value) = context.get_binding(&binding_locator)? {
             value
         } else if is_global {
             JsValue::undefined()
         } else {
-            let name = context
-                .interner()
-                .resolve_expect(binding_locator.name().sym())
-                .to_string();
+            let name = binding_locator.name().to_std_string_escaped();
             return Err(JsNativeError::reference()
                 .with_message(format!("{name} is not defined"))
                 .into());

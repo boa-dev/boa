@@ -15,7 +15,6 @@ rust-version.workspace = true
 boa_engine = { workspace = true, features = ["deser", "flowgraph", "trace"] }
 boa_parser.workspace = true
 boa_gc.workspace = true
-boa_interner.workspace = true
 boa_runtime.workspace = true
 rustyline = { version = "12.0.0", features = ["derive"]}
 clap = { workspace = true, features = ["derive"] }

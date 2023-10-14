@@ -102,7 +102,7 @@ fn module_namespace_exotic_get_own_property(
         let exports = obj.exports();
 
         // 3. If exports does not contain P, return undefined.
-        if !exports.contains_key(&key) {
+        if !exports.contains(&key) {
             return Ok(None);
         }
     }
@@ -183,7 +183,7 @@ fn module_namespace_exotic_has_property(
 
     // 3. If exports contains P, return true.
     // 4. Return false.
-    Ok(exports.contains_key(&key))
+    Ok(exports.contains(&key))
 }
 
 /// [`[[Get]] ( P, Receiver )`][spec]
@@ -211,7 +211,7 @@ fn module_namespace_exotic_get(
     // 2. Let exports be O.[[Exports]].
     let exports = obj.exports();
     // 3. If exports does not contain P, return undefined.
-    let Some(export_name) = exports.get(&key).copied() else {
+    let Some(export_name) = exports.get(&key).cloned() else {
         return Ok(JsValue::undefined());
     };
 
@@ -220,7 +220,11 @@ fn module_namespace_exotic_get(
 
     // 5. Let binding be m.ResolveExport(P).
     let binding = m
-        .resolve_export(export_name, &mut HashSet::default())
+        .resolve_export(
+            export_name.clone(),
+            &mut HashSet::default(),
+            context.interner(),
+        )
         .expect("6. Assert: binding is a ResolvedBinding Record.");
 
     // 7. Let targetModule be binding.[[Module]].
@@ -232,7 +236,7 @@ fn module_namespace_exotic_get(
         // 10. Let targetEnv be targetModule.[[Environment]].
         let Some(env) = target_module.environment() else {
             // 11. If targetEnv is empty, throw a ReferenceError exception.
-            let import = context.interner().resolve_expect(export_name);
+            let import = export_name.to_std_string_escaped();
             return Err(JsNativeError::reference()
                 .with_message(format!(
                     "cannot get import `{import}` from an uninitialized module"
@@ -242,12 +246,12 @@ fn module_namespace_exotic_get(
 
         let locator = env
             .compile_env()
-            .get_binding(name)
+            .get_binding(&name)
             .expect("checked before that the name was reachable");
 
         // 12. Return ? targetEnv.GetBindingValue(binding.[[BindingName]], true).
         env.get(locator.binding_index()).ok_or_else(|| {
-            let import = context.interner().resolve_expect(export_name);
+            let import = export_name.to_std_string_escaped();
 
             JsNativeError::reference()
                 .with_message(format!("cannot get uninitialized import `{import}`"))
@@ -301,7 +305,7 @@ fn module_namespace_exotic_delete(
 
     // 3. If exports contains P, return false.
     // 4. Return true.
-    Ok(!exports.contains_key(&key))
+    Ok(!exports.contains(&key))
 }
 
 /// [`[[OwnPropertyKeys]] ( )`][spec].
@@ -324,7 +328,7 @@ fn module_namespace_exotic_own_property_keys(
 
     // 3. Return the list-concatenation of exports and symbolKeys.
     Ok(exports
-        .keys()
+        .iter()
         .map(|k| PropertyKey::String(k.clone()))
         .chain(symbol_keys)
         .collect())

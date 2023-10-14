@@ -20,7 +20,7 @@ impl DefVar {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
-        let binding_locator = context.vm.frame().code_block.bindings[index];
+        let binding_locator = context.vm.frame().code_block.bindings[index].clone();
 
         context.vm.environments.put_value_if_uninitialized(
             binding_locator.environment_index(),
@@ -62,10 +62,10 @@ pub(crate) struct DefInitVar;
 impl DefInitVar {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.find_runtime_binding(&mut binding_locator)?;
         context.set_binding(
-            binding_locator,
+            &binding_locator,
             value,
             context.vm.frame().code_block.strict(),
         )?;
@@ -106,7 +106,7 @@ impl PutLexicalValue {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        let binding_locator = context.vm.frame().code_block.bindings[index];
+        let binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.vm.environments.put_lexical_value(
             binding_locator.environment_index(),
             binding_locator.binding_index(),

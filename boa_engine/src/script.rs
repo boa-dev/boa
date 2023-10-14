@@ -17,7 +17,7 @@ use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    bytecompiler::ByteCompiler,
+    bytecompiler::{ByteCompiler, ToJsString},
     realm::Realm,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
     Context, HostDefined, JsResult, JsString, JsValue, Module,
@@ -116,7 +116,7 @@ impl Script {
         let _timer = Profiler::global().start_event("Script compilation", "Main");
 
         let mut compiler = ByteCompiler::new(
-            Sym::MAIN,
+            Sym::MAIN.to_js_string(context.interner()),
             self.inner.source.strict(),
             false,
             self.inner.realm.environment().compile_env(),

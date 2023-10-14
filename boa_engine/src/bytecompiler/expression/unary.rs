@@ -4,7 +4,7 @@ use boa_ast::{
 };
 
 use crate::{
-    bytecompiler::{Access, ByteCompiler},
+    bytecompiler::{Access, ByteCompiler, ToJsString},
     vm::Opcode,
 };
 
@@ -27,9 +27,10 @@ impl ByteCompiler<'_> {
             UnaryOp::TypeOf => {
                 match unary.target().flatten() {
                     Expression::Identifier(identifier) => {
+                        let identifier = identifier.to_js_string(self.interner());
                         let binding = self
                             .lexical_environment
-                            .get_identifier_reference(*identifier);
+                            .get_identifier_reference(identifier);
                         let index = self.get_or_insert_binding(binding.locator());
                         self.emit_with_varying_operand(Opcode::GetNameOrUndefined, index);
                     }

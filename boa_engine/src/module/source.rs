@@ -16,13 +16,14 @@ use boa_ast::{
     },
 };
 use boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace, WeakGc};
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
+use boa_macros::utf16;
 use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use crate::{
     builtins::{promise::PromiseCapability, Promise},
-    bytecompiler::{ByteCompiler, FunctionSpec},
+    bytecompiler::{ByteCompiler, FunctionSpec, ToJsString},
     environments::{BindingLocator, CompileTimeEnvironment, EnvironmentStack},
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
@@ -273,7 +274,7 @@ impl std::fmt::Debug for SourceTextModule {
 struct Inner {
     parent: WeakGc<ModuleRepr>,
     status: GcRefCell<Status>,
-    loaded_modules: GcRefCell<FxHashMap<Sym, Module>>,
+    loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     async_parent_modules: GcRefCell<Vec<SourceTextModule>>,
     import_meta: GcRefCell<Option<JsObject>>,
     #[unsafe_ignore_trace]
@@ -283,12 +284,12 @@ struct Inner {
 #[derive(Debug)]
 struct ModuleCode {
     has_tla: bool,
-    requested_modules: IndexSet<Sym, BuildHasherDefault<FxHasher>>,
+    requested_modules: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
     source: boa_ast::Module,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
     indirect_export_entries: Vec<IndirectExportEntry>,
-    star_export_entries: Vec<Sym>,
+    star_export_entries: Vec<JsString>,
 }
 
 impl SourceTextModule {
@@ -308,9 +309,18 @@ impl SourceTextModule {
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    pub(super) fn new(code: boa_ast::Module, parent: WeakGc<ModuleRepr>) -> Self {
+    pub(super) fn new(
+        code: boa_ast::Module,
+        parent: WeakGc<ModuleRepr>,
+        interner: &Interner,
+    ) -> Self {
         // 3. Let requestedModules be the ModuleRequests of body.
-        let requested_modules = code.items().requests();
+        let requested_modules = code
+            .items()
+            .requests()
+            .iter()
+            .map(|name| name.to_js_string(interner))
+            .collect();
         // 4. Let importEntries be ImportEntries of body.
         let import_entries = code.items().import_entries();
 
@@ -363,7 +373,7 @@ impl SourceTextModule {
                 ExportEntry::StarReExport { module_request } => {
                     // i. Assert: ee.[[ExportName]] is null.
                     // ii. Append ee to starExportEntries.
-                    star_export_entries.push(module_request);
+                    star_export_entries.push(module_request.to_js_string(interner));
                 }
                 // c. Else,
                 //    i. Append ee to indirectExportEntries.
@@ -424,7 +434,7 @@ impl SourceTextModule {
                 .pending_modules
                 .set(state.pending_modules.get() + requested.len());
             // d. For each String required of module.[[RequestedModules]], do
-            for &required in requested {
+            for required in requested.iter().cloned() {
                 // i. If module.[[LoadedModules]] contains a Record whose [[Specifier]] is required, then
                 let loaded = self.inner.loaded_modules.borrow().get(&required).cloned();
                 if let Some(loaded) = loaded {
@@ -436,10 +446,7 @@ impl SourceTextModule {
                     //       1. Perform HostLoadImportedModule(module, required, state.[[HostDefined]], state).
                     //       2. NOTE: HostLoadImportedModule will call FinishLoadingImportedModule, which re-enters
                     //          the graph loading process through ContinueModuleLoading.
-                    let name_specifier: JsString = context
-                        .interner()
-                        .resolve_expect(required)
-                        .into_common(false);
+                    let name_specifier = required.clone();
                     let src = self.clone();
                     let state = state.clone();
                     context.module_loader().load_imported_module(
@@ -515,7 +522,11 @@ impl SourceTextModule {
     /// Concrete method [`GetExportedNames ( [ exportStarSet ] )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getexportednames
-    pub(super) fn get_exported_names(&self, export_star_set: &mut Vec<Self>) -> FxHashSet<Sym> {
+    pub(super) fn get_exported_names(
+        &self,
+        export_star_set: &mut Vec<Self>,
+        interner: &Interner,
+    ) -> FxHashSet<JsString> {
         // 1. Assert: module.[[Status]] is not new.
         // 2. If exportStarSet is not present, set exportStarSet to a new empty List.
 
@@ -536,14 +547,16 @@ impl SourceTextModule {
         for e in &self.inner.code.local_export_entries {
             // a. Assert: module provides the direct binding for this export.
             // b. Append e.[[ExportName]] to exportedNames.
-            exported_names.insert(e.export_name());
+            let name = e.export_name().to_js_string(interner);
+            exported_names.insert(name);
         }
 
         // 7. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
         for e in &self.inner.code.indirect_export_entries {
             // a. Assert: module imports a specific binding for this export.
             // b. Append e.[[ExportName]] to exportedNames.
-            exported_names.insert(e.export_name());
+            let name = e.export_name().to_js_string(interner);
+            exported_names.insert(name);
         }
 
         // 8. For each ExportEntry Record e of module.[[StarExportEntries]], do
@@ -553,9 +566,9 @@ impl SourceTextModule {
 
             // b. Let starNames be requestedModule.GetExportedNames(exportStarSet).
             // c. For each element n of starNames, do
-            for n in requested_module.get_exported_names(export_star_set) {
+            for n in requested_module.get_exported_names(export_star_set, interner) {
                 // i. If SameValue(n, "default") is false, then
-                if n != Sym::DEFAULT {
+                if &n != utf16!("default") {
                     // 1. If exportedNames does not contain n, then
                     //    a. Append n to exportedNames.
                     exported_names.insert(n);
@@ -573,32 +586,34 @@ impl SourceTextModule {
     #[allow(clippy::mutable_key_type)]
     pub(super) fn resolve_export(
         &self,
-        export_name: Sym,
-        resolve_set: &mut FxHashSet<(Module, Sym)>,
+        export_name: &JsString,
+        resolve_set: &mut FxHashSet<(Module, JsString)>,
+        interner: &Interner,
     ) -> Result<ResolvedBinding, ResolveExportError> {
         let parent = self.parent();
         // 1. Assert: module.[[Status]] is not new.
         // 2. If resolveSet is not present, set resolveSet to a new empty List.
         // 3. For each Record { [[Module]], [[ExportName]] } r of resolveSet, do
         //    a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
-        if resolve_set.contains(&(parent.clone(), export_name)) {
+        let value = (parent.clone(), export_name.clone());
+        if resolve_set.contains(&value) {
             //   i. Assert: This is a circular import request.
             //   ii. Return null.
             return Err(ResolveExportError::NotFound);
         }
 
         // 4. Append the Record { [[Module]]: module, [[ExportName]]: exportName } to resolveSet.
-        resolve_set.insert((parent.clone(), export_name));
+        resolve_set.insert(value);
 
         // 5. For each ExportEntry Record e of module.[[LocalExportEntries]], do
         for e in &self.inner.code.local_export_entries {
             // a. If SameValue(exportName, e.[[ExportName]]) is true, then
-            if export_name == e.export_name() {
+            if export_name == &e.export_name().to_js_string(interner) {
                 // i. Assert: module provides the direct binding for this export.
                 // ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
                 return Ok(ResolvedBinding {
                     module: parent,
-                    binding_name: BindingName::Name(e.local_name()),
+                    binding_name: BindingName::Name(e.local_name().to_js_string(interner)),
                 });
             }
         }
@@ -606,10 +621,10 @@ impl SourceTextModule {
         // 6. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
         for e in &self.inner.code.indirect_export_entries {
             // a. If SameValue(exportName, e.[[ExportName]]) is true, then
-            if export_name == e.export_name() {
+            if export_name == &e.export_name().to_js_string(interner) {
                 // i. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
-                let imported_module =
-                    self.inner.loaded_modules.borrow()[&e.module_request()].clone();
+                let module_request = e.module_request().to_js_string(interner);
+                let imported_module = self.inner.loaded_modules.borrow()[&module_request].clone();
                 return match e.import_name() {
                     // ii. If e.[[ImportName]] is all, then
                     //    1. Assert: module does not provide the direct binding for this export.
@@ -622,14 +637,15 @@ impl SourceTextModule {
                     //    1. Assert: module imports a specific binding for this export.
                     //    2. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
                     ReExportImportName::Name(name) => {
-                        imported_module.resolve_export(name, resolve_set)
+                        let name = name.to_js_string(interner);
+                        imported_module.resolve_export(name, resolve_set, interner)
                     }
                 };
             }
         }
 
         // 7. If SameValue(exportName, "default") is true, then
-        if export_name == Sym::DEFAULT {
+        if &export_name.clone() == utf16!("default") {
             // a. Assert: A default export was not explicitly defined by this module.
             // b. Return null.
             // c. NOTE: A default export cannot be provided by an export * from "mod" declaration.
@@ -644,13 +660,14 @@ impl SourceTextModule {
             // a. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
             let imported_module = self.inner.loaded_modules.borrow()[e].clone();
             // b. Let resolution be importedModule.ResolveExport(exportName, resolveSet).
-            let resolution = match imported_module.resolve_export(export_name, resolve_set) {
-                // d. If resolution is not null, then
-                Ok(resolution) => resolution,
-                // c. If resolution is ambiguous, return ambiguous.
-                Err(e @ ResolveExportError::Ambiguous) => return Err(e),
-                Err(ResolveExportError::NotFound) => continue,
-            };
+            let resolution =
+                match imported_module.resolve_export(export_name.clone(), resolve_set, interner) {
+                    // d. If resolution is not null, then
+                    Ok(resolution) => resolution,
+                    // c. If resolution is ambiguous, return ambiguous.
+                    Err(e @ ResolveExportError::Ambiguous) => return Err(e),
+                    Err(ResolveExportError::NotFound) => continue,
+                };
 
             // i. Assert: resolution is a ResolvedBinding Record.
             if let Some(star_resolution) = &star_resolution {
@@ -661,7 +678,10 @@ impl SourceTextModule {
                 if resolution.module != star_resolution.module {
                     return Err(ResolveExportError::Ambiguous);
                 }
-                match (resolution.binding_name, star_resolution.binding_name) {
+                match (
+                    resolution.binding_name,
+                    star_resolution.binding_name.clone(),
+                ) {
                     // 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
                     //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
                     //    return ambiguous.
@@ -1080,9 +1100,9 @@ impl SourceTextModule {
         stack.push(self.clone());
 
         // 11. For each String required of module.[[RequestedModules]], do
-        for &required in &self.inner.code.requested_modules {
+        for required in &self.inner.code.requested_modules {
             // a. Let requiredModule be GetImportedModule(module, required).
-            let required_module = self.inner.loaded_modules.borrow()[&required].clone();
+            let required_module = self.inner.loaded_modules.borrow()[required].clone();
             // b. Set index to ? InnerModuleEvaluation(requiredModule, stack, index).
             index = required_module.inner_evaluate(stack, index, context)?;
 
@@ -1379,7 +1399,11 @@ impl SourceTextModule {
             for e in &self.inner.code.indirect_export_entries {
                 // a. Let resolution be module.ResolveExport(e.[[ExportName]]).
                 parent
-                    .resolve_export(e.export_name(), &mut HashSet::default())
+                    .resolve_export(
+                        e.export_name().to_js_string(context.interner()),
+                        &mut HashSet::default(),
+                        context.interner(),
+                    )
                     // b. If resolution is either null or ambiguous, throw a SyntaxError exception.
                     .map_err(|err| match err {
                         ResolveExportError::NotFound => {
@@ -1410,8 +1434,14 @@ impl SourceTextModule {
         let global_compile_env = global_env.compile_env();
         let env = Rc::new(CompileTimeEnvironment::new(global_compile_env, true));
 
-        let mut compiler =
-            ByteCompiler::new(Sym::MAIN, true, false, env.clone(), env.clone(), context);
+        let mut compiler = ByteCompiler::new(
+            Sym::MAIN.to_js_string(context.interner()),
+            true,
+            false,
+            env.clone(),
+            env.clone(),
+            context,
+        );
 
         compiler.code_block_flags |= CodeBlockFlags::IS_ASYNC;
         compiler.async_handler = Some(compiler.push_handler());
@@ -1422,32 +1452,32 @@ impl SourceTextModule {
             // 7. For each ImportEntry Record in of module.[[ImportEntries]], do
             for entry in &self.inner.code.import_entries {
                 // a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
-                let imported_module =
-                    self.inner.loaded_modules.borrow()[&entry.module_request()].clone();
+                let module_request = entry.module_request().to_js_string(compiler.interner());
+                let imported_module = self.inner.loaded_modules.borrow()[&module_request].clone();
 
                 if let ImportName::Name(name) = entry.import_name() {
+                    let name = name.to_js_string(compiler.interner());
                     // c. Else,
                     //    i. Let resolution be importedModule.ResolveExport(in.[[ImportName]]).
-                    let resolution =
-                        imported_module
-                            .resolve_export(name, &mut HashSet::default())
-                            // ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
-                            .map_err(|err| match err {
-                                ResolveExportError::NotFound => JsNativeError::syntax()
-                                    .with_message(format!(
-                                        "could not find export `{}`",
-                                        compiler.interner().resolve_expect(name)
-                                    )),
-                                ResolveExportError::Ambiguous => JsNativeError::syntax()
-                                    .with_message(format!(
-                                        "could not resolve ambiguous export `{}`",
-                                        compiler.interner().resolve_expect(name)
-                                    )),
-                            })?;
+                    let resolution = imported_module
+                        .resolve_export(name.clone(), &mut HashSet::default(), compiler.interner())
+                        // ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
+                        .map_err(|err| match err {
+                            ResolveExportError::NotFound => JsNativeError::syntax().with_message(
+                                format!("could not find export `{}`", name.to_std_string_escaped()),
+                            ),
+                            ResolveExportError::Ambiguous => {
+                                JsNativeError::syntax().with_message(format!(
+                                    "could not resolve ambiguous export `{}`",
+                                    name.to_std_string_escaped()
+                                ))
+                            }
+                        })?;
 
                     // 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    let locator = env.create_immutable_binding(entry.local_name(), true);
+                    let local_name = entry.local_name().to_js_string(compiler.interner());
+                    let locator = env.create_immutable_binding(local_name, true);
 
                     if let BindingName::Name(_) = resolution.binding_name {
                         // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
@@ -1469,7 +1499,10 @@ impl SourceTextModule {
                     // b. If in.[[ImportName]] is namespace-object, then
                     //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    let locator = env.create_immutable_binding(entry.local_name(), true);
+                    let locator = env.create_immutable_binding(
+                        entry.local_name().to_js_string(compiler.interner()),
+                        true,
+                    );
 
                     //    i. Let namespace be GetModuleNamespace(importedModule).
                     //       deferred to initialization below
@@ -1489,11 +1522,13 @@ impl SourceTextModule {
             for var in var_declarations {
                 // a. For each element dn of the BoundNames of d, do
                 for name in var.bound_names() {
+                    let name = name.to_js_string(compiler.interner());
+
                     // i. If declaredVarNames does not contain dn, then
                     if !declared_var_names.contains(&name) {
                         // 1. Perform ! env.CreateMutableBinding(dn, false).
                         // 2. Perform ! env.InitializeBinding(dn, undefined).
-                        let binding = env.create_mutable_binding(name, false);
+                        let binding = env.create_mutable_binding(name.clone(), false);
                         let index = compiler.get_or_insert_binding(binding);
                         compiler.emit_opcode(Opcode::PushUndefined);
                         compiler.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -1522,31 +1557,32 @@ impl SourceTextModule {
                 // deferred to below.
                 let (spec, locator): (FunctionSpec<'_>, _) = match declaration {
                     LexicallyScopedDeclaration::Function(f) => {
-                        let name = bound_names(f)[0];
+                        let name = bound_names(f)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (f.into(), locator)
                     }
                     LexicallyScopedDeclaration::Generator(g) => {
-                        let name = bound_names(g)[0];
+                        let name = bound_names(g)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (g.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncFunction(af) => {
-                        let name = bound_names(af)[0];
+                        let name = bound_names(af)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (af.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncGenerator(ag) => {
-                        let name = bound_names(ag)[0];
+                        let name = bound_names(ag)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (ag.into(), locator)
                     }
                     LexicallyScopedDeclaration::Class(class) => {
                         for name in bound_names(class) {
+                            let name = name.to_js_string(compiler.interner());
                             env.create_mutable_binding(name, false);
                         }
                         continue;
@@ -1557,6 +1593,7 @@ impl SourceTextModule {
                     )) => {
                         // a. For each element dn of the BoundNames of d, do
                         for name in bound_names(c) {
+                            let name = name.to_js_string(compiler.interner());
                             // 1. Perform ! env.CreateImmutableBinding(dn, true).
                             env.create_immutable_binding(name, true);
                         }
@@ -1564,12 +1601,14 @@ impl SourceTextModule {
                     }
                     LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Let(l)) => {
                         for name in bound_names(l) {
+                            let name = name.to_js_string(compiler.interner());
                             env.create_mutable_binding(name, false);
                         }
                         continue;
                     }
                     LexicallyScopedDeclaration::AssignmentExpression(expr) => {
                         for name in bound_names(expr) {
+                            let name = name.to_js_string(compiler.interner());
                             env.create_mutable_binding(name, false);
                         }
                         continue;
@@ -1762,7 +1801,7 @@ impl SourceTextModule {
     }
 
     /// Gets the loaded modules of this module.
-    pub(crate) fn loaded_modules(&self) -> &GcRefCell<FxHashMap<Sym, Module>> {
+    pub(crate) fn loaded_modules(&self) -> &GcRefCell<FxHashMap<JsString, Module>> {
         &self.inner.loaded_modules
     }
 

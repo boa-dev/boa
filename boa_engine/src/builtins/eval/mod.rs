@@ -11,7 +11,7 @@
 
 use crate::{
     builtins::BuiltInObject,
-    bytecompiler::ByteCompiler,
+    bytecompiler::{ByteCompiler, ToJsString},
     context::intrinsics::Intrinsics,
     environments::Environment,
     error::JsNativeError,
@@ -228,7 +228,7 @@ impl Eval {
         let mut var_env = var_environment.compile_env();
 
         let mut compiler = ByteCompiler::new(
-            Sym::MAIN,
+            Sym::MAIN.to_js_string(context.interner()),
             body.strict(),
             false,
             var_env.clone(),

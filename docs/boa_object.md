@@ -32,30 +32,33 @@ This function returns the compiled bytecode of a function as a string,
 ------------------------Compiled Output: 'add'------------------------
 Location  Count    Handler    Opcode                     Operands
 
-000000    0000      none      PutLexicalValue            0000: 'x'
-000005    0001      none      PutLexicalValue            0001: 'y'
-000010    0002      none      RestParameterPop
-000011    0003      none      GetName                    0000: 'x'
-000016    0004      none      GetName                    0001: 'y'
-000021    0005      none      Add
-000022    0006      none      SetReturnValue
-000023    0007      none      Return
-000024    0008      none      Return
+000000    0000      none      CreateMappedArgumentsObject
+000001    0001      none      PutLexicalValue                           2: 0
+000004    0002      none      GetArgument                           0
+000006    0003      none      PutLexicalValue                           2: 1
+000009    0004      none      GetArgument                           1
+000011    0005      none      PutLexicalValue                           2: 2
+000014    0006      none      PushDeclarativeEnvironment                           2
+000016    0007      none      GetName                           0000: 'x'
+000018    0008      none      GetName                           0001: 'y'
+000020    0009      none      Add
+000021    0010      none      SetReturnValue
+000022    0011      none      CheckReturn
+000023    0012      none      Return
+000024    0013      none      CheckReturn
+000025    0014      none      Return
 
-Literals:
-    <empty>
+Constants:
+    0000: [ENVIRONMENT] index: 1, bindings: 1
+    0001: [ENVIRONMENT] index: 2, bindings: 3
+    0002: [ENVIRONMENT] index: 3, bindings: 0
 
 Bindings:
     0000: x
     0001: y
 
-Functions:
-    <empty>
-
-Handlers:
-    <empty>
+Handlers: <empty>
 "
->>
 ```
 
 ### Function `$boa.function.trace(func, this, ...args)`

@@ -54,15 +54,15 @@ pub(crate) struct SetName;
 
 impl SetName {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let mut binding_locator = context.vm.frame().code_block.bindings[index];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
         let value = context.vm.pop();
 
         context.find_runtime_binding(&mut binding_locator)?;
 
-        verify_initialized(binding_locator, context)?;
+        verify_initialized(&binding_locator, context)?;
 
         context.set_binding(
-            binding_locator,
+            &binding_locator,
             value,
             context.vm.frame().code_block.strict(),
         )?;
@@ -113,10 +113,10 @@ impl Operation for SetNameByLocator {
             .expect("locator should have been popped before");
         let value = context.vm.pop();
 
-        verify_initialized(binding_locator, context)?;
+        verify_initialized(&binding_locator, context)?;
 
         context.set_binding(
-            binding_locator,
+            &binding_locator,
             value,
             context.vm.frame().code_block.strict(),
         )?;
@@ -126,21 +126,28 @@ impl Operation for SetNameByLocator {
 }
 
 /// Checks that the binding pointed by `locator` exists and is initialized.
-fn verify_initialized(locator: BindingLocator, context: &mut Context) -> JsResult<()> {
-    if !context.is_initialized_binding(&locator)? {
-        let key = context.interner().resolve_expect(locator.name().sym());
+fn verify_initialized(locator: &BindingLocator, context: &mut Context) -> JsResult<()> {
+    if !context.is_initialized_binding(locator)? {
+        let key = locator.name();
         let strict = context.vm.frame().code_block.strict();
 
         let message = if locator.is_global() {
-            strict.then(|| format!("cannot assign to uninitialized global property `{key}`"))
+            strict.then(|| {
+                format!(
+                    "cannot assign to uninitialized global property `{}`",
+                    key.to_std_string_escaped()
+                )
+            })
         } else {
             match context.environment_expect(locator.environment_index()) {
-                Environment::Declarative(_) => {
-                    Some(format!("cannot assign to uninitialized binding `{key}`"))
-                }
-                Environment::Object(_) if strict => {
-                    Some(format!("cannot assign to uninitialized property `{key}`"))
-                }
+                Environment::Declarative(_) => Some(format!(
+                    "cannot assign to uninitialized binding `{}`",
+                    key.to_std_string_escaped()
+                )),
+                Environment::Object(_) if strict => Some(format!(
+                    "cannot assign to uninitialized property `{}`",
+                    key.to_std_string_escaped()
+                )),
                 Environment::Object(_) => None,
             }
         };

@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Literal, Operand},
+    bytecompiler::{Access, ByteCompiler, Literal, Operand, ToJsString},
     vm::{BindingOpcode, Opcode},
 };
 use boa_ast::{
@@ -61,7 +61,7 @@ impl ByteCompiler<'_> {
                                 self.compile_expr(init, true);
                                 self.patch_jump(skip);
                             }
-                            self.emit_binding(def, *ident);
+                            self.emit_binding(def, ident.to_js_string(self.interner()));
 
                             if rest_exits && name.computed().is_some() {
                                 self.emit_opcode(Opcode::Swap);
@@ -88,7 +88,7 @@ impl ByteCompiler<'_> {
                                     Operand::Varying(additional_excluded_keys_count),
                                 ],
                             );
-                            self.emit_binding(def, *ident);
+                            self.emit_binding(def, ident.to_js_string(self.interner()));
                         }
                         AssignmentRestPropertyAccess {
                             access,
@@ -250,7 +250,7 @@ impl ByteCompiler<'_> {
                     self.compile_expr(init, true);
                     self.patch_jump(skip);
                 }
-                self.emit_binding(def, *ident);
+                self.emit_binding(def, ident.to_js_string(self.interner()));
             }
             PropertyAccess { access } => {
                 self.access_set(Access::Property { access }, false, |compiler, _level| {
@@ -277,7 +277,7 @@ impl ByteCompiler<'_> {
             // BindingRestElement : ... BindingIdentifier
             SingleNameRest { ident } => {
                 self.emit_opcode(Opcode::IteratorToArray);
-                self.emit_binding(def, *ident);
+                self.emit_binding(def, ident.to_js_string(self.interner()));
             }
             PropertyAccessRest { access } => {
                 self.access_set(Access::Property { access }, false, |compiler, _level| {

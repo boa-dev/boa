@@ -90,11 +90,11 @@ pub(crate) struct DeleteName;
 
 impl DeleteName {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let mut binding_locator = context.vm.frame().code_block.bindings[index];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
 
         context.find_runtime_binding(&mut binding_locator)?;
 
-        let deleted = context.delete_binding(binding_locator)?;
+        let deleted = context.delete_binding(&binding_locator)?;
 
         context.vm.push(deleted);
         Ok(CompletionType::Normal)
