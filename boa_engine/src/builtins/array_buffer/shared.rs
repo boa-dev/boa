@@ -338,6 +338,11 @@ pub(crate) fn create_shared_byte_data_block(
     //     a. Append WriteSharedMemory { [[Order]]: init, [[NoTear]]: true, [[Block]]: db,
     //        [[ByteIndex]]: i, [[ElementSize]]: 1, [[Payload]]: zero } to eventsRecord.[[EventList]].
     // 6. Return db.
+
+    // Initializing a boxed slice of atomics is almost impossible using safe code.
+    // This replaces that with a simple `alloc` and some casts to convert the allocation
+    // to `Box<[AtomicU8]>`.
+
     let layout = alloc::Layout::array::<AtomicU8>(size).map_err(|e| {
         JsNativeError::range().with_message(format!("couldn't allocate the data block: {e}"))
     })?;
@@ -358,7 +363,11 @@ pub(crate) fn create_shared_byte_data_block(
     // - `buffer` is a valid pointer by the null check above.
     let buffer = unsafe { Box::from_raw(std::slice::from_raw_parts_mut(ptr, size)) };
 
-    // Just for good measure.
+    // Just for good measure, since our implementation depends on having a pointer aligned
+    // to the alignment of `u64`.
+    // This could be replaced with a custom `Box` implementation, but most architectures
+    // already align pointers to 8 bytes, so it's a lot of work for such a small
+    // compatibility improvement.
     assert_eq!(buffer.as_ptr().addr() % std::mem::align_of::<u64>(), 0);
 
     // 3. Return db.

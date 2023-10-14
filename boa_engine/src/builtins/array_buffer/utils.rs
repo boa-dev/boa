@@ -1,4 +1,3 @@
-#![deny(unsafe_op_in_unsafe_fn)]
 #![allow(unstable_name_collisions)]
 
 use std::{ptr, slice::SliceIndex, sync::atomic};

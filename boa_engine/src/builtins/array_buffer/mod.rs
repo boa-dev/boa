@@ -7,6 +7,9 @@
 //! [spec]: https://tc39.es/ecma262/#sec-arraybuffer-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
 
+#![deny(unsafe_op_in_unsafe_fn)]
+#![deny(clippy::undocumented_unsafe_blocks)]
+
 pub(crate) mod shared;
 pub(crate) mod utils;
 
