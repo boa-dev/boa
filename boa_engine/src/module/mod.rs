@@ -50,7 +50,7 @@ use crate::{
     realm::Realm,
     Context, JsError, JsResult, JsString, JsValue,
 };
-use crate::{js_string, JsNativeError, NativeFunction};
+use crate::{js_string, HostDefined, JsNativeError, NativeFunction};
 
 /// The referrer from which a load request of a module originates.
 #[derive(Debug, Clone)]
@@ -276,7 +276,6 @@ impl std::fmt::Debug for Module {
             .field("environment", &self.inner.environment)
             .field("namespace", &self.inner.namespace)
             .field("kind", &self.inner.kind)
-            .field("host_defined", &self.inner.host_defined)
             .finish()
     }
 }
@@ -287,7 +286,7 @@ struct Inner {
     environment: GcRefCell<Option<Gc<DeclarativeEnvironment>>>,
     namespace: GcRefCell<Option<JsObject>>,
     kind: ModuleKind,
-    host_defined: (),
+    host_defined: HostDefined,
 }
 
 /// The kind of a [`Module`].
@@ -372,7 +371,7 @@ impl Module {
                 environment: GcRefCell::default(),
                 namespace: GcRefCell::default(),
                 kind: ModuleKind::SourceText(src.clone()),
-                host_defined: (),
+                host_defined: HostDefined::default(),
             }),
         };
 
@@ -386,6 +385,15 @@ impl Module {
     #[must_use]
     pub fn realm(&self) -> &Realm {
         &self.inner.realm
+    }
+
+    /// Returns the [`ECMAScript specification`][spec] defined [`\[\[HostDefined\]\]`][`HostDefined`] field of the [`Module`].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-abstract-module-records
+    #[inline]
+    #[must_use]
+    pub fn host_defined(&self) -> &HostDefined {
+        &self.inner.host_defined
     }
 
     /// Gets the kind of this `Module`.

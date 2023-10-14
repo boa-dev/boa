@@ -20,7 +20,7 @@ use crate::{
     bytecompiler::ByteCompiler,
     realm::Realm,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
-    Context, JsResult, JsString, JsValue, Module,
+    Context, HostDefined, JsResult, JsString, JsValue, Module,
 };
 
 /// ECMAScript's [**Script Record**][spec].
@@ -37,7 +37,6 @@ impl std::fmt::Debug for Script {
             .field("realm", &self.inner.realm.addr())
             .field("code", &self.inner.source)
             .field("loaded_modules", &self.inner.loaded_modules)
-            .field("host_defined", &self.inner.host_defined)
             .finish()
     }
 }
@@ -49,7 +48,7 @@ struct Inner {
     source: boa_ast::Script,
     codeblock: GcRefCell<Option<Gc<CodeBlock>>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
-    host_defined: (),
+    host_defined: HostDefined,
 }
 
 impl Script {
@@ -57,6 +56,14 @@ impl Script {
     #[must_use]
     pub fn realm(&self) -> &Realm {
         &self.inner.realm
+    }
+
+    /// Returns the [`ECMAScript specification`][spec] defined [`\[\[HostDefined\]\]`][`HostDefined`] field of the [`Module`].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#script-record
+    #[must_use]
+    pub fn host_defined(&self) -> &HostDefined {
+        &self.inner.host_defined
     }
 
     /// Gets the loaded modules of this script.
@@ -91,7 +98,7 @@ impl Script {
                 source: code,
                 codeblock: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
-                host_defined: (),
+                host_defined: HostDefined::default(),
             }),
         })
     }
