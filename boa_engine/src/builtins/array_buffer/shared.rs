@@ -352,7 +352,7 @@ pub(crate) fn create_shared_byte_data_block(
 
     if ptr.is_null() {
         return Err(JsNativeError::range()
-            .with_message("memory allocation failed to allocate buffer")
+            .with_message("memory allocator failed to allocate buffer")
             .into());
     }
 

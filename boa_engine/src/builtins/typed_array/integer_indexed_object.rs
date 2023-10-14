@@ -1,5 +1,4 @@
 //! This module implements the `Integer-Indexed` exotic object.
-//!
 
 use crate::object::JsObject;
 use boa_gc::{Finalize, Trace};

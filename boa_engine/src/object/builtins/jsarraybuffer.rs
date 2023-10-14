@@ -25,7 +25,7 @@ impl JsArrayBuffer {
     /// ```
     /// # use boa_engine::{
     /// # object::builtins::JsArrayBuffer,
-    /// # Context, JsResult
+    /// # Context, JsResult, JsValue
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
@@ -33,7 +33,7 @@ impl JsArrayBuffer {
     /// // Creates a blank array buffer of n bytes
     /// let array_buffer = JsArrayBuffer::new(4, context)?;
     ///
-    /// assert_eq!(array_buffer.take()?, vec![0_u8; 4]);
+    /// assert_eq!(array_buffer.detach(&JsValue::undefined())?, vec![0_u8; 4]);
     ///
     /// # Ok(())
     /// # }
@@ -63,7 +63,7 @@ impl JsArrayBuffer {
     /// ```
     /// # use boa_engine::{
     /// # object::builtins::JsArrayBuffer,
-    /// # Context, JsResult,
+    /// # Context, JsResult, JsValue,
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
@@ -73,7 +73,10 @@ impl JsArrayBuffer {
     /// let data_block: Vec<u8> = (0..5).collect();
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
     ///
-    /// assert_eq!(array_buffer.take()?, (0..5).collect::<Vec<u8>>());
+    /// assert_eq!(
+    ///     array_buffer.detach(&JsValue::undefined())?,
+    ///     (0..5).collect::<Vec<u8>>()
+    /// );
     /// # Ok(())
     /// # }
     /// ```
@@ -162,7 +165,7 @@ impl JsArrayBuffer {
     /// ```
     /// # use boa_engine::{
     /// # object::builtins::JsArrayBuffer,
-    /// # Context, JsResult,
+    /// # Context, JsResult, JsValue
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
@@ -172,18 +175,18 @@ impl JsArrayBuffer {
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
     ///
     /// // Take the inner buffer
-    /// let internal_buffer = array_buffer.take(&JsValue::undefined())?;
+    /// let internal_buffer = array_buffer.detach(&JsValue::undefined())?;
     ///
     /// assert_eq!(internal_buffer, (0..5).collect::<Vec<u8>>());
     ///
     /// // Anymore interaction with the buffer will return an error
-    /// let detached_err = array_buffer.take(&JsValue::undefined());
+    /// let detached_err = array_buffer.detach(&JsValue::undefined());
     /// assert!(detached_err.is_err());
     /// # Ok(())
     /// # }
     /// ```
     #[inline]
-    pub fn take(&self, detach_key: &JsValue) -> JsResult<Vec<u8>> {
+    pub fn detach(&self, detach_key: &JsValue) -> JsResult<Vec<u8>> {
         self.inner
             .borrow_mut()
             .as_array_buffer_mut()
@@ -191,7 +194,7 @@ impl JsArrayBuffer {
             .detach(detach_key)?
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("ArrayBuffer is detached")
+                    .with_message("ArrayBuffer was already detached")
                     .into()
             })
     }
