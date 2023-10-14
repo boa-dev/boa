@@ -16,6 +16,22 @@ fn set_loop(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
     Ok(JsValue::undefined())
 }
 
+fn get_stack(_: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    let max = context.runtime_limits().stack_size_limit();
+    Ok(JsValue::from(max))
+}
+
+fn set_stack(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    let value = args.get_or_undefined(0).to_length(context)?;
+    let Ok(value) = value.try_into() else {
+        return Err(JsNativeError::range()
+            .with_message(format!("Argument {value} greater than usize::MAX"))
+            .into());
+    };
+    context.runtime_limits_mut().set_stack_size_limit(value);
+    Ok(JsValue::undefined())
+}
+
 fn get_recursion(_: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
     let max = context.runtime_limits().recursion_limit();
     Ok(JsValue::from(max))
@@ -44,6 +60,17 @@ pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
             .length(1)
             .build();
 
+    let get_stack =
+        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_stack))
+            .name("get stack")
+            .length(0)
+            .build();
+    let set_stack =
+        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_stack))
+            .name("set stack")
+            .length(1)
+            .build();
+
     let get_recursion =
         FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_recursion))
             .name("get recursion")
@@ -59,6 +86,12 @@ pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
             js_string!("loop"),
             Some(get_loop),
             Some(set_loop),
+            Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+        )
+        .accessor(
+            js_string!("stack"),
+            Some(get_stack),
+            Some(set_stack),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .accessor(

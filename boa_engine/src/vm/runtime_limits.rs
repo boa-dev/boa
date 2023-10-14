@@ -16,7 +16,7 @@ impl Default for RuntimeLimits {
     fn default() -> Self {
         Self {
             loop_iteration_limit: u64::MAX,
-            resursion_limit: 400,
+            resursion_limit: 512,
             stack_size_limit: 1024,
         }
     }

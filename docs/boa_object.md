@@ -259,6 +259,20 @@ $boa.limits.loop = 10;
 while (true) {} // RuntimeLimit: Maximum loop iteration limit 10 exceeded
 ```
 
+### Getter & Setter `$boa.limits.stack`
+
+This is an accessor property on the module, its getter returns the value stack limit before an error is thrown.
+Its setter can be used to set the recursion limit.
+
+```javascript
+$boa.limits.stack = 10;
+
+function x() {
+  return;
+}
+x(1, 2, 3, 4, 5, 6, 7, 8, 9, 10); // RuntimeLimit: exceeded maximum call stack length
+```
+
 ### Getter & Setter `$boa.limits.recursion`
 
 This is an accessor property on the module, its getter returns the recursion limit before an error is thrown.
