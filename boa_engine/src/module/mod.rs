@@ -50,7 +50,7 @@ use crate::{
     realm::Realm,
     Context, JsError, JsResult, JsString, JsValue,
 };
-use crate::{js_string, JsNativeError, NativeFunction, HostDefined};
+use crate::{js_string, HostDefined, JsNativeError, NativeFunction};
 
 /// The referrer from which a load request of a module originates.
 #[derive(Debug, Clone)]

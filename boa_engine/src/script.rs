@@ -20,7 +20,7 @@ use crate::{
     bytecompiler::ByteCompiler,
     realm::Realm,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
-    Context, JsResult, JsString, JsValue, Module, HostDefined,
+    Context, HostDefined, JsResult, JsString, JsValue, Module,
 };
 
 /// ECMAScript's [**Script Record**][spec].
