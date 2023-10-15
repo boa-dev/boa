@@ -1,4 +1,3 @@
-use boa_macros::utf16;
 use indoc::indoc;
 
 use super::*;
@@ -28,9 +27,9 @@ fn get_set_field() {
     run_test_actions([TestAction::assert_context(|ctx| {
         let obj = &JsObject::with_object_proto(ctx.intrinsics());
         // Create string and convert it to a Value
-        let s = JsValue::new(js_string!("bar"));
-        obj.set(js_string!("foo"), s, false, ctx).unwrap();
-        obj.get(js_string!("foo"), ctx).unwrap() == JsValue::new(js_string!("bar"))
+        let s = JsValue::new(js_str!("bar"));
+        obj.set(js_str!("foo"), s, false, ctx).unwrap();
+        obj.get(js_str!("foo"), ctx).unwrap() == JsValue::new(js_str!("bar"))
     })]);
 }
 
@@ -241,7 +240,7 @@ fn add_number_and_number() {
 fn add_number_and_string() {
     run_test_actions([TestAction::assert_eq(
         "1 + \" + 2 = 3\"",
-        js_string!("1 + 2 = 3"),
+        js_str!("1 + 2 = 3"),
     )]);
 }
 
@@ -249,7 +248,7 @@ fn add_number_and_string() {
 fn add_string_and_string() {
     run_test_actions([TestAction::assert_eq(
         "\"Hello\" + \", world\"",
-        js_string!("Hello, world"),
+        js_str!("Hello, world"),
     )]);
 }
 
@@ -262,7 +261,7 @@ fn add_number_object_and_number() {
 fn add_number_object_and_string_object() {
     run_test_actions([TestAction::assert_eq(
         "new Number(10) + new String(\"0\")",
-        js_string!("100"),
+        js_str!("100"),
     )]);
 }
 
@@ -445,7 +444,7 @@ fn to_integer_or_infinity() {
             IntegerOrInfinity::Integer(11)
         );
         assert_eq!(
-            JsValue::new(js_string!("12"))
+            JsValue::new(js_str!("12"))
                 .to_integer_or_infinity(ctx)
                 .unwrap(),
             IntegerOrInfinity::Integer(12)
@@ -465,8 +464,8 @@ fn test_accessors() {
                 let a = { get b() { return "c" }, set b(value) { arr = arr.concat([value]) }} ;
                 a.b = "a";
             "#}),
-        TestAction::assert_eq("a.b", js_string!("c")),
-        TestAction::assert_eq("arr[0]", js_string!("a")),
+        TestAction::assert_eq("a.b", js_str!("c")),
+        TestAction::assert_eq("arr[0]", js_str!("a")),
     ]);
 }
 
@@ -683,16 +682,13 @@ fn to_int32() {
 #[test]
 fn to_string() {
     run_test_actions([TestAction::inspect_context(|ctx| {
-        assert_eq!(&JsValue::null().to_string(ctx).unwrap(), utf16!("null"));
+        assert_eq!(&JsValue::null().to_string(ctx).unwrap(), "null");
+        assert_eq!(&JsValue::undefined().to_string(ctx).unwrap(), "undefined");
+        assert_eq!(&JsValue::new(55).to_string(ctx).unwrap(), "55");
+        assert_eq!(&JsValue::new(55.0).to_string(ctx).unwrap(), "55");
         assert_eq!(
-            &JsValue::undefined().to_string(ctx).unwrap(),
-            utf16!("undefined")
-        );
-        assert_eq!(&JsValue::new(55).to_string(ctx).unwrap(), utf16!("55"));
-        assert_eq!(&JsValue::new(55.0).to_string(ctx).unwrap(), utf16!("55"));
-        assert_eq!(
-            &JsValue::new(js_string!("hello")).to_string(ctx).unwrap(),
-            utf16!("hello")
+            JsValue::new(js_str!("hello")).to_string(ctx).unwrap(),
+            js_str!("hello")
         );
     })]);
 }
@@ -704,7 +700,7 @@ fn to_bigint() {
         assert!(JsValue::undefined().to_bigint(ctx).is_err());
         assert!(JsValue::new(55).to_bigint(ctx).is_err());
         assert!(JsValue::new(10.0).to_bigint(ctx).is_err());
-        assert!(JsValue::new(js_string!("100")).to_bigint(ctx).is_ok());
+        assert!(JsValue::new(js_str!("100")).to_bigint(ctx).is_ok());
     })]);
 }
 
@@ -737,7 +733,7 @@ mod cyclic_conversions {
                 let a = [b, b];
                 JSON.stringify(a)
             "#},
-            js_string!("[[],[]]"),
+            js_str!("[[],[]]"),
         )]);
     }
 

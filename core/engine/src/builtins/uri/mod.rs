@@ -305,11 +305,11 @@ where
     loop {
         // a. If k = strLen, return R.
         if k == str_len {
-            return Ok(js_string!(r));
+            return Ok(js_string!(&r[..]));
         }
 
         // b. Let C be the code unit at index k within string.
-        let c = string[k];
+        let c = string.get_expect(k);
 
         // c. If C is in unescapedSet, then
         if unescaped_set(c) {
@@ -380,11 +380,11 @@ where
     loop {
         // a. If k = strLen, return R.
         if k == str_len {
-            return Ok(js_string!(r));
+            return Ok(js_string!(&r[..]));
         }
 
         // b. Let C be the code unit at index k within string.
-        let c = string[k];
+        let c = string.get_expect(k);
 
         // c. If C is not the code unit 0x0025 (PERCENT SIGN), then
         #[allow(clippy::if_not_else)]
@@ -406,9 +406,10 @@ where
             // iii. If the code units at index (k + 1) and (k + 2) within string do not represent
             // hexadecimal digits, throw a URIError exception.
             // iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-            let b = decode_hex_byte(string[k + 1], string[k + 2]).ok_or_else(|| {
-                JsNativeError::uri().with_message("invalid hexadecimal digit found")
-            })?;
+            let b = decode_hex_byte(string.get_expect(k + 1), string.get_expect(k + 2))
+                .ok_or_else(|| {
+                    JsNativeError::uri().with_message("invalid hexadecimal digit found")
+                })?;
 
             // v. Set k to k + 2.
             k += 2;
@@ -428,7 +429,7 @@ where
                 } else {
                     // 3. Else,
                     // a. Let S be the substring of string from start to k + 1.
-                    Vec::from(&string[start..=k])
+                    string.get_expect(start..=k).to_vec()
                 }
             } else {
                 // viii. Else,
@@ -456,7 +457,7 @@ where
                     k += 1;
 
                     // b. If the code unit at index k within string is not the code unit 0x0025 (PERCENT SIGN), throw a URIError exception.
-                    if string[k] != 0x0025 {
+                    if string.get_expect(k) != 0x0025 {
                         return Err(JsNativeError::uri()
                             .with_message("escape characters must be preceded with a % sign")
                             .into());
@@ -464,9 +465,10 @@ where
 
                     // c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.
                     // d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-                    let b = decode_hex_byte(string[k + 1], string[k + 2]).ok_or_else(|| {
-                        JsNativeError::uri().with_message("invalid hexadecimal digit found")
-                    })?;
+                    let b = decode_hex_byte(string.get_expect(k + 1), string.get_expect(k + 2))
+                        .ok_or_else(|| {
+                            JsNativeError::uri().with_message("invalid hexadecimal digit found")
+                        })?;
 
                     // e. Set k to k + 2.
                     k += 2;

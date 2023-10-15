@@ -26,10 +26,11 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 
@@ -71,18 +72,18 @@ impl IntrinsicObject for Set {
             .method(Self::for_each, js_string!("forEach"), 1)
             .method(Self::has, js_string!("has"), 1)
             .property(
-                utf16!("keys"),
+                js_string!("keys"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("size"),
+                js_string!("size"),
                 Some(size_getter),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .property(
-                utf16!("values"),
+                js_string!("values"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -138,7 +139,7 @@ impl BuiltInConstructor for Set {
         }
 
         // 5. Let adder be ? Get(set, "add").
-        let adder = set.get(utf16!("add"), context)?;
+        let adder = set.get(js_str!("add"), context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder.as_callable().ok_or_else(|| {

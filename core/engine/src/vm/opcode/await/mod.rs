@@ -1,4 +1,5 @@
 use boa_gc::{Gc, GcRefCell};
+use boa_macros::js_str;
 
 use crate::{
     builtins::{
@@ -82,7 +83,7 @@ impl Operation for Await {
                 captures.clone(),
             ),
         )
-        .name("")
+        .name(js_str!(""))
         .length(1)
         .build();
 
@@ -122,7 +123,7 @@ impl Operation for Await {
                 captures,
             ),
         )
-        .name("")
+        .name(js_str!(""))
         .length(1)
         .build();
 

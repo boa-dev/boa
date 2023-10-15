@@ -18,10 +18,11 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 
@@ -63,7 +64,7 @@ impl IntrinsicObject for Map {
                 Attribute::CONFIGURABLE,
             )
             .property(
-                utf16!("entries"),
+                js_string!("entries"),
                 entries_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -148,7 +149,7 @@ impl BuiltInConstructor for Map {
         };
 
         // 5. Let adder be ? Get(map, "set").
-        let adder = map.get(utf16!("set"), context)?;
+        let adder = map.get(js_str!("set"), context)?;
 
         // 6. Return ? AddEntriesFromIterable(map, iterable, adder).
         add_entries_from_iterable(&map, iterable, &adder, context)

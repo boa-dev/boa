@@ -18,11 +18,11 @@ use crate::{
     object::JsObject,
     property::Attribute,
     realm::Realm,
-    string::utf16,
     symbol::JsSymbol,
     Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use regexp::{advance_string_index, RegExp};
 
@@ -160,7 +160,7 @@ impl RegExpStringIterator {
                 // 1. Let thisIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
                 let this_index = iterator
                     .matcher
-                    .get(utf16!("lastIndex"), context)?
+                    .get(js_str!("lastIndex"), context)?
                     .to_length(context)?;
 
                 // 2. Let nextIndex be ! AdvanceStringIndex(S, thisIndex, fullUnicode).
@@ -170,7 +170,7 @@ impl RegExpStringIterator {
                 // 3. Perform ? Set(R, "lastIndex", 𝔽(nextIndex), true).
                 iterator
                     .matcher
-                    .set(utf16!("lastIndex"), next_index, true, context)?;
+                    .set(js_str!("lastIndex"), next_index, true, context)?;
             }
 
             // vi. Perform ? Yield(match).

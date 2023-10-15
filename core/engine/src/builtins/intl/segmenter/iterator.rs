@@ -1,7 +1,9 @@
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use icu_segmenter::{
-    GraphemeClusterBreakIteratorUtf16, SentenceBreakIteratorUtf16, WordBreakIteratorUtf16,
+    GraphemeClusterBreakIteratorLatin1, GraphemeClusterBreakIteratorUtf16,
+    SentenceBreakIteratorLatin1, SentenceBreakIteratorUtf16, WordBreakIteratorLatin1,
+    WordBreakIteratorUtf16,
 };
 
 use crate::{
@@ -16,9 +18,12 @@ use crate::{
 use super::{create_segment_data_object, Segmenter};
 
 pub(crate) enum NativeSegmentIterator<'l, 's> {
-    Grapheme(GraphemeClusterBreakIteratorUtf16<'l, 's>),
-    Word(WordBreakIteratorUtf16<'l, 's>),
-    Sentence(SentenceBreakIteratorUtf16<'l, 's>),
+    GraphemeUtf16(GraphemeClusterBreakIteratorUtf16<'l, 's>),
+    WordUtf16(WordBreakIteratorUtf16<'l, 's>),
+    SentenceUtf16(SentenceBreakIteratorUtf16<'l, 's>),
+    GraphemeLatin1(GraphemeClusterBreakIteratorLatin1<'l, 's>),
+    WordLatin1(WordBreakIteratorLatin1<'l, 's>),
+    SentenceLatin1(SentenceBreakIteratorLatin1<'l, 's>),
 }
 
 impl Iterator for NativeSegmentIterator<'_, '_> {
@@ -26,9 +31,12 @@ impl Iterator for NativeSegmentIterator<'_, '_> {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
-            NativeSegmentIterator::Grapheme(g) => g.next(),
-            NativeSegmentIterator::Word(w) => w.next(),
-            NativeSegmentIterator::Sentence(s) => s.next(),
+            NativeSegmentIterator::GraphemeUtf16(g) => g.next(),
+            NativeSegmentIterator::WordUtf16(w) => w.next(),
+            NativeSegmentIterator::SentenceUtf16(s) => s.next(),
+            NativeSegmentIterator::GraphemeLatin1(g) => g.next(),
+            NativeSegmentIterator::WordLatin1(w) => w.next(),
+            NativeSegmentIterator::SentenceLatin1(s) => s.next(),
         }
     }
 }
@@ -37,10 +45,10 @@ impl NativeSegmentIterator<'_, '_> {
     /// If the iterator is a word break iterator, returns `Some(true)` when the segment preceding
     /// the current boundary is word-like.
     pub(crate) fn is_word_like(&self) -> Option<bool> {
-        if let Self::Word(w) = self {
-            Some(w.is_word_like())
-        } else {
-            None
+        match self {
+            Self::WordLatin1(w) => Some(w.is_word_like()),
+            Self::WordUtf16(w) => Some(w.is_word_like()),
+            _ => None,
         }
     }
 }

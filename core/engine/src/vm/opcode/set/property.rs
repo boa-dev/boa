@@ -1,9 +1,11 @@
+use boa_macros::js_str;
+
 use crate::{
     builtins::function::set_function_name,
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, CompletionType},
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsNativeError, JsResult, JsValue,
 };
 
 /// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
@@ -384,8 +386,8 @@ impl Operation for SetFunctionName {
         };
 
         let prefix = match prefix {
-            1 => Some(JsString::from("get")),
-            2 => Some(JsString::from("set")),
+            1 => Some(js_str!("get")),
+            2 => Some(js_str!("set")),
             _ => None,
         };
 

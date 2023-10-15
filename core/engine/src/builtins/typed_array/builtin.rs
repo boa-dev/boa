@@ -3,7 +3,7 @@ use std::{
     sync::atomic::{self, Ordering},
 };
 
-use boa_macros::utf16;
+use boa_macros::{js_str, utf16};
 use num_traits::Zero;
 
 use super::{
@@ -79,19 +79,19 @@ impl IntrinsicObject for BuiltinTypedArray {
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("buffer"),
+                js_string!("buffer"),
                 Some(get_buffer),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                utf16!("byteLength"),
+                js_string!("byteLength"),
                 Some(get_byte_length),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                utf16!("byteOffset"),
+                js_string!("byteOffset"),
                 Some(get_byte_offset),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
@@ -1214,7 +1214,7 @@ impl BuiltinTypedArray {
         for k in 0..len {
             // a. If k > 0, set R to the string-concatenation of R and sep.
             if k > 0 {
-                r.extend_from_slice(&sep);
+                r.extend(sep.iter());
             }
 
             // b. Let element be ! Get(O, ! ToString(𝔽(k))).
@@ -1223,12 +1223,12 @@ impl BuiltinTypedArray {
             // c. If element is undefined, let next be the empty String; otherwise, let next be ! ToString(element).
             // d. Set R to the string-concatenation of R and next.
             if !element.is_undefined() {
-                r.extend_from_slice(&element.to_string(context)?);
+                r.extend(element.to_string(context)?.iter());
             }
         }
 
         // 9. Return R.
-        Ok(js_string!(r).into())
+        Ok(js_string!(&r[..]).into())
     }
 
     /// `%TypedArray%.prototype.keys ( )`
@@ -2493,7 +2493,7 @@ impl BuiltinTypedArray {
             if is_fixed_len || !next_element.is_undefined() {
                 let s = next_element
                     .invoke(
-                        utf16!("toLocaleString"),
+                        js_str!("toLocaleString"),
                         &[
                             args.get_or_undefined(0).clone(),
                             args.get_or_undefined(1).clone(),
@@ -2502,11 +2502,11 @@ impl BuiltinTypedArray {
                     )?
                     .to_string(context)?;
 
-                r.extend_from_slice(&s);
+                r.extend(s.iter());
             };
         }
 
-        Ok(js_string!(r).into())
+        Ok(js_string!(&r[..]).into())
     }
 
     /// `%TypedArray%.prototype.values ( )`

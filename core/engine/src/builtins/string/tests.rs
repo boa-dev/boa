@@ -1,3 +1,4 @@
+use boa_macros::js_str;
 use indoc::indoc;
 
 use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
@@ -56,11 +57,11 @@ fn concat() {
             "#}),
         TestAction::assert_eq(
             "hello.concat(world, nice)",
-            js_string!("Hello, world! Have a nice day."),
+            js_str!("Hello, world! Have a nice day."),
         ),
         TestAction::assert_eq(
             "hello + world + nice",
-            js_string!("Hello, world! Have a nice day."),
+            js_str!("Hello, world! Have a nice day."),
         ),
     ]);
 }
@@ -72,10 +73,7 @@ fn generic_concat() {
                 Number.prototype.concat = String.prototype.concat;
                 let number = new Number(100);
             "#}),
-        TestAction::assert_eq(
-            "number.concat(' - 50', ' = 50')",
-            js_string!("100 - 50 = 50"),
-        ),
+        TestAction::assert_eq("number.concat(' - 50', ' = 50')", js_str!("100 - 50 = 50")),
     ]);
 }
 
@@ -100,8 +98,8 @@ fn repeat() {
         TestAction::assert_eq("empty.repeat(1)", js_string!()),
         TestAction::assert_eq("en.repeat(0)", js_string!()),
         TestAction::assert_eq("zh.repeat(0)", js_string!()),
-        TestAction::assert_eq("en.repeat(1)", js_string!("english")),
-        TestAction::assert_eq("zh.repeat(2)", js_string!("中文中文")),
+        TestAction::assert_eq("en.repeat(1)", js_str!("english")),
+        TestAction::assert_eq("zh.repeat(2)", js_str!("中文中文")),
     ]);
 }
 
@@ -140,9 +138,9 @@ fn repeat_generic() {
     run_test_actions([
         TestAction::run("Number.prototype.repeat = String.prototype.repeat;"),
         TestAction::assert_eq("(0).repeat(0)", js_string!()),
-        TestAction::assert_eq("(1).repeat(1)", js_string!("1")),
-        TestAction::assert_eq("(1).repeat(5)", js_string!("11111")),
-        TestAction::assert_eq("(12).repeat(3)", js_string!("121212")),
+        TestAction::assert_eq("(1).repeat(1)", js_str!("1")),
+        TestAction::assert_eq("(1).repeat(5)", js_str!("11111")),
+        TestAction::assert_eq("(12).repeat(3)", js_str!("121212")),
     ]);
 }
 
@@ -152,7 +150,7 @@ fn replace() {
         indoc! {r#"
             "abc".replace("a", "2")
         "#},
-        js_string!("2bc"),
+        js_str!("2bc"),
     )]);
 }
 
@@ -162,7 +160,7 @@ fn replace_no_match() {
         indoc! {r#"
             "abc".replace(/d/, "$&$&")
         "#},
-        js_string!("abc"),
+        js_str!("abc"),
     )]);
 }
 
@@ -172,7 +170,7 @@ fn replace_with_capture_groups() {
         indoc! {r#"
             "John Smith".replace(/(\w+)\s(\w+)/, '$2, $1')
         "#},
-        js_string!("Smith, John"),
+        js_str!("Smith, John"),
     )]);
 }
 
@@ -183,7 +181,7 @@ fn replace_with_tenth_capture_group() {
             var re = /(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)/;
             "0123456789".replace(re, '$10')
         "#},
-        js_string!("9"),
+        js_str!("9"),
     )]);
 }
 
@@ -199,11 +197,11 @@ fn replace_substitutions() {
             var end = a.replace(re, " $' ");
             var no_sub = a.replace(re, " $_ ");
         "#}),
-        TestAction::assert_eq("a.replace(re, \" $$ \")", js_string!("one $ three")),
-        TestAction::assert_eq("a.replace(re, \"$&$&\")", js_string!("one two  two three")),
-        TestAction::assert_eq("a.replace(re, \" $` \")", js_string!("one one three")),
-        TestAction::assert_eq("a.replace(re, \" $' \")", js_string!("one three three")),
-        TestAction::assert_eq("a.replace(re, \" $_ \")", js_string!("one $_ three")),
+        TestAction::assert_eq("a.replace(re, \" $$ \")", js_str!("one $ three")),
+        TestAction::assert_eq("a.replace(re, \"$&$&\")", js_str!("one two  two three")),
+        TestAction::assert_eq("a.replace(re, \" $` \")", js_str!("one one three")),
+        TestAction::assert_eq("a.replace(re, \" $' \")", js_str!("one three three")),
+        TestAction::assert_eq("a.replace(re, \" $_ \")", js_str!("one $_ three")),
     ]);
 }
 
@@ -222,11 +220,11 @@ fn replace_with_function() {
             "#}),
         TestAction::assert_eq(
             "\"ecmascript is cool\".replace(/c(o)(o)(l)/, replacer)",
-            js_string!("ecmascript is awesome!"),
+            js_str!("ecmascript is awesome!"),
         ),
-        TestAction::assert_eq("p1", js_string!("o")),
-        TestAction::assert_eq("p2", js_string!("o")),
-        TestAction::assert_eq("p3", js_string!("l")),
+        TestAction::assert_eq("p1", js_str!("o")),
+        TestAction::assert_eq("p2", js_str!("o")),
+        TestAction::assert_eq("p3", js_str!("l")),
         TestAction::assert_eq("length", 14),
     ]);
 }
@@ -329,7 +327,7 @@ fn match_all_one() {
             )
         "#}),
         TestAction::assert_eq("m1.value.index", 0),
-        TestAction::assert_eq("m1.value.input", js_string!("test1test2")),
+        TestAction::assert_eq("m1.value.input", js_str!("test1test2")),
         TestAction::assert_eq("m1.value.groups", JsValue::undefined()),
         TestAction::assert(indoc! {r#"
             arrayEquals(
@@ -338,7 +336,7 @@ fn match_all_one() {
             )
         "#}),
         TestAction::assert_eq("m2.value.index", 5),
-        TestAction::assert_eq("m2.value.input", js_string!("test1test2")),
+        TestAction::assert_eq("m2.value.input", js_str!("test1test2")),
         TestAction::assert_eq("m2.value.groups", JsValue::undefined()),
         TestAction::assert_eq("m3.value", JsValue::undefined()),
     ]);
@@ -366,7 +364,7 @@ fn match_all_two() {
             )
         "#}),
         TestAction::assert_eq("m1.value.index", 6),
-        TestAction::assert_eq("m1.value.input", js_string!("table football, foosball")),
+        TestAction::assert_eq("m1.value.input", js_str!("table football, foosball")),
         TestAction::assert_eq("m1.value.groups", JsValue::undefined()),
         TestAction::assert(indoc! {r#"
             arrayEquals(
@@ -375,7 +373,7 @@ fn match_all_two() {
             )
         "#}),
         TestAction::assert_eq("m2.value.index", 16),
-        TestAction::assert_eq("m2.value.input", js_string!("table football, foosball")),
+        TestAction::assert_eq("m2.value.input", js_str!("table football, foosball")),
         TestAction::assert_eq("m2.value.groups", JsValue::undefined()),
         TestAction::assert_eq("m3.value", JsValue::undefined()),
     ]);
@@ -401,7 +399,7 @@ fn test_match() {
         TestAction::assert_eq("result1.index", 4),
         TestAction::assert_eq(
             "result1.input",
-            js_string!("The Quick Brown Fox Jumps Over The Lazy Dog"),
+            js_str!("The Quick Brown Fox Jumps Over The Lazy Dog"),
         ),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -418,7 +416,7 @@ fn test_match() {
         TestAction::assert_eq("result3.index", 0),
         TestAction::assert_eq(
             "result3.input",
-            js_string!("The Quick Brown Fox Jumps Over The Lazy Dog"),
+            js_str!("The Quick Brown Fox Jumps Over The Lazy Dog"),
         ),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -432,30 +430,30 @@ fn test_match() {
 #[test]
 fn trim() {
     run_test_actions([
-        TestAction::assert_eq(r"'Hello'.trim()", js_string!("Hello")),
-        TestAction::assert_eq(r"' \nHello'.trim()", js_string!("Hello")),
-        TestAction::assert_eq(r"'Hello \n\r'.trim()", js_string!("Hello")),
-        TestAction::assert_eq(r"' Hello '.trim()", js_string!("Hello")),
+        TestAction::assert_eq(r"'Hello'.trim()", js_str!("Hello")),
+        TestAction::assert_eq(r"' \nHello'.trim()", js_str!("Hello")),
+        TestAction::assert_eq(r"'Hello \n\r'.trim()", js_str!("Hello")),
+        TestAction::assert_eq(r"' Hello '.trim()", js_str!("Hello")),
     ]);
 }
 
 #[test]
 fn trim_start() {
     run_test_actions([
-        TestAction::assert_eq(r"'Hello'.trimStart()", js_string!("Hello")),
-        TestAction::assert_eq(r"' \nHello'.trimStart()", js_string!("Hello")),
-        TestAction::assert_eq(r"'Hello \n\r'.trimStart()", js_string!("Hello \n\r")),
-        TestAction::assert_eq(r"' Hello '.trimStart()", js_string!("Hello ")),
+        TestAction::assert_eq(r"'Hello'.trimStart()", js_str!("Hello")),
+        TestAction::assert_eq(r"' \nHello'.trimStart()", js_str!("Hello")),
+        TestAction::assert_eq(r"'Hello \n\r'.trimStart()", js_str!("Hello \n\r")),
+        TestAction::assert_eq(r"' Hello '.trimStart()", js_str!("Hello ")),
     ]);
 }
 
 #[test]
 fn trim_end() {
     run_test_actions([
-        TestAction::assert_eq(r"'Hello'.trimEnd()", js_string!("Hello")),
-        TestAction::assert_eq(r"' \nHello'.trimEnd()", js_string!(" \nHello")),
-        TestAction::assert_eq(r"'Hello \n\r'.trimEnd()", js_string!("Hello")),
-        TestAction::assert_eq(r"' Hello '.trimEnd()", js_string!(" Hello")),
+        TestAction::assert_eq(r"'Hello'.trimEnd()", js_str!("Hello")),
+        TestAction::assert_eq(r"' \nHello'.trimEnd()", js_str!(" \nHello")),
+        TestAction::assert_eq(r"'Hello \n\r'.trimEnd()", js_str!("Hello")),
+        TestAction::assert_eq(r"' Hello '.trimEnd()", js_str!(" Hello")),
     ]);
 }
 
@@ -578,7 +576,7 @@ fn split_with_symbol_split_method() {
                 sep_a[Symbol.split] = function(s, limit) { return s + limit.toString(); };
                 'hello'.split(sep_a, 10)
             "#},
-            js_string!("hello10"),
+            js_str!("hello10"),
         ),
         TestAction::assert(indoc! {r#"
                 let sep_b = {};
@@ -752,10 +750,10 @@ fn last_index_non_integer_position_argument() {
 fn char_at() {
     run_test_actions([
         TestAction::assert_eq("'abc'.charAt(-1)", js_string!()),
-        TestAction::assert_eq("'abc'.charAt(1)", js_string!("b")),
+        TestAction::assert_eq("'abc'.charAt(1)", js_str!("b")),
         TestAction::assert_eq("'abc'.charAt(9)", js_string!()),
-        TestAction::assert_eq("'abc'.charAt()", js_string!("a")),
-        TestAction::assert_eq("'abc'.charAt(null)", js_string!("a")),
+        TestAction::assert_eq("'abc'.charAt()", js_str!("a")),
+        TestAction::assert_eq("'abc'.charAt(null)", js_str!("a")),
         TestAction::assert_eq(r"'\uDBFF'.charAt(0)", js_string!(&[0xDBFFu16])),
     ]);
 }
@@ -794,10 +792,10 @@ fn code_point_at() {
 #[test]
 fn slice() {
     run_test_actions([
-        TestAction::assert_eq("'abc'.slice()", js_string!("abc")),
-        TestAction::assert_eq("'abc'.slice(1)", js_string!("bc")),
-        TestAction::assert_eq("'abc'.slice(-1)", js_string!("c")),
-        TestAction::assert_eq("'abc'.slice(0, 9)", js_string!("abc")),
+        TestAction::assert_eq("'abc'.slice()", js_str!("abc")),
+        TestAction::assert_eq("'abc'.slice(1)", js_str!("bc")),
+        TestAction::assert_eq("'abc'.slice(-1)", js_str!("c")),
+        TestAction::assert_eq("'abc'.slice(0, 9)", js_str!("abc")),
         TestAction::assert_eq("'abc'.slice(9, 10)", js_string!()),
     ]);
 }
@@ -844,8 +842,8 @@ fn unicode_iter() {
 fn string_get_property() {
     run_test_actions([
         TestAction::assert_eq("'abc'[-1]", JsValue::undefined()),
-        TestAction::assert_eq("'abc'[1]", js_string!("b")),
-        TestAction::assert_eq("'abc'[2]", js_string!("c")),
+        TestAction::assert_eq("'abc'[1]", js_str!("b")),
+        TestAction::assert_eq("'abc'[2]", js_str!("c")),
         TestAction::assert_eq("'abc'[3]", JsValue::undefined()),
         TestAction::assert_eq("'abc'['foo']", JsValue::undefined()),
         TestAction::assert_eq("'😀'[0]", js_string!(&[0xD83D])),
@@ -866,9 +864,9 @@ fn search() {
 fn from_code_point() {
     // Taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint
     run_test_actions([
-        TestAction::assert_eq("String.fromCodePoint(42)", js_string!("*")),
-        TestAction::assert_eq("String.fromCodePoint(65, 90)", js_string!("AZ")),
-        TestAction::assert_eq("String.fromCodePoint(0x404)", js_string!("Є")),
+        TestAction::assert_eq("String.fromCodePoint(42)", js_str!("*")),
+        TestAction::assert_eq("String.fromCodePoint(65, 90)", js_str!("AZ")),
+        TestAction::assert_eq("String.fromCodePoint(0x404)", js_str!("Є")),
         TestAction::assert_eq(
             "String.fromCodePoint(0x2f804)",
             js_string!(&[0xD87E, 0xDC04]),
@@ -884,7 +882,7 @@ fn from_code_point() {
         ),
         TestAction::assert_eq(
             "String.fromCodePoint(9731, 9733, 9842, 0x4F60)",
-            js_string!("☃★♲你"),
+            js_str!("☃★♲你"),
         ),
         TestAction::assert_native_error(
             "String.fromCodePoint('_')",

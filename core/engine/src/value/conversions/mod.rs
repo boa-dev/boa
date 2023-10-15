@@ -1,6 +1,6 @@
 //! Conversions from JavaScript values into Rust values, and the other way around.
 
-use crate::js_string;
+use crate::{js_string, string::JsStr};
 
 use super::{JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
 
@@ -9,6 +9,14 @@ mod serde_json;
 pub(super) mod try_from_js;
 
 pub(super) mod convert;
+
+impl From<JsStr<'_>> for JsValue {
+    fn from(value: JsStr<'_>) -> Self {
+        let _timer = Profiler::global().start_event("From<JsStr<'_>>", "value");
+
+        Self::String(value.into())
+    }
+}
 
 impl From<JsString> for JsValue {
     fn from(value: JsString) -> Self {

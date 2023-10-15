@@ -1,13 +1,13 @@
 //! This module is responsible for generating the vm instruction flowgraph.
 
 use crate::vm::CodeBlock;
-use boa_macros::utf16;
 
 mod color;
 mod edge;
 mod graph;
 mod node;
 
+use boa_macros::js_str;
 pub use color::*;
 pub use edge::*;
 pub use graph::*;
@@ -20,7 +20,7 @@ impl CodeBlock {
     #[allow(clippy::match_same_arms)]
     pub fn to_graph(&self, graph: &mut SubGraph) {
         // Have to remove any invalid graph chars like `<` or `>`.
-        let name = if self.name() == utf16!("<main>") {
+        let name = if self.name() == &js_str!("<main>") {
             "__main__".to_string()
         } else {
             self.name().to_std_string_escaped()

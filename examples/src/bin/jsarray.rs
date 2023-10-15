@@ -1,10 +1,9 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    js_string,
+    js_str,
     native_function::NativeFunction,
     object::{builtins::JsArray, FunctionObjectBuilder},
-    string::utf16,
     Context, JsResult, JsValue,
 };
 
@@ -17,16 +16,13 @@ fn main() -> JsResult<()> {
 
     assert!(array.is_empty(context)?);
 
-    array.push(js_string!("Hello, world"), context)?; // [ "Hello, world" ]
+    array.push(js_str!("Hello, world"), context)?; // [ "Hello, world" ]
     array.push(true, context)?; // [ "Hello, world", true ]
 
     assert!(!array.is_empty(context)?);
 
     assert_eq!(array.pop(context)?, JsValue::new(true)); // [ "Hello, world" ]
-    assert_eq!(
-        array.pop(context)?,
-        JsValue::new(js_string!("Hello, world"))
-    ); // [ ]
+    assert_eq!(array.pop(context)?, JsValue::new(js_str!("Hello, world"))); // [ ]
     assert_eq!(array.pop(context)?, JsValue::undefined()); // [ ]
 
     array.push(1, context)?; // [ 1 ]
@@ -58,12 +54,12 @@ fn main() -> JsResult<()> {
 
     // Join the array with an optional separator (default ",").
     let joined_array = array.join(None, context)?;
-    assert_eq!(&joined_array, utf16!("14,13,12,11,10"));
+    assert_eq!(&joined_array, "14,13,12,11,10");
 
     array.fill(false, Some(1), Some(4), context)?;
 
     let joined_array = array.join(Some("::".into()), context)?;
-    assert_eq!(&joined_array, utf16!("14::false::false::false::10"));
+    assert_eq!(&joined_array, "14::false::false::false::10");
 
     let filter_callback = FunctionObjectBuilder::new(
         context.realm(),
@@ -97,7 +93,7 @@ fn main() -> JsResult<()> {
         .concat(&[another_array.into()], context)? // [ 100, 196, 1, 2, 3, 4, 5 ]
         .slice(Some(1), Some(5), context)?; // [ 196, 1, 2, 3 ]
 
-    assert_eq!(&chained_array.join(None, context)?, utf16!("196,1,2,3"));
+    assert_eq!(&chained_array.join(None, context)?, "196,1,2,3");
 
     let reduce_callback = FunctionObjectBuilder::new(
         context.realm(),
@@ -117,7 +113,7 @@ fn main() -> JsResult<()> {
 
     context
         .global_object()
-        .set(js_string!("myArray"), array, true, context)?;
+        .set(js_str!("myArray"), array, true, context)?;
 
     Ok(())
 }

@@ -1,6 +1,6 @@
 use boa_engine::{
     builtins::function::OrdinaryFunction,
-    js_string,
+    js_str, js_string,
     object::ObjectInitializer,
     vm::flowgraph::{Direction, Graph},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
@@ -68,10 +68,9 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
     let mut direction = Direction::LeftToRight;
     if let Some(arguments) = args.get(1) {
         if let Some(arguments) = arguments.as_object() {
-            format = flowgraph_parse_format_option(&arguments.get(js_string!("format"), context)?)?;
-            direction = flowgraph_parse_direction_option(
-                &arguments.get(js_string!("direction"), context)?,
-            )?;
+            format = flowgraph_parse_format_option(&arguments.get(js_str!("format"), context)?)?;
+            direction =
+                flowgraph_parse_direction_option(&arguments.get(js_str!("direction"), context)?)?;
         } else if value.is_string() {
             format = flowgraph_parse_format_option(value)?;
         } else {

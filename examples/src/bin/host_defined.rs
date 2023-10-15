@@ -1,7 +1,7 @@
 // This example goes into the details on how to store user defined structs/state that is shared.
 
 use boa_engine::{
-    js_string, native_function::NativeFunction, Context, JsArgs, JsData, JsError, JsNativeError,
+    native_function::NativeFunction, Context, JsArgs, JsData, JsError, JsNativeError, JsString,
     JsValue, Source,
 };
 use boa_gc::{Finalize, Trace};
@@ -90,7 +90,7 @@ fn main() -> Result<(), JsError> {
     //
     // The funtion lives in the context's realm and has access to the host-defined field.
     context.register_global_builtin_callable(
-        js_string!("setRealmValue"),
+        JsString::from("setRealmValue"),
         1,
         NativeFunction::from_fn_ptr(|_, args, context| {
             let value: usize = args.get_or_undefined(0).try_js_into(context)?;
@@ -112,7 +112,7 @@ fn main() -> Result<(), JsError> {
     )?;
 
     context.register_global_builtin_callable(
-        js_string!("getRealmValue"),
+        JsString::from("getRealmValue"),
         0,
         NativeFunction::from_fn_ptr(|_, _, context| {
             let mut host_defined = context.realm().host_defined_mut();

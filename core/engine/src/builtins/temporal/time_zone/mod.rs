@@ -11,7 +11,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
@@ -95,7 +95,7 @@ impl IntrinsicObject for TimeZone {
                 realm.intrinsics().constructors().time_zone().prototype(),
                 Attribute::default(),
             )
-            .accessor(utf16!("id"), Some(get_id), None, Attribute::default())
+            .accessor(js_string!("id"), Some(get_id), None, Attribute::default())
             .build();
     }
 

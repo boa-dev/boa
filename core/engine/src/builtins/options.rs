@@ -2,7 +2,7 @@
 
 use std::{fmt, str::FromStr};
 
-use crate::{object::JsObject, Context, JsNativeError, JsResult, JsString, JsValue};
+use crate::{object::JsObject, string::JsStr, Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// A type used as an option parameter for [`get_option`].
 pub(crate) trait OptionType: Sized {
@@ -50,7 +50,7 @@ where
 /// [spec]: https://tc39.es/ecma402/#sec-getoption
 pub(crate) fn get_option<T: OptionType>(
     options: &JsObject,
-    property: &[u16],
+    property: JsStr<'_>,
     context: &mut Context,
 ) -> JsResult<Option<T>> {
     // 1. Let value be ? Get(options, property).

@@ -1,7 +1,8 @@
+use boa_macros::js_str;
 use indoc::indoc;
 mod loops;
 
-use crate::{js_string, run_test_actions, JsNativeErrorKind, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, TestAction};
 
 #[test]
 fn test_invalid_break() {
@@ -381,7 +382,7 @@ fn string_switch() {
 
             a;
         "#},
-        js_string!("world"),
+        js_str!("world"),
     )]);
 }
 
@@ -418,13 +419,13 @@ fn bigger_switch_example() {
                     return b;
                 }
             "#}),
-        TestAction::assert_eq("f(0)", js_string!("Mon")),
-        TestAction::assert_eq("f(1)", js_string!("Tue")),
-        TestAction::assert_eq("f(2)", js_string!("Wed")),
-        TestAction::assert_eq("f(3)", js_string!("Thurs")),
-        TestAction::assert_eq("f(4)", js_string!("Fri")),
-        TestAction::assert_eq("f(5)", js_string!("Sat")),
-        TestAction::assert_eq("f(6)", js_string!("Sun")),
+        TestAction::assert_eq("f(0)", js_str!("Mon")),
+        TestAction::assert_eq("f(1)", js_str!("Tue")),
+        TestAction::assert_eq("f(2)", js_str!("Wed")),
+        TestAction::assert_eq("f(3)", js_str!("Thurs")),
+        TestAction::assert_eq("f(4)", js_str!("Fri")),
+        TestAction::assert_eq("f(5)", js_str!("Sat")),
+        TestAction::assert_eq("f(6)", js_str!("Sun")),
     ]);
 }
 
@@ -440,7 +441,7 @@ fn break_labelled_if_statement() {
             }
             result
         "#},
-        js_string!("foo"),
+        js_str!("foo"),
     )]);
 }
 
@@ -458,6 +459,6 @@ fn break_labelled_try_statement() {
             }
             result
         "#},
-        js_string!("foo"),
+        js_str!("foo"),
     )]);
 }

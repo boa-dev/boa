@@ -1,11 +1,12 @@
-use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use boa_macros::js_str;
 use indoc::indoc;
 
 #[test]
 fn property_accessor_member_expression_dot_notation_on_string_literal() {
     run_test_actions([TestAction::assert_eq(
         "typeof 'asd'.matchAll",
-        js_string!("function"),
+        js_str!("function"),
     )]);
 }
 
@@ -13,7 +14,7 @@ fn property_accessor_member_expression_dot_notation_on_string_literal() {
 fn property_accessor_member_expression_bracket_notation_on_string_literal() {
     run_test_actions([TestAction::assert_eq(
         "typeof 'asd'['matchAll']",
-        js_string!("function"),
+        js_str!("function"),
     )]);
 }
 
@@ -197,15 +198,15 @@ fn unary_operations_on_this() {
 #[test]
 fn typeofs() {
     run_test_actions([
-        TestAction::assert_eq("typeof String()", js_string!("string")),
-        TestAction::assert_eq("typeof 5", js_string!("number")),
-        TestAction::assert_eq("typeof 0.5", js_string!("number")),
-        TestAction::assert_eq("typeof undefined", js_string!("undefined")),
-        TestAction::assert_eq("typeof true", js_string!("boolean")),
-        TestAction::assert_eq("typeof null", js_string!("object")),
-        TestAction::assert_eq("typeof {}", js_string!("object")),
-        TestAction::assert_eq("typeof Symbol()", js_string!("symbol")),
-        TestAction::assert_eq("typeof function(){}", js_string!("function")),
+        TestAction::assert_eq("typeof String()", js_str!("string")),
+        TestAction::assert_eq("typeof 5", js_str!("number")),
+        TestAction::assert_eq("typeof 0.5", js_str!("number")),
+        TestAction::assert_eq("typeof undefined", js_str!("undefined")),
+        TestAction::assert_eq("typeof true", js_str!("boolean")),
+        TestAction::assert_eq("typeof null", js_str!("object")),
+        TestAction::assert_eq("typeof {}", js_str!("object")),
+        TestAction::assert_eq("typeof Symbol()", js_str!("symbol")),
+        TestAction::assert_eq("typeof function(){}", js_str!("function")),
     ]);
 }
 
@@ -248,7 +249,7 @@ fn unary_void() {
                 const b = void test() + '';
                 a + b
             "#},
-            js_string!("42undefined"),
+            js_str!("42undefined"),
         ),
     ]);
 }
@@ -494,10 +495,7 @@ fn logical_assignment() {
 
 #[test]
 fn conditional_op() {
-    run_test_actions([TestAction::assert_eq(
-        "1 === 2 ? 'a' : 'b'",
-        js_string!("b"),
-    )]);
+    run_test_actions([TestAction::assert_eq("1 === 2 ? 'a' : 'b'", js_str!("b"))]);
 }
 
 #[test]

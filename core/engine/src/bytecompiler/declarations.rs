@@ -18,7 +18,7 @@ use boa_ast::{
     visitor::NodeRef,
     Declaration, Script, StatementListItem,
 };
-use boa_interner::Sym;
+use boa_interner::{JStrRef, Sym};
 
 #[cfg(feature = "annex-b")]
 use boa_ast::operations::annex_b_function_declarations_names;
@@ -223,9 +223,11 @@ pub(crate) fn eval_declaration_instantiation_context(
     let private_identifiers = private_identifiers
         .into_iter()
         .map(|ident| {
+            // TODO: Replace JStrRef with JsStr this would eliminate the to_vec call.
+            let ident = ident.to_vec();
             context
                 .interner()
-                .get(ident.as_slice())
+                .get(JStrRef::Utf16(&ident))
                 .expect("string should be in interner")
         })
         .collect();

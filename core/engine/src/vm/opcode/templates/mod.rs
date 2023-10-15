@@ -1,11 +1,11 @@
 use crate::{
     builtins::array::Array,
+    js_str,
     object::IntegrityLevel,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
-use boa_macros::utf16;
 
 /// `TemplateLookup` implements the Opcode Operation for `Opcode::TemplateLookup`
 ///
@@ -79,7 +79,7 @@ impl TemplateCreate {
             .expect("should never fail per spec");
         template
             .define_property_or_throw(
-                utf16!("raw"),
+                js_str!("raw"),
                 PropertyDescriptor::builder()
                     .value(raw_obj)
                     .writable(false)

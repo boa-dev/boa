@@ -77,7 +77,6 @@
 compile_error!("Boa requires a lock free `AtomicUsize` in order to work properly.");
 
 extern crate self as boa_engine;
-extern crate static_assertions as sa;
 
 pub use boa_ast as ast;
 pub use boa_gc as gc;
@@ -104,10 +103,11 @@ pub mod symbol;
 pub mod value;
 pub mod vm;
 
+pub(crate) mod tagged;
+
 mod host_defined;
 mod small_map;
 mod sys;
-mod tagged;
 
 #[cfg(test)]
 mod tests;
@@ -123,12 +123,12 @@ pub mod prelude {
         native_function::NativeFunction,
         object::{JsData, JsObject, NativeObject},
         script::Script,
-        string::JsString,
+        string::{JsStr, JsString},
         symbol::JsSymbol,
         value::JsValue,
     };
     pub use boa_gc::{Finalize, Trace};
-    pub use boa_macros::JsData;
+    pub use boa_macros::{js_str, JsData};
     pub use boa_parser::Source;
 }
 
@@ -137,6 +137,9 @@ use std::result::Result as StdResult;
 // Export things to root level
 #[doc(inline)]
 pub use prelude::*;
+
+#[doc(inline)]
+pub use boa_parser::Source;
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 pub type JsResult<T> = StdResult<T, JsError>;
