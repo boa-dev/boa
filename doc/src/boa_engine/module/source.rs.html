@@ -1975,8 +1975,6 @@
 <a href="#1975" id="1975">1975</a>
 <a href="#1976" id="1976">1976</a>
 <a href="#1977" id="1977">1977</a>
-<a href="#1978" id="1978">1978</a>
-<a href="#1979" id="1979">1979</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -1994,7 +1992,7 @@
         ContainsSymbol, LexicallyScopedDeclaration,
     },
 };
-<span class="kw">use </span>boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace};
+<span class="kw">use </span>boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace, WeakGc};
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet, FxHasher};
@@ -2014,7 +2012,8 @@
 };
 
 <span class="kw">use super</span>::{
-    BindingName, GraphLoadingState, Module, Referrer, ResolveExportError, ResolvedBinding,
+    BindingName, GraphLoadingState, Module, ModuleRepr, Referrer, ResolveExportError,
+    ResolvedBinding,
 };
 
 <span class="doccomment">/// Information for the [**Depth-first search**] algorithm used in the
@@ -2249,7 +2248,7 @@
 
 <span class="attr">#[derive(Trace, Finalize)]
 </span><span class="kw">struct </span>Inner {
-    parent: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;Module&gt;&gt;,
+    parent: WeakGc&lt;ModuleRepr&gt;,
     status: GcRefCell&lt;Status&gt;,
     loaded_modules: GcRefCell&lt;FxHashMap&lt;Sym, Module&gt;&gt;,
     async_parent_modules: GcRefCell&lt;Vec&lt;SourceTextModule&gt;&gt;,
@@ -2270,18 +2269,15 @@
 }
 
 <span class="kw">impl </span>SourceTextModule {
-    <span class="doccomment">/// Sets the parent module of this source module.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_parent(<span class="kw-2">&amp;</span><span class="self">self</span>, parent: Module) {
-        <span class="kw-2">*</span><span class="self">self</span>.inner.parent.borrow_mut() = <span class="prelude-val">Some</span>(parent);
-    }
-
     <span class="doccomment">/// Gets the parent module of this source module.
     </span><span class="kw">fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Module {
-        <span class="self">self</span>.inner
-            .parent
-            .borrow()
-            .clone()
-            .expect(<span class="string">&quot;parent module must be initialized&quot;</span>)
+        Module {
+            inner: <span class="self">self
+                </span>.inner
+                .parent
+                .upgrade()
+                .expect(<span class="string">&quot;parent module must be live&quot;</span>),
+        }
     }
 
     <span class="doccomment">/// Creates a new `SourceTextModule` from a parsed `ModuleSource`.
@@ -2289,7 +2285,7 @@
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(code: boa_ast::Module) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(code: boa_ast::Module, parent: WeakGc&lt;ModuleRepr&gt;) -&gt; <span class="self">Self </span>{
         <span class="comment">// 3. Let requestedModules be the ModuleRequests of body.
         </span><span class="kw">let </span>requested_modules = code.items().requests();
         <span class="comment">// 4. Let importEntries be ImportEntries of body.
@@ -2370,7 +2366,7 @@
         // Most of this can be ignored, since `Status` takes care of the remaining state.
         </span><span class="self">Self </span>{
             inner: Gc::new(Inner {
-                parent: GcRefCell::default(),
+                parent,
                 status: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 async_parent_modules: GcRefCell::default(),

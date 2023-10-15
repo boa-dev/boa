@@ -475,7 +475,6 @@
 <a href="#475" id="475">475</a>
 <a href="#476" id="476">476</a>
 <a href="#477" id="477">477</a>
-<a href="#478" id="478">478</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -677,8 +676,7 @@
     /// `args.get(n).cloned().unwrap_or_default()` or
     /// `args.get(n).unwrap_or(&amp;undefined)`.
     ///
-    /// This returns a reference for efficiency, in case you only need to call methods of `JsValue`,
-    /// so try to minimize calling `clone`.
+    /// This returns a reference for efficiency, in case you only need to call methods of `JsValue`.
     </span><span class="kw">fn </span>get_or_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;</span>JsValue;
 }
 
