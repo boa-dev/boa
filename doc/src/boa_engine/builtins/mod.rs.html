@@ -1113,6 +1113,8 @@
 <a href="#1113" id="1113">1113</a>
 <a href="#1114" id="1114">1114</a>
 <a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
 </span><span class="kw">pub mod </span>array;
@@ -1195,7 +1197,7 @@
 <span class="kw">use crate</span>::{
     builtins::{
         array::ArrayIterator,
-        array_buffer::ArrayBuffer,
+        array_buffer::{ArrayBuffer, SharedArrayBuffer},
         async_generator::AsyncGenerator,
         async_generator_function::AsyncGeneratorFunction,
         error::r#type::ThrowTypeError,
@@ -1207,7 +1209,7 @@
         regexp::RegExpStringIterator,
         set::SetIterator,
         string::StringIterator,
-        typed_array::TypedArray,
+        typed_array::BuiltinTypedArray,
         uri::{DecodeUri, DecodeUriComponent, EncodeUri, EncodeUriComponent},
         weak::WeakRef,
         weak_map::WeakMap,
@@ -1320,6 +1322,7 @@
         ArrayIterator::init(<span class="self">self</span>);
         Proxy::init(<span class="self">self</span>);
         ArrayBuffer::init(<span class="self">self</span>);
+        SharedArrayBuffer::init(<span class="self">self</span>);
         BigInt::init(<span class="self">self</span>);
         Boolean::init(<span class="self">self</span>);
         Date::init(<span class="self">self</span>);
@@ -1338,7 +1341,7 @@
         StringIterator::init(<span class="self">self</span>);
         RegExp::init(<span class="self">self</span>);
         RegExpStringIterator::init(<span class="self">self</span>);
-        TypedArray::init(<span class="self">self</span>);
+        BuiltinTypedArray::init(<span class="self">self</span>);
         Int8Array::init(<span class="self">self</span>);
         Uint8Array::init(<span class="self">self</span>);
         Uint8ClampedArray::init(<span class="self">self</span>);
@@ -1454,6 +1457,7 @@
     global_binding::&lt;Array&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;Proxy&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;ArrayBuffer&gt;(context)<span class="question-mark">?</span>;
+    global_binding::&lt;SharedArrayBuffer&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;BigInt&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;Boolean&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;Date&gt;(context)<span class="question-mark">?</span>;
@@ -1468,7 +1472,7 @@
     global_binding::&lt;Set&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;String&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;RegExp&gt;(context)<span class="question-mark">?</span>;
-    global_binding::&lt;TypedArray&gt;(context)<span class="question-mark">?</span>;
+    global_binding::&lt;BuiltinTypedArray&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;Int8Array&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;Uint8Array&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;Uint8ClampedArray&gt;(context)<span class="question-mark">?</span>;

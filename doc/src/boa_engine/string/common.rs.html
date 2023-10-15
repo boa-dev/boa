@@ -707,6 +707,8 @@
 <a href="#707" id="707">707</a>
 <a href="#708" id="708">708</a>
 <a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::hash::BuildHasherDefault;
 
 <span class="kw">use </span><span class="kw">crate</span>::tagged::Tagged;
@@ -819,6 +821,7 @@
         <span class="comment">// Builtins
         </span>(ARRAY, <span class="string">&quot;Array&quot;</span>),
         (ARRAY_BUFFER, <span class="string">&quot;ArrayBuffer&quot;</span>),
+        (SHARED_ARRAY_BUFFER, <span class="string">&quot;SharedArrayBuffer&quot;</span>),
         (ASYNC_FUNCTION, <span class="string">&quot;AsyncFunction&quot;</span>),
         (ASYNC_GENERATOR, <span class="string">&quot;AsyncGenerator&quot;</span>),
         (ASYNC_GENERATOR_FUNCTION, <span class="string">&quot;AsyncGeneratorFunction&quot;</span>),
@@ -959,6 +962,7 @@
     <span class="comment">// Well known builtins
     </span><span class="macro">utf16!</span>(<span class="string">&quot;Array&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;ArrayBuffer&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;SharedArrayBuffer&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;AsyncFunction&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;AsyncGenerator&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;AsyncGeneratorFunction&quot;</span>),

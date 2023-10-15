@@ -553,13 +553,13 @@
             <span class="kw">let </span>provided_offset = offset.unwrap_or(<span class="number">0_u64</span>);
 
             <span class="comment">// Check if buffer is detached.
-            </span><span class="kw">if </span>buffer.is_detached_buffer() {
+            </span><span class="kw">if </span>buffer.is_detached() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
                     .into());
             };
 
-            <span class="kw">let </span>array_buffer_length = buffer.array_buffer_byte_length();
+            <span class="kw">let </span>array_buffer_length = buffer.len() <span class="kw">as </span>u64;
 
             <span class="kw">if </span>provided_offset &gt; array_buffer_length {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()

@@ -1127,6 +1127,10 @@
 <a href="#1127" id="1127">1127</a>
 <a href="#1128" id="1128">1128</a>
 <a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1158,7 +1162,7 @@
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>num_bigint::BigInt;
 <span class="kw">use </span>num_integer::Integer;
-<span class="kw">use </span>num_traits::Zero;
+<span class="kw">use </span>num_traits::{ToPrimitive, Zero};
 <span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>std::{
     collections::HashSet,
@@ -1886,7 +1890,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobigint64
-    </span><span class="kw">pub fn </span>to_big_int64(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;BigInt&gt; {
+    </span><span class="kw">pub fn </span>to_big_int64(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;i64&gt; {
         <span class="comment">// 1. Let n be ? ToBigInt(argument).
         </span><span class="kw">let </span>n = <span class="self">self</span>.to_bigint(context)<span class="question-mark">?</span>;
 
@@ -1894,11 +1898,15 @@
         </span><span class="kw">let </span>int64_bit = n.as_inner().mod_floor(<span class="kw-2">&amp;</span>TWO_E_64);
 
         <span class="comment">// 3. If int64bit ≥ 2^63, return ℤ(int64bit - 2^64); otherwise return ℤ(int64bit).
-        </span><span class="kw">if </span>int64_bit &gt;= <span class="kw-2">*</span>TWO_E_63 {
-            <span class="prelude-val">Ok</span>(int64_bit.sub(<span class="kw-2">&amp;*</span>TWO_E_64))
+        </span><span class="kw">let </span>value = <span class="kw">if </span>int64_bit &gt;= <span class="kw-2">*</span>TWO_E_63 {
+            int64_bit.sub(<span class="kw-2">&amp;*</span>TWO_E_64)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(int64_bit)
-        }
+            int64_bit
+        };
+
+        <span class="prelude-val">Ok</span>(value
+            .to_i64()
+            .expect(<span class="string">&quot;should be within the range of `i64` by the mod operation&quot;</span>))
     }
 
     <span class="doccomment">/// `7.1.16 ToBigUint64 ( argument )`
@@ -1907,16 +1915,16 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobiguint64
-    </span><span class="kw">pub fn </span>to_big_uint64(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;BigInt&gt; {
-        <span class="kw">let </span>two_e_64: u128 = <span class="number">0x1_0000_0000_0000_0000</span>;
-        <span class="kw">let </span>two_e_64 = BigInt::from(two_e_64);
-
+    </span><span class="kw">pub fn </span>to_big_uint64(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u64&gt; {
         <span class="comment">// 1. Let n be ? ToBigInt(argument).
         </span><span class="kw">let </span>n = <span class="self">self</span>.to_bigint(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let int64bit be ℝ(n) modulo 2^64.
         // 3. Return ℤ(int64bit).
-        </span><span class="prelude-val">Ok</span>(n.as_inner().mod_floor(<span class="kw-2">&amp;</span>two_e_64))
+        </span><span class="prelude-val">Ok</span>(n.as_inner()
+            .mod_floor(<span class="kw-2">&amp;</span>TWO_E_64)
+            .to_u64()
+            .expect(<span class="string">&quot;should be within the range of `u64` by the mod operation&quot;</span>))
     }
 
     <span class="doccomment">/// Converts a value to a non-negative integer if it is a valid integer index value.

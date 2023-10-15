@@ -108,13 +108,6 @@
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_engine::{
     js_string,
     native_function::NativeFunction,
@@ -189,24 +182,17 @@
         .and_then(JsValue::as_object)
         .ok_or_else(type_err)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>array_buffer = array_buffer.borrow_mut();
-    <span class="kw">let </span>array_buffer = array_buffer.as_array_buffer_mut().ok_or_else(type_err)<span class="question-mark">?</span>;
 
-    <span class="comment">// 1. Assert: IsSharedArrayBuffer(arrayBuffer) is false. TODO
-    // 2. If key is not present, set key to undefined.
+    <span class="comment">// 1. Assert: IsSharedArrayBuffer(arrayBuffer) is false.
+    </span><span class="kw">let </span>array_buffer = array_buffer.as_array_buffer_mut().ok_or_else(type_err)<span class="question-mark">?</span>;
+
+    <span class="comment">// 2. If key is not present, set key to undefined.
     </span><span class="kw">let </span>key = args.get_or_undefined(<span class="number">1</span>);
 
     <span class="comment">// 3. If SameValue(arrayBuffer.[[ArrayBufferDetachKey]], key) is false, throw a TypeError exception.
-    </span><span class="kw">if </span>!JsValue::same_value(<span class="kw-2">&amp;</span>array_buffer.array_buffer_detach_key, key) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Cannot detach array buffer with different key&quot;</span>)
-            .into());
-    }
-
-    <span class="comment">// 4. Set arrayBuffer.[[ArrayBufferData]] to null.
-    </span>array_buffer.array_buffer_data = <span class="prelude-val">None</span>;
-
-    <span class="comment">// 5. Set arrayBuffer.[[ArrayBufferByteLength]] to 0.
-    </span>array_buffer.array_buffer_byte_length = <span class="number">0</span>;
+    // 4. Set arrayBuffer.[[ArrayBufferData]] to null.
+    // 5. Set arrayBuffer.[[ArrayBufferByteLength]] to 0.
+    </span>array_buffer.detach(key)<span class="question-mark">?</span>;
 
     <span class="comment">// 6. Return NormalCompletion(null).
     </span><span class="prelude-val">Ok</span>(JsValue::null())

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["SharedMemoryOrder"],"fn":["copy_data_block_bytes","create_byte_data_block"],"struct":["ArrayBuffer"]};
+window.SIDEBAR_ITEMS = {"enum":["BufferRef","BufferRefMut"],"fn":["create_byte_data_block","get_slice_range"],"mod":["shared","utils"],"struct":["ArrayBuffer","SharedArrayBuffer","SliceRange"]};

@@ -473,17 +473,12 @@
 <a href="#473" id="473">473</a>
 <a href="#474" id="474">474</a>
 <a href="#475" id="475">475</a>
-<a href="#476" id="476">476</a>
-<a href="#477" id="477">477</a>
-<a href="#478" id="478">478</a>
-<a href="#479" id="479">479</a>
-<a href="#480" id="480">480</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::atomic;
+
+<span class="kw">use </span>boa_macros::utf16;
 
 <span class="kw">use crate</span>::{
-    builtins::{
-        array_buffer::SharedMemoryOrder, typed_array::integer_indexed_object::ContentType, Number,
-    },
+    builtins::Number,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult, JsString, JsValue,
@@ -860,38 +855,38 @@
     }
 
     <span class="kw">let </span>obj = obj.borrow();
-    <span class="kw">let </span>inner = obj
-        .as_typed_array()
-        .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
-    <span class="kw">let </span>buffer_obj = inner
-        .viewed_array_buffer()
-        .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
-    <span class="kw">let </span>buffer_obj_borrow = buffer_obj.borrow();
-    <span class="kw">let </span>buffer = buffer_obj_borrow
-        .as_array_buffer()
-        .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
+    <span class="kw">let </span>inner = obj.as_typed_array().expect(<span class="string">&quot;Must be a typed array&quot;</span>);
+    <span class="kw">let </span>buffer = inner.viewed_array_buffer();
+    <span class="kw">let </span>buffer = buffer.borrow();
+    <span class="kw">let </span>buffer = buffer.as_buffer().expect(<span class="string">&quot;Must be a buffer&quot;</span>);
+    <span class="kw">let </span>buffer = buffer
+        .data()
+        .expect(<span class="string">&quot;already checked that it&#39;s not detached&quot;</span>);
 
     <span class="comment">// 2. Let offset be O.[[ByteOffset]].
     </span><span class="kw">let </span>offset = inner.byte_offset();
 
     <span class="comment">// 3. Let arrayTypeName be the String value of O.[[TypedArrayName]].
     // 6. Let elementType be the Element Type value in Table 73 for arrayTypeName.
-    </span><span class="kw">let </span>elem_type = inner.typed_array_name();
+    </span><span class="kw">let </span>elem_type = inner.kind();
 
     <span class="comment">// 4. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.
     </span><span class="kw">let </span>size = elem_type.element_size();
 
     <span class="comment">// 5. Let indexedPosition be (ℝ(index) × elementSize) + offset.
-    </span><span class="kw">let </span>indexed_position = (index <span class="kw">as </span>u64 * size) + offset;
+    </span><span class="kw">let </span>indexed_position = ((index <span class="kw">as </span>u64 * size) + offset) <span class="kw">as </span>usize;
 
     <span class="comment">// 7. Return GetValueFromBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, true, Unordered).
-    </span><span class="prelude-val">Some</span>(buffer.get_value_from_buffer(
-        indexed_position,
-        elem_type,
-        <span class="bool-val">true</span>,
-        SharedMemoryOrder::Unordered,
-        <span class="prelude-val">None</span>,
-    ))
+
+    // SAFETY: The integer indexed object guarantees that the buffer is aligned.
+    // The call to `is_valid_integer_index` guarantees that the index is in-bounds.
+    </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{
+        buffer
+            .subslice(indexed_position..)
+            .get_value(elem_type, atomic::Ordering::Relaxed)
+    };
+
+    <span class="prelude-val">Some</span>(value.into())
 }
 
 <span class="doccomment">/// Abstract operation `IntegerIndexedElementSet ( O, index, value )`.
@@ -911,48 +906,43 @@
         <span class="string">&quot;integer indexed exotic method should only be callable from integer indexed objects&quot;</span>,
     );
 
-    <span class="kw">let </span>num_value = <span class="kw">if </span>inner.typed_array_name().content_type() == ContentType::BigInt {
-        <span class="comment">// 1. If O.[[ContentType]] is BigInt, let numValue be ? ToBigInt(value).
-        </span>value.to_bigint(context)<span class="question-mark">?</span>.into()
-    } <span class="kw">else </span>{
-        <span class="comment">// 2. Otherwise, let numValue be ? ToNumber(value).
-        </span>value.to_number(context)<span class="question-mark">?</span>.into()
-    };
+    <span class="comment">// 1. If O.[[ContentType]] is BigInt, let numValue be ? ToBigInt(value).
+    // 2. Otherwise, let numValue be ? ToNumber(value).
+    </span><span class="kw">let </span>value = inner.kind().get_element(value, context)<span class="question-mark">?</span>;
+
+    <span class="kw">if </span>!is_valid_integer_index(obj, index) {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+    }
 
     <span class="comment">// 3. If ! IsValidIntegerIndex(O, index) is true, then
-    </span><span class="kw">if </span>is_valid_integer_index(obj, index) {
-        <span class="comment">// a. Let offset be O.[[ByteOffset]].
-        </span><span class="kw">let </span>offset = inner.byte_offset();
+    // a. Let offset be O.[[ByteOffset]].
+    </span><span class="kw">let </span>offset = inner.byte_offset();
 
-        <span class="comment">// b. Let arrayTypeName be the String value of O.[[TypedArrayName]].
-        // e. Let elementType be the Element Type value in Table 73 for arrayTypeName.
-        </span><span class="kw">let </span>elem_type = inner.typed_array_name();
+    <span class="comment">// b. Let arrayTypeName be the String value of O.[[TypedArrayName]].
+    // e. Let elementType be the Element Type value in Table 73 for arrayTypeName.
+    </span><span class="kw">let </span>elem_type = inner.kind();
 
-        <span class="comment">// c. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.
-        </span><span class="kw">let </span>size = elem_type.element_size();
+    <span class="comment">// c. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.
+    </span><span class="kw">let </span>size = elem_type.element_size();
 
-        <span class="comment">// d. Let indexedPosition be (ℝ(index) × elementSize) + offset.
-        </span><span class="kw">let </span>indexed_position = (index <span class="kw">as </span>u64 * size) + offset;
+    <span class="comment">// d. Let indexedPosition be (ℝ(index) × elementSize) + offset.
+    </span><span class="kw">let </span>indexed_position = ((index <span class="kw">as </span>u64 * size) + offset) <span class="kw">as </span>usize;
 
-        <span class="kw">let </span>buffer_obj = inner
-            .viewed_array_buffer()
-            .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>buffer_obj_borrow = buffer_obj.borrow_mut();
-        <span class="kw">let </span>buffer = buffer_obj_borrow
-            .as_array_buffer_mut()
-            .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
+    <span class="kw">let </span>buffer = inner.viewed_array_buffer();
+    <span class="kw">let </span><span class="kw-2">mut </span>buffer = buffer.borrow_mut();
+    <span class="kw">let </span><span class="kw-2">mut </span>buffer = buffer.as_buffer_mut().expect(<span class="string">&quot;Must be a buffer&quot;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>buffer = buffer
+        .data_mut()
+        .expect(<span class="string">&quot;already checked that it&#39;s not detached&quot;</span>);
 
-        <span class="comment">// f. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, numValue, true, Unordered).
-        </span>buffer
-            .set_value_in_buffer(
-                indexed_position,
-                elem_type,
-                <span class="kw-2">&amp;</span>num_value,
-                SharedMemoryOrder::Unordered,
-                <span class="prelude-val">None</span>,
-                context,
-            )
-            .expect(<span class="string">&quot;SetValueInBuffer cannot fail here&quot;</span>);
+    <span class="comment">// f. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, numValue, true, Unordered).
+
+    // SAFETY: The integer indexed object guarantees that the buffer is aligned.
+    // The call to `is_valid_integer_index` guarantees that the index is in-bounds.
+    </span><span class="kw">unsafe </span>{
+        buffer
+            .subslice_mut(indexed_position..)
+            .set_value(value, atomic::Ordering::Relaxed);
     }
 
     <span class="comment">// 4. Return NormalCompletion(undefined).

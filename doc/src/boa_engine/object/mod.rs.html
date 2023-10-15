@@ -3048,6 +3048,51 @@
 <a href="#3048" id="3048">3048</a>
 <a href="#3049" id="3049">3049</a>
 <a href="#3050" id="3050">3050</a>
+<a href="#3051" id="3051">3051</a>
+<a href="#3052" id="3052">3052</a>
+<a href="#3053" id="3053">3053</a>
+<a href="#3054" id="3054">3054</a>
+<a href="#3055" id="3055">3055</a>
+<a href="#3056" id="3056">3056</a>
+<a href="#3057" id="3057">3057</a>
+<a href="#3058" id="3058">3058</a>
+<a href="#3059" id="3059">3059</a>
+<a href="#3060" id="3060">3060</a>
+<a href="#3061" id="3061">3061</a>
+<a href="#3062" id="3062">3062</a>
+<a href="#3063" id="3063">3063</a>
+<a href="#3064" id="3064">3064</a>
+<a href="#3065" id="3065">3065</a>
+<a href="#3066" id="3066">3066</a>
+<a href="#3067" id="3067">3067</a>
+<a href="#3068" id="3068">3068</a>
+<a href="#3069" id="3069">3069</a>
+<a href="#3070" id="3070">3070</a>
+<a href="#3071" id="3071">3071</a>
+<a href="#3072" id="3072">3072</a>
+<a href="#3073" id="3073">3073</a>
+<a href="#3074" id="3074">3074</a>
+<a href="#3075" id="3075">3075</a>
+<a href="#3076" id="3076">3076</a>
+<a href="#3077" id="3077">3077</a>
+<a href="#3078" id="3078">3078</a>
+<a href="#3079" id="3079">3079</a>
+<a href="#3080" id="3080">3080</a>
+<a href="#3081" id="3081">3081</a>
+<a href="#3082" id="3082">3082</a>
+<a href="#3083" id="3083">3083</a>
+<a href="#3084" id="3084">3084</a>
+<a href="#3085" id="3085">3085</a>
+<a href="#3086" id="3086">3086</a>
+<a href="#3087" id="3087">3087</a>
+<a href="#3088" id="3088">3088</a>
+<a href="#3089" id="3089">3089</a>
+<a href="#3090" id="3090">3090</a>
+<a href="#3091" id="3091">3091</a>
+<a href="#3092" id="3092">3092</a>
+<a href="#3093" id="3093">3093</a>
+<a href="#3094" id="3094">3094</a>
+<a href="#3095" id="3095">3095</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -3096,7 +3141,7 @@
 <span class="kw">use crate</span>::{
     builtins::{
         array::ArrayIterator,
-        array_buffer::ArrayBuffer,
+        array_buffer::{ArrayBuffer, BufferRef, BufferRefMut, SharedArrayBuffer},
         async_generator::AsyncGenerator,
         error::ErrorKind,
         function::arguments::Arguments,
@@ -3111,7 +3156,7 @@
         set::ordered_set::OrderedSet,
         set::SetIterator,
         string::StringIterator,
-        typed_array::{integer_indexed_object::IntegerIndexed, TypedArrayKind},
+        typed_array::{IntegerIndexed, TypedArrayKind},
         DataView, Date, Promise, RegExp,
     },
     context::intrinsics::StandardConstructor,
@@ -3366,6 +3411,9 @@
     <span class="doccomment">/// The `ArrayBuffer` object kind.
     </span>ArrayBuffer(ArrayBuffer),
 
+    <span class="doccomment">/// The `SharedArrayBuffer` object kind.
+    </span>SharedArrayBuffer(SharedArrayBuffer),
+
     <span class="doccomment">/// The `Map` object kind.
     </span>Map(OrderedMap&lt;JsValue&gt;),
 
@@ -3597,7 +3645,8 @@
             | <span class="self">Self</span>::Ordinary
             | <span class="self">Self</span>::Global
             | <span class="self">Self</span>::Number(<span class="kw">_</span>)
-            | <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; {}
+            | <span class="self">Self</span>::Symbol(<span class="kw">_</span>)
+            | <span class="self">Self</span>::SharedArrayBuffer(<span class="kw">_</span>) =&gt; {}
             <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
             </span><span class="self">Self</span>::Instant(<span class="kw">_</span>)
             | <span class="self">Self</span>::PlainDateTime(<span class="kw">_</span>)
@@ -3672,6 +3721,15 @@
     </span><span class="kw">pub fn </span>array_buffer(array_buffer: ArrayBuffer) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::ArrayBuffer(array_buffer),
+            internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    <span class="doccomment">/// Create the `SharedArrayBuffer` object data
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>shared_array_buffer(shared_array_buffer: SharedArrayBuffer) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ObjectKind::SharedArrayBuffer(shared_array_buffer),
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -4173,6 +4231,7 @@
             <span class="self">Self</span>::Array =&gt; <span class="string">&quot;Array&quot;</span>,
             <span class="self">Self</span>::ArrayIterator(<span class="kw">_</span>) =&gt; <span class="string">&quot;ArrayIterator&quot;</span>,
             <span class="self">Self</span>::ArrayBuffer(<span class="kw">_</span>) =&gt; <span class="string">&quot;ArrayBuffer&quot;</span>,
+            <span class="self">Self</span>::SharedArrayBuffer(<span class="kw">_</span>) =&gt; <span class="string">&quot;SharedArrayBuffer&quot;</span>,
             <span class="self">Self</span>::ForInIterator(<span class="kw">_</span>) =&gt; <span class="string">&quot;ForInIterator&quot;</span>,
             <span class="self">Self</span>::OrdinaryFunction(<span class="kw">_</span>) =&gt; <span class="string">&quot;Function&quot;</span>,
             <span class="self">Self</span>::BoundFunction(<span class="kw">_</span>) =&gt; <span class="string">&quot;BoundFunction&quot;</span>,
@@ -4346,11 +4405,42 @@
         }
     }
 
+    <span class="doccomment">/// Gets the shared array buffer data if the object is a `SharedArrayBuffer`.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>as_shared_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SharedArrayBuffer&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            ObjectKind::SharedArrayBuffer(buffer) =&gt; <span class="prelude-val">Some</span>(buffer),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="doccomment">/// Gets the mutable array buffer data if the object is a `ArrayBuffer`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_array_buffer_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ArrayBuffer&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
             ObjectKind::ArrayBuffer(buffer) =&gt; <span class="prelude-val">Some</span>(buffer),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets the buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>as_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BufferRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            ObjectKind::ArrayBuffer(buffer) =&gt; <span class="prelude-val">Some</span>(BufferRef::Buffer(buffer)),
+            ObjectKind::SharedArrayBuffer(buffer) =&gt; <span class="prelude-val">Some</span>(BufferRef::SharedBuffer(buffer)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets the mutable buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_buffer_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BufferRefMut&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
+            ObjectKind::ArrayBuffer(buffer) =&gt; <span class="prelude-val">Some</span>(BufferRefMut::Buffer(buffer)),
+            ObjectKind::SharedArrayBuffer(buffer) =&gt; <span class="prelude-val">Some</span>(BufferRefMut::SharedBuffer(buffer)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -4743,7 +4833,7 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>is_typed_uint8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span>ObjectKind::IntegerIndexed(<span class="kw-2">ref </span>int) = <span class="self">self</span>.kind {
-            <span class="macro">matches!</span>(int.typed_array_name(), TypedArrayKind::Uint8)
+            <span class="macro">matches!</span>(int.kind(), TypedArrayKind::Uint8)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -4754,7 +4844,7 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>is_typed_int8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span>ObjectKind::IntegerIndexed(<span class="kw-2">ref </span>int) = <span class="self">self</span>.kind {
-            <span class="macro">matches!</span>(int.typed_array_name(), TypedArrayKind::Int8)
+            <span class="macro">matches!</span>(int.kind(), TypedArrayKind::Int8)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -4765,7 +4855,7 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>is_typed_uint16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span>ObjectKind::IntegerIndexed(<span class="kw-2">ref </span>int) = <span class="self">self</span>.kind {
-            <span class="macro">matches!</span>(int.typed_array_name(), TypedArrayKind::Uint16)
+            <span class="macro">matches!</span>(int.kind(), TypedArrayKind::Uint16)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -4776,7 +4866,7 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>is_typed_int16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span>ObjectKind::IntegerIndexed(<span class="kw-2">ref </span>int) = <span class="self">self</span>.kind {
-            <span class="macro">matches!</span>(int.typed_array_name(), TypedArrayKind::Int16)
+            <span class="macro">matches!</span>(int.kind(), TypedArrayKind::Int16)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -4787,7 +4877,7 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>is_typed_uint32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span>ObjectKind::IntegerIndexed(<span class="kw-2">ref </span>int) = <span class="self">self</span>.kind {
-            <span class="macro">matches!</span>(int.typed_array_name(), TypedArrayKind::Uint32)
+            <span class="macro">matches!</span>(int.kind(), TypedArrayKind::Uint32)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -4798,7 +4888,7 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>is_typed_int32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span>ObjectKind::IntegerIndexed(<span class="kw-2">ref </span>int) = <span class="self">self</span>.kind {
-            <span class="macro">matches!</span>(int.typed_array_name(), TypedArrayKind::Int32)
+            <span class="macro">matches!</span>(int.kind(), TypedArrayKind::Int32)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -4809,7 +4899,7 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>is_typed_float32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span>ObjectKind::IntegerIndexed(<span class="kw-2">ref </span>int) = <span class="self">self</span>.kind {
-            <span class="macro">matches!</span>(int.typed_array_name(), TypedArrayKind::Float32)
+            <span class="macro">matches!</span>(int.kind(), TypedArrayKind::Float32)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -4820,7 +4910,7 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>is_typed_float64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span>ObjectKind::IntegerIndexed(<span class="kw-2">ref </span>int) = <span class="self">self</span>.kind {
-            <span class="macro">matches!</span>(int.typed_array_name(), TypedArrayKind::Float64)
+            <span class="macro">matches!</span>(int.kind(), TypedArrayKind::Float64)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}

@@ -84,62 +84,25 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `Integer-Indexed` exotic object.
-//!
-//! An `Integer-Indexed` exotic object is an exotic object that performs
-//! special handling of integer index property keys.
-//!
-//! More information:
-//!  - [ECMAScript reference][spec]
-//!
-//! [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects
 
-</span><span class="kw">use crate</span>::{builtins::typed_array::TypedArrayKind, object::JsObject};
+</span><span class="kw">use </span><span class="kw">crate</span>::object::JsObject;
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 
-<span class="doccomment">/// Type of the array content.
-</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>ContentType {
-    Number,
-    BigInt,
-}
+<span class="kw">use </span><span class="kw">super</span>::TypedArrayKind;
 
-<span class="doccomment">/// &lt;https://tc39.es/ecma262/#integer-indexed-exotic-object&gt;
+<span class="doccomment">/// An `Integer-Indexed` exotic object is an exotic object that performs
+/// special handling of integer index property keys.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>IntegerIndexed {
-    viewed_array_buffer: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+    viewed_array_buffer: JsObject,
     <span class="attr">#[unsafe_ignore_trace]
-    </span>typed_array_name: TypedArrayKind,
+    </span>kind: TypedArrayKind,
     byte_offset: u64,
     byte_length: u64,
     array_length: u64,
@@ -147,15 +110,15 @@
 
 <span class="kw">impl </span>IntegerIndexed {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(
-        viewed_array_buffer: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-        typed_array_name: TypedArrayKind,
+        viewed_array_buffer: JsObject,
+        kind: TypedArrayKind,
         byte_offset: u64,
         byte_length: u64,
         array_length: u64,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             viewed_array_buffer,
-            typed_array_name,
+            kind,
             byte_offset,
             byte_length,
             array_length,
@@ -171,14 +134,11 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_detached(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = <span class="kw-2">&amp;</span><span class="self">self</span>.viewed_array_buffer {
-            obj.borrow()
-                .as_array_buffer()
-                .expect(<span class="string">&quot;Typed array must have internal array buffer object&quot;</span>)
-                .is_detached_buffer()
-        } <span class="kw">else </span>{
-            <span class="bool-val">false
-        </span>}
+        <span class="self">self</span>.viewed_array_buffer
+            .borrow()
+            .as_buffer()
+            .expect(<span class="string">&quot;Typed array must have internal array buffer object&quot;</span>)
+            .is_detached()
     }
 
     <span class="doccomment">/// Get the integer indexed object&#39;s byte offset.
@@ -187,25 +147,15 @@
         <span class="self">self</span>.byte_offset
     }
 
-    <span class="doccomment">/// Set the integer indexed object&#39;s byte offset.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_byte_offset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte_offset: u64) {
-        <span class="self">self</span>.byte_offset = byte_offset;
-    }
-
-    <span class="doccomment">/// Get the integer indexed object&#39;s typed array name.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>typed_array_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TypedArrayKind {
-        <span class="self">self</span>.typed_array_name
+    <span class="doccomment">/// Get the integer indexed object&#39;s typed array kind.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TypedArrayKind {
+        <span class="self">self</span>.kind
     }
 
     <span class="doccomment">/// Get a reference to the integer indexed object&#39;s viewed array buffer.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub const fn </span>viewed_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
-        <span class="self">self</span>.viewed_array_buffer.as_ref()
-    }
-
-    <span class="doccomment">///(crate) Set the integer indexed object&#39;s viewed array buffer.
-    </span><span class="kw">pub fn </span>set_viewed_array_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, viewed_array_buffer: <span class="prelude-ty">Option</span>&lt;JsObject&gt;) {
-        <span class="self">self</span>.viewed_array_buffer = viewed_array_buffer;
+    </span><span class="kw">pub const fn </span>viewed_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.viewed_array_buffer
     }
 
     <span class="doccomment">/// Get the integer indexed object&#39;s byte length.
@@ -214,20 +164,10 @@
         <span class="self">self</span>.byte_length
     }
 
-    <span class="doccomment">/// Set the integer indexed object&#39;s byte length.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_byte_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte_length: u64) {
-        <span class="self">self</span>.byte_length = byte_length;
-    }
-
     <span class="doccomment">/// Get the integer indexed object&#39;s array length.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>array_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.array_length
-    }
-
-    <span class="doccomment">/// Set the integer indexed object&#39;s array length.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_array_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, array_length: u64) {
-        <span class="self">self</span>.array_length = array_length;
     }
 }
 </code></pre></div></section></main></body></html>

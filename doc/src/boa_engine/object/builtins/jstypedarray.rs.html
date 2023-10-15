@@ -560,7 +560,7 @@
 <a href="#560" id="560">560</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 </span><span class="kw">use crate</span>::{
-    builtins::typed_array::TypedArray,
+    builtins::typed_array::BuiltinTypedArray,
     builtins::BuiltInConstructor,
     error::JsNativeError,
     object::{JsArrayBuffer, JsFunction, JsObject, JsObjectType},
@@ -601,7 +601,7 @@
     /// Same a `array.length` in JavaScript.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;usize&gt; {
-        <span class="prelude-val">Ok</span>(TypedArray::length(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
+        <span class="prelude-val">Ok</span>(BuiltinTypedArray::length(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
             </span>.as_number()
             .map(|x| x <span class="kw">as </span>usize)
             .expect(<span class="string">&quot;length should return a number&quot;</span>))
@@ -618,13 +618,13 @@
     <span class="kw">where
         </span>T: Into&lt;i64&gt;,
     {
-        TypedArray::at(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[index.into().into()], context)
+        BuiltinTypedArray::at(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[index.into().into()], context)
     }
 
     <span class="doccomment">/// Returns `TypedArray.prototype.byteLength`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;usize&gt; {
-        <span class="prelude-val">Ok</span>(TypedArray::byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
+        <span class="prelude-val">Ok</span>(BuiltinTypedArray::byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
             </span>.as_number()
             .map(|x| x <span class="kw">as </span>usize)
             .expect(<span class="string">&quot;byteLength should return a number&quot;</span>))
@@ -633,7 +633,7 @@
     <span class="doccomment">/// Returns `TypedArray.prototype.byteOffset`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;usize&gt; {
-        <span class="prelude-val">Ok</span>(TypedArray::byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
+        <span class="prelude-val">Ok</span>(BuiltinTypedArray::byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
             </span>.as_number()
             .map(|x| x <span class="kw">as </span>usize)
             .expect(<span class="string">&quot;byteLength should return a number&quot;</span>))
@@ -650,7 +650,7 @@
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
-        TypedArray::fill(
+        BuiltinTypedArray::fill(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[
                 value.into(),
@@ -669,7 +669,7 @@
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
-        <span class="kw">let </span>result = TypedArray::every(
+        <span class="kw">let </span>result = BuiltinTypedArray::every(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[predicate.into(), this_arg.into_or_undefined()],
             context,
@@ -688,7 +688,7 @@
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
-        <span class="kw">let </span>result = TypedArray::some(
+        <span class="kw">let </span>result = BuiltinTypedArray::some(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[callback.into(), this_arg.into_or_undefined()],
             context,
@@ -706,7 +706,7 @@
         compare_fn: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        TypedArray::sort(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[compare_fn.into_or_undefined()], context)<span class="question-mark">?</span>;
+        BuiltinTypedArray::sort(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[compare_fn.into_or_undefined()], context)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.clone())
     }
@@ -719,7 +719,7 @@
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>object = TypedArray::filter(
+        <span class="kw">let </span>object = BuiltinTypedArray::filter(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[callback.into(), this_arg.into_or_undefined()],
             context,
@@ -736,7 +736,7 @@
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>object = TypedArray::map(
+        <span class="kw">let </span>object = BuiltinTypedArray::map(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[callback.into(), this_arg.into_or_undefined()],
             context,
@@ -753,7 +753,7 @@
         initial_value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        TypedArray::reduce(
+        BuiltinTypedArray::reduce(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[callback.into(), initial_value.into_or_undefined()],
             context,
@@ -768,7 +768,7 @@
         initial_value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        TypedArray::reduceright(
+        BuiltinTypedArray::reduceright(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[callback.into(), initial_value.into_or_undefined()],
             context,
@@ -778,7 +778,7 @@
     <span class="doccomment">/// Calls `TypedArray.prototype.reverse()`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>reverse(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        TypedArray::reverse(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
+        BuiltinTypedArray::reverse(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.clone())
     }
 
@@ -790,7 +790,7 @@
         end: <span class="prelude-ty">Option</span>&lt;usize&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>object = TypedArray::slice(
+        <span class="kw">let </span>object = BuiltinTypedArray::slice(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[start.into_or_undefined(), end.into_or_undefined()],
             context,
@@ -807,7 +807,7 @@
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        TypedArray::find(
+        BuiltinTypedArray::find(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[predicate.into(), this_arg.into_or_undefined()],
             context,
@@ -824,7 +824,7 @@
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
-        <span class="kw">let </span>index = TypedArray::index_of(
+        <span class="kw">let </span>index = BuiltinTypedArray::index_of(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[search_element.into(), from_index.into_or_undefined()],
             context,
@@ -850,7 +850,7 @@
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
-        <span class="kw">let </span>index = TypedArray::last_index_of(
+        <span class="kw">let </span>index = BuiltinTypedArray::last_index_of(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner,
             <span class="kw-2">&amp;</span>[search_element.into(), from_index.into_or_undefined()],
             context,
@@ -873,7 +873,7 @@
         separator: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsString&gt; {
-        TypedArray::join(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[separator.into_or_undefined()], context).map(|x| {
+        BuiltinTypedArray::join(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[separator.into_or_undefined()], context).map(|x| {
             x.as_string()
                 .cloned()
                 .expect(<span class="string">&quot;TypedArray.prototype.join always returns string&quot;</span>)

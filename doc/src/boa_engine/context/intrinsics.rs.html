@@ -1660,6 +1660,20 @@
 <a href="#1660" id="1660">1660</a>
 <a href="#1661" id="1661">1661</a>
 <a href="#1662" id="1662">1662</a>
+<a href="#1663" id="1663">1663</a>
+<a href="#1664" id="1664">1664</a>
+<a href="#1665" id="1665">1665</a>
+<a href="#1666" id="1666">1666</a>
+<a href="#1667" id="1667">1667</a>
+<a href="#1668" id="1668">1668</a>
+<a href="#1669" id="1669">1669</a>
+<a href="#1670" id="1670">1670</a>
+<a href="#1671" id="1671">1671</a>
+<a href="#1672" id="1672">1672</a>
+<a href="#1673" id="1673">1673</a>
+<a href="#1674" id="1674">1674</a>
+<a href="#1675" id="1675">1675</a>
+<a href="#1676" id="1676">1676</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -1812,6 +1826,7 @@
     typed_float32_array: StandardConstructor,
     typed_float64_array: StandardConstructor,
     array_buffer: StandardConstructor,
+    shared_array_buffer: StandardConstructor,
     data_view: StandardConstructor,
     date_time_format: StandardConstructor,
     promise: StandardConstructor,
@@ -1908,6 +1923,7 @@
             typed_float32_array: StandardConstructor::default(),
             typed_float64_array: StandardConstructor::default(),
             array_buffer: StandardConstructor::default(),
+            shared_array_buffer: StandardConstructor::default(),
             data_view: StandardConstructor::default(),
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
@@ -2391,6 +2407,18 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.array_buffer
+    }
+
+    <span class="doccomment">/// Returns the `SharedArrayBuffer` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-sharedarraybuffer-constructor
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>shared_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.shared_array_buffer
     }
 
     <span class="doccomment">/// Returns the `DataView` constructor.
