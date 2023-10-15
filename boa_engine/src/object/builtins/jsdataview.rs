@@ -55,13 +55,13 @@ impl JsDataView {
             let provided_offset = offset.unwrap_or(0_u64);
 
             // Check if buffer is detached.
-            if buffer.is_detached_buffer() {
+            if buffer.is_detached() {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer is detached")
                     .into());
             };
 
-            let array_buffer_length = buffer.array_buffer_byte_length();
+            let array_buffer_length = buffer.len() as u64;
 
             if provided_offset > array_buffer_length {
                 return Err(JsNativeError::range()

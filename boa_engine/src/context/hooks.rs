@@ -218,6 +218,25 @@ pub trait HostHooks {
             }
         }
     }
+
+    /// Gets the maximum size in bits that can be allocated for an `ArrayBuffer` or a
+    /// `SharedArrayBuffer`.
+    ///
+    /// This hook will be called before any buffer allocation, which allows to dinamically change
+    /// the maximum size at runtime. By default, this is set to 1.5GiB per the recommendations of the
+    /// [specification]:
+    ///
+    /// > If a host is multi-tenanted (i.e. it runs many ECMAScript applications simultaneously),
+    /// such as a web browser, and its implementations choose to implement in-place growth by reserving
+    /// virtual memory, we recommend that both 32-bit and 64-bit implementations throw for values of
+    /// "`maxByteLength`" ≥ 1GiB to 1.5GiB. This is to reduce the likelihood a single application can
+    /// exhaust the virtual memory address space and to reduce interoperability risk.
+    ///
+    ///
+    /// [specification]: https://tc39.es/ecma262/multipage/structured-data.html#sec-resizable-arraybuffer-guidelines
+    fn max_buffer_size(&self) -> u64 {
+        1_610_612_736 // 1.5 GiB
+    }
 }
 
 /// Default implementation of [`HostHooks`], which doesn't carry any state.

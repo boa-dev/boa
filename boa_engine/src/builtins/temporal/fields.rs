@@ -55,7 +55,6 @@ bitflags! {
 /// | "era"        |   `ToPrimitiveAndRequireString`   | undefined  |
 /// | "eraYear"    |     `ToIntegerWithTruncation`     | undefined  |
 /// | "timeZone"   |                                 | undefined  |
-///
 #[derive(Debug)]
 pub(crate) struct TemporalFields {
     bit_map: FieldMap,

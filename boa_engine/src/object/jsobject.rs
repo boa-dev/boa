@@ -424,6 +424,30 @@ impl JsObject {
         self.borrow().is_array_buffer()
     }
 
+    /// Checks if it's a `SharedArrayBuffer` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn is_shared_array_buffer(&self) -> bool {
+        self.borrow().as_shared_array_buffer().is_some()
+    }
+
+    /// Checks if it's an `ArrayBuffer` or `SharedArrayBuffer` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn is_buffer(&self) -> bool {
+        self.borrow().as_buffer().is_some()
+    }
+
     /// Checks if it is a `Map` object.
     ///
     /// # Panics

@@ -80,7 +80,6 @@ pub(crate) static NATIVE_CONSTRUCTOR_INTERNAL_METHODS: InternalObjectMethods =
 /// # Panics
 ///
 /// Panics if the object is currently mutably borrowed.
-///
 // <https://tc39.es/ecma262/#sec-built-in-function-objects-call-thisargument-argumentslist>
 #[track_caller]
 pub(crate) fn native_function_call(

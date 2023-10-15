@@ -18,13 +18,14 @@ pub struct JsArrayBuffer {
     inner: JsObject,
 }
 
+// TODO: Add constructors that also take the `detach_key` as argument.
 impl JsArrayBuffer {
     /// Create a new array buffer with byte length.
     ///
     /// ```
     /// # use boa_engine::{
     /// # object::builtins::JsArrayBuffer,
-    /// # Context, JsResult
+    /// # Context, JsResult, JsValue
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
@@ -32,7 +33,7 @@ impl JsArrayBuffer {
     /// // Creates a blank array buffer of n bytes
     /// let array_buffer = JsArrayBuffer::new(4, context)?;
     ///
-    /// assert_eq!(array_buffer.take()?, vec![0_u8; 4]);
+    /// assert_eq!(array_buffer.detach(&JsValue::undefined())?, vec![0_u8; 4]);
     ///
     /// # Ok(())
     /// # }
@@ -58,11 +59,11 @@ impl JsArrayBuffer {
     /// This uses the passed byte block as the internal storage, it does not clone it!
     ///
     /// The `byte_length` will be set to `byte_block.len()`.
-    ///  
+    ///
     /// ```
     /// # use boa_engine::{
     /// # object::builtins::JsArrayBuffer,
-    /// # Context, JsResult,
+    /// # Context, JsResult, JsValue,
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
@@ -72,13 +73,14 @@ impl JsArrayBuffer {
     /// let data_block: Vec<u8> = (0..5).collect();
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
     ///
-    /// assert_eq!(array_buffer.take()?, (0..5).collect::<Vec<u8>>());
+    /// assert_eq!(
+    ///     array_buffer.detach(&JsValue::undefined())?,
+    ///     (0..5).collect::<Vec<u8>>()
+    /// );
     /// # Ok(())
     /// # }
     /// ```
     pub fn from_byte_block(byte_block: Vec<u8>, context: &mut Context<'_>) -> JsResult<Self> {
-        let byte_length = byte_block.len();
-
         let constructor = context
             .intrinsics()
             .constructors()
@@ -104,11 +106,7 @@ impl JsArrayBuffer {
         let obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::array_buffer(ArrayBuffer {
-                array_buffer_data: Some(block),
-                array_buffer_byte_length: byte_length as u64,
-                array_buffer_detach_key: JsValue::Undefined,
-            }),
+            ObjectData::array_buffer(ArrayBuffer::from_data(block, JsValue::Undefined)),
         );
 
         Ok(Self { inner: obj })
@@ -159,12 +157,15 @@ impl JsArrayBuffer {
 
     /// Take the inner `ArrayBuffer`'s `array_buffer_data` field and replace it with `None`
     ///
-    /// Note: This causes the pre-existing `JsArrayBuffer` to become detached.
+    /// # Note
+    ///
+    /// This tries to detach the pre-existing `JsArrayBuffer`, meaning the original detached
+    /// key is required. By default, the key is set to `undefined`.
     ///
     /// ```
     /// # use boa_engine::{
     /// # object::builtins::JsArrayBuffer,
-    /// # Context, JsResult,
+    /// # Context, JsResult, JsValue
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
@@ -174,27 +175,26 @@ impl JsArrayBuffer {
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
     ///
     /// // Take the inner buffer
-    /// let internal_buffer = array_buffer.take()?;
+    /// let internal_buffer = array_buffer.detach(&JsValue::undefined())?;
     ///
     /// assert_eq!(internal_buffer, (0..5).collect::<Vec<u8>>());
     ///
     /// // Anymore interaction with the buffer will return an error
-    /// let detached_err = array_buffer.take();
+    /// let detached_err = array_buffer.detach(&JsValue::undefined());
     /// assert!(detached_err.is_err());
     /// # Ok(())
     /// # }
     /// ```
     #[inline]
-    pub fn take(&self) -> JsResult<Vec<u8>> {
+    pub fn detach(&self, detach_key: &JsValue) -> JsResult<Vec<u8>> {
         self.inner
             .borrow_mut()
             .as_array_buffer_mut()
             .expect("inner must be an ArrayBuffer")
-            .array_buffer_data
-            .take()
+            .detach(detach_key)?
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("ArrayBuffer is detached")
+                    .with_message("ArrayBuffer was already detached")
                     .into()
             })
     }

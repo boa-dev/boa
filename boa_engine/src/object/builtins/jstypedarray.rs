@@ -1,6 +1,6 @@
 //! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 use crate::{
-    builtins::typed_array::TypedArray,
+    builtins::typed_array::BuiltinTypedArray,
     builtins::BuiltInConstructor,
     error::JsNativeError,
     object::{JsArrayBuffer, JsFunction, JsObject, JsObjectType},
@@ -41,7 +41,7 @@ impl JsTypedArray {
     /// Same a `array.length` in JavaScript.
     #[inline]
     pub fn length(&self, context: &mut Context<'_>) -> JsResult<usize> {
-        Ok(TypedArray::length(&self.inner, &[], context)?
+        Ok(BuiltinTypedArray::length(&self.inner, &[], context)?
             .as_number()
             .map(|x| x as usize)
             .expect("length should return a number"))
@@ -58,13 +58,13 @@ impl JsTypedArray {
     where
         T: Into<i64>,
     {
-        TypedArray::at(&self.inner, &[index.into().into()], context)
+        BuiltinTypedArray::at(&self.inner, &[index.into().into()], context)
     }
 
     /// Returns `TypedArray.prototype.byteLength`.
     #[inline]
     pub fn byte_length(&self, context: &mut Context<'_>) -> JsResult<usize> {
-        Ok(TypedArray::byte_length(&self.inner, &[], context)?
+        Ok(BuiltinTypedArray::byte_length(&self.inner, &[], context)?
             .as_number()
             .map(|x| x as usize)
             .expect("byteLength should return a number"))
@@ -73,7 +73,7 @@ impl JsTypedArray {
     /// Returns `TypedArray.prototype.byteOffset`.
     #[inline]
     pub fn byte_offset(&self, context: &mut Context<'_>) -> JsResult<usize> {
-        Ok(TypedArray::byte_offset(&self.inner, &[], context)?
+        Ok(BuiltinTypedArray::byte_offset(&self.inner, &[], context)?
             .as_number()
             .map(|x| x as usize)
             .expect("byteLength should return a number"))
@@ -90,7 +90,7 @@ impl JsTypedArray {
     where
         T: Into<JsValue>,
     {
-        TypedArray::fill(
+        BuiltinTypedArray::fill(
             &self.inner,
             &[
                 value.into(),
@@ -109,7 +109,7 @@ impl JsTypedArray {
         this_arg: Option<JsValue>,
         context: &mut Context<'_>,
     ) -> JsResult<bool> {
-        let result = TypedArray::every(
+        let result = BuiltinTypedArray::every(
             &self.inner,
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
@@ -128,7 +128,7 @@ impl JsTypedArray {
         this_arg: Option<JsValue>,
         context: &mut Context<'_>,
     ) -> JsResult<bool> {
-        let result = TypedArray::some(
+        let result = BuiltinTypedArray::some(
             &self.inner,
             &[callback.into(), this_arg.into_or_undefined()],
             context,
@@ -146,7 +146,7 @@ impl JsTypedArray {
         compare_fn: Option<JsFunction>,
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
-        TypedArray::sort(&self.inner, &[compare_fn.into_or_undefined()], context)?;
+        BuiltinTypedArray::sort(&self.inner, &[compare_fn.into_or_undefined()], context)?;
 
         Ok(self.clone())
     }
@@ -159,7 +159,7 @@ impl JsTypedArray {
         this_arg: Option<JsValue>,
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
-        let object = TypedArray::filter(
+        let object = BuiltinTypedArray::filter(
             &self.inner,
             &[callback.into(), this_arg.into_or_undefined()],
             context,
@@ -176,7 +176,7 @@ impl JsTypedArray {
         this_arg: Option<JsValue>,
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
-        let object = TypedArray::map(
+        let object = BuiltinTypedArray::map(
             &self.inner,
             &[callback.into(), this_arg.into_or_undefined()],
             context,
@@ -193,7 +193,7 @@ impl JsTypedArray {
         initial_value: Option<JsValue>,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        TypedArray::reduce(
+        BuiltinTypedArray::reduce(
             &self.inner,
             &[callback.into(), initial_value.into_or_undefined()],
             context,
@@ -208,7 +208,7 @@ impl JsTypedArray {
         initial_value: Option<JsValue>,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        TypedArray::reduceright(
+        BuiltinTypedArray::reduceright(
             &self.inner,
             &[callback.into(), initial_value.into_or_undefined()],
             context,
@@ -218,7 +218,7 @@ impl JsTypedArray {
     /// Calls `TypedArray.prototype.reverse()`.
     #[inline]
     pub fn reverse(&self, context: &mut Context<'_>) -> JsResult<Self> {
-        TypedArray::reverse(&self.inner, &[], context)?;
+        BuiltinTypedArray::reverse(&self.inner, &[], context)?;
         Ok(self.clone())
     }
 
@@ -230,7 +230,7 @@ impl JsTypedArray {
         end: Option<usize>,
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
-        let object = TypedArray::slice(
+        let object = BuiltinTypedArray::slice(
             &self.inner,
             &[start.into_or_undefined(), end.into_or_undefined()],
             context,
@@ -247,7 +247,7 @@ impl JsTypedArray {
         this_arg: Option<JsValue>,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        TypedArray::find(
+        BuiltinTypedArray::find(
             &self.inner,
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
@@ -264,7 +264,7 @@ impl JsTypedArray {
     where
         T: Into<JsValue>,
     {
-        let index = TypedArray::index_of(
+        let index = BuiltinTypedArray::index_of(
             &self.inner,
             &[search_element.into(), from_index.into_or_undefined()],
             context,
@@ -290,7 +290,7 @@ impl JsTypedArray {
     where
         T: Into<JsValue>,
     {
-        let index = TypedArray::last_index_of(
+        let index = BuiltinTypedArray::last_index_of(
             &self.inner,
             &[search_element.into(), from_index.into_or_undefined()],
             context,
@@ -313,7 +313,7 @@ impl JsTypedArray {
         separator: Option<JsString>,
         context: &mut Context<'_>,
     ) -> JsResult<JsString> {
-        TypedArray::join(&self.inner, &[separator.into_or_undefined()], context).map(|x| {
+        BuiltinTypedArray::join(&self.inner, &[separator.into_or_undefined()], context).map(|x| {
             x.as_string()
                 .cloned()
                 .expect("TypedArray.prototype.join always returns string")
