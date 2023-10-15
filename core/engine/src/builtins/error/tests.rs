@@ -1,42 +1,34 @@
-use crate::{js_string, run_test_actions, TestAction};
+use crate::{run_test_actions, TestAction};
+use boa_macros::js_str;
 use indoc::indoc;
 
 #[test]
 fn error_to_string() {
     run_test_actions([
-        TestAction::assert_eq("(new Error('1')).toString()", js_string!("Error: 1")),
-        TestAction::assert_eq(
-            "(new RangeError('2')).toString()",
-            js_string!("RangeError: 2"),
-        ),
+        TestAction::assert_eq("(new Error('1')).toString()", js_str!("Error: 1")),
+        TestAction::assert_eq("(new RangeError('2')).toString()", js_str!("RangeError: 2")),
         TestAction::assert_eq(
             "(new ReferenceError('3')).toString()",
-            js_string!("ReferenceError: 3"),
+            js_str!("ReferenceError: 3"),
         ),
         TestAction::assert_eq(
             "(new SyntaxError('4')).toString()",
-            js_string!("SyntaxError: 4"),
+            js_str!("SyntaxError: 4"),
         ),
-        TestAction::assert_eq(
-            "(new TypeError('5')).toString()",
-            js_string!("TypeError: 5"),
-        ),
-        TestAction::assert_eq(
-            "(new EvalError('6')).toString()",
-            js_string!("EvalError: 6"),
-        ),
-        TestAction::assert_eq("(new URIError('7')).toString()", js_string!("URIError: 7")),
+        TestAction::assert_eq("(new TypeError('5')).toString()", js_str!("TypeError: 5")),
+        TestAction::assert_eq("(new EvalError('6')).toString()", js_str!("EvalError: 6")),
+        TestAction::assert_eq("(new URIError('7')).toString()", js_str!("URIError: 7")),
         // no message
-        TestAction::assert_eq("(new Error()).toString()", js_string!("Error")),
-        TestAction::assert_eq("(new RangeError()).toString()", js_string!("RangeError")),
+        TestAction::assert_eq("(new Error()).toString()", js_str!("Error")),
+        TestAction::assert_eq("(new RangeError()).toString()", js_str!("RangeError")),
         TestAction::assert_eq(
             "(new ReferenceError()).toString()",
-            js_string!("ReferenceError"),
+            js_str!("ReferenceError"),
         ),
-        TestAction::assert_eq("(new SyntaxError()).toString()", js_string!("SyntaxError")),
-        TestAction::assert_eq("(new TypeError()).toString()", js_string!("TypeError")),
-        TestAction::assert_eq("(new EvalError()).toString()", js_string!("EvalError")),
-        TestAction::assert_eq("(new URIError()).toString()", js_string!("URIError")),
+        TestAction::assert_eq("(new SyntaxError()).toString()", js_str!("SyntaxError")),
+        TestAction::assert_eq("(new TypeError()).toString()", js_str!("TypeError")),
+        TestAction::assert_eq("(new EvalError()).toString()", js_str!("EvalError")),
+        TestAction::assert_eq("(new URIError()).toString()", js_str!("URIError")),
         // no name
         TestAction::assert_eq(
             indoc! {r#"
@@ -44,7 +36,7 @@ fn error_to_string() {
                 message.name = '';
                 message.toString()
             "#},
-            js_string!("message"),
+            js_str!("message"),
         ),
     ]);
 }
@@ -52,14 +44,14 @@ fn error_to_string() {
 #[test]
 fn error_names() {
     run_test_actions([
-        TestAction::assert_eq("Error.name", js_string!("Error")),
-        TestAction::assert_eq("EvalError.name", js_string!("EvalError")),
-        TestAction::assert_eq("RangeError.name", js_string!("RangeError")),
-        TestAction::assert_eq("ReferenceError.name", js_string!("ReferenceError")),
-        TestAction::assert_eq("SyntaxError.name", js_string!("SyntaxError")),
-        TestAction::assert_eq("URIError.name", js_string!("URIError")),
-        TestAction::assert_eq("TypeError.name", js_string!("TypeError")),
-        TestAction::assert_eq("AggregateError.name", js_string!("AggregateError")),
+        TestAction::assert_eq("Error.name", js_str!("Error")),
+        TestAction::assert_eq("EvalError.name", js_str!("EvalError")),
+        TestAction::assert_eq("RangeError.name", js_str!("RangeError")),
+        TestAction::assert_eq("ReferenceError.name", js_str!("ReferenceError")),
+        TestAction::assert_eq("SyntaxError.name", js_str!("SyntaxError")),
+        TestAction::assert_eq("URIError.name", js_str!("URIError")),
+        TestAction::assert_eq("TypeError.name", js_str!("TypeError")),
+        TestAction::assert_eq("AggregateError.name", js_str!("AggregateError")),
     ]);
 }
 

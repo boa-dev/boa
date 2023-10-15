@@ -37,7 +37,7 @@ use crate::{
     value::Type,
     Context, JsBigInt, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_macros::utf16;
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::{Date as TemporalDate, ZonedDateTime as TemporalZonedDateTime},
@@ -252,7 +252,7 @@ pub(crate) fn to_relative_temporal_object(
     options: &JsObject,
     context: &mut Context,
 ) -> RelativeTemporalObjectResult {
-    let relative_to = options.get(PropertyKey::from(utf16!("relativeTo")), context)?;
+    let relative_to = options.get(PropertyKey::from(js_str!("relativeTo")), context)?;
     let plain_date = match relative_to {
         JsValue::String(relative_to_str) => Some(relative_to_str.into()),
         JsValue::Object(relative_to_obj) => Some(relative_to_obj.into()),

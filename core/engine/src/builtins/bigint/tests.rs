@@ -1,4 +1,6 @@
-use crate::{js_string, run_test_actions, JsBigInt, JsNativeErrorKind, TestAction};
+use boa_macros::js_str;
+
+use crate::{run_test_actions, JsBigInt, JsNativeErrorKind, TestAction};
 
 #[test]
 fn equality() {
@@ -147,10 +149,10 @@ fn operations() {
 #[test]
 fn to_string() {
     run_test_actions([
-        TestAction::assert_eq("1000n.toString()", js_string!("1000")),
-        TestAction::assert_eq("1000n.toString(2)", js_string!("1111101000")),
-        TestAction::assert_eq("255n.toString(16)", js_string!("ff")),
-        TestAction::assert_eq("1000n.toString(36)", js_string!("rs")),
+        TestAction::assert_eq("1000n.toString()", js_str!("1000")),
+        TestAction::assert_eq("1000n.toString(2)", js_str!("1111101000")),
+        TestAction::assert_eq("255n.toString(16)", js_str!("ff")),
+        TestAction::assert_eq("1000n.toString(36)", js_str!("rs")),
     ]);
 }
 

@@ -1,4 +1,5 @@
 use crate::{js_string, run_test_actions, JsNativeErrorKind, TestAction};
+use boa_macros::js_str;
 use indoc::indoc;
 use time::{macros::format_description, util::local_offset, OffsetDateTime};
 
@@ -787,7 +788,7 @@ fn date_proto_set_utc_seconds() {
 fn date_proto_to_date_string() {
     run_test_actions([TestAction::assert_eq(
         "new Date(2020, 6, 8, 9, 16, 15, 779).toDateString()",
-        js_string!("Wed Jul 08 2020"),
+        js_str!("Wed Jul 08 2020"),
     )]);
 }
 
@@ -795,7 +796,7 @@ fn date_proto_to_date_string() {
 fn date_proto_to_gmt_string() {
     run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toGMTString()",
-        js_string!("Wed, 08 Jul 2020 09:16:15 GMT"),
+        js_str!("Wed, 08 Jul 2020 09:16:15 GMT"),
     )]);
 }
 
@@ -803,7 +804,7 @@ fn date_proto_to_gmt_string() {
 fn date_proto_to_iso_string() {
     run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toISOString()",
-        js_string!("2020-07-08T09:16:15.779Z"),
+        js_str!("2020-07-08T09:16:15.779Z"),
     )]);
 }
 
@@ -811,7 +812,7 @@ fn date_proto_to_iso_string() {
 fn date_proto_to_json() {
     run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toJSON()",
-        js_string!("2020-07-08T09:16:15.779Z"),
+        js_str!("2020-07-08T09:16:15.779Z"),
     )]);
 }
 
@@ -849,7 +850,7 @@ fn date_proto_to_time_string() {
 fn date_proto_to_utc_string() {
     run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toUTCString()",
-        js_string!("Wed, 08 Jul 2020 09:16:15 GMT"),
+        js_str!("Wed, 08 Jul 2020 09:16:15 GMT"),
     )]);
 }
 

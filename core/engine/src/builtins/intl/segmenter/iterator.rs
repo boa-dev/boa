@@ -1,7 +1,10 @@
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_segmenter::{
-    GraphemeClusterBreakIteratorUtf16, SentenceBreakIteratorUtf16, WordBreakIteratorUtf16,
+    GraphemeClusterBreakIteratorLatin1, GraphemeClusterBreakIteratorUtf16,
+    SentenceBreakIteratorLatin1, SentenceBreakIteratorUtf16, WordBreakIteratorLatin1,
+    WordBreakIteratorUtf16,
 };
 
 use crate::{
@@ -16,9 +19,12 @@ use crate::{
 use super::{create_segment_data_object, Segmenter};
 
 pub(crate) enum NativeSegmentIterator<'l, 's> {
-    Grapheme(GraphemeClusterBreakIteratorUtf16<'l, 's>),
-    Word(WordBreakIteratorUtf16<'l, 's>),
-    Sentence(SentenceBreakIteratorUtf16<'l, 's>),
+    GraphemeUtf16(GraphemeClusterBreakIteratorUtf16<'l, 's>),
+    WordUtf16(WordBreakIteratorUtf16<'l, 's>),
+    SentenceUtf16(SentenceBreakIteratorUtf16<'l, 's>),
+    GraphemeUtf8(GraphemeClusterBreakIteratorLatin1<'l, 's>),
+    WordUtf8(WordBreakIteratorLatin1<'l, 's>),
+    SentenceUtf8(SentenceBreakIteratorLatin1<'l, 's>),
 }
 
 impl Iterator for NativeSegmentIterator<'_, '_> {
@@ -26,9 +32,12 @@ impl Iterator for NativeSegmentIterator<'_, '_> {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
-            NativeSegmentIterator::Grapheme(g) => g.next(),
-            NativeSegmentIterator::Word(w) => w.next(),
-            NativeSegmentIterator::Sentence(s) => s.next(),
+            NativeSegmentIterator::GraphemeUtf16(g) => g.next(),
+            NativeSegmentIterator::WordUtf16(w) => w.next(),
+            NativeSegmentIterator::SentenceUtf16(s) => s.next(),
+            NativeSegmentIterator::GraphemeUtf8(g) => g.next(),
+            NativeSegmentIterator::WordUtf8(w) => w.next(),
+            NativeSegmentIterator::SentenceUtf8(s) => s.next(),
         }
     }
 }
@@ -37,10 +46,10 @@ impl NativeSegmentIterator<'_, '_> {
     /// If the iterator is a word break iterator, returns `Some(true)` when the segment preceding
     /// the current boundary is word-like.
     pub(crate) fn is_word_like(&self) -> Option<bool> {
-        if let Self::Word(w) = self {
-            Some(w.is_word_like())
-        } else {
-            None
+        match self {
+            Self::WordUtf8(w) => Some(w.is_word_like()),
+            Self::WordUtf16(w) => Some(w.is_word_like()),
+            _ => None,
         }
     }
 }
@@ -59,10 +68,10 @@ impl IntrinsicObject for SegmentIterator {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
-                js_string!("Segmenter String Iterator"),
+                js_str!("Segmenter String Iterator"),
                 Attribute::CONFIGURABLE,
             )
-            .static_method(Self::next, js_string!("next"), 0)
+            .static_method(Self::next, js_str!("next"), 0)
             .build();
     }
 
@@ -115,13 +124,14 @@ impl SegmentIterator {
 
         // 4. Let string be iterator.[[IteratedString]].
         // 6. Let endIndex be ! FindBoundary(segmenter, string, startIndex, after).
-        let Some((end, is_word_like)) = iter.string.get(start..).and_then(|string| {
+        let Some((end, is_word_like)) = iter.string.to_vec().get(start..).and_then(|string| {
             // 3. Let segmenter be iterator.[[IteratingSegmenter]].
             let segmenter = iter.segmenter.borrow();
             let segmenter = segmenter
                 .downcast_ref::<Segmenter>()
                 .expect("segment iterator object should contain a segmenter");
-            let mut segments = segmenter.native.segment(string);
+            let string = js_string!(string);
+            let mut segments = segmenter.native.segment(&string);
             // the first elem is always 0.
             segments.next();
             segments

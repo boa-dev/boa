@@ -23,12 +23,12 @@
 
 use crate::{
     js_string,
-    string::{common::StaticJsStrings, utf16},
+    string::{common::StaticJsStrings, JsString},
     tagged::{Tagged, UnwrappedTagged},
-    JsData, JsString,
 };
 use boa_gc::{Finalize, Trace};
 
+use boa_macros::{js_str, JsData};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 use std::{
@@ -135,6 +135,7 @@ struct Inner {
 // Safety: JsSymbol does not contain any objects which needs to be traced,
 // so this is safe.
 #[boa_gc(unsafe_empty_trace)]
+#[allow(clippy::module_name_repetitions)]
 pub struct JsSymbol {
     repr: Tagged<Inner>,
 }
@@ -167,7 +168,7 @@ impl JsSymbol {
         let hash = get_id()?;
         let arc = Arc::new(Inner {
             hash,
-            description: description.map(|s| Box::from(&*s)),
+            description: description.map(|s| s.iter().collect::<Vec<_>>().into_boxed_slice()),
         });
 
         Some(Self {
@@ -209,7 +210,7 @@ impl JsSymbol {
             return wk.fn_name();
         }
         self.description()
-            .map(|s| js_string!(utf16!("["), &*s, utf16!("]")))
+            .map(|s| js_string!(js_str!("["), &s, js_str!("]")))
             .unwrap_or_default()
     }
 
@@ -243,7 +244,7 @@ impl JsSymbol {
     pub fn descriptive_string(&self) -> JsString {
         self.description().as_ref().map_or_else(
             || js_string!("Symbol()"),
-            |desc| js_string!(utf16!("Symbol("), desc, utf16!(")")),
+            |desc| js_string!(js_str!("Symbol("), desc, js_str!(")")),
         )
     }
 

@@ -28,7 +28,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
@@ -43,6 +43,7 @@ use boa_ast::{
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
+use boa_macros::{js_str, utf16};
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 use thin_vec::ThinVec;
@@ -306,19 +307,19 @@ impl IntrinsicObject for BuiltInFunctionObject {
         let throw_type_error = realm.intrinsics().objects().throw_type_error();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::apply, js_string!("apply"), 2)
-            .method(Self::bind, js_string!("bind"), 1)
-            .method(Self::call, js_string!("call"), 1)
-            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::apply, js_str!("apply"), 2)
+            .method(Self::bind, js_str!("bind"), 1)
+            .method(Self::call, js_str!("call"), 1)
+            .method(Self::to_string, js_str!("toString"), 0)
             .property(JsSymbol::has_instance(), has_instance, Attribute::default())
             .accessor(
-                utf16!("caller"),
+                js_str!("caller"),
                 Some(throw_type_error.clone()),
                 Some(throw_type_error.clone()),
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("arguments"),
+                js_str!("arguments"),
                 Some(throw_type_error.clone()),
                 Some(throw_type_error),
                 Attribute::CONFIGURABLE,
@@ -470,7 +471,11 @@ impl BuiltInFunctionObject {
             //         i. Let nextArgString be parameterStrings[k].
             //         ii. Set P to the string-concatenation of P, "," (a comma), and nextArgString.
             //         iii. Set k to k + 1.
-            let parameters = param_list.join(utf16!(","));
+            let parameters = param_list
+                .iter()
+                .map(JsString::to_vec)
+                .collect::<Vec<_>>()
+                .join(utf16!(","));
             let mut parser = Parser::new(Source::from_utf16(&parameters));
             parser.set_identifier(context.next_parser_identifier());
 
@@ -515,7 +520,7 @@ impl BuiltInFunctionObject {
             // 14. Let bodyParseString be the string-concatenation of 0x000A (LINE FEED), bodyString, and 0x000A (LINE FEED).
             let mut body_parse = Vec::with_capacity(body.len());
             body_parse.push(u16::from(b'\n'));
-            body_parse.extend_from_slice(&body);
+            body_parse.extend_from_slice(&body.to_vec());
             body_parse.push(u16::from(b'\n'));
 
             // 19. Let body be ParseText(StringToCodePoints(bodyParseString), bodySym).
@@ -740,7 +745,7 @@ impl BuiltInFunctionObject {
         .expect("defining the `length` property for a new object should not fail");
 
         // 8. Let targetName be ? Get(Target, "name").
-        let target_name = target.get(utf16!("name"), context)?;
+        let target_name = target.get(js_str!("name"), context)?;
 
         // 9. If Type(targetName) is not String, set targetName to the empty String.
         let target_name = target_name
@@ -813,7 +818,7 @@ impl BuiltInFunctionObject {
             let name = {
                 // Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
-                let value = object.get(utf16!("name"), &mut *context)?;
+                let value = object.get(js_str!("name"), &mut *context)?;
                 if value.is_null_or_undefined() {
                     js_string!()
                 } else {
@@ -821,10 +826,10 @@ impl BuiltInFunctionObject {
                 }
             };
             return Ok(
-                js_string!(utf16!("function "), &name, utf16!("() { [native code] }")).into(),
+                js_string!(js_str!("function "), &name, js_str!("() { [native code] }")).into(),
             );
         } else if object_borrow.is::<Proxy>() || object_borrow.is::<BoundFunction>() {
-            return Ok(js_string!(utf16!("function () { [native code] }")).into());
+            return Ok(js_string!("function () { [native code] }").into());
         }
 
         let function = object_borrow
@@ -834,9 +839,9 @@ impl BuiltInFunctionObject {
         let code = function.codeblock();
 
         Ok(js_string!(
-            utf16!("function "),
+            js_str!("function "),
             code.name(),
-            utf16!("() { [native code] }")
+            js_str!("() { [native code] }")
         )
         .into())
     }
@@ -880,7 +885,7 @@ pub(crate) fn set_function_name(
             // c. Else, set name to the string-concatenation of "[", description, and "]".
             sym.description().map_or_else(
                 || js_string!(),
-                |desc| js_string!(utf16!("["), &desc, utf16!("]")),
+                |desc| js_string!(js_str!("["), &desc, js_str!("]")),
             )
         }
         PropertyKey::String(string) => string.clone(),
@@ -897,7 +902,7 @@ pub(crate) fn set_function_name(
 
     // 5. If prefix is present, then
     if let Some(prefix) = prefix {
-        name = js_string!(&prefix, utf16!(" "), &name);
+        name = js_string!(&prefix, js_str!(" "), &name);
         // b. If F has an [[InitialName]] internal slot, then
         // i. Optionally, set F.[[InitialName]] to name.
         // todo: implement [[InitialName]] for builtins
@@ -907,7 +912,7 @@ pub(crate) fn set_function_name(
     // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     function
         .define_property_or_throw(
-            utf16!("name"),
+            js_str!("name"),
             PropertyDescriptor::builder()
                 .value(name)
                 .writable(false)

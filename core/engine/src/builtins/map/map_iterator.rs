@@ -12,7 +12,6 @@ use crate::{
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
@@ -20,6 +19,7 @@ use crate::{
     Context, JsData, JsResult,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 /// The Map Iterator object represents an iteration over a map. It implements the iterator protocol.
@@ -49,10 +49,10 @@ impl IntrinsicObject for MapIterator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, js_string!("next"), 0)
+            .static_method(Self::next, js_str!("next"), 0)
             .static_property(
                 JsSymbol::to_string_tag(),
-                js_string!("Map Iterator"),
+                js_str!("Map Iterator"),
                 Attribute::CONFIGURABLE,
             )
             .build();

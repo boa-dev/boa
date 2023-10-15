@@ -11,10 +11,11 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::components::tz::TimeZoneSlot;
 
@@ -54,37 +55,33 @@ impl IntrinsicObject for TimeZone {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .method(
                 Self::get_offset_nanoseconds_for,
-                js_string!("getOffsetNanosecondsFor"),
+                js_str!("getOffsetNanosecondsFor"),
                 1,
             )
             .method(
                 Self::get_offset_string_for,
-                js_string!("getOffsetStringFor"),
+                js_str!("getOffsetStringFor"),
                 1,
             )
             .method(
                 Self::get_plain_date_time_for,
-                js_string!("getPlainDateTimeFor"),
+                js_str!("getPlainDateTimeFor"),
                 2,
             )
-            .method(Self::get_instant_for, js_string!("getInstantFor"), 2)
+            .method(Self::get_instant_for, js_str!("getInstantFor"), 2)
             .method(
                 Self::get_possible_instants_for,
-                js_string!("getPossibleInstantFor"),
+                js_str!("getPossibleInstantFor"),
                 1,
             )
-            .method(
-                Self::get_next_transition,
-                js_string!("getNextTransition"),
-                1,
-            )
+            .method(Self::get_next_transition, js_str!("getNextTransition"), 1)
             .method(
                 Self::get_previous_transition,
-                js_string!("getPreviousTransition"),
+                js_str!("getPreviousTransition"),
                 1,
             )
-            .method(Self::to_string, js_string!("toString"), 0)
-            .method(Self::to_string, js_string!("toJSON"), 0)
+            .method(Self::to_string, js_str!("toString"), 0)
+            .method(Self::to_string, js_str!("toJSON"), 0)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -95,7 +92,7 @@ impl IntrinsicObject for TimeZone {
                 realm.intrinsics().constructors().time_zone().prototype(),
                 Attribute::default(),
             )
-            .accessor(utf16!("id"), Some(get_id), None, Attribute::default())
+            .accessor(js_str!("id"), Some(get_id), None, Attribute::default())
             .build();
     }
 

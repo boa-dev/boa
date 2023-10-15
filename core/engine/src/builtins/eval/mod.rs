@@ -120,7 +120,8 @@ impl Eval {
         //     b. If script is a List of errors, throw a SyntaxError exception.
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
-        let mut parser = Parser::new(Source::from_utf16(x));
+        let x = x.to_vec();
+        let mut parser = Parser::new(Source::from_utf16(&x));
         parser.set_identifier(context.next_parser_identifier());
         if strict {
             parser.set_strict();

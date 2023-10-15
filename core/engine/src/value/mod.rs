@@ -19,13 +19,13 @@ use crate::{
         Number, Promise,
     },
     error::JsNativeError,
-    js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_bigint::BigInt;
 use num_integer::Integer;
@@ -389,9 +389,9 @@ impl JsValue {
                 //     1. Assert: preferredType is number.
                 //     2. Let hint be "number".
                 let hint = match preferred_type {
-                    PreferredType::Default => js_string!("default"),
-                    PreferredType::String => js_string!("string"),
-                    PreferredType::Number => js_string!("number"),
+                    PreferredType::Default => js_str!("default"),
+                    PreferredType::String => js_str!("string"),
+                    PreferredType::Number => js_str!("number"),
                 }
                 .into();
 
@@ -436,7 +436,7 @@ impl JsValue {
             Self::Undefined => Err(JsNativeError::typ()
                 .with_message("cannot convert undefined to a BigInt")
                 .into()),
-            Self::String(ref string) => string.to_big_int().map_or_else(
+            Self::String(ref string) => JsBigInt::from_js_string(string).map_or_else(
                 || {
                     Err(JsNativeError::syntax()
                         .with_message(format!(
@@ -987,21 +987,22 @@ impl JsValue {
     #[must_use]
     pub fn js_type_of(&self) -> JsString {
         match *self {
-            Self::Rational(_) | Self::Integer(_) => js_string!("number"),
-            Self::String(_) => js_string!("string"),
-            Self::Boolean(_) => js_string!("boolean"),
-            Self::Symbol(_) => js_string!("symbol"),
-            Self::Null => js_string!("object"),
-            Self::Undefined => js_string!("undefined"),
-            Self::BigInt(_) => js_string!("bigint"),
+            Self::Rational(_) | Self::Integer(_) => "number",
+            Self::String(_) => "string",
+            Self::Boolean(_) => "boolean",
+            Self::Symbol(_) => "symbol",
+            Self::Null => "object",
+            Self::Undefined => "undefined",
+            Self::BigInt(_) => "bigint",
             Self::Object(ref object) => {
                 if object.is_callable() {
-                    js_string!("function")
+                    "function"
                 } else {
-                    js_string!("object")
+                    "object"
                 }
             }
         }
+        .into()
     }
 
     /// Abstract operation `IsArray ( argument )`

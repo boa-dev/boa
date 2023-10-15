@@ -176,12 +176,13 @@ impl JsValue {
 
 #[cfg(test)]
 mod tests {
+    use boa_macros::js_str;
     use indoc::indoc;
     use serde_json::json;
 
     use crate::object::JsArray;
-    use crate::{js_string, run_test_actions, TestAction};
-    use crate::{string::utf16, JsValue};
+    use crate::JsValue;
+    use crate::{run_test_actions, TestAction};
 
     #[test]
     fn json_conversions() {
@@ -210,23 +211,23 @@ mod tests {
             let value = JsValue::from_json(&json, ctx).unwrap();
             let obj = value.as_object().unwrap();
             assert_eq!(
-                obj.get(utf16!("name"), ctx).unwrap(),
-                js_string!("John Doe").into()
+                obj.get(js_str!("name"), ctx).unwrap(),
+                js_str!("John Doe").into()
             );
-            assert_eq!(obj.get(utf16!("age"), ctx).unwrap(), 43_i32.into());
-            assert_eq!(obj.get(utf16!("minor"), ctx).unwrap(), false.into());
-            assert_eq!(obj.get(utf16!("adult"), ctx).unwrap(), true.into());
+            assert_eq!(obj.get(js_str!("age"), ctx).unwrap(), 43_i32.into());
+            assert_eq!(obj.get(js_str!("minor"), ctx).unwrap(), false.into());
+            assert_eq!(obj.get(js_str!("adult"), ctx).unwrap(), true.into());
             {
-                let extra = obj.get(utf16!("extra"), ctx).unwrap();
+                let extra = obj.get(js_str!("extra"), ctx).unwrap();
                 let extra = extra.as_object().unwrap();
-                assert!(extra.get(utf16!("address"), ctx).unwrap().is_null());
+                assert!(extra.get(js_str!("address"), ctx).unwrap().is_null());
             }
             {
-                let phones = obj.get(utf16!("phones"), ctx).unwrap();
+                let phones = obj.get(js_str!("phones"), ctx).unwrap();
                 let phones = phones.as_object().unwrap();
 
                 let arr = JsArray::from_object(phones.clone()).unwrap();
-                assert_eq!(arr.at(0, ctx).unwrap(), js_string!("+44 1234567").into());
+                assert_eq!(arr.at(0, ctx).unwrap(), js_str!("+44 1234567").into());
                 assert_eq!(arr.at(1, ctx).unwrap(), JsValue::from(-45_i32));
                 assert!(arr.at(2, ctx).unwrap().is_object());
                 assert_eq!(arr.at(3, ctx).unwrap(), true.into());

@@ -13,10 +13,11 @@ use crate::{
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::{
@@ -125,95 +126,95 @@ impl IntrinsicObject for PlainDate {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("calendarId"),
+                js_str!("calendarId"),
                 Some(get_calendar_id),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("year"),
+                js_str!("year"),
                 Some(get_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("month"),
+                js_str!("month"),
                 Some(get_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("monthCode"),
+                js_str!("monthCode"),
                 Some(get_month_code),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("day"), Some(get_day), None, Attribute::CONFIGURABLE)
+            .accessor(js_str!("day"), Some(get_day), None, Attribute::CONFIGURABLE)
             .accessor(
-                utf16!("dayOfWeek"),
+                js_str!("dayOfWeek"),
                 Some(get_day_of_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("dayOfYear"),
+                js_str!("dayOfYear"),
                 Some(get_day_of_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("weekOfYear"),
+                js_str!("weekOfYear"),
                 Some(get_week_of_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("yearOfWeek"),
+                js_str!("yearOfWeek"),
                 Some(get_year_of_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("daysInWeek"),
+                js_str!("daysInWeek"),
                 Some(get_days_in_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("daysInMonth"),
+                js_str!("daysInMonth"),
                 Some(get_days_in_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("daysInYear"),
+                js_str!("daysInYear"),
                 Some(get_days_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("monthsInYear"),
+                js_str!("monthsInYear"),
                 Some(get_months_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("inLeapYear"),
+                js_str!("inLeapYear"),
                 Some(get_in_leap_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::to_plain_year_month, js_string!("toPlainYearMonth"), 0)
-            .method(Self::to_plain_month_day, js_string!("toPlainMonthDay"), 0)
-            .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
-            .method(Self::get_calendar, js_string!("getCalendar"), 0)
-            .method(Self::add, js_string!("add"), 2)
-            .method(Self::subtract, js_string!("subtract"), 2)
-            .method(Self::with, js_string!("with"), 2)
-            .method(Self::with_calendar, js_string!("withCalendar"), 1)
-            .method(Self::until, js_string!("until"), 2)
-            .method(Self::since, js_string!("since"), 2)
-            .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::to_plain_year_month, js_str!("toPlainYearMonth"), 0)
+            .method(Self::to_plain_month_day, js_str!("toPlainMonthDay"), 0)
+            .method(Self::get_iso_fields, js_str!("getISOFields"), 0)
+            .method(Self::get_calendar, js_str!("getCalendar"), 0)
+            .method(Self::add, js_str!("add"), 2)
+            .method(Self::subtract, js_str!("subtract"), 2)
+            .method(Self::with, js_str!("with"), 2)
+            .method(Self::with_calendar, js_str!("withCalendar"), 1)
+            .method(Self::until, js_str!("until"), 2)
+            .method(Self::since, js_str!("since"), 2)
+            .method(Self::equals, js_str!("equals"), 1)
             .build();
     }
 
@@ -643,7 +644,7 @@ pub(crate) fn to_temporal_date(
             // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
         } else if let Some(date_time) = object.downcast_ref::<PlainDateTime>() {
             // i. Perform ? ToTemporalOverflow(options).
-            let _o = get_option(&options_obj, utf16!("overflow"), context)?
+            let _o = get_option(&options_obj, js_str!("overflow"), context)?
                 .unwrap_or(ArithmeticOverflow::Constrain);
 
             let date = InnerDate::from_datetime(date_time.inner());

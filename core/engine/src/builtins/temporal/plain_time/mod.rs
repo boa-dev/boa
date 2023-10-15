@@ -14,7 +14,7 @@ use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::utf16;
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::Time,
@@ -71,42 +71,42 @@ impl IntrinsicObject for PlainTime {
                 Self::NAME,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("hour"), Some(get_hour), None, Attribute::default())
+            .accessor(js_str!("hour"), Some(get_hour), None, Attribute::default())
             .accessor(
-                utf16!("minute"),
+                js_str!("minute"),
                 Some(get_minute),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("second"),
+                js_str!("second"),
                 Some(get_second),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("millisecond"),
+                js_str!("millisecond"),
                 Some(get_millisecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("microsecond"),
+                js_str!("microsecond"),
                 Some(get_microsecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("nanosecond"),
+                js_str!("nanosecond"),
                 Some(get_nanosecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::add, js_string!("add"), 1)
-            .method(Self::subtract, js_string!("subtract"), 1)
-            .method(Self::round, js_string!("round"), 1)
-            .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
-            .method(Self::value_of, js_string!("valueOf"), 0)
+            .method(Self::add, js_str!("add"), 1)
+            .method(Self::subtract, js_str!("subtract"), 1)
+            .method(Self::round, js_str!("round"), 1)
+            .method(Self::get_iso_fields, js_str!("getISOFields"), 0)
+            .method(Self::value_of, js_str!("valueOf"), 0)
             .build();
     }
 
@@ -345,7 +345,7 @@ impl PlainTime {
                 let new_round_to = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 new_round_to.create_data_property_or_throw(
-                    utf16!("smallestUnit"),
+                    js_str!("smallestUnit"),
                     param_string,
                     context,
                 )?;
@@ -361,16 +361,16 @@ impl PlainTime {
         // 6. NOTE: The following steps read options and perform independent validation in alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
         // 7. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
         let rounding_increment =
-            get_option::<f64>(&round_to, utf16!("roundingIncrement"), context)?;
+            get_option::<f64>(&round_to, js_str!("roundingIncrement"), context)?;
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, utf16!("roundingMode"), context)?;
+            get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", time, required).
         let smallest_unit = get_temporal_unit(
             &round_to,
-            utf16!("smallestUnit"),
+            js_str!("smallestUnit"),
             TemporalUnitGroup::Time,
             None,
             context,
@@ -404,29 +404,29 @@ impl PlainTime {
         let fields = JsObject::with_object_proto(context.intrinsics());
 
         // 4. Perform ! CreateDataPropertyOrThrow(fields, "isoHour", 𝔽(temporalTime.[[ISOHour]])).
-        fields.create_data_property_or_throw(utf16!("isoHour"), time.inner.hour(), context)?;
+        fields.create_data_property_or_throw(js_str!("isoHour"), time.inner.hour(), context)?;
         // 5. Perform ! CreateDataPropertyOrThrow(fields, "isoMicrosecond", 𝔽(temporalTime.[[ISOMicrosecond]])).
         fields.create_data_property_or_throw(
-            utf16!("isoMicrosecond"),
+            js_str!("isoMicrosecond"),
             time.inner.microsecond(),
             context,
         )?;
         // 6. Perform ! CreateDataPropertyOrThrow(fields, "isoMillisecond", 𝔽(temporalTime.[[ISOMillisecond]])).
         fields.create_data_property_or_throw(
-            utf16!("isoMillisecond"),
+            js_str!("isoMillisecond"),
             time.inner.millisecond(),
             context,
         )?;
         // 7. Perform ! CreateDataPropertyOrThrow(fields, "isoMinute", 𝔽(temporalTime.[[ISOMinute]])).
-        fields.create_data_property_or_throw(utf16!("isoMinute"), time.inner.minute(), context)?;
+        fields.create_data_property_or_throw(js_str!("isoMinute"), time.inner.minute(), context)?;
         // 8. Perform ! CreateDataPropertyOrThrow(fields, "isoNanosecond", 𝔽(temporalTime.[[ISONanosecond]])).
         fields.create_data_property_or_throw(
-            utf16!("isoNanosecond"),
+            js_str!("isoNanosecond"),
             time.inner.nanosecond(),
             context,
         )?;
         // 9. Perform ! CreateDataPropertyOrThrow(fields, "isoSecond", 𝔽(temporalTime.[[ISOSecond]])).
-        fields.create_data_property_or_throw(utf16!("isoSecond"), time.inner.second(), context)?;
+        fields.create_data_property_or_throw(js_str!("isoSecond"), time.inner.second(), context)?;
 
         // 10. Return fields.
         Ok(fields.into())

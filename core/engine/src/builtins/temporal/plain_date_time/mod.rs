@@ -11,10 +11,11 @@ use crate::{
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 #[cfg(test)]
@@ -152,116 +153,116 @@ impl IntrinsicObject for PlainDateTime {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("calendarId"),
+                js_str!("calendarId"),
                 Some(get_calendar_id),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("year"),
+                js_str!("year"),
                 Some(get_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("month"),
+                js_str!("month"),
                 Some(get_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("monthCode"),
+                js_str!("monthCode"),
                 Some(get_month_code),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("day"), Some(get_day), None, Attribute::CONFIGURABLE)
+            .accessor(js_str!("day"), Some(get_day), None, Attribute::CONFIGURABLE)
             .accessor(
-                utf16!("hour"),
+                js_str!("hour"),
                 Some(get_hour),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("minute"),
+                js_str!("minute"),
                 Some(get_minute),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("second"),
+                js_str!("second"),
                 Some(get_second),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("millisecond"),
+                js_str!("millisecond"),
                 Some(get_millisecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("microsecond"),
+                js_str!("microsecond"),
                 Some(get_microsecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("nanosecond"),
+                js_str!("nanosecond"),
                 Some(get_nanosecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("dayOfWeek"),
+                js_str!("dayOfWeek"),
                 Some(get_day_of_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("dayOfYear"),
+                js_str!("dayOfYear"),
                 Some(get_day_of_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("weekOfYear"),
+                js_str!("weekOfYear"),
                 Some(get_week_of_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("yearOfWeek"),
+                js_str!("yearOfWeek"),
                 Some(get_year_of_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("daysInWeek"),
+                js_str!("daysInWeek"),
                 Some(get_days_in_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("daysInMonth"),
+                js_str!("daysInMonth"),
                 Some(get_days_in_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("daysInYear"),
+                js_str!("daysInYear"),
                 Some(get_days_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("monthsInYear"),
+                js_str!("monthsInYear"),
                 Some(get_months_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("inLeapYear"),
+                js_str!("inLeapYear"),
                 Some(get_in_leap_year),
                 None,
                 Attribute::CONFIGURABLE,

@@ -13,15 +13,15 @@ use crate::{
         IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
@@ -42,10 +42,10 @@ impl IntrinsicObject for WeakMap {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::delete, js_string!("delete"), 1)
-            .method(Self::get, js_string!("get"), 1)
-            .method(Self::has, js_string!("has"), 1)
-            .method(Self::set, js_string!("set"), 2)
+            .method(Self::delete, js_str!("delete"), 1)
+            .method(Self::get, js_str!("get"), 1)
+            .method(Self::has, js_str!("has"), 1)
+            .method(Self::set, js_str!("set"), 2)
             .build();
     }
 }
@@ -100,7 +100,7 @@ impl BuiltInConstructor for WeakMap {
         }
 
         // 5. Let adder be ? Get(map, "set").
-        let adder = map.get(utf16!("set"), context)?;
+        let adder = map.get(js_str!("set"), context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         if !adder.is_callable() {

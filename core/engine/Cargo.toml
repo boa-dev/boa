@@ -104,6 +104,7 @@ intrusive-collections = "0.9.6"
 cfg-if = "1.0.0"
 time.workspace = true
 hashbrown.workspace = true
+phf.workspace = true
 
 # intl deps
 boa_icu_provider = {workspace = true, features = ["std"], optional = true }

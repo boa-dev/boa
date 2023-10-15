@@ -12,7 +12,7 @@ use boa_ast::{
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
-use boa_macros::utf16;
+use boa_macros::js_str;
 use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
@@ -506,7 +506,7 @@ impl SourceTextModule {
             // c. For each element n of starNames, do
             for n in requested_module.get_exported_names(export_star_set, interner) {
                 // i. If SameValue(n, "default") is false, then
-                if &n != utf16!("default") {
+                if n != js_str!("default") {
                     // 1. If exportedNames does not contain n, then
                     //    a. Append n to exportedNames.
                     exported_names.insert(n);
@@ -583,7 +583,7 @@ impl SourceTextModule {
         }
 
         // 7. If SameValue(exportName, "default") is true, then
-        if &export_name.clone() == utf16!("default") {
+        if export_name == &js_str!("default") {
             // a. Assert: A default export was not explicitly defined by this module.
             // b. Return null.
             // c. NOTE: A default export cannot be provided by an export * from "mod" declaration.

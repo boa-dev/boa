@@ -168,6 +168,30 @@ pub fn utf16(input: TokenStream) -> TokenStream {
     .into()
 }
 
+/// Convert a utf8 string literal to a `JsString`
+#[proc_macro]
+pub fn js_str(input: TokenStream) -> TokenStream {
+    let literal = parse_macro_input!(input as LitStr);
+    let utf8 = literal.value();
+    if utf8.is_ascii() {
+        quote! {
+            // Safety: The string has been checked that it's ascii, so this is safe.
+            unsafe {
+                ::boa_engine::string::JsStr::ascii_unchecked(#utf8.as_bytes())
+            }
+        }
+    } else {
+        let utf16 = utf8.encode_utf16().collect::<Vec<_>>();
+        quote! {
+            // Safety: The string has been checked that it's non-ascii, so this is safe.
+            unsafe {
+                ::boa_engine::string::JsStr::u16_unchecked([#(#utf16),*].as_slice())
+            }
+        }
+    }
+    .into()
+}
+
 decl_derive! {
     [Trace, attributes(boa_gc, unsafe_ignore_trace)] =>
     /// Derive the `Trace` trait.

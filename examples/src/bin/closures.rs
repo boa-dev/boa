@@ -4,11 +4,10 @@
 use std::cell::{Cell, RefCell};
 
 use boa_engine::{
-    js_string,
+    js_str, js_string,
     native_function::NativeFunction,
     object::{builtins::JsArray, FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
-    string::utf16,
     Context, JsError, JsNativeError, JsString, JsValue, Source,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
@@ -24,7 +23,7 @@ fn main() -> Result<(), JsError> {
     // We register a global closure function that has the name 'closure' with length 0.
     context
         .register_global_callable(
-            js_string!("closure"),
+            JsString::from("closure"),
             0,
             NativeFunction::from_copy_closure(move |_, _, _| {
                 println!("Called `closure`");
@@ -53,9 +52,9 @@ fn main() -> Result<(), JsError> {
     // We create a new `JsObject` with some data
     let object = JsObject::with_object_proto(context.intrinsics());
     object.define_property_or_throw(
-        js_string!("name"),
+        js_str!("name"),
         PropertyDescriptor::builder()
-            .value(js_string!("Boa dev"))
+            .value(js_str!("Boa dev"))
             .writable(false)
             .enumerable(false)
             .configurable(false),
@@ -78,18 +77,18 @@ fn main() -> Result<(), JsError> {
                 let BigStruct { greeting, object } = &mut *captures;
                 println!("Called `createMessage`");
                 // We obtain the `name` property of `captures.object`
-                let name = object.get(js_string!("name"), context)?;
+                let name = object.get(js_str!("name"), context)?;
 
                 // We create a new message from our captured variable.
                 let message = js_string!(
-                    utf16!("message from `"),
+                    js_str!("message from `"),
                     &name.to_string(context)?,
-                    utf16!("`: "),
-                    greeting
+                    js_str!("`: "),
+                    &*greeting
                 );
 
                 // We can also mutate the moved data inside the closure.
-                captures.greeting = js_string!(greeting, utf16!(" Hello!"));
+                captures.greeting = js_string!(&*greeting, js_str!(" Hello!"));
 
                 println!("{}", message.to_std_string_escaped());
                 println!();
@@ -102,7 +101,7 @@ fn main() -> Result<(), JsError> {
         ),
     )
     // And here we assign `createMessage` to the `name` property of the closure.
-    .name("createMessage")
+    .name(js_str!("createMessage"))
     // By default all `FunctionBuilder`s set the `length` property to `0` and
     // the `constructable` property to `false`.
     .build();
@@ -112,7 +111,7 @@ fn main() -> Result<(), JsError> {
         .register_global_property(
             // We set the key to access the function the same as its name for
             // consistency, but it may be different if needed.
-            js_string!("createMessage"),
+            js_str!("createMessage"),
             // We pass `js_function` as a property value.
             js_function,
             // We assign to the "createMessage" property the desired attributes.
@@ -145,7 +144,7 @@ fn main() -> Result<(), JsError> {
     // We register a global closure that is not `Copy`.
     context
         .register_global_callable(
-            js_string!("enumerate"),
+            js_str!("enumerate").into(),
             0,
             // Note that it is required to use `unsafe` code, since the compiler cannot verify that the
             // types captured by the closure are not traceable.

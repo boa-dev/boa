@@ -20,8 +20,9 @@ impl ConcatToString {
         let s = JsString::concat_array(
             &strings
                 .iter()
-                .map(JsString::as_slice)
-                .collect::<Vec<&[u16]>>(),
+                .map(JsString::as_str)
+                .map(Into::into)
+                .collect::<Vec<_>>(),
         );
         context.vm.push(s);
         Ok(CompletionType::Normal)
