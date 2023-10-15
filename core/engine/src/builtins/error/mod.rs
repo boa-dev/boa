@@ -18,10 +18,11 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 pub(crate) mod aggregate;
@@ -136,9 +137,9 @@ impl IntrinsicObject for Error {
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(utf16!("name"), Self::NAME, attribute)
-            .property(utf16!("message"), js_string!(), attribute)
-            .method(Self::to_string, js_string!("toString"), 0)
+            .property(js_str!("name"), Self::NAME, attribute)
+            .property(js_str!("message"), js_string!(), attribute)
+            .method(Self::to_string, js_str!("toString"), 0)
             .build();
     }
 
@@ -191,7 +192,7 @@ impl BuiltInConstructor for Error {
             let msg = message.to_string(context)?;
 
             // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
-            o.create_non_enumerable_data_property_or_throw(utf16!("message"), msg, context);
+            o.create_non_enumerable_data_property_or_throw(js_str!("message"), msg, context);
         }
 
         // 4. Perform ? InstallErrorCause(O, options).
@@ -210,12 +211,12 @@ impl Error {
     ) -> JsResult<()> {
         // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
         if let Some(options) = options.as_object() {
-            if options.has_property(utf16!("cause"), context)? {
+            if options.has_property(js_str!("cause"), context)? {
                 // a. Let cause be ? Get(options, "cause").
-                let cause = options.get(utf16!("cause"), context)?;
+                let cause = options.get(js_str!("cause"), context)?;
 
                 // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
-                o.create_non_enumerable_data_property_or_throw(utf16!("cause"), cause, context);
+                o.create_non_enumerable_data_property_or_throw(js_str!("cause"), cause, context);
             }
         }
 
@@ -246,7 +247,7 @@ impl Error {
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not an Object"))?;
 
         // 3. Let name be ? Get(O, "name").
-        let name = o.get(js_string!("name"), context)?;
+        let name = o.get(js_str!("name"), context)?;
 
         // 4. If name is undefined, set name to "Error"; otherwise set name to ? ToString(name).
         let name = if name.is_undefined() {
@@ -256,7 +257,7 @@ impl Error {
         };
 
         // 5. Let msg be ? Get(O, "message").
-        let msg = o.get(js_string!("message"), context)?;
+        let msg = o.get(js_str!("message"), context)?;
 
         // 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).
         let msg = if msg.is_undefined() {
@@ -277,6 +278,6 @@ impl Error {
 
         // 9. Return the string-concatenation of name, the code unit 0x003A (COLON),
         // the code unit 0x0020 (SPACE), and msg.
-        Ok(js_string!(&name, utf16!(": "), &msg).into())
+        Ok(js_string!(&name, js_str!(": "), &msg).into())
     }
 }

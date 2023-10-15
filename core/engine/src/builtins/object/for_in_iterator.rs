@@ -12,13 +12,13 @@ use crate::{
     builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     object::{internal_methods::InternalMethodContext, JsObject},
     property::PropertyKey,
     realm::Realm,
     Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
@@ -50,7 +50,7 @@ impl IntrinsicObject for ForInIterator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, js_string!("next"), 0)
+            .static_method(Self::next, js_str!("next"), 0)
             .build();
     }
 

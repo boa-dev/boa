@@ -1,8 +1,5 @@
-use crate::{
-    builtins::options::get_option,
-    realm::Realm,
-    string::{common::StaticJsStrings, utf16},
-};
+use crate::{builtins::options::get_option, realm::Realm, string::common::StaticJsStrings};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_collator::CaseFirst;
 use icu_datetime::options::preferences::HourCycle;
@@ -80,68 +77,68 @@ impl IntrinsicObject for Locale {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                js_string!("Intl.Locale"),
+                js_str!("Intl.Locale"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::maximize, js_string!("maximize"), 0)
-            .method(Self::minimize, js_string!("minimize"), 0)
-            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::maximize, js_str!("maximize"), 0)
+            .method(Self::minimize, js_str!("minimize"), 0)
+            .method(Self::to_string, js_str!("toString"), 0)
             .accessor(
-                js_string!("baseName"),
+                js_str!("baseName"),
                 Some(base_name),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("calendar"),
+                js_str!("calendar"),
                 Some(calendar),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("caseFirst"),
+                js_str!("caseFirst"),
                 Some(case_first),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("collation"),
+                js_str!("collation"),
                 Some(collation),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("hourCycle"),
+                js_str!("hourCycle"),
                 Some(hour_cycle),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("numeric"),
+                js_str!("numeric"),
                 Some(numeric),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("numberingSystem"),
+                js_str!("numberingSystem"),
                 Some(numbering_system),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("language"),
+                js_str!("language"),
                 Some(language),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("script"),
+                js_str!("script"),
                 Some(script),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("region"),
+                js_str!("region"),
                 Some(region),
                 None,
                 Attribute::CONFIGURABLE,
@@ -236,17 +233,17 @@ impl BuiltInConstructor for Locale {
             // 4. Let language be ? GetOption(options, "language", string, empty, undefined).
             // 5. If language is not undefined, then
             //    a. If language does not match the unicode_language_subtag production, throw a RangeError exception.
-            let language = get_option(options, utf16!("language"), context)?;
+            let language = get_option(options, js_str!("language"), context)?;
 
             // 6. Let script be ? GetOption(options, "script", string, empty, undefined).
             // 7. If script is not undefined, then
             //    a. If script does not match the unicode_script_subtag production, throw a RangeError exception.
-            let script = get_option(options, utf16!("script"), context)?;
+            let script = get_option(options, js_str!("script"), context)?;
 
             // 8. Let region be ? GetOption(options, "region", string, empty, undefined).
             // 9. If region is not undefined, then
             //    a. If region does not match the unicode_region_subtag production, throw a RangeError exception.
-            let region = get_option(options, utf16!("region"), context)?;
+            let region = get_option(options, js_str!("region"), context)?;
 
             // 10. Set tag to ! CanonicalizeUnicodeLocaleId(tag).
             context
@@ -294,17 +291,17 @@ impl BuiltInConstructor for Locale {
         // 14. If calendar is not undefined, then
         // 15. Set opt.[[ca]] to calendar.
         //     a. If calendar does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let ca = get_option(options, utf16!("calendar"), context)?;
+        let ca = get_option(options, js_str!("calendar"), context)?;
 
         // 16. Let collation be ? GetOption(options, "collation", string, empty, undefined).
         // 17. If collation is not undefined, then
         // 18. Set opt.[[co]] to collation.
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let co = get_option(options, utf16!("collation"), context)?;
+        let co = get_option(options, js_str!("collation"), context)?;
 
         // 19. Let hc be ? GetOption(options, "hourCycle", string, « "h11", "h12", "h23", "h24" », undefined).
         // 20. Set opt.[[hc]] to hc.
-        let hc = get_option(options, utf16!("hourCycle"), context)?.map(|hc| match hc {
+        let hc = get_option(options, js_str!("hourCycle"), context)?.map(|hc| match hc {
             HourCycle::H24 => value!("h24"),
             HourCycle::H23 => value!("h23"),
             HourCycle::H12 => value!("h12"),
@@ -313,7 +310,7 @@ impl BuiltInConstructor for Locale {
 
         // 21. Let kf be ? GetOption(options, "caseFirst", string, « "upper", "lower", "false" », undefined).
         // 22. Set opt.[[kf]] to kf.
-        let kf = get_option(options, utf16!("caseFirst"), context)?.map(|kf| match kf {
+        let kf = get_option(options, js_str!("caseFirst"), context)?.map(|kf| match kf {
             CaseFirst::UpperFirst => value!("upper"),
             CaseFirst::LowerFirst => value!("lower"),
             CaseFirst::Off => value!("false"),
@@ -323,7 +320,7 @@ impl BuiltInConstructor for Locale {
         // 23. Let kn be ? GetOption(options, "numeric", boolean, empty, undefined).
         // 24. If kn is not undefined, set kn to ! ToString(kn).
         // 25. Set opt.[[kn]] to kn.
-        let kn = get_option(options, utf16!("numeric"), context)?.map(|b| {
+        let kn = get_option(options, js_str!("numeric"), context)?.map(|b| {
             if b {
                 value!("true")
             } else {
@@ -335,7 +332,7 @@ impl BuiltInConstructor for Locale {
         // 27. If numberingSystem is not undefined, then
         // 28. Set opt.[[nu]] to numberingSystem.
         //     a. If numberingSystem does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let nu = get_option(options, utf16!("numberingSystem"), context)?;
+        let nu = get_option(options, js_str!("numberingSystem"), context)?;
 
         // 29. Let r be ! ApplyUnicodeExtensionToTag(tag, opt, relevantExtensionKeys).
         // 30. Set locale.[[Locale]] to r.[[locale]].

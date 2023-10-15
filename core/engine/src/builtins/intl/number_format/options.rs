@@ -2,7 +2,7 @@ use std::fmt;
 
 use fixed_decimal::{FixedDecimal, FloatPrecision, RoundingIncrement as BaseMultiple, SignDisplay};
 
-use boa_macros::utf16;
+use boa_macros::js_str;
 use tinystr::TinyAsciiStr;
 
 use crate::{
@@ -10,7 +10,7 @@ use crate::{
         intl::options::{default_number_option, get_number_option},
         options::{get_option, OptionType, ParsableOptionType, RoundingMode},
     },
-    js_string, Context, JsNativeError, JsObject, JsResult, JsString,
+    js_string, Context, JsNativeError, JsObject, JsResult, JsStr, JsString,
 };
 
 #[derive(Debug, Copy, Clone, Default, Eq, PartialEq)]
@@ -245,9 +245,9 @@ impl ParsableOptionType for Currency {}
 #[derive(Debug, Eq, PartialEq)]
 pub(crate) struct Unit {
     // INVARIANT: `numerator` must only contain ASCII lowercase alphabetic letters or `-`.
-    numerator: &'static str,
+    numerator: JsStr<'static>,
     // INVARIANT: if `denominator` is not empty, it must only contain ASCII lowercase alphabetic letters or `-`
-    denominator: &'static str,
+    denominator: JsStr<'static>,
 }
 
 impl Unit {
@@ -258,9 +258,7 @@ impl Unit {
         } else {
             // TODO: this is not optimal for now, but the new JS strings should
             // allow us to optimize this to simple casts from ASCII to JsString.
-            let numerator: Vec<u16> = self.numerator.encode_utf16().collect();
-            let denominator: Vec<u16> = self.denominator.encode_utf16().collect();
-            js_string!(&numerator, utf16!("-per-"), &denominator)
+            js_string!(self.numerator, js_str!("-per-"), self.denominator)
         }
     }
 }
@@ -281,7 +279,7 @@ impl std::str::FromStr for Unit {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-iswellformedunitidentifier
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        static SANCTIONED_UNITS: [&str; 45] = [
+        const SANCTIONED_UNITS: [&str; 45] = [
             "acre",
             "bit",
             "byte",
@@ -339,13 +337,17 @@ impl std::str::FromStr for Unit {
             .map(|i| SANCTIONED_UNITS[i])
             .map_err(|_| ParseUnitError)?;
 
+        let num = JsStr::latin1(num.as_bytes());
+
         let den = if den.is_empty() {
-            ""
+            JsStr::EMPTY
         } else {
-            SANCTIONED_UNITS
+            let value = SANCTIONED_UNITS
                 .binary_search(&den)
                 .map(|i| SANCTIONED_UNITS[i])
-                .map_err(|_| ParseUnitError)?
+                .map_err(|_| ParseUnitError)?;
+
+            JsStr::latin1(value.as_bytes())
         };
 
         Ok(Self {
@@ -390,12 +392,12 @@ impl UnitFormatOptions {
     pub(crate) fn from_options(options: &JsObject, context: &mut Context) -> JsResult<Self> {
         // 1. Let style be ? GetOption(options, "style", string, « "decimal", "percent", "currency", "unit" », "decimal").
         // 2. Set intlObj.[[Style]] to style.
-        let style: Style = get_option(options, utf16!("style"), context)?.unwrap_or_default();
+        let style: Style = get_option(options, js_str!("style"), context)?.unwrap_or_default();
 
         // 3. Let currency be ? GetOption(options, "currency", string, empty, undefined).
         // 5. Else,
         //     a. If IsWellFormedCurrencyCode(currency) is false, throw a RangeError exception.
-        let currency = get_option(options, utf16!("currency"), context)?;
+        let currency = get_option(options, js_str!("currency"), context)?;
 
         // 4. If currency is undefined, then
         if currency.is_none() {
@@ -411,16 +413,16 @@ impl UnitFormatOptions {
 
         // 6. Let currencyDisplay be ? GetOption(options, "currencyDisplay", string, « "code", "symbol", "narrowSymbol", "name" », "symbol").
         let currency_display =
-            get_option(options, utf16!("currencyDisplay"), context)?.unwrap_or_default();
+            get_option(options, js_str!("currencyDisplay"), context)?.unwrap_or_default();
 
         // 7. Let currencySign be ? GetOption(options, "currencySign", string, « "standard", "accounting" », "standard").
         let currency_sign =
-            get_option(options, utf16!("currencySign"), context)?.unwrap_or_default();
+            get_option(options, js_str!("currencySign"), context)?.unwrap_or_default();
 
         // 8. Let unit be ? GetOption(options, "unit", string, empty, undefined).
         // 10. Else,
         //     a. If IsWellFormedUnitIdentifier(unit) is false, throw a RangeError exception.
-        let unit = get_option(options, utf16!("unit"), context)?;
+        let unit = get_option(options, js_str!("unit"), context)?;
         // 9. If unit is undefined, then
         if unit.is_none() {
             // a. If style is "unit", throw a TypeError exception.
@@ -434,7 +436,8 @@ impl UnitFormatOptions {
         }
 
         // 11. Let unitDisplay be ? GetOption(options, "unitDisplay", string, « "short", "narrow", "long" », "short").
-        let unit_display = get_option(options, utf16!("unitDisplay"), context)?.unwrap_or_default();
+        let unit_display =
+            get_option(options, js_str!("unitDisplay"), context)?.unwrap_or_default();
 
         // 14. Return unused.
         Ok(match style {
@@ -489,25 +492,26 @@ impl DigitFormatOptions {
     ) -> JsResult<Self> {
         // 1. Let mnid be ? GetNumberOption(options, "minimumIntegerDigits,", 1, 21, 1).
         let minimum_integer_digits =
-            get_number_option(options, utf16!("minimumIntegerDigits"), 1, 21, context)?
+            get_number_option(options, js_str!("minimumIntegerDigits"), 1, 21, context)?
                 .unwrap_or(1);
         // 2. Let mnfd be ? Get(options, "minimumFractionDigits").
-        let min_float_digits = options.get(utf16!("minimumFractionDigits"), context)?;
+        let min_float_digits = options.get(js_str!("minimumFractionDigits"), context)?;
         // 3. Let mxfd be ? Get(options, "maximumFractionDigits").
-        let max_float_digits = options.get(utf16!("maximumFractionDigits"), context)?;
+        let max_float_digits = options.get(js_str!("maximumFractionDigits"), context)?;
         // 4. Let mnsd be ? Get(options, "minimumSignificantDigits").
-        let min_sig_digits = options.get(utf16!("minimumSignificantDigits"), context)?;
+        let min_sig_digits = options.get(js_str!("minimumSignificantDigits"), context)?;
         // 5. Let mxsd be ? Get(options, "maximumSignificantDigits").
-        let max_sig_digits = options.get(utf16!("maximumSignificantDigits"), context)?;
+        let max_sig_digits = options.get(js_str!("maximumSignificantDigits"), context)?;
 
         // 7. Let roundingPriority be ? GetOption(options, "roundingPriority", string, « "auto", "morePrecision", "lessPrecision" », "auto").
         let mut rounding_priority =
-            get_option(options, utf16!("roundingPriority"), context)?.unwrap_or_default();
+            get_option(options, js_str!("roundingPriority"), context)?.unwrap_or_default();
 
         // 8. Let roundingIncrement be ? GetNumberOption(options, "roundingIncrement", 1, 5000, 1).
         // 9. If roundingIncrement is not in « 1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000 », throw a RangeError exception.
         let rounding_increment =
-            get_number_option(options, utf16!("roundingIncrement"), 1, 5000, context)?.unwrap_or(1);
+            get_number_option(options, js_str!("roundingIncrement"), 1, 5000, context)?
+                .unwrap_or(1);
 
         let rounding_increment =
             RoundingIncrement::from_u16(rounding_increment).ok_or_else(|| {
@@ -516,11 +520,11 @@ impl DigitFormatOptions {
 
         // 10. Let roundingMode be ? GetOption(options, "roundingMode", string, « "ceil", "floor", "expand", "trunc", "halfCeil", "halfFloor", "halfExpand", "halfTrunc", "halfEven" », "halfExpand").
         let rounding_mode =
-            get_option(options, utf16!("roundingMode"), context)?.unwrap_or_default();
+            get_option(options, js_str!("roundingMode"), context)?.unwrap_or_default();
 
         // 11. Let trailingZeroDisplay be ? GetOption(options, "trailingZeroDisplay", string, « "auto", "stripIfInteger" », "auto").
         let trailing_zero_display =
-            get_option(options, utf16!("trailingZeroDisplay"), context)?.unwrap_or_default();
+            get_option(options, js_str!("trailingZeroDisplay"), context)?.unwrap_or_default();
 
         // 12. NOTE: All fields required by SetNumberFormatDigitOptions have now been read from options. The remainder of this AO interprets the options and may throw exceptions.
 

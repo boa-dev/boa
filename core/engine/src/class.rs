@@ -10,7 +10,7 @@
 //! #    property::Attribute,
 //! #    class::{Class, ClassBuilder},
 //! #    Context, JsResult, JsValue,
-//! #    JsArgs, Source, JsObject, js_string,
+//! #    JsArgs, Source, JsObject, js_str,
 //! #    JsNativeError, JsData,
 //! # };
 //! # use boa_gc::{Finalize, Trace};
@@ -56,7 +56,7 @@
 //!         let age = args.get_or_undefined(1).to_number(context)?;
 //!
 //!         // Roughly equivalent to `this.age = Number(age)`.
-//!         instance.set(js_string!("age"), age, true, context)?;
+//!         instance.set(js_str!("age"), age, true, context)?;
 //!
 //!         Ok(())
 //!     }
@@ -64,15 +64,15 @@
 //!     /// This is where the class object is initialized.
 //!     fn init(class: &mut ClassBuilder) -> JsResult<()> {
 //!         class.method(
-//!             js_string!("speak"),
+//!             js_str!("speak"),
 //!             0,
 //!             NativeFunction::from_fn_ptr(|this, _args, _ctx| {
 //!                 if let Some(object) = this.as_object() {
 //!                     if let Some(animal) = object.downcast_ref::<Animal>() {
 //!                         return Ok(match &*animal {
-//!                             Self::Cat => js_string!("meow"),
-//!                             Self::Dog => js_string!("woof"),
-//!                             Self::Other => js_string!(r"¯\_(ツ)_/¯"),
+//!                             Self::Cat => js_str!("meow"),
+//!                             Self::Dog => js_str!("woof"),
+//!                             Self::Other => js_str!(r"¯\_(ツ)_/¯"),
 //!                         }.into());
 //!                     }
 //!                 }
@@ -96,7 +96,7 @@
 //!
 //!     assert_eq!(
 //!         result.as_string().unwrap(),
-//!         &js_string!("My pet is 3 years old. Right, buddy? - woof!")
+//!         &js_str!("My pet is 3 years old. Right, buddy? - woof!")
 //!     );
 //! }
 //! ```

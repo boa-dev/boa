@@ -5,14 +5,13 @@ use crate::{
         BuiltInBuilder, IntrinsicObject, Promise,
     },
     context::intrinsics::Intrinsics,
-    js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     realm::Realm,
-    string::utf16,
     Context, JsArgs, JsData, JsError, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 /// `%AsyncFromSyncIteratorPrototype%` object.
@@ -39,9 +38,9 @@ impl IntrinsicObject for AsyncFromSyncIterator {
                     .iterator_prototypes()
                     .async_iterator(),
             )
-            .static_method(Self::next, js_string!("next"), 1)
-            .static_method(Self::r#return, js_string!("return"), 1)
-            .static_method(Self::throw, js_string!("throw"), 1)
+            .static_method(Self::next, js_str!("next"), 1)
+            .static_method(Self::r#return, js_str!("return"), 1)
+            .static_method(Self::throw, js_str!("throw"), 1)
             .build();
     }
 
@@ -80,7 +79,7 @@ impl AsyncFromSyncIterator {
 
         // 3. Let nextMethod be ! Get(asyncIterator, "next").
         let next_method = async_iterator
-            .get(utf16!("next"), context)
+            .get(js_str!("next"), context)
             .expect("async from sync iterator prototype must have next method");
 
         // 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: asyncIterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
@@ -166,7 +165,7 @@ impl AsyncFromSyncIterator {
         .expect("cannot fail with promise constructor");
 
         // 6. Let return be Completion(GetMethod(syncIterator, "return")).
-        let r#return = sync_iterator.get_method(utf16!("return"), context);
+        let r#return = sync_iterator.get_method(js_str!("return"), context);
 
         // 7. IfAbruptRejectPromise(return, promiseCapability).
         let r#return = if_abrupt_reject_promise!(r#return, promise_capability, context);
@@ -243,7 +242,7 @@ impl AsyncFromSyncIterator {
         .expect("cannot fail with promise constructor");
 
         // 6. Let throw be Completion(GetMethod(syncIterator, "throw")).
-        let throw = sync_iterator.get_method(utf16!("throw"), context);
+        let throw = sync_iterator.get_method(js_str!("throw"), context);
 
         // 7. IfAbruptRejectPromise(throw, promiseCapability).
         let throw = if_abrupt_reject_promise!(throw, promise_capability, context);
@@ -368,7 +367,7 @@ impl AsyncFromSyncIterator {
                 ))
             }),
         )
-        .name("")
+        .name(js_str!(""))
         .length(1)
         .build();
 
@@ -401,7 +400,7 @@ impl AsyncFromSyncIterator {
                         sync_iterator_record,
                     ),
                 )
-                .name("")
+                .name(js_str!(""))
                 .length(1)
                 .build(),
             )

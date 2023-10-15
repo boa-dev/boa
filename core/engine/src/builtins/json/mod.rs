@@ -15,6 +15,7 @@
 
 use std::{borrow::Cow, iter::once};
 
+use boa_macros::{js_str, utf16};
 use itertools::Itertools;
 
 use crate::{
@@ -26,7 +27,7 @@ use crate::{
     object::{internal_methods::InternalMethodContext, JsObject},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16, CodePoint},
+    string::{common::StaticJsStrings, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{CallFrame, CallFrameFlags},
@@ -53,8 +54,8 @@ impl IntrinsicObject for Json {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(Self::parse, js_string!("parse"), 2)
-            .static_method(Self::stringify, js_string!("stringify"), 3)
+            .static_method(Self::parse, js_str!("parse"), 2)
+            .static_method(Self::stringify, js_str!("stringify"), 3)
             .static_property(to_string_tag, Self::NAME, attribute)
             .build();
     }
@@ -148,11 +149,11 @@ impl Json {
 
             // b. Let rootName be the empty String.
             // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
-            root.create_data_property_or_throw(utf16!(""), unfiltered, context)
+            root.create_data_property_or_throw(js_str!(""), unfiltered, context)
                 .expect("CreateDataPropertyOrThrow should never throw here");
 
             // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
-            Self::internalize_json_property(&root, "".into(), obj, context)
+            Self::internalize_json_property(&root, js_string!(), obj, context)
         } else {
             // 12. Else,
             // a. Return unfiltered.
@@ -368,7 +369,7 @@ impl Json {
         // 7. Else if Type(space) is String, then
         } else if let Some(s) = space.as_string() {
             // a. If the length of space is 10 or less, let gap be space; otherwise let gap be the substring of space from 0 to 10.
-            js_string!(s.get(..10).unwrap_or(s))
+            js_string!(s.get(..10).unwrap_or(s.as_str()))
         // 8. Else,
         } else {
             // a. Let gap be the empty String.
@@ -380,7 +381,7 @@ impl Json {
 
         // 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         wrapper
-            .create_data_property_or_throw(utf16!(""), args.get_or_undefined(0).clone(), context)
+            .create_data_property_or_throw(js_str!(""), args.get_or_undefined(0).clone(), context)
             .expect("CreateDataPropertyOrThrow should never fail here");
 
         // 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
@@ -418,7 +419,7 @@ impl Json {
         // 2. If Type(value) is Object or BigInt, then
         if value.is_object() || value.is_bigint() {
             // a. Let toJSON be ? GetV(value, "toJSON").
-            let to_json = value.get_v(utf16!("toJSON"), context)?;
+            let to_json = value.get_v(js_str!("toJSON"), context)?;
 
             // b. If IsCallable(toJSON) is true, then
             if let Some(obj) = to_json.as_object() {
@@ -627,7 +628,7 @@ impl Json {
             // b. If strP is not undefined, then
             if let Some(str_p) = str_p {
                 // i. Let member be QuoteJSONString(P).
-                let mut member = Self::quote_json_string(p).to_vec();
+                let mut member = Self::quote_json_string(p).iter().collect::<Vec<_>>();
 
                 // ii. Set member to the string-concatenation of member and ":".
                 member.push(':' as u16);
@@ -639,7 +640,7 @@ impl Json {
                 }
 
                 // iv. Set member to the string-concatenation of member and strP.
-                member.extend_from_slice(&str_p);
+                member.extend(str_p.iter());
 
                 // v. Append member to partial.
                 partial.push(member);
@@ -674,20 +675,20 @@ impl Json {
                 // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
                 //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
                 let mut separator = utf16!(",\n").to_vec();
-                separator.extend_from_slice(&state.indent);
+                separator.extend(state.indent.iter());
                 // ii. Let properties be the String value formed by concatenating all the element Strings of partial
                 //     with each adjacent pair of Strings separated with separator.
                 //     The separator String is not inserted either before the first String or after the last String.
                 // iii. Let final be the string-concatenation of "{", the code
                 //      unit 0x000A (LINE FEED), state.[[Indent]], properties,
                 //      the code unit 0x000A (LINE FEED), stepback, and "}".
-                let result = [utf16!("{\n"), &state.indent[..]]
+                let result = [utf16!("{\n"), &state.indent.to_vec()[..]]
                     .into_iter()
                     .chain(Itertools::intersperse(
                         partial.iter().map(Vec::as_slice),
                         &separator,
                     ))
-                    .chain([utf16!("\n"), &stepback[..], utf16!("}")])
+                    .chain([utf16!("\n"), &stepback.to_vec()[..], utf16!("}")])
                     .flatten()
                     .copied()
                     .collect::<Vec<_>>();
@@ -750,7 +751,7 @@ impl Json {
             // b. If strP is undefined, then
             if let Some(str_p) = str_p {
                 // i. Append strP to partial.
-                partial.push(Cow::Owned(str_p.to_vec()));
+                partial.push(Cow::Owned(str_p.iter().collect::<_>()));
             // c. Else,
             } else {
                 // i. Append "null" to partial.
@@ -789,18 +790,18 @@ impl Json {
                 // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
                 //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
                 let mut separator = utf16!(",\n").to_vec();
-                separator.extend_from_slice(&state.indent);
+                separator.extend(state.indent.iter());
                 // ii. Let properties be the String value formed by concatenating all the element Strings of partial
                 //     with each adjacent pair of Strings separated with separator.
                 //     The separator String is not inserted either before the first String or after the last String.
                 // iii. Let final be the string-concatenation of "[", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "]".
-                let result = [utf16!("[\n"), &state.indent[..]]
+                let result = [utf16!("[\n"), &state.indent.to_vec()[..]]
                     .into_iter()
                     .chain(Itertools::intersperse(
                         partial.iter().map(Cow::as_ref),
                         &separator,
                     ))
-                    .chain([utf16!("\n"), &stepback[..], utf16!("]")])
+                    .chain([utf16!("\n"), &stepback.to_vec()[..], utf16!("]")])
                     .flatten()
                     .copied()
                     .collect::<Vec<_>>();

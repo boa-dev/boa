@@ -17,7 +17,7 @@ use boa_ast::{
     visitor::NodeRef,
     Declaration, Script, StatementListItem,
 };
-use boa_interner::Sym;
+use boa_interner::{JStrRef, Sym};
 
 #[cfg(feature = "annex-b")]
 use boa_ast::operations::annex_b_function_declarations_names;
@@ -44,12 +44,7 @@ impl ByteCompiler<'_> {
 
         // 3. For each element name of lexNames, do
         for name in lex_names {
-            let name = self
-                .context
-                .interner()
-                .resolve_expect(name.sym())
-                .utf16()
-                .into();
+            let name = name.to_js_string(self.interner());
 
             // Note: Our implementation differs from the spec here.
             // a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
@@ -73,12 +68,7 @@ impl ByteCompiler<'_> {
 
         // 4. For each element name of varNames, do
         for name in var_names {
-            let name = self
-                .context
-                .interner()
-                .resolve_expect(name.sym())
-                .utf16()
-                .into();
+            let name = name.to_js_string(self.interner());
 
             // a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
             if env.has_lex_binding(&name) {
@@ -489,9 +479,11 @@ impl ByteCompiler<'_> {
         let private_identifiers = private_identifiers
             .into_iter()
             .map(|ident| {
+                // TODO: Replace JStrRef with JsStr this would eliminate the to_vec call.
+                let ident = ident.to_vec();
                 self.context
                     .interner()
-                    .get(ident.as_slice())
+                    .get(JStrRef::Utf16(&ident))
                     .expect("string should be in interner")
             })
             .collect();

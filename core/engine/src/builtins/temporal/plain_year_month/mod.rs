@@ -7,10 +7,11 @@ use crate::{
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use super::calendar::to_temporal_calendar_slot_value;
@@ -98,59 +99,59 @@ impl IntrinsicObject for PlainYearMonth {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("calendarId"),
+                js_str!("calendarId"),
                 Some(get_calendar_id),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("year"),
+                js_str!("year"),
                 Some(get_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("month"),
+                js_str!("month"),
                 Some(get_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("monthCode"),
+                js_str!("monthCode"),
                 Some(get_month_code),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("daysInMonth"),
+                js_str!("daysInMonth"),
                 Some(get_days_in_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("daysInYear"),
+                js_str!("daysInYear"),
                 Some(get_days_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("monthsInYear"),
+                js_str!("monthsInYear"),
                 Some(get_months_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("inLeapYear"),
+                js_str!("inLeapYear"),
                 Some(get_in_leap_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::with, js_string!("with"), 2)
-            .method(Self::add, js_string!("add"), 2)
-            .method(Self::subtract, js_string!("subtract"), 2)
-            .method(Self::until, js_string!("until"), 2)
-            .method(Self::since, js_string!("since"), 2)
-            .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::with, js_str!("with"), 2)
+            .method(Self::add, js_str!("add"), 2)
+            .method(Self::subtract, js_str!("subtract"), 2)
+            .method(Self::until, js_str!("until"), 2)
+            .method(Self::since, js_str!("since"), 2)
+            .method(Self::equals, js_str!("equals"), 1)
             .build();
     }
 

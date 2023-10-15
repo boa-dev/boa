@@ -6,13 +6,13 @@ use crate::{
         BuiltInBuilder, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::Intrinsics,
-    js_string,
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
     sys::time::SystemTime,
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use super::{ns_max_instant, ns_min_instant};
@@ -37,14 +37,14 @@ impl IntrinsicObject for Now {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(Self::time_zone_id, js_string!("timeZoneId"), 0)
-            .static_method(Self::instant, js_string!("instant"), 0)
-            .static_method(Self::plain_date_time, js_string!("plainDateTime"), 2)
-            .static_method(Self::plain_date_time_iso, js_string!("plainDateTimeISO"), 1)
-            .static_method(Self::zoned_date_time, js_string!("zonedDateTime"), 2)
-            .static_method(Self::zoned_date_time_iso, js_string!("zonedDateTimeISO"), 1)
-            .static_method(Self::plain_date, js_string!("plainDate"), 2)
-            .static_method(Self::plain_date_iso, js_string!("plainDateISO"), 1)
+            .static_method(Self::time_zone_id, js_str!("timeZoneId"), 0)
+            .static_method(Self::instant, js_str!("instant"), 0)
+            .static_method(Self::plain_date_time, js_str!("plainDateTime"), 2)
+            .static_method(Self::plain_date_time_iso, js_str!("plainDateTimeISO"), 1)
+            .static_method(Self::zoned_date_time, js_str!("zonedDateTime"), 2)
+            .static_method(Self::zoned_date_time_iso, js_str!("zonedDateTimeISO"), 1)
+            .static_method(Self::plain_date, js_str!("plainDate"), 2)
+            .static_method(Self::plain_date_iso, js_str!("plainDateISO"), 1)
             .build();
     }
 

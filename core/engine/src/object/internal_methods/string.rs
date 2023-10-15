@@ -1,5 +1,4 @@
 use crate::{
-    js_string,
     object::{JsData, JsObject},
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult, JsString,
@@ -158,7 +157,7 @@ fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<Property
     // 10. Let len be the length of str.
     // 11. If ℝ(index) < 0 or len ≤ ℝ(index), return undefined.
     // 12. Let resultStr be the String value of length 1, containing one code unit from str, specifically the code unit at index ℝ(index).
-    let result_str = js_string!(string.get(pos..=pos)?);
+    let result_str = string.get(pos..=pos)?;
 
     // 13. Return the PropertyDescriptor { [[Value]]: resultStr, [[Writable]]: false, [[Enumerable]]: true, [[Configurable]]: false }.
     let desc = PropertyDescriptor::builder()

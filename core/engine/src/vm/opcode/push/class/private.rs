@@ -1,9 +1,8 @@
 use crate::{
     builtins::function::OrdinaryFunction,
-    js_string,
+    js_str, js_string,
     object::{internal_methods::InternalMethodContext, PrivateElement},
     property::PropertyDescriptor,
-    string::utf16,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
@@ -22,7 +21,7 @@ impl PushClassPrivateMethod {
         let method = context.vm.pop();
         let method_object = method.as_callable().expect("method must be callable");
 
-        let name_string = js_string!(utf16!("#"), &name);
+        let name_string = js_string!(js_str!("#"), &name);
         let desc = PropertyDescriptor::builder()
             .value(name_string)
             .writable(false)
@@ -31,7 +30,7 @@ impl PushClassPrivateMethod {
             .build();
         method_object
             .__define_own_property__(
-                &utf16!("name").into(),
+                &js_str!("name").into(),
                 desc,
                 &mut InternalMethodContext::new(context),
             )

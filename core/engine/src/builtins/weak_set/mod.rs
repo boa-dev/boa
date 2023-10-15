@@ -10,15 +10,15 @@
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 type NativeWeakSet = boa_gc::WeakMap<ErasedVTableObject, ()>;
@@ -39,9 +39,9 @@ impl IntrinsicObject for WeakSet {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::add, js_string!("add"), 1)
-            .method(Self::delete, js_string!("delete"), 1)
-            .method(Self::has, js_string!("has"), 1)
+            .method(Self::add, js_str!("add"), 1)
+            .method(Self::delete, js_str!("delete"), 1)
+            .method(Self::has, js_str!("has"), 1)
             .build();
     }
 }
@@ -96,7 +96,7 @@ impl BuiltInConstructor for WeakSet {
         }
 
         // 5. Let adder be ? Get(set, "add").
-        let adder = weak_set.get(utf16!("add"), context)?;
+        let adder = weak_set.get(js_str!("add"), context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder

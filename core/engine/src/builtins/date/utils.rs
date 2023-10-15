@@ -1,5 +1,5 @@
-use crate::{context::HostHooks, js_string, value::IntegerOrInfinity, JsString};
-use boa_macros::utf16;
+use crate::{context::HostHooks, js_string, value::IntegerOrInfinity, JsStr, JsString};
+use boa_macros::js_str;
 use std::{iter::Peekable, str::Chars};
 use time::{macros::format_description, OffsetDateTime, PrimitiveDateTime};
 
@@ -498,13 +498,16 @@ pub(crate) fn time_clip(time: f64) -> f64 {
 /// [spec]: https://tc39.es/ecma262/#sec-timestring
 pub(super) fn time_string(tv: f64) -> JsString {
     // 1. Let hour be ToZeroPaddedDecimalString(ℝ(HourFromTime(tv)), 2).
-    let hour = pad_two(hour_from_time(tv));
+    let mut binding = [0; 2];
+    let hour = pad_two(hour_from_time(tv), &mut binding);
 
     // 2. Let minute be ToZeroPaddedDecimalString(ℝ(MinFromTime(tv)), 2).
-    let minute = pad_two(min_from_time(tv));
+    let mut binding = [0; 2];
+    let minute = pad_two(min_from_time(tv), &mut binding);
 
-    // 3. Let second be ToZeroPaddedDecimalString(ℝ(SecFromTime(tv)), 2).
-    let second = pad_two(sec_from_time(tv));
+    // 3. Let second be ToZeroPaddedDecimalStringbindingFromTime(tv)), 2).
+    let mut binding = [0; 2];
+    let second = pad_two(sec_from_time(tv), &mut binding);
 
     // 4. Return the string-concatenation of
     //  hour,
@@ -515,12 +518,12 @@ pub(super) fn time_string(tv: f64) -> JsString {
     //  the code unit 0x0020 (SPACE),
     //  and "GMT".
     js_string!(
-        &hour,
-        utf16!(":"),
-        &minute,
-        utf16!(":"),
-        &second,
-        utf16!(" GMT")
+        hour,
+        js_str!(":"),
+        minute,
+        js_str!(":"),
+        second,
+        js_str!(" GMT")
     )
 }
 
@@ -533,50 +536,51 @@ pub(super) fn time_string(tv: f64) -> JsString {
 pub(super) fn date_string(tv: f64) -> JsString {
     // 1. Let weekday be the Name of the entry in Table 63 with the Number WeekDay(tv).
     let weekday = match week_day(tv) {
-        0 => utf16!("Sun"),
-        1 => utf16!("Mon"),
-        2 => utf16!("Tue"),
-        3 => utf16!("Wed"),
-        4 => utf16!("Thu"),
-        5 => utf16!("Fri"),
-        6 => utf16!("Sat"),
+        0 => js_str!("Sun"),
+        1 => js_str!("Mon"),
+        2 => js_str!("Tue"),
+        3 => js_str!("Wed"),
+        4 => js_str!("Thu"),
+        5 => js_str!("Fri"),
+        6 => js_str!("Sat"),
         _ => unreachable!(),
     };
 
     // 2. Let month be the Name of the entry in Table 64 with the Number MonthFromTime(tv).
     let month = match month_from_time(tv) {
-        0 => utf16!("Jan"),
-        1 => utf16!("Feb"),
-        2 => utf16!("Mar"),
-        3 => utf16!("Apr"),
-        4 => utf16!("May"),
-        5 => utf16!("Jun"),
-        6 => utf16!("Jul"),
-        7 => utf16!("Aug"),
-        8 => utf16!("Sep"),
-        9 => utf16!("Oct"),
-        10 => utf16!("Nov"),
-        11 => utf16!("Dec"),
+        0 => js_str!("Jan"),
+        1 => js_str!("Feb"),
+        2 => js_str!("Mar"),
+        3 => js_str!("Apr"),
+        4 => js_str!("May"),
+        5 => js_str!("Jun"),
+        6 => js_str!("Jul"),
+        7 => js_str!("Aug"),
+        8 => js_str!("Sep"),
+        9 => js_str!("Oct"),
+        10 => js_str!("Nov"),
+        11 => js_str!("Dec"),
         _ => unreachable!(),
     };
 
     // 3. Let day be ToZeroPaddedDecimalString(ℝ(DateFromTime(tv)), 2).
-    let day = pad_two(date_from_time(tv));
+    let mut binding = [0; 2];
+    let day = pad_two(date_from_time(tv), &mut binding);
 
     // 4. Let yv be YearFromTime(tv).
     let yv = year_from_time(tv);
 
     // 5. If yv is +0𝔽 or yv > +0𝔽, let yearSign be the empty String; otherwise, let yearSign be "-".
-    let year_sign = if yv >= 0 { utf16!("") } else { utf16!("-") };
+    let year_sign = if yv >= 0 { js_str!("") } else { js_str!("-") };
 
     // 6. Let paddedYear be ToZeroPaddedDecimalString(abs(ℝ(yv)), 4).
     let yv = yv.unsigned_abs();
-    let padded_year = if yv >= 100_000 {
-        js_string!(&pad_six(yv))
+    let padded_year: JsString = if yv >= 100_000 {
+        pad_six(yv, &mut [0; 6]).into()
     } else if yv >= 10000 {
-        js_string!(&pad_five(yv))
+        pad_five(yv, &mut [0; 5]).into()
     } else {
-        js_string!(&pad_four(yv))
+        pad_four(yv, &mut [0; 4]).into()
     };
 
     // 7. Return the string-concatenation of
@@ -590,11 +594,11 @@ pub(super) fn date_string(tv: f64) -> JsString {
     // and paddedYear.
     js_string!(
         weekday,
-        utf16!(" "),
+        js_str!(" "),
         month,
-        utf16!(" "),
-        &day,
-        utf16!(" "),
+        js_str!(" "),
+        day,
+        js_str!(" "),
         year_sign,
         &padded_year
     )
@@ -620,26 +624,28 @@ pub(super) fn time_zone_string(t: f64, hooks: &dyn HostHooks) -> JsString {
     let (offset_sign, abs_offset) = if offset >= 0.0 {
         // a. Let offsetSign be "+".
         // b. Let absOffset be offset.
-        (utf16!("+"), offset)
+        (js_str!("+"), offset)
     }
     // 6. Else,
     else {
         // a. Let offsetSign be "-".
         // b. Let absOffset be -offset.
-        (utf16!("-"), -offset)
+        (js_str!("-"), -offset)
     };
 
     // 7. Let offsetMin be ToZeroPaddedDecimalString(ℝ(MinFromTime(absOffset)), 2).
-    let offset_min = pad_two(min_from_time(abs_offset));
+    let mut binding = [0; 2];
+    let offset_min = pad_two(min_from_time(abs_offset), &mut binding);
 
     // 8. Let offsetHour be ToZeroPaddedDecimalString(ℝ(HourFromTime(absOffset)), 2).
-    let offset_hour = pad_two(hour_from_time(abs_offset));
+    let mut binding = [0; 2];
+    let offset_hour = pad_two(hour_from_time(abs_offset), &mut binding);
 
     // 9. Let tzName be an implementation-defined string that is either the empty String or the
     // string-concatenation of the code unit 0x0020 (SPACE), the code unit 0x0028 (LEFT PARENTHESIS),
     // an implementation-defined timezone name, and the code unit 0x0029 (RIGHT PARENTHESIS).
     // 10. Return the string-concatenation of offsetSign, offsetHour, offsetMin, and tzName.
-    js_string!(offset_sign, &offset_hour, &offset_min)
+    js_string!(offset_sign, offset_hour, offset_min)
 }
 
 /// Abstract operation `ToDateString ( tv )`
@@ -651,7 +657,7 @@ pub(super) fn time_zone_string(t: f64, hooks: &dyn HostHooks) -> JsString {
 pub(super) fn to_date_string_t(tv: f64, hooks: &dyn HostHooks) -> JsString {
     // 1. If tv is NaN, return "Invalid Date".
     if tv.is_nan() {
-        return JsString::from("Invalid Date");
+        return js_string!("Invalid Date");
     }
 
     // 2. Let t be LocalTime(tv).
@@ -664,7 +670,7 @@ pub(super) fn to_date_string_t(tv: f64, hooks: &dyn HostHooks) -> JsString {
     // and TimeZoneString(tv).
     js_string!(
         &date_string(t),
-        utf16!(" "),
+        js_str!(" "),
         &time_string(t),
         &time_zone_string(t, hooks)
     )
@@ -676,46 +682,61 @@ fn local_timezone_offset_seconds(t: f64, hooks: &dyn HostHooks) -> i32 {
     hooks.local_timezone_offset_seconds(seconds)
 }
 
-pub(super) fn pad_two(t: u8) -> [u16; 2] {
-    if t < 10 {
-        [0x30, 0x30 + u16::from(t)]
+pub(super) fn pad_two(t: u8, output: &mut [u8; 2]) -> JsStr<'_> {
+    *output = if t < 10 {
+        [b'0', b'0' + t]
     } else {
-        [0x30 + (u16::from(t) / 10), 0x30 + (u16::from(t) % 10)]
-    }
+        [b'0' + (t / 10), b'0' + (t % 10)]
+    };
+    debug_assert!(output.is_ascii());
+
+    JsStr::latin1(output)
 }
 
-pub(super) fn pad_three(t: u16) -> [u16; 3] {
-    [0x30 + t / 100, 0x30 + ((t / 10) % 10), 0x30 + (t % 10)]
+pub(super) fn pad_three(t: u16, output: &mut [u8; 3]) -> JsStr<'_> {
+    *output = [
+        b'0' + (t / 100) as u8,
+        b'0' + ((t / 10) % 10) as u8,
+        b'0' + (t % 10) as u8,
+    ];
+
+    JsStr::latin1(output)
 }
 
-pub(super) fn pad_four(t: u32) -> [u16; 4] {
-    [
-        0x30 + (t / 1000) as u16,
-        0x30 + ((t / 100) % 10) as u16,
-        0x30 + ((t / 10) % 10) as u16,
-        0x30 + (t % 10) as u16,
-    ]
+pub(super) fn pad_four(t: u32, output: &mut [u8; 4]) -> JsStr<'_> {
+    *output = [
+        b'0' + (t / 1000) as u8,
+        b'0' + ((t / 100) % 10) as u8,
+        b'0' + ((t / 10) % 10) as u8,
+        b'0' + (t % 10) as u8,
+    ];
+
+    JsStr::latin1(output)
 }
 
-pub(super) fn pad_five(t: u32) -> [u16; 5] {
-    [
-        0x30 + (t / 10_000) as u16,
-        0x30 + ((t / 1000) % 10) as u16,
-        0x30 + ((t / 100) % 10) as u16,
-        0x30 + ((t / 10) % 10) as u16,
-        0x30 + (t % 10) as u16,
-    ]
+pub(super) fn pad_five(t: u32, output: &mut [u8; 5]) -> JsStr<'_> {
+    *output = [
+        b'0' + (t / 10_000) as u8,
+        b'0' + ((t / 1000) % 10) as u8,
+        b'0' + ((t / 100) % 10) as u8,
+        b'0' + ((t / 10) % 10) as u8,
+        b'0' + (t % 10) as u8,
+    ];
+
+    JsStr::latin1(output)
 }
 
-pub(super) fn pad_six(t: u32) -> [u16; 6] {
-    [
-        0x30 + (t / 100_000) as u16,
-        0x30 + ((t / 10_000) % 10) as u16,
-        0x30 + ((t / 1000) % 10) as u16,
-        0x30 + ((t / 100) % 10) as u16,
-        0x30 + ((t / 10) % 10) as u16,
-        0x30 + (t % 10) as u16,
-    ]
+pub(super) fn pad_six(t: u32, output: &mut [u8; 6]) -> JsStr<'_> {
+    *output = [
+        b'0' + (t / 100_000) as u8,
+        b'0' + ((t / 10_000) % 10) as u8,
+        b'0' + ((t / 1000) % 10) as u8,
+        b'0' + ((t / 100) % 10) as u8,
+        b'0' + ((t / 10) % 10) as u8,
+        b'0' + (t % 10) as u8,
+    ];
+
+    JsStr::latin1(output)
 }
 
 /// Parse a date string according to the steps specified in [`Date.parse`][spec].

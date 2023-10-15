@@ -1,6 +1,7 @@
 //! Data structures that contain intrinsic objects and constructors.
 
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 
 use crate::{
     builtins::{iterable::IteratorPrototypes, uri::UriFunctions, Array, OrdinaryObject},
@@ -1394,7 +1395,7 @@ impl ObjectTemplates {
         let ordinary_object =
             ObjectTemplate::with_prototype(root_shape, constructors.object().prototype());
         let mut array = ObjectTemplate::new(root_shape);
-        let length_property_key: PropertyKey = js_string!("length").into();
+        let length_property_key: PropertyKey = js_str!("length").into();
         array.property(
             length_property_key.clone(),
             Attribute::WRITABLE | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
@@ -1419,7 +1420,7 @@ impl ObjectTemplates {
         let mut regexp = regexp_without_proto.clone();
         regexp.set_prototype(constructors.regexp().prototype());
 
-        let name_property_key: PropertyKey = js_string!("name").into();
+        let name_property_key: PropertyKey = js_str!("name").into();
         let mut function = ObjectTemplate::new(root_shape);
         function.property(
             length_property_key.clone(),
@@ -1478,7 +1479,7 @@ impl ObjectTemplates {
         // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
         // [[Configurable]]: false }).
         unmapped_arguments.accessor(
-            js_string!("callee").into(),
+            js_str!("callee").into(),
             true,
             true,
             Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
@@ -1487,17 +1488,17 @@ impl ObjectTemplates {
         // 21. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
         // [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
         mapped_arguments.property(
-            js_string!("callee").into(),
+            js_str!("callee").into(),
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
         let mut iterator_result = ordinary_object.clone();
         iterator_result.property(
-            js_string!("value").into(),
+            js_str!("value").into(),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::ENUMERABLE,
         );
         iterator_result.property(
-            js_string!("done").into(),
+            js_str!("done").into(),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::ENUMERABLE,
         );
 
@@ -1509,11 +1510,11 @@ impl ObjectTemplates {
 
             with_resolvers
                 // 4. Perform ! CreateDataPropertyOrThrow(obj, "promise", promiseCapability.[[Promise]]).
-                .property(js_string!("promise").into(), Attribute::all())
+                .property(js_str!("promise").into(), Attribute::all())
                 // 5. Perform ! CreateDataPropertyOrThrow(obj, "resolve", promiseCapability.[[Resolve]]).
-                .property(js_string!("resolve").into(), Attribute::all())
+                .property(js_str!("resolve").into(), Attribute::all())
                 // 6. Perform ! CreateDataPropertyOrThrow(obj, "reject", promiseCapability.[[Reject]]).
-                .property(js_string!("reject").into(), Attribute::all());
+                .property(js_str!("reject").into(), Attribute::all());
 
             with_resolvers
         };

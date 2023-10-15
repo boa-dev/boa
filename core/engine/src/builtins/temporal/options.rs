@@ -10,7 +10,9 @@
 
 use crate::{
     builtins::options::{get_option, ParsableOptionType},
-    js_string, Context, JsNativeError, JsObject, JsResult,
+    js_string,
+    string::JsStr,
+    Context, JsNativeError, JsObject, JsResult,
 };
 use temporal_rs::options::{
     ArithmeticOverflow, DurationOverflow, InstantDisambiguation, OffsetDisambiguation,
@@ -58,7 +60,7 @@ pub(crate) fn get_temporal_rounding_increment(
 #[inline]
 pub(crate) fn get_temporal_unit(
     options: &JsObject,
-    key: &[u16],
+    key: JsStr<'_>,
     unit_group: TemporalUnitGroup,
     extra_values: Option<Vec<TemporalUnit>>,
     context: &mut Context,

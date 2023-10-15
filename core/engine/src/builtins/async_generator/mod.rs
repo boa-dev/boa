@@ -12,7 +12,6 @@ use crate::{
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, CONSTRUCTOR},
     property::Attribute,
@@ -24,6 +23,7 @@ use crate::{
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use std::collections::VecDeque;
 
@@ -80,9 +80,9 @@ impl IntrinsicObject for AsyncGenerator {
                     .iterator_prototypes()
                     .async_iterator(),
             )
-            .static_method(Self::next, js_string!("next"), 1)
-            .static_method(Self::r#return, js_string!("return"), 1)
-            .static_method(Self::throw, js_string!("throw"), 1)
+            .static_method(Self::next, js_str!("next"), 1)
+            .static_method(Self::r#return, js_str!("return"), 1)
+            .static_method(Self::throw, js_str!("throw"), 1)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -576,7 +576,7 @@ impl AsyncGenerator {
                 generator.clone(),
             ),
         )
-        .name("")
+        .name(js_str!(""))
         .length(1)
         .build();
 
@@ -611,7 +611,7 @@ impl AsyncGenerator {
                 generator,
             ),
         )
-        .name("")
+        .name(js_str!(""))
         .length(1)
         .build();
 

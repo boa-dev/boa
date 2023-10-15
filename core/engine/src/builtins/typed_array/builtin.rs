@@ -3,7 +3,7 @@ use std::{
     sync::atomic::{self, Ordering},
 };
 
-use boa_macros::utf16;
+use boa_macros::{js_str, utf16};
 use num_traits::Zero;
 
 use super::{
@@ -79,19 +79,19 @@ impl IntrinsicObject for BuiltinTypedArray {
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("buffer"),
+                js_str!("buffer"),
                 Some(get_buffer),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                utf16!("byteLength"),
+                js_str!("byteLength"),
                 Some(get_byte_length),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                utf16!("byteOffset"),
+                js_str!("byteOffset"),
                 Some(get_byte_offset),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
@@ -108,47 +108,47 @@ impl IntrinsicObject for BuiltinTypedArray {
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
-            .static_method(Self::from, js_string!("from"), 1)
-            .static_method(Self::of, js_string!("of"), 0)
-            .method(Self::at, js_string!("at"), 1)
-            .method(Self::copy_within, js_string!("copyWithin"), 2)
-            .method(Self::entries, js_string!("entries"), 0)
-            .method(Self::every, js_string!("every"), 1)
-            .method(Self::fill, js_string!("fill"), 1)
-            .method(Self::filter, js_string!("filter"), 1)
-            .method(Self::find, js_string!("find"), 1)
-            .method(Self::find_index, js_string!("findIndex"), 1)
-            .method(Self::find_last, js_string!("findLast"), 1)
-            .method(Self::find_last_index, js_string!("findLastIndex"), 1)
-            .method(Self::for_each, js_string!("forEach"), 1)
-            .method(Self::includes, js_string!("includes"), 1)
-            .method(Self::index_of, js_string!("indexOf"), 1)
-            .method(Self::join, js_string!("join"), 1)
-            .method(Self::keys, js_string!("keys"), 0)
-            .method(Self::last_index_of, js_string!("lastIndexOf"), 1)
-            .method(Self::map, js_string!("map"), 1)
-            .method(Self::reduce, js_string!("reduce"), 1)
-            .method(Self::reduceright, js_string!("reduceRight"), 1)
-            .method(Self::reverse, js_string!("reverse"), 0)
-            .method(Self::set, js_string!("set"), 1)
-            .method(Self::slice, js_string!("slice"), 2)
-            .method(Self::some, js_string!("some"), 1)
-            .method(Self::sort, js_string!("sort"), 1)
-            .method(Self::subarray, js_string!("subarray"), 2)
-            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
-            .method(Self::to_reversed, js_string!("toReversed"), 0)
-            .method(Self::to_sorted, js_string!("toSorted"), 1)
-            .method(Self::with, js_string!("with"), 2)
+            .static_method(Self::from, js_str!("from"), 1)
+            .static_method(Self::of, js_str!("of"), 0)
+            .method(Self::at, js_str!("at"), 1)
+            .method(Self::copy_within, js_str!("copyWithin"), 2)
+            .method(Self::entries, js_str!("entries"), 0)
+            .method(Self::every, js_str!("every"), 1)
+            .method(Self::fill, js_str!("fill"), 1)
+            .method(Self::filter, js_str!("filter"), 1)
+            .method(Self::find, js_str!("find"), 1)
+            .method(Self::find_index, js_str!("findIndex"), 1)
+            .method(Self::find_last, js_str!("findLast"), 1)
+            .method(Self::find_last_index, js_str!("findLastIndex"), 1)
+            .method(Self::for_each, js_str!("forEach"), 1)
+            .method(Self::includes, js_str!("includes"), 1)
+            .method(Self::index_of, js_str!("indexOf"), 1)
+            .method(Self::join, js_str!("join"), 1)
+            .method(Self::keys, js_str!("keys"), 0)
+            .method(Self::last_index_of, js_str!("lastIndexOf"), 1)
+            .method(Self::map, js_str!("map"), 1)
+            .method(Self::reduce, js_str!("reduce"), 1)
+            .method(Self::reduceright, js_str!("reduceRight"), 1)
+            .method(Self::reverse, js_str!("reverse"), 0)
+            .method(Self::set, js_str!("set"), 1)
+            .method(Self::slice, js_str!("slice"), 2)
+            .method(Self::some, js_str!("some"), 1)
+            .method(Self::sort, js_str!("sort"), 1)
+            .method(Self::subarray, js_str!("subarray"), 2)
+            .method(Self::to_locale_string, js_str!("toLocaleString"), 0)
+            .method(Self::to_reversed, js_str!("toReversed"), 0)
+            .method(Self::to_sorted, js_str!("toSorted"), 1)
+            .method(Self::with, js_str!("with"), 2)
             // 23.2.3.29 %TypedArray%.prototype.toString ( )
             // The initial value of the %TypedArray%.prototype.toString data property is the same
             // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
             .property(
-                js_string!("toString"),
+                js_str!("toString"),
                 realm.intrinsics().objects().array_prototype_to_string(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                js_string!("values"),
+                js_str!("values"),
                 values_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -1214,7 +1214,7 @@ impl BuiltinTypedArray {
         for k in 0..len {
             // a. If k > 0, set R to the string-concatenation of R and sep.
             if k > 0 {
-                r.extend_from_slice(&sep);
+                r.extend(sep.iter());
             }
 
             // b. Let element be ! Get(O, ! ToString(𝔽(k))).
@@ -1223,12 +1223,12 @@ impl BuiltinTypedArray {
             // c. If element is undefined, let next be the empty String; otherwise, let next be ! ToString(element).
             // d. Set R to the string-concatenation of R and next.
             if !element.is_undefined() {
-                r.extend_from_slice(&element.to_string(context)?);
+                r.extend(element.to_string(context)?.iter());
             }
         }
 
         // 9. Return R.
-        Ok(js_string!(r).into())
+        Ok(js_string!(&r[..]).into())
     }
 
     /// `%TypedArray%.prototype.keys ( )`
@@ -2493,7 +2493,7 @@ impl BuiltinTypedArray {
             if is_fixed_len || !next_element.is_undefined() {
                 let s = next_element
                     .invoke(
-                        utf16!("toLocaleString"),
+                        js_str!("toLocaleString"),
                         &[
                             args.get_or_undefined(0).clone(),
                             args.get_or_undefined(1).clone(),
@@ -2502,11 +2502,11 @@ impl BuiltinTypedArray {
                     )?
                     .to_string(context)?;
 
-                r.extend_from_slice(&s);
+                r.extend(s.iter());
             };
         }
 
-        Ok(js_string!(r).into())
+        Ok(js_string!(&r[..]).into())
     }
 
     /// `%TypedArray%.prototype.values ( )`

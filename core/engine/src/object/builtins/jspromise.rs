@@ -25,7 +25,7 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 /// ```
 /// # use boa_engine::{
 /// #     builtins::promise::PromiseState,
-/// #     js_string,
+/// #     js_str,
 /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
 /// #     property::Attribute,
 /// #     Context, JsArgs, JsError, JsValue, NativeFunction,
@@ -35,14 +35,14 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 /// let context = &mut Context::default();
 ///
 /// context.register_global_property(
-///     js_string!("finally"),
+///     js_str!("finally"),
 ///     false,
 ///     Attribute::all(),
 /// );
 ///
 /// let promise = JsPromise::new(
 ///     |resolvers, context| {
-///         let result = js_string!("hello world!").into();
+///         let result = js_str!("hello world!").into();
 ///         resolvers.resolve.call(
 ///             &JsValue::undefined(),
 ///             &[result],
@@ -75,7 +75,7 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///     .finally(
 ///         NativeFunction::from_fn_ptr(|_, _, context| {
 ///             context.global_object().clone().set(
-///                 js_string!("finally"),
+///                 js_str!("finally"),
 ///                 JsValue::from(true),
 ///                 true,
 ///                 context,
@@ -90,14 +90,14 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///
 /// assert_eq!(
 ///     promise.state(),
-///     PromiseState::Fulfilled(js_string!("hello world!").into())
+///     PromiseState::Fulfilled(js_str!("hello world!").into())
 /// );
 ///
 /// assert_eq!(
 ///     context
 ///         .global_object()
 ///         .clone()
-///         .get(js_string!("finally"), context)?,
+///         .get(js_str!("finally"), context)?,
 ///     JsValue::from(true)
 /// );
 ///

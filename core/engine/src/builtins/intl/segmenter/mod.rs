@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 use boa_gc::{Finalize, Trace};
-use boa_macros::utf16;
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_locid::Locale;
 use icu_segmenter::{
@@ -19,7 +19,7 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsStr, JsString, JsSymbol, JsValue,
 };
 
 mod iterator;
@@ -62,11 +62,18 @@ impl NativeSegmenter {
 
     /// Segment the passed string, returning an iterator with the index boundaries
     /// of the segments.
-    pub(crate) fn segment<'l, 's>(&'l self, input: &'s [u16]) -> NativeSegmentIterator<'l, 's> {
-        match self {
-            Self::Grapheme(g) => NativeSegmentIterator::Grapheme(g.segment_utf16(input)),
-            Self::Word(w) => NativeSegmentIterator::Word(w.segment_utf16(input)),
-            Self::Sentence(s) => NativeSegmentIterator::Sentence(s.segment_utf16(input)),
+    pub(crate) fn segment<'l, 's>(&'l self, input: JsStr<'s>) -> NativeSegmentIterator<'l, 's> {
+        match input.variant() {
+            crate::string::JsStrVariant::Latin1(input) => match self {
+                Self::Grapheme(g) => NativeSegmentIterator::GraphemeLatin1(g.segment_latin1(input)),
+                Self::Word(w) => NativeSegmentIterator::WordLatin1(w.segment_latin1(input)),
+                Self::Sentence(s) => NativeSegmentIterator::SentenceLatin1(s.segment_latin1(input)),
+            },
+            crate::string::JsStrVariant::Utf16(input) => match self {
+                Self::Grapheme(g) => NativeSegmentIterator::GraphemeUtf16(g.segment_utf16(input)),
+                Self::Word(w) => NativeSegmentIterator::WordUtf16(w.segment_utf16(input)),
+                Self::Sentence(s) => NativeSegmentIterator::SentenceUtf16(s.segment_utf16(input)),
+            },
         }
     }
 }
@@ -82,18 +89,14 @@ impl IntrinsicObject for Segmenter {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(
-                Self::supported_locales_of,
-                js_string!("supportedLocalesOf"),
-                1,
-            )
+            .static_method(Self::supported_locales_of, js_str!("supportedLocalesOf"), 1)
             .property(
                 JsSymbol::to_string_tag(),
-                js_string!("Intl.Segmenter"),
+                js_str!("Intl.Segmenter"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
-            .method(Self::segment, js_string!("segment"), 1)
+            .method(Self::resolved_options, js_str!("resolvedOptions"), 0)
+            .method(Self::segment, js_str!("segment"), 1)
             .build();
     }
 
@@ -134,7 +137,7 @@ impl BuiltInConstructor for Segmenter {
 
         // 6. Let opt be a new Record.
         // 7. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
-        let matcher = get_option(&options, utf16!("localeMatcher"), context)?.unwrap_or_default();
+        let matcher = get_option(&options, js_str!("localeMatcher"), context)?.unwrap_or_default();
 
         // 8. Set opt.[[localeMatcher]] to matcher.
         // 9. Let localeData be %Segmenter%.[[LocaleData]].
@@ -150,7 +153,8 @@ impl BuiltInConstructor for Segmenter {
         );
 
         // 12. Let granularity be ? GetOption(options, "granularity", string, « "grapheme", "word", "sentence" », "grapheme").
-        let granularity = get_option(&options, utf16!("granularity"), context)?.unwrap_or_default();
+        let granularity =
+            get_option(&options, js_str!("granularity"), context)?.unwrap_or_default();
         // 13. Set segmenter.[[SegmenterGranularity]] to granularity.
 
         let native = match granularity {
@@ -241,12 +245,12 @@ impl Segmenter {
         //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
         let options = ObjectInitializer::new(context)
             .property(
-                js_string!("locale"),
+                js_str!("locale"),
                 js_string!(segmenter.locale.to_string()),
                 Attribute::all(),
             )
             .property(
-                js_string!("granularity"),
+                js_str!("granularity"),
                 js_string!(segmenter.native.granularity().to_string()),
                 Attribute::all(),
             )
@@ -301,25 +305,25 @@ fn create_segment_data_object(
     let start = range.start;
 
     // 6. Let segment be the substring of string from startIndex to endIndex.
-    let segment = js_string!(&string[range]);
+    let segment = string.get(range).expect("range already checked");
 
     // 5. Let result be OrdinaryObjectCreate(%Object.prototype%).
     let object = &mut ObjectInitializer::new(context);
 
     object
         // 7. Perform ! CreateDataPropertyOrThrow(result, "segment", segment).
-        .property(js_string!("segment"), segment, Attribute::all())
+        .property(js_str!("segment"), segment, Attribute::all())
         // 8. Perform ! CreateDataPropertyOrThrow(result, "index", 𝔽(startIndex)).
-        .property(js_string!("index"), start, Attribute::all())
+        .property(js_str!("index"), start, Attribute::all())
         // 9. Perform ! CreateDataPropertyOrThrow(result, "input", string).
-        .property(js_string!("input"), string, Attribute::all());
+        .property(js_str!("input"), string, Attribute::all());
 
     // 10. Let granularity be segmenter.[[SegmenterGranularity]].
     // 11. If granularity is "word", then
     if let Some(is_word_like) = is_word_like {
         //     a. Let isWordLike be a Boolean value indicating whether the segment in string is "word-like" according to locale segmenter.[[Locale]].
         //     b. Perform ! CreateDataPropertyOrThrow(result, "isWordLike", isWordLike).
-        object.property(js_string!("isWordLike"), is_word_like, Attribute::all());
+        object.property(js_str!("isWordLike"), is_word_like, Attribute::all());
     }
 
     // 12. Return result.

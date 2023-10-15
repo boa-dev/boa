@@ -26,10 +26,11 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 
@@ -64,25 +65,25 @@ impl IntrinsicObject for Set {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::add, js_string!("add"), 1)
-            .method(Self::clear, js_string!("clear"), 0)
-            .method(Self::delete, js_string!("delete"), 1)
-            .method(Self::entries, js_string!("entries"), 0)
-            .method(Self::for_each, js_string!("forEach"), 1)
-            .method(Self::has, js_string!("has"), 1)
+            .method(Self::add, js_str!("add"), 1)
+            .method(Self::clear, js_str!("clear"), 0)
+            .method(Self::delete, js_str!("delete"), 1)
+            .method(Self::entries, js_str!("entries"), 0)
+            .method(Self::for_each, js_str!("forEach"), 1)
+            .method(Self::has, js_str!("has"), 1)
             .property(
-                utf16!("keys"),
+                js_str!("keys"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("size"),
+                js_str!("size"),
                 Some(size_getter),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .property(
-                utf16!("values"),
+                js_str!("values"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -138,7 +139,7 @@ impl BuiltInConstructor for Set {
         }
 
         // 5. Let adder be ? Get(set, "add").
-        let adder = set.get(utf16!("add"), context)?;
+        let adder = set.get(js_str!("add"), context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder.as_callable().ok_or_else(|| {

@@ -6,6 +6,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor},
     run_test_actions, JsNativeErrorKind, JsValue, TestAction,
 };
+use boa_macros::js_str;
 use indoc::indoc;
 
 #[allow(clippy::float_cmp)]
@@ -69,7 +70,7 @@ fn function_prototype() {
 fn function_prototype_call() {
     run_test_actions([TestAction::assert_eq(
         "Object.prototype.toString.call(new Error())",
-        js_string!("[object Error]"),
+        js_str!("[object Error]"),
     )]);
 }
 
@@ -168,13 +169,13 @@ fn closure_capture_clone() {
                     (string, object),
                 ),
             )
-            .name("closure")
+            .name(js_str!("closure"))
             .build();
 
-            ctx.register_global_property(js_string!("closure"), func, Attribute::default())
+            ctx.register_global_property(js_str!("closure"), func, Attribute::default())
                 .unwrap();
         }),
-        TestAction::assert_eq("closure()", js_string!("Hello world!")),
+        TestAction::assert_eq("closure()", js_str!("Hello world!")),
     ]);
 }
 
