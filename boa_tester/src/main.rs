@@ -294,7 +294,10 @@ fn main() -> Result<()> {
 }
 
 /// Returns the commit hash and commit message of the provided branch name.
-fn get_last_branch_commit(branch: &str) -> Result<(String, String)> {
+fn get_last_branch_commit(branch: &str, verbose: u8) -> Result<(String, String)> {
+    if verbose > 1 {
+        println!("Getting last commit on '{branch}' branch");
+    }
     let result = Command::new("git")
         .arg("log")
         .args(["-n", "1"])
@@ -347,6 +350,15 @@ fn clone_test262(commit: Option<&str>, verbose: u8) -> Result<()> {
     let update = commit.is_none();
 
     if Path::new(DEFAULT_TEST262_DIRECTORY).is_dir() {
+        let (current_commit_hash, current_commit_message) =
+            get_last_branch_commit("HEAD", verbose)?;
+
+        if let Some(commit) = commit {
+            if current_commit_hash == commit {
+                return Ok(());
+            }
+        }
+
         if verbose != 0 {
             println!("Fetching latest test262 commits...");
         }
@@ -362,20 +374,17 @@ fn clone_test262(commit: Option<&str>, verbose: u8) -> Result<()> {
             );
         }
 
-        let (current_commit_hash, current_commit_message) = get_last_branch_commit("HEAD")?;
-
         if let Some(commit) = commit {
-            if current_commit_hash != commit {
-                println!("Test262 switching to commit {commit}...");
-                reset_test262_commit(commit, verbose)?;
-            }
+            println!("Test262 switching to commit {commit}...");
+            reset_test262_commit(commit, verbose)?;
             return Ok(());
         }
 
         if verbose != 0 {
             println!("Checking latest Test262 with current HEAD...");
         }
-        let (latest_commit_hash, latest_commit_message) = get_last_branch_commit("origin/main")?;
+        let (latest_commit_hash, latest_commit_message) =
+            get_last_branch_commit("origin/main", verbose)?;
 
         if current_commit_hash != latest_commit_hash {
             if update {
