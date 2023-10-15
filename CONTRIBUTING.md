@@ -75,12 +75,6 @@ with this command:
 cargo run --release --bin boa_tester -- run -v 2> error.log
 ```
 
-Note that this requires the `test262` submodule to be checked out, so you will need to run the following first:
-
-```shell
-git submodule init && git submodule update
-```
-
 This will run the test suite in verbose mode (you can remove the `-v` part to run it in non-verbose mode),
 and output nice colorings in the terminal. It will also output any panic information into the `error.log` file.
 
