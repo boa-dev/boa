@@ -1090,8 +1090,11 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             match variable.binding() {
                 Binding::Identifier(ident) => {
                     if let Some(expr) = variable.init() {
+                        let binding = self.lexical_environment.get_identifier_reference(*ident);
+                        let index = self.get_or_insert_binding(binding.locator());
+                        self.emit_with_varying_operand(Opcode::GetLocator, index);
                         self.compile_expr(expr, true);
-                        self.emit_binding(BindingOpcode::InitVar, *ident);
+                        self.emit_opcode(Opcode::SetNameByLocator);
                     } else {
                         self.emit_binding(BindingOpcode::Var, *ident);
                     }
