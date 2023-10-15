@@ -2035,7 +2035,7 @@ impl BuiltinTypedArray {
                 .expect("Must be an array buffer");
 
             match (src_buffer, target_buffer) {
-                (BufferRef::Shared(src), BufferRef::Shared(dest)) => {
+                (BufferRef::SharedBuffer(src), BufferRef::SharedBuffer(dest)) => {
                     ptr::eq(src.data(), dest.data())
                 }
                 (_, _) => false,
@@ -3068,7 +3068,7 @@ impl BuiltinTypedArray {
                 .as_array_buffer_mut()
                 .expect("Must be ArrayBuffer");
             let mut data =
-                SliceRefMut::Common(data.data_mut().expect("a new buffer cannot be detached"));
+                SliceRefMut::Slice(data.data_mut().expect("a new buffer cannot be detached"));
 
             // b. If srcArray.[[ContentType]] is not O.[[ContentType]], throw a TypeError exception.
             if src_type.content_type() != element_type.content_type() {

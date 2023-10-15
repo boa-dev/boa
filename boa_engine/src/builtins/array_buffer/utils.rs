@@ -14,36 +14,37 @@ use super::ArrayBuffer;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum SliceRef<'a> {
-    Common(&'a [u8]),
-    Atomic(&'a [AtomicU8]),
+    Slice(&'a [u8]),
+    AtomicSlice(&'a [AtomicU8]),
 }
 
 impl SliceRef<'_> {
+    /// Gets the byte length of this `SliceRef`.
     pub(crate) fn len(&self) -> usize {
         match self {
-            Self::Common(buf) => buf.len(),
-            Self::Atomic(buf) => buf.len(),
+            Self::Slice(buf) => buf.len(),
+            Self::AtomicSlice(buf) => buf.len(),
         }
     }
 
+    /// Gets a subslice of this `SliceRef`.
     pub(crate) fn subslice<I>(&self, index: I) -> SliceRef<'_>
     where
         I: SliceIndex<[u8], Output = [u8]> + SliceIndex<[AtomicU8], Output = [AtomicU8]>,
     {
         match self {
-            Self::Common(buffer) => {
-                SliceRef::Common(buffer.get(index).expect("index out of bounds"))
-            }
-            Self::Atomic(buffer) => {
-                SliceRef::Atomic(buffer.get(index).expect("index out of bounds"))
+            Self::Slice(buffer) => SliceRef::Slice(buffer.get(index).expect("index out of bounds")),
+            Self::AtomicSlice(buffer) => {
+                SliceRef::AtomicSlice(buffer.get(index).expect("index out of bounds"))
             }
         }
     }
 
+    /// Gets the starting address of this `SliceRef`.
     pub(crate) fn addr(&self) -> usize {
         match self {
-            Self::Common(buf) => buf.as_ptr().addr(),
-            Self::Atomic(buf) => buf.as_ptr().addr(),
+            Self::Slice(buf) => buf.as_ptr().addr(),
+            Self::AtomicSlice(buf) => buf.as_ptr().addr(),
         }
     }
 
@@ -69,7 +70,7 @@ impl SliceRef<'_> {
             // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
             if cfg!(debug_assertions) {
                 assert!(buffer.len() >= std::mem::size_of::<T>());
-                assert_eq!(buffer.len() % std::mem::align_of::<T>(), 0);
+                assert_eq!(buffer.addr() % std::mem::align_of::<T>(), 0);
             }
 
             // 3. Let block be arrayBuffer.[[ArrayBufferData]].
@@ -152,7 +153,7 @@ impl SliceRef<'_> {
 
             // SAFETY: Both buffers are of the same length, `buffer.len()`, which makes this operation
             // safe.
-            unsafe { memcpy(*self, SliceRefMut::Common(target_block), self.len()) }
+            unsafe { memcpy(*self, SliceRefMut::Slice(target_block), self.len()) }
         }
 
         // 6. Return targetBuffer.
@@ -162,48 +163,51 @@ impl SliceRef<'_> {
 
 impl<'a> From<&'a [u8]> for SliceRef<'a> {
     fn from(value: &'a [u8]) -> Self {
-        Self::Common(value)
+        Self::Slice(value)
     }
 }
 
 impl<'a> From<&'a [AtomicU8]> for SliceRef<'a> {
     fn from(value: &'a [AtomicU8]) -> Self {
-        Self::Atomic(value)
+        Self::AtomicSlice(value)
     }
 }
 
 #[derive(Debug)]
 pub(crate) enum SliceRefMut<'a> {
-    Common(&'a mut [u8]),
-    Atomic(&'a [AtomicU8]),
+    Slice(&'a mut [u8]),
+    AtomicSlice(&'a [AtomicU8]),
 }
 
 impl SliceRefMut<'_> {
+    /// Gets the byte length of this `SliceRefMut`.
     pub(crate) fn len(&self) -> usize {
         match self {
-            Self::Common(buf) => buf.len(),
-            Self::Atomic(buf) => buf.len(),
+            Self::Slice(buf) => buf.len(),
+            Self::AtomicSlice(buf) => buf.len(),
         }
     }
 
+    /// Gets a mutable subslice of this `SliceRefMut`.
     pub(crate) fn subslice_mut<I>(&mut self, index: I) -> SliceRefMut<'_>
     where
         I: SliceIndex<[u8], Output = [u8]> + SliceIndex<[AtomicU8], Output = [AtomicU8]>,
     {
         match self {
-            Self::Common(buffer) => {
-                SliceRefMut::Common(buffer.get_mut(index).expect("index out of bounds"))
+            Self::Slice(buffer) => {
+                SliceRefMut::Slice(buffer.get_mut(index).expect("index out of bounds"))
             }
-            Self::Atomic(buffer) => {
-                SliceRefMut::Atomic(buffer.get(index).expect("index out of bounds"))
+            Self::AtomicSlice(buffer) => {
+                SliceRefMut::AtomicSlice(buffer.get(index).expect("index out of bounds"))
             }
         }
     }
 
+    /// Gets the starting address of this `SliceRefMut`.
     pub(crate) fn addr(&self) -> usize {
         match self {
-            Self::Common(buf) => buf.as_ptr().addr(),
-            Self::Atomic(buf) => buf.as_ptr().addr(),
+            Self::Slice(buf) => buf.as_ptr().addr(),
+            Self::AtomicSlice(buf) => buf.as_ptr().addr(),
         }
     }
 
@@ -225,7 +229,7 @@ impl SliceRefMut<'_> {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-setvalueinbuffer
     pub(crate) unsafe fn set_value(&mut self, value: TypedArrayElement, order: atomic::Ordering) {
-        pub(crate) unsafe fn write_to_buffer<T: Element>(
+        unsafe fn write_elem<T: Element>(
             buffer: SliceRefMut<'_>,
             value: T,
             order: atomic::Ordering,
@@ -237,7 +241,7 @@ impl SliceRefMut<'_> {
             // 3. Assert: value is a BigInt if IsBigIntElementType(type) is true; otherwise, value is a Number.
             if cfg!(debug_assertions) {
                 assert!(buffer.len() >= std::mem::size_of::<T>());
-                assert_eq!(buffer.len() % std::mem::align_of::<T>(), 0);
+                assert_eq!(buffer.addr() % std::mem::align_of::<T>(), 0);
             }
 
             // 4. Let block be arrayBuffer.[[ArrayBufferData]].
@@ -261,24 +265,24 @@ impl SliceRefMut<'_> {
 
         // Have to rebind in order to remove the outer `&mut` ref.
         let buffer = match self {
-            SliceRefMut::Common(buf) => SliceRefMut::Common(buf),
-            SliceRefMut::Atomic(buf) => SliceRefMut::Atomic(buf),
+            SliceRefMut::Slice(buf) => SliceRefMut::Slice(buf),
+            SliceRefMut::AtomicSlice(buf) => SliceRefMut::AtomicSlice(buf),
         };
 
         // SAFETY: The invariants of this operation are ensured by the caller.
         unsafe {
             match value {
-                TypedArrayElement::Int8(e) => write_to_buffer(buffer, e, order),
-                TypedArrayElement::Uint8(e) => write_to_buffer(buffer, e, order),
-                TypedArrayElement::Uint8Clamped(e) => write_to_buffer(buffer, e, order),
-                TypedArrayElement::Int16(e) => write_to_buffer(buffer, e, order),
-                TypedArrayElement::Uint16(e) => write_to_buffer(buffer, e, order),
-                TypedArrayElement::Int32(e) => write_to_buffer(buffer, e, order),
-                TypedArrayElement::Uint32(e) => write_to_buffer(buffer, e, order),
-                TypedArrayElement::BigInt64(e) => write_to_buffer(buffer, e, order),
-                TypedArrayElement::BigUint64(e) => write_to_buffer(buffer, e, order),
-                TypedArrayElement::Float32(e) => write_to_buffer(buffer, e, order),
-                TypedArrayElement::Float64(e) => write_to_buffer(buffer, e, order),
+                TypedArrayElement::Int8(e) => write_elem(buffer, e, order),
+                TypedArrayElement::Uint8(e) => write_elem(buffer, e, order),
+                TypedArrayElement::Uint8Clamped(e) => write_elem(buffer, e, order),
+                TypedArrayElement::Int16(e) => write_elem(buffer, e, order),
+                TypedArrayElement::Uint16(e) => write_elem(buffer, e, order),
+                TypedArrayElement::Int32(e) => write_elem(buffer, e, order),
+                TypedArrayElement::Uint32(e) => write_elem(buffer, e, order),
+                TypedArrayElement::BigInt64(e) => write_elem(buffer, e, order),
+                TypedArrayElement::BigUint64(e) => write_elem(buffer, e, order),
+                TypedArrayElement::Float32(e) => write_elem(buffer, e, order),
+                TypedArrayElement::Float64(e) => write_elem(buffer, e, order),
             }
         }
     }
@@ -286,17 +290,22 @@ impl SliceRefMut<'_> {
 
 impl<'a> From<&'a mut [u8]> for SliceRefMut<'a> {
     fn from(value: &'a mut [u8]) -> Self {
-        Self::Common(value)
+        Self::Slice(value)
     }
 }
 
 impl<'a> From<&'a [AtomicU8]> for SliceRefMut<'a> {
     fn from(value: &'a [AtomicU8]) -> Self {
-        Self::Atomic(value)
+        Self::AtomicSlice(value)
     }
 }
 
 /// Copies `count` bytes from `src` into `dest` using atomic relaxed loads and stores.
+///
+/// # Safety
+///
+/// - Both `src` and `dest` must have at least `count` bytes to read and write,
+/// respectively.
 pub(super) unsafe fn copy_shared_to_shared(src: &[AtomicU8], dest: &[AtomicU8], count: usize) {
     // TODO: this could be optimized with batches of writes using `u32/u64` stores instead.
     for i in 0..count {
@@ -310,6 +319,12 @@ pub(super) unsafe fn copy_shared_to_shared(src: &[AtomicU8], dest: &[AtomicU8], 
     }
 }
 
+/// Copies `count` bytes backwards from `src` into `dest` using atomic relaxed loads and stores.
+///
+/// # Safety
+///
+/// - Both `src` and `dest` must have at least `count` bytes to read and write,
+/// respectively.
 unsafe fn copy_shared_to_shared_backwards(src: &[AtomicU8], dest: &[AtomicU8], count: usize) {
     for i in (0..count).rev() {
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
@@ -327,35 +342,42 @@ unsafe fn copy_shared_to_shared_backwards(src: &[AtomicU8], dest: &[AtomicU8], c
 ///
 /// # Safety
 ///
-/// - Both `src.len()` and `dest.len()` must have at least `count` bytes to read and write,
-/// respectively.
+/// - Both `src` and `dest` must have at least `count` bytes to read and write, respectively.
+/// - The region of memory referenced by `src` must not overlap with the region of memory
+///   referenced by `dest`. This is guaranteed if either of them are slices
+///   (you cannot borrow and mutably borrow a slice at the same time), but cannot be guaranteed
+///   for atomic slices.
 pub(crate) unsafe fn memcpy(src: SliceRef<'_>, dest: SliceRefMut<'_>, count: usize) {
     if cfg!(debug_assertions) {
         assert!(src.len() >= count);
         assert!(dest.len() >= count);
+        let src_range = src.addr()..src.addr() + src.len();
+        let dest_range = dest.addr()..dest.addr() + dest.len();
+        assert!(!src_range.contains(&dest_range.start));
+        assert!(!src_range.contains(&dest_range.end));
     }
 
     // TODO: this could be optimized with batches of writes using `u32/u64` stores instead.
     match (src, dest) {
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        (SliceRef::Common(src), SliceRefMut::Common(dest)) => unsafe {
+        (SliceRef::Slice(src), SliceRefMut::Slice(dest)) => unsafe {
             ptr::copy_nonoverlapping(src.as_ptr(), dest.as_mut_ptr(), count);
         },
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        (SliceRef::Common(src), SliceRefMut::Atomic(dest)) => unsafe {
+        (SliceRef::Slice(src), SliceRefMut::AtomicSlice(dest)) => unsafe {
             for i in 0..count {
                 dest.get_unchecked(i)
                     .store(*src.get_unchecked(i), atomic::Ordering::Relaxed);
             }
         },
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        (SliceRef::Atomic(src), SliceRefMut::Common(dest)) => unsafe {
+        (SliceRef::AtomicSlice(src), SliceRefMut::Slice(dest)) => unsafe {
             for i in 0..count {
                 *dest.get_unchecked_mut(i) = src.get_unchecked(i).load(atomic::Ordering::Relaxed);
             }
         },
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        (SliceRef::Atomic(src), SliceRefMut::Atomic(dest)) => unsafe {
+        (SliceRef::AtomicSlice(src), SliceRefMut::AtomicSlice(dest)) => unsafe {
             copy_shared_to_shared(src, dest, count);
         },
     }
@@ -365,8 +387,8 @@ pub(crate) unsafe fn memcpy(src: SliceRef<'_>, dest: SliceRefMut<'_>, count: usi
 ///
 /// # Safety
 ///
-/// - `from + count <= buffer.len()`
-/// - `to + count <= buffer.len()`
+/// - `buffer` must contain at least `from + count` bytes to be read.
+/// - `buffer` must contain at least `to + count` bytes to be written.
 pub(crate) unsafe fn memmove(buffer: SliceRefMut<'_>, from: usize, to: usize, count: usize) {
     if cfg!(debug_assertions) {
         assert!(from + count <= buffer.len());
@@ -375,14 +397,14 @@ pub(crate) unsafe fn memmove(buffer: SliceRefMut<'_>, from: usize, to: usize, co
 
     match buffer {
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        SliceRefMut::Common(buf) => unsafe {
+        SliceRefMut::Slice(buf) => unsafe {
             let ptr = buf.as_mut_ptr();
             let src_ptr = ptr.add(from);
             let dest_ptr = ptr.add(to);
             ptr::copy(src_ptr, dest_ptr, count);
         },
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        SliceRefMut::Atomic(buf) => unsafe {
+        SliceRefMut::AtomicSlice(buf) => unsafe {
             let src = buf.get_unchecked(from..);
             let dest = buf.get_unchecked(to..);
 
@@ -395,7 +417,7 @@ pub(crate) unsafe fn memmove(buffer: SliceRefMut<'_>, from: usize, to: usize, co
             // `to = 2`
             // `count = 4`
             //
-            // We can now imagine that the array is pointer to by our indices:
+            // We can now imagine that the array is pointed to by our indices:
             //
             // | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
             //   ^       ^

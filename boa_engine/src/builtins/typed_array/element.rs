@@ -86,8 +86,8 @@ impl Element for u8 {
         debug_assert!(buffer.len() >= 1);
 
         match buffer {
-            SliceRef::Common(buffer) => unsafe { *buffer.get_unchecked(0) },
-            SliceRef::Atomic(buffer) => unsafe { buffer.get_unchecked(0).load(order) },
+            SliceRef::Slice(buffer) => unsafe { *buffer.get_unchecked(0) },
+            SliceRef::AtomicSlice(buffer) => unsafe { buffer.get_unchecked(0).load(order) },
         }
     }
 
@@ -95,10 +95,12 @@ impl Element for u8 {
         debug_assert!(buffer.len() >= 1);
 
         match buffer {
-            SliceRefMut::Common(buffer) => unsafe {
+            SliceRefMut::Slice(buffer) => unsafe {
                 *buffer.get_unchecked_mut(0) = value;
             },
-            SliceRefMut::Atomic(buffer) => unsafe { buffer.get_unchecked(0).store(value, order) },
+            SliceRefMut::AtomicSlice(buffer) => unsafe {
+                buffer.get_unchecked(0).store(value, order);
+            },
         }
     }
 }
@@ -123,8 +125,8 @@ impl Element for u16 {
         }
 
         match buffer {
-            SliceRef::Common(buffer) => unsafe { *buffer.as_ptr().cast() },
-            SliceRef::Atomic(buffer) => unsafe {
+            SliceRef::Slice(buffer) => unsafe { *buffer.as_ptr().cast() },
+            SliceRef::AtomicSlice(buffer) => unsafe {
                 (*buffer.as_ptr().cast::<AtomicU16>()).load(order)
             },
         }
@@ -137,10 +139,10 @@ impl Element for u16 {
         }
 
         match buffer {
-            SliceRefMut::Common(buffer) => unsafe {
+            SliceRefMut::Slice(buffer) => unsafe {
                 *buffer.as_mut_ptr().cast() = value;
             },
-            SliceRefMut::Atomic(buffer) => unsafe {
+            SliceRefMut::AtomicSlice(buffer) => unsafe {
                 (*buffer.as_ptr().cast::<AtomicU16>()).store(value, order);
             },
         }
@@ -167,8 +169,8 @@ impl Element for u32 {
         }
 
         match buffer {
-            SliceRef::Common(buffer) => unsafe { *buffer.as_ptr().cast() },
-            SliceRef::Atomic(buffer) => unsafe {
+            SliceRef::Slice(buffer) => unsafe { *buffer.as_ptr().cast() },
+            SliceRef::AtomicSlice(buffer) => unsafe {
                 (*buffer.as_ptr().cast::<AtomicU32>()).load(order)
             },
         }
@@ -181,10 +183,10 @@ impl Element for u32 {
         }
 
         match buffer {
-            SliceRefMut::Common(buffer) => unsafe {
+            SliceRefMut::Slice(buffer) => unsafe {
                 *buffer.as_mut_ptr().cast() = value;
             },
-            SliceRefMut::Atomic(buffer) => unsafe {
+            SliceRefMut::AtomicSlice(buffer) => unsafe {
                 (*buffer.as_ptr().cast::<AtomicU32>()).store(value, order);
             },
         }
@@ -211,8 +213,8 @@ impl Element for u64 {
         }
 
         match buffer {
-            SliceRef::Common(buffer) => unsafe { *buffer.as_ptr().cast() },
-            SliceRef::Atomic(buffer) => unsafe {
+            SliceRef::Slice(buffer) => unsafe { *buffer.as_ptr().cast() },
+            SliceRef::AtomicSlice(buffer) => unsafe {
                 (*buffer.as_ptr().cast::<AtomicU64>()).load(order)
             },
         }
@@ -225,10 +227,10 @@ impl Element for u64 {
         }
 
         match buffer {
-            SliceRefMut::Common(buffer) => unsafe {
+            SliceRefMut::Slice(buffer) => unsafe {
                 *buffer.as_mut_ptr().cast() = value;
             },
-            SliceRefMut::Atomic(buffer) => unsafe {
+            SliceRefMut::AtomicSlice(buffer) => unsafe {
                 (*buffer.as_ptr().cast::<AtomicU64>()).store(value, order);
             },
         }

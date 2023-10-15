@@ -195,7 +195,6 @@ impl SharedArrayBuffer {
         )?;
 
         // 14. Let ctor be ? SpeciesConstructor(O, %SharedArrayBuffer%).
-
         let ctor = obj.species_constructor(StandardConstructors::shared_array_buffer, context)?;
 
         // 15. Let new be ? Construct(ctor, « 𝔽(newLen) »).
@@ -226,11 +225,11 @@ impl SharedArrayBuffer {
 
             // 20. Let fromBuf be O.[[ArrayBufferData]].
             let from_buf = buf.data();
+
             // 21. Let toBuf be new.[[ArrayBufferData]].
             let to_buf = new_buf.data();
 
             // 22. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
-
             let first = first as usize;
             let new_len = new_len as usize;
 

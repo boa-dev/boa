@@ -402,7 +402,7 @@ impl DataView {
             let mut value = T::zeroed();
             memcpy(
                 data.subslice(buffer_index..),
-                SliceRefMut::Common(bytes_of_mut(&mut value)),
+                SliceRefMut::Slice(bytes_of_mut(&mut value)),
                 mem::size_of::<T>(),
             );
 
@@ -722,7 +722,7 @@ impl DataView {
             };
 
             memcpy(
-                SliceRef::Common(bytes_of(&value)),
+                SliceRef::Slice(bytes_of(&value)),
                 data.subslice_mut(buffer_index..),
                 mem::size_of::<T>(),
             );

@@ -40,15 +40,15 @@ use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum BufferRef<'a> {
-    Common(&'a ArrayBuffer),
-    Shared(&'a SharedArrayBuffer),
+    Buffer(&'a ArrayBuffer),
+    SharedBuffer(&'a SharedArrayBuffer),
 }
 
 impl BufferRef<'_> {
     pub(crate) fn data(&self) -> Option<SliceRef<'_>> {
         match self {
-            Self::Common(buf) => buf.data().map(SliceRef::Common),
-            Self::Shared(buf) => Some(SliceRef::Atomic(buf.data())),
+            Self::Buffer(buf) => buf.data().map(SliceRef::Slice),
+            Self::SharedBuffer(buf) => Some(SliceRef::AtomicSlice(buf.data())),
         }
     }
 
@@ -59,15 +59,15 @@ impl BufferRef<'_> {
 
 #[derive(Debug)]
 pub(crate) enum BufferRefMut<'a> {
-    Common(&'a mut ArrayBuffer),
-    Shared(&'a mut SharedArrayBuffer),
+    Buffer(&'a mut ArrayBuffer),
+    SharedBuffer(&'a mut SharedArrayBuffer),
 }
 
 impl BufferRefMut<'_> {
     pub(crate) fn data_mut(&mut self) -> Option<SliceRefMut<'_>> {
         match self {
-            Self::Common(buf) => buf.data_mut().map(SliceRefMut::Common),
-            Self::Shared(buf) => Some(SliceRefMut::Atomic(buf.data())),
+            Self::Buffer(buf) => buf.data_mut().map(SliceRefMut::Slice),
+            Self::SharedBuffer(buf) => Some(SliceRefMut::AtomicSlice(buf.data())),
         }
     }
 }

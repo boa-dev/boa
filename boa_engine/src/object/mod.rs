@@ -1334,8 +1334,8 @@ impl Object {
     #[must_use]
     pub(crate) const fn as_buffer(&self) -> Option<BufferRef<'_>> {
         match &self.kind {
-            ObjectKind::ArrayBuffer(buffer) => Some(BufferRef::Common(buffer)),
-            ObjectKind::SharedArrayBuffer(buffer) => Some(BufferRef::Shared(buffer)),
+            ObjectKind::ArrayBuffer(buffer) => Some(BufferRef::Buffer(buffer)),
+            ObjectKind::SharedArrayBuffer(buffer) => Some(BufferRef::SharedBuffer(buffer)),
             _ => None,
         }
     }
@@ -1344,8 +1344,8 @@ impl Object {
     #[inline]
     pub(crate) fn as_buffer_mut(&mut self) -> Option<BufferRefMut<'_>> {
         match &mut self.kind {
-            ObjectKind::ArrayBuffer(buffer) => Some(BufferRefMut::Common(buffer)),
-            ObjectKind::SharedArrayBuffer(buffer) => Some(BufferRefMut::Shared(buffer)),
+            ObjectKind::ArrayBuffer(buffer) => Some(BufferRefMut::Buffer(buffer)),
+            ObjectKind::SharedArrayBuffer(buffer) => Some(BufferRefMut::SharedBuffer(buffer)),
             _ => None,
         }
     }
