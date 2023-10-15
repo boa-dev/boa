@@ -2,7 +2,6 @@ use std::matches;
 
 use crate::{
     builtins::{iterable::create_iter_result_object, Array},
-    js_string,
     vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
     Context, JsResult,
 };
@@ -242,10 +241,7 @@ impl Operation for IteratorReturn {
             .pop()
             .expect("iterator on the call frame must exist");
 
-        let Some(ret) = record
-            .iterator()
-            .get_method(js_string!("return"), context)?
-        else {
+        let Some(ret) = record.iterator().get_method("return", context)? else {
             context.vm.push(false);
             return Ok(CompletionType::Normal);
         };

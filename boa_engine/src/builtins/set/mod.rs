@@ -22,11 +22,10 @@ use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
@@ -46,15 +45,15 @@ impl IntrinsicObject for Set {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
-            .name(js_string!("get [Symbol.species]"))
+            .name("get [Symbol.species]")
             .build();
 
         let size_getter = BuiltInBuilder::callable(realm, Self::size_getter)
-            .name(js_string!("get size"))
+            .name("get size")
             .build();
 
         let values_function = BuiltInBuilder::callable(realm, Self::values)
-            .name(js_string!("values"))
+            .name("values")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -64,25 +63,20 @@ impl IntrinsicObject for Set {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::add, js_string!("add"), 1)
-            .method(Self::clear, js_string!("clear"), 0)
-            .method(Self::delete, js_string!("delete"), 1)
-            .method(Self::entries, js_string!("entries"), 0)
-            .method(Self::for_each, js_string!("forEach"), 1)
-            .method(Self::has, js_string!("has"), 1)
+            .method(Self::add, "add", 1)
+            .method(Self::clear, "clear", 0)
+            .method(Self::delete, "delete", 1)
+            .method(Self::entries, "entries", 0)
+            .method(Self::for_each, "forEach", 1)
+            .method(Self::has, "has", 1)
             .property(
-                utf16!("keys"),
+                "keys",
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .accessor(
-                utf16!("size"),
-                Some(size_getter),
-                None,
-                Attribute::CONFIGURABLE,
-            )
+            .accessor("size", Some(size_getter), None, Attribute::CONFIGURABLE)
             .property(
-                utf16!("values"),
+                "values",
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -138,7 +132,7 @@ impl BuiltInConstructor for Set {
         }
 
         // 5. Let adder be ? Get(set, "add").
-        let adder = set.get(utf16!("add"), context)?;
+        let adder = set.get("add", context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder.as_callable().ok_or_else(|| {

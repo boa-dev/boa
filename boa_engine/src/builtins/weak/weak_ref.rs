@@ -39,7 +39,7 @@ impl IntrinsicObject for WeakRef {
                 js_string!("WeakRef"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::deref, js_string!("deref"), 0)
+            .method(Self::deref, "deref", 0)
             .build();
     }
 }

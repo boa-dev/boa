@@ -8,7 +8,6 @@ use boa_engine::{
     native_function::NativeFunction,
     object::{builtins::JsArray, FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
-    string::utf16,
     Context, JsError, JsNativeError, JsString, JsValue, Source,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
@@ -53,7 +52,7 @@ fn main() -> Result<(), JsError> {
     // We create a new `JsObject` with some data
     let object = JsObject::with_object_proto(context.intrinsics());
     object.define_property_or_throw(
-        js_string!("name"),
+        "name",
         PropertyDescriptor::builder()
             .value(js_string!("Boa dev"))
             .writable(false)
@@ -78,18 +77,18 @@ fn main() -> Result<(), JsError> {
                 let BigStruct { greeting, object } = &mut *captures;
                 println!("Called `createMessage`");
                 // We obtain the `name` property of `captures.object`
-                let name = object.get(js_string!("name"), context)?;
+                let name = object.get("name", context)?;
 
                 // We create a new message from our captured variable.
                 let message = js_string!(
-                    utf16!("message from `"),
+                    "message from `",
                     &name.to_string(context)?,
-                    utf16!("`: "),
-                    greeting
+                    "`: ",
+                    &*greeting
                 );
 
                 // We can also mutate the moved data inside the closure.
-                captures.greeting = js_string!(greeting, utf16!(" Hello!"));
+                captures.greeting = js_string!(&*greeting, " Hello!");
 
                 println!("{}", message.to_std_string_escaped());
                 println!();
@@ -112,7 +111,7 @@ fn main() -> Result<(), JsError> {
         .register_global_property(
             // We set the key to access the function the same as its name for
             // consistency, but it may be different if needed.
-            js_string!("createMessage"),
+            "createMessage",
             // We pass `js_function` as a property value.
             js_function,
             // We assign to the "createMessage" property the desired attributes.

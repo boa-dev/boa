@@ -113,7 +113,6 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::utf16,
     Context, JsResult, JsString, JsValue,
 };
 
@@ -311,7 +310,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     let global_object = context.global_object();
 
     global_object.define_property_or_throw(
-        utf16!("globalThis"),
+        "globalThis",
         PropertyDescriptor::builder()
             .value(context.realm().global_this().clone())
             .writable(true)
@@ -324,17 +323,13 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
         .enumerable(false)
         .configurable(false);
     global_object.define_property_or_throw(
-        utf16!("Infinity"),
+        "Infinity",
         restricted.clone().value(f64::INFINITY),
         context,
     )?;
+    global_object.define_property_or_throw("NaN", restricted.clone().value(f64::NAN), context)?;
     global_object.define_property_or_throw(
-        utf16!("NaN"),
-        restricted.clone().value(f64::NAN),
-        context,
-    )?;
-    global_object.define_property_or_throw(
-        utf16!("undefined"),
+        "undefined",
         restricted.value(JsValue::undefined()),
         context,
     )?;
@@ -504,7 +499,7 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
             function.realm = Some(self.realm);
         }
         object.insert(
-            utf16!("length"),
+            "length",
             PropertyDescriptor::builder()
                 .value(self.length)
                 .writable(false)
@@ -512,7 +507,7 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
                 .configurable(true),
         );
         object.insert(
-            utf16!("name"),
+            "name",
             PropertyDescriptor::builder()
                 .value(self.name)
                 .writable(false)
@@ -755,8 +750,8 @@ impl BuiltInConstructorWithPrototype<'_> {
         let length = self.length;
         let name = self.name.clone();
         let prototype = self.prototype.clone();
-        self = self.static_property(js_string!("length"), length, Attribute::CONFIGURABLE);
-        self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
+        self = self.static_property("length", length, Attribute::CONFIGURABLE);
+        self = self.static_property("name", name, Attribute::CONFIGURABLE);
         self = self.static_property(PROTOTYPE, prototype, Attribute::empty());
 
         let attributes = self.attributes;
@@ -803,8 +798,8 @@ impl BuiltInConstructorWithPrototype<'_> {
     fn build_without_prototype(mut self) {
         let length = self.length;
         let name = self.name.clone();
-        self = self.static_property(js_string!("length"), length, Attribute::CONFIGURABLE);
-        self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
+        self = self.static_property("length", length, Attribute::CONFIGURABLE);
+        self = self.static_property("name", name, Attribute::CONFIGURABLE);
 
         let mut object = self.object.borrow_mut();
         let function = object
@@ -847,8 +842,11 @@ impl BuiltInCallable<'_> {
     /// Specify the name of the constructor function.
     ///
     /// Default is `""`
-    fn name(mut self, name: JsString) -> Self {
-        self.name = name;
+    fn name<N>(mut self, name: N) -> Self
+    where
+        N: Into<JsString>,
+    {
+        self.name = name.into();
         self
     }
 
@@ -997,8 +995,11 @@ impl<FnTyp> BuiltInBuilder<'_, Callable<FnTyp>> {
     /// Specify the name of the constructor function.
     ///
     /// Default is `""`
-    fn name(mut self, name: JsString) -> Self {
-        self.kind.name = name;
+    fn name<N>(mut self, name: N) -> Self
+    where
+        N: Into<JsString>,
+    {
+        self.kind.name = name.into();
         self
     }
 }

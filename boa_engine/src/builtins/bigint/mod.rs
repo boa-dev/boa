@@ -42,10 +42,10 @@ impl IntrinsicObject for BigInt {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::to_string, js_string!("toString"), 0)
-            .method(Self::value_of, js_string!("valueOf"), 0)
-            .static_method(Self::as_int_n, js_string!("asIntN"), 2)
-            .static_method(Self::as_uint_n, js_string!("asUintN"), 2)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::value_of, "valueOf", 0)
+            .static_method(Self::as_int_n, "asIntN", 2)
+            .static_method(Self::as_uint_n, "asUintN", 2)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,

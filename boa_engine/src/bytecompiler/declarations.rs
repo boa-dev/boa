@@ -457,7 +457,7 @@ impl ByteCompiler<'_, '_> {
             .map(|ident| {
                 self.context
                     .interner()
-                    .get(ident.as_slice())
+                    .get(ident.as_str().as_str_ref())
                     .expect("string should be in interner")
             })
             .collect();

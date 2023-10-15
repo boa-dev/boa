@@ -52,18 +52,18 @@ impl IntrinsicObject for Atomics {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(Atomics::add, js_string!("add"), 3)
-            .static_method(Atomics::bit_and, js_string!("and"), 3)
-            .static_method(Atomics::compare_exchange, js_string!("compareExchange"), 4)
-            .static_method(Atomics::swap, js_string!("exchange"), 3)
-            .static_method(Atomics::is_lock_free, js_string!("isLockFree"), 1)
-            .static_method(Atomics::load, js_string!("load"), 2)
-            .static_method(Atomics::bit_or, js_string!("or"), 3)
-            .static_method(Atomics::store, js_string!("store"), 3)
-            .static_method(Atomics::sub, js_string!("sub"), 3)
-            .static_method(Atomics::wait, js_string!("wait"), 4)
-            .static_method(Atomics::notify, js_string!("notify"), 3)
-            .static_method(Atomics::bit_xor, js_string!("xor"), 3)
+            .static_method(Atomics::add, "add", 3)
+            .static_method(Atomics::bit_and, "and", 3)
+            .static_method(Atomics::compare_exchange, "compareExchange", 4)
+            .static_method(Atomics::swap, "exchange", 3)
+            .static_method(Atomics::is_lock_free, "isLockFree", 1)
+            .static_method(Atomics::load, "load", 2)
+            .static_method(Atomics::bit_or, "or", 3)
+            .static_method(Atomics::store, "store", 3)
+            .static_method(Atomics::sub, "sub", 3)
+            .static_method(Atomics::wait, "wait", 4)
+            .static_method(Atomics::notify, "notify", 3)
+            .static_method(Atomics::bit_xor, "xor", 3)
             .build();
     }
 

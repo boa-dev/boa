@@ -13,11 +13,10 @@ use crate::{
         IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
@@ -40,10 +39,10 @@ impl IntrinsicObject for WeakMap {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::delete, js_string!("delete"), 1)
-            .method(Self::get, js_string!("get"), 1)
-            .method(Self::has, js_string!("has"), 1)
-            .method(Self::set, js_string!("set"), 2)
+            .method(Self::delete, "delete", 1)
+            .method(Self::get, "get", 1)
+            .method(Self::has, "has", 1)
+            .method(Self::set, "set", 2)
             .build();
     }
 }
@@ -98,7 +97,7 @@ impl BuiltInConstructor for WeakMap {
         }
 
         // 5. Let adder be ? Get(map, "set").
-        let adder = map.get(utf16!("set"), context)?;
+        let adder = map.get("set", context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         if !adder.is_callable() {

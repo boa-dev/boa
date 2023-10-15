@@ -7,7 +7,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
@@ -30,35 +30,35 @@ impl IntrinsicObject for PlainYearMonth {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
-            .name(js_string!("get calendarId"))
+            .name("get calendarId")
             .build();
 
         let get_year = BuiltInBuilder::callable(realm, Self::get_year)
-            .name(js_string!("get year"))
+            .name("get year")
             .build();
 
         let get_month = BuiltInBuilder::callable(realm, Self::get_month)
-            .name(js_string!("get month"))
+            .name("get month")
             .build();
 
         let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
-            .name(js_string!("get monthCode"))
+            .name("get monthCode")
             .build();
 
         let get_days_in_month = BuiltInBuilder::callable(realm, Self::get_days_in_month)
-            .name(js_string!("get daysInMonth"))
+            .name("get daysInMonth")
             .build();
 
         let get_days_in_year = BuiltInBuilder::callable(realm, Self::get_days_in_year)
-            .name(js_string!("get daysInYear"))
+            .name("get daysInYear")
             .build();
 
         let get_months_in_year = BuiltInBuilder::callable(realm, Self::get_months_in_year)
-            .name(js_string!("get monthsInYear"))
+            .name("get monthsInYear")
             .build();
 
         let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year)
-            .name(js_string!("get inLeapYear"))
+            .name("get inLeapYear")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -68,49 +68,49 @@ impl IntrinsicObject for PlainYearMonth {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("calendarId"),
+                "calendarId",
                 Some(get_calendar_id),
                 None,
                 Attribute::default(),
             )
-            .accessor(utf16!("year"), Some(get_year), None, Attribute::default())
-            .accessor(utf16!("month"), Some(get_month), None, Attribute::default())
+            .accessor("year", Some(get_year), None, Attribute::default())
+            .accessor("month", Some(get_month), None, Attribute::default())
             .accessor(
-                utf16!("monthCode"),
+                "monthCode",
                 Some(get_month_code),
                 None,
                 Attribute::default(),
             )
             .accessor(
-                utf16!("daysInMonth"),
+                "daysInMonth",
                 Some(get_days_in_month),
                 None,
                 Attribute::default(),
             )
             .accessor(
-                utf16!("daysInYear"),
+                "daysInYear",
                 Some(get_days_in_year),
                 None,
                 Attribute::default(),
             )
             .accessor(
-                utf16!("monthsInYear"),
+                "monthsInYear",
                 Some(get_months_in_year),
                 None,
                 Attribute::default(),
             )
             .accessor(
-                utf16!("inLeapYear"),
+                "inLeapYear",
                 Some(get_in_leap_year),
                 None,
                 Attribute::default(),
             )
-            .method(Self::with, js_string!("with"), 2)
-            .method(Self::add, js_string!("add"), 2)
-            .method(Self::subtract, js_string!("subtract"), 2)
-            .method(Self::until, js_string!("until"), 2)
-            .method(Self::since, js_string!("since"), 2)
-            .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::with, "with", 2)
+            .method(Self::add, "add", 2)
+            .method(Self::subtract, "subtract", 2)
+            .method(Self::until, "until", 2)
+            .method(Self::since, "since", 2)
+            .method(Self::equals, "equals", 1)
             .build();
     }
 

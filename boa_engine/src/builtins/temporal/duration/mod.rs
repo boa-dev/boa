@@ -7,11 +7,10 @@ use crate::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
@@ -50,51 +49,51 @@ impl IntrinsicObject for Duration {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_years = BuiltInBuilder::callable(realm, Self::get_years)
-            .name(js_string!("get Years"))
+            .name("get Years")
             .build();
 
         let get_months = BuiltInBuilder::callable(realm, Self::get_months)
-            .name(js_string!("get Months"))
+            .name("get Months")
             .build();
 
         let get_weeks = BuiltInBuilder::callable(realm, Self::get_weeks)
-            .name(js_string!("get Weeks"))
+            .name("get Weeks")
             .build();
 
         let get_days = BuiltInBuilder::callable(realm, Self::get_days)
-            .name(js_string!("get Days"))
+            .name("get Days")
             .build();
 
         let get_hours = BuiltInBuilder::callable(realm, Self::get_hours)
-            .name(js_string!("get Hours"))
+            .name("get Hours")
             .build();
 
         let get_minutes = BuiltInBuilder::callable(realm, Self::get_minutes)
-            .name(js_string!("get Minutes"))
+            .name("get Minutes")
             .build();
 
         let get_seconds = BuiltInBuilder::callable(realm, Self::get_seconds)
-            .name(js_string!("get Seconds"))
+            .name("get Seconds")
             .build();
 
         let get_milliseconds = BuiltInBuilder::callable(realm, Self::get_milliseconds)
-            .name(js_string!("get Milliseconds"))
+            .name("get Milliseconds")
             .build();
 
         let get_microseconds = BuiltInBuilder::callable(realm, Self::get_microseconds)
-            .name(js_string!("get Microseconds"))
+            .name("get Microseconds")
             .build();
 
         let get_nanoseconds = BuiltInBuilder::callable(realm, Self::get_nanoseconds)
-            .name(js_string!("get Nanoseconds"))
+            .name("get Nanoseconds")
             .build();
 
         let get_sign = BuiltInBuilder::callable(realm, Self::get_sign)
-            .name(js_string!("get Sign"))
+            .name("get Sign")
             .build();
 
         let is_blank = BuiltInBuilder::callable(realm, Self::get_blank)
-            .name(js_string!("get blank"))
+            .name("get blank")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -103,57 +102,42 @@ impl IntrinsicObject for Duration {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("years"), Some(get_years), None, Attribute::default())
+            .accessor("years", Some(get_years), None, Attribute::default())
+            .accessor("months", Some(get_months), None, Attribute::default())
+            .accessor("weeks", Some(get_weeks), None, Attribute::default())
+            .accessor("days", Some(get_days), None, Attribute::default())
+            .accessor("hours", Some(get_hours), None, Attribute::default())
+            .accessor("minutes", Some(get_minutes), None, Attribute::default())
+            .accessor("seconds", Some(get_seconds), None, Attribute::default())
             .accessor(
-                utf16!("months"),
-                Some(get_months),
-                None,
-                Attribute::default(),
-            )
-            .accessor(utf16!("weeks"), Some(get_weeks), None, Attribute::default())
-            .accessor(utf16!("days"), Some(get_days), None, Attribute::default())
-            .accessor(utf16!("hours"), Some(get_hours), None, Attribute::default())
-            .accessor(
-                utf16!("minutes"),
-                Some(get_minutes),
-                None,
-                Attribute::default(),
-            )
-            .accessor(
-                utf16!("seconds"),
-                Some(get_seconds),
-                None,
-                Attribute::default(),
-            )
-            .accessor(
-                utf16!("milliseconds"),
+                "milliseconds",
                 Some(get_milliseconds),
                 None,
                 Attribute::default(),
             )
             .accessor(
-                utf16!("microseconds"),
+                "microseconds",
                 Some(get_microseconds),
                 None,
                 Attribute::default(),
             )
             .accessor(
-                utf16!("nanoseconds"),
+                "nanoseconds",
                 Some(get_nanoseconds),
                 None,
                 Attribute::default(),
             )
-            .accessor(utf16!("sign"), Some(get_sign), None, Attribute::default())
-            .accessor(utf16!("blank"), Some(is_blank), None, Attribute::default())
-            .method(Self::with, js_string!("with"), 1)
-            .method(Self::negated, js_string!("negated"), 0)
-            .method(Self::abs, js_string!("abs"), 0)
-            .method(Self::add, js_string!("add"), 2)
-            .method(Self::subtract, js_string!("subtract"), 2)
-            .method(Self::round, js_string!("round"), 1)
-            .method(Self::total, js_string!("total"), 1)
-            .method(Self::to_string, js_string!("toString"), 1)
-            .method(Self::to_json, js_string!("toJSON"), 0)
+            .accessor("sign", Some(get_sign), None, Attribute::default())
+            .accessor("blank", Some(is_blank), None, Attribute::default())
+            .method(Self::with, "with", 1)
+            .method(Self::negated, "negated", 0)
+            .method(Self::abs, "abs", 0)
+            .method(Self::add, "add", 2)
+            .method(Self::subtract, "subtract", 2)
+            .method(Self::round, "round", 1)
+            .method(Self::total, "total", 1)
+            .method(Self::to_string, "toString", 1)
+            .method(Self::to_json, "toJSON", 0)
             .build();
     }
 
@@ -597,7 +581,7 @@ impl Duration {
                 let new_round_to = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 new_round_to.create_data_property_or_throw(
-                    utf16!("smallestUnit"),
+                    "smallestUnit",
                     param_string,
                     context,
                 )?;
@@ -618,7 +602,7 @@ impl Duration {
         // 9. Let largestUnit be ? GetTemporalUnit(roundTo, "largestUnit", datetime, undefined, « "auto" »).
         let largest_unit = get_temporal_unit(
             &round_to,
-            utf16!("largestUnit"),
+            "largestUnit",
             TemporalUnitGroup::DateTime,
             Some([TemporalUnit::Auto].into()),
             context,
@@ -634,13 +618,13 @@ impl Duration {
         let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let _rounding_mode = get_option(&round_to, utf16!("roundingMode"), context)?
-            .unwrap_or(RoundingMode::HalfExpand);
+        let _rounding_mode =
+            get_option(&round_to, "roundingMode", context)?.unwrap_or(RoundingMode::HalfExpand);
 
         // 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
         let smallest_unit = get_temporal_unit(
             &round_to,
-            utf16!("smallestUnit"),
+            "smallestUnit",
             TemporalUnitGroup::DateTime,
             None,
             context,
@@ -736,11 +720,7 @@ impl Duration {
                 // b. Set totalOf to OrdinaryObjectCreate(null).
                 let total_of = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(totalOf, "unit", paramString).
-                total_of.create_data_property_or_throw(
-                    utf16!("unit"),
-                    param_string.clone(),
-                    context,
-                )?;
+                total_of.create_data_property_or_throw("unit", param_string.clone(), context)?;
                 total_of
             }
             // 5. Else,
@@ -760,7 +740,7 @@ impl Duration {
         // 10. Let unit be ? GetTemporalUnit(totalOf, "unit", datetime, required).
         let _unit = get_temporal_unit(
             &total_of,
-            utf16!("unit"),
+            "unit",
             TemporalUnitGroup::DateTime,
             None,
             context,

@@ -99,11 +99,7 @@ impl IntrinsicObject for Intl {
                     .constructor(),
                 DateTimeFormat::ATTRIBUTE,
             )
-            .static_method(
-                Self::get_canonical_locales,
-                js_string!("getCanonicalLocales"),
-                1,
-            )
+            .static_method(Self::get_canonical_locales, "getCanonicalLocales", 1)
             .build();
     }
 

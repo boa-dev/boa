@@ -10,7 +10,6 @@ use crate::{
     context::{icu::Icu, BoaProvider},
     js_string,
     object::JsObject,
-    string::utf16,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -546,7 +545,7 @@ where
     let options = coerce_options_to_object(options, context)?;
 
     // 2. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
-    let matcher = get_option(&options, utf16!("localeMatcher"), context)?.unwrap_or_default();
+    let matcher = get_option(&options, "localeMatcher", context)?.unwrap_or_default();
 
     let elements = match matcher {
         // 4. Else,

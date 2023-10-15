@@ -14,11 +14,10 @@ use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
@@ -43,15 +42,15 @@ impl IntrinsicObject for Map {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
-            .name(js_string!("get [Symbol.species]"))
+            .name("get [Symbol.species]")
             .build();
 
         let get_size = BuiltInBuilder::callable(realm, Self::get_size)
-            .name(js_string!("get size"))
+            .name("get size")
             .build();
 
         let entries_function = BuiltInBuilder::callable(realm, Self::entries)
-            .name(js_string!("entries"))
+            .name("entries")
             .build();
 
         let obj = BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -62,7 +61,7 @@ impl IntrinsicObject for Map {
                 Attribute::CONFIGURABLE,
             )
             .property(
-                utf16!("entries"),
+                "entries",
                 entries_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -76,23 +75,18 @@ impl IntrinsicObject for Map {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::clear, js_string!("clear"), 0)
-            .method(Self::delete, js_string!("delete"), 1)
-            .method(Self::for_each, js_string!("forEach"), 1)
-            .method(Self::get, js_string!("get"), 1)
-            .method(Self::has, js_string!("has"), 1)
-            .method(Self::keys, js_string!("keys"), 0)
-            .method(Self::set, js_string!("set"), 2)
-            .method(Self::values, js_string!("values"), 0)
-            .accessor(
-                js_string!("size"),
-                Some(get_size),
-                None,
-                Attribute::CONFIGURABLE,
-            );
+            .method(Self::clear, "clear", 0)
+            .method(Self::delete, "delete", 1)
+            .method(Self::for_each, "forEach", 1)
+            .method(Self::get, "get", 1)
+            .method(Self::has, "has", 1)
+            .method(Self::keys, "keys", 0)
+            .method(Self::set, "set", 2)
+            .method(Self::values, "values", 0)
+            .accessor("size", Some(get_size), None, Attribute::CONFIGURABLE);
 
         #[cfg(feature = "experimental")]
-        let obj = { obj.static_method(Self::group_by, js_string!("groupBy"), 2) };
+        let obj = { obj.static_method(Self::group_by, "groupBy", 2) };
 
         obj.build();
     }
@@ -151,7 +145,7 @@ impl BuiltInConstructor for Map {
         };
 
         // 5. Let adder be ? Get(map, "set").
-        let adder = map.get(utf16!("set"), context)?;
+        let adder = map.get("set", context)?;
 
         // 6. Return ? AddEntriesFromIterable(map, iterable, adder).
         add_entries_from_iterable(&map, iterable, &adder, context)

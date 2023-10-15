@@ -1,14 +1,13 @@
-use boa_macros::utf16;
-
 use crate::{
     builtins::{string::is_trimmable_whitespace, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     object::JsObject,
     realm::Realm,
-    string::{common::StaticJsStrings, Utf16Trim},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 
+use boa_macros::utf16;
 use num_traits::Num;
 
 /// Builtin javascript 'isFinite(number)' function.
@@ -123,7 +122,7 @@ pub(crate) fn parse_int(
         let input_string = val.to_string(context)?;
 
         // 2. Let S be ! TrimString(inputString, start).
-        let mut var_s = input_string.trim_start();
+        let mut var_s = &input_string.trim_start().iter().collect::<Vec<_>>()[..];
 
         // 3. Let sign be 1.
         // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),

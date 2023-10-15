@@ -10,11 +10,10 @@
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
@@ -37,9 +36,9 @@ impl IntrinsicObject for WeakSet {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::add, js_string!("add"), 1)
-            .method(Self::delete, js_string!("delete"), 1)
-            .method(Self::has, js_string!("has"), 1)
+            .method(Self::add, "add", 1)
+            .method(Self::delete, "delete", 1)
+            .method(Self::has, "has", 1)
             .build();
     }
 }
@@ -94,7 +93,7 @@ impl BuiltInConstructor for WeakSet {
         }
 
         // 5. Let adder be ? Get(set, "add").
-        let adder = weak_set.get(utf16!("add"), context)?;
+        let adder = weak_set.get("add", context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder

@@ -14,11 +14,10 @@ use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsFunction, JsObject, ObjectData},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
@@ -37,7 +36,7 @@ impl IntrinsicObject for Proxy {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::revocable, js_string!("revocable"), 2)
+            .static_method(Self::revocable, "revocable", 2)
             .build_without_prototype();
     }
 
@@ -188,12 +187,12 @@ impl Proxy {
 
         // 6. Perform ! CreateDataPropertyOrThrow(result, "proxy", p).
         result
-            .create_data_property_or_throw(utf16!("proxy"), p, context)
+            .create_data_property_or_throw("proxy", p, context)
             .expect("CreateDataPropertyOrThrow cannot fail here");
 
         // 7. Perform ! CreateDataPropertyOrThrow(result, "revoke", revoker).
         result
-            .create_data_property_or_throw(utf16!("revoke"), revoker, context)
+            .create_data_property_or_throw("revoke", revoker, context)
             .expect("CreateDataPropertyOrThrow cannot fail here");
 
         // 8. Return result.

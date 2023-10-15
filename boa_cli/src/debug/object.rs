@@ -23,6 +23,6 @@ fn id(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
 
 pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
     ObjectInitializer::new(context)
-        .function(NativeFunction::from_fn_ptr(id), js_string!("id"), 1)
+        .function(NativeFunction::from_fn_ptr(id), "id", 1)
         .build()
 }

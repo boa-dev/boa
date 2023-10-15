@@ -5,7 +5,6 @@ use itertools::Itertools;
 use crate::{
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
-    js_string,
     object::ObjectData,
     realm::Realm,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
@@ -24,7 +23,7 @@ impl IntrinsicObject for Segments {
         let _timer = Profiler::global().start_event("%SegmentsPrototype%", "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(Self::containing, js_string!("containing"), 1)
+            .static_method(Self::containing, "containing", 1)
             .static_method(Self::iterator, JsSymbol::iterator(), 0)
             .build();
     }

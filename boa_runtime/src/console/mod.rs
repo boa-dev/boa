@@ -18,12 +18,10 @@ use boa_engine::{
     js_string,
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
-    string::utf16,
     value::{JsValue, Numeric},
     Context, JsArgs, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
-// use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 use std::{cell::RefCell, rc::Rc, time::SystemTime};
 
@@ -164,92 +162,40 @@ impl Console {
         let state = Rc::new(RefCell::new(Self::default()));
 
         ObjectInitializer::with_native(Self::default(), context)
-            .function(
-                console_method(Self::assert, state.clone()),
-                js_string!("assert"),
-                0,
-            )
-            .function(
-                console_method_mut(Self::clear, state.clone()),
-                js_string!("clear"),
-                0,
-            )
-            .function(
-                console_method(Self::debug, state.clone()),
-                js_string!("debug"),
-                0,
-            )
-            .function(
-                console_method(Self::error, state.clone()),
-                js_string!("error"),
-                0,
-            )
-            .function(
-                console_method(Self::info, state.clone()),
-                js_string!("info"),
-                0,
-            )
-            .function(
-                console_method(Self::log, state.clone()),
-                js_string!("log"),
-                0,
-            )
-            .function(
-                console_method(Self::trace, state.clone()),
-                js_string!("trace"),
-                0,
-            )
-            .function(
-                console_method(Self::warn, state.clone()),
-                js_string!("warn"),
-                0,
-            )
-            .function(
-                console_method_mut(Self::count, state.clone()),
-                js_string!("count"),
-                0,
-            )
+            .function(console_method(Self::assert, state.clone()), "assert", 0)
+            .function(console_method_mut(Self::clear, state.clone()), "clear", 0)
+            .function(console_method(Self::debug, state.clone()), "debug", 0)
+            .function(console_method(Self::error, state.clone()), "error", 0)
+            .function(console_method(Self::info, state.clone()), "info", 0)
+            .function(console_method(Self::log, state.clone()), "log", 0)
+            .function(console_method(Self::trace, state.clone()), "trace", 0)
+            .function(console_method(Self::warn, state.clone()), "warn", 0)
+            .function(console_method_mut(Self::count, state.clone()), "count", 0)
             .function(
                 console_method_mut(Self::count_reset, state.clone()),
-                js_string!("countReset"),
+                "countReset",
                 0,
             )
+            .function(console_method_mut(Self::group, state.clone()), "group", 0)
             .function(
                 console_method_mut(Self::group, state.clone()),
-                js_string!("group"),
-                0,
-            )
-            .function(
-                console_method_mut(Self::group, state.clone()),
-                js_string!("groupCollapsed"),
+                "groupCollapsed",
                 0,
             )
             .function(
                 console_method_mut(Self::group_end, state.clone()),
-                js_string!("groupEnd"),
+                "groupEnd",
                 0,
             )
-            .function(
-                console_method_mut(Self::time, state.clone()),
-                js_string!("time"),
-                0,
-            )
-            .function(
-                console_method(Self::time_log, state.clone()),
-                js_string!("timeLog"),
-                0,
-            )
+            .function(console_method_mut(Self::time, state.clone()), "time", 0)
+            .function(console_method(Self::time_log, state.clone()), "timeLog", 0)
             .function(
                 console_method_mut(Self::time_end, state.clone()),
-                js_string!("timeEnd"),
+                "timeEnd",
                 0,
             )
-            .function(
-                console_method(Self::dir, state.clone()),
-                js_string!("dir"),
-                0,
-            )
-            .function(console_method(Self::dir, state), js_string!("dirxml"), 0)
+            .function(console_method(Self::dir, state.clone()), "dir", 0)
+            .function(console_method(Self::dir, state), "dirxml", 0)
             .build()
     }
 
@@ -281,7 +227,7 @@ impl Console {
                 args.insert(0, JsValue::new(message));
             } else {
                 let value: Vec<u16> = args[0].display().to_string().encode_utf16().collect();
-                let concat = js_string!(&message, utf16!(": "), &value);
+                let concat = js_string!(&message, ": ", &value[..]);
                 args[0] = JsValue::new(concat);
             }
 

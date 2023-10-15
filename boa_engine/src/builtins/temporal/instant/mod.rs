@@ -13,11 +13,10 @@ use crate::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
@@ -43,19 +42,19 @@ impl IntrinsicObject for Instant {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_seconds = BuiltInBuilder::callable(realm, Self::get_epoc_seconds)
-            .name(js_string!("get epochSeconds"))
+            .name("get epochSeconds")
             .build();
 
         let get_millis = BuiltInBuilder::callable(realm, Self::get_epoc_milliseconds)
-            .name(js_string!("get epochMilliseconds"))
+            .name("get epochMilliseconds")
             .build();
 
         let get_micros = BuiltInBuilder::callable(realm, Self::get_epoc_microseconds)
-            .name(js_string!("get epochMicroseconds"))
+            .name("get epochMicroseconds")
             .build();
 
         let get_nanos = BuiltInBuilder::callable(realm, Self::get_epoc_nanoseconds)
-            .name(js_string!("get epochNanoseconds"))
+            .name("get epochNanoseconds")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -65,41 +64,37 @@ impl IntrinsicObject for Instant {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("epochSeconds"),
+                "epochSeconds",
                 Some(get_seconds),
                 None,
                 Attribute::default(),
             )
             .accessor(
-                utf16!("epochMilliseconds"),
+                "epochMilliseconds",
                 Some(get_millis),
                 None,
                 Attribute::default(),
             )
             .accessor(
-                utf16!("epochMicroseconds"),
+                "epochMicroseconds",
                 Some(get_micros),
                 None,
                 Attribute::default(),
             )
             .accessor(
-                utf16!("epochNanoseconds"),
+                "epochNanoseconds",
                 Some(get_nanos),
                 None,
                 Attribute::default(),
             )
-            .method(Self::add, js_string!("add"), 1)
-            .method(Self::subtract, js_string!("subtract"), 1)
-            .method(Self::until, js_string!("until"), 2)
-            .method(Self::since, js_string!("since"), 2)
-            .method(Self::round, js_string!("round"), 1)
-            .method(Self::equals, js_string!("equals"), 1)
-            .method(Self::to_zoned_date_time, js_string!("toZonedDateTime"), 1)
-            .method(
-                Self::to_zoned_date_time_iso,
-                js_string!("toZonedDateTimeISO"),
-                1,
-            )
+            .method(Self::add, "add", 1)
+            .method(Self::subtract, "subtract", 1)
+            .method(Self::until, "until", 2)
+            .method(Self::since, "since", 2)
+            .method(Self::round, "round", 1)
+            .method(Self::equals, "equals", 1)
+            .method(Self::to_zoned_date_time, "toZonedDateTime", 1)
+            .method(Self::to_zoned_date_time_iso, "toZonedDateTimeISO", 1)
             .build();
     }
 
@@ -348,7 +343,7 @@ impl Instant {
             let new_round_to = JsObject::with_null_proto();
             // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit"), paramString).
             new_round_to.create_data_property_or_throw(
-                utf16!("smallestUnit"),
+                "smallestUnit",
                 param_string.clone(),
                 context,
             )?;
@@ -365,13 +360,12 @@ impl Instant {
         let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let rounding_mode =
-            get_option(&round_to, utf16!("roundingMode"), context)?.unwrap_or_default();
+        let rounding_mode = get_option(&round_to, "roundingMode", context)?.unwrap_or_default();
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit"), time, required).
         let smallest_unit = get_temporal_unit(
             &round_to,
-            utf16!("smallestUnit"),
+            "smallestUnit",
             TemporalUnitGroup::Time,
             None,
             context,

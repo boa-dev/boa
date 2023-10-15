@@ -356,6 +356,7 @@ impl PropertyMap {
         self.shape = self.shape.insert_property_transition(transition_key);
 
         // Make Sure that if we are inserting, it has the correct slot index.
+        // dbg!(key);
         debug_assert_eq!(
             self.shape.lookup(key),
             Some(Slot {

@@ -70,7 +70,6 @@ use crate::{
     native_function::{NativeFunction, NativeFunctionObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::utf16,
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
@@ -102,10 +101,10 @@ pub(crate) trait JsObjectType:
 }
 
 /// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
-pub const CONSTRUCTOR: &[u16] = utf16!("constructor");
+pub const CONSTRUCTOR: &str = "constructor";
 
 /// Const `prototype`, usually set on constructors as a key to point to their respective prototype object.
-pub const PROTOTYPE: &[u16] = utf16!("prototype");
+pub const PROTOTYPE: &str = "prototype";
 
 /// Common field names.
 
@@ -2491,6 +2490,13 @@ pub struct FunctionBinding {
     pub(crate) name: JsString,
 }
 
+impl From<&str> for FunctionBinding {
+    #[inline]
+    fn from(name: &str) -> Self {
+        Self::from(JsString::from(name))
+    }
+}
+
 impl From<JsString> for FunctionBinding {
     #[inline]
     fn from(name: JsString) -> Self {
@@ -3025,8 +3031,8 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
 
         let constructor = {
             let mut constructor = self.constructor_object;
-            constructor.insert(utf16!("length"), length);
-            constructor.insert(utf16!("name"), name);
+            constructor.insert("length", length);
+            constructor.insert("name", name);
             let data = ObjectData::native_function(NativeFunctionObject {
                 f: self.function,
                 constructor: self.kind,

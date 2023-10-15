@@ -1,6 +1,5 @@
 mod options;
 
-use boa_macros::utf16;
 use boa_profiler::Profiler;
 use fixed_decimal::FixedDecimal;
 use icu_locid::Locale;
@@ -52,18 +51,14 @@ impl IntrinsicObject for PluralRules {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(
-                Self::supported_locales_of,
-                js_string!("supportedLocalesOf"),
-                1,
-            )
+            .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
             .property(
                 JsSymbol::to_string_tag(),
                 js_string!("Intl.PluralRules"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
-            .method(Self::select, js_string!("select"), 1)
+            .method(Self::resolved_options, "resolvedOptions", 0)
+            .method(Self::select, "select", 1)
             .build();
     }
 
@@ -113,12 +108,11 @@ impl BuiltInConstructor for PluralRules {
         // 3. Let opt be a new Record.
         // 4. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
         // 5. Set opt.[[localeMatcher]] to matcher.
-        let matcher = get_option(&options, utf16!("localeMatcher"), context)?.unwrap_or_default();
+        let matcher = get_option(&options, "localeMatcher", context)?.unwrap_or_default();
 
         // 6. Let t be ? GetOption(options, "type", string, « "cardinal", "ordinal" », "cardinal").
         // 7. Set pluralRules.[[Type]] to t.
-        let rule_type =
-            get_option(&options, utf16!("type"), context)?.unwrap_or(PluralRuleType::Cardinal);
+        let rule_type = get_option(&options, "type", context)?.unwrap_or(PluralRuleType::Cardinal);
 
         // 8. Perform ? SetNumberFormatDigitOptions(pluralRules, options, +0𝔽, 3𝔽, "standard").
         let format_options = get_digit_format_options(&options, 0, 3, Notation::Standard, context)?;
@@ -265,12 +259,12 @@ impl PluralRules {
         let mut options = ObjectInitializer::new(context);
         options
             .property(
-                js_string!("locale"),
+                "locale",
                 js_string!(plural_rules.locale.to_string()),
                 Attribute::all(),
             )
             .property(
-                js_string!("type"),
+                "type",
                 match plural_rules.rule_type {
                     PluralRuleType::Cardinal => js_string!("cardinal"),
                     PluralRuleType::Ordinal => js_string!("ordinal"),

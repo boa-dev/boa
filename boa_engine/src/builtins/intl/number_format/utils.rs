@@ -1,4 +1,3 @@
-use boa_macros::utf16;
 use fixed_decimal::{FixedDecimal, FloatPrecision};
 
 use crate::{
@@ -32,24 +31,24 @@ pub(crate) fn get_digit_format_options(
 
     // 1. Let mnid be ? GetNumberOption(options, "minimumIntegerDigits,", 1, 21, 1).
     let minimum_integer_digits =
-        get_number_option(options, utf16!("minimumIntegerDigits"), 1, 21, context)?.unwrap_or(1);
+        get_number_option(options, "minimumIntegerDigits", 1, 21, context)?.unwrap_or(1);
     // 2. Let mnfd be ? Get(options, "minimumFractionDigits").
-    let min_float_digits = options.get(utf16!("minimumFractionDigits"), context)?;
+    let min_float_digits = options.get("minimumFractionDigits", context)?;
     // 3. Let mxfd be ? Get(options, "maximumFractionDigits").
-    let max_float_digits = options.get(utf16!("maximumFractionDigits"), context)?;
+    let max_float_digits = options.get("maximumFractionDigits", context)?;
     // 4. Let mnsd be ? Get(options, "minimumSignificantDigits").
-    let min_sig_digits = options.get(utf16!("minimumSignificantDigits"), context)?;
+    let min_sig_digits = options.get("minimumSignificantDigits", context)?;
     // 5. Let mxsd be ? Get(options, "maximumSignificantDigits").
-    let max_sig_digits = options.get(utf16!("maximumSignificantDigits"), context)?;
+    let max_sig_digits = options.get("maximumSignificantDigits", context)?;
 
     // 7. Let roundingPriority be ? GetOption(options, "roundingPriority", string, « "auto", "morePrecision", "lessPrecision" », "auto").
     let mut rounding_priority =
-        get_option(options, utf16!("roundingPriority"), context)?.unwrap_or_default();
+        get_option(options, "roundingPriority", context)?.unwrap_or_default();
 
     // 8. Let roundingIncrement be ? GetNumberOption(options, "roundingIncrement", 1, 5000, 1).
     // 9. If roundingIncrement is not in « 1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000 », throw a RangeError exception.
     let rounding_increment =
-        get_number_option(options, utf16!("roundingIncrement"), 1, 5000, context)?.unwrap_or(1);
+        get_number_option(options, "roundingIncrement", 1, 5000, context)?.unwrap_or(1);
 
     if !VALID_ROUNDING_INCREMENTS.contains(&rounding_increment) {
         return Err(JsNativeError::range()
@@ -58,11 +57,11 @@ pub(crate) fn get_digit_format_options(
     }
 
     // 10. Let roundingMode be ? GetOption(options, "roundingMode", string, « "ceil", "floor", "expand", "trunc", "halfCeil", "halfFloor", "halfExpand", "halfTrunc", "halfEven" », "halfExpand").
-    let rounding_mode = get_option(options, utf16!("roundingMode"), context)?.unwrap_or_default();
+    let rounding_mode = get_option(options, "roundingMode", context)?.unwrap_or_default();
 
     // 11. Let trailingZeroDisplay be ? GetOption(options, "trailingZeroDisplay", string, « "auto", "stripIfInteger" », "auto").
     let trailing_zero_display =
-        get_option(options, utf16!("trailingZeroDisplay"), context)?.unwrap_or_default();
+        get_option(options, "trailingZeroDisplay", context)?.unwrap_or_default();
 
     // 12. NOTE: All fields required by SetNumberFormatDigitOptions have now been read from options. The remainder of this AO interprets the options and may throw exceptions.
 

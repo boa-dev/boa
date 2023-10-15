@@ -10,7 +10,7 @@
 
 use crate::{
     builtins::options::{get_option, ParsableOptionType},
-    js_string, Context, JsNativeError, JsObject, JsResult,
+    Context, JsNativeError, JsObject, JsResult,
 };
 use std::{fmt, str::FromStr};
 
@@ -22,7 +22,7 @@ pub(crate) fn get_temporal_rounding_increment(
     context: &mut Context<'_>,
 ) -> JsResult<f64> {
     // 1. Let increment be ? GetOption(normalizedOptions, "roundingIncrement", "number", undefined, 1𝔽).
-    let value = options.get(js_string!("roundingIncrement"), context)?;
+    let value = options.get("roundingIncrement", context)?;
 
     let increment = if value.is_undefined() {
         1.0
@@ -55,7 +55,7 @@ pub(crate) fn get_temporal_rounding_increment(
 #[inline]
 pub(crate) fn get_temporal_unit(
     options: &JsObject,
-    key: &[u16],
+    key: &str,
     unit_group: TemporalUnitGroup,
     extra_values: Option<Vec<TemporalUnit>>,
     context: &mut Context<'_>,

@@ -60,7 +60,7 @@ impl ParsableOptionType for LocaleMatcher {}
 /// [spec]: https://tc39.es/ecma402/#sec-getnumberoption
 pub(super) fn get_number_option<T>(
     options: &JsObject,
-    property: &[u16],
+    property: &str,
     minimum: T,
     maximum: T,
     context: &mut Context<'_>,

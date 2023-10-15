@@ -5,7 +5,6 @@ use crate::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
-use boa_macros::utf16;
 
 /// `TemplateLookup` implements the Opcode Operation for `Opcode::TemplateLookup`
 ///
@@ -79,7 +78,7 @@ impl TemplateCreate {
             .expect("should never fail per spec");
         template
             .define_property_or_throw(
-                utf16!("raw"),
+                "raw",
                 PropertyDescriptor::builder()
                     .value(raw_obj)
                     .writable(false)

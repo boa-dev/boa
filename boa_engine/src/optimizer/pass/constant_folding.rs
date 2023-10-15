@@ -32,7 +32,11 @@ fn js_value_to_literal(value: JsValue, context: &mut Context<'_>) -> Literal {
         JsValue::Null => Literal::Null,
         JsValue::Undefined => Literal::Undefined,
         JsValue::Boolean(v) => Literal::Bool(v),
-        JsValue::String(v) => Literal::String(context.interner_mut().get_or_intern(v.as_ref())),
+        JsValue::String(v) => Literal::String(
+            context
+                .interner_mut()
+                .get_or_intern(v.as_str().as_str_ref()),
+        ),
         JsValue::Rational(v) => Literal::Num(v),
         JsValue::Integer(v) => Literal::Int(v),
         JsValue::BigInt(v) => Literal::BigInt(Box::new(v.as_inner().clone())),

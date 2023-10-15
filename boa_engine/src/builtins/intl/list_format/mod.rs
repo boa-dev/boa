@@ -15,7 +15,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
@@ -48,19 +48,15 @@ impl IntrinsicObject for ListFormat {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(
-                Self::supported_locales_of,
-                js_string!("supportedLocalesOf"),
-                1,
-            )
+            .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
             .property(
                 JsSymbol::to_string_tag(),
                 js_string!("Intl.ListFormat"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::format, js_string!("format"), 1)
-            .method(Self::format_to_parts, js_string!("formatToParts"), 1)
-            .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
+            .method(Self::format, "format", 1)
+            .method(Self::format_to_parts, "formatToParts", 1)
+            .method(Self::resolved_options, "resolvedOptions", 0)
             .build();
     }
 
@@ -111,7 +107,7 @@ impl BuiltInConstructor for ListFormat {
 
         // 5. Let opt be a new Record.
         // 6. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
-        let matcher = get_option(&options, utf16!("localeMatcher"), context)?.unwrap_or_default();
+        let matcher = get_option(&options, "localeMatcher", context)?.unwrap_or_default();
 
         // 7. Set opt.[[localeMatcher]] to matcher.
         // 8. Let localeData be %ListFormat%.[[LocaleData]].
@@ -128,11 +124,11 @@ impl BuiltInConstructor for ListFormat {
 
         // 11. Let type be ? GetOption(options, "type", string, « "conjunction", "disjunction", "unit" », "conjunction").
         // 12. Set listFormat.[[Type]] to type.
-        let typ = get_option(&options, utf16!("type"), context)?.unwrap_or_default();
+        let typ = get_option(&options, "type", context)?.unwrap_or_default();
 
         // 13. Let style be ? GetOption(options, "style", string, « "long", "short", "narrow" », "long").
         // 14. Set listFormat.[[Style]] to style.
-        let style = get_option(&options, utf16!("style"), context)?.unwrap_or(ListLength::Wide);
+        let style = get_option(&options, "style", context)?.unwrap_or(ListLength::Wide);
 
         // 15. Let dataLocale be r.[[dataLocale]].
         // 16. Let dataLocaleData be localeData.[[<dataLocale>]].
@@ -377,11 +373,11 @@ impl ListFormat {
                 .create(ObjectData::ordinary(), vec![]);
 
             // b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
-            o.create_data_property_or_throw(utf16!("type"), js_string!(part.typ()), context)
+            o.create_data_property_or_throw("type", js_string!(part.typ()), context)
                 .expect("operation must not fail per the spec");
 
             // c. Perform ! CreateDataPropertyOrThrow(O, "value", part.[[Value]]).
-            o.create_data_property_or_throw(utf16!("value"), js_string!(part.value()), context)
+            o.create_data_property_or_throw("value", js_string!(part.value()), context)
                 .expect("operation must not fail per the spec");
 
             // d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(n), O).
@@ -435,15 +431,11 @@ impl ListFormat {
         //     c. Assert: v is not undefined.
         //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
         options
-            .create_data_property_or_throw(
-                utf16!("locale"),
-                js_string!(lf.locale.to_string()),
-                context,
-            )
+            .create_data_property_or_throw("locale", js_string!(lf.locale.to_string()), context)
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_string!("type"),
+                "type",
                 match lf.typ {
                     ListFormatType::Conjunction => js_string!("conjunction"),
                     ListFormatType::Disjunction => js_string!("disjunction"),
@@ -454,7 +446,7 @@ impl ListFormat {
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_string!("style"),
+                "style",
                 match lf.style {
                     ListLength::Wide => js_string!("long"),
                     ListLength::Short => js_string!("short"),

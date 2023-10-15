@@ -9,7 +9,6 @@ use crate::{
     },
     error::JsNativeError,
     object::{ObjectData, PROTOTYPE},
-    string::utf16,
     vm::{
         call_frame::GeneratorResumeKind,
         opcode::{Operation, ReThrow},
@@ -262,9 +261,7 @@ impl Operation for GeneratorDelegateNext {
                 context.vm.push(GeneratorResumeKind::Normal);
             }
             GeneratorResumeKind::Throw => {
-                let throw = iterator_record
-                    .iterator()
-                    .get_method(utf16!("throw"), context)?;
+                let throw = iterator_record.iterator().get_method("throw", context)?;
                 if let Some(throw) = throw {
                     let result = throw.call(
                         &iterator_record.iterator().clone().into(),
@@ -283,9 +280,7 @@ impl Operation for GeneratorDelegateNext {
                 }
             }
             GeneratorResumeKind::Return => {
-                let r#return = iterator_record
-                    .iterator()
-                    .get_method(utf16!("return"), context)?;
+                let r#return = iterator_record.iterator().get_method("return", context)?;
                 if let Some(r#return) = r#return {
                     let result = r#return.call(
                         &iterator_record.iterator().clone().into(),

@@ -22,7 +22,6 @@ use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
@@ -138,28 +137,23 @@ impl IntrinsicObject for ArrayBuffer {
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
-            .name(js_string!("get [Symbol.species]"))
+            .name("get [Symbol.species]")
             .build();
 
         let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length)
-            .name(js_string!("get byteLength"))
+            .name("get byteLength")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .accessor(
-                js_string!("byteLength"),
-                Some(get_byte_length),
-                None,
-                flag_attributes,
-            )
+            .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .static_method(Self::is_view, js_string!("isView"), 1)
-            .method(Self::slice, js_string!("slice"), 2)
+            .static_method(Self::is_view, "isView", 1)
+            .method(Self::slice, "slice", 2)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,

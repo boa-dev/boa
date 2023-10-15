@@ -13,8 +13,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-use std::ops::Deref;
-
 use super::{Array, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 use crate::{
     builtins::{map, BuiltInObject},
@@ -28,7 +26,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::{common::StaticJsStrings, CowJsString},
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
@@ -49,92 +47,64 @@ impl IntrinsicObject for Object {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let legacy_proto_getter = BuiltInBuilder::callable(realm, Self::legacy_proto_getter)
-            .name(js_string!("get __proto__"))
+            .name("get __proto__")
             .build();
 
         let legacy_setter_proto = BuiltInBuilder::callable(realm, Self::legacy_proto_setter)
-            .name(js_string!("set __proto__"))
+            .name("set __proto__")
             .build();
 
         let obj = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(None)
             .accessor(
-                utf16!("__proto__"),
+                "__proto__",
                 Some(legacy_proto_getter),
                 Some(legacy_setter_proto),
                 Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::has_own_property, js_string!("hasOwnProperty"), 1)
-            .method(
-                Self::property_is_enumerable,
-                js_string!("propertyIsEnumerable"),
-                1,
-            )
-            .method(Self::to_string, js_string!("toString"), 0)
-            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
-            .method(Self::value_of, js_string!("valueOf"), 0)
-            .method(Self::is_prototype_of, js_string!("isPrototypeOf"), 1)
-            .method(
-                Self::legacy_define_getter,
-                js_string!("__defineGetter__"),
-                2,
-            )
-            .method(
-                Self::legacy_define_setter,
-                js_string!("__defineSetter__"),
-                2,
-            )
-            .method(
-                Self::legacy_lookup_getter,
-                js_string!("__lookupGetter__"),
-                1,
-            )
-            .method(
-                Self::legacy_lookup_setter,
-                js_string!("__lookupSetter__"),
-                1,
-            )
-            .static_method(Self::create, js_string!("create"), 2)
-            .static_method(Self::set_prototype_of, js_string!("setPrototypeOf"), 2)
-            .static_method(Self::get_prototype_of, js_string!("getPrototypeOf"), 1)
-            .static_method(Self::define_property, js_string!("defineProperty"), 3)
-            .static_method(Self::define_properties, js_string!("defineProperties"), 2)
-            .static_method(Self::assign, js_string!("assign"), 2)
-            .static_method(Self::is, js_string!("is"), 2)
-            .static_method(Self::keys, js_string!("keys"), 1)
-            .static_method(Self::values, js_string!("values"), 1)
-            .static_method(Self::entries, js_string!("entries"), 1)
-            .static_method(Self::seal, js_string!("seal"), 1)
-            .static_method(Self::is_sealed, js_string!("isSealed"), 1)
-            .static_method(Self::freeze, js_string!("freeze"), 1)
-            .static_method(Self::is_frozen, js_string!("isFrozen"), 1)
-            .static_method(Self::prevent_extensions, js_string!("preventExtensions"), 1)
-            .static_method(Self::is_extensible, js_string!("isExtensible"), 1)
+            .method(Self::has_own_property, "hasOwnProperty", 1)
+            .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::to_locale_string, "toLocaleString", 0)
+            .method(Self::value_of, "valueOf", 0)
+            .method(Self::is_prototype_of, "isPrototypeOf", 1)
+            .method(Self::legacy_define_getter, "__defineGetter__", 2)
+            .method(Self::legacy_define_setter, "__defineSetter__", 2)
+            .method(Self::legacy_lookup_getter, "__lookupGetter__", 1)
+            .method(Self::legacy_lookup_setter, "__lookupSetter__", 1)
+            .static_method(Self::create, "create", 2)
+            .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
+            .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
+            .static_method(Self::define_property, "defineProperty", 3)
+            .static_method(Self::define_properties, "defineProperties", 2)
+            .static_method(Self::assign, "assign", 2)
+            .static_method(Self::is, "is", 2)
+            .static_method(Self::keys, "keys", 1)
+            .static_method(Self::values, "values", 1)
+            .static_method(Self::entries, "entries", 1)
+            .static_method(Self::seal, "seal", 1)
+            .static_method(Self::is_sealed, "isSealed", 1)
+            .static_method(Self::freeze, "freeze", 1)
+            .static_method(Self::is_frozen, "isFrozen", 1)
+            .static_method(Self::prevent_extensions, "preventExtensions", 1)
+            .static_method(Self::is_extensible, "isExtensible", 1)
             .static_method(
                 Self::get_own_property_descriptor,
-                js_string!("getOwnPropertyDescriptor"),
+                "getOwnPropertyDescriptor",
                 2,
             )
             .static_method(
                 Self::get_own_property_descriptors,
-                js_string!("getOwnPropertyDescriptors"),
+                "getOwnPropertyDescriptors",
                 1,
             )
-            .static_method(
-                Self::get_own_property_names,
-                js_string!("getOwnPropertyNames"),
-                1,
-            )
-            .static_method(
-                Self::get_own_property_symbols,
-                js_string!("getOwnPropertySymbols"),
-                1,
-            )
-            .static_method(Self::has_own, js_string!("hasOwn"), 2)
-            .static_method(Self::from_entries, js_string!("fromEntries"), 1);
+            .static_method(Self::get_own_property_names, "getOwnPropertyNames", 1)
+            .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
+            .static_method(Self::has_own, "hasOwn", 2)
+            .static_method(Self::from_entries, "fromEntries", 1);
 
         #[cfg(feature = "experimental")]
-        let obj = { obj.static_method(Self::group_by, js_string!("groupBy"), 2) };
+        let obj = { obj.static_method(Self::group_by, "groupBy", 2) };
 
         obj.build();
     }
@@ -568,42 +538,42 @@ impl Object {
         // 4. If Desc has a [[Value]] field, then
         if let Some(value) = desc.value() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "value", Desc.[[Value]]).
-            obj.create_data_property_or_throw(utf16!("value"), value.clone(), context)
+            obj.create_data_property_or_throw("value", value.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 5. If Desc has a [[Writable]] field, then
         if let Some(writable) = desc.writable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "writable", Desc.[[Writable]]).
-            obj.create_data_property_or_throw(utf16!("writable"), writable, context)
+            obj.create_data_property_or_throw("writable", writable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 6. If Desc has a [[Get]] field, then
         if let Some(get) = desc.get() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "get", Desc.[[Get]]).
-            obj.create_data_property_or_throw(utf16!("get"), get.clone(), context)
+            obj.create_data_property_or_throw("get", get.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 7. If Desc has a [[Set]] field, then
         if let Some(set) = desc.set() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "set", Desc.[[Set]]).
-            obj.create_data_property_or_throw(utf16!("set"), set.clone(), context)
+            obj.create_data_property_or_throw("set", set.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 8. If Desc has an [[Enumerable]] field, then
         if let Some(enumerable) = desc.enumerable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "enumerable", Desc.[[Enumerable]]).
-            obj.create_data_property_or_throw(utf16!("enumerable"), enumerable, context)
+            obj.create_data_property_or_throw("enumerable", enumerable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 9. If Desc has a [[Configurable]] field, then
         if let Some(configurable) = desc.configurable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "configurable", Desc.[[Configurable]]).
-            obj.create_data_property_or_throw(utf16!("configurable"), configurable, context)
+            obj.create_data_property_or_throw("configurable", configurable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
@@ -835,7 +805,7 @@ impl Object {
         //  4. Let isArray be ? IsArray(O).
         //  5. If isArray is true, let builtinTag be "Array".
         let builtin_tag = if o.is_array_abstract()? {
-            utf16!("Array")
+            "Array"
         } else {
             // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
             // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
@@ -847,15 +817,15 @@ impl Object {
             // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
             // 14. Else, let builtinTag be "Object".
             match o.borrow().kind() {
-                ObjectKind::Arguments(_) => utf16!("Arguments"),
-                _ if o.is_callable() => utf16!("Function"),
-                ObjectKind::Error(_) => utf16!("Error"),
-                ObjectKind::Boolean(_) => utf16!("Boolean"),
-                ObjectKind::Number(_) => utf16!("Number"),
-                ObjectKind::String(_) => utf16!("String"),
-                ObjectKind::Date(_) => utf16!("Date"),
-                ObjectKind::RegExp(_) => utf16!("RegExp"),
-                _ => utf16!("Object"),
+                ObjectKind::Arguments(_) => "Arguments",
+                _ if o.is_callable() => "Function",
+                ObjectKind::Error(_) => "Error",
+                ObjectKind::Boolean(_) => "Boolean",
+                ObjectKind::Number(_) => "Number",
+                ObjectKind::String(_) => "String",
+                ObjectKind::Date(_) => "Date",
+                ObjectKind::RegExp(_) => "RegExp",
+                _ => "Object",
             }
         };
 
@@ -863,10 +833,13 @@ impl Object {
         let tag = o.get(JsSymbol::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
-        let tag_str = tag.as_string().map_or(builtin_tag, JsString::deref);
+        let tag_str = tag
+            .as_string()
+            .map(JsString::as_str)
+            .map_or(CowJsString::from(builtin_tag), Into::into);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
-        Ok(js_string!(utf16!("[object "), tag_str, utf16!("]")).into())
+        Ok(js_string!("[object ", tag_str, "]").into())
     }
 
     /// `Object.prototype.toLocaleString( [ reserved1 [ , reserved2 ] ] )`
@@ -885,7 +858,7 @@ impl Object {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Return ? Invoke(O, "toString").
-        this.invoke(utf16!("toString"), &[], context)
+        this.invoke("toString", &[], context)
     }
 
     /// `Object.prototype.hasOwnProperty( property )`

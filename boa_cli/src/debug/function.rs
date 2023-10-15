@@ -68,10 +68,8 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
     let mut direction = Direction::LeftToRight;
     if let Some(arguments) = args.get(1) {
         if let Some(arguments) = arguments.as_object() {
-            format = flowgraph_parse_format_option(&arguments.get(js_string!("format"), context)?)?;
-            direction = flowgraph_parse_direction_option(
-                &arguments.get(js_string!("direction"), context)?,
-            )?;
+            format = flowgraph_parse_format_option(&arguments.get("format", context)?)?;
+            direction = flowgraph_parse_direction_option(&arguments.get("direction", context)?)?;
         } else if value.is_string() {
             format = flowgraph_parse_format_option(value)?;
         } else {
@@ -173,21 +171,9 @@ fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsV
 
 pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
     ObjectInitializer::new(context)
-        .function(
-            NativeFunction::from_fn_ptr(flowgraph),
-            js_string!("flowgraph"),
-            1,
-        )
-        .function(
-            NativeFunction::from_fn_ptr(bytecode),
-            js_string!("bytecode"),
-            1,
-        )
-        .function(NativeFunction::from_fn_ptr(trace), js_string!("trace"), 1)
-        .function(
-            NativeFunction::from_fn_ptr(traceable),
-            js_string!("traceable"),
-            2,
-        )
+        .function(NativeFunction::from_fn_ptr(flowgraph), "flowgraph", 1)
+        .function(NativeFunction::from_fn_ptr(bytecode), "bytecode", 1)
+        .function(NativeFunction::from_fn_ptr(trace), "trace", 1)
+        .function(NativeFunction::from_fn_ptr(traceable), "traceable", 2)
         .build()
 }

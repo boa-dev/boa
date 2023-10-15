@@ -17,7 +17,7 @@ use crate::{
     },
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsError, JsResult, JsString,
@@ -336,25 +336,25 @@ impl IntrinsicObject for Promise {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
-            .name(js_string!("get [Symbol.species]"))
+            .name("get [Symbol.species]")
             .build();
 
         let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::all, js_string!("all"), 1)
-            .static_method(Self::all_settled, js_string!("allSettled"), 1)
-            .static_method(Self::any, js_string!("any"), 1)
-            .static_method(Self::race, js_string!("race"), 1)
-            .static_method(Self::reject, js_string!("reject"), 1)
-            .static_method(Self::resolve, js_string!("resolve"), 1)
+            .static_method(Self::all, "all", 1)
+            .static_method(Self::all_settled, "allSettled", 1)
+            .static_method(Self::any, "any", 1)
+            .static_method(Self::race, "race", 1)
+            .static_method(Self::reject, "reject", 1)
+            .static_method(Self::resolve, "resolve", 1)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::then, js_string!("then"), 2)
-            .method(Self::catch, js_string!("catch"), 1)
-            .method(Self::finally, js_string!("finally"), 1)
+            .method(Self::then, "then", 2)
+            .method(Self::catch, "catch", 1)
+            .method(Self::finally, "finally", 1)
             // <https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag>
             .property(
                 JsSymbol::to_string_tag(),
@@ -363,8 +363,7 @@ impl IntrinsicObject for Promise {
             );
 
         #[cfg(feature = "experimental")]
-        let builder =
-            builder.static_method(Self::with_resolvers, crate::js_string!("withResolvers"), 0);
+        let builder = builder.static_method(Self::with_resolvers, "withResolvers", 0);
 
         builder.build();
     }
@@ -715,7 +714,7 @@ impl Promise {
 
             // s. Perform ? Invoke(nextPromise, "then", « onFulfilled, resultCapability.[[Reject]] »).
             next_promise.invoke(
-                utf16!("then"),
+                "then",
                 &[
                     on_fulfilled.into(),
                     result_capability.functions.reject.clone().into(),
@@ -903,7 +902,7 @@ impl Promise {
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
                         obj.create_data_property_or_throw(
-                            utf16!("status"),
+                            "status",
                             js_string!("fulfilled"),
                             context,
                         )
@@ -911,7 +910,7 @@ impl Promise {
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "value", x).
                         obj.create_data_property_or_throw(
-                            utf16!("value"),
+                            "value",
                             args.get_or_undefined(0).clone(),
                             context,
                         )
@@ -993,7 +992,7 @@ impl Promise {
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
                         obj.create_data_property_or_throw(
-                            utf16!("status"),
+                            "status",
                             js_string!("rejected"),
                             context,
                         )
@@ -1001,7 +1000,7 @@ impl Promise {
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "reason", x).
                         obj.create_data_property_or_throw(
-                            utf16!("reason"),
+                            "reason",
                             args.get_or_undefined(0).clone(),
                             context,
                         )
@@ -1052,11 +1051,7 @@ impl Promise {
             remaining_elements_count.set(remaining_elements_count.get() + 1);
 
             // ab. Perform ? Invoke(nextPromise, "then", « onFulfilled, onRejected »).
-            next_promise.invoke(
-                utf16!("then"),
-                &[on_fulfilled.into(), on_rejected.into()],
-                context,
-            )?;
+            next_promise.invoke("then", &[on_fulfilled.into(), on_rejected.into()], context)?;
 
             // ac. Set index to index + 1.
             index += 1;
@@ -1288,7 +1283,7 @@ impl Promise {
 
             // s. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], onRejected »).
             next_promise.invoke(
-                utf16!("then"),
+                "then",
                 &[
                     result_capability.functions.resolve.clone().into(),
                     on_rejected.into(),
@@ -1410,7 +1405,7 @@ impl Promise {
 
             // i. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
             next_promise.invoke(
-                utf16!("then"),
+                "then",
                 &[
                     result_capability.functions.resolve.clone().into(),
                     result_capability.functions.reject.clone().into(),
@@ -1565,7 +1560,7 @@ impl Promise {
         let promise = this;
         // 2. Return ? Invoke(promise, "then", « undefined, onRejected »).
         promise.invoke(
-            utf16!("then"),
+            "then",
             &[JsValue::undefined(), on_rejected.clone()],
             context,
         )
@@ -1611,7 +1606,7 @@ impl Promise {
             //    a. Let thenFinally be onFinally.
             //    b. Let catchFinally be onFinally.
             // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
-            let then = promise.get(utf16!("then"), context)?;
+            let then = promise.get("then", context)?;
             return then.call(this, &[on_finally.clone(), on_finally.clone()], context);
         };
 
@@ -1619,7 +1614,7 @@ impl Promise {
             Self::then_catch_finally_closures(c, on_finally, context);
 
         // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
-        let then = promise.get(utf16!("then"), context)?;
+        let then = promise.get("then", context)?;
         then.call(this, &[then_finally.into(), catch_finally.into()], context)
     }
 
@@ -1674,7 +1669,7 @@ impl Promise {
                     let value_thunk = return_value.length(0).name("").build();
 
                     // v. Return ? Invoke(promise, "then", « valueThunk »).
-                    promise.invoke(utf16!("then"), &[value_thunk.into()], context)
+                    promise.invoke("then", &[value_thunk.into()], context)
                 },
                 FinallyCaptures {
                     on_finally: on_finally.clone(),
@@ -1725,7 +1720,7 @@ impl Promise {
                     let thrower = throw_reason.length(0).name("").build();
 
                     // v. Return ? Invoke(promise, "then", « thrower »).
-                    promise.invoke(utf16!("then"), &[thrower.into()], context)
+                    promise.invoke("then", &[thrower.into()], context)
                 },
                 FinallyCaptures { on_finally, c },
             ),
@@ -1931,7 +1926,7 @@ impl Promise {
         context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let promiseResolve be ? Get(promiseConstructor, "resolve").
-        let promise_resolve = promise_constructor.get(utf16!("resolve"), context)?;
+        let promise_resolve = promise_constructor.get("resolve", context)?;
 
         // 2. If IsCallable(promiseResolve) is false, throw a TypeError exception.
         promise_resolve.as_callable().cloned().ok_or_else(|| {
@@ -2131,7 +2126,7 @@ impl Promise {
                     };
 
                     // 9. Let then be Completion(Get(resolution, "then")).
-                    let then_action = match then.get(utf16!("then"), context) {
+                    let then_action = match then.get("then", context) {
                         // 10. If then is an abrupt completion, then
                         Err(e) => {
                             //   a. Perform RejectPromise(promise, then.[[Value]]).

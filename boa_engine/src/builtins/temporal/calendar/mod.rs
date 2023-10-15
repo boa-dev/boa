@@ -20,7 +20,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
@@ -141,15 +141,15 @@ impl core::fmt::Debug for dyn BuiltinCalendar {
 
 // ==== Calendar Abstractions ====
 
-const ISO: &[u16] = utf16!("iso8601");
+const ISO: &str = "iso8601";
 
 // NOTE: potentially move these to `Realm`, so that there can be
 // host defined calendars.
 // Returns a map of all available calendars.
-fn available_calendars() -> FxHashMap<&'static [u16], Box<dyn BuiltinCalendar>> {
+fn available_calendars() -> FxHashMap<JsString, Box<dyn BuiltinCalendar>> {
     let mut map = FxHashMap::default();
     let iso: Box<dyn BuiltinCalendar> = Box::new(IsoCalendar);
-    map.insert(ISO, iso);
+    map.insert(js_string!(ISO), iso);
 
     map
 }
@@ -158,7 +158,7 @@ fn available_calendars() -> FxHashMap<&'static [u16], Box<dyn BuiltinCalendar>> 
 pub(crate) fn is_builtin_calendar(identifier: &JsString) -> bool {
     let calendars = available_calendars();
     // TODO: Potentially implement `to_ascii_lowercase`.
-    calendars.contains_key(identifier.as_slice())
+    calendars.contains_key(identifier)
 }
 
 /// The `Temporal.Calendar` object.
@@ -176,7 +176,7 @@ impl IntrinsicObject for Calendar {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_id = BuiltInBuilder::callable(realm, Self::get_id)
-            .name(js_string!("get Id"))
+            .name("get Id")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -185,39 +185,31 @@ impl IntrinsicObject for Calendar {
                 Self::NAME,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("id"), Some(get_id), None, Attribute::default())
-            .method(Self::date_from_fields, js_string!("dateFromFields"), 2)
-            .method(
-                Self::year_month_from_fields,
-                js_string!("yearMonthFromFields"),
-                2,
-            )
-            .method(
-                Self::month_day_from_fields,
-                js_string!("monthDayFromFields"),
-                2,
-            )
-            .method(Self::date_add, js_string!("dateAdd"), 3)
-            .method(Self::date_until, js_string!("dateUntil"), 3)
-            .method(Self::era, js_string!("era"), 1)
-            .method(Self::era_year, js_string!("eraYear"), 1)
-            .method(Self::year, js_string!("year"), 1)
-            .method(Self::month, js_string!("month"), 1)
-            .method(Self::month_code, js_string!("monthCode"), 1)
-            .method(Self::day, js_string!("day"), 1)
-            .method(Self::day_of_week, js_string!("dayOfWeek"), 1)
-            .method(Self::day_of_year, js_string!("dayOfYear"), 1)
-            .method(Self::week_of_year, js_string!("weekOfYear"), 1)
-            .method(Self::year_of_week, js_string!("yearOfWeek"), 1)
-            .method(Self::days_in_week, js_string!("daysInWeek"), 1)
-            .method(Self::days_in_month, js_string!("daysInMonth"), 1)
-            .method(Self::days_in_year, js_string!("daysInYear"), 1)
-            .method(Self::months_in_year, js_string!("monthsInYear"), 1)
-            .method(Self::in_leap_year, js_string!("inLeapYear"), 1)
-            .method(Self::fields, js_string!("fields"), 1)
-            .method(Self::merge_fields, js_string!("mergeFields"), 2)
-            .method(Self::get_id, js_string!("toString"), 0)
-            .method(Self::get_id, js_string!("toJSON"), 0)
+            .accessor("id", Some(get_id), None, Attribute::default())
+            .method(Self::date_from_fields, "dateFromFields", 2)
+            .method(Self::year_month_from_fields, "yearMonthFromFields", 2)
+            .method(Self::month_day_from_fields, "monthDayFromFields", 2)
+            .method(Self::date_add, "dateAdd", 3)
+            .method(Self::date_until, "dateUntil", 3)
+            .method(Self::era, "era", 1)
+            .method(Self::era_year, "eraYear", 1)
+            .method(Self::year, "year", 1)
+            .method(Self::month, "month", 1)
+            .method(Self::month_code, "monthCode", 1)
+            .method(Self::day, "day", 1)
+            .method(Self::day_of_week, "dayOfWeek", 1)
+            .method(Self::day_of_year, "dayOfYear", 1)
+            .method(Self::week_of_year, "weekOfYear", 1)
+            .method(Self::year_of_week, "yearOfWeek", 1)
+            .method(Self::days_in_week, "daysInWeek", 1)
+            .method(Self::days_in_month, "daysInMonth", 1)
+            .method(Self::days_in_year, "daysInYear", 1)
+            .method(Self::months_in_year, "monthsInYear", 1)
+            .method(Self::in_leap_year, "inLeapYear", 1)
+            .method(Self::fields, "fields", 1)
+            .method(Self::merge_fields, "mergeFields", 2)
+            .method(Self::get_id, "toString", 0)
+            .method(Self::get_id, "toJSON", 0)
             .build();
     }
 
@@ -302,7 +294,7 @@ impl Calendar {
         // Retrieve the current CalendarProtocol.
         let available_calendars = available_calendars();
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         // 3. If Type(fields) is not Object, throw a TypeError exception.
@@ -323,7 +315,7 @@ impl Calendar {
         ]);
 
         // 6. If calendar.[[Identifier]] is "iso8601", then
-        let mut fields = if calendar.identifier.as_slice() == ISO {
+        let mut fields = if &calendar.identifier == ISO {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year", "day" »).
             let mut required_fields = Vec::from([js_string!("year"), js_string!("day")]);
             temporal::TemporalFields::from_js_object(
@@ -352,8 +344,8 @@ impl Calendar {
         };
 
         // 8. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option(&options, utf16!("overflow"), context)?
-            .unwrap_or(ArithmeticOverflow::Constrain);
+        let overflow =
+            get_option(&options, "overflow", context)?.unwrap_or(ArithmeticOverflow::Constrain);
 
         // NOTE: implement the below on the calenar itself
         // 9. If calendar.[[Identifier]] is "iso8601", then
@@ -386,7 +378,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
         let fields = args.get_or_undefined(0);
         let fields_obj = fields.as_object().ok_or_else(|| {
@@ -403,7 +395,7 @@ impl Calendar {
         ]);
 
         // 6. Set fields to ? PrepareTemporalFields(fields, « "month", "monthCode", "year" », « "year" »).
-        let mut fields = if calendar.identifier.as_slice() == ISO {
+        let mut fields = if &calendar.identifier == ISO {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year" »).
             let mut required_fields = Vec::from([js_string!("year")]);
             temporal::TemporalFields::from_js_object(
@@ -435,7 +427,7 @@ impl Calendar {
         };
 
         // 7. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), context)?
+        let overflow = get_option::<ArithmeticOverflow>(&options, "overflow", context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
         let result = this_calendar.year_month_from_fields(&mut fields, overflow)?;
@@ -463,7 +455,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         // 3. If Type(fields) is not Object, throw a TypeError exception.
@@ -484,7 +476,7 @@ impl Calendar {
         ]);
 
         // 6. If calendar.[[Identifier]] is "iso8601", then
-        let mut fields = if calendar.identifier.as_slice() == ISO {
+        let mut fields = if &calendar.identifier == ISO {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "day" »).
             let mut required_fields = Vec::from([js_string!("day")]);
             temporal::TemporalFields::from_js_object(
@@ -513,8 +505,8 @@ impl Calendar {
         };
 
         // 8. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option(&options, utf16!("overflow"), context)?
-            .unwrap_or(ArithmeticOverflow::Constrain);
+        let overflow =
+            get_option(&options, "overflow", context)?.unwrap_or(ArithmeticOverflow::Constrain);
 
         let result = this_calendar.month_day_from_fields(&mut fields, overflow)?;
 
@@ -538,7 +530,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         // 4. Set date to ? ToTemporalDate(date).
@@ -554,8 +546,8 @@ impl Calendar {
         let options_obj = get_options_object(options)?;
 
         // 7. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option(&options_obj, utf16!("overflow"), context)?
-            .unwrap_or(ArithmeticOverflow::Constrain);
+        let overflow =
+            get_option(&options_obj, "overflow", context)?.unwrap_or(ArithmeticOverflow::Constrain);
 
         // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
         duration.balance_time_duration(TemporalUnit::Day, None)?;
@@ -586,7 +578,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         // 4. Set one to ? ToTemporalDate(one).
@@ -601,7 +593,7 @@ impl Calendar {
         // 8. If largestUnit is "auto", set largestUnit to "day".
         let largest_unit = super::options::get_temporal_unit(
             &options,
-            utf16!("largestUnit"),
+            "largestUnit",
             TemporalUnitGroup::Date,
             None,
             context,
@@ -626,7 +618,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let date_like = args.get_or_undefined(0);
@@ -674,7 +666,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let date_like = args.get_or_undefined(0);
@@ -722,7 +714,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let date_like = args.get_or_undefined(0);
@@ -768,7 +760,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let date_like = args.get_or_undefined(0);
@@ -827,7 +819,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let date_like = args.get_or_undefined(0);
@@ -879,7 +871,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let date_like = args.get_or_undefined(0);
@@ -931,7 +923,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -960,7 +952,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -988,7 +980,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1016,7 +1008,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1044,7 +1036,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1072,7 +1064,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let date_like = args.get_or_undefined(0);
@@ -1124,7 +1116,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let date_like = args.get_or_undefined(0);
@@ -1176,7 +1168,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let date_like = args.get_or_undefined(0);
@@ -1228,7 +1220,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let date_like = args.get_or_undefined(0);
@@ -1278,7 +1270,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         // 3. Let iteratorRecord be ? GetIterator(fields, sync).
@@ -1329,7 +1321,7 @@ impl Calendar {
 
         // 7. Let result be fieldNames.
         // 8. If calendar.[[Identifier]] is not "iso8601", then
-        if calendar.identifier.as_slice() != ISO {
+        if &calendar.identifier != ISO {
             // a. NOTE: Every built-in calendar preserves all input field names in output.
             // b. Let extraFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], fieldNames).
             let extended_fields =
@@ -1367,7 +1359,7 @@ impl Calendar {
         let available_calendars = available_calendars();
 
         let this_calendar = available_calendars
-            .get(calendar.identifier.as_slice())
+            .get(&calendar.identifier)
             .expect("builtin must exist");
 
         let fields = args.get_or_undefined(0).to_object(context)?;
@@ -1422,16 +1414,16 @@ impl Calendar {
             // b. If overriddenKeys contains key, then
             let prop_value = if overridden_keys.contains(&key) {
                 // i. Set propValue to ! Get(additionalFieldsCopy, key).
-                additional_fields_copy.get(key.as_slice(), context)?
+                additional_fields_copy.get(key.clone(), context)?
             // c. Else,
             } else {
                 // i. Set propValue to ! Get(fieldsCopy, key).
-                fields_copy.get(key.as_slice(), context)?
+                fields_copy.get(key.clone(), context)?
             };
 
             // d. If propValue is not undefined, perform ! CreateDataPropertyOrThrow(merged, key, propValue).
             if !prop_value.is_undefined() {
-                merged.create_data_property_or_throw(key.as_slice(), prop_value, context)?;
+                merged.create_data_property_or_throw(key, prop_value, context)?;
             }
         }
 
@@ -1532,7 +1524,7 @@ pub(crate) fn get_temporal_calendar_slot_value_with_default(
     }
 
     // 2. Let calendarLike be ? Get(item, "calendar").
-    let calendar_like = item.get(utf16!("calendar"), context)?;
+    let calendar_like = item.get("calendar", context)?;
 
     // 3. Return ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
     to_temporal_calendar_slot_value(&calendar_like, Some(ISO.into()))
@@ -1639,7 +1631,7 @@ fn call_method_on_abstract_calendar(
         _ => unreachable!(),
     };
 
-    let method = this_calendar.get(method.as_ref(), context)?;
+    let method = this_calendar.get(method.clone(), context)?;
     method.call(&this_calendar.into(), args, context)
 }
 
@@ -1965,7 +1957,7 @@ pub(crate) fn calendar_day_of_week(
     };
 
     let calendars = available_calendars();
-    let this = calendars.get(identifier.as_slice()).ok_or_else(|| {
+    let this = calendars.get(&identifier).ok_or_else(|| {
         JsNativeError::range().with_message("calendar value was not an implemented calendar")
     })?;
 

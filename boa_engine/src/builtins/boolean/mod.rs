@@ -35,8 +35,8 @@ impl IntrinsicObject for Boolean {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::to_string, js_string!("toString"), 0)
-            .method(Self::value_of, js_string!("valueOf"), 0)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::value_of, "valueOf", 0)
             .build();
     }
 

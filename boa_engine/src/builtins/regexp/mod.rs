@@ -51,37 +51,37 @@ impl IntrinsicObject for RegExp {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
-            .name(js_string!("get [Symbol.species]"))
+            .name("get [Symbol.species]")
             .build();
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_has_indices = BuiltInBuilder::callable(realm, Self::get_has_indices)
-            .name(js_string!("get hasIndices"))
+            .name("get hasIndices")
             .build();
         let get_global = BuiltInBuilder::callable(realm, Self::get_global)
-            .name(js_string!("get global"))
+            .name("get global")
             .build();
         let get_ignore_case = BuiltInBuilder::callable(realm, Self::get_ignore_case)
-            .name(js_string!("get ignoreCase"))
+            .name("get ignoreCase")
             .build();
         let get_multiline = BuiltInBuilder::callable(realm, Self::get_multiline)
-            .name(js_string!("get multiline"))
+            .name("get multiline")
             .build();
         let get_dot_all = BuiltInBuilder::callable(realm, Self::get_dot_all)
-            .name(js_string!("get dotAll"))
+            .name("get dotAll")
             .build();
         let get_unicode = BuiltInBuilder::callable(realm, Self::get_unicode)
-            .name(js_string!("get unicode"))
+            .name("get unicode")
             .build();
         let get_sticky = BuiltInBuilder::callable(realm, Self::get_sticky)
-            .name(js_string!("get sticky"))
+            .name("get sticky")
             .build();
         let get_flags = BuiltInBuilder::callable(realm, Self::get_flags)
-            .name(js_string!("get flags"))
+            .name("get flags")
             .build();
         let get_source = BuiltInBuilder::callable(realm, Self::get_source)
-            .name(js_string!("get source"))
+            .name("get source")
             .build();
         let regexp = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
@@ -90,67 +90,27 @@ impl IntrinsicObject for RegExp {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .property(js_string!("lastIndex"), 0, Attribute::all())
-            .method(Self::test, js_string!("test"), 1)
-            .method(Self::exec, js_string!("exec"), 1)
-            .method(Self::to_string, js_string!("toString"), 0)
+            .property("lastIndex", 0, Attribute::all())
+            .method(Self::test, "test", 1)
+            .method(Self::exec, "exec", 1)
+            .method(Self::to_string, "toString", 0)
             .method(Self::r#match, JsSymbol::r#match(), 1)
             .method(Self::match_all, JsSymbol::match_all(), 1)
             .method(Self::replace, JsSymbol::replace(), 2)
             .method(Self::search, JsSymbol::search(), 1)
             .method(Self::split, JsSymbol::split(), 2)
-            .accessor(
-                js_string!("hasIndices"),
-                Some(get_has_indices),
-                None,
-                flag_attributes,
-            )
-            .accessor(
-                js_string!("global"),
-                Some(get_global),
-                None,
-                flag_attributes,
-            )
-            .accessor(
-                js_string!("ignoreCase"),
-                Some(get_ignore_case),
-                None,
-                flag_attributes,
-            )
-            .accessor(
-                js_string!("multiline"),
-                Some(get_multiline),
-                None,
-                flag_attributes,
-            )
-            .accessor(
-                js_string!("dotAll"),
-                Some(get_dot_all),
-                None,
-                flag_attributes,
-            )
-            .accessor(
-                js_string!("unicode"),
-                Some(get_unicode),
-                None,
-                flag_attributes,
-            )
-            .accessor(
-                js_string!("sticky"),
-                Some(get_sticky),
-                None,
-                flag_attributes,
-            )
-            .accessor(js_string!("flags"), Some(get_flags), None, flag_attributes)
-            .accessor(
-                js_string!("source"),
-                Some(get_source),
-                None,
-                flag_attributes,
-            );
+            .accessor("hasIndices", Some(get_has_indices), None, flag_attributes)
+            .accessor("global", Some(get_global), None, flag_attributes)
+            .accessor("ignoreCase", Some(get_ignore_case), None, flag_attributes)
+            .accessor("multiline", Some(get_multiline), None, flag_attributes)
+            .accessor("dotAll", Some(get_dot_all), None, flag_attributes)
+            .accessor("unicode", Some(get_unicode), None, flag_attributes)
+            .accessor("sticky", Some(get_sticky), None, flag_attributes)
+            .accessor("flags", Some(get_flags), None, flag_attributes)
+            .accessor("source", Some(get_source), None, flag_attributes);
 
         #[cfg(feature = "annex-b")]
-        let regexp = regexp.method(Self::compile, js_string!("compile"), 2);
+        let regexp = regexp.method(Self::compile, "compile", 2);
 
         regexp.build();
     }
@@ -230,12 +190,12 @@ impl BuiltInConstructor for RegExp {
             (p, f)
         } else if let Some(pattern) = pattern_is_regexp {
             // a. Let P be ? Get(pattern, "source").
-            let p = pattern.get(js_string!("source"), context)?;
+            let p = pattern.get("source", context)?;
 
             // b. If flags is undefined, then
             let f = if flags.is_undefined() {
                 // i. Let F be ? Get(pattern, "flags").
-                pattern.get(js_string!("flags"), context)?
+                pattern.get("flags", context)?
             // c. Else,
             } else {
                 // i. Let F be flags.
@@ -610,41 +570,41 @@ impl RegExp {
 
             // 4. Let hasIndices be ToBoolean(? Get(R, "hasIndices")).
             // 5. If hasIndices is true, append the code unit 0x0064 (LATIN SMALL LETTER D) as the last code unit of result.
-            if object.get(utf16!("hasIndices"), context)?.to_boolean() {
+            if object.get("hasIndices", context)?.to_boolean() {
                 result.push('d');
             }
 
             // 6. Let global be ! ToBoolean(? Get(R, "global")).
             // 7. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.
-            if object.get(utf16!("global"), context)?.to_boolean() {
+            if object.get("global", context)?.to_boolean() {
                 result.push('g');
             }
             // 8. Let ignoreCase be ! ToBoolean(? Get(R, "ignoreCase")).
             // 9. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.
-            if object.get(utf16!("ignoreCase"), context)?.to_boolean() {
+            if object.get("ignoreCase", context)?.to_boolean() {
                 result.push('i');
             }
 
             // 10. Let multiline be ! ToBoolean(? Get(R, "multiline")).
             // 11. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.
-            if object.get(utf16!("multiline"), context)?.to_boolean() {
+            if object.get("multiline", context)?.to_boolean() {
                 result.push('m');
             }
 
             // 12. Let dotAll be ! ToBoolean(? Get(R, "dotAll")).
             // 13. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.
-            if object.get(utf16!("dotAll"), context)?.to_boolean() {
+            if object.get("dotAll", context)?.to_boolean() {
                 result.push('s');
             }
             // 14. Let unicode be ! ToBoolean(? Get(R, "unicode")).
             // 15. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.
-            if object.get(utf16!("unicode"), context)?.to_boolean() {
+            if object.get("unicode", context)?.to_boolean() {
                 result.push('u');
             }
 
             // 16. Let sticky be ! ToBoolean(? Get(R, "sticky")).
             // 17. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.
-            if object.get(utf16!("sticky"), context)?.to_boolean() {
+            if object.get("sticky", context)?.to_boolean() {
                 result.push('y');
             }
 
@@ -829,7 +789,7 @@ impl RegExp {
         // 2. Assert: Type(S) is String.
 
         // 3. Let exec be ? Get(R, "exec").
-        let exec = this.get(utf16!("exec"), context)?;
+        let exec = this.get("exec", context)?;
 
         // 4. If IsCallable(exec) is true, then
         if let Some(exec) = exec.as_callable() {
@@ -884,19 +844,19 @@ impl RegExp {
         let length = input.len() as u64;
 
         // 2. Let lastIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
-        let mut last_index = this.get(utf16!("lastIndex"), context)?.to_length(context)?;
+        let mut last_index = this.get("lastIndex", context)?.to_length(context)?;
 
         // 3. Let flags be R.[[OriginalFlags]].
         let flags = &rx.original_flags;
 
         // 4. If flags contains "g", let global be true; else let global be false.
-        let global = flags.contains(&('g' as u16));
+        let global = flags.contains(b'g');
 
         // 5. If flags contains "y", let sticky be true; else let sticky be false.
-        let sticky = flags.contains(&('y' as u16));
+        let sticky = flags.contains(b'y');
 
         // 6. If flags contains "d", let hasIndices be true; else let hasIndices be false.
-        let has_indices = flags.contains(&('d' as u16));
+        let has_indices = flags.contains(b'd');
 
         // 7. If global is false and sticky is false, set lastIndex to 0.
         if !global && !sticky {
@@ -907,7 +867,7 @@ impl RegExp {
         let matcher = &rx.matcher;
 
         // 9. If flags contains "u" or flags contains "v", let fullUnicode be true; else let fullUnicode be false.
-        let full_unicode = flags.contains(&('u' as u16)) || flags.contains(&('v' as u16));
+        let full_unicode = flags.contains(b'u') || flags.contains(b'v');
 
         // TODO:
         // 11. If fullUnicode is true, let input be StringToCodePoints(S). Otherwise, let input be a List whose elements are the code units that are the elements of S.
@@ -922,7 +882,7 @@ impl RegExp {
                 // i. If global is true or sticky is true, then
                 if global || sticky {
                     // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-                    this.set(utf16!("lastIndex"), 0, true, context)?;
+                    this.set("lastIndex", 0, true, context)?;
                 }
 
                 // ii. Return null.
@@ -932,7 +892,7 @@ impl RegExp {
             // b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
             // Check if last_index is a valid utf8 index into input.
             // TODO: avoid converting to String
-            let last_byte_index = match String::from_utf16(&input[..last_index as usize]) {
+            let last_byte_index = match String::from_utf16(&input.to_vec()[..last_index as usize]) {
                 Ok(s) => s.len(),
                 Err(_) => {
                     return Err(JsNativeError::typ()
@@ -949,7 +909,7 @@ impl RegExp {
                     // i. If sticky is true, then
                     if sticky {
                         // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-                        this.set(utf16!("lastIndex"), 0, true, context)?;
+                        this.set("lastIndex", 0, true, context)?;
 
                         // 2. Return null.
                         return Ok(None);
@@ -966,7 +926,7 @@ impl RegExp {
                         // i. If sticky is true, then
                         if sticky {
                             // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-                            this.set(utf16!("lastIndex"), 0, true, context)?;
+                            this.set("lastIndex", 0, true, context)?;
 
                             // 2. Return null.
                             return Ok(None);
@@ -994,14 +954,17 @@ impl RegExp {
             // Let eUTF be the smallest index into S that corresponds to the character at element e of Input.
             // If e is greater than or equal to the number of elements in Input, then eUTF is the number of code units in S.
             // b. Set e to eUTF.
-            e = input.get(..e).map_or_else(|| input.len(), <[u16]>::len);
+            e = input
+                .to_vec()
+                .get(..e)
+                .map_or_else(|| input.len(), <[u16]>::len);
         }
 
         // 16. If global is true or sticky is true, then
         if global || sticky {
             // a. Perform ? Set(R, "lastIndex", 𝔽(e), true).
             this.set(
-                utf16!("lastIndex"),
+                "lastIndex",
                 lossy_input[..e].encode_utf16().count(),
                 true,
                 context,
@@ -1019,11 +982,11 @@ impl RegExp {
         let a = Array::array_create(n + 1, None, context)?;
 
         // 22. Perform ! CreateDataPropertyOrThrow(A, "index", 𝔽(lastIndex)).
-        a.create_data_property_or_throw(utf16!("index"), last_index, context)
+        a.create_data_property_or_throw("index", last_index, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 23. Perform ! CreateDataPropertyOrThrow(A, "input", S).
-        a.create_data_property_or_throw(utf16!("input"), input.clone(), context)
+        a.create_data_property_or_throw("input", input.clone(), context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 24. Let match be the Match Record { [[StartIndex]]: lastIndex, [[EndIndex]]: e }.
@@ -1120,11 +1083,11 @@ impl RegExp {
         // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
         // 8. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
         indices
-            .create_data_property_or_throw(utf16!("groups"), group_names, context)
+            .create_data_property_or_throw("groups", group_names, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 32. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
-        a.create_data_property_or_throw(utf16!("groups"), groups, context)
+        a.create_data_property_or_throw("groups", groups, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do
@@ -1166,7 +1129,7 @@ impl RegExp {
         // a. Let indicesArray be MakeMatchIndicesIndexPairArray(S, indices, groupNames, hasGroups).
         // b. Perform ! CreateDataPropertyOrThrow(A, "indices", indicesArray).
         if has_indices {
-            a.create_data_property_or_throw(utf16!("indices"), indices, context)
+            a.create_data_property_or_throw("indices", indices, context)
                 .expect("this CreateDataPropertyOrThrow call must not fail");
         }
 
@@ -1200,7 +1163,7 @@ impl RegExp {
         let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Let global be ! ToBoolean(? Get(rx, "global")).
-        let global = rx.get(utf16!("global"), context)?.to_boolean();
+        let global = rx.get("global", context)?.to_boolean();
 
         // 5. If global is false, then
         #[allow(clippy::if_not_else)]
@@ -1213,10 +1176,10 @@ impl RegExp {
             // a. Assert: global is true.
 
             // b. Let fullUnicode be ! ToBoolean(? Get(rx, "unicode")).
-            let unicode = rx.get(utf16!("unicode"), context)?.to_boolean();
+            let unicode = rx.get("unicode", context)?.to_boolean();
 
             // c. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            rx.set(utf16!("lastIndex"), 0, true, context)?;
+            rx.set("lastIndex", 0, true, context)?;
 
             // d. Let A be ! ArrayCreate(0).
             let a =
@@ -1243,14 +1206,13 @@ impl RegExp {
                     // 3. If matchStr is the empty String, then
                     if match_str.is_empty() {
                         // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                        let this_index =
-                            rx.get(utf16!("lastIndex"), context)?.to_length(context)?;
+                        let this_index = rx.get("lastIndex", context)?.to_length(context)?;
 
                         // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
                         let next_index = advance_string_index(&arg_str, this_index, unicode);
 
                         // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
-                        rx.set(utf16!("lastIndex"), JsValue::new(next_index), true, context)?;
+                        rx.set("lastIndex", JsValue::new(next_index), true, context)?;
                     }
 
                     // 4. Set n to n + 1.
@@ -1300,7 +1262,7 @@ impl RegExp {
                 ))
                 .into());
         };
-        Ok(js_string!(utf16!("/"), &body, utf16!("/"), &flags).into())
+        Ok(js_string!("/", &body, "/", &flags).into())
     }
 
     /// `RegExp.prototype[ @@matchAll ]( string )`
@@ -1332,26 +1294,24 @@ impl RegExp {
         let c = regexp.species_constructor(StandardConstructors::regexp, context)?;
 
         // 5. Let flags be ? ToString(? Get(R, "flags")).
-        let flags = regexp.get(utf16!("flags"), context)?.to_string(context)?;
+        let flags = regexp.get("flags", context)?.to_string(context)?;
 
         // 6. Let matcher be ? Construct(C, « R, flags »).
         let matcher = c.construct(&[this.clone(), flags.clone().into()], Some(&c), context)?;
 
         // 7. Let lastIndex be ? ToLength(? Get(R, "lastIndex")).
-        let last_index = regexp
-            .get(utf16!("lastIndex"), context)?
-            .to_length(context)?;
+        let last_index = regexp.get("lastIndex", context)?.to_length(context)?;
 
         // 8. Perform ? Set(matcher, "lastIndex", lastIndex, true).
-        matcher.set(utf16!("lastIndex"), last_index, true, context)?;
+        matcher.set("lastIndex", last_index, true, context)?;
 
         // 9. If flags contains "g", let global be true.
         // 10. Else, let global be false.
-        let global = flags.contains(&('g' as u16));
+        let global = flags.contains(b'g');
 
         // 11. If flags contains "u", let fullUnicode be true.
         // 12. Else, let fullUnicode be false.
-        let unicode = flags.contains(&('u' as u16));
+        let unicode = flags.contains(b'u');
 
         // 13. Return ! CreateRegExpStringIterator(matcher, S, global, fullUnicode).
         Ok(RegExpStringIterator::create_regexp_string_iterator(
@@ -1414,18 +1374,18 @@ impl RegExp {
         };
 
         // 7. Let flags be ? ToString(? Get(rx, "flags")).
-        let flags = rx.get(utf16!("flags"), context)?.to_string(context)?;
+        let flags = rx.get("flags", context)?.to_string(context)?;
 
         // 8. If flags contains "g", let global be true. Otherwise, let global be false.
-        let global = flags.as_slice().contains(&u16::from(b'g'));
+        let global = flags.contains(b'g');
 
         // 9. If global is true, then
         let full_unicode = if global {
             // a. If flags contains "u", let fullUnicode be true. Otherwise, let fullUnicode be false.
-            let full_unicode = flags.contains(&u16::from(b'u'));
+            let full_unicode = flags.contains(b'u');
 
             // b. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            rx.set(utf16!("lastIndex"), 0, true, context)?;
+            rx.set("lastIndex", 0, true, context)?;
 
             full_unicode
         } else {
@@ -1467,13 +1427,13 @@ impl RegExp {
             //    2. If matchStr is the empty String, then
             if match_str.is_empty() {
                 // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                let this_index = rx.get(utf16!("lastIndex"), context)?.to_length(context)?;
+                let this_index = rx.get("lastIndex", context)?.to_length(context)?;
 
                 // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
                 let next_index = advance_string_index(&s, this_index, full_unicode);
 
                 // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
-                rx.set(utf16!("lastIndex"), JsValue::new(next_index), true, context)?;
+                rx.set("lastIndex", JsValue::new(next_index), true, context)?;
             }
         }
 
@@ -1502,7 +1462,7 @@ impl RegExp {
 
             // e. Let position be ? ToIntegerOrInfinity(? Get(result, "index")).
             let position = result
-                .get(utf16!("index"), context)?
+                .get("index", context)?
                 .to_integer_or_infinity(context)?;
 
             // f. Set position to the result of clamping position between 0 and lengthS.
@@ -1534,7 +1494,7 @@ impl RegExp {
             }
 
             // j. Let namedCaptures be ? Get(result, "groups").
-            let mut named_captures = result.get(utf16!("groups"), context)?;
+            let mut named_captures = result.get("groups", context)?;
 
             let replacement = match replace_value {
                 // k. If functionalReplace is true, then
@@ -1587,8 +1547,8 @@ impl RegExp {
                 //    In such cases, the corresponding substitution is ignored.
 
                 // ii. Set accumulatedResult to the string-concatenation of accumulatedResult, the substring of S from nextSourcePosition to position, and replacement.
-                accumulated_result.extend_from_slice(&s[next_source_position..position]);
-                accumulated_result.extend_from_slice(&replacement);
+                accumulated_result.extend_from_slice(&s.to_vec()[next_source_position..position]);
+                accumulated_result.extend(replacement.iter());
 
                 // iii. Set nextSourcePosition to position + matchLength.
                 next_source_position = position + match_length;
@@ -1597,11 +1557,11 @@ impl RegExp {
 
         // 16. If nextSourcePosition ≥ lengthS, return accumulatedResult.
         if next_source_position >= length_s {
-            return Ok(js_string!(accumulated_result).into());
+            return Ok(js_string!(&accumulated_result[..]).into());
         }
 
         // 17. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
-        Ok(js_string!(&accumulated_result[..], &s[next_source_position..]).into())
+        Ok(js_string!(&accumulated_result[..], &s.to_vec()[next_source_position..]).into())
     }
 
     /// `RegExp.prototype[ @@search ]( string )`
@@ -1630,31 +1590,31 @@ impl RegExp {
         let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Let previousLastIndex be ? Get(rx, "lastIndex").
-        let previous_last_index = rx.get(utf16!("lastIndex"), context)?;
+        let previous_last_index = rx.get("lastIndex", context)?;
 
         // 5. If SameValue(previousLastIndex, +0𝔽) is false, then
         if !JsValue::same_value(&previous_last_index, &JsValue::new(0)) {
             // a. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            rx.set(utf16!("lastIndex"), 0, true, context)?;
+            rx.set("lastIndex", 0, true, context)?;
         }
 
         // 6. Let result be ? RegExpExec(rx, S).
         let result = Self::abstract_exec(rx, arg_str, context)?;
 
         // 7. Let currentLastIndex be ? Get(rx, "lastIndex").
-        let current_last_index = rx.get(utf16!("lastIndex"), context)?;
+        let current_last_index = rx.get("lastIndex", context)?;
 
         // 8. If SameValue(currentLastIndex, previousLastIndex) is false, then
         if !JsValue::same_value(&current_last_index, &previous_last_index) {
             // a. Perform ? Set(rx, "lastIndex", previousLastIndex, true).
-            rx.set(utf16!("lastIndex"), previous_last_index, true, context)?;
+            rx.set("lastIndex", previous_last_index, true, context)?;
         }
 
         // 9. If result is null, return -1𝔽.
         // 10. Return ? Get(result, "index").
         result.map_or_else(
             || Ok(JsValue::new(-1)),
-            |result| result.get(utf16!("index"), context),
+            |result| result.get("index", context),
         )
     }
 
@@ -1687,18 +1647,18 @@ impl RegExp {
         let constructor = rx.species_constructor(StandardConstructors::regexp, context)?;
 
         // 5. Let flags be ? ToString(? Get(rx, "flags")).
-        let flags = rx.get(utf16!("flags"), context)?.to_string(context)?;
+        let flags = rx.get("flags", context)?.to_string(context)?;
 
         // 6. If flags contains "u", let unicodeMatching be true.
         // 7. Else, let unicodeMatching be false.
-        let unicode = flags.contains(&('u' as u16));
+        let unicode = flags.contains(b'u');
 
         // 8. If flags contains "y", let newFlags be flags.
         // 9. Else, let newFlags be the string-concatenation of flags and "y".
-        let new_flags = if flags.contains(&('y' as u16)) {
+        let new_flags = if flags.contains(b'y') {
             flags
         } else {
-            js_string!(&flags, utf16!("y"))
+            js_string!(&flags, "y")
         };
 
         // 10. Let splitter be ? Construct(C, « rx, newFlags »).
@@ -1756,7 +1716,7 @@ impl RegExp {
         // 19. Repeat, while q < size,
         while q < size {
             // a. Perform ? Set(splitter, "lastIndex", 𝔽(q), true).
-            splitter.set(utf16!("lastIndex"), JsValue::new(q), true, context)?;
+            splitter.set("lastIndex", JsValue::new(q), true, context)?;
 
             // b. Let z be ? RegExpExec(splitter, S).
             let result = Self::abstract_exec(&splitter, arg_str.clone(), context)?;
@@ -1765,9 +1725,7 @@ impl RegExp {
             // d. Else,
             if let Some(result) = result {
                 // i. Let e be ℝ(? ToLength(? Get(splitter, "lastIndex"))).
-                let mut e = splitter
-                    .get(utf16!("lastIndex"), context)?
-                    .to_length(context)?;
+                let mut e = splitter.get("lastIndex", context)?.to_length(context)?;
 
                 // ii. Set e to min(e, size).
                 e = std::cmp::min(e, size);
@@ -1778,7 +1736,7 @@ impl RegExp {
                     q = advance_string_index(&arg_str, q, unicode);
                 } else {
                     // 1. Let T be the substring of S from p to q.
-                    let arg_str_substring = js_string!(&arg_str[p as usize..q as usize]);
+                    let arg_str_substring = js_string!(&arg_str.to_vec()[p as usize..q as usize]);
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
                     a.create_data_property_or_throw(length_a, arg_str_substring, context)
@@ -1829,7 +1787,7 @@ impl RegExp {
         }
 
         // 20. Let T be the substring of S from p to size.
-        let arg_str_substring = js_string!(&arg_str[p as usize..size as usize]);
+        let arg_str_substring = js_string!(&arg_str.to_vec()[p as usize..size as usize]);
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
         a.create_data_property_or_throw(length_a, arg_str_substring, context)

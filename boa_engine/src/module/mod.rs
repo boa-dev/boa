@@ -182,7 +182,11 @@ impl Module {
     ) -> Self {
         let names: FxHashSet<Sym> = export_names
             .iter()
-            .map(|string| context.interner_mut().get_or_intern(&**string))
+            .map(|string| {
+                context
+                    .interner_mut()
+                    .get_or_intern(string.as_str().as_str_ref())
+            })
             .collect();
         let realm = realm.unwrap_or_else(|| context.realm().clone());
         let inner = Gc::new_cyclic(|weak| {

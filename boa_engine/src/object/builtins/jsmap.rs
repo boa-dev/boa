@@ -4,7 +4,6 @@ use crate::{
     builtins::Map,
     error::JsNativeError,
     object::{JsFunction, JsMapIterator, JsObject, JsObjectType, ObjectData},
-    string::utf16,
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
@@ -129,7 +128,7 @@ impl JsMap {
 
         // Let adder be Get(map, "set") per spec. This action should not fail with default map.
         let adder = map
-            .get(utf16!("set"), context)
+            .get("set", context)
             .expect("creating a map with the default prototype must not fail");
 
         let _completion_record = add_entries_from_iterable(&map, iterable, &adder, context)?;

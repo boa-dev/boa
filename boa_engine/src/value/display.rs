@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 
 use crate::{
-    builtins::promise::PromiseState, object::ObjectKind, property::PropertyDescriptor,
-    string::utf16, JsError, JsString,
+    builtins::promise::PromiseState, object::ObjectKind, property::PropertyDescriptor, JsError,
+    JsString,
 };
 
 use super::{fmt, Display, HashSet, JsValue};
@@ -117,7 +117,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                     let len = v
                         .borrow()
                         .properties()
-                        .get(&utf16!("length").into())
+                        .get(&"length".into())
                         .expect("array object must have 'length' property")
                         // FIXME: handle accessor descriptors
                         .expect_value()
@@ -196,7 +196,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 }
                 ObjectKind::Error(_) => {
                     let name: Cow<'static, str> = v
-                        .get_property(&utf16!("name").into())
+                        .get_property(&"name".into())
                         .as_ref()
                         .and_then(PropertyDescriptor::value)
                         .map_or_else(
@@ -211,7 +211,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                             },
                         );
                     let message = v
-                        .get_property(&utf16!("message").into())
+                        .get_property(&"message".into())
                         .as_ref()
                         .and_then(PropertyDescriptor::value)
                         .map(|v| {

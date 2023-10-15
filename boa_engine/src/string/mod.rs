@@ -22,6 +22,7 @@
 #![allow(unstable_name_collisions)]
 
 pub(crate) mod common;
+mod str;
 
 use crate::{
     builtins::string::is_trimmable_whitespace,
@@ -31,17 +32,17 @@ use crate::{
 use boa_gc::{empty_trace, Finalize, Trace};
 pub use boa_macros::utf16;
 
+#[doc(inline)]
+pub use crate::string::str::{JsStr, JsStrVariant};
+
 use std::{
     alloc::{alloc, dealloc, Layout},
-    borrow::Borrow,
     cell::Cell,
     convert::Infallible,
     hash::{Hash, Hasher},
-    iter::Peekable,
-    ops::{Deref, Index},
+    iter::{FusedIterator, Peekable},
     process::abort,
     ptr::{self, addr_of, addr_of_mut, NonNull},
-    slice::SliceIndex,
     str::FromStr,
 };
 
@@ -73,7 +74,7 @@ fn alloc_overflow() -> ! {
 /// # use boa_engine::js_string;
 /// # use boa_engine::string::utf16;
 /// let hw = js_string!("Hello, world!");
-/// assert_eq!(&hw, utf16!("Hello, world!"));
+/// assert_eq!(&hw, "Hello, world!");
 /// ```
 ///
 /// Any `&[u16]` slice is a valid `JsString`, including unpaired surrogates:
@@ -89,11 +90,11 @@ fn alloc_overflow() -> ! {
 /// ```
 /// # use boa_engine::js_string;
 /// # use boa_engine::string::utf16;
-/// const NAME: &[u16] = utf16!("human! ");
+/// const NAME: &[u16] = "human! ";
 /// let greeting = js_string!("Hello, ");
-/// let msg = js_string!(&greeting, &NAME, utf16!("Nice to meet you!"));
+/// let msg = js_string!(&greeting, &NAME, "Nice to meet you!");
 ///
-/// assert_eq!(&msg, utf16!("Hello, human! Nice to meet you!"));
+/// assert_eq!(&msg, "Hello, human! Nice to meet you!");
 /// ```
 #[macro_export]
 macro_rules! js_string {
@@ -101,16 +102,16 @@ macro_rules! js_string {
         $crate::JsString::default()
     };
     ($s:literal) => {
-        $crate::JsString::from($crate::string::utf16!($s))
+        $crate::JsString::from($crate::string::CowJsString::from($s))
     };
     ($s:expr) => {
         $crate::JsString::from($s)
     };
     ( $x:expr, $y:expr ) => {
-        $crate::JsString::concat($x, $y)
+        $crate::JsString::concat($crate::string::CowJsString::from($x), $crate::string::CowJsString::from($y))
     };
     ( $( $s:expr ),+ ) => {
-        $crate::JsString::concat_array(&[ $( $s ),+ ])
+        $crate::JsString::concat_array(&[ $( $crate::string::CowJsString::from($s) ),+ ])
     };
 }
 
@@ -180,6 +181,8 @@ struct RawJsString {
     /// The UTF-16 length.
     len: usize,
 
+    flags: usize,
+
     /// The number of references to the string.
     ///
     /// When this reaches `0` the string is deallocated.
@@ -217,37 +220,212 @@ unsafe impl Trace for JsString {
     empty_trace!();
 }
 
+#[derive(Debug)]
+pub enum CowJsString<'a> {
+    Borrowed(JsStr<'a>),
+    Owned(JsString),
+}
+
+impl CowJsString<'_> {
+    fn as_slice(&self) -> JsStr<'_> {
+        match self {
+            CowJsString::Borrowed(s) => *s,
+            CowJsString::Owned(s) => s.as_str(),
+        }
+    }
+}
+
+impl From<JsString> for CowJsString<'_> {
+    fn from(value: JsString) -> Self {
+        Self::Owned(value)
+    }
+}
+
+impl<'a> From<&'a JsString> for CowJsString<'a> {
+    fn from(value: &'a JsString) -> Self {
+        Self::Borrowed(value.as_str())
+    }
+}
+
+impl<'a> From<JsStr<'a>> for CowJsString<'a> {
+    fn from(value: JsStr<'a>) -> Self {
+        Self::Borrowed(value)
+    }
+}
+
+impl<'a> From<&'a str> for CowJsString<'a> {
+    fn from(value: &'a str) -> Self {
+        if value.is_ascii() {
+            return Self::Borrowed(
+                // SAFETY: Already checked that it's ASCII, so this is safe.
+                unsafe { JsStr::ascii_unchecked(value) },
+            );
+        }
+
+        Self::Owned(JsString::from(
+            &value.encode_utf16().collect::<Vec<_>>()[..],
+        ))
+    }
+}
+
+impl<'a> From<&'a [u16]> for CowJsString<'a> {
+    fn from(s: &'a [u16]) -> Self {
+        if is_ascii(s) {
+            let s = s.iter().copied().map(|c| c as u8).collect::<Vec<_>>();
+            // SAFETY: Already checked that it's ASCII, so this is safe.
+            let s = unsafe { std::str::from_utf8_unchecked(&s) };
+            return Self::Owned(StaticJsStrings::get_string(s).unwrap_or_else(|| {
+                JsString::from_slice_skip_interning(
+                    // SAFETY: Already checked that it's ASCII, so this is safe.
+                    unsafe { JsStr::ascii_unchecked(s) },
+                )
+            }));
+        }
+        // SAFETY: Already checked that isn't ASCII, so this is safe.
+        Self::Borrowed(unsafe { JsStr::u16_unchecked(s) })
+    }
+}
+
+impl From<JsStr<'_>> for JsString {
+    fn from(value: JsStr<'_>) -> Self {
+        match value.variant() {
+            // TODO: Maybe remove the check that comes from `JsString::from` <&str>.
+            JsStrVariant::Ascii(s) => JsString::from(s),
+            JsStrVariant::U16(s) => JsString::from(s),
+        }
+    }
+}
+
+impl From<CowJsString<'_>> for JsString {
+    fn from(value: CowJsString<'_>) -> Self {
+        match value {
+            CowJsString::Borrowed(s) => JsString::from(s),
+            CowJsString::Owned(s) => s,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Iter<'a> {
+    Ascii(std::str::Bytes<'a>),
+    U16(std::iter::Copied<std::slice::Iter<'a, u16>>),
+}
+
+impl<'a> Iter<'a> {
+    fn new(s: JsStr<'a>) -> Self {
+        match s.variant() {
+            JsStrVariant::Ascii(s) => Self::Ascii(s.bytes()),
+            JsStrVariant::U16(s) => Self::U16(s.iter().copied()),
+        }
+    }
+}
+
+impl Iterator for Iter<'_> {
+    type Item = u16;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::Ascii(iter) => iter.map(u16::from).next(),
+            Self::U16(iter) => iter.next(),
+        }
+    }
+}
+
+impl FusedIterator for Iter<'_> {}
+
+impl ExactSizeIterator for Iter<'_> {
+    fn len(&self) -> usize {
+        match self {
+            Self::Ascii(v) => v.len(),
+            Self::U16(v) => v.len(),
+        }
+    }
+}
+
+impl<'a> From<&'a JsString> for JsStr<'a> {
+    fn from(value: &'a JsString) -> Self {
+        value.as_str()
+    }
+}
+
 impl JsString {
+    /// TODO: doc
+    #[inline]
+    #[must_use]
+    pub fn iter(&self) -> Iter<'_> {
+        Iter::new(self.as_str())
+    }
+
     /// Obtains the underlying [`&[u16]`][slice] slice of a [`JsString`]
     #[must_use]
-    pub fn as_slice(&self) -> &[u16] {
-        self
+    pub fn as_str(&self) -> JsStr<'_> {
+        match self.ptr.unwrap() {
+            UnwrappedTagged::Ptr(h) => {
+                // SAFETY:
+                // - The `RawJsString` type has all the necessary information to reconstruct a valid
+                //   slice (length and starting pointer).
+                //
+                // - We aligned `h.data` on allocation, and the block is of size `h.len`, so this
+                //   should only generate valid reads.
+                //
+                // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
+                //   by its signature, so this doesn't outlive `self`.
+                unsafe {
+                    let h = h.as_ptr();
+
+                    if (*h).flags == 0 {
+                        JsStr::u16_unchecked(std::slice::from_raw_parts(
+                            addr_of!((*h).data).cast(),
+                            (*h).len,
+                        ))
+                    } else {
+                        JsStr::ascii_unchecked(std::str::from_utf8_unchecked(
+                            std::slice::from_raw_parts(addr_of!((*h).data).cast(), (*h).len),
+                        ))
+                    }
+                }
+            }
+            UnwrappedTagged::Tag(index) => {
+                // SAFETY: all static strings are valid indices on `STATIC_JS_STRINGS`, so `get` should always
+                // return `Some`.
+                //
+                // SAFETY: All strings in `StaticJsStrings` are ascii strings, so this is safe.
+                unsafe { JsStr::ascii_unchecked(StaticJsStrings::get(index).unwrap_unchecked()) }
+            }
+        }
     }
 
     /// Creates a new [`JsString`] from the concatenation of `x` and `y`.
     #[must_use]
-    pub fn concat(x: &[u16], y: &[u16]) -> Self {
+    pub fn concat(x: CowJsString<'_>, y: CowJsString<'_>) -> Self {
         Self::concat_array(&[x, y])
     }
 
     /// Creates a new [`JsString`] from the concatenation of every element of
     /// `strings`.
     #[must_use]
-    pub fn concat_array(strings: &[&[u16]]) -> Self {
+    pub fn concat_array(strings: &[CowJsString<'_>]) -> Self {
+        let mut ascii = true;
         let mut full_count = 0usize;
-        for &string in strings {
-            let Some(sum) = full_count.checked_add(string.len()) else {
+        for string in strings {
+            let Some(sum) = full_count.checked_add(string.as_slice().len()) else {
                 alloc_overflow()
             };
+            if !string.as_slice().is_ascii() {
+                ascii = false;
+            }
             full_count = sum;
         }
 
-        let ptr = Self::allocate_inner(full_count);
+        // dbg!(strings);
+
+        let ptr = Self::allocate_inner(full_count, ascii);
 
         let string = {
             // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-            let mut data = unsafe { addr_of_mut!((*ptr.as_ptr()).data).cast() };
+            let mut data = unsafe { addr_of_mut!((*ptr.as_ptr()).data).cast::<u8>() };
             for string in strings {
+                let string = string.as_slice();
                 let count = string.len();
                 // SAFETY:
                 // The sum of all `count` for each `string` equals `full_count`, and since we're
@@ -260,8 +438,23 @@ impl JsString {
                 // `allocate_inner` must return a valid pointer to newly allocated memory, meaning
                 // `ptr` and all `string`s should never overlap.
                 unsafe {
-                    ptr::copy_nonoverlapping(string.as_ptr(), data, count);
-                    data = data.add(count);
+                    match (ascii, string.variant()) {
+                        (true, JsStrVariant::Ascii(s)) => {
+                            ptr::copy_nonoverlapping(s.as_ptr(), data.cast::<u8>(), count);
+                            data = data.cast::<u8>().add(count).cast::<u8>();
+                        }
+                        (false, JsStrVariant::Ascii(s)) => {
+                            for (i, byte) in s.bytes().enumerate() {
+                                *data.cast::<u16>().add(i) = u16::from(byte);
+                            }
+                            data = data.cast::<u16>().add(count).cast::<u8>();
+                        }
+                        (false, JsStrVariant::U16(s)) => {
+                            ptr::copy_nonoverlapping(s.as_ptr(), data.cast::<u16>(), count);
+                            data = data.cast::<u16>().add(count).cast::<u8>();
+                        }
+                        (true, JsStrVariant::U16(_)) => unreachable!(),
+                    }
                 }
             }
             Self {
@@ -270,7 +463,22 @@ impl JsString {
             }
         };
 
-        StaticJsStrings::get_string(&string[..]).unwrap_or(string)
+        let slice = string.as_str();
+        // let Some(slice) = slice.as_ascii() else {
+        //     return string;
+        // };
+
+        let slice = match slice.variant() {
+            JsStrVariant::Ascii(slice) => slice,
+            JsStrVariant::U16(slice) => {
+                if is_ascii(slice) {
+                    unreachable!("U16 should not be ascii representable, ascii? {ascii}")
+                }
+                return string;
+            }
+        };
+
+        StaticJsStrings::get_string(slice).unwrap_or(string)
     }
 
     /// Decodes a [`JsString`] into a [`String`], replacing invalid data with its escaped representation
@@ -283,7 +491,10 @@ impl JsString {
     /// Decodes a [`JsString`] into a [`String`], returning
     /// [`FromUtf16Error`][std::string::FromUtf16Error] if it contains any invalid data.
     pub fn to_std_string(&self) -> Result<String, std::string::FromUtf16Error> {
-        String::from_utf16(self)
+        match self.as_str().variant() {
+            JsStrVariant::Ascii(v) => Ok(v.to_owned()),
+            JsStrVariant::U16(v) => String::from_utf16(v),
+        }
     }
 
     /// Decodes a [`JsString`] into an iterator of [`Result<String, u16>`], returning surrogates as
@@ -353,12 +564,12 @@ impl JsString {
             }
         }
 
-        js_string!(text)
+        js_string!(&text[..])
     }
 
     /// Gets an iterator of all the Unicode codepoints of a [`JsString`].
     pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + Clone + '_ {
-        char::decode_utf16(self.iter().copied()).map(|res| match res {
+        char::decode_utf16(self.iter()).map(|res| match res {
             Ok(c) => CodePoint::Unicode(c),
             Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
         })
@@ -373,7 +584,10 @@ impl JsString {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringindexof
-    pub(crate) fn index_of(&self, search_value: &[u16], from_index: usize) -> Option<usize> {
+    pub(crate) fn index_of(&self, search_value: &JsStr<'_>, from_index: usize) -> Option<usize> {
+        let this = self.iter().collect::<Vec<_>>();
+        let search_value = search_value.iter().collect::<Vec<_>>();
+
         // 1. Assert: Type(string) is String.
         // 2. Assert: Type(searchValue) is String.
         // 3. Assert: fromIndex is a non-negative integer.
@@ -395,7 +609,7 @@ impl JsString {
         // a. Let candidate be the substring of string from i to i + searchLen.
         // b. If candidate is the same sequence of code units as searchValue, return i.
         // 8. Return -1.
-        self.windows(search_value.len())
+        this.windows(search_value.len())
             .skip(from_index)
             .position(|s| s == search_value)
             .map(|i| i + from_index)
@@ -433,9 +647,10 @@ impl JsString {
         // 9. Set cp to ! UTF16SurrogatePairToCodePoint(first, second).
 
         // We can skip the checks and instead use the `char::decode_utf16` function to take care of that for us.
-        let code_point = self
+        let v = self.to_vec();
+        let code_point = v
             .get(position..=position + 1)
-            .unwrap_or(&self[position..=position]);
+            .unwrap_or(&v[position..=position]);
 
         match char::decode_utf16(code_point.iter().copied())
             .next()
@@ -528,8 +743,8 @@ impl JsString {
     /// # Panics
     ///
     /// Panics if `try_allocate_inner` returns `Err`.
-    fn allocate_inner(str_len: usize) -> NonNull<RawJsString> {
-        match Self::try_allocate_inner(str_len) {
+    fn allocate_inner(str_len: usize, ascii: bool) -> NonNull<RawJsString> {
+        match Self::try_allocate_inner(str_len, ascii) {
             Ok(v) => v,
             Err(None) => alloc_overflow(),
             Err(Some(layout)) => std::alloc::handle_alloc_error(layout),
@@ -544,11 +759,18 @@ impl JsString {
     ///
     /// Returns `Err(None)` on integer overflows `usize::MAX`.
     /// Returns `Err(Some(Layout))` on allocation error.
-    fn try_allocate_inner(str_len: usize) -> Result<NonNull<RawJsString>, Option<Layout>> {
-        let (layout, offset) = Layout::array::<u16>(str_len)
-            .and_then(|arr| Layout::new::<RawJsString>().extend(arr))
-            .map(|(layout, offset)| (layout.pad_to_align(), offset))
-            .map_err(|_| None)?;
+    fn try_allocate_inner(
+        str_len: usize,
+        ascii: bool,
+    ) -> Result<NonNull<RawJsString>, Option<Layout>> {
+        let (layout, offset) = if ascii {
+            Layout::array::<u8>(str_len)
+        } else {
+            Layout::array::<u16>(str_len)
+        }
+        .and_then(|arr| Layout::new::<RawJsString>().extend(arr))
+        .map(|(layout, offset)| (layout.pad_to_align(), offset))
+        .map_err(|_| None)?;
 
         debug_assert_eq!(offset, DATA_OFFSET);
 
@@ -571,6 +793,7 @@ impl JsString {
             inner.as_ptr().write(RawJsString {
                 len: str_len,
                 refcount: Cell::new(1),
+                flags: usize::from(ascii),
                 data: [0; 0],
             });
         }
@@ -596,9 +819,9 @@ impl JsString {
     }
 
     /// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.
-    fn from_slice_skip_interning(string: &[u16]) -> Self {
+    fn from_slice_skip_interning(string: JsStr<'_>) -> Self {
         let count = string.len();
-        let ptr = Self::allocate_inner(count);
+        let ptr = Self::allocate_inner(count, string.is_ascii());
 
         // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
         let data = unsafe { addr_of_mut!((*ptr.as_ptr()).data) };
@@ -611,24 +834,91 @@ impl JsString {
         // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
         //   and `data` should never overlap.
         unsafe {
-            ptr::copy_nonoverlapping(string.as_ptr(), data.cast(), count);
+            match string.variant() {
+                JsStrVariant::Ascii(string) => {
+                    ptr::copy_nonoverlapping(string.as_ptr(), data.cast::<u8>(), count);
+                }
+                JsStrVariant::U16(string) => {
+                    assert!(!is_ascii(string), "should be u16 not ascii");
+                    ptr::copy_nonoverlapping(string.as_ptr(), data.cast::<u16>(), count);
+                }
+            }
         }
         Self {
             // Safety: `allocate_inner` guarantees `ptr` is a valid heap pointer.
             ptr: Tagged::from_non_null(ptr),
         }
     }
-}
 
-impl AsRef<[u16]> for JsString {
-    fn as_ref(&self) -> &[u16] {
-        self
+    #[inline]
+    #[must_use]
+    pub fn len(&self) -> usize {
+        match self.ptr.unwrap() {
+            UnwrappedTagged::Ptr(h) => {
+                // SAFETY:
+                // - The `RawJsString` type has all the necessary information to reconstruct a valid
+                //   slice (length and starting pointer).
+                //
+                // - We aligned `h.data` on allocation, and the block is of size `h.len`, so this
+                //   should only generate valid reads.
+                //
+                // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
+                //   by its signature, so this doesn't outlive `self`.
+                unsafe {
+                    let h = h.as_ptr();
+                    (*h).len
+                }
+            }
+            UnwrappedTagged::Tag(index) => {
+                // SAFETY: all static strings are valid indices on `STATIC_JS_STRINGS`, so `get` should always
+                // return `Some`.
+                unsafe { StaticJsStrings::get(index).unwrap_unchecked().len() }
+            }
+        }
     }
-}
 
-impl Borrow<[u16]> for JsString {
-    fn borrow(&self) -> &[u16] {
-        self
+    #[inline]
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    // pub fn get<I>(&self, index: I) -> Option<<I::Output as ToOwned>::Owned>
+    // where
+    //     I: SliceIndex<[u16]>,
+    //     <I as SliceIndex<[u16]>>::Output: ToOwned,
+    // {
+    //     match self.as_slice() {
+    //         StringSlice::Ascii(v) => v.get(index).map(ToOwned::to_owned),
+    //         StringSlice::U16(v) => v.get(index).map(ToOwned::to_owned),
+    //     }
+    // }
+
+    pub fn to_vec(&self) -> Vec<u16> {
+        match self.as_str().variant() {
+            JsStrVariant::Ascii(v) => v.bytes().map(u16::from).collect(),
+            JsStrVariant::U16(v) => v.to_vec(),
+        }
+    }
+
+    #[must_use]
+    pub fn contains(&self, element: u8) -> bool {
+        match self.as_str().variant() {
+            JsStrVariant::Ascii(v) => v.as_bytes().contains(&element),
+            JsStrVariant::U16(v) => v.contains(&u16::from(element)),
+        }
+    }
+
+    pub(crate) fn trim(&self) -> JsStr<'_> {
+        self.as_str().trim()
+    }
+
+    pub(crate) fn trim_start(&self) -> JsStr<'_> {
+        self.as_str().trim_start()
+    }
+
+    pub(crate) fn trim_end(&self) -> JsStr<'_> {
+        self.as_str().trim_end()
     }
 }
 
@@ -671,12 +961,21 @@ impl Drop for JsString {
             // All the checks for the validity of the layout have already been made on `alloc_inner`,
             // so we can skip the unwrap.
             let layout = unsafe {
-                Layout::for_value(inner)
-                    .extend(Layout::array::<u16>(inner.len).unwrap_unchecked())
-                    .unwrap_unchecked()
-                    .0
-                    .pad_to_align()
+                if inner.flags == 0 {
+                    Layout::for_value(inner)
+                        .extend(Layout::array::<u16>(inner.len).unwrap_unchecked())
+                        .unwrap_unchecked()
+                        .0
+                        .pad_to_align()
+                } else {
+                    Layout::for_value(inner)
+                        .extend(Layout::array::<u8>(inner.len).unwrap_unchecked())
+                        .unwrap_unchecked()
+                        .0
+                        .pad_to_align()
+                }
             };
+
             // Safety:
             // If refcount is 0 and we call drop, that means this is the last `JsString` which
             // points to this memory allocation, so deallocating it is safe.
@@ -687,72 +986,86 @@ impl Drop for JsString {
     }
 }
 
-impl std::fmt::Debug for JsString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::char::decode_utf16(self.as_slice().to_owned())
-            .map(|r| {
-                r.map_or_else(
-                    |err| format!("<0x{:04x}>", err.unpaired_surrogate()),
-                    String::from,
-                )
-            })
-            .collect::<String>()
-            .fmt(f)
+fn is_ascii(slice: &[u16]) -> bool {
+    for &element in slice {
+        if (element & 0b0111_1111) != element {
+            return false;
+        }
+    }
+    true
+}
+
+impl ToStringEscaped for JsString {
+    #[inline]
+    fn to_string_escaped(&self) -> String {
+        match self.as_str().variant() {
+            JsStrVariant::Ascii(v) => v.to_owned(),
+            JsStrVariant::U16(v) => v.to_string_escaped(),
+        }
     }
 }
 
-impl Deref for JsString {
-    type Target = [u16];
-
-    fn deref(&self) -> &Self::Target {
-        match self.ptr.unwrap() {
-            UnwrappedTagged::Ptr(h) => {
-                // SAFETY:
-                // - The `RawJsString` type has all the necessary information to reconstruct a valid
-                //   slice (length and starting pointer).
-                //
-                // - We aligned `h.data` on allocation, and the block is of size `h.len`, so this
-                //   should only generate valid reads.
-                //
-                // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
-                //   by its signature, so this doesn't outlive `self`.
-                unsafe {
-                    let h = h.as_ptr();
-                    std::slice::from_raw_parts(addr_of!((*h).data).cast(), (*h).len)
-                }
-            }
-            UnwrappedTagged::Tag(index) => {
-                // SAFETY: all static strings are valid indices on `STATIC_JS_STRINGS`, so `get` should always
-                // return `Some`.
-                unsafe { StaticJsStrings::get(index).unwrap_unchecked() }
-            }
-        }
+impl std::fmt::Debug for JsString {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.to_std_string_escaped().fmt(f)
     }
 }
 
 impl Eq for JsString {}
 
 impl From<&[u16]> for JsString {
+    #[inline]
     fn from(s: &[u16]) -> Self {
-        StaticJsStrings::get_string(s).unwrap_or_else(|| Self::from_slice_skip_interning(s))
-    }
-}
-
-impl From<Vec<u16>> for JsString {
-    fn from(vec: Vec<u16>) -> Self {
-        Self::from(&vec[..])
+        if is_ascii(s) {
+            let s = s.iter().copied().map(|c| c as u8).collect::<Vec<_>>();
+            // SAFETY: Already checked that it's ASCII, so this is safe.
+            let s = unsafe { std::str::from_utf8_unchecked(&s) };
+            return StaticJsStrings::get_string(s).unwrap_or_else(|| {
+                Self::from_slice_skip_interning(
+                    // SAFETY: Already checked that it's ASCII, so this is safe.
+                    unsafe { JsStr::ascii_unchecked(s) },
+                )
+            });
+        }
+        Self::from_slice_skip_interning(
+            // SAFETY: Already checked that it's not ASCII, so this is safe.
+            unsafe { JsStr::u16_unchecked(s) },
+        )
     }
 }
 
 impl From<&str> for JsString {
     #[inline]
     fn from(s: &str) -> Self {
-        let s = s.encode_utf16().collect::<Vec<_>>();
-
-        Self::from(&s[..])
+        StaticJsStrings::get_string(s).unwrap_or_else(|| {
+            if s.is_ascii() {
+                Self::from_slice_skip_interning(
+                    // SAFETY: Already checked that it's ASCII, so this is safe.
+                    unsafe { JsStr::ascii_unchecked(s) },
+                )
+            } else {
+                let s = s.encode_utf16().collect::<Vec<_>>();
+                Self::from_slice_skip_interning(
+                    // SAFETY: Already checked that it's not ASCII, so this is safe.
+                    unsafe { JsStr::u16_unchecked(&s[..]) },
+                )
+            }
+        })
     }
 }
 
+impl From<&[JsString]> for JsString {
+    fn from(value: &[JsString]) -> Self {
+        Self::concat_array(
+            &value
+                .iter()
+                .map(Self::as_str)
+                .map(Into::into)
+                .collect::<Vec<_>>()[..],
+        )
+    }
+}
 impl From<String> for JsString {
     #[inline]
     fn from(s: String) -> Self {
@@ -768,34 +1081,34 @@ impl<const N: usize> From<&[u16; N]> for JsString {
 
 impl Hash for JsString {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self[..].hash(state);
+        self.as_str().hash(state);
     }
 }
 
-impl<I: SliceIndex<[u16]>> Index<I> for JsString {
-    type Output = I::Output;
+// impl<I: SliceIndex<[u16]>> Index<I> for JsString {
+//     type Output = I::Output;
 
-    #[inline]
-    fn index(&self, index: I) -> &Self::Output {
-        Index::index(&**self, index)
-    }
-}
+//     #[inline]
+//     fn index(&self, index: I) -> &Self::Output {
+//         Index::index(&**self, index)
+//     }
+// }
 
 impl Ord for JsString {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self[..].cmp(other)
+        self.to_vec().cmp(&other.to_vec())
     }
 }
 
 impl PartialEq for JsString {
     fn eq(&self, other: &Self) -> bool {
-        self[..] == other[..]
+        self.as_str() == other.as_str()
     }
 }
 
 impl PartialEq<JsString> for [u16] {
     fn eq(&self, other: &JsString) -> bool {
-        self == &**other
+        self == &other.to_vec()
     }
 }
 
@@ -807,7 +1120,7 @@ impl<const N: usize> PartialEq<JsString> for [u16; N] {
 
 impl PartialEq<[u16]> for JsString {
     fn eq(&self, other: &[u16]) -> bool {
-        &**self == other
+        &self.to_vec() == other
     }
 }
 
@@ -819,6 +1132,10 @@ impl<const N: usize> PartialEq<[u16; N]> for JsString {
 
 impl PartialEq<str> for JsString {
     fn eq(&self, other: &str) -> bool {
+        if let Some(s) = self.as_str().as_ascii() {
+            return s == other;
+        }
+
         let utf16 = self.code_points();
         let mut utf8 = other.chars();
 
@@ -852,45 +1169,6 @@ impl FromStr for JsString {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self::from(s))
-    }
-}
-
-/// Utility trait that adds trimming functionality to every `UTF-16` string.
-pub(crate) trait Utf16Trim {
-    /// Trims both leading and trailing space from `self`.
-    fn trim(&self) -> &Self {
-        self.trim_start().trim_end()
-    }
-
-    /// Trims all leading space from `self`.
-    fn trim_start(&self) -> &Self;
-
-    /// Trims all trailing space from `self`.
-    fn trim_end(&self) -> &Self;
-}
-
-impl Utf16Trim for [u16] {
-    fn trim_start(&self) -> &Self {
-        if let Some(left) = self.iter().copied().position(|r| {
-            !char::from_u32(u32::from(r))
-                .map(is_trimmable_whitespace)
-                .unwrap_or_default()
-        }) {
-            &self[left..]
-        } else {
-            &[]
-        }
-    }
-    fn trim_end(&self) -> &Self {
-        if let Some(right) = self.iter().copied().rposition(|r| {
-            !char::from_u32(u32::from(r))
-                .map(is_trimmable_whitespace)
-                .unwrap_or_default()
-        }) {
-            &self[..=right]
-        } else {
-            &[]
-        }
     }
 }
 
@@ -937,7 +1215,7 @@ mod tests {
     #[test]
     fn empty() {
         let s = js_string!();
-        assert_eq!(*s, "".encode_utf16().collect::<Vec<u16>>());
+        assert_eq!(&s, utf16!(""));
     }
 
     #[test]
@@ -1008,10 +1286,10 @@ mod tests {
 
     #[test]
     fn as_str() {
-        const HELLO: &str = "Hello";
+        const HELLO: &[u16] = utf16!("Hello");
         let x = js_string!(HELLO);
 
-        assert_eq!(*x, HELLO.encode_utf16().collect::<Vec<u16>>());
+        assert_eq!(&x, HELLO);
     }
 
     #[test]
@@ -1022,7 +1300,7 @@ mod tests {
         const HELLOWORLD: &[u16] = utf16!("Hello World!");
         let x = js_string!(HELLOWORLD);
 
-        assert_eq!(&*x, HELLOWORLD);
+        assert_eq!(&x, HELLOWORLD);
 
         let mut hasher = DefaultHasher::new();
         HELLOWORLD.hash(&mut hasher);

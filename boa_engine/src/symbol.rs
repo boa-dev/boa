@@ -23,7 +23,7 @@
 
 use crate::{
     js_string,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     tagged::{Tagged, UnwrappedTagged},
     JsString,
 };
@@ -171,7 +171,7 @@ impl JsSymbol {
         let hash = get_id()?;
         let arc = Arc::new(Inner {
             hash,
-            description: description.map(|s| Box::from(&*s)),
+            description: description.map(|s| s.iter().collect::<Vec<_>>().into_boxed_slice()),
         });
 
         Some(Self {
@@ -213,7 +213,7 @@ impl JsSymbol {
             return wk.fn_name();
         }
         self.description()
-            .map(|s| js_string!(utf16!("["), &*s, utf16!("]")))
+            .map(|s| js_string!("[", s, "]"))
             .unwrap_or_default()
     }
 
@@ -247,7 +247,7 @@ impl JsSymbol {
     pub fn descriptive_string(&self) -> JsString {
         self.description().as_ref().map_or_else(
             || js_string!("Symbol()"),
-            |desc| js_string!(utf16!("Symbol("), desc, utf16!(")")),
+            |desc| js_string!("Symbol(", desc, ")"),
         )
     }
 

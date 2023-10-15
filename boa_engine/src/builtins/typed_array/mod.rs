@@ -19,7 +19,6 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
@@ -52,7 +51,7 @@ impl<T: TypedArray> IntrinsicObject for T {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_species = BuiltInBuilder::callable(realm, BuiltinTypedArray::get_species)
-            .name(js_string!("get [Symbol.species]"))
+            .name("get [Symbol.species]")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -73,12 +72,12 @@ impl<T: TypedArray> IntrinsicObject for T {
                 Attribute::CONFIGURABLE,
             )
             .property(
-                js_string!("BYTES_PER_ELEMENT"),
+                "BYTES_PER_ELEMENT",
                 std::mem::size_of::<T::Element>(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
             .static_property(
-                js_string!("BYTES_PER_ELEMENT"),
+                "BYTES_PER_ELEMENT",
                 std::mem::size_of::<T::Element>(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )

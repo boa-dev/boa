@@ -9,9 +9,7 @@ use crate::{
             round_number_to_increment, to_temporal_date, NS_PER_DAY,
         },
     },
-    js_string,
-    string::utf16,
-    Context, JsNativeError, JsObject, JsResult, JsValue,
+    js_string, Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 
 use super::super::{
@@ -243,70 +241,70 @@ impl DurationRecord {
 
         // 3. NOTE: The following steps read properties and perform independent validation in alphabetical order.
         // 4. Let days be ? Get(temporalDurationLike, "days").
-        let days = unknown_object.get(utf16!("days"), context)?;
+        let days = unknown_object.get("days", context)?;
         if !days.is_undefined() {
             // 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
             result.set_days(f64::from(to_integer_if_integral(&days, context)?));
         }
 
         // 6. Let hours be ? Get(temporalDurationLike, "hours").
-        let hours = unknown_object.get(utf16!("hours"), context)?;
+        let hours = unknown_object.get("hours", context)?;
         // 7. If hours is not undefined, set result.[[Hours]] to ? ToIntegerIfIntegral(hours).
         if !hours.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&hours, context)?));
         }
 
         // 8. Let microseconds be ? Get(temporalDurationLike, "microseconds").
-        let microseconds = unknown_object.get(utf16!("microseconds"), context)?;
+        let microseconds = unknown_object.get("microseconds", context)?;
         // 9. If microseconds is not undefined, set result.[[Microseconds]] to ? ToIntegerIfIntegral(microseconds).
         if !microseconds.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&microseconds, context)?));
         }
 
         // 10. Let milliseconds be ? Get(temporalDurationLike, "milliseconds").
-        let milliseconds = unknown_object.get(utf16!("milliseconds"), context)?;
+        let milliseconds = unknown_object.get("milliseconds", context)?;
         // 11. If milliseconds is not undefined, set result.[[Milliseconds]] to ? ToIntegerIfIntegral(milliseconds).
         if !milliseconds.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&milliseconds, context)?));
         }
 
         // 12. Let minutes be ? Get(temporalDurationLike, "minutes").
-        let minutes = unknown_object.get(utf16!("minutes"), context)?;
+        let minutes = unknown_object.get("minutes", context)?;
         // 13. If minutes is not undefined, set result.[[Minutes]] to ? ToIntegerIfIntegral(minutes).
         if !minutes.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&minutes, context)?));
         }
 
         // 14. Let months be ? Get(temporalDurationLike, "months").
-        let months = unknown_object.get(utf16!("months"), context)?;
+        let months = unknown_object.get("months", context)?;
         // 15. If months is not undefined, set result.[[Months]] to ? ToIntegerIfIntegral(months).
         if !months.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&months, context)?));
         }
 
         // 16. Let nanoseconds be ? Get(temporalDurationLike, "nanoseconds").
-        let nanoseconds = unknown_object.get(utf16!("nanoseconds"), context)?;
+        let nanoseconds = unknown_object.get("nanoseconds", context)?;
         // 17. If nanoseconds is not undefined, set result.[[Nanoseconds]] to ? ToIntegerIfIntegral(nanoseconds).
         if !nanoseconds.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&nanoseconds, context)?));
         }
 
         // 18. Let seconds be ? Get(temporalDurationLike, "seconds").
-        let seconds = unknown_object.get(utf16!("seconds"), context)?;
+        let seconds = unknown_object.get("seconds", context)?;
         // 19. If seconds is not undefined, set result.[[Seconds]] to ? ToIntegerIfIntegral(seconds).
         if !seconds.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&seconds, context)?));
         }
 
         // 20. Let weeks be ? Get(temporalDurationLike, "weeks").
-        let weeks = unknown_object.get(utf16!("weeks"), context)?;
+        let weeks = unknown_object.get("weeks", context)?;
         // 21. If weeks is not undefined, set result.[[Weeks]] to ? ToIntegerIfIntegral(weeks).
         if !weeks.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&weeks, context)?));
         }
 
         // 22. Let years be ? Get(temporalDurationLike, "years").
-        let years = unknown_object.get(utf16!("years"), context)?;
+        let years = unknown_object.get("years", context)?;
         // 23. If years is not undefined, set result.[[Years]] to ? ToIntegerIfIntegral(years).
         if !years.is_undefined() {
             result.set_days(f64::from(to_integer_if_integral(&years, context)?));
@@ -1124,7 +1122,7 @@ impl DurationRecord {
                 let until_options = JsObject::with_null_proto();
                 // o. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "month").
                 until_options.create_data_property_or_throw(
-                    utf16!("largestUnit"),
+                    "largestUnit",
                     js_string!("month"),
                     context,
                 )?;
@@ -1164,7 +1162,7 @@ impl DurationRecord {
                     let until_options = JsObject::with_null_proto();
                     // vi. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "month").
                     until_options.create_data_property_or_throw(
-                        utf16!("largestUnit"),
+                        "largestUnit",
                         js_string!("month"),
                         context,
                     )?;

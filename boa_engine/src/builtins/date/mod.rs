@@ -24,7 +24,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrNan, JsValue, PreferredType},
     Context, JsArgs, JsError, JsResult, JsString,
@@ -97,106 +97,70 @@ impl IntrinsicObject for Date {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let to_utc_string = BuiltInBuilder::callable(realm, Self::to_utc_string)
-            .name(js_string!("toUTCString"))
+            .name("toUTCString")
             .length(0)
             .build();
 
         let to_primitive = BuiltInBuilder::callable(realm, Self::to_primitive)
-            .name(js_string!("[Symbol.toPrimitive]"))
+            .name("[Symbol.toPrimitive]")
             .length(1)
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::now, js_string!("now"), 0)
-            .static_method(Self::parse, js_string!("parse"), 1)
-            .static_method(Self::utc, js_string!("UTC"), 7)
-            .method(Self::get_date::<true>, js_string!("getDate"), 0)
-            .method(Self::get_day::<true>, js_string!("getDay"), 0)
-            .method(Self::get_full_year::<true>, js_string!("getFullYear"), 0)
-            .method(Self::get_hours::<true>, js_string!("getHours"), 0)
-            .method(
-                Self::get_milliseconds::<true>,
-                js_string!("getMilliseconds"),
-                0,
-            )
-            .method(Self::get_minutes::<true>, js_string!("getMinutes"), 0)
-            .method(Self::get_month::<true>, js_string!("getMonth"), 0)
-            .method(Self::get_seconds::<true>, js_string!("getSeconds"), 0)
-            .method(Self::get_time, js_string!("getTime"), 0)
-            .method(
-                Self::get_timezone_offset,
-                js_string!("getTimezoneOffset"),
-                0,
-            )
-            .method(Self::get_date::<false>, js_string!("getUTCDate"), 0)
-            .method(Self::get_day::<false>, js_string!("getUTCDay"), 0)
-            .method(
-                Self::get_full_year::<false>,
-                js_string!("getUTCFullYear"),
-                0,
-            )
-            .method(Self::get_hours::<false>, js_string!("getUTCHours"), 0)
-            .method(
-                Self::get_milliseconds::<false>,
-                js_string!("getUTCMilliseconds"),
-                0,
-            )
-            .method(Self::get_minutes::<false>, js_string!("getUTCMinutes"), 0)
-            .method(Self::get_month::<false>, js_string!("getUTCMonth"), 0)
-            .method(Self::get_seconds::<false>, js_string!("getUTCSeconds"), 0)
-            .method(Self::get_year, js_string!("getYear"), 0)
-            .method(Self::set_date::<true>, js_string!("setDate"), 1)
-            .method(Self::set_full_year::<true>, js_string!("setFullYear"), 3)
-            .method(Self::set_hours::<true>, js_string!("setHours"), 4)
-            .method(
-                Self::set_milliseconds::<true>,
-                js_string!("setMilliseconds"),
-                1,
-            )
-            .method(Self::set_minutes::<true>, js_string!("setMinutes"), 3)
-            .method(Self::set_month::<true>, js_string!("setMonth"), 2)
-            .method(Self::set_seconds::<true>, js_string!("setSeconds"), 2)
-            .method(Self::set_time, js_string!("setTime"), 1)
-            .method(Self::set_date::<false>, js_string!("setUTCDate"), 1)
-            .method(
-                Self::set_full_year::<false>,
-                js_string!("setUTCFullYear"),
-                3,
-            )
-            .method(Self::set_hours::<false>, js_string!("setUTCHours"), 4)
-            .method(
-                Self::set_milliseconds::<false>,
-                js_string!("setUTCMilliseconds"),
-                1,
-            )
-            .method(Self::set_minutes::<false>, js_string!("setUTCMinutes"), 3)
-            .method(Self::set_month::<false>, js_string!("setUTCMonth"), 2)
-            .method(Self::set_seconds::<false>, js_string!("setUTCSeconds"), 2)
-            .method(Self::set_year, js_string!("setYear"), 1)
-            .method(Self::to_date_string, js_string!("toDateString"), 0)
-            .method(Self::to_iso_string, js_string!("toISOString"), 0)
-            .method(Self::to_json, js_string!("toJSON"), 1)
-            .method(
-                Self::to_locale_date_string,
-                js_string!("toLocaleDateString"),
-                0,
-            )
-            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
-            .method(
-                Self::to_locale_time_string,
-                js_string!("toLocaleTimeString"),
-                0,
-            )
-            .method(Self::to_string, js_string!("toString"), 0)
-            .method(Self::to_time_string, js_string!("toTimeString"), 0)
-            .method(Self::value_of, js_string!("valueOf"), 0)
+            .static_method(Self::now, "now", 0)
+            .static_method(Self::parse, "parse", 1)
+            .static_method(Self::utc, "UTC", 7)
+            .method(Self::get_date::<true>, "getDate", 0)
+            .method(Self::get_day::<true>, "getDay", 0)
+            .method(Self::get_full_year::<true>, "getFullYear", 0)
+            .method(Self::get_hours::<true>, "getHours", 0)
+            .method(Self::get_milliseconds::<true>, "getMilliseconds", 0)
+            .method(Self::get_minutes::<true>, "getMinutes", 0)
+            .method(Self::get_month::<true>, "getMonth", 0)
+            .method(Self::get_seconds::<true>, "getSeconds", 0)
+            .method(Self::get_time, "getTime", 0)
+            .method(Self::get_timezone_offset, "getTimezoneOffset", 0)
+            .method(Self::get_date::<false>, "getUTCDate", 0)
+            .method(Self::get_day::<false>, "getUTCDay", 0)
+            .method(Self::get_full_year::<false>, "getUTCFullYear", 0)
+            .method(Self::get_hours::<false>, "getUTCHours", 0)
+            .method(Self::get_milliseconds::<false>, "getUTCMilliseconds", 0)
+            .method(Self::get_minutes::<false>, "getUTCMinutes", 0)
+            .method(Self::get_month::<false>, "getUTCMonth", 0)
+            .method(Self::get_seconds::<false>, "getUTCSeconds", 0)
+            .method(Self::get_year, "getYear", 0)
+            .method(Self::set_date::<true>, "setDate", 1)
+            .method(Self::set_full_year::<true>, "setFullYear", 3)
+            .method(Self::set_hours::<true>, "setHours", 4)
+            .method(Self::set_milliseconds::<true>, "setMilliseconds", 1)
+            .method(Self::set_minutes::<true>, "setMinutes", 3)
+            .method(Self::set_month::<true>, "setMonth", 2)
+            .method(Self::set_seconds::<true>, "setSeconds", 2)
+            .method(Self::set_time, "setTime", 1)
+            .method(Self::set_date::<false>, "setUTCDate", 1)
+            .method(Self::set_full_year::<false>, "setUTCFullYear", 3)
+            .method(Self::set_hours::<false>, "setUTCHours", 4)
+            .method(Self::set_milliseconds::<false>, "setUTCMilliseconds", 1)
+            .method(Self::set_minutes::<false>, "setUTCMinutes", 3)
+            .method(Self::set_month::<false>, "setUTCMonth", 2)
+            .method(Self::set_seconds::<false>, "setUTCSeconds", 2)
+            .method(Self::set_year, "setYear", 1)
+            .method(Self::to_date_string, "toDateString", 0)
+            .method(Self::to_iso_string, "toISOString", 0)
+            .method(Self::to_json, "toJSON", 1)
+            .method(Self::to_locale_date_string, "toLocaleDateString", 0)
+            .method(Self::to_locale_string, "toLocaleString", 0)
+            .method(Self::to_locale_time_string, "toLocaleTimeString", 0)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::to_time_string, "toTimeString", 0)
+            .method(Self::value_of, "valueOf", 0)
             .property(
-                js_string!("toGMTString"),
+                "toGMTString",
                 to_utc_string.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                js_string!("toUTCString"),
+                "toUTCString",
                 to_utc_string,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -1349,7 +1313,7 @@ impl Date {
         }
 
         // 4. Return ? Invoke(O, "toISOString").
-        let func = o.get(utf16!("toISOString"), context)?;
+        let func = o.get("toISOString", context)?;
         func.call(this, &[], context)
     }
 
@@ -1548,12 +1512,10 @@ impl Date {
         let try_first = match hint.as_string() {
             // 3. If hint is "string" or "default", then
             // a. Let tryFirst be string.
-            Some(string) if string == utf16!("string") || string == utf16!("default") => {
-                PreferredType::String
-            }
+            Some(string) if string == "string" || string == "default" => PreferredType::String,
             // 4. Else if hint is "number", then
             // a. Let tryFirst be number.
-            Some(number) if number == utf16!("number") => PreferredType::Number,
+            Some(number) if number == "number" => PreferredType::Number,
             // 5. Else, throw a TypeError exception.
             _ => {
                 return Err(JsNativeError::typ()

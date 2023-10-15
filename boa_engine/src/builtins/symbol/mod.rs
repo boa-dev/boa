@@ -64,8 +64,8 @@ impl GlobalSymbolRegistry {
     }
 
     fn get_or_create_symbol(&self, key: &JsString) -> JsResult<JsSymbol> {
-        let slice = &**key;
-        if let Some(symbol) = self.keys.get(slice) {
+        let slice = key.iter().collect::<Vec<_>>();
+        if let Some(symbol) = self.keys.get(&slice[..]) {
             return Ok(symbol.clone());
         }
 
@@ -73,8 +73,10 @@ impl GlobalSymbolRegistry {
             JsNativeError::range()
                 .with_message("reached the maximum number of symbols that can be created")
         })?;
-        self.keys.insert(slice.into(), symbol.clone());
-        self.symbols.insert(symbol.clone(), slice.into());
+        self.keys
+            .insert(slice.clone().into_boxed_slice(), symbol.clone());
+        self.symbols
+            .insert(symbol.clone(), slice.into_boxed_slice());
         Ok(symbol)
     }
 
@@ -112,50 +114,34 @@ impl IntrinsicObject for Symbol {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         let to_primitive = BuiltInBuilder::callable(realm, Self::to_primitive)
-            .name(js_string!("[Symbol.toPrimitive]"))
+            .name("[Symbol.toPrimitive]")
             .length(1)
             .build();
 
         let get_description = BuiltInBuilder::callable(realm, Self::get_description)
-            .name(js_string!("get description"))
+            .name("get description")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::for_, js_string!("for"), 1)
-            .static_method(Self::key_for, js_string!("keyFor"), 1)
-            .static_property(
-                js_string!("asyncIterator"),
-                symbol_async_iterator,
-                attribute,
-            )
-            .static_property(js_string!("hasInstance"), symbol_has_instance, attribute)
-            .static_property(
-                js_string!("isConcatSpreadable"),
-                symbol_is_concat_spreadable,
-                attribute,
-            )
-            .static_property(js_string!("iterator"), symbol_iterator, attribute)
-            .static_property(js_string!("match"), symbol_match, attribute)
-            .static_property(js_string!("matchAll"), symbol_match_all, attribute)
-            .static_property(js_string!("replace"), symbol_replace, attribute)
-            .static_property(js_string!("search"), symbol_search, attribute)
-            .static_property(js_string!("species"), symbol_species, attribute)
-            .static_property(js_string!("split"), symbol_split, attribute)
-            .static_property(
-                js_string!("toPrimitive"),
-                symbol_to_primitive.clone(),
-                attribute,
-            )
-            .static_property(
-                js_string!("toStringTag"),
-                symbol_to_string_tag.clone(),
-                attribute,
-            )
-            .static_property(js_string!("unscopables"), symbol_unscopables, attribute)
-            .method(Self::to_string, js_string!("toString"), 0)
-            .method(Self::value_of, js_string!("valueOf"), 0)
+            .static_method(Self::for_, "for", 1)
+            .static_method(Self::key_for, "keyFor", 1)
+            .static_property("asyncIterator", symbol_async_iterator, attribute)
+            .static_property("hasInstance", symbol_has_instance, attribute)
+            .static_property("isConcatSpreadable", symbol_is_concat_spreadable, attribute)
+            .static_property("iterator", symbol_iterator, attribute)
+            .static_property("match", symbol_match, attribute)
+            .static_property("matchAll", symbol_match_all, attribute)
+            .static_property("replace", symbol_replace, attribute)
+            .static_property("search", symbol_search, attribute)
+            .static_property("species", symbol_species, attribute)
+            .static_property("split", symbol_split, attribute)
+            .static_property("toPrimitive", symbol_to_primitive.clone(), attribute)
+            .static_property("toStringTag", symbol_to_string_tag.clone(), attribute)
+            .static_property("unscopables", symbol_unscopables, attribute)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::value_of, "valueOf", 0)
             .accessor(
-                js_string!("description"),
+                "description",
                 Some(get_description),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,

@@ -1,7 +1,5 @@
 use std::sync::atomic;
 
-use boa_macros::utf16;
-
 use crate::{
     builtins::{typed_array::is_valid_integer_index, Number},
     object::JsObject,
@@ -37,7 +35,7 @@ pub(crate) static INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS: InternalObjectMethods
 /// [spec]: https://tc39.es/ecma262/#sec-canonicalnumericindexstring
 fn canonical_numeric_index_string(argument: &JsString) -> Option<f64> {
     // 1. If argument is "-0", return -0𝔽.
-    if argument == utf16!("-0") {
+    if argument == "-0" {
         return Some(-0.0);
     }
 

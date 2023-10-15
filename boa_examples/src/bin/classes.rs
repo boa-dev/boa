@@ -89,18 +89,14 @@ impl Class for Person {
         // We add a inheritable method `sayHello` with `0` arguments of length.
         //
         // This function is added to the `Person` prototype.
-        class.method(
-            js_string!("sayHello"),
-            0,
-            NativeFunction::from_fn_ptr(Self::say_hello),
-        );
+        class.method("sayHello", 0, NativeFunction::from_fn_ptr(Self::say_hello));
         // We add a static method `is` using a closure, but it must be convertible
         // to a `NativeFunction`. The `NativeFunction` API has more information on which type of
         // Rust functions can be used to create `NativeFunction`s.
         //
         // This function is added to the `Person` class.
         class.static_method(
-            js_string!("is"),
+            "is",
             1,
             NativeFunction::from_fn_ptr(|_this, args, _ctx| {
                 if let Some(arg) = args.get(0) {
@@ -117,12 +113,12 @@ impl Class for Person {
 
         // We add an `"inheritedProperty"` property to the prototype of `Person` with
         // a value of `10` and default attribute flags `READONLY`, `NON_ENUMERABLE` and `PERMANENT`.
-        class.property(js_string!("inheritedProperty"), 10, Attribute::default());
+        class.property("inheritedProperty", 10, Attribute::default());
 
         // Finally, we add a `"staticProperty"` property to `Person` with a value
         // of `"Im a static property"` and attribute flags `WRITABLE`, `ENUMERABLE` and `PERMANENT`.
         class.static_property(
-            js_string!("staticProperty"),
+            "staticProperty",
             js_string!("Im a static property"),
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::PERMANENT,
         );

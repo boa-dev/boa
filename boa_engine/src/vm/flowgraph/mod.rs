@@ -2,7 +2,6 @@
 
 use crate::vm::CodeBlock;
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 mod color;
 mod edge;
@@ -21,7 +20,7 @@ impl CodeBlock {
     #[allow(clippy::match_same_arms)]
     pub fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
         // Have to remove any invalid graph chars like `<` or `>`.
-        let name = if self.name() == utf16!("<main>") {
+        let name = if self.name() == "<main>" {
             "__main__".to_string()
         } else {
             self.name().to_std_string_escaped()

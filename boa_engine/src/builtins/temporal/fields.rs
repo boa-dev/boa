@@ -399,21 +399,21 @@ impl TemporalFields {
             match bit {
                 FieldMap::YEAR => {
                     obj.create_data_property_or_throw(
-                        js_string!("year"),
+                        "year",
                         self.year.map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
                 FieldMap::MONTH => {
                     obj.create_data_property_or_throw(
-                        js_string!("month"),
+                        "month",
                         self.month.map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
                 FieldMap::MONTH_CODE => {
                     obj.create_data_property_or_throw(
-                        js_string!("monthCode"),
+                        "monthCode",
                         self.month_code
                             .as_ref()
                             .map_or(JsValue::undefined(), |f| f.clone().into()),
@@ -422,44 +422,32 @@ impl TemporalFields {
                 }
                 FieldMap::DAY => {
                     obj.create_data_property(
-                        js_string!("day"),
+                        "day",
                         self.day().map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
                 FieldMap::HOUR => {
-                    obj.create_data_property(js_string!("hour"), self.hour, context)?;
+                    obj.create_data_property("hour", self.hour, context)?;
                 }
                 FieldMap::MINUTE => {
-                    obj.create_data_property(js_string!("minute"), self.minute, context)?;
+                    obj.create_data_property("minute", self.minute, context)?;
                 }
                 FieldMap::SECOND => {
-                    obj.create_data_property_or_throw(js_string!("second"), self.second, context)?;
+                    obj.create_data_property_or_throw("second", self.second, context)?;
                 }
                 FieldMap::MILLISECOND => {
-                    obj.create_data_property_or_throw(
-                        js_string!("millisecond"),
-                        self.millisecond,
-                        context,
-                    )?;
+                    obj.create_data_property_or_throw("millisecond", self.millisecond, context)?;
                 }
                 FieldMap::MICROSECOND => {
-                    obj.create_data_property_or_throw(
-                        js_string!("microsecond"),
-                        self.microsecond,
-                        context,
-                    )?;
+                    obj.create_data_property_or_throw("microsecond", self.microsecond, context)?;
                 }
                 FieldMap::NANOSECOND => {
-                    obj.create_data_property_or_throw(
-                        js_string!("nanosecond"),
-                        self.nanosecond,
-                        context,
-                    )?;
+                    obj.create_data_property_or_throw("nanosecond", self.nanosecond, context)?;
                 }
                 FieldMap::OFFSET => {
                     obj.create_data_property_or_throw(
-                        js_string!("offset"),
+                        "offset",
                         self.offset
                             .as_ref()
                             .map_or(JsValue::undefined(), |s| s.clone().into()),
@@ -468,7 +456,7 @@ impl TemporalFields {
                 }
                 FieldMap::ERA => {
                     obj.create_data_property_or_throw(
-                        js_string!("era"),
+                        "era",
                         self.era
                             .as_ref()
                             .map_or(JsValue::undefined(), |s| s.clone().into()),
@@ -477,14 +465,14 @@ impl TemporalFields {
                 }
                 FieldMap::ERA_YEAR => {
                     obj.create_data_property_or_throw(
-                        js_string!("eraYear"),
+                        "eraYear",
                         self.era_year.map_or(JsValue::undefined(), JsValue::from),
                         context,
                     )?;
                 }
                 FieldMap::TIME_ZONE => {
                     obj.create_data_property_or_throw(
-                        js_string!("timeZone"),
+                        "timeZone",
                         self.time_zone
                             .as_ref()
                             .map_or(JsValue::undefined(), |s| s.clone().into()),

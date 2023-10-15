@@ -268,26 +268,26 @@ impl IntrinsicObject for BuiltInFunctionObject {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let has_instance = BuiltInBuilder::callable(realm, Self::has_instance)
-            .name(js_string!("[Symbol.hasInstance]"))
+            .name("[Symbol.hasInstance]")
             .length(1)
             .build();
 
         let throw_type_error = realm.intrinsics().objects().throw_type_error();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::apply, js_string!("apply"), 2)
-            .method(Self::bind, js_string!("bind"), 1)
-            .method(Self::call, js_string!("call"), 1)
-            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::apply, "apply", 2)
+            .method(Self::bind, "bind", 1)
+            .method(Self::call, "call", 1)
+            .method(Self::to_string, "toString", 0)
             .property(JsSymbol::has_instance(), has_instance, Attribute::default())
             .accessor(
-                utf16!("caller"),
+                "caller",
                 Some(throw_type_error.clone()),
                 Some(throw_type_error.clone()),
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("arguments"),
+                "arguments",
                 Some(throw_type_error.clone()),
                 Some(throw_type_error),
                 Attribute::CONFIGURABLE,
@@ -415,7 +415,7 @@ impl BuiltInFunctionObject {
             } else {
                 let mut parameters = Vec::with_capacity(args.len());
                 for arg in args {
-                    parameters.push(arg.to_string(context)?);
+                    parameters.push(arg.to_string(context)?.to_vec());
                 }
                 let parameters = parameters.join(utf16!(","));
 
@@ -646,9 +646,9 @@ impl BuiltInFunctionObject {
 
         // 5. Let targetHasLength be ? HasOwnProperty(Target, "length").
         // 6. If targetHasLength is true, then
-        if target.has_own_property(utf16!("length"), context)? {
+        if target.has_own_property("length", context)? {
             // a. Let targetLen be ? Get(Target, "length").
-            let target_len = target.get(utf16!("length"), context)?;
+            let target_len = target.get("length", context)?;
             // b. If Type(targetLen) is Number, then
             if target_len.is_number() {
                 // 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).
@@ -673,7 +673,7 @@ impl BuiltInFunctionObject {
 
         // 7. Perform ! SetFunctionLength(F, L).
         f.define_property_or_throw(
-            utf16!("length"),
+            "length",
             PropertyDescriptor::builder()
                 .value(l)
                 .writable(false)
@@ -684,7 +684,7 @@ impl BuiltInFunctionObject {
         .expect("defining the `length` property for a new object should not fail");
 
         // 8. Let targetName be ? Get(Target, "name").
-        let target_name = target.get(utf16!("name"), context)?;
+        let target_name = target.get("name", context)?;
 
         // 9. If Type(targetName) is not String, set targetName to the empty String.
         let target_name = target_name
@@ -760,18 +760,16 @@ impl BuiltInFunctionObject {
                 let value = this
                     .as_object()
                     .expect("checked that `this` was an object above")
-                    .get(utf16!("name"), &mut *context)?;
+                    .get("name", &mut *context)?;
                 if value.is_null_or_undefined() {
                     js_string!()
                 } else {
                     value.to_string(context)?
                 }
             };
-            return Ok(
-                js_string!(utf16!("function "), &name, utf16!("() { [native code] }")).into(),
-            );
+            return Ok(js_string!("function ", &name, "() { [native code] }").into());
         } else if object.is_proxy() || object.is_bound_function() {
-            return Ok(js_string!(utf16!("function () { [native code] }")).into());
+            return Ok(js_string!("function () { [native code] }").into());
         }
 
         let function = object
@@ -780,12 +778,7 @@ impl BuiltInFunctionObject {
 
         let code = function.codeblock();
 
-        Ok(js_string!(
-            utf16!("function "),
-            code.name(),
-            utf16!("() { [native code] }")
-        )
-        .into())
+        Ok(js_string!("function ", code.name(), "() { [native code] }").into())
     }
 
     /// `Function.prototype [ @@hasInstance ] ( V )`
@@ -829,10 +822,8 @@ pub(crate) fn set_function_name(
             // a. Let description be name's [[Description]] value.
             // b. If description is undefined, set name to the empty String.
             // c. Else, set name to the string-concatenation of "[", description, and "]".
-            sym.description().map_or_else(
-                || js_string!(),
-                |desc| js_string!(utf16!("["), &desc, utf16!("]")),
-            )
+            sym.description()
+                .map_or_else(|| js_string!(), |desc| js_string!("[", &desc, "]"))
         }
         PropertyKey::String(string) => string.clone(),
         PropertyKey::Index(index) => js_string!(format!("{}", index.get())),
@@ -848,7 +839,7 @@ pub(crate) fn set_function_name(
 
     // 5. If prefix is present, then
     if let Some(prefix) = prefix {
-        name = js_string!(&prefix, utf16!(" "), &name);
+        name = js_string!(&prefix, " ", &name);
         // b. If F has an [[InitialName]] internal slot, then
         // i. Optionally, set F.[[InitialName]] to name.
         // todo: implement [[InitialName]] for builtins
@@ -858,7 +849,7 @@ pub(crate) fn set_function_name(
     // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     function
         .define_property_or_throw(
-            utf16!("name"),
+            "name",
             PropertyDescriptor::builder()
                 .value(name)
                 .writable(false)

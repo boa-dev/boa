@@ -1,5 +1,3 @@
-use boa_macros::utf16;
-
 use crate::{
     builtins::function::set_function_name,
     property::{PropertyDescriptor, PropertyKey},
@@ -124,7 +122,7 @@ impl Operation for SetPropertyByValue {
                             context.vm.push(value);
 
                             let len = dense_elements.len() as u32;
-                            let length_key = PropertyKey::from(utf16!("length"));
+                            let length_key = PropertyKey::from("length");
                             let length = object_borrowed
                                 .properties_mut()
                                 .get(&length_key)

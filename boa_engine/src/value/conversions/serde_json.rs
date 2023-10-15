@@ -180,8 +180,8 @@ mod tests {
     use serde_json::json;
 
     use crate::object::JsArray;
+    use crate::JsValue;
     use crate::{js_string, run_test_actions, TestAction};
-    use crate::{string::utf16, JsValue};
 
     #[test]
     fn json_conversions() {
@@ -209,20 +209,17 @@ mod tests {
 
             let value = JsValue::from_json(&json, ctx).unwrap();
             let obj = value.as_object().unwrap();
-            assert_eq!(
-                obj.get(utf16!("name"), ctx).unwrap(),
-                js_string!("John Doe").into()
-            );
-            assert_eq!(obj.get(utf16!("age"), ctx).unwrap(), 43_i32.into());
-            assert_eq!(obj.get(utf16!("minor"), ctx).unwrap(), false.into());
-            assert_eq!(obj.get(utf16!("adult"), ctx).unwrap(), true.into());
+            assert_eq!(obj.get("name", ctx).unwrap(), js_string!("John Doe").into());
+            assert_eq!(obj.get("age", ctx).unwrap(), 43_i32.into());
+            assert_eq!(obj.get("minor", ctx).unwrap(), false.into());
+            assert_eq!(obj.get("adult", ctx).unwrap(), true.into());
             {
-                let extra = obj.get(utf16!("extra"), ctx).unwrap();
+                let extra = obj.get("extra", ctx).unwrap();
                 let extra = extra.as_object().unwrap();
-                assert!(extra.get(utf16!("address"), ctx).unwrap().is_null());
+                assert!(extra.get("address", ctx).unwrap().is_null());
             }
             {
-                let phones = obj.get(utf16!("phones"), ctx).unwrap();
+                let phones = obj.get("phones", ctx).unwrap();
                 let phones = phones.as_object().unwrap();
 
                 let arr = JsArray::from_object(phones.clone()).unwrap();

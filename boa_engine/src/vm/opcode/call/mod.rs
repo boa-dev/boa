@@ -299,7 +299,9 @@ impl Operation for ImportCall {
                                         panic!("referrer cannot be a synthetic module");
                                     };
 
-                                    let sym = context.interner_mut().get_or_intern(&*specifier);
+                                    let sym = context
+                                        .interner_mut()
+                                        .get_or_intern(specifier.as_str().as_str_ref());
 
                                     let mut loaded_modules = src.loaded_modules().borrow_mut();
 

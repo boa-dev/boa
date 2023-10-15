@@ -59,7 +59,7 @@ fn escape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<
     // 5. Let k be 0.
     // 6. Repeat, while k < len,
     //     a. Let C be the code unit at index k within string.
-    for &cp in &*string {
+    for cp in string.iter() {
         // b. If unescapedSet contains C, then
         if is_unescaped(cp) {
             // i. Let S be C.
@@ -86,7 +86,7 @@ fn escape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<
     }
 
     // 7. Return R.
-    Ok(js_string!(vec).into())
+    Ok(js_string!(&vec[..]).into())
 }
 
 /// The `unescape` function
@@ -124,7 +124,7 @@ fn unescape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
     // 3. Let R be the empty String.
     let mut vec = Vec::with_capacity(string.len());
 
-    let mut codepoints = <PeekableN<_, 6>>::new(string.iter().copied());
+    let mut codepoints = <PeekableN<_, 6>>::new(string.iter());
 
     // 2. Let len be the length of string.
     // 4. Let k be 0.
@@ -192,7 +192,7 @@ fn unescape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
         vec.push(unescaped_cp);
     }
     // 6. Return R.
-    Ok(js_string!(vec).into())
+    Ok(js_string!(&vec[..]).into())
 }
 
 /// An iterator that can peek `N` items.

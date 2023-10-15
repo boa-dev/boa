@@ -17,8 +17,8 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
+    string::CodePoint,
     string::{common::StaticJsStrings, utf16},
-    string::{CodePoint, Utf16Trim},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     Context, JsArgs, JsResult, JsString, JsValue,
@@ -80,12 +80,12 @@ impl IntrinsicObject for String {
 
         let trim_start = BuiltInBuilder::callable(realm, Self::trim_start)
             .length(0)
-            .name(js_string!("trimStart"))
+            .name("trimStart")
             .build();
 
         let trim_end = BuiltInBuilder::callable(realm, Self::trim_end)
             .length(0)
-            .name(js_string!("trimEnd"))
+            .name("trimEnd")
             .build();
 
         #[cfg(feature = "annex-b")]
@@ -96,89 +96,81 @@ impl IntrinsicObject for String {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(js_string!("length"), 0, attribute)
+            .property("length", 0, attribute)
             .property(
-                js_string!("trimStart"),
+                "trimStart",
                 trim_start,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                js_string!("trimEnd"),
+                "trimEnd",
                 trim_end,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(Self::raw, js_string!("raw"), 1)
-            .static_method(Self::from_char_code, js_string!("fromCharCode"), 1)
-            .static_method(Self::from_code_point, js_string!("fromCodePoint"), 1)
-            .method(Self::char_at, js_string!("charAt"), 1)
-            .method(Self::char_code_at, js_string!("charCodeAt"), 1)
-            .method(Self::code_point_at, js_string!("codePointAt"), 1)
-            .method(Self::to_string, js_string!("toString"), 0)
-            .method(Self::concat, js_string!("concat"), 1)
-            .method(Self::repeat, js_string!("repeat"), 1)
-            .method(Self::slice, js_string!("slice"), 2)
-            .method(Self::starts_with, js_string!("startsWith"), 1)
-            .method(Self::ends_with, js_string!("endsWith"), 1)
-            .method(Self::includes, js_string!("includes"), 1)
-            .method(Self::index_of, js_string!("indexOf"), 1)
-            .method(Self::is_well_formed, js_string!("isWellFormed"), 0)
-            .method(Self::last_index_of, js_string!("lastIndexOf"), 1)
-            .method(Self::locale_compare, js_string!("localeCompare"), 1)
-            .method(Self::r#match, js_string!("match"), 1)
-            .method(Self::normalize, js_string!("normalize"), 0)
-            .method(Self::pad_end, js_string!("padEnd"), 1)
-            .method(Self::pad_start, js_string!("padStart"), 1)
-            .method(Self::trim, js_string!("trim"), 0)
-            .method(Self::to_case::<false>, js_string!("toLowerCase"), 0)
-            .method(Self::to_case::<true>, js_string!("toUpperCase"), 0)
-            .method(Self::to_well_formed, js_string!("toWellFormed"), 0)
-            .method(
-                Self::to_locale_case::<false>,
-                js_string!("toLocaleLowerCase"),
-                0,
-            )
-            .method(
-                Self::to_locale_case::<true>,
-                js_string!("toLocaleUpperCase"),
-                0,
-            )
-            .method(Self::substring, js_string!("substring"), 2)
-            .method(Self::split, js_string!("split"), 2)
-            .method(Self::value_of, js_string!("valueOf"), 0)
-            .method(Self::match_all, js_string!("matchAll"), 1)
-            .method(Self::replace, js_string!("replace"), 2)
-            .method(Self::replace_all, js_string!("replaceAll"), 2)
+            .static_method(Self::raw, "raw", 1)
+            .static_method(Self::from_char_code, "fromCharCode", 1)
+            .static_method(Self::from_code_point, "fromCodePoint", 1)
+            .method(Self::char_at, "charAt", 1)
+            .method(Self::char_code_at, "charCodeAt", 1)
+            .method(Self::code_point_at, "codePointAt", 1)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::concat, "concat", 1)
+            .method(Self::repeat, "repeat", 1)
+            .method(Self::slice, "slice", 2)
+            .method(Self::starts_with, "startsWith", 1)
+            .method(Self::ends_with, "endsWith", 1)
+            .method(Self::includes, "includes", 1)
+            .method(Self::index_of, "indexOf", 1)
+            .method(Self::is_well_formed, "isWellFormed", 0)
+            .method(Self::last_index_of, "lastIndexOf", 1)
+            .method(Self::locale_compare, "localeCompare", 1)
+            .method(Self::r#match, "match", 1)
+            .method(Self::normalize, "normalize", 0)
+            .method(Self::pad_end, "padEnd", 1)
+            .method(Self::pad_start, "padStart", 1)
+            .method(Self::trim, "trim", 0)
+            .method(Self::to_case::<false>, "toLowerCase", 0)
+            .method(Self::to_case::<true>, "toUpperCase", 0)
+            .method(Self::to_well_formed, "toWellFormed", 0)
+            .method(Self::to_locale_case::<false>, "toLocaleLowerCase", 0)
+            .method(Self::to_locale_case::<true>, "toLocaleUpperCase", 0)
+            .method(Self::substring, "substring", 2)
+            .method(Self::split, "split", 2)
+            .method(Self::value_of, "valueOf", 0)
+            .method(Self::match_all, "matchAll", 1)
+            .method(Self::replace, "replace", 2)
+            .method(Self::replace_all, "replaceAll", 2)
             .method(Self::iterator, JsSymbol::iterator(), 0)
-            .method(Self::search, js_string!("search"), 1)
-            .method(Self::at, js_string!("at"), 1);
+            .method(Self::search, "search", 1)
+            .method(Self::at, "at", 1);
 
         #[cfg(feature = "annex-b")]
         let builder = {
             builder
                 .property(
-                    js_string!("trimLeft"),
+                    "trimLeft",
                     trim_left,
                     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
                 )
                 .property(
-                    js_string!("trimRight"),
+                    "trimRight",
                     trim_right,
                     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
                 )
-                .method(Self::substr, js_string!("substr"), 2)
-                .method(Self::anchor, js_string!("anchor"), 1)
-                .method(Self::big, js_string!("big"), 0)
-                .method(Self::blink, js_string!("blink"), 0)
-                .method(Self::bold, js_string!("bold"), 0)
-                .method(Self::fixed, js_string!("fixed"), 0)
-                .method(Self::fontcolor, js_string!("fontcolor"), 1)
-                .method(Self::fontsize, js_string!("fontsize"), 1)
-                .method(Self::italics, js_string!("italics"), 0)
-                .method(Self::link, js_string!("link"), 1)
-                .method(Self::small, js_string!("small"), 0)
-                .method(Self::strike, js_string!("strike"), 0)
-                .method(Self::sub, js_string!("sub"), 0)
-                .method(Self::sup, js_string!("sup"), 0)
+                .method(Self::substr, "substr", 2)
+                .method(Self::anchor, "anchor", 1)
+                .method(Self::big, "big", 0)
+                .method(Self::blink, "blink", 0)
+                .method(Self::bold, "bold", 0)
+                .method(Self::fixed, "fixed", 0)
+                .method(Self::fontcolor, "fontcolor", 1)
+                .method(Self::fontsize, "fontsize", 1)
+                .method(Self::italics, "italics", 0)
+                .method(Self::link, "link", 1)
+                .method(Self::small, "small", 0)
+                .method(Self::strike, "strike", 0)
+                .method(Self::sub, "sub", 0)
+                .method(Self::sup, "sup", 0)
         };
 
         builder.build();
@@ -268,7 +260,7 @@ impl String {
         // 8. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: 𝔽(length),
         // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
         s.define_property_or_throw(
-            utf16!("length"),
+            "length",
             PropertyDescriptor::builder()
                 .value(len)
                 .writable(false)
@@ -386,7 +378,7 @@ impl String {
         let cooked = args.get_or_undefined(0).to_object(context)?;
 
         // 3. Let raw be ? ToObject(? Get(cooked, "raw")).
-        let raw = cooked.get(utf16!("raw"), context)?.to_object(context)?;
+        let raw = cooked.get("raw", context)?.to_object(context)?;
 
         // 4. Let literalSegments be ? LengthOfArrayLike(raw).
         let literal_segments = raw.length_of_array_like(context)?;
@@ -411,13 +403,13 @@ impl String {
             let next_seg = raw.get(next_key, context)?.to_string(context)?;
 
             // c. Append the code unit elements of nextSeg to the end of stringElements.
-            string_elements.extend(next_seg.iter().copied());
+            string_elements.extend(next_seg.iter());
 
             // d. If nextIndex + 1 = literalSegments, then
             if next_index + 1 == literal_segments {
                 // i. Return the String value whose code units are the elements in the List stringElements.
                 //    If stringElements has no elements, the empty String is returned.
-                return Ok(js_string!(string_elements).into());
+                return Ok(js_string!(&string_elements[..]).into());
             }
 
             // e. If nextIndex < numberOfSubstitutions, let next be substitutions[nextIndex].
@@ -433,7 +425,7 @@ impl String {
             let next_sub = next.to_string(context)?;
 
             // h. Append the code unit elements of nextSub to the end of stringElements.
-            string_elements.extend(next_sub.iter().copied());
+            string_elements.extend(next_sub.iter());
 
             // i. Set nextIndex to nextIndex + 1.
             next_index += 1;
@@ -465,7 +457,7 @@ impl String {
         }
 
         // 3. Return result.
-        Ok(js_string!(result).into())
+        Ok(js_string!(&result[..]).into())
     }
 
     /// `String.prototype.toString ( )`
@@ -519,7 +511,7 @@ impl String {
             // 6. Return the substring of S from position to position + 1.
             IntegerOrInfinity::Integer(i) if i >= 0 && i < string.len() as i64 => {
                 let i = i as usize;
-                Ok(js_string!(&string[i..=i]).into())
+                Ok(js_string!(&string.to_vec()[i..=i]).into())
             }
             // 5. If position < 0 or position ≥ size, return the empty String.
             _ => Ok(js_string!().into()),
@@ -565,7 +557,7 @@ impl String {
         };
 
         // 8. Return the substring of S from k to k + 1.
-        Ok(js_string!(&s[k..=k]).into())
+        Ok(js_string!(&s.to_vec()[k..=k]).into())
     }
 
     /// `String.prototype.codePointAt( index )`
@@ -643,7 +635,7 @@ impl String {
             // 4. Let size be the length of S.
             IntegerOrInfinity::Integer(i) if i >= 0 && i < string.len() as i64 => {
                 // 6. Return the Number value for the numeric value of the code unit at index position within the String S.
-                Ok(u32::from(string[i as usize]).into())
+                Ok(u32::from(string.to_vec()[i as usize]).into())
             }
             // 5. If position < 0 or position ≥ size, return NaN.
             _ => Ok(JsValue::nan()),
@@ -722,12 +714,12 @@ impl String {
                 let n = n as usize;
                 let mut result = Vec::with_capacity(n * len);
 
-                std::iter::repeat(&string[..])
+                std::iter::repeat(&string.to_vec()[..])
                     .take(n)
                     .for_each(|s| result.extend_from_slice(s));
 
                 // 6. Return the String value that is made from n copies of S appended together.
-                Ok(js_string!(result).into())
+                Ok(js_string!(&result[..]).into())
             }
             // 5. If n is 0, return the empty String.
             IntegerOrInfinity::Integer(0) => Ok(js_string!().into()),
@@ -802,7 +794,7 @@ impl String {
             Ok(js_string!().into())
         } else {
             // 13. Return the substring of S from from to to.
-            Ok(js_string!(&string[from..to]).into())
+            Ok(js_string!(&string.to_vec()[from..to]).into())
         }
     }
 
@@ -871,7 +863,7 @@ impl String {
             // 14. Return ! SameValueNonNumeric(substring, searchStr).
             // `SameValueNonNumeric` forwards to `==`, so directly check
             // equality to avoid converting to `JsValue`
-            Ok(JsValue::new(search_string == string[start..end]))
+            Ok(JsValue::new(search_string == string.to_vec()[start..end]))
         }
     }
 
@@ -934,7 +926,7 @@ impl String {
             // 14. Return ! SameValueNonNumeric(substring, searchStr).
             // `SameValueNonNumeric` forwards to `==`, so directly check
             // equality to avoid converting to `JsValue`
-            Ok(JsValue::new(search_str == string[start..end]))
+            Ok(JsValue::new(search_str == string.to_vec()[start..end]))
         } else {
             // 12. If start < 0, return false.
             Ok(false.into())
@@ -985,7 +977,10 @@ impl String {
         // 10. Let index be ! StringIndexOf(S, searchStr, start).
         // 11. If index is not -1, return true.
         // 12. Return false.
-        Ok(string.index_of(&search_str, start).is_some().into())
+        Ok(string
+            .index_of(&search_str.as_str(), start)
+            .is_some()
+            .into())
     }
 
     /// `String.prototype.replace( regexp|substr, newSubstr|function )`
@@ -1054,12 +1049,12 @@ impl String {
 
         // 8. Let position be ! StringIndexOf(string, searchString, 0).
         // 9. If position is -1, return string.
-        let Some(position) = string.index_of(&search_string, 0) else {
+        let Some(position) = string.index_of(&search_string.as_str(), 0) else {
             return Ok(string.into());
         };
 
         // 10. Let preserved be the substring of string from 0 to position.
-        let preserved = &string[..position];
+        let preserved = &string.to_vec()[..position];
 
         let replacement = match replace_value {
             // 11. If functionalReplace is true, then
@@ -1093,7 +1088,12 @@ impl String {
         };
 
         // 13. Return the string-concatenation of preserved, replacement, and the substring of string from position + searchLength.
-        Ok(js_string!(preserved, &replacement, &string[position + search_length..]).into())
+        Ok(js_string!(
+            preserved,
+            &replacement,
+            &string.to_vec()[position + search_length..]
+        )
+        .into())
     }
 
     /// `22.1.3.18 String.prototype.replaceAll ( searchValue, replaceValue )`
@@ -1129,13 +1129,13 @@ impl String {
             // b. If isRegExp is true, then
             if let Some(obj) = RegExp::is_reg_exp(search_value, context)? {
                 // i. Let flags be ? Get(searchValue, "flags").
-                let flags = obj.get(utf16!("flags"), context)?;
+                let flags = obj.get("flags", context)?;
 
                 // ii. Perform ? RequireObjectCoercible(flags).
                 flags.require_object_coercible()?;
 
                 // iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
-                if !flags.to_string(context)?.contains(&u16::from(b'g')) {
+                if !flags.to_string(context)?.contains(b'g') {
                     return Err(JsNativeError::typ()
                         .with_message(
                             "String.prototype.replaceAll called with a non-global RegExp argument",
@@ -1179,7 +1179,7 @@ impl String {
         let mut match_positions = Vec::new();
 
         // 10. Let position be ! StringIndexOf(string, searchString, 0).
-        let mut position = string.index_of(&search_string, 0);
+        let mut position = string.index_of(&search_string.as_str(), 0);
 
         // 11. Repeat, while position is not -1,
         while let Some(p) = position {
@@ -1187,7 +1187,7 @@ impl String {
             match_positions.push(p);
 
             // b. Set position to ! StringIndexOf(string, searchString, position + advanceBy).
-            position = string.index_of(&search_string, p + advance_by);
+            position = string.index_of(&search_string.as_str(), p + advance_by);
         }
 
         // 12. Let endOfLastMatch be 0.
@@ -1199,7 +1199,7 @@ impl String {
         // 14. For each element p of matchPositions, do
         for p in match_positions {
             // a. Let preserved be the substring of string from endOfLastMatch to p.
-            let preserved = &string[end_of_last_match..p];
+            let preserved = &string.to_vec()[end_of_last_match..p];
 
             // c. Else,
             let replacement = match replace {
@@ -1234,8 +1234,8 @@ impl String {
             };
 
             // d. Set result to the string-concatenation of result, preserved, and replacement.
-            result.extend_from_slice(preserved);
-            result.extend_from_slice(&replacement);
+            result.extend(preserved.iter());
+            result.extend(replacement.iter());
 
             // e. Set endOfLastMatch to p + searchLength.
             end_of_last_match = p + search_length;
@@ -1244,11 +1244,11 @@ impl String {
         // 15. If endOfLastMatch < the length of string, then
         if end_of_last_match < string.len() {
             // a. Set result to the string-concatenation of result and the substring of string from endOfLastMatch.
-            result.extend_from_slice(&string[end_of_last_match..]);
+            result.extend_from_slice(&string.to_vec()[end_of_last_match..]);
         }
 
         // 16. Return result.
-        Ok(js_string!(result).into())
+        Ok(js_string!(&result[..]).into())
     }
 
     /// `String.prototype.indexOf( searchValue[, fromIndex] )`
@@ -1290,7 +1290,7 @@ impl String {
 
         // 8. Return 𝔽(! StringIndexOf(S, searchStr, start)).
         Ok(string
-            .index_of(&search_str, start)
+            .index_of(&search_str.as_str(), start)
             .map_or(-1, |i| i as i64)
             .into())
     }
@@ -1380,7 +1380,7 @@ impl String {
             // 11. For each non-negative integer i starting with start such that i ≤ len - searchLen, in descending order, do
             for i in (0..=min(start, end)).rev() {
                 // a. Let candidate be the substring of S from i to i + searchLen.
-                let candidate = &string[i..i + search_len];
+                let candidate = &string.to_vec()[i..i + search_len];
 
                 // b. If candidate is the same sequence of code units as searchStr, return 𝔽(i).
                 if candidate == &search_str {
@@ -1440,6 +1440,9 @@ impl String {
                     .as_collator()
                     .expect("constructor must return a `Collator` object")
                     .collator();
+
+                let s = s.iter().collect::<Vec<_>>();
+                let that_value = that_value.iter().collect::<Vec<_>>();
 
                 collator.compare_utf16(&s, &that_value) as i8
             }
@@ -1554,7 +1557,7 @@ impl String {
             }
         };
 
-        let truncated_string_filler = filler.repeat(repetitions as usize);
+        let truncated_string_filler = filler.to_vec().repeat(repetitions as usize);
         let truncated_string_filler = &truncated_string_filler[..fill_len as usize];
 
         // 10. If placement is start, return the string-concatenation of truncatedStringFiller and S.
@@ -1890,7 +1893,7 @@ impl String {
         let to = max(final_start, final_end);
 
         // 10. Return the substring of S from from to to.
-        Ok(js_string!(&string[from..to]).into())
+        Ok(js_string!(&string.to_vec()[from..to]).into())
     }
 
     /// `String.prototype.split ( separator, limit )`
@@ -1958,6 +1961,7 @@ impl String {
         if separator_length == 0 {
             // a. Let head be the substring of S from 0 to lim.
             // b. Let codeUnits be a List consisting of the sequence of code units that are the elements of head.
+            let this_str = this_str.to_vec();
             let head = this_str
                 .get(..lim)
                 .unwrap_or(&this_str[..])
@@ -1979,13 +1983,13 @@ impl String {
         let mut i = 0;
 
         // 13. Let j be ! StringIndexOf(S, R, 0).
-        let mut j = this_str.index_of(&separator_str, 0);
+        let mut j = this_str.index_of(&separator_str.as_str(), 0);
 
         // 14. Repeat, while j is not -1
         while let Some(index) = j {
             // a. Let T be the substring of S from i to j.
             // b. Append T as the last element of substrings.
-            substrings.push(js_string!(&this_str[i..index]));
+            substrings.push(js_string!(&this_str.to_vec()[i..index]));
 
             // c. If the number of elements of substrings is lim, return ! CreateArrayFromList(substrings).
             if substrings.len() == lim {
@@ -1999,12 +2003,12 @@ impl String {
             i = index + separator_length;
 
             // e. Set j to ! StringIndexOf(S, R, i).
-            j = this_str.index_of(&separator_str, i);
+            j = this_str.index_of(&separator_str.as_str(), i);
         }
 
         // 15. Let T be the substring of S from i.
         // 16. Append T to substrings.
-        substrings.push(js_string!(&this_str[i..]));
+        substrings.push(js_string!(&this_str.to_vec()[i..]));
 
         // 17. Return ! CreateArrayFromList(substrings).
         Ok(
@@ -2059,13 +2063,13 @@ impl String {
             // b. If isRegExp is true, then
             if let Some(regexp) = RegExp::is_reg_exp(regexp, context)? {
                 // i. Let flags be ? Get(regexp, "flags").
-                let flags = regexp.get(utf16!("flags"), context)?;
+                let flags = regexp.get("flags", context)?;
 
                 // ii. Perform ? RequireObjectCoercible(flags).
                 flags.require_object_coercible()?;
 
                 // iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
-                if !flags.to_string(context)?.contains(&u16::from(b'g')) {
+                if !flags.to_string(context)?.contains(b'g') {
                     return Err(JsNativeError::typ()
                         .with_message(
                             "String.prototype.matchAll called with a non-global RegExp argument",
@@ -2129,10 +2133,10 @@ impl String {
             &JsValue::Undefined => Normalization::Nfc,
             // 4. Else, let f be ? ToString(form).
             f => match f.to_string(context)? {
-                ntype if &ntype == utf16!("NFC") => Normalization::Nfc,
-                ntype if &ntype == utf16!("NFD") => Normalization::Nfd,
-                ntype if &ntype == utf16!("NFKC") => Normalization::Nfkc,
-                ntype if &ntype == utf16!("NFKD") => Normalization::Nfkd,
+                ntype if &ntype == "NFC" => Normalization::Nfc,
+                ntype if &ntype == "NFD" => Normalization::Nfd,
+                ntype if &ntype == "NFKC" => Normalization::Nfkc,
+                ntype if &ntype == "NFKD" => Normalization::Nfkd,
                 // 5. If f is not one of "NFC", "NFD", "NFKC", or "NFKD", throw a RangeError exception.
                 _ => {
                     return Err(JsNativeError::range()
@@ -2161,6 +2165,8 @@ impl String {
             }
         };
 
+        let s = s.iter().collect::<Vec<_>>();
+
         let result = match normalization {
             Normalization::Nfc => normalizers.nfc.normalize_utf16(&s),
             Normalization::Nfd => normalizers.nfd.normalize_utf16(&s),
@@ -2169,7 +2175,7 @@ impl String {
         };
 
         // 7. Return ns.
-        Ok(js_string!(result).into())
+        Ok(js_string!(&result[..]).into())
     }
 
     /// `String.prototype.search( regexp )`
@@ -2289,7 +2295,7 @@ impl String {
         let int_end = min(int_start + int_length, size as usize);
 
         // 11. Return the substring of S from intStart to intEnd.
-        if let Some(substr) = s.get(int_start..int_end) {
+        if let Some(substr) = s.to_vec().get(int_start..int_end) {
             Ok(js_string!(substr).into())
         } else {
             Ok(js_string!().into())
@@ -2304,8 +2310,8 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-createhtml
     pub(crate) fn create_html(
         string: &JsValue,
-        tag: &[u16],
-        attribute_and_value: Option<(&[u16], &JsValue)>,
+        tag: &str,
+        attribute_and_value: Option<(&str, &JsValue)>,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let str be ? RequireObjectCoercible(string).
@@ -2315,7 +2321,7 @@ impl String {
         let s = str.to_string(context)?;
 
         // 3. Let p1 be the string-concatenation of "<" and tag.
-        let mut p1 = JsString::concat_array(&[utf16!("<"), tag]);
+        let mut p1 = js_string!("<", tag);
 
         // 4. If attribute is not the empty String, then
         if let Some((attribute, value)) = attribute_and_value {
@@ -2326,7 +2332,7 @@ impl String {
             //    of the code unit 0x0022 (QUOTATION MARK) in V has been replaced with the six
             //    code unit sequence "&quot;".
             let mut escaped_v = Vec::with_capacity(v.len());
-            for c in v.as_slice().iter().copied() {
+            for c in v.iter() {
                 if c == 0x0022 {
                     escaped_v.extend(utf16!("&quot;"));
                     continue;
@@ -2342,27 +2348,13 @@ impl String {
             //    the code unit 0x0022 (QUOTATION MARK)
             //    escapedV
             //    the code unit 0x0022 (QUOTATION MARK)
-            p1 = JsString::concat_array(&[
-                p1.as_slice(),
-                utf16!(" "),
-                attribute,
-                utf16!("=\""),
-                escaped_v.as_slice(),
-                utf16!("\""),
-            ]);
+            p1 = js_string!(p1, " ", attribute, "=\"", &escaped_v[..], "\"");
         }
 
         // 5. Let p2 be the string-concatenation of p1 and ">".
         // 6. Let p3 be the string-concatenation of p2 and S.
         // 7. Let p4 be the string-concatenation of p3, "</", tag, and ">".
-        let p4 = JsString::concat_array(&[
-            p1.as_slice(),
-            utf16!(">"),
-            s.as_slice(),
-            utf16!("</"),
-            tag,
-            utf16!(">"),
-        ]);
+        let p4 = js_string!(p1, ">", s, "</", tag, ">");
 
         // 8. Return p4.
         Ok(p4.into())
@@ -2386,7 +2378,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "a", "name", name).
-        Self::create_html(s, utf16!("a"), Some((utf16!("name"), name)), context)
+        Self::create_html(s, "a", Some(("name", name)), context)
     }
 
     /// `String.prototype.big( )`
@@ -2405,7 +2397,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "big", "", "").
-        Self::create_html(s, utf16!("big"), None, context)
+        Self::create_html(s, "big", None, context)
     }
 
     /// `String.prototype.blink( )`
@@ -2424,7 +2416,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "blink", "", "").
-        Self::create_html(s, utf16!("blink"), None, context)
+        Self::create_html(s, "blink", None, context)
     }
 
     /// `String.prototype.bold( )`
@@ -2443,7 +2435,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "b", "", "").
-        Self::create_html(s, utf16!("b"), None, context)
+        Self::create_html(s, "b", None, context)
     }
 
     /// `String.prototype.fixed( )`
@@ -2462,7 +2454,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "big", "", "").
-        Self::create_html(s, utf16!("tt"), None, context)
+        Self::create_html(s, "tt", None, context)
     }
 
     /// `String.prototype.fontcolor( color )`
@@ -2483,7 +2475,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "font", "color", color).
-        Self::create_html(s, utf16!("font"), Some((utf16!("color"), color)), context)
+        Self::create_html(s, "font", Some(("color", color)), context)
     }
 
     /// `String.prototype.fontsize( size )`
@@ -2504,7 +2496,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "font", "size", size).
-        Self::create_html(s, utf16!("font"), Some((utf16!("size"), size)), context)
+        Self::create_html(s, "font", Some(("size", size)), context)
     }
 
     /// `String.prototype.italics( )`
@@ -2523,7 +2515,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "i", "", "").
-        Self::create_html(s, utf16!("i"), None, context)
+        Self::create_html(s, "i", None, context)
     }
 
     /// `String.prototype.link( url )`
@@ -2544,7 +2536,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "a", "href", url).
-        Self::create_html(s, utf16!("a"), Some((utf16!("href"), url)), context)
+        Self::create_html(s, "a", Some(("href", url)), context)
     }
 
     /// `String.prototype.small( )`
@@ -2563,7 +2555,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "small", "", "").
-        Self::create_html(s, utf16!("small"), None, context)
+        Self::create_html(s, "small", None, context)
     }
 
     /// `String.prototype.strike( )`
@@ -2582,7 +2574,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "strike", "", "").
-        Self::create_html(s, utf16!("strike"), None, context)
+        Self::create_html(s, "strike", None, context)
     }
 
     /// `String.prototype.sub( )`
@@ -2601,7 +2593,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "sub", "", "").
-        Self::create_html(s, utf16!("sub"), None, context)
+        Self::create_html(s, "sub", None, context)
     }
 
     /// `String.prototype.sup( )`
@@ -2620,7 +2612,7 @@ impl String {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "sup", "", "").
-        Self::create_html(s, utf16!("sup"), None, context)
+        Self::create_html(s, "sup", None, context)
     }
 }
 
@@ -2681,19 +2673,19 @@ pub(crate) fn get_substitution(
                 // $&
                 Some(CodePoint::Unicode('&')) => {
                     // matched
-                    result.extend_from_slice(matched);
+                    result.extend(matched.iter());
                 }
                 // $`
                 Some(CodePoint::Unicode('`')) => {
                     // The replacement is the substring of str from 0 to position.
-                    result.extend_from_slice(&str[..position]);
+                    result.extend_from_slice(&str.to_vec()[..position]);
                 }
                 // $'
                 Some(CodePoint::Unicode('\'')) => {
                     // If tailPos ≥ stringLength, the replacement is the empty String.
                     // Otherwise the replacement is the substring of str from tailPos.
                     if tail_pos < str_length {
-                        result.extend_from_slice(&str[tail_pos..]);
+                        result.extend(&str.to_vec()[tail_pos..]);
                     }
                 }
                 // $nn
@@ -2740,7 +2732,7 @@ pub(crate) fn get_substitution(
                         //     a. Let refReplacement be capture.
                         if let Some(capture) = captures.get(index - 1) {
                             if let Some(s) = capture.as_string() {
-                                result.extend_from_slice(s);
+                                result.extend(s.iter());
                             }
                         }
 
@@ -2784,14 +2776,14 @@ pub(crate) fn get_substitution(
                         // d. Else,
                         } else {
                             // i. Let groupName be the enclosed substring.
-                            let group_name = js_string!(group_name);
+                            let group_name = js_string!(&group_name[..]);
                             // ii. Let capture be ? Get(namedCaptures, groupName).
                             let capture = named_captures.get(group_name, context)?;
 
                             // iii. If capture is undefined, replace the text through > with the empty String.
                             // iv. Otherwise, replace the text through > with ? ToString(capture).
                             if !capture.is_undefined() {
-                                result.extend_from_slice(&capture.to_string(context)?);
+                                result.extend(capture.to_string(context)?.iter());
                             }
                         }
                     }
@@ -2810,5 +2802,5 @@ pub(crate) fn get_substitution(
     }
 
     // 11. Return result.
-    Ok(js_string!(result))
+    Ok(js_string!(&result[..]))
 }

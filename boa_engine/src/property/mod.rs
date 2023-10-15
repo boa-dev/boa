@@ -677,10 +677,18 @@ impl From<&[u16]> for PropertyKey {
     }
 }
 
+impl From<&str> for PropertyKey {
+    #[inline]
+    fn from(string: &str) -> Self {
+        // debug_assert!(parse_u32_index(string).is_none());
+        Self::String(JsString::from(string))
+    }
+}
+
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        parse_u32_index(string.as_slice().iter().copied()).map_or(Self::String(string), Self::Index)
+        parse_u32_index(string.iter()).map_or(Self::String(string), Self::Index)
     }
 }
 

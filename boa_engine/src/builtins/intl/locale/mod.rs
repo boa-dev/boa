@@ -1,8 +1,4 @@
-use crate::{
-    builtins::options::get_option,
-    realm::Realm,
-    string::{common::StaticJsStrings, utf16},
-};
+use crate::{builtins::options::get_option, realm::Realm, string::common::StaticJsStrings};
 use boa_profiler::Profiler;
 use icu_collator::CaseFirst;
 use icu_datetime::options::preferences::HourCycle;
@@ -38,43 +34,43 @@ impl IntrinsicObject for Locale {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let base_name = BuiltInBuilder::callable(realm, Self::base_name)
-            .name(js_string!("get baseName"))
+            .name("get baseName")
             .build();
 
         let calendar = BuiltInBuilder::callable(realm, Self::calendar)
-            .name(js_string!("get calendar"))
+            .name("get calendar")
             .build();
 
         let case_first = BuiltInBuilder::callable(realm, Self::case_first)
-            .name(js_string!("get caseFirst"))
+            .name("get caseFirst")
             .build();
 
         let collation = BuiltInBuilder::callable(realm, Self::collation)
-            .name(js_string!("get collation"))
+            .name("get collation")
             .build();
 
         let hour_cycle = BuiltInBuilder::callable(realm, Self::hour_cycle)
-            .name(js_string!("get hourCycle"))
+            .name("get hourCycle")
             .build();
 
         let numeric = BuiltInBuilder::callable(realm, Self::numeric)
-            .name(js_string!("get numeric"))
+            .name("get numeric")
             .build();
 
         let numbering_system = BuiltInBuilder::callable(realm, Self::numbering_system)
-            .name(js_string!("get numberingSystem"))
+            .name("get numberingSystem")
             .build();
 
         let language = BuiltInBuilder::callable(realm, Self::language)
-            .name(js_string!("get language"))
+            .name("get language")
             .build();
 
         let script = BuiltInBuilder::callable(realm, Self::script)
-            .name(js_string!("get script"))
+            .name("get script")
             .build();
 
         let region = BuiltInBuilder::callable(realm, Self::region)
-            .name(js_string!("get region"))
+            .name("get region")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -83,69 +79,24 @@ impl IntrinsicObject for Locale {
                 js_string!("Intl.Locale"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::maximize, js_string!("maximize"), 0)
-            .method(Self::minimize, js_string!("minimize"), 0)
-            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::maximize, "maximize", 0)
+            .method(Self::minimize, "minimize", 0)
+            .method(Self::to_string, "toString", 0)
+            .accessor("baseName", Some(base_name), None, Attribute::CONFIGURABLE)
+            .accessor("calendar", Some(calendar), None, Attribute::CONFIGURABLE)
+            .accessor("caseFirst", Some(case_first), None, Attribute::CONFIGURABLE)
+            .accessor("collation", Some(collation), None, Attribute::CONFIGURABLE)
+            .accessor("hourCycle", Some(hour_cycle), None, Attribute::CONFIGURABLE)
+            .accessor("numeric", Some(numeric), None, Attribute::CONFIGURABLE)
             .accessor(
-                js_string!("baseName"),
-                Some(base_name),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("calendar"),
-                Some(calendar),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("caseFirst"),
-                Some(case_first),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("collation"),
-                Some(collation),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("hourCycle"),
-                Some(hour_cycle),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("numeric"),
-                Some(numeric),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("numberingSystem"),
+                "numberingSystem",
                 Some(numbering_system),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(
-                js_string!("language"),
-                Some(language),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("script"),
-                Some(script),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("region"),
-                Some(region),
-                None,
-                Attribute::CONFIGURABLE,
-            )
+            .accessor("language", Some(language), None, Attribute::CONFIGURABLE)
+            .accessor("script", Some(script), None, Attribute::CONFIGURABLE)
+            .accessor("region", Some(region), None, Attribute::CONFIGURABLE)
             .build();
     }
 
@@ -236,17 +187,17 @@ impl BuiltInConstructor for Locale {
             // 4. Let language be ? GetOption(options, "language", string, empty, undefined).
             // 5. If language is not undefined, then
             //    a. If language does not match the unicode_language_subtag production, throw a RangeError exception.
-            let language = get_option(options, utf16!("language"), context)?;
+            let language = get_option(options, "language", context)?;
 
             // 6. Let script be ? GetOption(options, "script", string, empty, undefined).
             // 7. If script is not undefined, then
             //    a. If script does not match the unicode_script_subtag production, throw a RangeError exception.
-            let script = get_option(options, utf16!("script"), context)?;
+            let script = get_option(options, "script", context)?;
 
             // 8. Let region be ? GetOption(options, "region", string, empty, undefined).
             // 9. If region is not undefined, then
             //    a. If region does not match the unicode_region_subtag production, throw a RangeError exception.
-            let region = get_option(options, utf16!("region"), context)?;
+            let region = get_option(options, "region", context)?;
 
             // 10. Set tag to ! CanonicalizeUnicodeLocaleId(tag).
             context.icu().locale_canonicalizer().canonicalize(&mut tag);
@@ -288,17 +239,17 @@ impl BuiltInConstructor for Locale {
         // 14. If calendar is not undefined, then
         // 15. Set opt.[[ca]] to calendar.
         //     a. If calendar does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let ca = get_option(options, utf16!("calendar"), context)?;
+        let ca = get_option(options, "calendar", context)?;
 
         // 16. Let collation be ? GetOption(options, "collation", string, empty, undefined).
         // 17. If collation is not undefined, then
         // 18. Set opt.[[co]] to collation.
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let co = get_option(options, utf16!("collation"), context)?;
+        let co = get_option(options, "collation", context)?;
 
         // 19. Let hc be ? GetOption(options, "hourCycle", string, « "h11", "h12", "h23", "h24" », undefined).
         // 20. Set opt.[[hc]] to hc.
-        let hc = get_option(options, utf16!("hourCycle"), context)?.map(|hc| match hc {
+        let hc = get_option(options, "hourCycle", context)?.map(|hc| match hc {
             HourCycle::H24 => value!("h24"),
             HourCycle::H23 => value!("h23"),
             HourCycle::H12 => value!("h12"),
@@ -307,7 +258,7 @@ impl BuiltInConstructor for Locale {
 
         // 21. Let kf be ? GetOption(options, "caseFirst", string, « "upper", "lower", "false" », undefined).
         // 22. Set opt.[[kf]] to kf.
-        let kf = get_option(options, utf16!("caseFirst"), context)?.map(|kf| match kf {
+        let kf = get_option(options, "caseFirst", context)?.map(|kf| match kf {
             CaseFirst::UpperFirst => value!("upper"),
             CaseFirst::LowerFirst => value!("lower"),
             CaseFirst::Off => value!("false"),
@@ -317,7 +268,7 @@ impl BuiltInConstructor for Locale {
         // 23. Let kn be ? GetOption(options, "numeric", boolean, empty, undefined).
         // 24. If kn is not undefined, set kn to ! ToString(kn).
         // 25. Set opt.[[kn]] to kn.
-        let kn = get_option(options, utf16!("numeric"), context)?.map(|b| {
+        let kn = get_option(options, "numeric", context)?.map(|b| {
             if b {
                 value!("true")
             } else {
@@ -329,7 +280,7 @@ impl BuiltInConstructor for Locale {
         // 27. If numberingSystem is not undefined, then
         // 28. Set opt.[[nu]] to numberingSystem.
         //     a. If numberingSystem does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let nu = get_option(options, utf16!("numberingSystem"), context)?;
+        let nu = get_option(options, "numberingSystem", context)?;
 
         // 29. Let r be ! ApplyUnicodeExtensionToTag(tag, opt, relevantExtensionKeys).
         // 30. Set locale.[[Locale]] to r.[[locale]].

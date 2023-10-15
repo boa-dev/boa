@@ -50,7 +50,7 @@ where
 /// [spec]: https://tc39.es/ecma402/#sec-getoption
 pub(crate) fn get_option<T: OptionType>(
     options: &JsObject,
-    property: &[u16],
+    property: &str,
     context: &mut Context<'_>,
 ) -> JsResult<Option<T>> {
     // 1. Let value be ? Get(options, property).

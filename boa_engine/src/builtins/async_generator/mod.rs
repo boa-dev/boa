@@ -12,7 +12,6 @@ use crate::{
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, CONSTRUCTOR},
     property::Attribute,
@@ -80,9 +79,9 @@ impl IntrinsicObject for AsyncGenerator {
                     .iterator_prototypes()
                     .async_iterator(),
             )
-            .static_method(Self::next, js_string!("next"), 1)
-            .static_method(Self::r#return, js_string!("return"), 1)
-            .static_method(Self::throw, js_string!("throw"), 1)
+            .static_method(Self::next, "next", 1)
+            .static_method(Self::r#return, "return", 1)
+            .static_method(Self::throw, "throw", 1)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,

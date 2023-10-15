@@ -13,7 +13,6 @@ use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
@@ -44,56 +43,41 @@ impl IntrinsicObject for DataView {
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_buffer = BuiltInBuilder::callable(realm, Self::get_buffer)
-            .name(js_string!("get buffer"))
+            .name("get buffer")
             .build();
 
         let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length)
-            .name(js_string!("get byteLength"))
+            .name("get byteLength")
             .build();
 
         let get_byte_offset = BuiltInBuilder::callable(realm, Self::get_byte_offset)
-            .name(js_string!("get byteOffset"))
+            .name("get byteOffset")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .accessor(
-                js_string!("buffer"),
-                Some(get_buffer),
-                None,
-                flag_attributes,
-            )
-            .accessor(
-                js_string!("byteLength"),
-                Some(get_byte_length),
-                None,
-                flag_attributes,
-            )
-            .accessor(
-                js_string!("byteOffset"),
-                Some(get_byte_offset),
-                None,
-                flag_attributes,
-            )
-            .method(Self::get_big_int64, js_string!("getBigInt64"), 1)
-            .method(Self::get_big_uint64, js_string!("getBigUint64"), 1)
-            .method(Self::get_float32, js_string!("getFloat32"), 1)
-            .method(Self::get_float64, js_string!("getFloat64"), 1)
-            .method(Self::get_int8, js_string!("getInt8"), 1)
-            .method(Self::get_int16, js_string!("getInt16"), 1)
-            .method(Self::get_int32, js_string!("getInt32"), 1)
-            .method(Self::get_uint8, js_string!("getUint8"), 1)
-            .method(Self::get_uint16, js_string!("getUint16"), 1)
-            .method(Self::get_uint32, js_string!("getUint32"), 1)
-            .method(Self::set_big_int64, js_string!("setBigInt64"), 2)
-            .method(Self::set_big_uint64, js_string!("setBigUint64"), 2)
-            .method(Self::set_float32, js_string!("setFloat32"), 2)
-            .method(Self::set_float64, js_string!("setFloat64"), 2)
-            .method(Self::set_int8, js_string!("setInt8"), 2)
-            .method(Self::set_int16, js_string!("setInt16"), 2)
-            .method(Self::set_int32, js_string!("setInt32"), 2)
-            .method(Self::set_uint8, js_string!("setUint8"), 2)
-            .method(Self::set_uint16, js_string!("setUint16"), 2)
-            .method(Self::set_uint32, js_string!("setUint32"), 2)
+            .accessor("buffer", Some(get_buffer), None, flag_attributes)
+            .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
+            .accessor("byteOffset", Some(get_byte_offset), None, flag_attributes)
+            .method(Self::get_big_int64, "getBigInt64", 1)
+            .method(Self::get_big_uint64, "getBigUint64", 1)
+            .method(Self::get_float32, "getFloat32", 1)
+            .method(Self::get_float64, "getFloat64", 1)
+            .method(Self::get_int8, "getInt8", 1)
+            .method(Self::get_int16, "getInt16", 1)
+            .method(Self::get_int32, "getInt32", 1)
+            .method(Self::get_uint8, "getUint8", 1)
+            .method(Self::get_uint16, "getUint16", 1)
+            .method(Self::get_uint32, "getUint32", 1)
+            .method(Self::set_big_int64, "setBigInt64", 2)
+            .method(Self::set_big_uint64, "setBigUint64", 2)
+            .method(Self::set_float32, "setFloat32", 2)
+            .method(Self::set_float64, "setFloat64", 2)
+            .method(Self::set_int8, "setInt8", 2)
+            .method(Self::set_int16, "setInt16", 2)
+            .method(Self::set_int32, "setInt32", 2)
+            .method(Self::set_uint8, "setUint8", 2)
+            .method(Self::set_uint16, "setUint16", 2)
+            .method(Self::set_uint32, "setUint32", 2)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,

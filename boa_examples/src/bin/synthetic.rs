@@ -77,17 +77,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // We can access the full namespace of the module with all its exports.
     let namespace = module.namespace(context);
-    let result = namespace.get(js_string!("result"), context)?;
+    let result = namespace.get("result", context)?;
 
     println!("result = {}", result.display());
 
-    assert_eq!(
-        namespace.get(js_string!("result"), context)?,
-        JsValue::from(5)
-    );
+    assert_eq!(namespace.get("result", context)?, JsValue::from(5));
 
     let mix = namespace
-        .get(js_string!("mix"), context)?
+        .get("mix", context)?
         .as_callable()
         .cloned()
         .ok_or_else(|| JsNativeError::typ().with_message("mix export wasn't a function!"))?;
@@ -111,7 +108,7 @@ fn create_operations_module(context: &mut Context<'_>) -> Module {
         }),
     )
     .length(2)
-    .name(js_string!("sum"))
+    .name("sum")
     .build();
     let sub = FunctionObjectBuilder::new(
         context.realm(),
@@ -120,7 +117,7 @@ fn create_operations_module(context: &mut Context<'_>) -> Module {
         }),
     )
     .length(2)
-    .name(js_string!("sub"))
+    .name("sub")
     .build();
     let mult = FunctionObjectBuilder::new(
         context.realm(),
@@ -129,7 +126,7 @@ fn create_operations_module(context: &mut Context<'_>) -> Module {
         }),
     )
     .length(2)
-    .name(js_string!("mult"))
+    .name("mult")
     .build();
     let div = FunctionObjectBuilder::new(
         context.realm(),
@@ -138,7 +135,7 @@ fn create_operations_module(context: &mut Context<'_>) -> Module {
         }),
     )
     .length(2)
-    .name(js_string!("div"))
+    .name("div")
     .build();
     let sqrt = FunctionObjectBuilder::new(
         context.realm(),
@@ -148,7 +145,7 @@ fn create_operations_module(context: &mut Context<'_>) -> Module {
         }),
     )
     .length(1)
-    .name(js_string!("sqrt"))
+    .name("sqrt")
     .build();
 
     Module::synthetic(

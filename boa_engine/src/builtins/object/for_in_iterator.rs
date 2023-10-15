@@ -12,7 +12,6 @@ use crate::{
     builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     object::{JsObject, ObjectData},
     property::PropertyKey,
     realm::Realm,
@@ -50,7 +49,7 @@ impl IntrinsicObject for ForInIterator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, js_string!("next"), 0)
+            .static_method(Self::next, "next", 0)
             .build();
     }
 

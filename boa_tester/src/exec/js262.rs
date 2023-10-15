@@ -75,29 +75,21 @@ pub(super) fn register_js262(handles: WorkerHandles, context: &mut Context<'_>) 
     let agent = agent_obj(handles, context);
 
     let js262 = ObjectInitializer::new(context)
-        .function(
-            NativeFunction::from_fn_ptr(create_realm),
-            js_string!("createRealm"),
-            0,
-        )
+        .function(NativeFunction::from_fn_ptr(create_realm), "createRealm", 0)
         .function(
             NativeFunction::from_fn_ptr(detach_array_buffer),
-            js_string!("detachArrayBuffer"),
+            "detachArrayBuffer",
             2,
         )
-        .function(
-            NativeFunction::from_fn_ptr(eval_script),
-            js_string!("evalScript"),
-            1,
-        )
-        .function(NativeFunction::from_fn_ptr(gc), js_string!("gc"), 0)
+        .function(NativeFunction::from_fn_ptr(eval_script), "evalScript", 1)
+        .function(NativeFunction::from_fn_ptr(gc), "gc", 0)
         .property(
-            js_string!("global"),
+            "global",
             global_obj,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            js_string!("agent"),
+            "agent",
             agent,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
@@ -105,7 +97,7 @@ pub(super) fn register_js262(handles: WorkerHandles, context: &mut Context<'_>) 
 
     context
         .register_global_property(
-            js_string!("$262"),
+            "$262",
             js262.clone(),
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
@@ -252,18 +244,18 @@ fn agent_obj(handles: WorkerHandles, context: &mut Context<'_>) -> JsObject {
                 return Ok(JsValue::null());
             };
 
-            Ok(js_string!(msg).into())
+            Ok(js_string!(&msg[..]).into())
         })
     };
 
     ObjectInitializer::new(context)
-        .function(start, js_string!("start"), 1)
-        .function(broadcast, js_string!("broadcast"), 2)
-        .function(get_report, js_string!("getReport"), 0)
-        .function(NativeFunction::from_fn_ptr(sleep), js_string!("sleep"), 1)
+        .function(start, "start", 1)
+        .function(broadcast, "broadcast", 2)
+        .function(get_report, "getReport", 0)
+        .function(NativeFunction::from_fn_ptr(sleep), "sleep", 1)
         .function(
             NativeFunction::from_fn_ptr(monotonic_now),
-            js_string!("monotonicNow"),
+            "monotonicNow",
             0,
         )
         .build()
@@ -303,36 +295,32 @@ fn register_js262_worker(
     };
 
     let agent = ObjectInitializer::new(context)
-        .function(receive_broadcast, js_string!("receiveBroadcast"), 1)
-        .function(report, js_string!("report"), 1)
-        .function(NativeFunction::from_fn_ptr(sleep), js_string!("sleep"), 1)
+        .function(receive_broadcast, "receiveBroadcast", 1)
+        .function(report, "report", 1)
+        .function(NativeFunction::from_fn_ptr(sleep), "sleep", 1)
         // Don't need to signal leaving, the main thread will join with the worker
         // threads anyways.
         .function(
             NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
-            js_string!("leaving"),
+            "leaving",
             0,
         )
         .function(
             NativeFunction::from_fn_ptr(monotonic_now),
-            js_string!("monotonicNow"),
+            "monotonicNow",
             0,
         )
         .build();
 
     let js262 = ObjectInitializer::new(context)
         .property(
-            js_string!("agent"),
+            "agent",
             agent,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
         .build();
 
     context
-        .register_global_property(
-            js_string!("$262"),
-            js262,
-            Attribute::WRITABLE | Attribute::CONFIGURABLE,
-        )
+        .register_global_property("$262", js262, Attribute::WRITABLE | Attribute::CONFIGURABLE)
         .expect("shouldn't fail with the default global");
 }

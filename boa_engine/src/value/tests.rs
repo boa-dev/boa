@@ -1,4 +1,3 @@
-use boa_macros::utf16;
 use indoc::indoc;
 
 use super::*;
@@ -675,16 +674,13 @@ fn to_int32() {
 #[test]
 fn to_string() {
     run_test_actions([TestAction::inspect_context(|ctx| {
-        assert_eq!(&JsValue::null().to_string(ctx).unwrap(), utf16!("null"));
-        assert_eq!(
-            &JsValue::undefined().to_string(ctx).unwrap(),
-            utf16!("undefined")
-        );
-        assert_eq!(&JsValue::new(55).to_string(ctx).unwrap(), utf16!("55"));
-        assert_eq!(&JsValue::new(55.0).to_string(ctx).unwrap(), utf16!("55"));
+        assert_eq!(&JsValue::null().to_string(ctx).unwrap(), "null");
+        assert_eq!(&JsValue::undefined().to_string(ctx).unwrap(), "undefined");
+        assert_eq!(&JsValue::new(55).to_string(ctx).unwrap(), "55");
+        assert_eq!(&JsValue::new(55.0).to_string(ctx).unwrap(), "55");
         assert_eq!(
             &JsValue::new(js_string!("hello")).to_string(ctx).unwrap(),
-            utf16!("hello")
+            "hello"
         );
     })]);
 }

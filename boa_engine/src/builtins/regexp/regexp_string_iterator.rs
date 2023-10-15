@@ -18,7 +18,6 @@ use crate::{
     object::{JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    string::utf16,
     symbol::JsSymbol,
     Context, JsResult, JsString, JsValue,
 };
@@ -53,7 +52,7 @@ impl IntrinsicObject for RegExpStringIterator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, js_string!("next"), 0)
+            .static_method(Self::next, "next", 0)
             .static_property(
                 JsSymbol::to_string_tag(),
                 js_string!("RegExp String Iterator"),
@@ -161,7 +160,7 @@ impl RegExpStringIterator {
                 // 1. Let thisIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
                 let this_index = iterator
                     .matcher
-                    .get(utf16!("lastIndex"), context)?
+                    .get("lastIndex", context)?
                     .to_length(context)?;
 
                 // 2. Let nextIndex be ! AdvanceStringIndex(S, thisIndex, fullUnicode).
@@ -171,7 +170,7 @@ impl RegExpStringIterator {
                 // 3. Perform ? Set(R, "lastIndex", 𝔽(nextIndex), true).
                 iterator
                     .matcher
-                    .set(utf16!("lastIndex"), next_index, true, context)?;
+                    .set("lastIndex", next_index, true, context)?;
             }
 
             // vi. Perform ? Yield(match).

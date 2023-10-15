@@ -6,11 +6,10 @@ use crate::{
         IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
@@ -32,43 +31,23 @@ impl IntrinsicObject for TimeZone {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let get_id = BuiltInBuilder::callable(realm, Self::get_id)
-            .name(js_string!("get Id"))
+            .name("get Id")
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .method(
                 Self::get_offset_nanoseconds_for,
-                js_string!("getOffsetNanosecondsFor"),
+                "getOffsetNanosecondsFor",
                 1,
             )
-            .method(
-                Self::get_offset_string_for,
-                js_string!("getOffsetStringFor"),
-                1,
-            )
-            .method(
-                Self::get_plain_date_time_for,
-                js_string!("getPlainDateTimeFor"),
-                2,
-            )
-            .method(Self::get_instant_for, js_string!("getInstantFor"), 2)
-            .method(
-                Self::get_possible_instants_for,
-                js_string!("getPossibleInstantFor"),
-                1,
-            )
-            .method(
-                Self::get_next_transition,
-                js_string!("getNextTransition"),
-                1,
-            )
-            .method(
-                Self::get_previous_transition,
-                js_string!("getPreviousTransition"),
-                1,
-            )
-            .method(Self::to_string, js_string!("toString"), 0)
-            .method(Self::to_string, js_string!("toJSON"), 0)
+            .method(Self::get_offset_string_for, "getOffsetStringFor", 1)
+            .method(Self::get_plain_date_time_for, "getPlainDateTimeFor", 2)
+            .method(Self::get_instant_for, "getInstantFor", 2)
+            .method(Self::get_possible_instants_for, "getPossibleInstantFor", 1)
+            .method(Self::get_next_transition, "getNextTransition", 1)
+            .method(Self::get_previous_transition, "getPreviousTransition", 1)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::to_string, "toJSON", 0)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -79,7 +58,7 @@ impl IntrinsicObject for TimeZone {
                 realm.intrinsics().constructors().time_zone().prototype(),
                 Attribute::default(),
             )
-            .accessor(utf16!("id"), Some(get_id), None, Attribute::default())
+            .accessor("id", Some(get_id), None, Attribute::default())
             .build();
     }
 

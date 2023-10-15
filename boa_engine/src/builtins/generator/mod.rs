@@ -13,7 +13,6 @@ use crate::{
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     object::{JsObject, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
@@ -136,9 +135,9 @@ impl IntrinsicObject for Generator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, js_string!("next"), 1)
-            .static_method(Self::r#return, js_string!("return"), 1)
-            .static_method(Self::throw, js_string!("throw"), 1)
+            .static_method(Self::next, "next", 1)
+            .static_method(Self::r#return, "return", 1)
+            .static_method(Self::throw, "throw", 1)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,

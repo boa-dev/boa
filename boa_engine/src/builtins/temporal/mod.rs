@@ -39,10 +39,9 @@ use crate::{
         BuiltInBuilder, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::Intrinsics,
-    js_string,
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     value::Type,
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
@@ -101,32 +100,32 @@ impl IntrinsicObject for Temporal {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("Now"),
+                "Now",
                 realm.intrinsics().objects().now(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("Calendar"),
+                "Calendar",
                 realm.intrinsics().constructors().calendar().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("Duration"),
+                "Duration",
                 realm.intrinsics().constructors().duration().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("Instant"),
+                "Instant",
                 realm.intrinsics().constructors().instant().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("PlainDate"),
+                "PlainDate",
                 realm.intrinsics().constructors().plain_date().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("PlainDateTime"),
+                "PlainDateTime",
                 realm
                     .intrinsics()
                     .constructors()
@@ -135,7 +134,7 @@ impl IntrinsicObject for Temporal {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("PlainMonthDay"),
+                "PlainMonthDay",
                 realm
                     .intrinsics()
                     .constructors()
@@ -144,12 +143,12 @@ impl IntrinsicObject for Temporal {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("PlainTime"),
+                "PlainTime",
                 realm.intrinsics().constructors().plain_time().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("PlainYearMonth"),
+                "PlainYearMonth",
                 realm
                     .intrinsics()
                     .constructors()
@@ -158,12 +157,12 @@ impl IntrinsicObject for Temporal {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("TimeZone"),
+                "TimeZone",
                 realm.intrinsics().constructors().time_zone().constructor(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_string!("ZonedDateTime"),
+                "ZonedDateTime",
                 realm
                     .intrinsics()
                     .constructors()
@@ -499,9 +498,8 @@ pub(crate) fn get_diff_settings(
 ) -> JsResult<(TemporalUnit, TemporalUnit, RoundingMode, f64)> {
     // 1. NOTE: The following steps read options and perform independent validation in alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
     // 2. Let largestUnit be ? GetTemporalUnit(options, "largestUnit", unitGroup, "auto").
-    let mut largest_unit =
-        get_temporal_unit(options, utf16!("largestUnit"), unit_group, None, context)?
-            .unwrap_or(TemporalUnit::Auto);
+    let mut largest_unit = get_temporal_unit(options, "largestUnit", unit_group, None, context)?
+        .unwrap_or(TemporalUnit::Auto);
 
     // 3. If disallowedUnits contains largestUnit, throw a RangeError exception.
     if disallowed_units.contains(&largest_unit) {
@@ -515,7 +513,7 @@ pub(crate) fn get_diff_settings(
 
     // 5. Let roundingMode be ? ToTemporalRoundingMode(options, "trunc").
     let mut rounding_mode =
-        get_option(options, utf16!("roundingMode"), context)?.unwrap_or(RoundingMode::Trunc);
+        get_option(options, "roundingMode", context)?.unwrap_or(RoundingMode::Trunc);
 
     // 6. If operation is since, then
     if !op {
@@ -524,9 +522,8 @@ pub(crate) fn get_diff_settings(
     }
 
     // 7. Let smallestUnit be ? GetTemporalUnit(options, "smallestUnit", unitGroup, fallbackSmallestUnit).
-    let smallest_unit =
-        get_temporal_unit(options, utf16!("smallestUnit"), unit_group, None, context)?
-            .unwrap_or(fallback_smallest_unit);
+    let smallest_unit = get_temporal_unit(options, "smallestUnit", unit_group, None, context)?
+        .unwrap_or(fallback_smallest_unit);
 
     // 8. If disallowedUnits contains smallestUnit, throw a RangeError exception.
     if disallowed_units.contains(&smallest_unit) {
