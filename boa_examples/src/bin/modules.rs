@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Can also pass a `Some(realm)` if you need to execute the module in another realm.
     let module = Module::parse(source, None, context)?;
 
-    // Don't forget to insert the parsed module into the loader itself! Since the root module
+    // Don't forget to insert the parsed module into the loader itself, since the root module
     // is not automatically inserted by the `ModuleLoader::load_imported_module` impl.
     //
     // Simulate as if the "fake" module is located in the modules root, just to ensure that

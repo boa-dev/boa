@@ -15,7 +15,7 @@ use boa_ast::{
         ContainsSymbol, LexicallyScopedDeclaration,
     },
 };
-use boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace, WeakGc};
 use boa_interner::Sym;
 use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
@@ -35,7 +35,8 @@ use crate::{
 };
 
 use super::{
-    BindingName, GraphLoadingState, Module, Referrer, ResolveExportError, ResolvedBinding,
+    BindingName, GraphLoadingState, Module, ModuleRepr, Referrer, ResolveExportError,
+    ResolvedBinding,
 };
 
 /// Information for the [**Depth-first search**] algorithm used in the
@@ -270,7 +271,7 @@ impl std::fmt::Debug for SourceTextModule {
 
 #[derive(Trace, Finalize)]
 struct Inner {
-    parent: GcRefCell<Option<Module>>,
+    parent: WeakGc<ModuleRepr>,
     status: GcRefCell<Status>,
     loaded_modules: GcRefCell<FxHashMap<Sym, Module>>,
     async_parent_modules: GcRefCell<Vec<SourceTextModule>>,
@@ -291,18 +292,15 @@ struct ModuleCode {
 }
 
 impl SourceTextModule {
-    /// Sets the parent module of this source module.
-    pub(super) fn set_parent(&self, parent: Module) {
-        *self.inner.parent.borrow_mut() = Some(parent);
-    }
-
     /// Gets the parent module of this source module.
     fn parent(&self) -> Module {
-        self.inner
-            .parent
-            .borrow()
-            .clone()
-            .expect("parent module must be initialized")
+        Module {
+            inner: self
+                .inner
+                .parent
+                .upgrade()
+                .expect("parent module must be live"),
+        }
     }
 
     /// Creates a new `SourceTextModule` from a parsed `ModuleSource`.
@@ -310,7 +308,7 @@ impl SourceTextModule {
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    pub(super) fn new(code: boa_ast::Module) -> Self {
+    pub(super) fn new(code: boa_ast::Module, parent: WeakGc<ModuleRepr>) -> Self {
         // 3. Let requestedModules be the ModuleRequests of body.
         let requested_modules = code.items().requests();
         // 4. Let importEntries be ImportEntries of body.
@@ -391,7 +389,7 @@ impl SourceTextModule {
         // Most of this can be ignored, since `Status` takes care of the remaining state.
         Self {
             inner: Gc::new(Inner {
-                parent: GcRefCell::default(),
+                parent,
                 status: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 async_parent_modules: GcRefCell::default(),
