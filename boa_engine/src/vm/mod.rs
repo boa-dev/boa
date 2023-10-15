@@ -14,9 +14,9 @@ use boa_profiler::Profiler;
 use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
-use boa_interner::ToInternedString;
+use crate::sys::time::Instant;
 #[cfg(feature = "trace")]
-use std::time::Instant;
+use boa_interner::ToInternedString;
 
 mod call_frame;
 mod code_block;

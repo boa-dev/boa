@@ -85,6 +85,7 @@ use color_eyre::{
 };
 use colored::Colorize;
 use edition::SpecEdition;
+use once_cell::sync::Lazy;
 use read::ErrorType;
 use rustc_hash::{FxHashMap, FxHashSet};
 use serde::{
@@ -95,7 +96,10 @@ use std::{
     ops::{Add, AddAssign},
     path::{Path, PathBuf},
     process::Command,
+    time::Instant,
 };
+
+static START: Lazy<Instant> = Lazy::new(Instant::now);
 
 /// Structure that contains the configuration of the tester.
 #[derive(Debug, Deserialize)]
@@ -216,6 +220,10 @@ enum Cli {
         /// Displays the conformance results per ECMAScript edition.
         #[arg(long)]
         versioned: bool,
+
+        /// Injects the `Console` object into every context created.
+        #[arg(long)]
+        console: bool,
     },
     /// Compare two test suite results.
     Compare {
@@ -237,6 +245,8 @@ const DEFAULT_TEST262_DIRECTORY: &str = "test262";
 
 /// Program entry point.
 fn main() -> Result<()> {
+    // initializes the monotonic clock.
+    Lazy::force(&START);
     color_eyre::install()?;
     match Cli::parse() {
         Cli::Run {
@@ -250,6 +260,7 @@ fn main() -> Result<()> {
             config: config_path,
             edition,
             versioned,
+            console,
         } => {
             let config: Config = {
                 let input = std::fs::read_to_string(config_path)?;
@@ -283,6 +294,7 @@ fn main() -> Result<()> {
                 } else {
                     OptimizerOptions::empty()
                 },
+                console,
             )
         }
         Cli::Compare {
@@ -441,6 +453,7 @@ fn run_test_suite(
     edition: SpecEdition,
     versioned: bool,
     optimizer_options: OptimizerOptions,
+    console: bool,
 ) -> Result<()> {
     if let Some(path) = output {
         if path.exists() {
@@ -467,7 +480,7 @@ fn run_test_suite(
             if verbose != 0 {
                 println!("Test loaded, starting...");
             }
-            test.run(&harness, verbose, optimizer_options);
+            test.run(&harness, verbose, optimizer_options, console);
         } else {
             println!(
                 "Minimum spec edition of test is bigger than the specified edition. Skipping."
@@ -485,7 +498,14 @@ fn run_test_suite(
         if verbose != 0 {
             println!("Test suite loaded, starting tests...");
         }
-        let results = suite.run(&harness, verbose, parallel, edition, optimizer_options);
+        let results = suite.run(
+            &harness,
+            verbose,
+            parallel,
+            edition,
+            optimizer_options,
+            console,
+        );
 
         if versioned {
             let mut table = comfy_table::Table::new();

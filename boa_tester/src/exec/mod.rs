@@ -22,6 +22,8 @@ use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 use std::{cell::RefCell, eprintln, rc::Rc};
 
+use self::js262::WorkerHandles;
+
 impl TestSuite {
     /// Runs the test suite.
     pub(crate) fn run(
@@ -31,6 +33,7 @@ impl TestSuite {
         parallel: bool,
         max_edition: SpecEdition,
         optimizer_options: OptimizerOptions,
+        console: bool,
     ) -> SuiteResult {
         if verbose != 0 {
             println!("Suite {}:", self.path.display());
@@ -39,12 +42,30 @@ impl TestSuite {
         let suites: Vec<_> = if parallel {
             self.suites
                 .par_iter()
-                .map(|suite| suite.run(harness, verbose, parallel, max_edition, optimizer_options))
+                .map(|suite| {
+                    suite.run(
+                        harness,
+                        verbose,
+                        parallel,
+                        max_edition,
+                        optimizer_options,
+                        console,
+                    )
+                })
                 .collect()
         } else {
             self.suites
                 .iter()
-                .map(|suite| suite.run(harness, verbose, parallel, max_edition, optimizer_options))
+                .map(|suite| {
+                    suite.run(
+                        harness,
+                        verbose,
+                        parallel,
+                        max_edition,
+                        optimizer_options,
+                        console,
+                    )
+                })
                 .collect()
         };
 
@@ -52,13 +73,13 @@ impl TestSuite {
             self.tests
                 .par_iter()
                 .filter(|test| test.edition <= max_edition)
-                .flat_map(|test| test.run(harness, verbose, optimizer_options))
+                .flat_map(|test| test.run(harness, verbose, optimizer_options, console))
                 .collect()
         } else {
             self.tests
                 .iter()
                 .filter(|test| test.edition <= max_edition)
-                .flat_map(|test| test.run(harness, verbose, optimizer_options))
+                .flat_map(|test| test.run(harness, verbose, optimizer_options, console))
                 .collect()
         };
 
@@ -146,17 +167,18 @@ impl Test {
         harness: &Harness,
         verbose: u8,
         optimizer_options: OptimizerOptions,
+        console: bool,
     ) -> Vec<TestResult> {
         let mut results = Vec::new();
         if self.flags.contains(TestFlags::MODULE) {
-            results.push(self.run_once(harness, false, verbose, optimizer_options));
+            results.push(self.run_once(harness, false, verbose, optimizer_options, console));
         } else {
             if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
-                results.push(self.run_once(harness, true, verbose, optimizer_options));
+                results.push(self.run_once(harness, true, verbose, optimizer_options, console));
             }
 
             if self.flags.contains(TestFlags::NO_STRICT) || self.flags.contains(TestFlags::RAW) {
-                results.push(self.run_once(harness, false, verbose, optimizer_options));
+                results.push(self.run_once(harness, false, verbose, optimizer_options, console));
             }
         }
 
@@ -170,6 +192,7 @@ impl Test {
         strict: bool,
         verbose: u8,
         optimizer_options: OptimizerOptions,
+        console: bool,
     ) -> TestResult {
         let Ok(source) = Source::from_filepath(&self.path) else {
             if verbose > 1 {
@@ -227,10 +250,19 @@ impl Test {
                 let dyn_loader: &dyn ModuleLoader = loader;
                 let context = &mut Context::builder()
                     .module_loader(dyn_loader)
+                    .can_block(!self.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
                     .build()
                     .expect("cannot fail with default global object");
 
-                if let Err(e) = self.set_up_env(harness, context, async_result.clone()) {
+                let mut handles = WorkerHandles::new();
+
+                if let Err(e) = self.set_up_env(
+                    harness,
+                    context,
+                    async_result.clone(),
+                    handles.clone(),
+                    console,
+                ) {
                     return (false, e);
                 }
 
@@ -296,6 +328,16 @@ impl Test {
                         )
                     }
                     _ => {}
+                }
+
+                let results = handles.join_all();
+
+                for result in results {
+                    match result {
+                        js262::WorkerResult::Err(msg) => return (false, msg),
+                        js262::WorkerResult::Panic(msg) => panic!("Worker thread panicked: {msg}"),
+                        js262::WorkerResult::Ok => {}
+                    }
                 }
 
                 (true, value.display().to_string())
@@ -394,12 +436,21 @@ impl Test {
                 let dyn_loader: &dyn ModuleLoader = loader;
                 let context = &mut Context::builder()
                     .module_loader(dyn_loader)
+                    .can_block(!self.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
                     .build()
                     .expect("cannot fail with default global object");
                 context.strict(strict);
                 context.set_optimizer_options(optimizer_options);
 
-                if let Err(e) = self.set_up_env(harness, context, AsyncResult::default()) {
+                let mut handles = WorkerHandles::new();
+
+                if let Err(e) = self.set_up_env(
+                    harness,
+                    context,
+                    AsyncResult::default(),
+                    handles.clone(),
+                    console,
+                ) {
                     return (false, e);
                 }
                 let error = if self.is_module() {
@@ -456,6 +507,16 @@ impl Test {
                         Err(e) => e,
                     }
                 };
+
+                let results = handles.join_all();
+
+                for result in results {
+                    match result {
+                        js262::WorkerResult::Err(msg) => return (false, msg),
+                        js262::WorkerResult::Panic(msg) => panic!("Worker thread panicked: {msg}"),
+                        js262::WorkerResult::Ok => {}
+                    }
+                }
 
                 (
                     is_error_type(&error, error_type, context),
@@ -527,12 +588,25 @@ impl Test {
         harness: &Harness,
         context: &mut Context<'_>,
         async_result: AsyncResult,
+        handles: WorkerHandles,
+        console: bool,
     ) -> Result<(), String> {
         // Register the print() function.
         register_print_fn(context, async_result);
 
         // add the $262 object.
-        let _js262 = js262::register_js262(context);
+        let _js262 = js262::register_js262(handles, context);
+
+        if console {
+            let console = boa_runtime::Console::init(context);
+            context
+                .register_global_property(
+                    js_string!(boa_runtime::Console::NAME),
+                    console,
+                    Attribute::all(),
+                )
+                .expect("the console builtin shouldn't exist");
+        }
 
         if self.flags.contains(TestFlags::RAW) {
             return Ok(());

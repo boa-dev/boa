@@ -10,12 +10,12 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
+    sys::time::SystemTime,
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
 
 use super::{ns_max_instant, ns_min_instant};
-use std::time::SystemTime;
 
 /// JavaScript `Temporal.Now` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

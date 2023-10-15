@@ -34,6 +34,13 @@ pub struct SharedArrayBuffer {
 }
 
 impl SharedArrayBuffer {
+    /// Creates a `SharedArrayBuffer` with an empty buffer.
+    #[must_use]
+    pub fn empty() -> Self {
+        Self {
+            data: Arc::default(),
+        }
+    }
     /// Gets the length of this `SharedArrayBuffer`.
     pub(crate) fn len(&self) -> usize {
         self.data.len()

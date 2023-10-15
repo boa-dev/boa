@@ -5,6 +5,7 @@ pub mod array_buffer;
 pub mod async_function;
 pub mod async_generator;
 pub mod async_generator_function;
+pub mod atomics;
 pub mod bigint;
 pub mod boolean;
 pub mod dataview;
@@ -86,6 +87,7 @@ use crate::{
         array_buffer::{ArrayBuffer, SharedArrayBuffer},
         async_generator::AsyncGenerator,
         async_generator_function::AsyncGeneratorFunction,
+        atomics::Atomics,
         error::r#type::ThrowTypeError,
         generator::Generator,
         generator_function::GeneratorFunction,
@@ -263,6 +265,7 @@ impl Realm {
         WeakRef::init(self);
         WeakMap::init(self);
         WeakSet::init(self);
+        Atomics::init(self);
 
         #[cfg(feature = "annex-b")]
         {
@@ -388,6 +391,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     global_binding::<WeakRef>(context)?;
     global_binding::<WeakMap>(context)?;
     global_binding::<WeakSet>(context)?;
+    global_binding::<Atomics>(context)?;
 
     #[cfg(feature = "annex-b")]
     {

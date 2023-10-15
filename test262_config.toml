@@ -9,7 +9,6 @@ features = [
 
     "FinalizationRegistry",
     "IsHTMLDDA",
-    "Atomics",
     "resizable-arraybuffer",
     "symbols-as-weakmap-keys",
     "intl-normative-optional",

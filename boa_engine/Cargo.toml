@@ -41,7 +41,7 @@ fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
 flowgraph = []
 
 # Enable Boa's VM instruction tracing.
-trace = []
+trace = ["js"]
 
 # Enable Boa's additional ECMAScript features for web browsers.
 annex-b = ["boa_parser/annex-b"]
@@ -51,6 +51,9 @@ temporal = ["boa_parser/temporal", "dep:icu_calendar"]
 
 # Enable experimental features, like Stage 3 proposals.
 experimental = ["temporal"]
+
+# Enable binding to JS APIs for system related utilities.
+js = ["dep:web-time"]
 
 [dependencies]
 boa_interner.workspace = true
@@ -86,6 +89,9 @@ icu_normalizer = "~1.3.0"
 paste = "1.0"
 portable-atomic = "1.5.1"
 bytemuck = { version = "1.14.0", features = ["derive"] }
+arrayvec = "0.7.4"
+intrusive-collections = "0.9.6"
+cfg-if = "1.0.0"
 
 # intl deps
 boa_icu_provider = {workspace = true, features = ["std"], optional = true }
@@ -104,6 +110,9 @@ writeable = { workspace = true, optional = true }
 yoke = { workspace = true, optional = true }
 zerofrom = { workspace = true, optional = true }
 fixed_decimal = { workspace = true, features = ["ryu"], optional = true}
+
+[target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
+web-time = { version = "0.2.2", optional = true }
 
 [dev-dependencies]
 criterion = "0.5.1"

@@ -91,7 +91,7 @@ impl SliceRef<'_> {
             // 9. Return RawBytesToNumeric(type, rawValue, isLittleEndian).
 
             // SAFETY: The invariants of this operation are ensured by the caller.
-            unsafe { T::read_from_buffer(buffer, order) }
+            unsafe { T::read(buffer).load(order) }
         }
 
         let buffer = *self;
@@ -259,7 +259,7 @@ impl SliceRefMut<'_> {
 
             // SAFETY: The invariants of this operation are ensured by the caller.
             unsafe {
-                T::write_to_buffer(buffer, value, order);
+                T::read_mut(buffer).store(value, order);
             }
         }
 
