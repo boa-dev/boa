@@ -1012,6 +1012,15 @@
 <a href="#1012" id="1012">1012</a>
 <a href="#1013" id="1013">1013</a>
 <a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
@@ -1308,7 +1317,10 @@
 }
 
 <span class="doccomment">/// Returns the commit hash and commit message of the provided branch name.
-</span><span class="kw">fn </span>get_last_branch_commit(branch: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(String, String)&gt; {
+</span><span class="kw">fn </span>get_last_branch_commit(branch: <span class="kw-2">&amp;</span>str, verbose: u8) -&gt; <span class="prelude-ty">Result</span>&lt;(String, String)&gt; {
+    <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
+        <span class="macro">println!</span>(<span class="string">&quot;Getting last commit on &#39;{branch}&#39; branch&quot;</span>);
+    }
     <span class="kw">let </span>result = Command::new(<span class="string">&quot;git&quot;</span>)
         .arg(<span class="string">&quot;log&quot;</span>)
         .args([<span class="string">&quot;-n&quot;</span>, <span class="string">&quot;1&quot;</span>])
@@ -1361,6 +1373,15 @@
     <span class="kw">let </span>update = commit.is_none();
 
     <span class="kw">if </span>Path::new(DEFAULT_TEST262_DIRECTORY).is_dir() {
+        <span class="kw">let </span>(current_commit_hash, current_commit_message) =
+            get_last_branch_commit(<span class="string">&quot;HEAD&quot;</span>, verbose)<span class="question-mark">?</span>;
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(commit) = commit {
+            <span class="kw">if </span>current_commit_hash == commit {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            }
+        }
+
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(<span class="string">&quot;Fetching latest test262 commits...&quot;</span>);
         }
@@ -1376,20 +1397,17 @@
             );
         }
 
-        <span class="kw">let </span>(current_commit_hash, current_commit_message) = get_last_branch_commit(<span class="string">&quot;HEAD&quot;</span>)<span class="question-mark">?</span>;
-
         <span class="kw">if let </span><span class="prelude-val">Some</span>(commit) = commit {
-            <span class="kw">if </span>current_commit_hash != commit {
-                <span class="macro">println!</span>(<span class="string">&quot;Test262 switching to commit {commit}...&quot;</span>);
-                reset_test262_commit(commit, verbose)<span class="question-mark">?</span>;
-            }
+            <span class="macro">println!</span>(<span class="string">&quot;Test262 switching to commit {commit}...&quot;</span>);
+            reset_test262_commit(commit, verbose)<span class="question-mark">?</span>;
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(<span class="string">&quot;Checking latest Test262 with current HEAD...&quot;</span>);
         }
-        <span class="kw">let </span>(latest_commit_hash, latest_commit_message) = get_last_branch_commit(<span class="string">&quot;origin/main&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>(latest_commit_hash, latest_commit_message) =
+            get_last_branch_commit(<span class="string">&quot;origin/main&quot;</span>, verbose)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>current_commit_hash != latest_commit_hash {
             <span class="kw">if </span>update {
