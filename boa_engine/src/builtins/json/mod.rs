@@ -29,7 +29,7 @@ use crate::{
     string::{common::StaticJsStrings, utf16, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::CallFrame,
+    vm::{CallFrame, CallFrameFlags},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::Gc;
@@ -134,7 +134,8 @@ impl Json {
         let env_fp = context.vm.environments.len() as u32;
         context.vm.push_frame(
             CallFrame::new(code_block, None, context.vm.environments.clone(), realm)
-                .with_env_fp(env_fp),
+                .with_env_fp(env_fp)
+                .with_flags(CallFrameFlags::EXIT_EARLY),
         );
 
         context.vm.push(JsValue::undefined()); // Push `this` value.

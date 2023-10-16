@@ -101,7 +101,7 @@ impl GeneratorContext {
             .push_frame(self.call_frame.take().expect("should have a call frame"));
 
         context.vm.frame_mut().fp = 0;
-        context.vm.frame_mut().exit_early = true;
+        context.vm.frame_mut().set_exit_early(true);
 
         if let Some(value) = value {
             context.vm.push(value);

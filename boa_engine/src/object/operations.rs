@@ -335,7 +335,7 @@ impl JsObject {
             return Ok(context.vm.pop());
         }
 
-        context.vm.frames[frame_index].exit_early = true;
+        context.vm.frames[frame_index].set_exit_early(true);
 
         let result = context.run().consume();
 
@@ -385,7 +385,7 @@ impl JsObject {
                 .clone());
         }
 
-        context.vm.frames[frame_index].exit_early = true;
+        context.vm.frames[frame_index].set_exit_early(true);
 
         let result = context.run().consume();
 

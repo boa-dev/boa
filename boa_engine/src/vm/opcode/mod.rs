@@ -536,14 +536,14 @@ pub(crate) trait Operation {
 
     /// Execute opcode with [`VaryingOperandKind::U16`] sized [`VaryingOperand`]s.
     ///
-    /// By default if not implemented will call [`Reserved::u16_execute()`] which panics.
+    /// By default if not implemented will call [`Reserved::execute_with_u16_operands()`] which panics.
     fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         Reserved::execute_with_u16_operands(context)
     }
 
     /// Execute opcode with [`VaryingOperandKind::U32`] sized [`VaryingOperand`]s.
     ///
-    /// By default if not implemented will call [`Reserved::u32_execute()`] which panics.
+    /// By default if not implemented will call [`Reserved::execute_with_u32_operands()`] which panics.
     fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         Reserved::execute_with_u32_operands(context)
     }

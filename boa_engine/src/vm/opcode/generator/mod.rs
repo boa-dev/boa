@@ -48,7 +48,10 @@ impl Operation for Generator {
         dummy_call_frame.pc = pc;
         let mut call_frame = std::mem::replace(context.vm.frame_mut(), dummy_call_frame);
 
-        context.vm.frame_mut().exit_early = call_frame.exit_early;
+        context
+            .vm
+            .frame_mut()
+            .set_exit_early(call_frame.exit_early());
 
         call_frame.environments = context.vm.environments.clone();
         call_frame.realm = context.realm().clone();

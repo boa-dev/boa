@@ -18,7 +18,7 @@ use crate::{
     object::JsObject,
     realm::Realm,
     string::common::StaticJsStrings,
-    vm::{CallFrame, Opcode},
+    vm::{CallFrame, CallFrameFlags, Opcode},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::operations::{contains, contains_arguments, ContainsSymbol};
@@ -258,9 +258,11 @@ impl Eval {
         let env_fp = context.vm.environments.len() as u32;
         let environments = context.vm.environments.clone();
         let realm = context.realm().clone();
-        context
-            .vm
-            .push_frame(CallFrame::new(code_block, None, environments, realm).with_env_fp(env_fp));
+        context.vm.push_frame(
+            CallFrame::new(code_block, None, environments, realm)
+                .with_env_fp(env_fp)
+                .with_flags(CallFrameFlags::EXIT_EARLY),
+        );
 
         context.vm.push(JsValue::undefined()); // Push `this` value.
         context.vm.push(JsValue::undefined()); // No function object, so push undefined.

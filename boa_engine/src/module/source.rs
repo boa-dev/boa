@@ -29,7 +29,7 @@ use crate::{
     realm::Realm,
     vm::{
         create_function_object_fast, create_generator_function_object, ActiveRunnable, CallFrame,
-        CodeBlock, CompletionRecord, Opcode,
+        CallFrameFlags, CodeBlock, CompletionRecord, Opcode,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
@@ -1738,7 +1738,8 @@ impl SourceTextModule {
             environments,
             realm,
         )
-        .with_env_fp(env_fp);
+        .with_env_fp(env_fp)
+        .with_flags(CallFrameFlags::EXIT_EARLY);
         callframe.promise_capability = capability;
 
         // 8. Suspend the running execution context.

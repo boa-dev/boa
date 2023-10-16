@@ -305,7 +305,7 @@ pub(crate) struct InternalObjectMethods {
 
 /// The return value of an internal method (`[[Call]]` or `[[Construct]]`).
 ///
-/// This is done to avoid recusion.
+/// This is done to avoid recursion.
 pub(crate) enum CallValue {
     /// Calling is ready, the frames have been setup.
     ///

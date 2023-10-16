@@ -15,6 +15,19 @@ use thin_vec::ThinVec;
 
 use super::{ActiveRunnable, Vm};
 
+bitflags::bitflags! {
+    /// Flags associated with a [`CallFrame`].
+    #[derive(Debug, Default, Clone, Copy)]
+    pub(crate) struct CallFrameFlags: u8 {
+        /// When we return from this [`CallFrame`] to stop execution and
+        /// return from [`crate::Context::run()`], and leave the remaining [`CallFrame`]s unchanged.
+        const EXIT_EARLY = 0b0000_0001;
+
+        /// Was this [`CallFrame`] created from the `__construct__()` internal object method?
+        const CONSTRUCT = 0b0000_0010;
+    }
+}
+
 /// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
 pub struct CallFrame {
@@ -43,12 +56,15 @@ pub struct CallFrame {
     /// \[\[ScriptOrModule\]\]
     pub(crate) active_runnable: Option<ActiveRunnable>,
 
+    /// \[\[Environment\]\]
     pub(crate) environments: EnvironmentStack,
 
+    /// \[\[Realm\]\]
     pub(crate) realm: Realm,
 
-    pub(crate) exit_early: bool,
-    pub(crate) construct: bool,
+    // SAFETY: Nothing in `CallFrameFlags` requires tracing, so this is safe.
+    #[unsafe_ignore_trace]
+    pub(crate) flags: CallFrameFlags,
 }
 
 /// ---- `CallFrame` public API ----
@@ -63,8 +79,25 @@ impl CallFrame {
 
 /// ---- `CallFrame` creation methods ----
 impl CallFrame {
-    pub(crate) const THIS_POSITION: u32 = 0;
-    pub(crate) const FUNCTION_POSITION: u32 = 1;
+    /// This is the size of the function prologue.
+    ///
+    /// The position of the elements are relative to the [`CallFrame::fp`].
+    ///
+    /// ```text
+    ///                                                 arguments
+    ///   --- frame pointer                                ^
+    ///  /                      __________________________/
+    /// /                      /                          \
+    /// | 0: this | 1: func | 2: arg1 | ... | (2 + N): argN |
+    ///    \            /
+    ///     ------------
+    ///     |
+    /// function prolugue
+    /// ```
+    pub(crate) const FUCNTION_PROLOGUE: usize = 2;
+    pub(crate) const THIS_POSITION: usize = 0;
+    pub(crate) const FUNCTION_POSITION: usize = 1;
+    pub(crate) const FIRST_ARGUMENT_POSITION: usize = 2;
 
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
@@ -87,8 +120,7 @@ impl CallFrame {
             active_runnable,
             environments,
             realm,
-            exit_early: true,
-            construct: false,
+            flags: CallFrameFlags::empty(),
         }
     }
 
@@ -104,18 +136,37 @@ impl CallFrame {
         self
     }
 
+    /// Updates a `CallFrame`'s `flags` field with the value provided.
+    pub(crate) fn with_flags(mut self, flags: CallFrameFlags) -> Self {
+        self.flags = flags;
+        self
+    }
+
     pub(crate) fn this(&self, vm: &Vm) -> JsValue {
-        let this_index = self.fp + Self::THIS_POSITION;
-        vm.stack[this_index as usize].clone()
+        let this_index = self.fp as usize + Self::THIS_POSITION;
+        vm.stack[this_index].clone()
     }
 
     pub(crate) fn function(&self, vm: &Vm) -> Option<JsObject> {
-        let function_index = self.fp + Self::FUNCTION_POSITION;
-        if let Some(object) = vm.stack[function_index as usize].as_object() {
+        let function_index = self.fp as usize + Self::FUNCTION_POSITION;
+        if let Some(object) = vm.stack[function_index].as_object() {
             return Some(object.clone());
         }
 
         None
+    }
+
+    /// Does this have the [`CallFrameFlags::EXIT_EARLY`] flag.
+    pub(crate) fn exit_early(&self) -> bool {
+        self.flags.contains(CallFrameFlags::EXIT_EARLY)
+    }
+    /// Set the [`CallFrameFlags::EXIT_EARLY`] flag.
+    pub(crate) fn set_exit_early(&mut self, early_exit: bool) {
+        self.flags.set(CallFrameFlags::EXIT_EARLY, early_exit);
+    }
+    /// Does this have the [`CallFrameFlags::CONSTRUCT`] flag.
+    pub(crate) fn construct(&self) -> bool {
+        self.flags.contains(CallFrameFlags::CONSTRUCT)
     }
 }
 

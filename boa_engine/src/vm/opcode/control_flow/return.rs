@@ -31,7 +31,7 @@ impl Operation for CheckReturn {
     const INSTRUCTION: &'static str = "INST - CheckReturn";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        if !context.vm.frame().construct {
+        if !context.vm.frame().construct() {
             return Ok(CompletionType::Normal);
         }
         let frame = context.vm.frame();

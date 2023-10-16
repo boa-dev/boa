@@ -6,7 +6,7 @@ use crate::{
         internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
         JsObject, ObjectData, ObjectKind,
     },
-    vm::CallFrame,
+    vm::{CallFrame, CallFrameFlags},
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -64,19 +64,16 @@ pub(crate) fn function_call(
 
     let env_fp = environments.len() as u32;
 
-    let mut frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+    let frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
         .with_argument_count(argument_count as u32)
         .with_env_fp(env_fp);
 
-    frame.exit_early = false;
-
     context.vm.push_frame(frame);
 
-    let at = context.vm.stack.len() - argument_count;
+    let fp = context.vm.stack.len() - argument_count - CallFrame::FUCNTION_PROLOGUE;
+    context.vm.frame_mut().fp = fp as u32;
 
-    context.vm.frame_mut().fp = at as u32 - 2;
-
-    let this = context.vm.stack[at - 2].clone();
+    let this = context.vm.stack[fp + CallFrame::THIS_POSITION].clone();
 
     let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
@@ -134,7 +131,7 @@ pub(crate) fn function_call(
         //              that don't have a rest parameter, any parameter
         //              default value initializers, or any destructured parameters.
         //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
-        let args = context.vm.stack[at..].to_vec();
+        let args = context.vm.stack[(fp + CallFrame::FIRST_ARGUMENT_POSITION)..].to_vec();
         let arguments_obj = if code.strict() || !code.params.is_simple() {
             Arguments::create_unmapped_arguments_object(&args, context)
         } else {
@@ -213,12 +210,10 @@ fn function_construct(
         None
     };
 
-    let mut frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+    let frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
         .with_argument_count(argument_count as u32)
-        .with_env_fp(env_fp);
-
-    frame.exit_early = false;
-    frame.construct = true;
+        .with_env_fp(env_fp)
+        .with_flags(CallFrameFlags::CONSTRUCT);
 
     context.vm.push_frame(frame);
 

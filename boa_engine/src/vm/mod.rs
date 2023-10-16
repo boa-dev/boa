@@ -38,6 +38,7 @@ pub use {
 };
 
 pub(crate) use {
+    call_frame::CallFrameFlags,
     code_block::{
         create_function_object, create_function_object_fast, create_generator_function_object,
         CodeBlockFlags, Handler,
@@ -403,7 +404,7 @@ impl Context<'_> {
                     self.vm.stack.truncate(self.vm.frame().fp as usize);
 
                     let result = self.vm.take_return_value();
-                    if self.vm.frame().exit_early {
+                    if self.vm.frame().exit_early() {
                         return CompletionRecord::Normal(result);
                     }
 
@@ -413,7 +414,7 @@ impl Context<'_> {
                 Ok(CompletionType::Throw) => {
                     self.vm.stack.truncate(self.vm.frame().fp as usize);
 
-                    if self.vm.frame().exit_early {
+                    if self.vm.frame().exit_early() {
                         return CompletionRecord::Throw(
                             self.vm
                                 .pending_exception
@@ -427,7 +428,7 @@ impl Context<'_> {
                     while let Some(frame) = self.vm.frames.last_mut() {
                         let pc = frame.pc;
                         let fp = frame.fp;
-                        let exit_early = frame.exit_early;
+                        let exit_early = frame.exit_early();
 
                         if self.vm.handle_exception_at(pc) {
                             continue 'instruction;
@@ -449,7 +450,7 @@ impl Context<'_> {
                 // Early return immediately.
                 Ok(CompletionType::Yield) => {
                     let result = self.vm.take_return_value();
-                    if self.vm.frame().exit_early {
+                    if self.vm.frame().exit_early() {
                         return CompletionRecord::Return(result);
                     }
 
@@ -473,7 +474,7 @@ impl Context<'_> {
                                 let mut fp = self.vm.stack.len();
                                 let mut env_fp = self.vm.environments.len();
                                 while let Some(frame) = self.vm.frames.last() {
-                                    if frame.exit_early {
+                                    if frame.exit_early() {
                                         break;
                                     }
 
@@ -496,7 +497,7 @@ impl Context<'_> {
                         continue;
                     }
 
-                    if self.vm.frame().exit_early {
+                    if self.vm.frame().exit_early() {
                         self.vm
                             .environments
                             .truncate(self.vm.frame().env_fp as usize);
@@ -513,7 +514,7 @@ impl Context<'_> {
                         let pc = frame.pc;
                         let fp = frame.fp;
                         let env_fp = frame.env_fp;
-                        let exit_early = frame.exit_early;
+                        let exit_early = frame.exit_early();
 
                         if self.vm.handle_exception_at(pc) {
                             self.vm.pending_exception = Some(err);

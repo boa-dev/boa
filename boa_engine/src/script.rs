@@ -19,7 +19,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     bytecompiler::ByteCompiler,
     realm::Realm,
-    vm::{ActiveRunnable, CallFrame, CodeBlock},
+    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
     Context, HostDefined, JsResult, JsString, JsValue, Module,
 };
 
@@ -156,7 +156,8 @@ impl Script {
                 context.vm.environments.clone(),
                 self.inner.realm.clone(),
             )
-            .with_env_fp(env_fp),
+            .with_env_fp(env_fp)
+            .with_flags(CallFrameFlags::EXIT_EARLY),
         );
 
         context.vm.push(JsValue::undefined()); // Push `this` value.
