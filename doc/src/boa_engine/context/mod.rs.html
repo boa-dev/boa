@@ -1088,6 +1088,17 @@
 <a href="#1088" id="1088">1088</a>
 <a href="#1089" id="1089">1089</a>
 <a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1601,6 +1612,17 @@
             .environments
             .replace_global(realm.environment().clone());
         std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm, realm)
+    }
+
+    <span class="doccomment">/// Create a new Realm with the default global bindings.
+    </span><span class="kw">pub fn </span>create_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;Realm&gt; {
+        <span class="kw">let </span>realm = Realm::create(<span class="kw-2">&amp;*</span><span class="self">self</span>.host_hooks, <span class="kw-2">&amp;</span><span class="self">self</span>.root_shape);
+
+        <span class="kw">let </span>old_realm = <span class="self">self</span>.enter_realm(realm);
+
+        builtins::set_default_global_bindings(<span class="self">self</span>)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.enter_realm(old_realm))
     }
 
     <span class="doccomment">/// Get the [`RootShape`].
