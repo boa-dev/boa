@@ -8,7 +8,7 @@ use crate::{
             AssignmentExpression, AsyncGeneratorMethod, AsyncMethod, BindingIdentifier,
             GeneratorMethod, LeftHandSideExpression, PropertyName,
         },
-        function::{FormalParameters, FunctionBody, UniqueFormalParameters, FUNCTION_BREAK_TOKENS},
+        function::{FunctionBody, UniqueFormalParameters, FUNCTION_BREAK_TOKENS},
         statement::StatementList,
         AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
@@ -628,17 +628,14 @@ where
                 let strict = cursor.strict();
                 cursor.set_strict(true);
 
-                cursor.expect(Punctuator::OpenParen, "class constructor", interner)?;
-                let parameters = FormalParameters::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-                cursor.expect(Punctuator::CloseParen, "class constructor", interner)?;
+                let parameters =
+                    UniqueFormalParameters::new(false, false).parse(cursor, interner)?;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenBlock),
                     "class constructor",
                     interner,
                 )?;
-                let body = FunctionBody::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
+                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseBlock),
                     "class constructor",
