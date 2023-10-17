@@ -6,7 +6,7 @@
 
 use crate::{
     environments::EnvironmentStack, realm::Realm, script::Script, vm::code_block::Readable,
-    Context, JsError, JsNativeError, JsNativeErrorKind, JsObject, JsResult, JsValue, Module,
+    Context, JsError, JsNativeError, JsObject, JsResult, JsValue, Module,
 };
 
 use boa_gc::{custom_trace, Finalize, Trace};
@@ -398,9 +398,46 @@ impl Context<'_> {
             #[cfg(not(feature = "trace"))]
             let result = self.execute_instruction();
 
+            let result = match result {
+                Ok(result) => result,
+                Err(err) => {
+                    // If we hit the execution step limit, bubble up the error to the
+                    // (Rust) caller instead of trying to handle as an exception.
+                    if !err.is_catchable() {
+                        let mut fp = self.vm.stack.len();
+                        let mut env_fp = self.vm.environments.len();
+                        while let Some(frame) = self.vm.frames.last() {
+                            if frame.exit_early() {
+                                break;
+                            }
+
+                            fp = frame.fp as usize;
+                            env_fp = frame.env_fp as usize;
+                            self.vm.pop_frame();
+                        }
+                        self.vm.environments.truncate(env_fp);
+                        self.vm.stack.truncate(fp);
+                        return CompletionRecord::Throw(err);
+                    }
+
+                    // Note: -1 because we increment after fetching the opcode.
+                    let pc = self.vm.frame().pc.saturating_sub(1);
+                    if self.vm.handle_exception_at(pc) {
+                        self.vm.pending_exception = Some(err);
+                        continue;
+                    }
+
+                    // Inject realm before crossing the function boundry
+                    let err = err.inject_realm(self.realm().clone());
+
+                    self.vm.pending_exception = Some(err);
+                    CompletionType::Throw
+                }
+            };
+
             match result {
-                Ok(CompletionType::Normal) => {}
-                Ok(CompletionType::Return) => {
+                CompletionType::Normal => {}
+                CompletionType::Return => {
                     self.vm.stack.truncate(self.vm.frame().fp as usize);
 
                     let result = self.vm.take_return_value();
@@ -411,10 +448,12 @@ impl Context<'_> {
                     self.vm.push(result);
                     self.vm.pop_frame();
                 }
-                Ok(CompletionType::Throw) => {
-                    self.vm.stack.truncate(self.vm.frame().fp as usize);
-
+                CompletionType::Throw => {
+                    let mut fp = self.vm.frame().fp;
+                    let mut env_fp = self.vm.frame().env_fp;
                     if self.vm.frame().exit_early() {
+                        self.vm.environments.truncate(env_fp as usize);
+                        self.vm.stack.truncate(fp as usize);
                         return CompletionRecord::Throw(
                             self.vm
                                 .pending_exception
@@ -426,8 +465,9 @@ impl Context<'_> {
                     self.vm.pop_frame();
 
                     while let Some(frame) = self.vm.frames.last_mut() {
+                        fp = frame.fp;
+                        env_fp = frame.fp;
                         let pc = frame.pc;
-                        let fp = frame.fp;
                         let exit_early = frame.exit_early();
 
                         if self.vm.handle_exception_at(pc) {
@@ -443,12 +483,13 @@ impl Context<'_> {
                             );
                         }
 
-                        self.vm.stack.truncate(fp as usize);
                         self.vm.pop_frame();
                     }
+                    self.vm.environments.truncate(env_fp as usize);
+                    self.vm.stack.truncate(fp as usize);
                 }
                 // Early return immediately.
-                Ok(CompletionType::Yield) => {
+                CompletionType::Yield => {
                     let result = self.vm.take_return_value();
                     if self.vm.frame().exit_early() {
                         return CompletionRecord::Return(result);
@@ -456,79 +497,6 @@ impl Context<'_> {
 
                     self.vm.push(result);
                     self.vm.pop_frame();
-                }
-                Err(err) => {
-                    if let Some(native_error) = err.as_native() {
-                        // If we hit the execution step limit, bubble up the error to the
-                        // (Rust) caller instead of trying to handle as an exception.
-                        match native_error.kind {
-                            #[cfg(feature = "fuzz")]
-                            JsNativeErrorKind::NoInstructionsRemain => {
-                                self.vm
-                                    .environments
-                                    .truncate(self.vm.frame().env_fp as usize);
-                                self.vm.stack.truncate(self.vm.frame().fp as usize);
-                                return CompletionRecord::Throw(err);
-                            }
-                            JsNativeErrorKind::RuntimeLimit => {
-                                let mut fp = self.vm.stack.len();
-                                let mut env_fp = self.vm.environments.len();
-                                while let Some(frame) = self.vm.frames.last() {
-                                    if frame.exit_early() {
-                                        break;
-                                    }
-
-                                    fp = frame.fp as usize;
-                                    env_fp = frame.env_fp as usize;
-                                    self.vm.pop_frame();
-                                }
-                                self.vm.environments.truncate(env_fp);
-                                self.vm.stack.truncate(fp);
-                                return CompletionRecord::Throw(err);
-                            }
-                            _ => {}
-                        }
-                    }
-
-                    // Note: -1 because we increment after fetching the opcode.
-                    let pc = self.vm.frame().pc.saturating_sub(1);
-                    if self.vm.handle_exception_at(pc) {
-                        self.vm.pending_exception = Some(err);
-                        continue;
-                    }
-
-                    if self.vm.frame().exit_early() {
-                        self.vm
-                            .environments
-                            .truncate(self.vm.frame().env_fp as usize);
-                        self.vm.stack.truncate(self.vm.frame().fp as usize);
-                        return CompletionRecord::Throw(err);
-                    }
-
-                    // Inject realm before crossing the function boundry
-                    let err = err.inject_realm(self.realm().clone());
-
-                    self.vm.pop_frame();
-
-                    while let Some(frame) = self.vm.frames.last_mut() {
-                        let pc = frame.pc;
-                        let fp = frame.fp;
-                        let env_fp = frame.env_fp;
-                        let exit_early = frame.exit_early();
-
-                        if self.vm.handle_exception_at(pc) {
-                            self.vm.pending_exception = Some(err);
-                            continue 'instruction;
-                        }
-
-                        if exit_early {
-                            return CompletionRecord::Throw(err);
-                        }
-
-                        self.vm.environments.truncate(env_fp as usize);
-                        self.vm.stack.truncate(fp as usize);
-                        self.vm.pop_frame();
-                    }
                 }
             }
         }
