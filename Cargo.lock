@@ -1345,9 +1345,9 @@ dependencies = [
 
 [[package]]
 name = "icu_collator"
-version = "1.3.2"
+version = "1.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2223603c703f1f6395206b2c0196b4cacc70f3ac4560f92c9386c1a416f92ef6"
+checksum = "be493c81154545a00fc5196e814cae0e1470bc696d518b5df877049aa6bcefe1"
 dependencies = [
  "databake",
  "displaydoc",
