@@ -70,7 +70,7 @@ pub(crate) fn function_call(
 
     context.vm.push_frame(frame);
 
-    let fp = context.vm.stack.len() - argument_count - CallFrame::FUCNTION_PROLOGUE;
+    let fp = context.vm.stack.len() - argument_count - CallFrame::FUNCTION_PROLOGUE;
     context.vm.frame_mut().fp = fp as u32;
 
     let this = context.vm.stack[fp + CallFrame::THIS_POSITION].clone();
