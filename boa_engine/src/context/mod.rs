@@ -524,6 +524,12 @@ impl<'host> Context<'host> {
         Ok(self.enter_realm(old_realm))
     }
 
+    /// Get the remaining instruction count
+    #[cfg(freature = "fuzz")]
+    #[inline]
+    pub const fn instructions_remaining(&self) -> u64 {
+        self.instructions_remaining
+    }
     /// Get the [`RootShape`].
     #[inline]
     #[must_use]
