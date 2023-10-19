@@ -19,7 +19,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     bytecompiler::ByteCompiler,
     realm::Realm,
-    vm::{ActiveRunnable, CallFrame, CodeBlock},
+    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
     Context, HostDefined, JsResult, JsString, JsValue, Module,
 };
 
@@ -148,11 +148,18 @@ impl Script {
 
         let codeblock = self.codeblock(context)?;
 
-        let old_realm = context.enter_realm(self.inner.realm.clone());
         let env_fp = context.vm.environments.len() as u32;
-        context.vm.push_frame(
-            CallFrame::new(codeblock, Some(ActiveRunnable::Script(self.clone())), None)
-                .with_env_fp(env_fp),
+        context.vm.push_frame_with_stack(
+            CallFrame::new(
+                codeblock,
+                Some(ActiveRunnable::Script(self.clone())),
+                context.vm.environments.clone(),
+                self.inner.realm.clone(),
+            )
+            .with_env_fp(env_fp)
+            .with_flags(CallFrameFlags::EXIT_EARLY),
+            JsValue::undefined(),
+            JsValue::null(),
         );
 
         // TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
@@ -160,8 +167,6 @@ impl Script {
         self.realm().resize_global_env();
         let record = context.run();
         context.vm.pop_frame();
-
-        context.enter_realm(old_realm);
 
         context.clear_kept_objects();
 

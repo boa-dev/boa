@@ -82,9 +82,6 @@ use self::intrinsics::StandardConstructor;
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
 pub struct Context<'host> {
-    /// realm holds both the global object and the environment
-    realm: Realm,
-
     /// String interner in the context.
     interner: Interner,
 
@@ -121,7 +118,7 @@ impl std::fmt::Debug for Context<'_> {
         let mut debug = f.debug_struct("Context");
 
         debug
-            .field("realm", &self.realm)
+            .field("realm", &self.vm.realm)
             .field("interner", &self.interner)
             .field("vm", &self.vm)
             .field("strict", &self.strict)
@@ -268,7 +265,7 @@ impl<'host> Context<'host> {
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
-        let function = FunctionObjectBuilder::new(&self.realm, body)
+        let function = FunctionObjectBuilder::new(self.realm(), body)
             .name(name.clone())
             .length(length)
             .constructor(true)
@@ -301,7 +298,7 @@ impl<'host> Context<'host> {
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
-        let function = FunctionObjectBuilder::new(&self.realm, body)
+        let function = FunctionObjectBuilder::new(self.realm(), body)
             .name(name.clone())
             .length(length)
             .constructor(false)
@@ -335,7 +332,7 @@ impl<'host> Context<'host> {
     /// context.register_global_class::<MyClass>()?;
     /// ```
     pub fn register_global_class<C: Class>(&mut self) -> JsResult<()> {
-        if self.realm.has_class::<C>() {
+        if self.realm().has_class::<C>() {
             return Err(JsNativeError::typ()
                 .with_message("cannot register a class twice")
                 .into());
@@ -353,7 +350,7 @@ impl<'host> Context<'host> {
 
         self.global_object()
             .define_property_or_throw(js_string!(C::NAME), property, self)?;
-        self.realm.register_class::<C>(class);
+        self.realm().register_class::<C>(class);
 
         Ok(())
     }
@@ -384,20 +381,20 @@ impl<'host> Context<'host> {
     pub fn unregister_global_class<C: Class>(&mut self) -> JsResult<Option<StandardConstructor>> {
         self.global_object()
             .delete_property_or_throw(js_string!(C::NAME), self)?;
-        Ok(self.realm.unregister_class::<C>())
+        Ok(self.realm().unregister_class::<C>())
     }
 
     /// Checks if the currently active realm has the global class `C` registered.
     #[must_use]
     pub fn has_global_class<C: Class>(&self) -> bool {
-        self.realm.has_class::<C>()
+        self.realm().has_class::<C>()
     }
 
     /// Gets the constructor and prototype of the global class `C` if the currently active realm has
     /// that class registered.
     #[must_use]
     pub fn get_global_class<C: Class>(&self) -> Option<StandardConstructor> {
-        self.realm.get_class::<C>()
+        self.realm().get_class::<C>()
     }
 
     /// Gets the string interner.
@@ -417,21 +414,21 @@ impl<'host> Context<'host> {
     #[inline]
     #[must_use]
     pub fn global_object(&self) -> JsObject {
-        self.realm.global_object().clone()
+        self.vm.realm.global_object().clone()
     }
 
     /// Returns the currently active intrinsic constructors and objects.
     #[inline]
     #[must_use]
     pub fn intrinsics(&self) -> &Intrinsics {
-        self.realm.intrinsics()
+        self.vm.realm.intrinsics()
     }
 
     /// Returns the currently active realm.
     #[inline]
     #[must_use]
     pub const fn realm(&self) -> &Realm {
-        &self.realm
+        &self.vm.realm
     }
 
     /// Set the value of trace on the context
@@ -510,7 +507,7 @@ impl<'host> Context<'host> {
         self.vm
             .environments
             .replace_global(realm.environment().clone());
-        std::mem::replace(&mut self.realm, realm)
+        std::mem::replace(&mut self.vm.realm, realm)
     }
 
     /// Create a new Realm with the default global bindings.
@@ -576,7 +573,7 @@ impl<'host> Context<'host> {
 impl Context<'_> {
     /// Swaps the currently active realm with `realm`.
     pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
-        std::mem::swap(&mut self.realm, realm);
+        std::mem::swap(&mut self.vm.realm, realm);
     }
 
     /// Increment and get the parser identifier.
@@ -805,7 +802,7 @@ impl Context<'_> {
         }
 
         if let Some(frame) = self.vm.frames.last() {
-            return frame.active_function.clone();
+            return frame.function(&self.vm);
         }
 
         None
@@ -998,7 +995,7 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
             hooks.into()
         });
         let realm = Realm::create(&*host_hooks, &root_shape);
-        let vm = Vm::new(realm.environment().clone());
+        let vm = Vm::new(realm);
 
         let module_loader = if let Some(loader) = self.module_loader {
             loader
@@ -1016,7 +1013,6 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
         };
 
         let mut context = Context {
-            realm,
             interner: self.interner.unwrap_or_default(),
             vm,
             strict: false,

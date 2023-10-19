@@ -1,7 +1,7 @@
 use boa_gc::{Gc, GcRefCell};
 
 use crate::{
-    builtins::{generator::GeneratorContext, Promise},
+    builtins::{generator::GeneratorContext, promise::PromiseCapability, Promise},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
@@ -125,11 +125,17 @@ impl Operation for Await {
             context,
         );
 
-        if let Some(promise_capabality) = context.vm.frame().promise_capability.clone() {
-            context.vm.push(promise_capabality.promise().clone());
-        } else {
-            context.vm.push(JsValue::undefined());
-        }
+        let return_value = context
+            .vm
+            .frame()
+            .promise_capability
+            .as_ref()
+            .map(PromiseCapability::promise)
+            .cloned()
+            .map(JsValue::from)
+            .unwrap_or_default();
+
+        context.vm.set_return_value(return_value);
         Ok(CompletionType::Yield)
     }
 }

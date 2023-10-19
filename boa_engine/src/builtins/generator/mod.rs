@@ -12,7 +12,6 @@
 use crate::{
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
-    environments::EnvironmentStack,
     error::JsNativeError,
     js_string,
     object::{JsObject, CONSTRUCTOR},
@@ -60,36 +59,28 @@ unsafe impl Trace for GeneratorState {
 /// context/vm before the generator execution starts/resumes and after it has ended/yielded.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) struct GeneratorContext {
-    pub(crate) environments: EnvironmentStack,
     pub(crate) stack: Vec<JsValue>,
     pub(crate) call_frame: Option<CallFrame>,
-    pub(crate) realm: Realm,
 }
 
 impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the raw `Context` state components.
-    pub(crate) fn new(
-        environments: EnvironmentStack,
-        stack: Vec<JsValue>,
-        call_frame: CallFrame,
-        realm: Realm,
-    ) -> Self {
+    pub(crate) fn new(stack: Vec<JsValue>, call_frame: CallFrame) -> Self {
         Self {
-            environments,
             stack,
             call_frame: Some(call_frame),
-            realm,
         }
     }
 
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &mut Context<'_>) -> Self {
+        let mut frame = context.vm.frame().clone();
+        frame.environments = context.vm.environments.clone();
+        frame.realm = context.realm().clone();
         let fp = context.vm.frame().fp as usize;
         let this = Self {
-            environments: context.vm.environments.clone(),
-            call_frame: Some(context.vm.frame().clone()),
+            call_frame: Some(frame),
             stack: context.vm.stack[fp..].to_vec(),
-            realm: context.realm().clone(),
         };
 
         context.vm.stack.truncate(fp);
@@ -104,14 +95,13 @@ impl GeneratorContext {
         resume_kind: GeneratorResumeKind,
         context: &mut Context<'_>,
     ) -> CompletionRecord {
-        std::mem::swap(&mut context.vm.environments, &mut self.environments);
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        context.swap_realm(&mut self.realm);
         context
             .vm
             .push_frame(self.call_frame.take().expect("should have a call frame"));
 
         context.vm.frame_mut().fp = 0;
+        context.vm.frame_mut().set_exit_early(true);
 
         if let Some(value) = value {
             context.vm.push(value);
@@ -120,9 +110,7 @@ impl GeneratorContext {
 
         let result = context.run();
 
-        std::mem::swap(&mut context.vm.environments, &mut self.environments);
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        context.swap_realm(&mut self.realm);
         self.call_frame = context.vm.pop_frame();
         assert!(self.call_frame.is_some());
         result

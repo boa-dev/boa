@@ -4,15 +4,29 @@
 
 use crate::{
     builtins::{iterable::IteratorRecord, promise::PromiseCapability},
-    environments::BindingLocator,
+    environments::{BindingLocator, EnvironmentStack},
     object::JsObject,
+    realm::Realm,
     vm::CodeBlock,
     JsValue,
 };
 use boa_gc::{Finalize, Gc, Trace};
 use thin_vec::ThinVec;
 
-use super::ActiveRunnable;
+use super::{ActiveRunnable, Vm};
+
+bitflags::bitflags! {
+    /// Flags associated with a [`CallFrame`].
+    #[derive(Debug, Default, Clone, Copy)]
+    pub(crate) struct CallFrameFlags: u8 {
+        /// When we return from this [`CallFrame`] to stop execution and
+        /// return from [`crate::Context::run()`], and leave the remaining [`CallFrame`]s unchanged.
+        const EXIT_EARLY = 0b0000_0001;
+
+        /// Was this [`CallFrame`] created from the `__construct__()` internal object method?
+        const CONSTRUCT = 0b0000_0010;
+    }
+}
 
 /// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
@@ -42,7 +56,15 @@ pub struct CallFrame {
     /// \[\[ScriptOrModule\]\]
     pub(crate) active_runnable: Option<ActiveRunnable>,
 
-    pub(crate) active_function: Option<JsObject>,
+    /// \[\[Environment\]\]
+    pub(crate) environments: EnvironmentStack,
+
+    /// \[\[Realm\]\]
+    pub(crate) realm: Realm,
+
+    // SAFETY: Nothing in `CallFrameFlags` requires tracing, so this is safe.
+    #[unsafe_ignore_trace]
+    pub(crate) flags: CallFrameFlags,
 }
 
 /// ---- `CallFrame` public API ----
@@ -57,11 +79,31 @@ impl CallFrame {
 
 /// ---- `CallFrame` creation methods ----
 impl CallFrame {
+    /// This is the size of the function prologue.
+    ///
+    /// The position of the elements are relative to the [`CallFrame::fp`].
+    ///
+    /// ```text
+    ///   --- frame pointer                             arguments
+    ///  /                      __________________________/
+    /// /                      /                          \
+    /// | 0: this | 1: func | 2: arg1 | ... | (2 + N): argN |
+    ///    \            /
+    ///     ------------
+    ///     |
+    /// function prolugue
+    /// ```
+    pub(crate) const FUNCTION_PROLOGUE: usize = 2;
+    pub(crate) const THIS_POSITION: usize = 0;
+    pub(crate) const FUNCTION_POSITION: usize = 1;
+    pub(crate) const FIRST_ARGUMENT_POSITION: usize = 2;
+
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
         code_block: Gc<CodeBlock>,
         active_runnable: Option<ActiveRunnable>,
-        active_function: Option<JsObject>,
+        environments: EnvironmentStack,
+        realm: Realm,
     ) -> Self {
         Self {
             code_block,
@@ -75,7 +117,9 @@ impl CallFrame {
             binding_stack: Vec::new(),
             loop_iteration_count: 0,
             active_runnable,
-            active_function,
+            environments,
+            realm,
+            flags: CallFrameFlags::empty(),
         }
     }
 
@@ -89,6 +133,39 @@ impl CallFrame {
     pub(crate) fn with_env_fp(mut self, env_fp: u32) -> Self {
         self.env_fp = env_fp;
         self
+    }
+
+    /// Updates a `CallFrame`'s `flags` field with the value provided.
+    pub(crate) fn with_flags(mut self, flags: CallFrameFlags) -> Self {
+        self.flags = flags;
+        self
+    }
+
+    pub(crate) fn this(&self, vm: &Vm) -> JsValue {
+        let this_index = self.fp as usize + Self::THIS_POSITION;
+        vm.stack[this_index].clone()
+    }
+
+    pub(crate) fn function(&self, vm: &Vm) -> Option<JsObject> {
+        let function_index = self.fp as usize + Self::FUNCTION_POSITION;
+        if let Some(object) = vm.stack[function_index].as_object() {
+            return Some(object.clone());
+        }
+
+        None
+    }
+
+    /// Does this have the [`CallFrameFlags::EXIT_EARLY`] flag.
+    pub(crate) fn exit_early(&self) -> bool {
+        self.flags.contains(CallFrameFlags::EXIT_EARLY)
+    }
+    /// Set the [`CallFrameFlags::EXIT_EARLY`] flag.
+    pub(crate) fn set_exit_early(&mut self, early_exit: bool) {
+        self.flags.set(CallFrameFlags::EXIT_EARLY, early_exit);
+    }
+    /// Does this have the [`CallFrameFlags::CONSTRUCT`] flag.
+    pub(crate) fn construct(&self) -> bool {
+        self.flags.contains(CallFrameFlags::CONSTRUCT)
     }
 }
 

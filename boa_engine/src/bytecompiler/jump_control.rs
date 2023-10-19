@@ -141,7 +141,12 @@ impl JumpRecord {
                     //
                     // Note: If there is promise capability resolve or reject it based on pending exception.
                     (true, false) => compiler.emit_opcode(Opcode::CompletePromiseCapability),
-                    (_, _) => {}
+                    (false, false) => {
+                        // TODO: We can omit checking for return, when constructing for functions,
+                        // that cannot be constructed, like arrow functions.
+                        compiler.emit_opcode(Opcode::CheckReturn);
+                    }
+                    (false, true) => {}
                 }
 
                 compiler.emit_opcode(Opcode::Return);

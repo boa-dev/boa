@@ -15,7 +15,9 @@ impl Operation for GeneratorYield {
     const NAME: &'static str = "GeneratorYield";
     const INSTRUCTION: &'static str = "INST - GeneratorYield";
 
-    fn execute(_context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let value = context.vm.pop();
+        context.vm.set_return_value(value);
         Ok(CompletionType::Yield)
     }
 }
@@ -76,11 +78,11 @@ impl Operation for AsyncGeneratorYield {
 
             context.vm.push(resume_kind);
 
-            Ok(CompletionType::Normal)
-        } else {
-            gen.state = AsyncGeneratorState::SuspendedYield;
-            context.vm.push(JsValue::undefined());
-            GeneratorYield::execute(context)
+            return Ok(CompletionType::Normal);
         }
+
+        gen.state = AsyncGeneratorState::SuspendedYield;
+        context.vm.set_return_value(JsValue::undefined());
+        Ok(CompletionType::Yield)
     }
 }

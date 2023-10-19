@@ -7,7 +7,6 @@ use crate::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
         generator::{GeneratorContext, GeneratorState},
     },
-    environments::EnvironmentStack,
     error::JsNativeError,
     object::{ObjectData, PROTOTYPE},
     string::utf16,
@@ -37,14 +36,25 @@ impl Operation for Generator {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let r#async = context.vm.read::<u8>() != 0;
 
-        let code_block = context.vm.frame().code_block().clone();
-        let active_runnable = context.vm.frame().active_runnable.clone();
-        let active_function = context.vm.frame().active_function.clone();
-        let pc = context.vm.frame().pc;
-        let mut dummy_call_frame =
-            CallFrame::new(code_block, active_runnable, active_function.clone());
+        let frame = context.vm.frame();
+        let code_block = frame.code_block().clone();
+        let active_runnable = frame.active_runnable.clone();
+        let active_function = frame.function(&context.vm);
+        let environments = frame.environments.clone();
+        let realm = frame.realm.clone();
+        let pc = frame.pc;
+
+        let mut dummy_call_frame = CallFrame::new(code_block, active_runnable, environments, realm);
         dummy_call_frame.pc = pc;
         let mut call_frame = std::mem::replace(context.vm.frame_mut(), dummy_call_frame);
+
+        context
+            .vm
+            .frame_mut()
+            .set_exit_early(call_frame.exit_early());
+
+        call_frame.environments = context.vm.environments.clone();
+        call_frame.realm = context.realm().clone();
 
         let fp = call_frame.fp as usize;
 
@@ -71,32 +81,16 @@ impl Operation for Generator {
                 Clone::clone,
             );
 
-        let global_environement = context.vm.environments.global();
-        let environments = std::mem::replace(
-            &mut context.vm.environments,
-            EnvironmentStack::new(global_environement),
-        );
-
         let data = if r#async {
             ObjectData::async_generator(AsyncGenerator {
                 state: AsyncGeneratorState::SuspendedStart,
-                context: Some(GeneratorContext::new(
-                    environments,
-                    stack,
-                    call_frame,
-                    context.realm().clone(),
-                )),
+                context: Some(GeneratorContext::new(stack, call_frame)),
                 queue: VecDeque::new(),
             })
         } else {
             ObjectData::generator(crate::builtins::generator::Generator {
                 state: GeneratorState::SuspendedStart {
-                    context: GeneratorContext::new(
-                        environments,
-                        stack,
-                        call_frame,
-                        context.realm().clone(),
-                    ),
+                    context: GeneratorContext::new(stack, call_frame),
                 },
             })
         };
@@ -119,7 +113,7 @@ impl Operation for Generator {
                 .async_generator = Some(gen_clone);
         }
 
-        context.vm.push(generator);
+        context.vm.set_return_value(generator.into());
         Ok(CompletionType::Yield)
     }
 }

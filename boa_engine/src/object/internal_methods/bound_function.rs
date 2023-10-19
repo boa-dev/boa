@@ -1,6 +1,6 @@
 use crate::{object::JsObject, Context, JsResult, JsValue};
 
-use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
+use super::{CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
 /// Definitions of the internal object methods for function objects.
 ///
@@ -27,33 +27,37 @@ pub(crate) static BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS: InternalObjectMetho
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-call-thisargument-argumentslist
-#[track_caller]
+#[allow(clippy::unnecessary_wraps)]
 fn bound_function_exotic_call(
     obj: &JsObject,
-    _: &JsValue,
-    arguments_list: &[JsValue],
+    argument_count: usize,
     context: &mut Context<'_>,
-) -> JsResult<JsValue> {
+) -> JsResult<CallValue> {
     let obj = obj.borrow();
     let bound_function = obj
         .as_bound_function()
         .expect("bound function exotic method should only be callable from bound function objects");
 
+    let arguments_start_index = context.vm.stack.len() - argument_count;
+
     // 1. Let target be F.[[BoundTargetFunction]].
     let target = bound_function.target_function();
+    context.vm.stack[arguments_start_index - 1] = target.clone().into();
 
     // 2. Let boundThis be F.[[BoundThis]].
     let bound_this = bound_function.this();
+    context.vm.stack[arguments_start_index - 2] = bound_this.clone();
 
     // 3. Let boundArgs be F.[[BoundArguments]].
     let bound_args = bound_function.args();
 
     // 4. Let args be the list-concatenation of boundArgs and argumentsList.
-    let mut args = bound_args.to_vec();
-    args.extend_from_slice(arguments_list);
+    context
+        .vm
+        .insert_values_at(bound_args, arguments_start_index);
 
     // 5. Return ? Call(target, boundThis, args).
-    target.call(bound_this, &args, context)
+    Ok(target.__call__(bound_args.len() + argument_count))
 }
 
 /// Internal method `[[Construct]]` for Bound Function Exotic Objects
@@ -62,14 +66,17 @@ fn bound_function_exotic_call(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
-#[track_caller]
+#[allow(clippy::unnecessary_wraps)]
 fn bound_function_exotic_construct(
-    obj: &JsObject,
-    arguments_list: &[JsValue],
-    new_target: &JsObject,
+    function_object: &JsObject,
+    argument_count: usize,
     context: &mut Context<'_>,
-) -> JsResult<JsObject> {
-    let object = obj.borrow();
+) -> JsResult<CallValue> {
+    let new_target = context.vm.pop();
+
+    debug_assert!(new_target.is_object(), "new.target should be an object");
+
+    let object = function_object.borrow();
     let bound_function = object
         .as_bound_function()
         .expect("bound function exotic method should only be callable from bound function objects");
@@ -83,16 +90,20 @@ fn bound_function_exotic_construct(
     let bound_args = bound_function.args();
 
     // 4. Let args be the list-concatenation of boundArgs and argumentsList.
-    let mut args = bound_args.to_vec();
-    args.extend_from_slice(arguments_list);
+    let arguments_start_index = context.vm.stack.len() - argument_count;
+    context
+        .vm
+        .insert_values_at(bound_args, arguments_start_index);
 
     // 5. If SameValue(F, newTarget) is true, set newTarget to target.
-    let new_target = if JsObject::equals(obj, new_target) {
-        target
+    let function_object: JsValue = function_object.clone().into();
+    let new_target = if JsValue::same_value(&function_object, &new_target) {
+        target.clone().into()
     } else {
         new_target
     };
 
     // 6. Return ? Construct(target, args, newTarget).
-    target.construct(&args, Some(new_target), context)
+    context.vm.push(new_target);
+    Ok(target.__construct__(bound_args.len() + argument_count))
 }

@@ -379,6 +379,12 @@ impl JsError {
         }
         self
     }
+
+    /// Is the [`JsError`] catchable in JavaScript.
+    #[inline]
+    pub(crate) fn is_catchable(&self) -> bool {
+        self.as_native().map_or(true, JsNativeError::is_catchable)
+    }
 }
 
 impl From<boa_parser::Error> for JsError {
@@ -873,6 +879,12 @@ impl JsNativeError {
         self.realm = Some(realm);
         self
     }
+
+    /// Is the [`JsNativeError`] catchable in JavaScript.
+    #[inline]
+    pub(crate) fn is_catchable(&self) -> bool {
+        self.kind.is_catchable()
+    }
 }
 
 impl From<boa_parser::Error> for JsNativeError {
@@ -976,6 +988,26 @@ pub enum JsNativeErrorKind {
 
     /// Error thrown when a runtime limit is exceeded. It's not a valid JS error variant.
     RuntimeLimit,
+}
+
+impl JsNativeErrorKind {
+    /// Is the [`JsNativeErrorKind`] catchable in JavaScript.
+    #[inline]
+    pub(crate) fn is_catchable(&self) -> bool {
+        match self {
+            Self::Aggregate(_)
+            | Self::Error
+            | Self::Eval
+            | Self::Range
+            | Self::Reference
+            | Self::Syntax
+            | Self::Type
+            | Self::Uri => true,
+            Self::RuntimeLimit => false,
+            #[cfg(feature = "fuzz")]
+            Self::NoInstructionsRemain => false,
+        }
+    }
 }
 
 impl PartialEq<ErrorKind> for JsNativeErrorKind {

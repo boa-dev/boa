@@ -536,14 +536,14 @@ pub(crate) trait Operation {
 
     /// Execute opcode with [`VaryingOperandKind::U16`] sized [`VaryingOperand`]s.
     ///
-    /// By default if not implemented will call [`Reserved::u16_execute()`] which panics.
+    /// By default if not implemented will call [`Reserved::execute_with_u16_operands()`] which panics.
     fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         Reserved::execute_with_u16_operands(context)
     }
 
     /// Execute opcode with [`VaryingOperandKind::U32`] sized [`VaryingOperand`]s.
     ///
-    /// By default if not implemented will call [`Reserved::u32_execute()`] which panics.
+    /// By default if not implemented will call [`Reserved::execute_with_u32_operands()`] which panics.
     fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
         Reserved::execute_with_u32_operands(context)
     }
@@ -1058,6 +1058,15 @@ generate_opcodes! {
     /// Stack: **=>**
     ThrowMutateImmutable { index: VaryingOperand },
 
+    /// Get i-th argument of the current frame.
+    ///
+    /// Returns `undefined` if `arguments.len()` < `index`.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: **=>** value
+    GetArgument { index: VaryingOperand },
+
     /// Find a binding on the environment chain and push its value.
     ///
     /// Operands: index: `u32`
@@ -1571,21 +1580,21 @@ generate_opcodes! {
     ///
     /// Operands:
     ///
-    /// Stack: **=>** super_constructor, new_target
+    /// Stack: **=>** super_constructor
     SuperCallPrepare,
 
     /// Execute the `super()` method.
     ///
     /// Operands: argument_count: `u32`
     ///
-    /// Stack: super_constructor, new_target, argument_1, ... argument_n **=>**
+    /// Stack: super_constructor, argument_1, ... argument_n **=>**
     SuperCall { argument_count: VaryingOperand },
 
     /// Execute the `super()` method where the arguments contain spreads.
     ///
     /// Operands:
     ///
-    /// Stack: super_constructor, new_target, arguments_array **=>**
+    /// Stack: super_constructor, arguments_array **=>**
     SuperCallSpread,
 
     /// Execute the `super()` method when no constructor of the class is defined.
@@ -1594,6 +1603,17 @@ generate_opcodes! {
     ///
     /// Stack: argument_n, ... argument_1 **=>**
     SuperCallDerived,
+
+    /// Binds `this` value and initializes the instance elements.
+    ///
+    /// Performs steps 7-12 of [`SuperCall: super Arguments`][spec]
+    ///
+    /// Operands:
+    ///
+    /// Stack: result **=>** result
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation
+    BindThisValue,
 
     /// Dynamically import a module.
     ///
@@ -1700,6 +1720,13 @@ generate_opcodes! {
     ///
     /// Stack: arguments_array, func **=>** result
     NewSpread,
+
+    /// Check return from a function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    CheckReturn,
 
     /// Return from a function.
     ///
@@ -1912,18 +1939,11 @@ generate_opcodes! {
     /// Stack: `argument_1` .. `argument_n` **=>** `array`
     RestParameterInit,
 
-    /// Pop the remaining arguments of a function.
-    ///
-    /// Operands:
-    ///
-    /// Stack: `argument_1` .. `argument_n` **=>**
-    RestParameterPop,
-
     /// Yields from the current generator execution.
     ///
     /// Operands:
     ///
-    /// Stack: **=>** resume_kind, received
+    /// Stack: value **=>** resume_kind, received
     GeneratorYield,
 
     /// Resumes the current generator function.
@@ -2169,10 +2189,6 @@ generate_opcodes! {
     Reserved55 => Reserved,
     /// Reserved [`Opcode`].
     Reserved56 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved57 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved58 => Reserved,
 }
 
 /// Specific opcodes for bindings.

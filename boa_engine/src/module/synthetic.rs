@@ -292,8 +292,8 @@ impl SyntheticModule {
         // 1. Let moduleContext be a new ECMAScript code execution context.
 
         let parent = self.parent();
-        let mut realm = parent.realm().clone();
-        let (mut environments, codeblock) = self
+        let realm = parent.realm().clone();
+        let (environments, codeblock) = self
             .inner
             .eval_context
             .borrow()
@@ -305,19 +305,20 @@ impl SyntheticModule {
             codeblock,
             // 4. Set the ScriptOrModule of moduleContext to module.
             Some(ActiveRunnable::Module(parent)),
-            // 2. Set the Function of moduleContext to null.
-            None,
+            // 5. Set the VariableEnvironment of moduleContext to module.[[Environment]].
+            // 6. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
+            environments,
+            // 3. Set the Realm of moduleContext to module.[[Realm]].
+            realm,
         )
         .with_env_fp(env_fp);
 
-        // 5. Set the VariableEnvironment of moduleContext to module.[[Environment]].
-        // 6. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
-        std::mem::swap(&mut context.vm.environments, &mut environments);
-        // 3. Set the Realm of moduleContext to module.[[Realm]].
-        context.swap_realm(&mut realm);
+        // 2. Set the Function of moduleContext to null.
         // 7. Suspend the currently running execution context.
         // 8. Push moduleContext on to the execution context stack; moduleContext is now the running execution context.
-        context.vm.push_frame(callframe);
+        context
+            .vm
+            .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         // 9. Let steps be module.[[EvaluationSteps]].
         // 10. Let result be Completion(steps(module)).
@@ -325,9 +326,8 @@ impl SyntheticModule {
 
         // 11. Suspend moduleContext and remove it from the execution context stack.
         // 12. Resume the context that is now on the top of the execution context stack as the running execution context.
-        std::mem::swap(&mut context.vm.environments, &mut environments);
-        context.swap_realm(&mut realm);
-        context.vm.pop_frame();
+        let frame = context.vm.pop_frame().expect("there should be a frame");
+        context.vm.stack.truncate(frame.fp as usize);
 
         // 13. Let pc be ! NewPromiseCapability(%Promise%).
         let (promise, ResolvingFunctions { resolve, reject }) = JsPromise::new_pending(context);

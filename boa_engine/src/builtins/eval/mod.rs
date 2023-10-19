@@ -18,7 +18,7 @@ use crate::{
     object::JsObject,
     realm::Realm,
     string::common::StaticJsStrings,
-    vm::{CallFrame, Opcode},
+    vm::{CallFrame, CallFrameFlags, Opcode},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::operations::{contains, contains_arguments, ContainsSymbol};
@@ -256,9 +256,16 @@ impl Eval {
         }
 
         let env_fp = context.vm.environments.len() as u32;
-        context
-            .vm
-            .push_frame(CallFrame::new(code_block, None, None).with_env_fp(env_fp));
+        let environments = context.vm.environments.clone();
+        let realm = context.realm().clone();
+        context.vm.push_frame_with_stack(
+            CallFrame::new(code_block, None, environments, realm)
+                .with_env_fp(env_fp)
+                .with_flags(CallFrameFlags::EXIT_EARLY),
+            JsValue::undefined(),
+            JsValue::null(),
+        );
+
         context.realm().resize_global_env();
 
         let record = context.run();

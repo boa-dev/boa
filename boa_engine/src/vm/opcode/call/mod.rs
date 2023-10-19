@@ -16,14 +16,8 @@ pub(crate) struct CallEval;
 
 impl CallEval {
     fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
-        let mut arguments = Vec::with_capacity(argument_count);
-        for _ in 0..argument_count {
-            arguments.push(context.vm.pop());
-        }
-        arguments.reverse();
-
-        let func = context.vm.pop();
-        let this = context.vm.pop();
+        let at = context.vm.stack.len() - argument_count;
+        let func = &context.vm.stack[at - 1];
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -40,6 +34,9 @@ impl CallEval {
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
         if JsObject::equals(object, &eval) {
+            let arguments = context.vm.pop_n_values(argument_count);
+            let _func = context.vm.pop();
+            let _this = context.vm.pop();
             if let Some(x) = arguments.get(0) {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
@@ -54,11 +51,11 @@ impl CallEval {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
                 context.vm.push(JsValue::Undefined);
             }
+
             return Ok(CompletionType::Normal);
         }
 
-        let result = object.__call__(&this, &arguments, context)?;
-        context.vm.push(result);
+        object.__call__(argument_count).resolve(context)?;
         Ok(CompletionType::Normal)
     }
 }
@@ -107,8 +104,8 @@ impl Operation for CallEvalSpread {
             .expect("arguments array in call spread function must be dense")
             .clone();
 
-        let func = context.vm.pop();
-        let this = context.vm.pop();
+        let at = context.vm.stack.len();
+        let func = context.vm.stack[at - 1].clone();
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -125,6 +122,8 @@ impl Operation for CallEvalSpread {
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
         if JsObject::equals(object, &eval) {
+            let _func = context.vm.pop();
+            let _this = context.vm.pop();
             if let Some(x) = arguments.get(0) {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
@@ -139,11 +138,14 @@ impl Operation for CallEvalSpread {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
                 context.vm.push(JsValue::Undefined);
             }
+
             return Ok(CompletionType::Normal);
         }
 
-        let result = object.__call__(&this, &arguments, context)?;
-        context.vm.push(result);
+        let argument_count = arguments.len();
+        context.vm.push_values(&arguments);
+
+        object.__call__(argument_count).resolve(context)?;
         Ok(CompletionType::Normal)
     }
 }
@@ -157,14 +159,8 @@ pub(crate) struct Call;
 
 impl Call {
     fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
-        let mut arguments = Vec::with_capacity(argument_count);
-        for _ in 0..argument_count {
-            arguments.push(context.vm.pop());
-        }
-        arguments.reverse();
-
-        let func = context.vm.pop();
-        let this = context.vm.pop();
+        let at = context.vm.stack.len() - argument_count;
+        let func = &context.vm.stack[at - 1];
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -172,9 +168,7 @@ impl Call {
                 .into());
         };
 
-        let result = object.__call__(&this, &arguments, context)?;
-
-        context.vm.push(result);
+        object.__call__(argument_count).resolve(context)?;
         Ok(CompletionType::Normal)
     }
 }
@@ -219,8 +213,11 @@ impl Operation for CallSpread {
             .expect("arguments array in call spread function must be dense")
             .clone();
 
-        let func = context.vm.pop();
-        let this = context.vm.pop();
+        let argument_count = arguments.len();
+        context.vm.push_values(&arguments);
+
+        let at = context.vm.stack.len() - argument_count;
+        let func = &context.vm.stack[at - 1];
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -228,9 +225,7 @@ impl Operation for CallSpread {
                 .into());
         };
 
-        let result = object.__call__(&this, &arguments, context)?;
-
-        context.vm.push(result);
+        object.__call__(argument_count).resolve(context)?;
         Ok(CompletionType::Normal)
     }
 }

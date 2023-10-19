@@ -74,8 +74,8 @@ impl ByteCompiler<'_, '_> {
             compiler.emit_opcode(Opcode::PushUndefined);
         } else if class.super_ref().is_some() {
             compiler.emit_opcode(Opcode::SuperCallDerived);
+            compiler.emit_opcode(Opcode::BindThisValue);
         } else {
-            compiler.emit_opcode(Opcode::RestParameterPop);
             compiler.emit_opcode(Opcode::PushUndefined);
         }
         compiler.emit_opcode(Opcode::SetReturnValue);

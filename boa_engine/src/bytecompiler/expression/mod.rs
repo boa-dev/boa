@@ -326,6 +326,7 @@ impl ByteCompiler<'_, '_> {
                         super_call.arguments().len() as u32,
                     );
                 }
+                self.emit_opcode(Opcode::BindThisValue);
 
                 if !use_expr {
                     self.emit_opcode(Opcode::Pop);
