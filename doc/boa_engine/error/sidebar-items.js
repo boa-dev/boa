@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["JsNativeErrorKind","Repr","TryNativeError"],"struct":["JsError","JsNativeError"]};
+window.SIDEBAR_ITEMS = {"enum":["ErasedRepr","JsErasedNativeErrorKind","JsNativeErrorKind","Repr","TryNativeError"],"struct":["JsErasedError","JsErasedNativeError","JsError","JsNativeError"]};
