@@ -128,7 +128,7 @@ impl WellKnown {
 struct Inner {
     hash: usize,
     // must be a `Vec`, since this needs to be shareable between many threads.
-    description: Option<Vec<u16>>,
+    description: Option<Box<[u16]>>,
 }
 
 /// This represents a JavaScript symbol primitive.
@@ -171,7 +171,7 @@ impl JsSymbol {
         let hash = get_id()?;
         let arc = Arc::new(Inner {
             hash,
-            description: description.map(|s| Vec::from(&*s)),
+            description: description.map(|s| Box::from(&*s)),
         });
 
         Some(Self {
