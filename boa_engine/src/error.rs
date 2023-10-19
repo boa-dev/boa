@@ -1,5 +1,7 @@
 //! Error-related types and conversions.
 
+use std::{error, fmt};
+
 use crate::{
     builtins::{error::ErrorKind, Array},
     js_string,
@@ -10,7 +12,7 @@ use crate::{
     string::utf16,
     Context, JsString, JsValue,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{custom_trace, Finalize, Trace};
 use thiserror::Error;
 
 /// The error type returned by all operations related
@@ -45,9 +47,14 @@ use thiserror::Error;
 /// let kind = &native_error.as_native().unwrap().kind;
 /// assert!(matches!(kind, JsNativeErrorKind::Type));
 /// ```
-#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
+#[derive(Debug, Clone, Finalize, PartialEq, Eq)]
 pub struct JsError {
     inner: Repr,
+}
+
+// SAFETY: just mirroring the default derive to allow destructuring.
+unsafe impl Trace for JsError {
+    custom_trace!(this, mark(&this.inner));
 }
 
 /// Internal representation of a [`JsError`].
@@ -60,10 +67,21 @@ pub struct JsError {
 /// This should never be used outside of this module. If that's not the case,
 /// you should add methods to either `JsError` or `JsNativeError` to
 /// represent that special use case.
-#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
+#[derive(Debug, Clone, Finalize, PartialEq, Eq)]
 enum Repr {
     Native(JsNativeError),
     Opaque(JsValue),
+}
+
+// SAFETY: just mirroring the default derive to allow destructuring.
+unsafe impl Trace for Repr {
+    custom_trace!(
+        this,
+        match &this {
+            Self::Native(err) => mark(err),
+            Self::Opaque(val) => mark(val),
+        }
+    );
 }
 
 /// The error type returned by the [`JsError::try_native`] method.
@@ -113,8 +131,8 @@ pub enum TryNativeError {
     },
 }
 
-impl std::error::Error for JsError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+impl error::Error for JsError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match &self.inner {
             Repr::Native(err) => err.source(),
             Repr::Opaque(_) => None,
@@ -366,6 +384,82 @@ impl JsError {
         }
     }
 
+    /// Converts this error into its thread-safe, erased version.
+    ///
+    /// Even though this operation is lossy, converting into a `JsErasedError`
+    /// is useful since it implements `Send` and `Sync`, making it compatible with
+    /// error reporting frameworks such as `anyhow`, `eyre` or `miette`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{js_string, Context, JsError, JsNativeError, JsSymbol, JsValue};
+    /// # use std::error::Error;
+    /// let context = &mut Context::default();
+    /// let cause = JsError::from_opaque(JsSymbol::new(Some(js_string!("error!"))).unwrap().into());
+    ///
+    /// let native_error: JsError = JsNativeError::typ()
+    ///     .with_message("invalid type!")
+    ///     .with_cause(cause)
+    ///     .into();
+    ///
+    /// let erased_error = native_error.into_erased(context);
+    ///
+    /// assert_eq!(erased_error.to_string(), "TypeError: invalid type!");
+    ///
+    /// let send_sync_error: Box<dyn Error + Send + Sync> = Box::new(erased_error);
+    ///
+    /// assert_eq!(
+    ///     send_sync_error.source().unwrap().to_string(),
+    ///     "Symbol(error!)"
+    /// );
+    /// ```
+    pub fn into_erased(self, context: &mut Context<'_>) -> JsErasedError {
+        let Ok(native) = self.try_native(context) else {
+            return JsErasedError {
+                inner: ErasedRepr::Opaque(self.to_string().into_boxed_str()),
+            };
+        };
+
+        let JsNativeError {
+            kind,
+            message,
+            cause,
+            ..
+        } = native;
+
+        let cause = cause.map(|err| Box::new(err.into_erased(context)));
+
+        let kind = match kind {
+            JsNativeErrorKind::Aggregate(errors) => JsErasedNativeErrorKind::Aggregate(
+                errors
+                    .into_iter()
+                    .map(|err| err.into_erased(context))
+                    .collect(),
+            ),
+            JsNativeErrorKind::Error => JsErasedNativeErrorKind::Error,
+            JsNativeErrorKind::Eval => JsErasedNativeErrorKind::Eval,
+            JsNativeErrorKind::Range => JsErasedNativeErrorKind::Range,
+            JsNativeErrorKind::Reference => JsErasedNativeErrorKind::Reference,
+            JsNativeErrorKind::Syntax => JsErasedNativeErrorKind::Syntax,
+            JsNativeErrorKind::Type => JsErasedNativeErrorKind::Type,
+            JsNativeErrorKind::Uri => JsErasedNativeErrorKind::Uri,
+            JsNativeErrorKind::RuntimeLimit => JsErasedNativeErrorKind::RuntimeLimit,
+            #[cfg(feature = "fuzz")]
+            JsNativeErrorKind::NoInstructionsRemain => unreachable!(
+                "The NoInstructionsRemain native error cannot be converted to an erased kind."
+            ),
+        };
+
+        JsErasedError {
+            inner: ErasedRepr::Native(JsErasedNativeError {
+                kind,
+                message,
+                cause,
+            }),
+        }
+    }
+
     /// Injects a realm on the `realm` field of a native error.
     ///
     /// This is a no-op if the error is not native or if the `realm` field of the error is already
@@ -401,8 +495,8 @@ impl From<JsNativeError> for JsError {
     }
 }
 
-impl std::fmt::Display for JsError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for JsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
             Repr::Native(e) => e.fmt(f),
             Repr::Opaque(v) => v.display().fmt(f),
@@ -431,8 +525,7 @@ impl std::fmt::Display for JsError {
 ///
 /// assert_eq!(native_error.message(), "cannot decode uri");
 /// ```
-#[derive(Clone, Trace, Finalize, Error, PartialEq, Eq)]
-#[error("{kind}: {message}")]
+#[derive(Clone, Finalize, Error, PartialEq, Eq)]
 pub struct JsNativeError {
     /// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)
     pub kind: JsNativeErrorKind,
@@ -442,8 +535,30 @@ pub struct JsNativeError {
     realm: Option<Realm>,
 }
 
-impl std::fmt::Debug for JsNativeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for JsNativeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.kind)?;
+
+        let message = self.message.trim();
+        if !message.is_empty() {
+            write!(f, ": {message}")?;
+        }
+
+        Ok(())
+    }
+}
+
+// SAFETY: just mirroring the default derive to allow destructuring.
+unsafe impl Trace for JsNativeError {
+    custom_trace!(this, {
+        mark(&this.kind);
+        mark(&this.cause);
+        mark(&this.realm);
+    });
+}
+
+impl fmt::Debug for JsNativeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("JsNativeError")
             .field("kind", &self.kind)
             .field("message", &self.message)
@@ -901,7 +1016,7 @@ impl From<boa_parser::Error> for JsNativeError {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-error-objects
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
-#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
+#[derive(Debug, Clone, Finalize, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum JsNativeErrorKind {
     /// A collection of errors wrapped in a single error.
@@ -990,6 +1105,26 @@ pub enum JsNativeErrorKind {
     RuntimeLimit,
 }
 
+// SAFETY: just mirroring the default derive to allow destructuring.
+unsafe impl Trace for JsNativeErrorKind {
+    custom_trace!(
+        this,
+        match &this {
+            Self::Aggregate(errors) => mark(errors),
+            Self::Error
+            | Self::Eval
+            | Self::Range
+            | Self::Reference
+            | Self::Syntax
+            | Self::Type
+            | Self::Uri
+            | Self::RuntimeLimit => {}
+            #[cfg(feature = "fuzz")]
+            Self::NoInstructionsRemain => {}
+        }
+    );
+}
+
 impl JsNativeErrorKind {
     /// Is the [`JsNativeErrorKind`] catchable in JavaScript.
     #[inline]
@@ -1026,8 +1161,8 @@ impl PartialEq<ErrorKind> for JsNativeErrorKind {
     }
 }
 
-impl std::fmt::Display for JsNativeErrorKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for JsNativeErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Aggregate(_) => "AggregateError",
             Self::Error => "Error",
@@ -1040,6 +1175,193 @@ impl std::fmt::Display for JsNativeErrorKind {
             Self::RuntimeLimit => "RuntimeLimit",
             #[cfg(feature = "fuzz")]
             Self::NoInstructionsRemain => "NoInstructionsRemain",
+        }
+        .fmt(f)
+    }
+}
+
+/// Erased version of [`JsError`].
+///
+/// This is mainly useful to convert a `JsError` into an `Error` that also
+/// implements `Send + Sync`, which makes it compatible with error reporting tools
+/// such as `anyhow`, `eyre` or `miette`.
+///
+/// Generally, the conversion from `JsError` to `JsErasedError` is unidirectional,
+/// since any `JsError` that is a [`JsValue`] is converted to its string representation
+/// instead. This will lose information if that value was an object, a symbol or a big int.
+#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
+pub struct JsErasedError {
+    inner: ErasedRepr,
+}
+
+#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
+enum ErasedRepr {
+    Native(JsErasedNativeError),
+    Opaque(Box<str>),
+}
+
+impl fmt::Display for JsErasedError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.inner {
+            ErasedRepr::Native(e) => e.fmt(f),
+            ErasedRepr::Opaque(v) => fmt::Display::fmt(v, f),
+        }
+    }
+}
+
+impl error::Error for JsErasedError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match &self.inner {
+            ErasedRepr::Native(err) => err.source(),
+            ErasedRepr::Opaque(_) => None,
+        }
+    }
+}
+
+impl JsErasedError {
+    /// Gets the inner [`str`] if the error is an opaque error,
+    /// or `None` otherwise.
+    #[must_use]
+    pub const fn as_opaque(&self) -> Option<&str> {
+        match self.inner {
+            ErasedRepr::Native(_) => None,
+            ErasedRepr::Opaque(ref v) => Some(v),
+        }
+    }
+
+    /// Gets the inner [`JsErasedNativeError`] if the error is a native
+    /// error, or `None` otherwise.
+    #[must_use]
+    pub const fn as_native(&self) -> Option<&JsErasedNativeError> {
+        match &self.inner {
+            ErasedRepr::Native(e) => Some(e),
+            ErasedRepr::Opaque(_) => None,
+        }
+    }
+}
+
+/// Erased version of [`JsNativeError`].
+#[derive(Debug, Clone, Trace, Finalize, Error, PartialEq, Eq)]
+pub struct JsErasedNativeError {
+    /// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)
+    pub kind: JsErasedNativeErrorKind,
+    message: Box<str>,
+    #[source]
+    cause: Option<Box<JsErasedError>>,
+}
+
+impl fmt::Display for JsErasedNativeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.kind)?;
+
+        let message = self.message.trim();
+        if !message.is_empty() {
+            write!(f, ": {message}")?;
+        }
+
+        Ok(())
+    }
+}
+
+/// Erased version of [`JsNativeErrorKind`]
+#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum JsErasedNativeErrorKind {
+    /// A collection of errors wrapped in a single error.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-aggregate-error-objects
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError
+    Aggregate(Vec<JsErasedError>),
+    /// A generic error. Commonly used as the base for custom exceptions.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-error-constructor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+    Error,
+    /// An error related to the global function [`eval()`][eval].
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-evalerror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError
+    /// [eval]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
+    Eval,
+    /// An error thrown when a value is outside its valid range.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-rangeerror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError
+    Range,
+    /// An error representing an invalid de-reference of a variable.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-referenceerror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError
+    Reference,
+    /// An error representing an invalid syntax in the Javascript language.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-syntaxerror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError
+    Syntax,
+    /// An error thrown when a variable or argument is not of a valid type.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
+    Type,
+    /// An error thrown when the [`encodeURI()`][e_uri] and [`decodeURI()`][d_uri] functions receive
+    /// invalid parameters.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-urierror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError
+    /// [e_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
+    /// [d_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
+    Uri,
+
+    /// Error thrown when a runtime limit is exceeded. It's not a valid JS error variant.
+    RuntimeLimit,
+}
+
+impl fmt::Display for JsErasedNativeErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            Self::Aggregate(errors) => {
+                return write!(f, "AggregateError(error count: {})", errors.len());
+            }
+            Self::Error => "Error",
+            Self::Eval => "EvalError",
+            Self::Range => "RangeError",
+            Self::Reference => "ReferenceError",
+            Self::Syntax => "SyntaxError",
+            Self::Type => "TypeError",
+            Self::Uri => "UriError",
+            Self::RuntimeLimit => "RuntimeLimit",
         }
         .fmt(f)
     }

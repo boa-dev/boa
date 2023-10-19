@@ -981,6 +981,8 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
 
     /// Builds a new [`Context`] with the provided parameters, and defaults
     /// all missing parameters to their default values.
+    // TODO: try to use a custom error here, since most of the `JsError` APIs
+    // require having a `Context` in the first place.
     pub fn build<'host>(self) -> JsResult<Context<'host>>
     where
         'icu: 'host,
