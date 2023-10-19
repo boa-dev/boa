@@ -125,6 +125,9 @@
     clippy::missing_panics_doc,
 )]
 
+#[cfg(not(target_has_atomic = "ptr"))]
+compile_error!("Boa requires a lock free `AtomicUsize` in order to work properly.");
+
 extern crate static_assertions as sa;
 
 pub mod bigint;

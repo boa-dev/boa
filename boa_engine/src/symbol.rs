@@ -33,10 +33,11 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 use std::{
     hash::{Hash, Hasher},
-    sync::{atomic::Ordering, Arc},
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
 };
-
-use portable_atomic::AtomicUsize;
 
 /// Reserved number of symbols.
 ///
