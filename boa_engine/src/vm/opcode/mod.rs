@@ -396,11 +396,11 @@ macro_rules! generate_opcodes {
         }
 
         impl Opcode {
-            const MAX: usize = 2usize.pow(8) * 3;
+            const MAX: usize = 2usize.pow(8);
 
             // TODO: see if this can be exposed on all features.
             #[allow(unused)]
-            const NAMES: [&'static str; Self::MAX] = [
+            const NAMES: [&'static str; Self::MAX * 3] = [
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*,
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*,
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*
@@ -414,7 +414,7 @@ macro_rules! generate_opcodes {
                 Self::NAMES[self as usize]
             }
 
-            const INSTRUCTIONS: [&'static str; Self::MAX] = [
+            const INSTRUCTIONS: [&'static str; Self::MAX * 3] = [
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::INSTRUCTION),*,
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::INSTRUCTION),*,
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::INSTRUCTION),*
@@ -428,8 +428,6 @@ macro_rules! generate_opcodes {
 
             const SPEND_FNS: [fn(&mut Context<'_>, &mut u32) -> JsResult<CompletionType>; Self::MAX] = [
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::spend_budget_and_execute),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::spend_budget_and_execute_with_u16_operands),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::spend_budget_and_execute_with_u32_operands),*
             ];
 
             /// Spends the cost of this opcode into the provided budget and executes it.
@@ -441,7 +439,16 @@ macro_rules! generate_opcodes {
                 Self::SPEND_FNS[self as usize](context, budget)
             }
 
-            const EXECUTE_FNS: [fn(&mut Context<'_>) -> JsResult<CompletionType>; Self::MAX] = [
+            const COSTS: [u8; Self::MAX] = [
+                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::COST),*,
+            ];
+
+            /// Return the cost of this opcode.
+            pub(super) const fn cost(self) -> u8 {
+                Self::COSTS[self as usize]
+            }
+
+            const EXECUTE_FNS: [fn(&mut Context<'_>) -> JsResult<CompletionType>; Self::MAX * 3] = [
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute),*,
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute_with_u16_operands),*,
                 $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute_with_u32_operands),*
@@ -571,24 +578,6 @@ pub(crate) trait Operation {
     ) -> JsResult<CompletionType> {
         *budget = budget.saturating_sub(u32::from(Self::COST));
         Self::execute(context)
-    }
-
-    /// Spends the cost of this operation into `budget` and runs `execute_with_u16_operands`.
-    fn spend_budget_and_execute_with_u16_operands(
-        context: &mut Context<'_>,
-        budget: &mut u32,
-    ) -> JsResult<CompletionType> {
-        *budget = budget.saturating_sub(u32::from(Self::COST));
-        Self::execute_with_u16_operands(context)
-    }
-
-    /// Spends the cost of this operation into `budget` and runs `execute_with_u32_operands`.
-    fn spend_budget_and_execute_with_u32_operands(
-        context: &mut Context<'_>,
-        budget: &mut u32,
-    ) -> JsResult<CompletionType> {
-        *budget = budget.saturating_sub(u32::from(Self::COST));
-        Self::execute_with_u32_operands(context)
     }
 }
 

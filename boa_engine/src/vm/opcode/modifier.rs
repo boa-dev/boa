@@ -17,17 +17,17 @@ impl Operation for U16Operands {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let opcode = context.vm.read::<u8>() as usize;
 
-        Opcode::EXECUTE_FNS[256 + opcode](context)
+        Opcode::EXECUTE_FNS[Opcode::MAX + opcode](context)
     }
 
     fn spend_budget_and_execute(
         context: &mut Context<'_>,
         budget: &mut u32,
     ) -> JsResult<CompletionType> {
-        *budget = budget.saturating_sub(u32::from(Self::COST));
+        let opcode: Opcode = context.vm.read::<u8>().into();
 
-        let opcode = context.vm.read::<u8>() as usize;
-        Opcode::SPEND_FNS[256 + opcode](context, budget)
+        *budget = budget.saturating_sub(u32::from(opcode.cost()) + u32::from(Self::COST));
+        Opcode::EXECUTE_FNS[Opcode::MAX + opcode as usize](context)
     }
 }
 
@@ -46,16 +46,16 @@ impl Operation for U32Operands {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let opcode = context.vm.read::<u8>() as usize;
 
-        Opcode::EXECUTE_FNS[256 * 2 + opcode](context)
+        Opcode::EXECUTE_FNS[Opcode::MAX * 2 + opcode](context)
     }
 
     fn spend_budget_and_execute(
         context: &mut Context<'_>,
         budget: &mut u32,
     ) -> JsResult<CompletionType> {
-        *budget = budget.saturating_sub(u32::from(Self::COST));
+        let opcode: Opcode = context.vm.read::<u8>().into();
 
-        let opcode = context.vm.read::<u8>() as usize;
-        Opcode::SPEND_FNS[256 * 2 + opcode](context, budget)
+        *budget = budget.saturating_sub(u32::from(opcode.cost()) + u32::from(Self::COST));
+        Opcode::EXECUTE_FNS[Opcode::MAX * 2 + opcode as usize](context)
     }
 }
