@@ -83,7 +83,6 @@ impl Operation for DefInitVar {
     const INSTRUCTION: &'static str = "INST - DefInitVar";
     const COST: u8 = 3;
 
-
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
         Self::operation(context, index as usize)
