@@ -313,13 +313,12 @@ impl SyntheticModule {
         )
         .with_env_fp(env_fp);
 
+        // 2. Set the Function of moduleContext to null.
         // 7. Suspend the currently running execution context.
         // 8. Push moduleContext on to the execution context stack; moduleContext is now the running execution context.
-        context.vm.push_frame(callframe);
-
-        // 2. Set the Function of moduleContext to null.
-        context.vm.push(JsValue::default()); // this
-        context.vm.push(JsValue::default()); // func
+        context
+            .vm
+            .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         // 9. Let steps be module.[[EvaluationSteps]].
         // 10. Let result be Completion(steps(module)).

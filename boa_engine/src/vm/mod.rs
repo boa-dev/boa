@@ -167,6 +167,24 @@ impl Vm {
         self.frames.push(frame);
     }
 
+    pub(crate) fn push_frame_with_stack(
+        &mut self,
+        mut frame: CallFrame,
+        this: JsValue,
+        function: JsValue,
+    ) {
+        let current_stack_length = self.stack.len();
+        frame.set_frame_pointer(current_stack_length as u32);
+
+        self.push(this);
+        self.push(function);
+
+        std::mem::swap(&mut self.environments, &mut frame.environments);
+        std::mem::swap(&mut self.realm, &mut frame.realm);
+
+        self.frames.push(frame);
+    }
+
     pub(crate) fn pop_frame(&mut self) -> Option<CallFrame> {
         let mut frame = self.frames.pop();
         if let Some(frame) = &mut frame {

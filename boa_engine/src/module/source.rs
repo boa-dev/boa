@@ -1612,10 +1612,9 @@ impl SourceTextModule {
             envs,
             realm.clone(),
         );
-        context.vm.push_frame(call_frame);
-
-        context.vm.push(JsValue::undefined()); // Push `this` value.
-        context.vm.push(JsValue::undefined()); // No function object, so push undefined.
+        context
+            .vm
+            .push_frame_with_stack(call_frame, JsValue::undefined(), JsValue::null());
 
         // 17. Push moduleContext onto the execution context stack; moduleContext is now the running execution context.
 
@@ -1743,10 +1742,9 @@ impl SourceTextModule {
         callframe.promise_capability = capability;
 
         // 8. Suspend the running execution context.
-        context.vm.push_frame(callframe);
-
-        context.vm.push(JsValue::undefined()); // Push `this` value.
-        context.vm.push(JsValue::undefined()); // No function object, so push undefined.
+        context
+            .vm
+            .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.

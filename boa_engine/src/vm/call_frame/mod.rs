@@ -84,8 +84,7 @@ impl CallFrame {
     /// The position of the elements are relative to the [`CallFrame::fp`].
     ///
     /// ```text
-    ///                                                 arguments
-    ///   --- frame pointer                                ^
+    ///   --- frame pointer                             arguments
     ///  /                      __________________________/
     /// /                      /                          \
     /// | 0: this | 1: func | 2: arg1 | ... | (2 + N): argN |
