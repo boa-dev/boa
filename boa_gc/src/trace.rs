@@ -11,10 +11,7 @@ use std::{
     },
     path::{Path, PathBuf},
     rc::Rc,
-    sync::atomic::{
-        AtomicBool, AtomicI16, AtomicI32, AtomicI64, AtomicI8, AtomicIsize, AtomicU16, AtomicU32,
-        AtomicU64, AtomicU8, AtomicUsize,
-    },
+    sync::atomic,
 };
 
 /// Substitute for the [`Drop`] trait for garbage collected types.
@@ -161,19 +158,23 @@ simple_empty_finalize_trace![
     NonZeroI64,
     NonZeroU64,
     NonZeroI128,
-    NonZeroU128,
-    AtomicBool,
-    AtomicIsize,
-    AtomicUsize,
-    AtomicI8,
-    AtomicU8,
-    AtomicI16,
-    AtomicU16,
-    AtomicI32,
-    AtomicU32,
-    AtomicI64,
-    AtomicU64
+    NonZeroU128
 ];
+
+#[cfg(target_has_atomic = "8")]
+simple_empty_finalize_trace![atomic::AtomicBool, atomic::AtomicI8, atomic::AtomicU8];
+
+#[cfg(target_has_atomic = "16")]
+simple_empty_finalize_trace![atomic::AtomicI16, atomic::AtomicU16];
+
+#[cfg(target_has_atomic = "32")]
+simple_empty_finalize_trace![atomic::AtomicI32, atomic::AtomicU32];
+
+#[cfg(target_has_atomic = "64")]
+simple_empty_finalize_trace![atomic::AtomicI64, atomic::AtomicU64];
+
+#[cfg(target_has_atomic = "ptr")]
+simple_empty_finalize_trace![atomic::AtomicIsize, atomic::AtomicUsize];
 
 impl<T: Trace, const N: usize> Finalize for [T; N] {}
 // SAFETY:

@@ -33,23 +33,22 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 use std::{
     hash::{Hash, Hasher},
-    sync::{
-        atomic::{AtomicU64, Ordering},
-        Arc,
-    },
+    sync::{atomic::Ordering, Arc},
 };
+
+use portable_atomic::AtomicUsize;
 
 /// Reserved number of symbols.
 ///
 /// This is where the well known symbol live
 /// and internal engine symbols.
-const RESERVED_SYMBOL_HASHES: u64 = 127;
+const RESERVED_SYMBOL_HASHES: usize = 127;
 
-fn get_id() -> Option<u64> {
+fn get_id() -> Option<usize> {
     // Symbol hash.
     //
     // For now this is an incremented u64 number.
-    static SYMBOL_HASH_COUNT: AtomicU64 = AtomicU64::new(RESERVED_SYMBOL_HASHES + 1);
+    static SYMBOL_HASH_COUNT: AtomicUsize = AtomicUsize::new(RESERVED_SYMBOL_HASHES + 1);
 
     SYMBOL_HASH_COUNT
         .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
@@ -114,11 +113,7 @@ impl WellKnown {
         }
     }
 
-    const fn hash(self) -> u64 {
-        self as u64
-    }
-
-    const fn tag(self) -> usize {
+    const fn hash(self) -> usize {
         self as usize
     }
 
@@ -127,12 +122,12 @@ impl WellKnown {
     }
 }
 
-// TODO: Address below clippy::arc_with_non_send_sync below.
 /// The inner representation of a JavaScript symbol.
 #[derive(Debug, Clone)]
 struct Inner {
-    hash: u64,
-    description: Option<JsString>,
+    hash: usize,
+    // must be a `Vec`, since this needs to be shareable between many threads.
+    description: Option<Vec<u16>>,
 }
 
 /// This represents a JavaScript symbol primitive.
@@ -158,7 +153,7 @@ macro_rules! well_known_symbols {
         $(
             $(#[$attr])* pub(crate) const fn $name() -> JsSymbol {
                 JsSymbol {
-                    repr: Tagged::from_tag($variant.tag()),
+                    repr: Tagged::from_tag($variant.hash()),
                 }
             }
         )+
@@ -173,7 +168,10 @@ impl JsSymbol {
     #[must_use]
     pub fn new(description: Option<JsString>) -> Option<Self> {
         let hash = get_id()?;
-        let arc = Arc::new(Inner { hash, description });
+        let arc = Arc::new(Inner {
+            hash,
+            description: description.map(|s| Vec::from(&*s)),
+        });
 
         Some(Self {
             // SAFETY: Pointers returned by `Arc::into_raw` must be non-null.
@@ -188,8 +186,8 @@ impl JsSymbol {
         match self.repr.unwrap() {
             UnwrappedTagged::Ptr(ptr) => {
                 // SAFETY: `ptr` comes from `Arc`, which ensures the validity of the pointer
-                // as long as we corrently call `Arc::from_raw` on `Drop`.
-                unsafe { ptr.as_ref().description.clone() }
+                // as long as we correctly call `Arc::from_raw` on `Drop`.
+                unsafe { ptr.as_ref().description.as_ref().map(|v| js_string!(&**v)) }
             }
             UnwrappedTagged::Tag(tag) => {
                 // SAFETY: All tagged reprs always come from `WellKnown` itself, making
@@ -223,7 +221,7 @@ impl JsSymbol {
     /// The hash is guaranteed to be unique.
     #[inline]
     #[must_use]
-    pub fn hash(&self) -> u64 {
+    pub fn hash(&self) -> usize {
         match self.repr.unwrap() {
             UnwrappedTagged::Ptr(ptr) => {
                 // SAFETY: `ptr` comes from `Arc`, which ensures the validity of the pointer

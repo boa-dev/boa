@@ -123,7 +123,6 @@
 
     // Add temporarily - Needs addressing
     clippy::missing_panics_doc,
-    clippy::arc_with_non_send_sync,
 )]
 
 extern crate static_assertions as sa;
