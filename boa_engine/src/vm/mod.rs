@@ -400,9 +400,9 @@ impl Context<'_> {
         #[cfg(feature = "fuzz")]
         {
             if self.instructions_remaining == 0 {
-                return CompletionRecord::Throw(JsError::from_native(
+                return ControlFlow::Break(CompletionRecord::Throw(JsError::from_native(
                     JsNativeError::no_instructions_remain(),
-                ));
+                )));
             }
             self.instructions_remaining -= 1;
         }
