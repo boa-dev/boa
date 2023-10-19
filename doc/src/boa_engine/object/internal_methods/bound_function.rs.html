@@ -96,9 +96,20 @@
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{object::JsObject, Context, JsResult, JsValue};
 
-<span class="kw">use super</span>::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
+<span class="kw">use super</span>::{CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
 <span class="doccomment">/// Definitions of the internal object methods for function objects.
 ///
@@ -125,33 +136,37 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-call-thisargument-argumentslist
-</span><span class="attr">#[track_caller]
+</span><span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">fn </span>bound_function_exotic_call(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-    arguments_list: <span class="kw-2">&amp;</span>[JsValue],
+    argument_count: usize,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;JsValue&gt; {
+) -&gt; JsResult&lt;CallValue&gt; {
     <span class="kw">let </span>obj = obj.borrow();
     <span class="kw">let </span>bound_function = obj
         .as_bound_function()
         .expect(<span class="string">&quot;bound function exotic method should only be callable from bound function objects&quot;</span>);
 
+    <span class="kw">let </span>arguments_start_index = context.vm.stack.len() - argument_count;
+
     <span class="comment">// 1. Let target be F.[[BoundTargetFunction]].
     </span><span class="kw">let </span>target = bound_function.target_function();
+    context.vm.stack[arguments_start_index - <span class="number">1</span>] = target.clone().into();
 
     <span class="comment">// 2. Let boundThis be F.[[BoundThis]].
     </span><span class="kw">let </span>bound_this = bound_function.this();
+    context.vm.stack[arguments_start_index - <span class="number">2</span>] = bound_this.clone();
 
     <span class="comment">// 3. Let boundArgs be F.[[BoundArguments]].
     </span><span class="kw">let </span>bound_args = bound_function.args();
 
     <span class="comment">// 4. Let args be the list-concatenation of boundArgs and argumentsList.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>args = bound_args.to_vec();
-    args.extend_from_slice(arguments_list);
+    </span>context
+        .vm
+        .insert_values_at(bound_args, arguments_start_index);
 
     <span class="comment">// 5. Return ? Call(target, boundThis, args).
-    </span>target.call(bound_this, <span class="kw-2">&amp;</span>args, context)
+    </span><span class="prelude-val">Ok</span>(target.__call__(bound_args.len() + argument_count))
 }
 
 <span class="doccomment">/// Internal method `[[Construct]]` for Bound Function Exotic Objects
@@ -160,14 +175,17 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
-</span><span class="attr">#[track_caller]
+</span><span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">fn </span>bound_function_exotic_construct(
-    obj: <span class="kw-2">&amp;</span>JsObject,
-    arguments_list: <span class="kw-2">&amp;</span>[JsValue],
-    new_target: <span class="kw-2">&amp;</span>JsObject,
+    function_object: <span class="kw-2">&amp;</span>JsObject,
+    argument_count: usize,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;JsObject&gt; {
-    <span class="kw">let </span>object = obj.borrow();
+) -&gt; JsResult&lt;CallValue&gt; {
+    <span class="kw">let </span>new_target = context.vm.pop();
+
+    <span class="macro">debug_assert!</span>(new_target.is_object(), <span class="string">&quot;new.target should be an object&quot;</span>);
+
+    <span class="kw">let </span>object = function_object.borrow();
     <span class="kw">let </span>bound_function = object
         .as_bound_function()
         .expect(<span class="string">&quot;bound function exotic method should only be callable from bound function objects&quot;</span>);
@@ -181,17 +199,21 @@
     </span><span class="kw">let </span>bound_args = bound_function.args();
 
     <span class="comment">// 4. Let args be the list-concatenation of boundArgs and argumentsList.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>args = bound_args.to_vec();
-    args.extend_from_slice(arguments_list);
+    </span><span class="kw">let </span>arguments_start_index = context.vm.stack.len() - argument_count;
+    context
+        .vm
+        .insert_values_at(bound_args, arguments_start_index);
 
     <span class="comment">// 5. If SameValue(F, newTarget) is true, set newTarget to target.
-    </span><span class="kw">let </span>new_target = <span class="kw">if </span>JsObject::equals(obj, new_target) {
-        target
+    </span><span class="kw">let </span>function_object: JsValue = function_object.clone().into();
+    <span class="kw">let </span>new_target = <span class="kw">if </span>JsValue::same_value(<span class="kw-2">&amp;</span>function_object, <span class="kw-2">&amp;</span>new_target) {
+        target.clone().into()
     } <span class="kw">else </span>{
         new_target
     };
 
     <span class="comment">// 6. Return ? Construct(target, args, newTarget).
-    </span>target.construct(<span class="kw-2">&amp;</span>args, <span class="prelude-val">Some</span>(new_target), context)
+    </span>context.vm.push(new_target);
+    <span class="prelude-val">Ok</span>(target.__construct__(bound_args.len() + argument_count))
 }
 </code></pre></div></section></main></body></html>

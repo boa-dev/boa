@@ -1008,6 +1008,12 @@
 <a href="#1008" id="1008">1008</a>
 <a href="#1009" id="1009">1009</a>
 <a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{array, object::Object},
     error::JsNativeError,
@@ -1019,7 +1025,7 @@
 };
 <span class="kw">use </span>rustc_hash::FxHashSet;
 
-<span class="kw">use </span><span class="kw">super</span>::ORDINARY_INTERNAL_METHODS;
+<span class="kw">use super</span>::{CallValue, ORDINARY_INTERNAL_METHODS};
 
 <span class="doccomment">/// Definitions of the internal object methods for array exotic objects.
 ///
@@ -1932,10 +1938,9 @@
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist
 </span><span class="kw">fn </span>proxy_exotic_call(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    this: <span class="kw-2">&amp;</span>JsValue,
-    args: <span class="kw-2">&amp;</span>[JsValue],
+    argument_count: usize,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;JsValue&gt; {
+) -&gt; JsResult&lt;CallValue&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
@@ -1950,18 +1955,25 @@
     </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;apply&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? Call(target, thisArgument, argumentsList).
-        </span><span class="kw">return </span>target.call(this, args, context);
+        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(target.__call__(argument_count));
     };
 
+    <span class="kw">let </span>args = context.vm.pop_n_values(argument_count);
+
     <span class="comment">// 7. Let argArray be ! CreateArrayFromList(argumentsList).
-    </span><span class="kw">let </span>arg_array = array::Array::create_array_from_list(args.to_vec(), context);
+    </span><span class="kw">let </span>arg_array = array::Array::create_array_from_list(args, context);
 
     <span class="comment">// 8. Return ? Call(trap, handler, « target, thisArgument, argArray »).
-    </span>trap.call(
-        <span class="kw-2">&amp;</span>handler.into(),
-        <span class="kw-2">&amp;</span>[target.clone().into(), this.clone(), arg_array.into()],
-        context,
-    )
+    </span><span class="kw">let </span>_func = context.vm.pop();
+    <span class="kw">let </span>this = context.vm.pop();
+
+    context.vm.push(handler); <span class="comment">// This
+    </span>context.vm.push(trap.clone()); <span class="comment">// Function
+
+    </span>context.vm.push(target);
+    context.vm.push(this);
+    context.vm.push(arg_array);
+    <span class="prelude-val">Ok</span>(trap.__call__(<span class="number">3</span>))
 }
 
 <span class="doccomment">/// `[[Construct]] ( argumentsList, newTarget )`
@@ -1972,10 +1984,9 @@
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget
 </span><span class="kw">fn </span>proxy_exotic_construct(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    args: <span class="kw-2">&amp;</span>[JsValue],
-    new_target: <span class="kw-2">&amp;</span>JsObject,
+    argument_count: usize,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;JsObject&gt; {
+) -&gt; JsResult&lt;CallValue&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
@@ -1993,20 +2004,20 @@
     </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;construct&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 7. If trap is undefined, then
         // a. Return ? Construct(target, argumentsList, newTarget).
-        </span><span class="kw">return </span>target.construct(args, <span class="prelude-val">Some</span>(new_target), context);
+        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(target.__construct__(argument_count));
     };
 
+    <span class="kw">let </span>new_target = context.vm.pop();
+    <span class="kw">let </span>args = context.vm.pop_n_values(argument_count);
+    <span class="kw">let </span>_func = context.vm.pop();
+
     <span class="comment">// 8. Let argArray be ! CreateArrayFromList(argumentsList).
-    </span><span class="kw">let </span>arg_array = array::Array::create_array_from_list(args.to_vec(), context);
+    </span><span class="kw">let </span>arg_array = array::Array::create_array_from_list(args, context);
 
     <span class="comment">// 9. Let newObj be ? Call(trap, handler, « target, argArray, newTarget »).
     </span><span class="kw">let </span>new_obj = trap.call(
         <span class="kw-2">&amp;</span>handler.into(),
-        <span class="kw-2">&amp;</span>[
-            target.clone().into(),
-            arg_array.into(),
-            new_target.clone().into(),
-        ],
+        <span class="kw-2">&amp;</span>[target.into(), arg_array.into(), new_target],
         context,
     )<span class="question-mark">?</span>;
 
@@ -2016,6 +2027,7 @@
     })<span class="question-mark">?</span>;
 
     <span class="comment">// 11. Return newObj.
-    </span><span class="prelude-val">Ok</span>(new_obj)
+    </span>context.vm.push(new_obj);
+    <span class="prelude-val">Ok</span>(CallValue::Complete)
 }
 </code></pre></div></section></main></body></html>

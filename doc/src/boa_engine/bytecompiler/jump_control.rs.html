@@ -562,6 +562,11 @@
 <a href="#562" id="562">562</a>
 <a href="#563" id="563">563</a>
 <a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `JumpControlInfo` tracks relevant jump information used during compilation.
 //!
 //! Primarily, jump control tracks information related to the compilation of [iteration
@@ -705,7 +710,12 @@
                     //
                     // Note: If there is promise capability resolve or reject it based on pending exception.
                     </span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; compiler.emit_opcode(Opcode::CompletePromiseCapability),
-                    (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {}
+                    (<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; {
+                        <span class="comment">// TODO: We can omit checking for return, when constructing for functions,
+                        // that cannot be constructed, like arrow functions.
+                        </span>compiler.emit_opcode(Opcode::CheckReturn);
+                    }
+                    (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; {}
                 }
 
                 compiler.emit_opcode(Opcode::Return);

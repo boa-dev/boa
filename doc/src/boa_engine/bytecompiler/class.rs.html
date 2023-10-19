@@ -679,8 +679,8 @@
             compiler.emit_opcode(Opcode::PushUndefined);
         } <span class="kw">else if </span>class.super_ref().is_some() {
             compiler.emit_opcode(Opcode::SuperCallDerived);
+            compiler.emit_opcode(Opcode::BindThisValue);
         } <span class="kw">else </span>{
-            compiler.emit_opcode(Opcode::RestParameterPop);
             compiler.emit_opcode(Opcode::PushUndefined);
         }
         compiler.emit_opcode(Opcode::SetReturnValue);

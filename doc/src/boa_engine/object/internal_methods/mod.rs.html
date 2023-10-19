@@ -934,6 +934,39 @@
 <a href="#934" id="934">934</a>
 <a href="#935" id="935">935</a>
 <a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.
 //!
 //! More information:
@@ -1147,40 +1180,38 @@
 
     <span class="doccomment">/// Internal method `[[Call]]`
     ///
-    /// Call this object if it has a `[[Call]]` internal method.
+    /// The caller must ensure that the following values are pushed on the stack.
+    ///
+    /// Stack: `this, function, arg0, arg1, ..., argN`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
-    </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__call__(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__call__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        (<span class="self">self</span>.vtable().__call__)(<span class="self">self</span>, this, args, context)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__call__(<span class="kw-2">&amp;</span><span class="self">self</span>, argument_count: usize) -&gt; CallValue {
+        CallValue::Pending {
+            func: <span class="self">self</span>.vtable().__call__,
+            object: <span class="self">self</span>.clone(),
+            argument_count,
+        }
     }
 
     <span class="doccomment">/// Internal method `[[Construct]]`
     ///
-    /// Construct a new instance of this object if this object has a `[[Construct]]` internal method.
+    /// The caller must ensure that the following values are pushed on the stack.
+    ///
+    /// Stack: `function, arg0, arg1, ..., argN, new.target`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
-    </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__construct__(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        new_target: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__construct__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        (<span class="self">self</span>.vtable().__construct__)(<span class="self">self</span>, args, new_target, context)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__construct__(<span class="kw-2">&amp;</span><span class="self">self</span>, argument_count: usize) -&gt; CallValue {
+        CallValue::Pending {
+            func: <span class="self">self</span>.vtable().__construct__,
+            object: <span class="self">self</span>.clone(),
+            argument_count,
+        }
     }
 }
 
@@ -1235,9 +1266,46 @@
         <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, PropertyKey, JsValue, JsValue, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __delete__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __own_property_keys__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) __call__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __call__:
+        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, argument_count: usize, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CallValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __construct__:
-        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsObject&gt;,
+        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, argument_count: usize, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CallValue&gt;,
+}
+
+<span class="doccomment">/// The return value of an internal method (`[[Call]]` or `[[Construct]]`).
+///
+/// This is done to avoid recursion.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>CallValue {
+    <span class="doccomment">/// Calling is ready, the frames have been setup.
+    ///
+    /// Requires calling [`Context::run()`].
+    </span>Ready,
+
+    <span class="doccomment">/// Further processing is needed.
+    </span>Pending {
+        func: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, argument_count: usize, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CallValue&gt;,
+        object: JsObject,
+        argument_count: usize,
+    },
+
+    <span class="doccomment">/// The value has been computed and is the first element on the stack.
+    </span>Complete,
+}
+
+<span class="kw">impl </span>CallValue {
+    <span class="doccomment">/// Resolves the [`CallValue`], and return if the value is complete.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolve(<span class="kw-2">mut </span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">while let </span><span class="self">Self</span>::Pending {
+            func,
+            object,
+            argument_count,
+        } = <span class="self">self
+        </span>{
+            <span class="self">self </span>= func(<span class="kw-2">&amp;</span>object, argument_count, context)<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(<span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Complete))
+    }
 }
 
 <span class="doccomment">/// Abstract operation `OrdinaryGetPrototypeOf`.
@@ -1849,10 +1917,9 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>non_existant_call(
     _obj: <span class="kw-2">&amp;</span>JsObject,
-    _this: <span class="kw-2">&amp;</span>JsValue,
-    _args: <span class="kw-2">&amp;</span>[JsValue],
+    _argument_count: usize,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;JsValue&gt; {
+) -&gt; JsResult&lt;CallValue&gt; {
     <span class="prelude-val">Err</span>(JsNativeError::typ()
         .with_message(<span class="string">&quot;not a callable function&quot;</span>)
         .with_realm(context.realm().clone())
@@ -1861,12 +1928,11 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>non_existant_construct(
     _obj: <span class="kw-2">&amp;</span>JsObject,
-    _args: <span class="kw-2">&amp;</span>[JsValue],
-    _new_target: <span class="kw-2">&amp;</span>JsObject,
+    _argument_count: usize,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;JsObject&gt; {
+) -&gt; JsResult&lt;CallValue&gt; {
     <span class="prelude-val">Err</span>(JsNativeError::typ()
-        .with_message(<span class="string">&quot;object is not constructable&quot;</span>)
+        .with_message(<span class="string">&quot;not a constructor&quot;</span>)
         .with_realm(context.realm().clone())
         .into())
 }

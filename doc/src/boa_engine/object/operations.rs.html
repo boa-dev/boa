@@ -1253,6 +1253,46 @@
 <a href="#1253" id="1253">1253</a>
 <a href="#1254" id="1254">1254</a>
 <a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -1574,12 +1614,29 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// SKIP: 1. If argumentsList is not present, set argumentsList to a new empty List.
         // SKIP: 2. If IsCallable(F) is false, throw a TypeError exception.
-
         // NOTE(HalidOdat): For object&#39;s that are not callable we implement a special __call__ internal method
         //                  that throws on call.
 
-        // 3. Return ? F.[[Call]](V, argumentsList).
-        </span><span class="self">self</span>.__call__(this, args, context)
+        </span>context.vm.push(this.clone()); <span class="comment">// this
+        </span>context.vm.push(<span class="self">self</span>.clone()); <span class="comment">// func
+        </span><span class="kw">let </span>argument_count = args.len();
+        context.vm.push_values(args);
+
+        <span class="comment">// 3. Return ? F.[[Call]](V, argumentsList).
+        </span><span class="kw">let </span>frame_index = context.vm.frames.len();
+        <span class="kw">let </span>is_complete = <span class="self">self</span>.__call__(argument_count).resolve(context)<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>is_complete {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(context.vm.pop());
+        }
+
+        context.vm.frames[frame_index].set_exit_early(<span class="bool-val">true</span>);
+
+        <span class="kw">let </span>result = context.run().consume();
+
+        context.vm.pop_frame().expect(<span class="string">&quot;frame must exist&quot;</span>);
+
+        result
     }
 
     <span class="doccomment">/// `Construct ( F [ , argumentsList [ , newTarget ] ] )`
@@ -1604,9 +1661,32 @@
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 1. If newTarget is not present, set newTarget to F.
         </span><span class="kw">let </span>new_target = new_target.unwrap_or(<span class="self">self</span>);
+
+        context.vm.push(<span class="self">self</span>.clone()); <span class="comment">// func
+        </span><span class="kw">let </span>argument_count = args.len();
+        context.vm.push_values(args);
+        context.vm.push(new_target.clone());
+
         <span class="comment">// 2. If argumentsList is not present, set argumentsList to a new empty List.
         // 3. Return ? F.[[Construct]](argumentsList, newTarget).
-        </span><span class="self">self</span>.__construct__(args, new_target, context)
+        </span><span class="kw">let </span>frame_index = context.vm.frames.len();
+        <span class="kw">let </span>is_complete = <span class="self">self</span>.__construct__(argument_count).resolve(context)<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>is_complete {
+            <span class="kw">let </span>result = context.vm.pop();
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(result
+                .as_object()
+                .expect(<span class="string">&quot;construct value should be an object&quot;</span>)
+                .clone());
+        }
+
+        context.vm.frames[frame_index].set_exit_early(<span class="bool-val">true</span>);
+
+        <span class="kw">let </span>result = context.run().consume();
+
+        context.vm.pop_frame().expect(<span class="string">&quot;frame must exist&quot;</span>);
+
+        <span class="prelude-val">Ok</span>(result<span class="question-mark">?</span>.as_object().expect(<span class="string">&quot;should be an object&quot;</span>).clone())
     }
 
     <span class="doccomment">/// Make the object [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].
@@ -2423,7 +2503,7 @@
                 .into());
         };
 
-        object.__call__(this, args, context)
+        object.call(this, args, context)
     }
 
     <span class="doccomment">/// Abstract operation `( V, P [ , argumentsList ] )`

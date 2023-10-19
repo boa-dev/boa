@@ -1095,10 +1095,6 @@
 <a href="#1095" id="1095">1095</a>
 <a href="#1096" id="1096">1096</a>
 <a href="#1097" id="1097">1097</a>
-<a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a>
-<a href="#1100" id="1100">1100</a>
-<a href="#1101" id="1101">1101</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1183,9 +1179,6 @@
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
 </span><span class="kw">pub struct </span>Context&lt;<span class="lifetime">&#39;host</span>&gt; {
-    <span class="doccomment">/// realm holds both the global object and the environment
-    </span>realm: Realm,
-
     <span class="doccomment">/// String interner in the context.
     </span>interner: Interner,
 
@@ -1222,7 +1215,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>debug = f.debug_struct(<span class="string">&quot;Context&quot;</span>);
 
         debug
-            .field(<span class="string">&quot;realm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.realm)
+            .field(<span class="string">&quot;realm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.vm.realm)
             .field(<span class="string">&quot;interner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.interner)
             .field(<span class="string">&quot;vm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.vm)
             .field(<span class="string">&quot;strict&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.strict)
@@ -1369,7 +1362,7 @@
         length: usize,
         body: NativeFunction,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="kw-2">&amp;</span><span class="self">self</span>.realm, body)
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.realm(), body)
             .name(name.clone())
             .length(length)
             .constructor(<span class="bool-val">true</span>)
@@ -1402,7 +1395,7 @@
         length: usize,
         body: NativeFunction,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="kw-2">&amp;</span><span class="self">self</span>.realm, body)
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.realm(), body)
             .name(name.clone())
             .length(length)
             .constructor(<span class="bool-val">false</span>)
@@ -1436,7 +1429,7 @@
     /// context.register_global_class::&lt;MyClass&gt;()?;
     /// ```
     </span><span class="kw">pub fn </span>register_global_class&lt;C: Class&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">if </span><span class="self">self</span>.realm.has_class::&lt;C&gt;() {
+        <span class="kw">if </span><span class="self">self</span>.realm().has_class::&lt;C&gt;() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cannot register a class twice&quot;</span>)
                 .into());
@@ -1454,7 +1447,7 @@
 
         <span class="self">self</span>.global_object()
             .define_property_or_throw(<span class="macro">js_string!</span>(C::NAME), property, <span class="self">self</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.realm.register_class::&lt;C&gt;(class);
+        <span class="self">self</span>.realm().register_class::&lt;C&gt;(class);
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -1485,20 +1478,20 @@
     </span><span class="kw">pub fn </span>unregister_global_class&lt;C: Class&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;StandardConstructor&gt;&gt; {
         <span class="self">self</span>.global_object()
             .delete_property_or_throw(<span class="macro">js_string!</span>(C::NAME), <span class="self">self</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.realm.unregister_class::&lt;C&gt;())
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.realm().unregister_class::&lt;C&gt;())
     }
 
     <span class="doccomment">/// Checks if the currently active realm has the global class `C` registered.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>has_global_class&lt;C: Class&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.realm.has_class::&lt;C&gt;()
+        <span class="self">self</span>.realm().has_class::&lt;C&gt;()
     }
 
     <span class="doccomment">/// Gets the constructor and prototype of the global class `C` if the currently active realm has
     /// that class registered.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>get_global_class&lt;C: Class&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;StandardConstructor&gt; {
-        <span class="self">self</span>.realm.get_class::&lt;C&gt;()
+        <span class="self">self</span>.realm().get_class::&lt;C&gt;()
     }
 
     <span class="doccomment">/// Gets the string interner.
@@ -1518,21 +1511,21 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.realm.global_object().clone()
+        <span class="self">self</span>.vm.realm.global_object().clone()
     }
 
     <span class="doccomment">/// Returns the currently active intrinsic constructors and objects.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>intrinsics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Intrinsics {
-        <span class="self">self</span>.realm.intrinsics()
+        <span class="self">self</span>.vm.realm.intrinsics()
     }
 
     <span class="doccomment">/// Returns the currently active realm.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub const fn </span>realm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Realm {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.realm
+        <span class="kw-2">&amp;</span><span class="self">self</span>.vm.realm
     }
 
     <span class="doccomment">/// Set the value of trace on the context
@@ -1611,7 +1604,7 @@
         <span class="self">self</span>.vm
             .environments
             .replace_global(realm.environment().clone());
-        std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm, realm)
+        std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.vm.realm, realm)
     }
 
     <span class="doccomment">/// Create a new Realm with the default global bindings.
@@ -1677,7 +1670,7 @@
 </span><span class="kw">impl </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Swaps the currently active realm with `realm`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>swap_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, realm: <span class="kw-2">&amp;mut </span>Realm) {
-        std::mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm, realm);
+        std::mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.vm.realm, realm);
     }
 
     <span class="doccomment">/// Increment and get the parser identifier.
@@ -1906,7 +1899,7 @@
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(frame) = <span class="self">self</span>.vm.frames.last() {
-            <span class="kw">return </span>frame.active_function.clone();
+            <span class="kw">return </span>frame.function(<span class="kw-2">&amp;</span><span class="self">self</span>.vm);
         }
 
         <span class="prelude-val">None
@@ -2099,7 +2092,7 @@
             hooks.into()
         });
         <span class="kw">let </span>realm = Realm::create(<span class="kw-2">&amp;*</span>host_hooks, <span class="kw-2">&amp;</span>root_shape);
-        <span class="kw">let </span>vm = Vm::new(realm.environment().clone());
+        <span class="kw">let </span>vm = Vm::new(realm);
 
         <span class="kw">let </span>module_loader = <span class="kw">if let </span><span class="prelude-val">Some</span>(loader) = <span class="self">self</span>.module_loader {
             loader
@@ -2117,7 +2110,6 @@
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>context = Context {
-            realm,
             interner: <span class="self">self</span>.interner.unwrap_or_default(),
             vm,
             strict: <span class="bool-val">false</span>,

@@ -675,8 +675,8 @@
         <span class="comment">// 1. Let moduleContext be a new ECMAScript code execution context.
 
         </span><span class="kw">let </span>parent = <span class="self">self</span>.parent();
-        <span class="kw">let </span><span class="kw-2">mut </span>realm = parent.realm().clone();
-        <span class="kw">let </span>(<span class="kw-2">mut </span>environments, codeblock) = <span class="self">self
+        <span class="kw">let </span>realm = parent.realm().clone();
+        <span class="kw">let </span>(environments, codeblock) = <span class="self">self
             </span>.inner
             .eval_context
             .borrow()
@@ -688,19 +688,20 @@
             codeblock,
             <span class="comment">// 4. Set the ScriptOrModule of moduleContext to module.
             </span><span class="prelude-val">Some</span>(ActiveRunnable::Module(parent)),
-            <span class="comment">// 2. Set the Function of moduleContext to null.
-            </span><span class="prelude-val">None</span>,
+            <span class="comment">// 5. Set the VariableEnvironment of moduleContext to module.[[Environment]].
+            // 6. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
+            </span>environments,
+            <span class="comment">// 3. Set the Realm of moduleContext to module.[[Realm]].
+            </span>realm,
         )
         .with_env_fp(env_fp);
 
-        <span class="comment">// 5. Set the VariableEnvironment of moduleContext to module.[[Environment]].
-        // 6. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
-        </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>environments);
-        <span class="comment">// 3. Set the Realm of moduleContext to module.[[Realm]].
-        </span>context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
-        <span class="comment">// 7. Suspend the currently running execution context.
+        <span class="comment">// 2. Set the Function of moduleContext to null.
+        // 7. Suspend the currently running execution context.
         // 8. Push moduleContext on to the execution context stack; moduleContext is now the running execution context.
-        </span>context.vm.push_frame(callframe);
+        </span>context
+            .vm
+            .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         <span class="comment">// 9. Let steps be module.[[EvaluationSteps]].
         // 10. Let result be Completion(steps(module)).
@@ -708,9 +709,8 @@
 
         <span class="comment">// 11. Suspend moduleContext and remove it from the execution context stack.
         // 12. Resume the context that is now on the top of the execution context stack as the running execution context.
-        </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>environments);
-        context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
-        context.vm.pop_frame();
+        </span><span class="kw">let </span>frame = context.vm.pop_frame().expect(<span class="string">&quot;there should be a frame&quot;</span>);
+        context.vm.stack.truncate(frame.fp <span class="kw">as </span>usize);
 
         <span class="comment">// 13. Let pc be ! NewPromiseCapability(%Promise%).
         </span><span class="kw">let </span>(promise, ResolvingFunctions { resolve, reject }) = JsPromise::new_pending(context);

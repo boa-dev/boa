@@ -1975,6 +1975,8 @@
 <a href="#1975" id="1975">1975</a>
 <a href="#1976" id="1976">1976</a>
 <a href="#1977" id="1977">1977</a>
+<a href="#1978" id="1978">1978</a>
+<a href="#1979" id="1979">1979</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -2006,7 +2008,7 @@
     realm::Realm,
     vm::{
         create_function_object_fast, create_generator_function_object, ActiveRunnable, CallFrame,
-        CodeBlock, CompletionRecord, Opcode,
+        CallFrameFlags, CodeBlock, CompletionRecord, Opcode,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
@@ -3379,7 +3381,7 @@
         <span class="comment">// 2. Assert: All named exports from module are resolvable.
         // 3. Let realm be module.[[Realm]].
         // 4. Assert: realm is not undefined.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>realm = parent.realm().clone();
+        </span><span class="kw">let </span>realm = parent.realm().clone();
 
         <span class="comment">// 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
@@ -3577,22 +3579,22 @@
         envs.push_module(env);
 
         <span class="comment">// 9. Set the Function of moduleContext to null.
+        // 10. Assert: module.[[Realm]] is not undefined.
+        // 11. Set the Realm of moduleContext to module.[[Realm]].
         // 12. Set the ScriptOrModule of moduleContext to module.
+        // 13. Set the VariableEnvironment of moduleContext to module.[[Environment]].
+        // 14. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
+        // 15. Set the PrivateEnvironment of moduleContext to null.
         </span><span class="kw">let </span>call_frame = CallFrame::new(
             codeblock.clone(),
             <span class="prelude-val">Some</span>(ActiveRunnable::Module(parent.clone())),
-            <span class="prelude-val">None</span>,
+            envs,
+            realm.clone(),
         );
-        context.vm.push_frame(call_frame);
+        context
+            .vm
+            .push_frame_with_stack(call_frame, JsValue::undefined(), JsValue::null());
 
-        <span class="comment">// 13. Set the VariableEnvironment of moduleContext to module.[[Environment]].
-        // 14. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
-        // 15. Set the PrivateEnvironment of moduleContext to null.
-        </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>envs);
-
-        <span class="comment">// 10. Assert: module.[[Realm]] is not undefined.
-        // 11. Set the Realm of moduleContext to module.[[Realm]].
-        </span>context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
         <span class="comment">// 17. Push moduleContext onto the execution context stack; moduleContext is now the running execution context.
 
         // deferred initialization of import bindings
@@ -3650,15 +3652,14 @@
         }
 
         <span class="comment">// 25. Remove moduleContext from the execution context stack.
-        </span>context
+        </span><span class="kw">let </span>frame = context
             .vm
             .pop_frame()
             .expect(<span class="string">&quot;There should be a call frame&quot;</span>);
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>envs);
-        context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
 
-        <span class="macro">debug_assert!</span>(envs.current().as_declarative().is_some());
-        <span class="kw-2">*</span>parent.inner.environment.borrow_mut() = envs.current().as_declarative().cloned();
+        <span class="macro">debug_assert!</span>(frame.environments.current().as_declarative().is_some());
+        <span class="kw-2">*</span>parent.inner.environment.borrow_mut() =
+            frame.environments.current().as_declarative().cloned();
 
         <span class="comment">// 16. Set module.[[Context]] to moduleContext.
         </span><span class="self">self</span>.inner
@@ -3669,7 +3670,7 @@
                     info,
                     context: SourceTextContext {
                         codeblock,
-                        environments: envs,
+                        environments: frame.environments.clone(),
                         realm,
                     },
                 },
@@ -3693,8 +3694,8 @@
         <span class="comment">// 1. Let moduleContext be a new ECMAScript code execution context.
         </span><span class="kw">let </span>SourceTextContext {
             codeblock,
-            <span class="kw-2">mut </span>environments,
-            <span class="kw-2">mut </span>realm,
+            environments,
+            realm,
         } = <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow() {
             Status::Evaluating { context, .. } | Status::EvaluatingAsync { context, .. } =&gt; {
                 context.clone()
@@ -3703,21 +3704,26 @@
         };
 
         <span class="comment">// 2. Set the Function of moduleContext to null.
+        // 3. Set the Realm of moduleContext to module.[[Realm]].
         // 4. Set the ScriptOrModule of moduleContext to module.
-        </span><span class="kw">let </span>env_fp = environments.len() <span class="kw">as </span>u32;
-        <span class="kw">let </span><span class="kw-2">mut </span>callframe =
-            CallFrame::new(codeblock, <span class="prelude-val">Some</span>(ActiveRunnable::Module(<span class="self">self</span>.parent())), <span class="prelude-val">None</span>)
-                .with_env_fp(env_fp);
-        callframe.promise_capability = capability;
-
-        <span class="comment">// 5. Assert: module has been linked and declarations in its module environment have been instantiated.
+        // 5. Assert: module has been linked and declarations in its module environment have been instantiated.
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 7. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
-        </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>environments);
-        <span class="comment">// 3. Set the Realm of moduleContext to module.[[Realm]].
-        </span>context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
+        </span><span class="kw">let </span>env_fp = environments.len() <span class="kw">as </span>u32;
+        <span class="kw">let </span><span class="kw-2">mut </span>callframe = CallFrame::new(
+            codeblock,
+            <span class="prelude-val">Some</span>(ActiveRunnable::Module(<span class="self">self</span>.parent())),
+            environments,
+            realm,
+        )
+        .with_env_fp(env_fp)
+        .with_flags(CallFrameFlags::EXIT_EARLY);
+        callframe.promise_capability = capability;
+
         <span class="comment">// 8. Suspend the running execution context.
-        </span>context.vm.push_frame(callframe);
+        </span>context
+            .vm
+            .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         <span class="comment">// 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.
@@ -3730,8 +3736,6 @@
         //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
         </span><span class="kw">let </span>result = context.run();
 
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span>environments);
-        context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
         context.vm.pop_frame();
 
         <span class="comment">//     f. If result is an abrupt completion, then

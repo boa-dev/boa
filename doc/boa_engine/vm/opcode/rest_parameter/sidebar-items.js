@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["RestParameterInit","RestParameterPop"]};
+window.SIDEBAR_ITEMS = {"struct":["RestParameterInit"]};

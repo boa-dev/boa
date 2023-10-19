@@ -282,6 +282,31 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
@@ -364,23 +389,14 @@
             .get_this_environment()
             .as_function()
             .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
-        <span class="kw">let </span>new_target = this_env
-            .slots()
-            .new_target()
-            .expect(<span class="string">&quot;must have new target&quot;</span>)
-            .clone();
         <span class="kw">let </span>active_function = this_env.slots().function_object().clone();
         <span class="kw">let </span>super_constructor = active_function
             .__get_prototype_of__(context)
             .expect(<span class="string">&quot;function object must have prototype&quot;</span>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(constructor) = super_constructor {
-            context.vm.push(constructor);
-        } <span class="kw">else </span>{
-            context.vm.push(JsValue::Null);
-        }
-        context.vm.push(new_target);
-
+        context
+            .vm
+            .push(super_constructor.map_or_else(JsValue::null, JsValue::from));
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -394,26 +410,13 @@
 
 <span class="kw">impl </span>SuperCall {
     <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, argument_count: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>arguments = Vec::with_capacity(argument_count);
-        <span class="kw">for _ in </span><span class="number">0</span>..argument_count {
-            arguments.push(context.vm.pop());
-        }
-        arguments.reverse();
-
-        <span class="kw">let </span>new_target_value = context.vm.pop();
-        <span class="kw">let </span>super_constructor = context.vm.pop();
-
-        <span class="kw">let </span>new_target = new_target_value
-            .as_object()
-            .expect(<span class="string">&quot;new target must be object&quot;</span>);
-
+        <span class="kw">let </span>super_constructor_index = context.vm.stack.len() - argument_count - <span class="number">1</span>;
+        <span class="kw">let </span>super_constructor = context.vm.stack[super_constructor_index].clone();
         <span class="kw">let </span><span class="prelude-val">Some</span>(super_constructor) = super_constructor.as_constructor() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
                 .into());
         };
-
-        <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, new_target, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>this_env = context
             .vm
@@ -422,12 +425,17 @@
             .as_function()
             .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
 
-        this_env.bind_this_value(result.clone())<span class="question-mark">?</span>;
-        <span class="kw">let </span>function_object = this_env.slots().function_object().clone();
+        <span class="kw">let </span>new_target = this_env
+            .slots()
+            .new_target()
+            .expect(<span class="string">&quot;must have new.target&quot;</span>)
+            .clone();
 
-        result.initialize_instance_elements(<span class="kw-2">&amp;</span>function_object, context)<span class="question-mark">?</span>;
+        context.vm.push(new_target);
 
-        context.vm.push(result);
+        super_constructor
+            .__construct__(argument_count)
+            .resolve(context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -460,8 +468,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SuperCallSpread;
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>SuperCallSpread {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SuperCallWithRest&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SuperCallWithRest&quot;</span>;
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SuperCallSpread&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SuperCallSpread&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// Get the arguments that are stored as an array object on the stack.
@@ -476,12 +484,7 @@
             .expect(<span class="string">&quot;arguments array in call spread function must be dense&quot;</span>)
             .clone();
 
-        <span class="kw">let </span>new_target_value = context.vm.pop();
         <span class="kw">let </span>super_constructor = context.vm.pop();
-
-        <span class="kw">let </span>new_target = new_target_value
-            .as_object()
-            .expect(<span class="string">&quot;new target must be object&quot;</span>);
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(super_constructor) = super_constructor.as_constructor() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -489,7 +492,9 @@
                 .into());
         };
 
-        <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, new_target, context)<span class="question-mark">?</span>;
+        context.vm.push(super_constructor.clone());
+
+        context.vm.push_values(<span class="kw-2">&amp;</span>arguments);
 
         <span class="kw">let </span>this_env = context
             .vm
@@ -498,12 +503,17 @@
             .as_function()
             .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
 
-        this_env.bind_this_value(result.clone())<span class="question-mark">?</span>;
-        <span class="kw">let </span>function_object = this_env.slots().function_object().clone();
+        <span class="kw">let </span>new_target = this_env
+            .slots()
+            .new_target()
+            .expect(<span class="string">&quot;must have new.target&quot;</span>)
+            .clone();
 
-        result.initialize_instance_elements(<span class="kw-2">&amp;</span>function_object, context)<span class="question-mark">?</span>;
+        context.vm.push(new_target);
 
-        context.vm.push(result);
+        super_constructor
+            .__construct__(arguments.len())
+            .resolve(context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -520,11 +530,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SuperCallDerived&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>argument_count = context.vm.frame().argument_count;
-        <span class="kw">let </span><span class="kw-2">mut </span>arguments = Vec::with_capacity(argument_count <span class="kw">as </span>usize);
-        <span class="kw">for _ in </span><span class="number">0</span>..argument_count {
-            arguments.push(context.vm.pop());
-        }
+        <span class="kw">let </span>argument_count = context.vm.frame().argument_count <span class="kw">as </span>usize;
 
         <span class="kw">let </span>this_env = context
             .vm
@@ -549,20 +555,64 @@
                 .into());
         }
 
-        <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>new_target, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>arguments_start_index = context.vm.stack.len() - argument_count;
+        context
+            .vm
+            .stack
+            .insert(arguments_start_index, super_constructor.clone().into());
 
-        <span class="kw">let </span>this_env = context
+        context.vm.push(new_target);
+
+        super_constructor
+            .__construct__(argument_count)
+            .resolve(context)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="doccomment">/// `BindThisValue` implements the Opcode Operation for `Opcode::BindThisValue`
+///
+/// Operation:
+///  - Binds `this` value and initializes the instance elements.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BindThisValue;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>BindThisValue {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;BindThisValue&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - BindThisValue&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="comment">// Taken from `SuperCall : super Arguments` steps 7-12.
+        //
+        // &lt;https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation&gt;
+
+        </span><span class="kw">let </span>result = context
+            .vm
+            .pop()
+            .as_object()
+            .expect(<span class="string">&quot;construct result should be an object&quot;</span>)
+            .clone();
+
+        <span class="comment">// 7. Let thisER be GetThisEnvironment().
+        </span><span class="kw">let </span>this_env = context
             .vm
             .environments
             .get_this_environment()
             .as_function()
             .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
 
-        this_env.bind_this_value(result.clone())<span class="question-mark">?</span>;
+        <span class="comment">// 8. Perform ? thisER.BindThisValue(result).
+        </span>this_env.bind_this_value(result.clone())<span class="question-mark">?</span>;
 
-        result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
+        <span class="comment">// 9. Let F be thisER.[[FunctionObject]].
+        // SKIP: 10. Assert: F is an ECMAScript function object.
+        </span><span class="kw">let </span>active_function = this_env.slots().function_object().clone();
 
-        context.vm.push(result);
+        <span class="comment">// 11. Perform ? InitializeInstanceElements(result, F).
+        </span>result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 12. Return result.
+        </span>context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

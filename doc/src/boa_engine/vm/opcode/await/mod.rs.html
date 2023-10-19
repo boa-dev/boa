@@ -203,10 +203,16 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 
 <span class="kw">use crate</span>::{
-    builtins::{generator::GeneratorContext, Promise},
+    builtins::{generator::GeneratorContext, promise::PromiseCapability, Promise},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
@@ -330,11 +336,17 @@
             context,
         );
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(promise_capabality) = context.vm.frame().promise_capability.clone() {
-            context.vm.push(promise_capabality.promise().clone());
-        } <span class="kw">else </span>{
-            context.vm.push(JsValue::undefined());
-        }
+        <span class="kw">let </span>return_value = context
+            .vm
+            .frame()
+            .promise_capability
+            .as_ref()
+            .map(PromiseCapability::promise)
+            .cloned()
+            .map(JsValue::from)
+            .unwrap_or_default();
+
+        context.vm.set_return_value(return_value);
         <span class="prelude-val">Ok</span>(CompletionType::Yield)
     }
 }

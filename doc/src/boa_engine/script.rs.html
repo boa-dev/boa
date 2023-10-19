@@ -168,6 +168,11 @@
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s Scripts.
 //!
 //! This module contains the [`Script`] type, which represents a [**Script Record**][script].
@@ -189,7 +194,7 @@
 <span class="kw">use crate</span>::{
     bytecompiler::ByteCompiler,
     realm::Realm,
-    vm::{ActiveRunnable, CallFrame, CodeBlock},
+    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
     Context, HostDefined, JsResult, JsString, JsValue, Module,
 };
 
@@ -318,11 +323,18 @@
 
         <span class="kw">let </span>codeblock = <span class="self">self</span>.codeblock(context)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>old_realm = context.enter_realm(<span class="self">self</span>.inner.realm.clone());
         <span class="kw">let </span>env_fp = context.vm.environments.len() <span class="kw">as </span>u32;
-        context.vm.push_frame(
-            CallFrame::new(codeblock, <span class="prelude-val">Some</span>(ActiveRunnable::Script(<span class="self">self</span>.clone())), <span class="prelude-val">None</span>)
-                .with_env_fp(env_fp),
+        context.vm.push_frame_with_stack(
+            CallFrame::new(
+                codeblock,
+                <span class="prelude-val">Some</span>(ActiveRunnable::Script(<span class="self">self</span>.clone())),
+                context.vm.environments.clone(),
+                <span class="self">self</span>.inner.realm.clone(),
+            )
+            .with_env_fp(env_fp)
+            .with_flags(CallFrameFlags::EXIT_EARLY),
+            JsValue::undefined(),
+            JsValue::null(),
         );
 
         <span class="comment">// TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
@@ -330,8 +342,6 @@
         </span><span class="self">self</span>.realm().resize_global_env();
         <span class="kw">let </span>record = context.run();
         context.vm.pop_frame();
-
-        context.enter_realm(old_realm);
 
         context.clear_kept_objects();
 

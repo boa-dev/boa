@@ -366,6 +366,7 @@
 <a href="#366" id="366">366</a>
 <a href="#367" id="367">367</a>
 <a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
@@ -694,6 +695,7 @@
                         super_call.arguments().len() <span class="kw">as </span>u32,
                     );
                 }
+                <span class="self">self</span>.emit_opcode(Opcode::BindThisValue);
 
                 <span class="kw">if </span>!use_expr {
                     <span class="self">self</span>.emit_opcode(Opcode::Pop);

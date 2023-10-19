@@ -444,11 +444,6 @@
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
 <a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
-<a href="#449" id="449">449</a>
-<a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{promise::PromiseCapability, Promise},
     error::JsNativeError,
@@ -467,14 +462,8 @@
 
 <span class="kw">impl </span>CallEval {
     <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, argument_count: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>arguments = Vec::with_capacity(argument_count);
-        <span class="kw">for _ in </span><span class="number">0</span>..argument_count {
-            arguments.push(context.vm.pop());
-        }
-        arguments.reverse();
-
-        <span class="kw">let </span>func = context.vm.pop();
-        <span class="kw">let </span>this = context.vm.pop();
+        <span class="kw">let </span>at = context.vm.stack.len() - argument_count;
+        <span class="kw">let </span>func = <span class="kw-2">&amp;</span>context.vm.stack[at - <span class="number">1</span>];
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_object() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -491,6 +480,9 @@
         //     a. If SameValue(func, %eval%) is true, then
         </span><span class="kw">let </span>eval = context.intrinsics().objects().eval();
         <span class="kw">if </span>JsObject::equals(object, <span class="kw-2">&amp;</span>eval) {
+            <span class="kw">let </span>arguments = context.vm.pop_n_values(argument_count);
+            <span class="kw">let </span>_func = context.vm.pop();
+            <span class="kw">let </span>_this = context.vm.pop();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arguments.get(<span class="number">0</span>) {
                 <span class="comment">// i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
@@ -505,11 +497,11 @@
                 <span class="comment">// NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
                 </span>context.vm.push(JsValue::Undefined);
             }
+
             <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
 
-        <span class="kw">let </span>result = object.__call__(<span class="kw-2">&amp;</span>this, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;
-        context.vm.push(result);
+        object.__call__(argument_count).resolve(context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -558,8 +550,8 @@
             .expect(<span class="string">&quot;arguments array in call spread function must be dense&quot;</span>)
             .clone();
 
-        <span class="kw">let </span>func = context.vm.pop();
-        <span class="kw">let </span>this = context.vm.pop();
+        <span class="kw">let </span>at = context.vm.stack.len();
+        <span class="kw">let </span>func = context.vm.stack[at - <span class="number">1</span>].clone();
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_object() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -576,6 +568,8 @@
         //     a. If SameValue(func, %eval%) is true, then
         </span><span class="kw">let </span>eval = context.intrinsics().objects().eval();
         <span class="kw">if </span>JsObject::equals(object, <span class="kw-2">&amp;</span>eval) {
+            <span class="kw">let </span>_func = context.vm.pop();
+            <span class="kw">let </span>_this = context.vm.pop();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arguments.get(<span class="number">0</span>) {
                 <span class="comment">// i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
@@ -590,11 +584,14 @@
                 <span class="comment">// NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
                 </span>context.vm.push(JsValue::Undefined);
             }
+
             <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
 
-        <span class="kw">let </span>result = object.__call__(<span class="kw-2">&amp;</span>this, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;
-        context.vm.push(result);
+        <span class="kw">let </span>argument_count = arguments.len();
+        context.vm.push_values(<span class="kw-2">&amp;</span>arguments);
+
+        object.__call__(argument_count).resolve(context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -608,14 +605,8 @@
 
 <span class="kw">impl </span>Call {
     <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, argument_count: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>arguments = Vec::with_capacity(argument_count);
-        <span class="kw">for _ in </span><span class="number">0</span>..argument_count {
-            arguments.push(context.vm.pop());
-        }
-        arguments.reverse();
-
-        <span class="kw">let </span>func = context.vm.pop();
-        <span class="kw">let </span>this = context.vm.pop();
+        <span class="kw">let </span>at = context.vm.stack.len() - argument_count;
+        <span class="kw">let </span>func = <span class="kw-2">&amp;</span>context.vm.stack[at - <span class="number">1</span>];
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_object() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -623,9 +614,7 @@
                 .into());
         };
 
-        <span class="kw">let </span>result = object.__call__(<span class="kw-2">&amp;</span>this, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;
-
-        context.vm.push(result);
+        object.__call__(argument_count).resolve(context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -670,8 +659,11 @@
             .expect(<span class="string">&quot;arguments array in call spread function must be dense&quot;</span>)
             .clone();
 
-        <span class="kw">let </span>func = context.vm.pop();
-        <span class="kw">let </span>this = context.vm.pop();
+        <span class="kw">let </span>argument_count = arguments.len();
+        context.vm.push_values(<span class="kw-2">&amp;</span>arguments);
+
+        <span class="kw">let </span>at = context.vm.stack.len() - argument_count;
+        <span class="kw">let </span>func = <span class="kw-2">&amp;</span>context.vm.stack[at - <span class="number">1</span>];
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_object() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -679,9 +671,7 @@
                 .into());
         };
 
-        <span class="kw">let </span>result = object.__call__(<span class="kw-2">&amp;</span>this, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;
-
-        context.vm.push(result);
+        object.__call__(argument_count).resolve(context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

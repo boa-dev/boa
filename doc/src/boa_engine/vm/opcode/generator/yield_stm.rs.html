@@ -84,6 +84,8 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{opcode::Operation, CompletionRecord, CompletionType, GeneratorResumeKind},
@@ -101,7 +103,9 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorYield&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorYield&quot;</span>;
 
-    <span class="kw">fn </span>execute(_context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>value = context.vm.pop();
+        context.vm.set_return_value(value);
         <span class="prelude-val">Ok</span>(CompletionType::Yield)
     }
 }
@@ -162,12 +166,12 @@
 
             context.vm.push(resume_kind);
 
-            <span class="prelude-val">Ok</span>(CompletionType::Normal)
-        } <span class="kw">else </span>{
-            gen.state = AsyncGeneratorState::SuspendedYield;
-            context.vm.push(JsValue::undefined());
-            GeneratorYield::execute(context)
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
+
+        gen.state = AsyncGeneratorState::SuspendedYield;
+        context.vm.set_return_value(JsValue::undefined());
+        <span class="prelude-val">Ok</span>(CompletionType::Yield)
     }
 }
 </code></pre></div></section></main></body></html>

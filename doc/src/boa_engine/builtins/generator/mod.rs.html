@@ -410,18 +410,6 @@
 <a href="#410" id="410">410</a>
 <a href="#411" id="411">411</a>
 <a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Generator` object.
 //!
 //! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.
@@ -436,7 +424,6 @@
 </span><span class="kw">use crate</span>::{
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
-    environments::EnvironmentStack,
     error::JsNativeError,
     js_string,
     object::{JsObject, CONSTRUCTOR},
@@ -484,36 +471,28 @@
 /// context/vm before the generator execution starts/resumes and after it has ended/yielded.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GeneratorContext {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) environments: EnvironmentStack,
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack: Vec&lt;JsValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) call_frame: <span class="prelude-ty">Option</span>&lt;CallFrame&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) realm: Realm,
 }
 
 <span class="kw">impl </span>GeneratorContext {
     <span class="doccomment">/// Creates a new `GeneratorContext` from the raw `Context` state components.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
-        environments: EnvironmentStack,
-        stack: Vec&lt;JsValue&gt;,
-        call_frame: CallFrame,
-        realm: Realm,
-    ) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(stack: Vec&lt;JsValue&gt;, call_frame: CallFrame) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            environments,
             stack,
             call_frame: <span class="prelude-val">Some</span>(call_frame),
-            realm,
         }
     }
 
     <span class="doccomment">/// Creates a new `GeneratorContext` from the current `Context` state.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_current(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>frame = context.vm.frame().clone();
+        frame.environments = context.vm.environments.clone();
+        frame.realm = context.realm().clone();
         <span class="kw">let </span>fp = context.vm.frame().fp <span class="kw">as </span>usize;
         <span class="kw">let </span>this = <span class="self">Self </span>{
-            environments: context.vm.environments.clone(),
-            call_frame: <span class="prelude-val">Some</span>(context.vm.frame().clone()),
+            call_frame: <span class="prelude-val">Some</span>(frame),
             stack: context.vm.stack[fp..].to_vec(),
-            realm: context.realm().clone(),
         };
 
         context.vm.stack.truncate(fp);
@@ -528,14 +507,13 @@
         resume_kind: GeneratorResumeKind,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; CompletionRecord {
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span><span class="self">self</span>.environments);
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span><span class="self">self</span>.stack);
-        context.swap_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm);
         context
             .vm
             .push_frame(<span class="self">self</span>.call_frame.take().expect(<span class="string">&quot;should have a call frame&quot;</span>));
 
         context.vm.frame_mut().fp = <span class="number">0</span>;
+        context.vm.frame_mut().set_exit_early(<span class="bool-val">true</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = value {
             context.vm.push(value);
@@ -544,9 +522,7 @@
 
         <span class="kw">let </span>result = context.run();
 
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span><span class="self">self</span>.environments);
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span><span class="self">self</span>.stack);
-        context.swap_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm);
         <span class="self">self</span>.call_frame = context.vm.pop_frame();
         <span class="macro">assert!</span>(<span class="self">self</span>.call_frame.is_some());
         result
