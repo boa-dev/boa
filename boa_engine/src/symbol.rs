@@ -33,16 +33,15 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 use std::{
     hash::{Hash, Hasher},
-    sync::{
-        atomic::{AtomicU64, Ordering},
-        Arc,
-    },
+    sync::{atomic::Ordering, Arc},
 };
+
+use portable_atomic::AtomicU64;
 
 /// Reserved number of symbols.
 ///
-/// This is where the well known symbol live
-/// and internal engine symbols.
+/// This is the maximum number of well known and internal engine symbols
+/// that can be defined.
 const RESERVED_SYMBOL_HASHES: u64 = 127;
 
 fn get_id() -> Option<u64> {
@@ -118,21 +117,17 @@ impl WellKnown {
         self as u64
     }
 
-    const fn tag(self) -> usize {
-        self as usize
-    }
-
     fn from_tag(tag: usize) -> Option<Self> {
         Self::try_from_primitive(u8::try_from(tag).ok()?).ok()
     }
 }
 
-// TODO: Address below clippy::arc_with_non_send_sync below.
 /// The inner representation of a JavaScript symbol.
 #[derive(Debug, Clone)]
 struct Inner {
     hash: u64,
-    description: Option<JsString>,
+    // must be a `Box`, since this needs to be shareable between many threads.
+    description: Option<Box<[u16]>>,
 }
 
 /// This represents a JavaScript symbol primitive.
@@ -158,7 +153,8 @@ macro_rules! well_known_symbols {
         $(
             $(#[$attr])* pub(crate) const fn $name() -> JsSymbol {
                 JsSymbol {
-                    repr: Tagged::from_tag($variant.tag()),
+                    // the cast shouldn't matter since we only have 127 const symbols
+                    repr: Tagged::from_tag($variant.hash() as usize),
                 }
             }
         )+
@@ -173,7 +169,10 @@ impl JsSymbol {
     #[must_use]
     pub fn new(description: Option<JsString>) -> Option<Self> {
         let hash = get_id()?;
-        let arc = Arc::new(Inner { hash, description });
+        let arc = Arc::new(Inner {
+            hash,
+            description: description.map(|s| Box::from(&*s)),
+        });
 
         Some(Self {
             // SAFETY: Pointers returned by `Arc::into_raw` must be non-null.
@@ -188,8 +187,8 @@ impl JsSymbol {
         match self.repr.unwrap() {
             UnwrappedTagged::Ptr(ptr) => {
                 // SAFETY: `ptr` comes from `Arc`, which ensures the validity of the pointer
-                // as long as we corrently call `Arc::from_raw` on `Drop`.
-                unsafe { ptr.as_ref().description.clone() }
+                // as long as we correctly call `Arc::from_raw` on `Drop`.
+                unsafe { ptr.as_ref().description.as_ref().map(|v| js_string!(&**v)) }
             }
             UnwrappedTagged::Tag(tag) => {
                 // SAFETY: All tagged reprs always come from `WellKnown` itself, making

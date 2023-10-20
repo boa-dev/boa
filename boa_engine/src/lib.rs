@@ -123,8 +123,10 @@
 
     // Add temporarily - Needs addressing
     clippy::missing_panics_doc,
-    clippy::arc_with_non_send_sync,
 )]
+
+#[cfg(not(target_has_atomic = "ptr"))]
+compile_error!("Boa requires a lock free `AtomicUsize` in order to work properly.");
 
 extern crate static_assertions as sa;
 
