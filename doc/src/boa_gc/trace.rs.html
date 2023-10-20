@@ -421,6 +421,7 @@
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     any::TypeId,
     borrow::{Cow, ToOwned},
@@ -434,10 +435,7 @@
     },
     path::{Path, PathBuf},
     rc::Rc,
-    sync::atomic::{
-        AtomicBool, AtomicI16, AtomicI32, AtomicI64, AtomicI8, AtomicIsize, AtomicU16, AtomicU32,
-        AtomicU64, AtomicU8, AtomicUsize,
-    },
+    sync::atomic,
 };
 
 <span class="doccomment">/// Substitute for the [`Drop`] trait for garbage collected types.
@@ -584,19 +582,23 @@
     NonZeroI64,
     NonZeroU64,
     NonZeroI128,
-    NonZeroU128,
-    AtomicBool,
-    AtomicIsize,
-    AtomicUsize,
-    AtomicI8,
-    AtomicU8,
-    AtomicI16,
-    AtomicU16,
-    AtomicI32,
-    AtomicU32,
-    AtomicI64,
-    AtomicU64
+    NonZeroU128
 ];
+
+<span class="attr">#[cfg(target_has_atomic = <span class="string">&quot;8&quot;</span>)]
+</span><span class="macro">simple_empty_finalize_trace!</span>[atomic::AtomicBool, atomic::AtomicI8, atomic::AtomicU8];
+
+<span class="attr">#[cfg(target_has_atomic = <span class="string">&quot;16&quot;</span>)]
+</span><span class="macro">simple_empty_finalize_trace!</span>[atomic::AtomicI16, atomic::AtomicU16];
+
+<span class="attr">#[cfg(target_has_atomic = <span class="string">&quot;32&quot;</span>)]
+</span><span class="macro">simple_empty_finalize_trace!</span>[atomic::AtomicI32, atomic::AtomicU32];
+
+<span class="attr">#[cfg(target_has_atomic = <span class="string">&quot;64&quot;</span>)]
+</span><span class="macro">simple_empty_finalize_trace!</span>[atomic::AtomicI64, atomic::AtomicU64];
+
+<span class="attr">#[cfg(target_has_atomic = <span class="string">&quot;ptr&quot;</span>)]
+</span><span class="macro">simple_empty_finalize_trace!</span>[atomic::AtomicIsize, atomic::AtomicUsize];
 
 <span class="kw">impl</span>&lt;T: Trace, <span class="kw">const </span>N: usize&gt; Finalize <span class="kw">for </span>[T; N] {}
 <span class="comment">// SAFETY:

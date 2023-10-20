@@ -475,6 +475,8 @@
 <a href="#475" id="475">475</a>
 <a href="#476" id="476">476</a>
 <a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -600,10 +602,12 @@
 
     <span class="comment">// Add temporarily - Needs addressing
     </span>clippy::missing_panics_doc,
-    clippy::arc_with_non_send_sync,
 )]
 
-</span><span class="kw">extern crate </span>static_assertions <span class="kw">as </span>sa;
+#[cfg(not(target_has_atomic = <span class="string">&quot;ptr&quot;</span>))]
+</span><span class="macro">compile_error!</span>(<span class="string">&quot;Boa requires a lock free `AtomicUsize` in order to work properly.&quot;</span>);
+
+<span class="kw">extern crate </span>static_assertions <span class="kw">as </span>sa;
 
 <span class="kw">pub mod </span>bigint;
 <span class="kw">pub mod </span>builtins;

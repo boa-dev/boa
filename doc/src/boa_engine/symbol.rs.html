@@ -355,7 +355,6 @@
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
@@ -391,16 +390,15 @@
 
 <span class="kw">use </span>std::{
     hash::{Hash, Hasher},
-    sync::{
-        atomic::{AtomicU64, Ordering},
-        Arc,
-    },
+    sync::{atomic::Ordering, Arc},
 };
+
+<span class="kw">use </span>portable_atomic::AtomicU64;
 
 <span class="doccomment">/// Reserved number of symbols.
 ///
-/// This is where the well known symbol live
-/// and internal engine symbols.
+/// This is the maximum number of well known and internal engine symbols
+/// that can be defined.
 </span><span class="kw">const </span>RESERVED_SYMBOL_HASHES: u64 = <span class="number">127</span>;
 
 <span class="kw">fn </span>get_id() -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
@@ -476,21 +474,17 @@
         <span class="self">self </span><span class="kw">as </span>u64
     }
 
-    <span class="kw">const fn </span>tag(<span class="self">self</span>) -&gt; usize {
-        <span class="self">self </span><span class="kw">as </span>usize
-    }
-
     <span class="kw">fn </span>from_tag(tag: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="self">Self</span>::try_from_primitive(u8::try_from(tag).ok()<span class="question-mark">?</span>).ok()
     }
 }
 
-<span class="comment">// TODO: Address below clippy::arc_with_non_send_sync below.
-</span><span class="doccomment">/// The inner representation of a JavaScript symbol.
+<span class="doccomment">/// The inner representation of a JavaScript symbol.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">struct </span>Inner {
     hash: u64,
-    description: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
+    <span class="comment">// must be a `Box`, since this needs to be shareable between many threads.
+    </span>description: <span class="prelude-ty">Option</span>&lt;Box&lt;[u16]&gt;&gt;,
 }
 
 <span class="doccomment">/// This represents a JavaScript symbol primitive.
@@ -516,7 +510,8 @@
         $(
             $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)* <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span><span class="macro-nonterminal">$name</span>() -&gt; JsSymbol {
                 JsSymbol {
-                    repr: Tagged::from_tag(<span class="macro-nonterminal">$variant</span>.tag()),
+                    <span class="comment">// the cast shouldn&#39;t matter since we only have 127 const symbols
+                    </span>repr: Tagged::from_tag(<span class="macro-nonterminal">$variant</span>.hash() <span class="kw">as </span>usize),
                 }
             }
         )+
@@ -531,7 +526,10 @@
     #[must_use]
     </span><span class="kw">pub fn </span>new(description: <span class="prelude-ty">Option</span>&lt;JsString&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>hash = get_id()<span class="question-mark">?</span>;
-        <span class="kw">let </span>arc = Arc::new(Inner { hash, description });
+        <span class="kw">let </span>arc = Arc::new(Inner {
+            hash,
+            description: description.map(|s| Box::from(<span class="kw-2">&amp;*</span>s)),
+        });
 
         <span class="prelude-val">Some</span>(<span class="self">Self </span>{
             <span class="comment">// SAFETY: Pointers returned by `Arc::into_raw` must be non-null.
@@ -546,8 +544,8 @@
         <span class="kw">match </span><span class="self">self</span>.repr.unwrap() {
             UnwrappedTagged::Ptr(ptr) =&gt; {
                 <span class="comment">// SAFETY: `ptr` comes from `Arc`, which ensures the validity of the pointer
-                // as long as we corrently call `Arc::from_raw` on `Drop`.
-                </span><span class="kw">unsafe </span>{ ptr.as_ref().description.clone() }
+                // as long as we correctly call `Arc::from_raw` on `Drop`.
+                </span><span class="kw">unsafe </span>{ ptr.as_ref().description.as_ref().map(|v| <span class="macro">js_string!</span>(<span class="kw-2">&amp;**</span>v)) }
             }
             UnwrappedTagged::Tag(tag) =&gt; {
                 <span class="comment">// SAFETY: All tagged reprs always come from `WellKnown` itself, making
