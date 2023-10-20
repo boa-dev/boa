@@ -3105,6 +3105,22 @@
 <a href="#3105" id="3105">3105</a>
 <a href="#3106" id="3106">3106</a>
 <a href="#3107" id="3107">3107</a>
+<a href="#3108" id="3108">3108</a>
+<a href="#3109" id="3109">3109</a>
+<a href="#3110" id="3110">3110</a>
+<a href="#3111" id="3111">3111</a>
+<a href="#3112" id="3112">3112</a>
+<a href="#3113" id="3113">3113</a>
+<a href="#3114" id="3114">3114</a>
+<a href="#3115" id="3115">3115</a>
+<a href="#3116" id="3116">3116</a>
+<a href="#3117" id="3117">3117</a>
+<a href="#3118" id="3118">3118</a>
+<a href="#3119" id="3119">3119</a>
+<a href="#3120" id="3120">3120</a>
+<a href="#3121" id="3121">3121</a>
+<a href="#3122" id="3122">3122</a>
+<a href="#3123" id="3123">3123</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -4264,6 +4280,22 @@
             <span class="comment">// b. Return undefined.
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
         }
+
+        <span class="comment">// Small optimization for arrays using dense properties
+        // TODO: this optimization could be generalized to many other objects with
+        // slot-based dense property maps.
+        </span><span class="kw">if </span>o.is_array() {
+            <span class="kw">let </span><span class="kw-2">mut </span>o_borrow = o.borrow_mut();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(dense) = o_borrow.properties_mut().dense_indexed_properties_mut() {
+                <span class="kw">if </span>len &lt;= dense.len() <span class="kw">as </span>u64 {
+                    <span class="kw">let </span>v = dense.remove(<span class="number">0</span>);
+                    drop(o_borrow);
+                    <span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>o, len - <span class="number">1</span>, context)<span class="question-mark">?</span>;
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(v);
+                }
+            }
+        }
+
         <span class="comment">// 4. Let first be ? Get(O, &quot;0&quot;).
         </span><span class="kw">let </span>first = o.get(<span class="number">0</span>, context)<span class="question-mark">?</span>;
         <span class="comment">// 5. Let k be 1.
