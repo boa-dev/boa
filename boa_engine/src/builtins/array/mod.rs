@@ -1157,6 +1157,25 @@ impl Array {
             // b. Return undefined.
             return Ok(JsValue::undefined());
         }
+
+        // Small optimization for arrays using dense properties
+        if o.is_array() {
+            let mut o_borrow = o.borrow_mut();
+            if let Some(dense) = o_borrow.properties_mut().dense_indexed_properties_mut() {
+                let value = if !dense.is_empty() {
+                    let v = dense.remove(0);
+                    v
+                } else {
+                    JsValue::undefined()
+                };
+                drop(o_borrow);
+
+                Self::set_length(&o, len - 1, context)?;
+
+                return Ok(value);
+            }
+        }
+
         // 4. Let first be ? Get(O, "0").
         let first = o.get(0, context)?;
         // 5. Let k be 1.
