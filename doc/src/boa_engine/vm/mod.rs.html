@@ -538,6 +538,73 @@
 <a href="#538" id="538">538</a>
 <a href="#539" id="539">539</a>
 <a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -551,7 +618,7 @@
 
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::mem::size_of;
+<span class="kw">use </span>std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">use </span>boa_interner::ToInternedString;
@@ -832,7 +899,10 @@
         );
     }
 
-    <span class="kw">fn </span>trace_execute_instruction(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>trace_execute_instruction&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; JsResult&lt;CompletionType&gt;
+    <span class="kw">where
+        </span>F: FnOnce(Opcode, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;,
+    {
         <span class="kw">let </span>bytecodes = <span class="kw-2">&amp;</span><span class="self">self</span>.vm.frame().code_block.bytecode;
         <span class="kw">let </span>pc = <span class="self">self</span>.vm.frame().pc <span class="kw">as </span>usize;
         <span class="kw">let </span>(<span class="kw">_</span>, varying_operand_kind, instruction) = InstructionIterator::with_pc(bytecodes, pc)
@@ -862,7 +932,7 @@
         }
 
         <span class="kw">let </span>instant = Instant::now();
-        <span class="kw">let </span>result = <span class="self">self</span>.execute_instruction();
+        <span class="kw">let </span>result = <span class="self">self</span>.execute_instruction(f);
         <span class="kw">let </span>duration = instant.elapsed();
 
         <span class="kw">let </span>fp = <span class="self">self</span>.vm.frames.last().map(|frame| frame.fp <span class="kw">as </span>usize);
@@ -910,7 +980,10 @@
 }
 
 <span class="kw">impl </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>execute_instruction(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_instruction&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; JsResult&lt;CompletionType&gt;
+    <span class="kw">where
+        </span>F: FnOnce(Opcode, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;,
+    {
         <span class="kw">let </span>opcode: Opcode = {
             <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Opcode retrieval&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
@@ -924,7 +997,164 @@
 
         <span class="kw">let </span>_timer = Profiler::global().start_event(opcode.as_instruction_str(), <span class="string">&quot;vm&quot;</span>);
 
-        opcode.execute(<span class="self">self</span>)
+        f(opcode, <span class="self">self</span>)
+    }
+
+    <span class="kw">fn </span>execute_one&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; ControlFlow&lt;CompletionRecord&gt;
+    <span class="kw">where
+        </span>F: FnOnce(Opcode, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;,
+    {
+        <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+        </span>{
+            <span class="kw">if </span><span class="self">self</span>.instructions_remaining == <span class="number">0 </span>{
+                <span class="kw">return </span>ControlFlow::Break(CompletionRecord::Throw(JsError::from_native(
+                    JsNativeError::no_instructions_remain(),
+                )));
+            }
+            <span class="self">self</span>.instructions_remaining -= <span class="number">1</span>;
+        }
+
+        <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+        </span><span class="kw">let </span>result = <span class="kw">if </span><span class="self">self</span>.vm.trace || <span class="self">self</span>.vm.frame().code_block.traceable() {
+            <span class="self">self</span>.trace_execute_instruction(f)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.execute_instruction(f)
+        };
+
+        <span class="attr">#[cfg(not(feature = <span class="string">&quot;trace&quot;</span>))]
+        </span><span class="kw">let </span>result = <span class="self">self</span>.execute_instruction(f);
+
+        <span class="kw">let </span>result = <span class="kw">match </span>result {
+            <span class="prelude-val">Ok</span>(result) =&gt; result,
+            <span class="prelude-val">Err</span>(err) =&gt; {
+                <span class="comment">// If we hit the execution step limit, bubble up the error to the
+                // (Rust) caller instead of trying to handle as an exception.
+                </span><span class="kw">if </span>!err.is_catchable() {
+                    <span class="kw">let </span><span class="kw-2">mut </span>fp = <span class="self">self</span>.vm.stack.len();
+                    <span class="kw">let </span><span class="kw-2">mut </span>env_fp = <span class="self">self</span>.vm.environments.len();
+                    <span class="kw">while let </span><span class="prelude-val">Some</span>(frame) = <span class="self">self</span>.vm.frames.last() {
+                        <span class="kw">if </span>frame.exit_early() {
+                            <span class="kw">break</span>;
+                        }
+
+                        fp = frame.fp <span class="kw">as </span>usize;
+                        env_fp = frame.env_fp <span class="kw">as </span>usize;
+                        <span class="self">self</span>.vm.pop_frame();
+                    }
+                    <span class="self">self</span>.vm.environments.truncate(env_fp);
+                    <span class="self">self</span>.vm.stack.truncate(fp);
+                    <span class="kw">return </span>ControlFlow::Break(CompletionRecord::Throw(err));
+                }
+
+                <span class="comment">// Note: -1 because we increment after fetching the opcode.
+                </span><span class="kw">let </span>pc = <span class="self">self</span>.vm.frame().pc.saturating_sub(<span class="number">1</span>);
+                <span class="kw">if </span><span class="self">self</span>.vm.handle_exception_at(pc) {
+                    <span class="self">self</span>.vm.pending_exception = <span class="prelude-val">Some</span>(err);
+                    <span class="kw">return </span>ControlFlow::Continue(());
+                }
+
+                <span class="comment">// Inject realm before crossing the function boundry
+                </span><span class="kw">let </span>err = err.inject_realm(<span class="self">self</span>.realm().clone());
+
+                <span class="self">self</span>.vm.pending_exception = <span class="prelude-val">Some</span>(err);
+                CompletionType::Throw
+            }
+        };
+
+        <span class="kw">match </span>result {
+            CompletionType::Normal =&gt; {}
+            CompletionType::Return =&gt; {
+                <span class="self">self</span>.vm.stack.truncate(<span class="self">self</span>.vm.frame().fp <span class="kw">as </span>usize);
+
+                <span class="kw">let </span>result = <span class="self">self</span>.vm.take_return_value();
+                <span class="kw">if </span><span class="self">self</span>.vm.frame().exit_early() {
+                    <span class="kw">return </span>ControlFlow::Break(CompletionRecord::Normal(result));
+                }
+
+                <span class="self">self</span>.vm.push(result);
+                <span class="self">self</span>.vm.pop_frame();
+            }
+            CompletionType::Throw =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>fp = <span class="self">self</span>.vm.frame().fp;
+                <span class="kw">let </span><span class="kw-2">mut </span>env_fp = <span class="self">self</span>.vm.frame().env_fp;
+                <span class="kw">if </span><span class="self">self</span>.vm.frame().exit_early() {
+                    <span class="self">self</span>.vm.environments.truncate(env_fp <span class="kw">as </span>usize);
+                    <span class="self">self</span>.vm.stack.truncate(fp <span class="kw">as </span>usize);
+                    <span class="kw">return </span>ControlFlow::Break(CompletionRecord::Throw(
+                        <span class="self">self</span>.vm
+                            .pending_exception
+                            .take()
+                            .expect(<span class="string">&quot;Err must exist for a CompletionType::Throw&quot;</span>),
+                    ));
+                }
+
+                <span class="self">self</span>.vm.pop_frame();
+
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(frame) = <span class="self">self</span>.vm.frames.last_mut() {
+                    fp = frame.fp;
+                    env_fp = frame.fp;
+                    <span class="kw">let </span>pc = frame.pc;
+                    <span class="kw">let </span>exit_early = frame.exit_early();
+
+                    <span class="kw">if </span><span class="self">self</span>.vm.handle_exception_at(pc) {
+                        <span class="kw">return </span>ControlFlow::Continue(());
+                    }
+
+                    <span class="kw">if </span>exit_early {
+                        <span class="kw">return </span>ControlFlow::Break(CompletionRecord::Throw(
+                            <span class="self">self</span>.vm
+                                .pending_exception
+                                .take()
+                                .expect(<span class="string">&quot;Err must exist for a CompletionType::Throw&quot;</span>),
+                        ));
+                    }
+
+                    <span class="self">self</span>.vm.pop_frame();
+                }
+                <span class="self">self</span>.vm.environments.truncate(env_fp <span class="kw">as </span>usize);
+                <span class="self">self</span>.vm.stack.truncate(fp <span class="kw">as </span>usize);
+            }
+            <span class="comment">// Early return immediately.
+            </span>CompletionType::Yield =&gt; {
+                <span class="kw">let </span>result = <span class="self">self</span>.vm.take_return_value();
+                <span class="kw">if </span><span class="self">self</span>.vm.frame().exit_early() {
+                    <span class="kw">return </span>ControlFlow::Break(CompletionRecord::Return(result));
+                }
+
+                <span class="self">self</span>.vm.push(result);
+                <span class="self">self</span>.vm.pop_frame();
+            }
+        }
+
+        ControlFlow::Continue(())
+    }
+
+    <span class="doccomment">/// Runs the current frame to completion, yielding to the caller each time `budget`
+    /// &quot;clock cycles&quot; have passed.
+    </span><span class="attr">#[allow(clippy::future_not_send)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>run_async_with_budget(<span class="kw-2">&amp;mut </span><span class="self">self</span>, budget: u32) -&gt; CompletionRecord {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;run_async_with_budget&quot;</span>, <span class="string">&quot;vm&quot;</span>);
+
+        <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+        </span><span class="kw">if </span><span class="self">self</span>.vm.trace {
+            <span class="self">self</span>.trace_call_frame();
+        }
+
+        <span class="kw">let </span><span class="kw-2">mut </span>runtime_budget: u32 = budget;
+
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><span class="self">self</span>.execute_one(|opcode, context| {
+                opcode.spend_budget_and_execute(context, <span class="kw-2">&amp;mut </span>runtime_budget)
+            }) {
+                ControlFlow::Continue(()) =&gt; {}
+                ControlFlow::Break(record) =&gt; <span class="kw">return </span>record,
+            }
+
+            <span class="kw">if </span>runtime_budget == <span class="number">0 </span>{
+                runtime_budget = budget;
+                yield_now().<span class="kw">await</span>;
+            }
+        }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; CompletionRecord {
@@ -935,127 +1165,10 @@
             <span class="self">self</span>.trace_call_frame();
         }
 
-        <span class="lifetime">&#39;instruction</span>: <span class="kw">loop </span>{
-            <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
-            </span>{
-                <span class="kw">if </span><span class="self">self</span>.instructions_remaining == <span class="number">0 </span>{
-                    <span class="kw">return </span>CompletionRecord::Throw(JsError::from_native(
-                        JsNativeError::no_instructions_remain(),
-                    ));
-                }
-                <span class="self">self</span>.instructions_remaining -= <span class="number">1</span>;
-            }
-
-            <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
-            </span><span class="kw">let </span>result = <span class="kw">if </span><span class="self">self</span>.vm.trace || <span class="self">self</span>.vm.frame().code_block.traceable() {
-                <span class="self">self</span>.trace_execute_instruction()
-            } <span class="kw">else </span>{
-                <span class="self">self</span>.execute_instruction()
-            };
-
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;trace&quot;</span>))]
-            </span><span class="kw">let </span>result = <span class="self">self</span>.execute_instruction();
-
-            <span class="kw">let </span>result = <span class="kw">match </span>result {
-                <span class="prelude-val">Ok</span>(result) =&gt; result,
-                <span class="prelude-val">Err</span>(err) =&gt; {
-                    <span class="comment">// If we hit the execution step limit, bubble up the error to the
-                    // (Rust) caller instead of trying to handle as an exception.
-                    </span><span class="kw">if </span>!err.is_catchable() {
-                        <span class="kw">let </span><span class="kw-2">mut </span>fp = <span class="self">self</span>.vm.stack.len();
-                        <span class="kw">let </span><span class="kw-2">mut </span>env_fp = <span class="self">self</span>.vm.environments.len();
-                        <span class="kw">while let </span><span class="prelude-val">Some</span>(frame) = <span class="self">self</span>.vm.frames.last() {
-                            <span class="kw">if </span>frame.exit_early() {
-                                <span class="kw">break</span>;
-                            }
-
-                            fp = frame.fp <span class="kw">as </span>usize;
-                            env_fp = frame.env_fp <span class="kw">as </span>usize;
-                            <span class="self">self</span>.vm.pop_frame();
-                        }
-                        <span class="self">self</span>.vm.environments.truncate(env_fp);
-                        <span class="self">self</span>.vm.stack.truncate(fp);
-                        <span class="kw">return </span>CompletionRecord::Throw(err);
-                    }
-
-                    <span class="comment">// Note: -1 because we increment after fetching the opcode.
-                    </span><span class="kw">let </span>pc = <span class="self">self</span>.vm.frame().pc.saturating_sub(<span class="number">1</span>);
-                    <span class="kw">if </span><span class="self">self</span>.vm.handle_exception_at(pc) {
-                        <span class="self">self</span>.vm.pending_exception = <span class="prelude-val">Some</span>(err);
-                        <span class="kw">continue</span>;
-                    }
-
-                    <span class="comment">// Inject realm before crossing the function boundry
-                    </span><span class="kw">let </span>err = err.inject_realm(<span class="self">self</span>.realm().clone());
-
-                    <span class="self">self</span>.vm.pending_exception = <span class="prelude-val">Some</span>(err);
-                    CompletionType::Throw
-                }
-            };
-
-            <span class="kw">match </span>result {
-                CompletionType::Normal =&gt; {}
-                CompletionType::Return =&gt; {
-                    <span class="self">self</span>.vm.stack.truncate(<span class="self">self</span>.vm.frame().fp <span class="kw">as </span>usize);
-
-                    <span class="kw">let </span>result = <span class="self">self</span>.vm.take_return_value();
-                    <span class="kw">if </span><span class="self">self</span>.vm.frame().exit_early() {
-                        <span class="kw">return </span>CompletionRecord::Normal(result);
-                    }
-
-                    <span class="self">self</span>.vm.push(result);
-                    <span class="self">self</span>.vm.pop_frame();
-                }
-                CompletionType::Throw =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>fp = <span class="self">self</span>.vm.frame().fp;
-                    <span class="kw">let </span><span class="kw-2">mut </span>env_fp = <span class="self">self</span>.vm.frame().env_fp;
-                    <span class="kw">if </span><span class="self">self</span>.vm.frame().exit_early() {
-                        <span class="self">self</span>.vm.environments.truncate(env_fp <span class="kw">as </span>usize);
-                        <span class="self">self</span>.vm.stack.truncate(fp <span class="kw">as </span>usize);
-                        <span class="kw">return </span>CompletionRecord::Throw(
-                            <span class="self">self</span>.vm
-                                .pending_exception
-                                .take()
-                                .expect(<span class="string">&quot;Err must exist for a CompletionType::Throw&quot;</span>),
-                        );
-                    }
-
-                    <span class="self">self</span>.vm.pop_frame();
-
-                    <span class="kw">while let </span><span class="prelude-val">Some</span>(frame) = <span class="self">self</span>.vm.frames.last_mut() {
-                        fp = frame.fp;
-                        env_fp = frame.fp;
-                        <span class="kw">let </span>pc = frame.pc;
-                        <span class="kw">let </span>exit_early = frame.exit_early();
-
-                        <span class="kw">if </span><span class="self">self</span>.vm.handle_exception_at(pc) {
-                            <span class="kw">continue </span><span class="lifetime">&#39;instruction</span>;
-                        }
-
-                        <span class="kw">if </span>exit_early {
-                            <span class="kw">return </span>CompletionRecord::Throw(
-                                <span class="self">self</span>.vm
-                                    .pending_exception
-                                    .take()
-                                    .expect(<span class="string">&quot;Err must exist for a CompletionType::Throw&quot;</span>),
-                            );
-                        }
-
-                        <span class="self">self</span>.vm.pop_frame();
-                    }
-                    <span class="self">self</span>.vm.environments.truncate(env_fp <span class="kw">as </span>usize);
-                    <span class="self">self</span>.vm.stack.truncate(fp <span class="kw">as </span>usize);
-                }
-                <span class="comment">// Early return immediately.
-                </span>CompletionType::Yield =&gt; {
-                    <span class="kw">let </span>result = <span class="self">self</span>.vm.take_return_value();
-                    <span class="kw">if </span><span class="self">self</span>.vm.frame().exit_early() {
-                        <span class="kw">return </span>CompletionRecord::Return(result);
-                    }
-
-                    <span class="self">self</span>.vm.push(result);
-                    <span class="self">self</span>.vm.pop_frame();
-                }
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><span class="self">self</span>.execute_one(Opcode::execute) {
+                ControlFlow::Continue(()) =&gt; {}
+                ControlFlow::Break(value) =&gt; <span class="kw">return </span>value,
             }
         }
     }
@@ -1077,5 +1190,26 @@
 
         <span class="prelude-val">Ok</span>(())
     }
+}
+
+<span class="doccomment">/// Yields once to the executor.
+</span><span class="kw">fn </span>yield_now() -&gt; <span class="kw">impl </span>Future&lt;Output = ()&gt; {
+    <span class="kw">struct </span>YieldNow(bool);
+
+    <span class="kw">impl </span>Future <span class="kw">for </span>YieldNow {
+        <span class="kw">type </span>Output = ();
+
+        <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; task::Poll&lt;<span class="self">Self</span>::Output&gt; {
+            <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>{
+                task::Poll::Ready(())
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.<span class="number">0 </span>= <span class="bool-val">true</span>;
+                cx.waker().wake_by_ref();
+                task::Poll::Pending
+            }
+        }
+    }
+
+    YieldNow(<span class="bool-val">false</span>)
 }
 </code></pre></div></section></main></body></html>

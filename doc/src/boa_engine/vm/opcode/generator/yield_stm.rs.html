@@ -86,6 +86,8 @@
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{opcode::Operation, CompletionRecord, CompletionType, GeneratorResumeKind},
@@ -102,6 +104,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorYield {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorYield&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorYield&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
@@ -120,6 +123,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>AsyncGeneratorYield {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;AsyncGeneratorYield&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - AsyncGeneratorYield&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">8</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();

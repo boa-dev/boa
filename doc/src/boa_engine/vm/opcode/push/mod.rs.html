@@ -63,6 +63,7 @@
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
 <a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -94,6 +95,7 @@
         <span class="kw">impl </span>Operation <span class="kw">for </span><span class="macro-nonterminal">$name </span>{
             <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>);
             <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro">stringify!</span>(<span class="string">&quot;INST - &quot; </span>+ <span class="macro-nonterminal">$name</span>);
+            <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
             <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
                 context.vm.push(<span class="macro-nonterminal">$push_value</span>);

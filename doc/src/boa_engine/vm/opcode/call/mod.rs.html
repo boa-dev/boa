@@ -444,6 +444,15 @@
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
 <a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{promise::PromiseCapability, Promise},
     error::JsNativeError,
@@ -509,6 +518,9 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>CallEval {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;CallEval&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CallEval&quot;</span>;
+    <span class="comment">// TODO: Calls will require a big refactor in order to track
+    // the cost of the call.
+    </span><span class="kw">const </span>COST: u8 = <span class="number">5</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>argument_count = context.vm.read::&lt;u8&gt;();
@@ -536,6 +548,9 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>CallEvalSpread {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;CallEvalSpread&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CallEvalSpread&quot;</span>;
+    <span class="comment">// TODO: Calls will require a big refactor in order to track
+    // the cost of the call.
+    </span><span class="kw">const </span>COST: u8 = <span class="number">5</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// Get the arguments that are stored as an array object on the stack.
@@ -622,6 +637,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>Call {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Call&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Call&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">3</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>argument_count = context.vm.read::&lt;u8&gt;();
@@ -645,6 +661,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>CallSpread {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;CallSpread&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CallSpread&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">3</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// Get the arguments that are stored as an array object on the stack.
@@ -686,6 +703,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>ImportCall {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ImportCall&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - ImportCall&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">15</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// Import Calls

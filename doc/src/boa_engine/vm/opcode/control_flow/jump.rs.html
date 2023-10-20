@@ -140,6 +140,12 @@
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -155,6 +161,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>Jump {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Jump&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Jump&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
@@ -173,6 +180,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>JumpIfTrue {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JumpIfTrue&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - JumpIfTrue&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
@@ -193,6 +201,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>JumpIfFalse {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JumpIfFalse&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - JumpIfFalse&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
@@ -213,6 +222,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>JumpIfNotUndefined {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JumpIfNotUndefined&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - JumpIfNotUndefined&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
@@ -235,6 +245,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>JumpIfNullOrUndefined {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JumpIfNullOrUndefined&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - JumpIfNullOrUndefined&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
@@ -258,6 +269,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>JumpTable {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JumpTable&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - JumpTable&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">5</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>default = context.vm.read::&lt;u32&gt;();

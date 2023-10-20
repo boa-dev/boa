@@ -354,6 +354,12 @@
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
 </pre></div><pre class="rust"><code><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>yield_stm;
 
 <span class="kw">use </span>std::collections::VecDeque;
@@ -388,6 +394,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>Generator {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Generator&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Generator&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">8</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>r#async = context.vm.read::&lt;u8&gt;() != <span class="number">0</span>;
@@ -484,6 +491,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>AsyncGeneratorClose {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;AsyncGeneratorClose&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - AsyncGeneratorClose&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">8</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
@@ -532,6 +540,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorNext {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorNext&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorNext&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>generator_resume_kind = context.vm.pop().to_generator_resume_kind();
@@ -558,6 +567,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>JumpIfNotResumeKind {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JumpIfNotResumeKind&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - JumpIfNotResumeKind&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>exit = context.vm.read::&lt;u32&gt;();
@@ -584,6 +594,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorDelegateNext {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorDelegateNext&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorDelegateNext&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">18</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>throw_method_undefined = context.vm.read::&lt;u32&gt;();
@@ -673,6 +684,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorDelegateResume {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorDelegateResume&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorDelegateResume&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">7</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>return_gen = context.vm.read::&lt;u32&gt;();

@@ -44,6 +44,7 @@
 <a href="#44" id="44">44</a>
 <a href="#45" id="45">45</a>
 <a href="#46" id="46">46</a>
+<a href="#47" id="47">47</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -61,6 +62,7 @@
         <span class="kw">impl </span>Operation <span class="kw">for </span><span class="macro-nonterminal">$name </span>{
             <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>);
             <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro">stringify!</span>(<span class="string">&quot;INST - &quot; </span>+ <span class="macro-nonterminal">$name</span>);
+            <span class="kw">const </span>COST: u8 = <span class="number">2</span>;
 
             <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
                 <span class="kw">let </span>rhs = context.vm.pop();

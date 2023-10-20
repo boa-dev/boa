@@ -34,6 +34,7 @@
 <a href="#34" id="34">34</a>
 <a href="#35" id="35">35</a>
 <a href="#36" id="36">36</a>
+<a href="#37" id="37">37</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{iterable::IteratorRecord, object::for_in_iterator::ForInIterator},
     js_string,
@@ -51,6 +52,7 @@
 <span class="kw">impl </span>Operation <span class="kw">for </span>CreateForInIterator {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;CreateForInIterator&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CreateForInIterator&quot;</span>;
+    <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>object = context.vm.pop();
