@@ -1159,20 +1159,17 @@ impl Array {
         }
 
         // Small optimization for arrays using dense properties
+        // TODO: this optimization could be generalized to many other objects with
+        // slot-based dense property maps.
         if o.is_array() {
             let mut o_borrow = o.borrow_mut();
             if let Some(dense) = o_borrow.properties_mut().dense_indexed_properties_mut() {
-                let value = if !dense.is_empty() {
+                if len <= dense.len() as u64 {
                     let v = dense.remove(0);
-                    v
-                } else {
-                    JsValue::undefined()
-                };
-                drop(o_borrow);
-
-                Self::set_length(&o, len - 1, context)?;
-
-                return Ok(value);
+                    drop(o_borrow);
+                    Self::set_length(&o, len - 1, context)?;
+                    return Ok(v);
+                }
             }
         }
 
