@@ -33,23 +33,22 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 use std::{
     hash::{Hash, Hasher},
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc,
-    },
+    sync::{atomic::Ordering, Arc},
 };
+
+use portable_atomic::AtomicU64;
 
 /// Reserved number of symbols.
 ///
-/// This is where the well known symbol live
-/// and internal engine symbols.
-const RESERVED_SYMBOL_HASHES: usize = 127;
+/// This is the maximum number of well known and internal engine symbols
+/// that can be defined.
+const RESERVED_SYMBOL_HASHES: u64 = 127;
 
-fn get_id() -> Option<usize> {
+fn get_id() -> Option<u64> {
     // Symbol hash.
     //
     // For now this is an incremented u64 number.
-    static SYMBOL_HASH_COUNT: AtomicUsize = AtomicUsize::new(RESERVED_SYMBOL_HASHES + 1);
+    static SYMBOL_HASH_COUNT: AtomicU64 = AtomicU64::new(RESERVED_SYMBOL_HASHES + 1);
 
     SYMBOL_HASH_COUNT
         .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
@@ -114,8 +113,8 @@ impl WellKnown {
         }
     }
 
-    const fn hash(self) -> usize {
-        self as usize
+    const fn hash(self) -> u64 {
+        self as u64
     }
 
     fn from_tag(tag: usize) -> Option<Self> {
@@ -126,7 +125,7 @@ impl WellKnown {
 /// The inner representation of a JavaScript symbol.
 #[derive(Debug, Clone)]
 struct Inner {
-    hash: usize,
+    hash: u64,
     // must be a `Vec`, since this needs to be shareable between many threads.
     description: Option<Box<[u16]>>,
 }
@@ -154,7 +153,8 @@ macro_rules! well_known_symbols {
         $(
             $(#[$attr])* pub(crate) const fn $name() -> JsSymbol {
                 JsSymbol {
-                    repr: Tagged::from_tag($variant.hash()),
+                    // the cast shouldn't matter since we only have 127 const symbols
+                    repr: Tagged::from_tag($variant.hash() as usize),
                 }
             }
         )+
@@ -222,7 +222,7 @@ impl JsSymbol {
     /// The hash is guaranteed to be unique.
     #[inline]
     #[must_use]
-    pub fn hash(&self) -> usize {
+    pub fn hash(&self) -> u64 {
         match self.repr.unwrap() {
             UnwrappedTagged::Ptr(ptr) => {
                 // SAFETY: `ptr` comes from `Arc`, which ensures the validity of the pointer
