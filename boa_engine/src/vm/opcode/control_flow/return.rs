@@ -13,6 +13,7 @@ pub(crate) struct Return;
 impl Operation for Return {
     const NAME: &'static str = "Return";
     const INSTRUCTION: &'static str = "INST - Return";
+    const COST: u8 = 4;
 
     fn execute(_context: &mut Context<'_>) -> JsResult<CompletionType> {
         Ok(CompletionType::Return)
@@ -29,6 +30,7 @@ pub(crate) struct CheckReturn;
 impl Operation for CheckReturn {
     const NAME: &'static str = "CheckReturn";
     const INSTRUCTION: &'static str = "INST - CheckReturn";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if !context.vm.frame().construct() {
@@ -80,6 +82,7 @@ pub(crate) struct GetReturnValue;
 impl Operation for GetReturnValue {
     const NAME: &'static str = "GetReturnValue";
     const INSTRUCTION: &'static str = "INST - GetReturnValue";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.get_return_value();
@@ -98,6 +101,7 @@ pub(crate) struct SetReturnValue;
 impl Operation for SetReturnValue {
     const NAME: &'static str = "SetReturnValue";
     const INSTRUCTION: &'static str = "INST - SetReturnValue";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();

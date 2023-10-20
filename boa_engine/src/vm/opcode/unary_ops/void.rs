@@ -13,6 +13,7 @@ pub(crate) struct Void;
 impl Operation for Void {
     const NAME: &'static str = "Void";
     const INSTRUCTION: &'static str = "INST - Void";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let _old = context.vm.pop();

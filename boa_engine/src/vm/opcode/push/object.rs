@@ -14,6 +14,7 @@ pub(crate) struct PushEmptyObject;
 impl Operation for PushEmptyObject {
     const NAME: &'static str = "PushEmptyObject";
     const INSTRUCTION: &'static str = "INST - PushEmptyObject";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let o = context

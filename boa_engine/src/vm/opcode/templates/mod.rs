@@ -17,6 +17,7 @@ pub(crate) struct TemplateLookup;
 impl Operation for TemplateLookup {
     const NAME: &'static str = "TemplateLookup";
     const INSTRUCTION: &'static str = "INST - TemplateLookup";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let jump = context.vm.read::<u32>();
@@ -101,6 +102,7 @@ impl TemplateCreate {
 impl Operation for TemplateCreate {
     const NAME: &'static str = "TemplateCreate";
     const INSTRUCTION: &'static str = "INST - TemplateCreate";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let count = u32::from(context.vm.read::<u8>());

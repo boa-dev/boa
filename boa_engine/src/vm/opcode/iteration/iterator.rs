@@ -17,6 +17,7 @@ pub(crate) struct IteratorNext;
 impl Operation for IteratorNext {
     const NAME: &'static str = "IteratorNext";
     const INSTRUCTION: &'static str = "INST - IteratorNext";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let mut iterator = context
@@ -44,6 +45,7 @@ pub(crate) struct IteratorNextWithoutPop;
 impl Operation for IteratorNextWithoutPop {
     const NAME: &'static str = "IteratorNextWithoutPop";
     const INSTRUCTION: &'static str = "INST - IteratorNextWithoutPop";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let mut iterator = context
@@ -74,6 +76,7 @@ pub(crate) struct IteratorFinishAsyncNext;
 impl Operation for IteratorFinishAsyncNext {
     const NAME: &'static str = "IteratorFinishAsyncNext";
     const INSTRUCTION: &'static str = "INST - IteratorFinishAsyncNext";
+    const COST: u8 = 5;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let mut iterator = context
@@ -115,6 +118,7 @@ pub(crate) struct IteratorResult;
 impl Operation for IteratorResult {
     const NAME: &'static str = "IteratorResult";
     const INSTRUCTION: &'static str = "INST - IteratorResult";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let last_result = context
@@ -143,6 +147,7 @@ pub(crate) struct IteratorValue;
 impl Operation for IteratorValue {
     const NAME: &'static str = "IteratorValue";
     const INSTRUCTION: &'static str = "INST - IteratorValue";
+    const COST: u8 = 5;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let mut iterator = context
@@ -171,6 +176,7 @@ pub(crate) struct IteratorValueWithoutPop;
 impl Operation for IteratorValueWithoutPop {
     const NAME: &'static str = "IteratorValueWithoutPop";
     const INSTRUCTION: &'static str = "INST - IteratorValueWithoutPop";
+    const COST: u8 = 5;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let mut iterator = context
@@ -199,6 +205,7 @@ pub(crate) struct IteratorDone;
 impl Operation for IteratorDone {
     const NAME: &'static str = "IteratorDone";
     const INSTRUCTION: &'static str = "INST - IteratorDone";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done = context
@@ -225,6 +232,7 @@ pub(crate) struct IteratorReturn;
 impl Operation for IteratorReturn {
     const NAME: &'static str = "IteratorReturn";
     const INSTRUCTION: &'static str = "INST - IteratorReturn";
+    const COST: u8 = 8;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let record = context
@@ -261,6 +269,7 @@ pub(crate) struct IteratorToArray;
 impl Operation for IteratorToArray {
     const NAME: &'static str = "IteratorToArray";
     const INSTRUCTION: &'static str = "INST - IteratorToArray";
+    const COST: u8 = 8;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let mut iterator = context
@@ -314,6 +323,7 @@ pub(crate) struct IteratorPop;
 impl Operation for IteratorPop {
     const NAME: &'static str = "IteratorPop";
     const INSTRUCTION: &'static str = "INST - IteratorPop";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         context.vm.frame_mut().iterators.pop();
@@ -331,6 +341,7 @@ pub(crate) struct IteratorStackEmpty;
 impl Operation for IteratorStackEmpty {
     const NAME: &'static str = "IteratorStackEmpty";
     const INSTRUCTION: &'static str = "INST - IteratorStackEmpty";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let is_empty = context.vm.frame().iterators.is_empty();
@@ -349,6 +360,7 @@ pub(crate) struct CreateIteratorResult;
 impl Operation for CreateIteratorResult {
     const NAME: &'static str = "CreateIteratorResult";
     const INSTRUCTION: &'static str = "INST - CreateIteratorResult";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();

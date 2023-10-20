@@ -36,6 +36,7 @@ impl SetPrivateField {
 impl Operation for SetPrivateField {
     const NAME: &'static str = "SetPrivateField";
     const INSTRUCTION: &'static str = "INST - SetPrivateField";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -81,6 +82,7 @@ impl DefinePrivateField {
 impl Operation for DefinePrivateField {
     const NAME: &'static str = "DefinePrivateField";
     const INSTRUCTION: &'static str = "INST - DefinePrivateField";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -140,6 +142,7 @@ impl SetPrivateMethod {
 impl Operation for SetPrivateMethod {
     const NAME: &'static str = "SetPrivateMethod";
     const INSTRUCTION: &'static str = "INST - SetPrivateMethod";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -190,6 +193,7 @@ impl SetPrivateSetter {
 impl Operation for SetPrivateSetter {
     const NAME: &'static str = "SetPrivateSetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateSetter";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -240,6 +244,7 @@ impl SetPrivateGetter {
 impl Operation for SetPrivateGetter {
     const NAME: &'static str = "SetPrivateGetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateGetter";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;

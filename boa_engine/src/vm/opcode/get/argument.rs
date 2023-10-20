@@ -29,6 +29,7 @@ impl GetArgument {
 impl Operation for GetArgument {
     const NAME: &'static str = "GetArgument";
     const INSTRUCTION: &'static str = "INST - GetArgument";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;

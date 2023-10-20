@@ -11,7 +11,7 @@ use crate::{
 
 use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
-use std::mem::size_of;
+use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
 use boa_interner::ToInternedString;
@@ -292,7 +292,10 @@ impl Context<'_> {
         );
     }
 
-    fn trace_execute_instruction(&mut self) -> JsResult<CompletionType> {
+    fn trace_execute_instruction<F>(&mut self, f: F) -> JsResult<CompletionType>
+    where
+        F: FnOnce(Opcode, &mut Context<'_>) -> JsResult<CompletionType>,
+    {
         let bytecodes = &self.vm.frame().code_block.bytecode;
         let pc = self.vm.frame().pc as usize;
         let (_, varying_operand_kind, instruction) = InstructionIterator::with_pc(bytecodes, pc)
@@ -322,7 +325,7 @@ impl Context<'_> {
         }
 
         let instant = Instant::now();
-        let result = self.execute_instruction();
+        let result = self.execute_instruction(f);
         let duration = instant.elapsed();
 
         let fp = self.vm.frames.last().map(|frame| frame.fp as usize);
@@ -370,7 +373,10 @@ impl Context<'_> {
 }
 
 impl Context<'_> {
-    fn execute_instruction(&mut self) -> JsResult<CompletionType> {
+    fn execute_instruction<F>(&mut self, f: F) -> JsResult<CompletionType>
+    where
+        F: FnOnce(Opcode, &mut Context<'_>) -> JsResult<CompletionType>,
+    {
         let opcode: Opcode = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
 
@@ -384,7 +390,164 @@ impl Context<'_> {
 
         let _timer = Profiler::global().start_event(opcode.as_instruction_str(), "vm");
 
-        opcode.execute(self)
+        f(opcode, self)
+    }
+
+    fn execute_one<F>(&mut self, f: F) -> ControlFlow<CompletionRecord>
+    where
+        F: FnOnce(Opcode, &mut Context<'_>) -> JsResult<CompletionType>,
+    {
+        #[cfg(feature = "fuzz")]
+        {
+            if self.instructions_remaining == 0 {
+                return ControlFlow::Break(CompletionRecord::Throw(JsError::from_native(
+                    JsNativeError::no_instructions_remain(),
+                )));
+            }
+            self.instructions_remaining -= 1;
+        }
+
+        #[cfg(feature = "trace")]
+        let result = if self.vm.trace || self.vm.frame().code_block.traceable() {
+            self.trace_execute_instruction(f)
+        } else {
+            self.execute_instruction(f)
+        };
+
+        #[cfg(not(feature = "trace"))]
+        let result = self.execute_instruction(f);
+
+        let result = match result {
+            Ok(result) => result,
+            Err(err) => {
+                // If we hit the execution step limit, bubble up the error to the
+                // (Rust) caller instead of trying to handle as an exception.
+                if !err.is_catchable() {
+                    let mut fp = self.vm.stack.len();
+                    let mut env_fp = self.vm.environments.len();
+                    while let Some(frame) = self.vm.frames.last() {
+                        if frame.exit_early() {
+                            break;
+                        }
+
+                        fp = frame.fp as usize;
+                        env_fp = frame.env_fp as usize;
+                        self.vm.pop_frame();
+                    }
+                    self.vm.environments.truncate(env_fp);
+                    self.vm.stack.truncate(fp);
+                    return ControlFlow::Break(CompletionRecord::Throw(err));
+                }
+
+                // Note: -1 because we increment after fetching the opcode.
+                let pc = self.vm.frame().pc.saturating_sub(1);
+                if self.vm.handle_exception_at(pc) {
+                    self.vm.pending_exception = Some(err);
+                    return ControlFlow::Continue(());
+                }
+
+                // Inject realm before crossing the function boundry
+                let err = err.inject_realm(self.realm().clone());
+
+                self.vm.pending_exception = Some(err);
+                CompletionType::Throw
+            }
+        };
+
+        match result {
+            CompletionType::Normal => {}
+            CompletionType::Return => {
+                self.vm.stack.truncate(self.vm.frame().fp as usize);
+
+                let result = self.vm.take_return_value();
+                if self.vm.frame().exit_early() {
+                    return ControlFlow::Break(CompletionRecord::Normal(result));
+                }
+
+                self.vm.push(result);
+                self.vm.pop_frame();
+            }
+            CompletionType::Throw => {
+                let mut fp = self.vm.frame().fp;
+                let mut env_fp = self.vm.frame().env_fp;
+                if self.vm.frame().exit_early() {
+                    self.vm.environments.truncate(env_fp as usize);
+                    self.vm.stack.truncate(fp as usize);
+                    return ControlFlow::Break(CompletionRecord::Throw(
+                        self.vm
+                            .pending_exception
+                            .take()
+                            .expect("Err must exist for a CompletionType::Throw"),
+                    ));
+                }
+
+                self.vm.pop_frame();
+
+                while let Some(frame) = self.vm.frames.last_mut() {
+                    fp = frame.fp;
+                    env_fp = frame.fp;
+                    let pc = frame.pc;
+                    let exit_early = frame.exit_early();
+
+                    if self.vm.handle_exception_at(pc) {
+                        return ControlFlow::Continue(());
+                    }
+
+                    if exit_early {
+                        return ControlFlow::Break(CompletionRecord::Throw(
+                            self.vm
+                                .pending_exception
+                                .take()
+                                .expect("Err must exist for a CompletionType::Throw"),
+                        ));
+                    }
+
+                    self.vm.pop_frame();
+                }
+                self.vm.environments.truncate(env_fp as usize);
+                self.vm.stack.truncate(fp as usize);
+            }
+            // Early return immediately.
+            CompletionType::Yield => {
+                let result = self.vm.take_return_value();
+                if self.vm.frame().exit_early() {
+                    return ControlFlow::Break(CompletionRecord::Return(result));
+                }
+
+                self.vm.push(result);
+                self.vm.pop_frame();
+            }
+        }
+
+        ControlFlow::Continue(())
+    }
+
+    /// Runs the current frame to completion, yielding to the caller each time `budget`
+    /// "clock cycles" have passed.
+    #[allow(clippy::future_not_send)]
+    pub(crate) async fn run_async_with_budget(&mut self, budget: u32) -> CompletionRecord {
+        let _timer = Profiler::global().start_event("run_async_with_budget", "vm");
+
+        #[cfg(feature = "trace")]
+        if self.vm.trace {
+            self.trace_call_frame();
+        }
+
+        let mut runtime_budget: u32 = budget;
+
+        loop {
+            match self.execute_one(|opcode, context| {
+                opcode.spend_budget_and_execute(context, &mut runtime_budget)
+            }) {
+                ControlFlow::Continue(()) => {}
+                ControlFlow::Break(record) => return record,
+            }
+
+            if runtime_budget == 0 {
+                runtime_budget = budget;
+                yield_now().await;
+            }
+        }
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
@@ -395,127 +558,10 @@ impl Context<'_> {
             self.trace_call_frame();
         }
 
-        'instruction: loop {
-            #[cfg(feature = "fuzz")]
-            {
-                if self.instructions_remaining == 0 {
-                    return CompletionRecord::Throw(JsError::from_native(
-                        JsNativeError::no_instructions_remain(),
-                    ));
-                }
-                self.instructions_remaining -= 1;
-            }
-
-            #[cfg(feature = "trace")]
-            let result = if self.vm.trace || self.vm.frame().code_block.traceable() {
-                self.trace_execute_instruction()
-            } else {
-                self.execute_instruction()
-            };
-
-            #[cfg(not(feature = "trace"))]
-            let result = self.execute_instruction();
-
-            let result = match result {
-                Ok(result) => result,
-                Err(err) => {
-                    // If we hit the execution step limit, bubble up the error to the
-                    // (Rust) caller instead of trying to handle as an exception.
-                    if !err.is_catchable() {
-                        let mut fp = self.vm.stack.len();
-                        let mut env_fp = self.vm.environments.len();
-                        while let Some(frame) = self.vm.frames.last() {
-                            if frame.exit_early() {
-                                break;
-                            }
-
-                            fp = frame.fp as usize;
-                            env_fp = frame.env_fp as usize;
-                            self.vm.pop_frame();
-                        }
-                        self.vm.environments.truncate(env_fp);
-                        self.vm.stack.truncate(fp);
-                        return CompletionRecord::Throw(err);
-                    }
-
-                    // Note: -1 because we increment after fetching the opcode.
-                    let pc = self.vm.frame().pc.saturating_sub(1);
-                    if self.vm.handle_exception_at(pc) {
-                        self.vm.pending_exception = Some(err);
-                        continue;
-                    }
-
-                    // Inject realm before crossing the function boundry
-                    let err = err.inject_realm(self.realm().clone());
-
-                    self.vm.pending_exception = Some(err);
-                    CompletionType::Throw
-                }
-            };
-
-            match result {
-                CompletionType::Normal => {}
-                CompletionType::Return => {
-                    self.vm.stack.truncate(self.vm.frame().fp as usize);
-
-                    let result = self.vm.take_return_value();
-                    if self.vm.frame().exit_early() {
-                        return CompletionRecord::Normal(result);
-                    }
-
-                    self.vm.push(result);
-                    self.vm.pop_frame();
-                }
-                CompletionType::Throw => {
-                    let mut fp = self.vm.frame().fp;
-                    let mut env_fp = self.vm.frame().env_fp;
-                    if self.vm.frame().exit_early() {
-                        self.vm.environments.truncate(env_fp as usize);
-                        self.vm.stack.truncate(fp as usize);
-                        return CompletionRecord::Throw(
-                            self.vm
-                                .pending_exception
-                                .take()
-                                .expect("Err must exist for a CompletionType::Throw"),
-                        );
-                    }
-
-                    self.vm.pop_frame();
-
-                    while let Some(frame) = self.vm.frames.last_mut() {
-                        fp = frame.fp;
-                        env_fp = frame.fp;
-                        let pc = frame.pc;
-                        let exit_early = frame.exit_early();
-
-                        if self.vm.handle_exception_at(pc) {
-                            continue 'instruction;
-                        }
-
-                        if exit_early {
-                            return CompletionRecord::Throw(
-                                self.vm
-                                    .pending_exception
-                                    .take()
-                                    .expect("Err must exist for a CompletionType::Throw"),
-                            );
-                        }
-
-                        self.vm.pop_frame();
-                    }
-                    self.vm.environments.truncate(env_fp as usize);
-                    self.vm.stack.truncate(fp as usize);
-                }
-                // Early return immediately.
-                CompletionType::Yield => {
-                    let result = self.vm.take_return_value();
-                    if self.vm.frame().exit_early() {
-                        return CompletionRecord::Return(result);
-                    }
-
-                    self.vm.push(result);
-                    self.vm.pop_frame();
-                }
+        loop {
+            match self.execute_one(Opcode::execute) {
+                ControlFlow::Continue(()) => {}
+                ControlFlow::Break(value) => return value,
             }
         }
     }
@@ -537,4 +583,25 @@ impl Context<'_> {
 
         Ok(())
     }
+}
+
+/// Yields once to the executor.
+fn yield_now() -> impl Future<Output = ()> {
+    struct YieldNow(bool);
+
+    impl Future for YieldNow {
+        type Output = ();
+
+        fn poll(mut self: Pin<&mut Self>, cx: &mut task::Context<'_>) -> task::Poll<Self::Output> {
+            if self.0 {
+                task::Poll::Ready(())
+            } else {
+                self.0 = true;
+                cx.waker().wake_by_ref();
+                task::Poll::Pending
+            }
+        }
+    }
+
+    YieldNow(false)
 }

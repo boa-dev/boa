@@ -14,6 +14,7 @@ pub(crate) struct This;
 impl Operation for This {
     const NAME: &'static str = "This";
     const INSTRUCTION: &'static str = "INST - This";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let this = context.vm.environments.get_this_binding()?;
@@ -32,6 +33,7 @@ pub(crate) struct Super;
 impl Operation for Super {
     const NAME: &'static str = "Super";
     const INSTRUCTION: &'static str = "INST - Super";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let home_object = {
@@ -72,6 +74,7 @@ pub(crate) struct SuperCallPrepare;
 impl Operation for SuperCallPrepare {
     const NAME: &'static str = "SuperCallPrepare";
     const INSTRUCTION: &'static str = "INST - SuperCallPrepare";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let this_env = context
@@ -134,6 +137,7 @@ impl SuperCall {
 impl Operation for SuperCall {
     const NAME: &'static str = "SuperCall";
     const INSTRUCTION: &'static str = "INST - SuperCall";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value_count = context.vm.read::<u8>() as usize;
@@ -161,6 +165,7 @@ pub(crate) struct SuperCallSpread;
 impl Operation for SuperCallSpread {
     const NAME: &'static str = "SuperCallSpread";
     const INSTRUCTION: &'static str = "INST - SuperCallSpread";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
@@ -219,6 +224,7 @@ pub(crate) struct SuperCallDerived;
 impl Operation for SuperCallDerived {
     const NAME: &'static str = "SuperCallDerived";
     const INSTRUCTION: &'static str = "INST - SuperCallDerived";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.frame().argument_count as usize;
@@ -271,6 +277,7 @@ pub(crate) struct BindThisValue;
 impl Operation for BindThisValue {
     const NAME: &'static str = "BindThisValue";
     const INSTRUCTION: &'static str = "INST - BindThisValue";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Taken from `SuperCall : super Arguments` steps 7-12.

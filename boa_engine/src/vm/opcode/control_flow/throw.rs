@@ -13,6 +13,7 @@ pub(crate) struct Throw;
 impl Operation for Throw {
     const NAME: &'static str = "Throw";
     const INSTRUCTION: &'static str = "INST - Throw";
+    const COST: u8 = 6;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let error = JsError::from_opaque(context.vm.pop());
@@ -38,6 +39,7 @@ pub(crate) struct ReThrow;
 impl Operation for ReThrow {
     const NAME: &'static str = "ReThrow";
     const INSTRUCTION: &'static str = "INST - ReThrow";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Note: -1 because we increment after fetching the opcode.
@@ -69,6 +71,7 @@ pub(crate) struct Exception;
 impl Operation for Exception {
     const NAME: &'static str = "Exception";
     const INSTRUCTION: &'static str = "INST - Exception";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if let Some(error) = context.vm.pending_exception.take() {
@@ -96,6 +99,7 @@ pub(crate) struct MaybeException;
 impl Operation for MaybeException {
     const NAME: &'static str = "MaybeException";
     const INSTRUCTION: &'static str = "INST - MaybeException";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if let Some(error) = context.vm.pending_exception.take() {
@@ -133,6 +137,7 @@ impl ThrowNewTypeError {
 impl Operation for ThrowNewTypeError {
     const NAME: &'static str = "ThrowNewTypeError";
     const INSTRUCTION: &'static str = "INST - ThrowNewTypeError";
+    const COST: u8 = 2;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;

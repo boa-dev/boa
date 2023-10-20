@@ -23,6 +23,7 @@ impl GetGenerator {
 impl Operation for GetGenerator {
     const NAME: &'static str = "GetGenerator";
     const INSTRUCTION: &'static str = "INST - GetGenerator";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -60,6 +61,7 @@ impl GetGeneratorAsync {
 impl Operation for GetGeneratorAsync {
     const NAME: &'static str = "GetGeneratorAsync";
     const INSTRUCTION: &'static str = "INST - GetGeneratorAsync";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;

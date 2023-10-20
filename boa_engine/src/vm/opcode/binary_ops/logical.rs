@@ -13,6 +13,7 @@ pub(crate) struct LogicalAnd;
 impl Operation for LogicalAnd {
     const NAME: &'static str = "LogicalAnd";
     const INSTRUCTION: &'static str = "INST - LogicalAnd";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
@@ -35,6 +36,7 @@ pub(crate) struct LogicalOr;
 impl Operation for LogicalOr {
     const NAME: &'static str = "LogicalOr";
     const INSTRUCTION: &'static str = "INST - LogicalOr";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
@@ -57,6 +59,7 @@ pub(crate) struct Coalesce;
 impl Operation for Coalesce {
     const NAME: &'static str = "Coalesce";
     const INSTRUCTION: &'static str = "INST - Coalesce";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();

@@ -18,6 +18,7 @@ pub(crate) struct Await;
 impl Operation for Await {
     const NAME: &'static str = "Await";
     const INSTRUCTION: &'static str = "INST - Await";
+    const COST: u8 = 5;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
@@ -150,6 +151,7 @@ pub(crate) struct CreatePromiseCapability;
 impl Operation for CreatePromiseCapability {
     const NAME: &'static str = "CreatePromiseCapability";
     const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
+    const COST: u8 = 8;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if context.vm.frame().promise_capability.is_some() {
@@ -177,6 +179,7 @@ pub(crate) struct CompletePromiseCapability;
 impl Operation for CompletePromiseCapability {
     const NAME: &'static str = "CompletePromiseCapability";
     const INSTRUCTION: &'static str = "INST - CompletePromiseCapability";
+    const COST: u8 = 8;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.

@@ -14,6 +14,7 @@ pub(crate) struct Dec;
 impl Operation for Dec {
     const NAME: &'static str = "Dec";
     const INSTRUCTION: &'static str = "INST - Dec";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
@@ -42,6 +43,7 @@ pub(crate) struct DecPost;
 impl Operation for DecPost {
     const NAME: &'static str = "DecPost";
     const INSTRUCTION: &'static str = "INST - DecPost";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();

@@ -38,6 +38,7 @@ impl DefVar {
 impl Operation for DefVar {
     const NAME: &'static str = "DefVar";
     const INSTRUCTION: &'static str = "INST - DefVar";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
@@ -80,6 +81,7 @@ impl DefInitVar {
 impl Operation for DefInitVar {
     const NAME: &'static str = "DefInitVar";
     const INSTRUCTION: &'static str = "INST - DefInitVar";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
@@ -122,6 +124,7 @@ impl PutLexicalValue {
 impl Operation for PutLexicalValue {
     const NAME: &'static str = "PutLexicalValue";
     const INSTRUCTION: &'static str = "INST - PutLexicalValue";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();

@@ -146,6 +146,52 @@ impl Script {
     pub fn evaluate(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Execution", "Main");
 
+        self.prepare_run(context)?;
+        let record = context.run();
+
+        context.vm.pop_frame();
+        context.clear_kept_objects();
+
+        record.consume()
+    }
+
+    /// Evaluates this script and returns its result, periodically yielding to the executor
+    /// in order to avoid blocking the current thread.
+    ///
+    /// This uses an implementation defined amount of "clock cycles" that need to pass before
+    /// execution is suspended. See [`Script::evaluate_async_with_budget`] if you want to also
+    /// customize this parameter.
+    #[allow(clippy::future_not_send)]
+    pub async fn evaluate_async(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+        self.evaluate_async_with_budget(context, 256).await
+    }
+
+    /// Evaluates this script and returns its result, yielding to the executor each time `budget`
+    /// number of "clock cycles" pass.
+    ///
+    /// Note that "clock cycle" is in quotation marks because we can't determine exactly how many
+    /// CPU clock cycles a VM instruction will take, but all instructions have a "cost" associated
+    /// with them that depends on their individual complexity. We'd recommend benchmarking with
+    /// different budget sizes in order to find the ideal yielding time for your application.
+    #[allow(clippy::future_not_send)]
+    pub async fn evaluate_async_with_budget(
+        &self,
+        context: &mut Context<'_>,
+        budget: u32,
+    ) -> JsResult<JsValue> {
+        let _timer = Profiler::global().start_event("Async Execution", "Main");
+
+        self.prepare_run(context)?;
+
+        let record = context.run_async_with_budget(budget).await;
+
+        context.vm.pop_frame();
+        context.clear_kept_objects();
+
+        record.consume()
+    }
+
+    fn prepare_run(&self, context: &mut Context<'_>) -> JsResult<()> {
         let codeblock = self.codeblock(context)?;
 
         let env_fp = context.vm.environments.len() as u32;
@@ -165,11 +211,7 @@ impl Script {
         // TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
 
         self.realm().resize_global_env();
-        let record = context.run();
-        context.vm.pop_frame();
 
-        context.clear_kept_objects();
-
-        record.consume()
+        Ok(())
     }
 }

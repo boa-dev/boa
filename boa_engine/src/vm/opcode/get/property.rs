@@ -32,6 +32,7 @@ impl GetPropertyByName {
 impl Operation for GetPropertyByName {
     const NAME: &'static str = "GetPropertyByName";
     const INSTRUCTION: &'static str = "INST - GetPropertyByName";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
@@ -59,6 +60,7 @@ pub(crate) struct GetPropertyByValue;
 impl Operation for GetPropertyByValue {
     const NAME: &'static str = "GetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValue";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let key = context.vm.pop();
@@ -105,6 +107,7 @@ pub(crate) struct GetPropertyByValuePush;
 impl Operation for GetPropertyByValuePush {
     const NAME: &'static str = "GetPropertyByValuePush";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValuePush";
+    const COST: u8 = 4;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let key = context.vm.pop();

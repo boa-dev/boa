@@ -14,6 +14,7 @@ pub(crate) struct IncrementLoopIteration;
 impl Operation for IncrementLoopIteration {
     const NAME: &'static str = "IncrementLoopIteration";
     const INSTRUCTION: &'static str = "INST - IncrementLoopIteration";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let previous_iteration_count = context.vm.frame_mut().loop_iteration_count;

@@ -13,6 +13,7 @@ pub(crate) struct Jump;
 impl Operation for Jump {
     const NAME: &'static str = "Jump";
     const INSTRUCTION: &'static str = "INST - Jump";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
@@ -31,6 +32,7 @@ pub(crate) struct JumpIfTrue;
 impl Operation for JumpIfTrue {
     const NAME: &'static str = "JumpIfTrue";
     const INSTRUCTION: &'static str = "INST - JumpIfTrue";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
@@ -51,6 +53,7 @@ pub(crate) struct JumpIfFalse;
 impl Operation for JumpIfFalse {
     const NAME: &'static str = "JumpIfFalse";
     const INSTRUCTION: &'static str = "INST - JumpIfFalse";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
@@ -71,6 +74,7 @@ pub(crate) struct JumpIfNotUndefined;
 impl Operation for JumpIfNotUndefined {
     const NAME: &'static str = "JumpIfNotUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNotUndefined";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
@@ -93,6 +97,7 @@ pub(crate) struct JumpIfNullOrUndefined;
 impl Operation for JumpIfNullOrUndefined {
     const NAME: &'static str = "JumpIfNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNullOrUndefined";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
@@ -116,6 +121,7 @@ pub(crate) struct JumpTable;
 impl Operation for JumpTable {
     const NAME: &'static str = "JumpTable";
     const INSTRUCTION: &'static str = "INST - JumpTable";
+    const COST: u8 = 5;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let default = context.vm.read::<u32>();

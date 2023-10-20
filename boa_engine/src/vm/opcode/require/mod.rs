@@ -13,6 +13,7 @@ pub(crate) struct RequireObjectCoercible;
 impl Operation for RequireObjectCoercible {
     const NAME: &'static str = "RequireObjectCoercible";
     const INSTRUCTION: &'static str = "INST - RequireObjectCoercible";
+    const COST: u8 = 1;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();

@@ -30,6 +30,7 @@ impl DeletePropertyByName {
 impl Operation for DeletePropertyByName {
     const NAME: &'static str = "DeletePropertyByName";
     const INSTRUCTION: &'static str = "INST - DeletePropertyByName";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
@@ -57,6 +58,7 @@ pub(crate) struct DeletePropertyByValue;
 impl Operation for DeletePropertyByValue {
     const NAME: &'static str = "DeletePropertyByValue";
     const INSTRUCTION: &'static str = "INST - DeletePropertyByValue";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let key_value = context.vm.pop();
@@ -97,6 +99,7 @@ impl DeleteName {
 impl Operation for DeleteName {
     const NAME: &'static str = "DeleteName";
     const INSTRUCTION: &'static str = "INST - DeleteName";
+    const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
@@ -124,6 +127,7 @@ pub(crate) struct DeleteSuperThrow;
 impl Operation for DeleteSuperThrow {
     const NAME: &'static str = "DeleteSuperThrow";
     const INSTRUCTION: &'static str = "INST - DeleteSuperThrow";
+    const COST: u8 = 2;
 
     fn execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
         Err(JsNativeError::reference()
