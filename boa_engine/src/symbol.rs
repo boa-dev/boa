@@ -126,7 +126,7 @@ impl WellKnown {
 #[derive(Debug, Clone)]
 struct Inner {
     hash: u64,
-    // must be a `Vec`, since this needs to be shareable between many threads.
+    // must be a `Box`, since this needs to be shareable between many threads.
     description: Option<Box<[u16]>>,
 }
 
