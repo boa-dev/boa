@@ -1157,6 +1157,22 @@ impl Array {
             // b. Return undefined.
             return Ok(JsValue::undefined());
         }
+
+        // Small optimization for arrays using dense properties
+        // TODO: this optimization could be generalized to many other objects with
+        // slot-based dense property maps.
+        if o.is_array() {
+            let mut o_borrow = o.borrow_mut();
+            if let Some(dense) = o_borrow.properties_mut().dense_indexed_properties_mut() {
+                if len <= dense.len() as u64 {
+                    let v = dense.remove(0);
+                    drop(o_borrow);
+                    Self::set_length(&o, len - 1, context)?;
+                    return Ok(v);
+                }
+            }
+        }
+
         // 4. Let first be ? Get(O, "0").
         let first = o.get(0, context)?;
         // 5. Let k be 1.

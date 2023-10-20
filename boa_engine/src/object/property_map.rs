@@ -55,7 +55,7 @@ enum IndexedProperties {
     /// are not data descriptors with with a value field, writable field set to `true`, configurable field set to `true`, enumerable field set to `true`.
     ///
     /// This method uses more space, since we also have to store the property descriptors, not just the value.
-    /// It is also slower because we need to to a hash lookup.
+    /// It is also slower because we need to do a hash lookup.
     Sparse(Box<FxHashMap<u32, PropertyDescriptor>>),
 }
 
@@ -150,7 +150,7 @@ impl IndexedProperties {
         replaced
     }
 
-    /// Inserts a property descriptor with the specified key.
+    /// Removes a property descriptor with the specified key.
     fn remove(&mut self, key: u32) -> bool {
         let vec = match self {
             Self::Sparse(map) => {
