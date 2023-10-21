@@ -77,6 +77,7 @@ fn join() {
         TestAction::assert_eq("[].join('.')", js_string!()),
         TestAction::assert_eq("['a'].join('.')", js_string!("a")),
         TestAction::assert_eq("['a', 'b', 'c'].join('.')", js_string!("a.b.c")),
+        TestAction::assert_eq("let a=[];a[0]=a;a[1]=a;a[2]=a;a.join()", js_string!(",,")),
     ]);
 }
 
