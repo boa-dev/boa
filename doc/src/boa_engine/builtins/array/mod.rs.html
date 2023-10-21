@@ -4123,8 +4123,8 @@
             }
             <span class="comment">// b. Let element be ? Get(O, ! ToString(𝔽(k))).
             </span><span class="kw">let </span>element = o.get(k, context)<span class="question-mark">?</span>;
-            <span class="comment">// c. If element is undefined or null, let next be the empty String; otherwise, let next be ? ToString(element).
-            </span><span class="kw">let </span>next = <span class="kw">if </span>element.is_null_or_undefined() {
+            <span class="comment">// c. If element is undefined, null or the array itself, let next be the empty String; otherwise, let next be ? ToString(element).
+            </span><span class="kw">let </span>next = <span class="kw">if </span>element.is_null_or_undefined() || <span class="kw-2">&amp;</span>element == this {
                 <span class="macro">js_string!</span>()
             } <span class="kw">else </span>{
                 element.to_string(context)<span class="question-mark">?
