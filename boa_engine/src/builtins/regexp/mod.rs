@@ -295,6 +295,10 @@ impl RegExp {
     }
 
     /// Compiles a `RegExp` from the provided pattern and flags.
+    ///
+    /// Equivalent to the beginning of [`RegExpInitialize ( obj, pattern, flags )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize
     fn compile_native_regexp(
         pattern: &JsValue,
         flags: &JsValue,
@@ -324,19 +328,8 @@ impl RegExp {
             Ok(result) => result,
         };
 
-        // 10. If u is true, then
-        //     a. Let patternText be StringToCodePoints(P).
-        // 11. Else,
-        //     a. Let patternText be the result of interpreting each of P's 16-bit elements as a Unicode BMP code point. UTF-16 decoding is not applied to the elements.
-        // 12. Let parseResult be ParsePattern(patternText, u).
-        // 13. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
-        // 14. Assert: parseResult is a Pattern Parse Node.
-        // 15. Set obj.[[OriginalSource]] to P.
-        // 16. Set obj.[[OriginalFlags]] to F.
-        // 17. Let capturingGroupsCount be CountLeftCapturingParensWithin(parseResult).
-        // 18. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m, [[DotAll]]: s, [[Unicode]]: u, [[CapturingGroupsCount]]: capturingGroupsCount }.
-        // 19. Set obj.[[RegExpRecord]] to rer.
-        // 20. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
+        // 13. Let parseResult be ParsePattern(patternText, u, v).
+        // 14. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
         let matcher =
             Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags))
                 .map_err(|error| {
@@ -344,6 +337,13 @@ impl RegExp {
                         .with_message(format!("failed to create matcher: {}", error.text))
                 })?;
 
+        // 15. Assert: parseResult is a Pattern Parse Node.
+        // 16. Set obj.[[OriginalSource]] to P.
+        // 17. Set obj.[[OriginalFlags]] to F.
+        // 18. Let capturingGroupsCount be CountLeftCapturingParensWithin(parseResult).
+        // 19. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m, [[DotAll]]: s, [[Unicode]]: u, [[UnicodeSets]]: v, [[CapturingGroupsCount]]: capturingGroupsCount }.
+        // 20. Set obj.[[RegExpRecord]] to rer.
+        // 21. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
         Ok(RegExp {
             matcher,
             flags,
@@ -352,7 +352,7 @@ impl RegExp {
         })
     }
 
-    /// `22.2.3.2.2 RegExpInitialize ( obj, pattern, flags )`
+    /// `RegExpInitialize ( obj, pattern, flags )`
     ///
     /// If prototype is `None`, initializes the prototype to `%RegExp%.prototype`.
     ///
@@ -366,10 +366,11 @@ impl RegExp {
         flags: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        // Has the steps  of `RegExpInitialize`.
         let regexp = Self::compile_native_regexp(pattern, flags, context)?;
         let data = ObjectData::regexp(regexp);
 
-        // 16. Perform ? Set(obj, "lastIndex", +0𝔽, true).
+        // 22. Perform ? Set(obj, "lastIndex", +0𝔽, true).
         let obj = if let Some(prototype) = prototype {
             let mut template = context
                 .intrinsics()
@@ -386,7 +387,7 @@ impl RegExp {
                 .create(data, vec![0.into()])
         };
 
-        // 16. Return obj.
+        // 23. Return obj.
         Ok(obj.into())
     }
 
