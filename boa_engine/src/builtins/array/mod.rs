@@ -82,6 +82,10 @@ impl IntrinsicObject for Array {
         let unscopables_object = Self::unscopables_object();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            // Static Methods
+            .static_method(Self::from, js_string!("from"), 1)
+            .static_method(Self::is_array, js_string!("isArray"), 1)
+            .static_method(Self::of, js_string!("of"), 0)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -92,6 +96,47 @@ impl IntrinsicObject for Array {
                 utf16!("length"),
                 0,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+            )
+            .method(Self::at, js_string!("at"), 1)
+            .method(Self::concat, js_string!("concat"), 1)
+            .method(Self::copy_within, js_string!("copyWithin"), 2)
+            .method(Self::entries, js_string!("entries"), 0)
+            .method(Self::every, js_string!("every"), 1)
+            .method(Self::fill, js_string!("fill"), 1)
+            .method(Self::filter, js_string!("filter"), 1)
+            .method(Self::find, js_string!("find"), 1)
+            .method(Self::find_index, js_string!("findIndex"), 1)
+            .method(Self::find_last, js_string!("findLast"), 1)
+            .method(Self::find_last_index, js_string!("findLastIndex"), 1)
+            .method(Self::flat, js_string!("flat"), 0)
+            .method(Self::flat_map, js_string!("flatMap"), 1)
+            .method(Self::for_each, js_string!("forEach"), 1)
+            .method(Self::includes_value, js_string!("includes"), 1)
+            .method(Self::index_of, js_string!("indexOf"), 1)
+            .method(Self::join, js_string!("join"), 1)
+            .method(Self::keys, js_string!("keys"), 0)
+            .method(Self::last_index_of, js_string!("lastIndexOf"), 1)
+            .method(Self::map, js_string!("map"), 1)
+            .method(Self::pop, js_string!("pop"), 0)
+            .method(Self::push, js_string!("push"), 1)
+            .method(Self::reduce, js_string!("reduce"), 1)
+            .method(Self::reduce_right, js_string!("reduceRight"), 1)
+            .method(Self::reverse, js_string!("reverse"), 0)
+            .method(Self::shift, js_string!("shift"), 0)
+            .method(Self::slice, js_string!("slice"), 2)
+            .method(Self::some, js_string!("some"), 1)
+            .method(Self::sort, js_string!("sort"), 1)
+            .method(Self::splice, js_string!("splice"), 2)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
+            .method(Self::to_reversed, js_string!("toReversed"), 0)
+            .method(Self::to_sorted, js_string!("toSorted"), 1)
+            .method(Self::to_spliced, js_string!("toSpliced"), 2)
+            .method(Self::unshift, js_string!("unshift"), 1)
+            .method(Self::with, js_string!("with"), 2)
+            .property(
+                utf16!("toString"),
+                to_string_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
                 utf16!("values"),
@@ -108,47 +153,6 @@ impl IntrinsicObject for Array {
                 unscopables_object,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::at, js_string!("at"), 1)
-            .method(Self::concat, js_string!("concat"), 1)
-            .method(Self::push, js_string!("push"), 1)
-            .method(Self::index_of, js_string!("indexOf"), 1)
-            .method(Self::last_index_of, js_string!("lastIndexOf"), 1)
-            .method(Self::includes_value, js_string!("includes"), 1)
-            .method(Self::map, js_string!("map"), 1)
-            .method(Self::fill, js_string!("fill"), 1)
-            .method(Self::for_each, js_string!("forEach"), 1)
-            .method(Self::filter, js_string!("filter"), 1)
-            .method(Self::pop, js_string!("pop"), 0)
-            .method(Self::join, js_string!("join"), 1)
-            .property(
-                utf16!("toString"),
-                to_string_function,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .method(Self::reverse, js_string!("reverse"), 0)
-            .method(Self::shift, js_string!("shift"), 0)
-            .method(Self::unshift, js_string!("unshift"), 1)
-            .method(Self::every, js_string!("every"), 1)
-            .method(Self::find, js_string!("find"), 1)
-            .method(Self::find_index, js_string!("findIndex"), 1)
-            .method(Self::find_last, js_string!("findLast"), 1)
-            .method(Self::find_last_index, js_string!("findLastIndex"), 1)
-            .method(Self::flat, js_string!("flat"), 0)
-            .method(Self::flat_map, js_string!("flatMap"), 1)
-            .method(Self::slice, js_string!("slice"), 2)
-            .method(Self::some, js_string!("some"), 1)
-            .method(Self::sort, js_string!("sort"), 1)
-            .method(Self::splice, js_string!("splice"), 2)
-            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
-            .method(Self::reduce, js_string!("reduce"), 1)
-            .method(Self::reduce_right, js_string!("reduceRight"), 1)
-            .method(Self::keys, js_string!("keys"), 0)
-            .method(Self::entries, js_string!("entries"), 0)
-            .method(Self::copy_within, js_string!("copyWithin"), 2)
-            // Static Methods
-            .static_method(Self::from, js_string!("from"), 1)
-            .static_method(Self::is_array, js_string!("isArray"), 1)
-            .static_method(Self::of, js_string!("of"), 0)
             .build();
     }
 
@@ -1130,6 +1134,46 @@ impl Array {
         Ok(o.into())
     }
 
+    /// [`Array.prototype.toReversed()`][spec]
+    ///
+    /// Reverses this array, returning the result into a copy of the array.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.toreversed
+    pub(crate) fn to_reversed(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        // 3. Let A be ? ArrayCreate(len).
+        let a = Array::array_create(len, None, context)?;
+
+        // 4. Let k be 0.
+        // 5. Repeat, while k < len,
+        for i in 0..len {
+            //     a. Let from be ! ToString(𝔽(len - k - 1)).
+            let from = len - i - 1;
+
+            //     b. Let Pk be ! ToString(𝔽(k)).
+            //     c. Let fromValue be ? Get(O, from).
+            let from_value = o.get(from, context)?;
+
+            //     d. Perform ! CreateDataPropertyOrThrow(A, Pk, fromValue).
+            a.create_data_property_or_throw(i, from_value, context)
+                .expect("cannot fail per the spec");
+
+            //     e. Set k to k + 1.
+        }
+
+        // 6. Return A.
+        Ok(a.into())
+    }
+
     /// `Array.prototype.shift()`
     ///
     /// The first element of the array is removed from the array and returned.
@@ -1938,13 +1982,13 @@ impl Array {
         // 4. If relativeStart is -∞, let k be 0.
         // 5. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
         // 6. Else, let k be min(relativeStart, len).
-        let mut k = Self::get_relative_start(context, args.get(1), len)?;
+        let mut k = Self::get_relative_start(context, args.get_or_undefined(1), len)?;
 
         // 7. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
         // 8. If relativeEnd is -∞, let final be 0.
         // 9. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
         // 10. Else, let final be min(relativeEnd, len).
-        let final_ = Self::get_relative_end(context, args.get(2), len)?;
+        let final_ = Self::get_relative_end(context, args.get_or_undefined(2), len)?;
 
         let value = args.get_or_undefined(0);
 
@@ -2063,13 +2107,13 @@ impl Array {
         // 4. If relativeStart is -∞, let k be 0.
         // 5. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
         // 6. Else, let k be min(relativeStart, len).
-        let mut k = Self::get_relative_start(context, args.get(0), len)?;
+        let mut k = Self::get_relative_start(context, args.get_or_undefined(0), len)?;
 
         // 7. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
         // 8. If relativeEnd is -∞, let final be 0.
         // 9. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
         // 10. Else, let final be min(relativeEnd, len).
-        let final_ = Self::get_relative_end(context, args.get(1), len)?;
+        let final_ = Self::get_relative_end(context, args.get_or_undefined(1), len)?;
 
         // 11. Let count be max(final - k, 0).
         let count = final_.saturating_sub(k);
@@ -2171,6 +2215,43 @@ impl Array {
         Ok(js_string!(r).into())
     }
 
+    /// Gets the delete count of a splice operation.
+    fn get_delete_count(
+        len: u64,
+        actual_start: u64,
+        start: Option<&JsValue>,
+        delete_count: Option<&JsValue>,
+        context: &mut Context<'_>,
+    ) -> JsResult<u64> {
+        // 8. If start is not present, then
+        let actual_delete_count = if start.is_none() {
+            // a. Let actualDeleteCount be 0.
+            0
+        }
+        // 10. Else,
+        else if let Some(delete_count) = delete_count {
+            // a. Let dc be ? ToIntegerOrInfinity(deleteCount).
+            let dc = delete_count.to_integer_or_infinity(context)?;
+
+            // b. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.
+            let max = len - actual_start;
+            match dc {
+                IntegerOrInfinity::Integer(i) => u64::try_from(i)
+                    .unwrap_or_default()
+                    .clamp(0, len - actual_start),
+                IntegerOrInfinity::PositiveInfinity => max,
+                IntegerOrInfinity::NegativeInfinity => 0,
+            }
+        }
+        // 9. Else if deleteCount is not present, then
+        else {
+            // a. Let actualDeleteCount be len - actualStart.
+            len - actual_start
+        };
+
+        Ok(actual_delete_count)
+    }
+
     /// `Array.prototype.splice ( start, [deleteCount[, ...items]] )`
     ///
     /// Splices an array by following
@@ -2188,109 +2269,85 @@ impl Array {
 
         let start = args.get(0);
         let delete_count = args.get(1);
-        let items = args.get(2..).unwrap_or(&[]);
+        let items = args.get(2..).unwrap_or_default();
+
         // 3. Let relativeStart be ? ToIntegerOrInfinity(start).
-        // 4. If relativeStart is -∞, let actualStart be 0.
+        // 4. If relativeStart = -∞, let actualStart be 0.
         // 5. Else if relativeStart < 0, let actualStart be max(len + relativeStart, 0).
         // 6. Else, let actualStart be min(relativeStart, len).
-        let actual_start = Self::get_relative_start(context, start, len)?;
-        // 7. If start is not present, then
-        let insert_count = if start.is_none() || delete_count.is_none() {
-            // 7a. Let insertCount be 0.
-            // 8. Else if deleteCount is not present, then
-            // a. Let insertCount be 0.
-            0
-        // 9. Else,
-        } else {
-            // 9a. Let insertCount be the number of elements in items.
-            items.len() as u64
-        };
-        let actual_delete_count = if start.is_none() {
-            // 7b. Let actualDeleteCount be 0.
-            0
-            // 8. Else if deleteCount is not present, then
-        } else if delete_count.is_none() {
-            // 8b. Let actualDeleteCount be len - actualStart.
-            len - actual_start
-        // 9. Else,
-        } else {
-            // b. Let dc be ? ToIntegerOrInfinity(deleteCount).
-            let dc = delete_count
-                .cloned()
-                .unwrap_or_default()
-                .to_integer_or_infinity(context)?;
-            // c. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.
-            let max = len - actual_start;
-            match dc {
-                IntegerOrInfinity::Integer(i) => u64::try_from(i).unwrap_or_default().clamp(0, max),
-                IntegerOrInfinity::PositiveInfinity => max,
-                IntegerOrInfinity::NegativeInfinity => 0,
-            }
-        };
+        let actual_start =
+            Self::get_relative_start(context, start.unwrap_or(&JsValue::undefined()), len)?;
 
-        // 10. If len + insertCount - actualDeleteCount > 2^53 - 1, throw a TypeError exception.
-        if len + insert_count - actual_delete_count > Number::MAX_SAFE_INTEGER as u64 {
+        // 7. Let itemCount be the number of elements in items.
+        let item_count = items.len() as u64;
+
+        let actual_delete_count =
+            Self::get_delete_count(len, actual_start, start, delete_count, context)?;
+
+        // If len + itemCount - actualDeleteCount > 2**53 - 1, throw a TypeError exception.
+        if len + item_count - actual_delete_count > Number::MAX_SAFE_INTEGER as u64 {
             return Err(JsNativeError::typ()
                 .with_message("Target splice exceeded max safe integer value")
                 .into());
         }
 
-        // 11. Let A be ? ArraySpeciesCreate(O, actualDeleteCount).
+        // 12. Let A be ? ArraySpeciesCreate(O, actualDeleteCount).
         let arr = Self::array_species_create(&o, actual_delete_count, context)?;
-        // 12. Let k be 0.
-        // 13. Repeat, while k < actualDeleteCount,
+
+        // 13. Let k be 0.
+        // 14. Repeat, while k < actualDeleteCount,
         for k in 0..actual_delete_count {
             // a. Let from be ! ToString(𝔽(actualStart + k)).
-            // b. Let fromPresent be ? HasProperty(O, from).
-            let from_present = o.has_property(actual_start + k, context)?;
-            // c. If fromPresent is true, then
-            if from_present {
+            // b. If ? HasProperty(O, from) is true, then
+            if o.has_property(actual_start + k, context)? {
                 // i. Let fromValue be ? Get(O, from).
                 let from_value = o.get(actual_start + k, context)?;
+
                 // ii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(k)), fromValue).
                 arr.create_data_property_or_throw(k, from_value, context)?;
             }
-            // d. Set k to k + 1.
+            // c. Set k to k + 1.
         }
 
-        // 14. Perform ? Set(A, "length", 𝔽(actualDeleteCount), true).
+        // 15. Perform ? Set(A, "length", 𝔽(actualDeleteCount), true).
         Self::set_length(&arr, actual_delete_count, context)?;
 
-        // 15. Let itemCount be the number of elements in items.
         let item_count = items.len() as u64;
 
         match item_count.cmp(&actual_delete_count) {
+            Ordering::Equal => {}
             // 16. If itemCount < actualDeleteCount, then
             Ordering::Less => {
-                //     a. Set k to actualStart.
-                //     b. Repeat, while k < (len - actualDeleteCount),
+                // a. Set k to actualStart.
+                // b. Repeat, while k < (len - actualDeleteCount),
                 for k in actual_start..(len - actual_delete_count) {
                     // i. Let from be ! ToString(𝔽(k + actualDeleteCount)).
                     let from = k + actual_delete_count;
+
                     // ii. Let to be ! ToString(𝔽(k + itemCount)).
                     let to = k + item_count;
-                    // iii. Let fromPresent be ? HasProperty(O, from).
-                    let from_present = o.has_property(from, context)?;
-                    // iv. If fromPresent is true, then
-                    if from_present {
+
+                    // iii. If ? HasProperty(O, from) is true, then
+                    if o.has_property(from, context)? {
                         // 1. Let fromValue be ? Get(O, from).
                         let from_value = o.get(from, context)?;
+
                         // 2. Perform ? Set(O, to, fromValue, true).
                         o.set(to, from_value, true, context)?;
-                    // v. Else,
                     } else {
-                        // 1. Assert: fromPresent is false.
-                        debug_assert!(!from_present);
-                        // 2. Perform ? DeletePropertyOrThrow(O, to).
+                        // iv. Else,
+                        //     1. Perform ? DeletePropertyOrThrow(O, to).
                         o.delete_property_or_throw(to, context)?;
                     }
-                    // vi. Set k to k + 1.
+                    // v. Set k to k + 1.
                 }
+
                 // c. Set k to len.
                 // d. Repeat, while k > (len - actualDeleteCount + itemCount),
                 for k in ((len - actual_delete_count + item_count)..len).rev() {
                     // i. Perform ? DeletePropertyOrThrow(O, ! ToString(𝔽(k - 1))).
                     o.delete_property_or_throw(k, context)?;
+
                     // ii. Set k to k - 1.
                 }
             }
@@ -2301,41 +2358,34 @@ impl Array {
                 for k in (actual_start..len - actual_delete_count).rev() {
                     // i. Let from be ! ToString(𝔽(k + actualDeleteCount - 1)).
                     let from = k + actual_delete_count;
+
                     // ii. Let to be ! ToString(𝔽(k + itemCount - 1)).
                     let to = k + item_count;
-                    // iii. Let fromPresent be ? HasProperty(O, from).
-                    let from_present = o.has_property(from, context)?;
-                    // iv. If fromPresent is true, then
-                    if from_present {
+
+                    // iii. If ? HasProperty(O, from) is true, then
+                    if o.has_property(from, context)? {
                         // 1. Let fromValue be ? Get(O, from).
                         let from_value = o.get(from, context)?;
+
                         // 2. Perform ? Set(O, to, fromValue, true).
                         o.set(to, from_value, true, context)?;
-                    // v. Else,
-                    } else {
-                        // 1. Assert: fromPresent is false.
-                        debug_assert!(!from_present);
-                        // 2. Perform ? DeletePropertyOrThrow(O, to).
+                    }
+                    // iv. Else,
+                    else {
+                        // 1. Perform ? DeletePropertyOrThrow(O, to).
                         o.delete_property_or_throw(to, context)?;
                     }
-                    // vi. Set k to k - 1.
+                    // v. Set k to k - 1.
                 }
             }
-            Ordering::Equal => {}
-        };
+        }
 
         // 18. Set k to actualStart.
         // 19. For each element E of items, do
-        if item_count > 0 {
-            for (k, item) in items
-                .iter()
-                .enumerate()
-                .map(|(i, val)| (i as u64 + actual_start, val))
-            {
-                // a. Perform ? Set(O, ! ToString(𝔽(k)), E, true).
-                o.set(k, item.clone(), true, context)?;
-                // b. Set k to k + 1.
-            }
+        for (i, item) in items.iter().enumerate() {
+            //     a. Perform ? Set(O, ! ToString(𝔽(k)), E, true).
+            //     b. Set k to k + 1.
+            o.set(actual_start + i as u64, item.clone(), true, context)?;
         }
 
         // 20. Perform ? Set(O, "length", 𝔽(len - actualDeleteCount + itemCount), true).
@@ -2343,6 +2393,103 @@ impl Array {
 
         // 21. Return A.
         Ok(JsValue::from(arr))
+    }
+
+    /// [`Array.prototype.toSpliced ( start, skipCount, ...items )`][spec]
+    ///
+    /// Splices the target array, returning the result as a new array.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.tospliced
+    fn to_spliced(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        let start = args.get(0);
+        let skip_count = args.get(1);
+        let items = args.get(2..).unwrap_or_default();
+
+        // 3. Let relativeStart be ? ToIntegerOrInfinity(start).
+        // 4. If relativeStart is -∞, let actualStart be 0.
+        // 5. Else if relativeStart < 0, let actualStart be max(len + relativeStart, 0).
+        // 6. Else, let actualStart be min(relativeStart, len).
+        let actual_start =
+            Self::get_relative_start(context, start.unwrap_or(&JsValue::undefined()), len)?;
+
+        // 7. Let insertCount be the number of elements in items.
+        let insert_count = items.len() as u64;
+
+        let actual_skip_count =
+            Self::get_delete_count(len, actual_start, start, skip_count, context)?;
+
+        // 11. Let newLen be len + insertCount - actualSkipCount.
+        let new_len = len + insert_count - actual_skip_count;
+
+        // 12. If newLen > 2**53 - 1, throw a TypeError exception.
+        if new_len > Number::MAX_SAFE_INTEGER as u64 {
+            return Err(JsNativeError::typ()
+                .with_message("Target splice exceeded max safe integer value")
+                .into());
+        }
+
+        // 13. Let A be ? ArrayCreate(newLen).
+        let arr = Array::array_create(new_len, None, context)?;
+
+        // 14. Let i be 0.
+        let mut i = 0;
+        // 16. Repeat, while i < actualStart,
+        while i < actual_start {
+            //     a. Let Pi be ! ToString(𝔽(i)).
+            //     b. Let iValue be ? Get(O, Pi).
+            let value = o.get(i, context)?;
+
+            //     c. Perform ! CreateDataPropertyOrThrow(A, Pi, iValue).
+            arr.create_data_property_or_throw(i, value, context)
+                .expect("cannot fail for a newly created array");
+
+            //     d. Set i to i + 1.
+            i += 1;
+        }
+
+        // 17. For each element E of items, do
+        for item in items.iter().cloned() {
+            //     a. Let Pi be ! ToString(𝔽(i)).
+            //     b. Perform ! CreateDataPropertyOrThrow(A, Pi, E).
+            arr.create_data_property_or_throw(i, item, context)
+                .expect("cannot fail for a newly created array");
+
+            //     c. Set i to i + 1.
+            i += 1;
+        }
+
+        // 15. Let r be actualStart + actualSkipCount.
+        let mut r = actual_start + actual_skip_count;
+
+        // 18. Repeat, while i < newLen,
+        while i < new_len {
+            //     a. Let Pi be ! ToString(𝔽(i)).
+            //     b. Let from be ! ToString(𝔽(r)).
+            //     c. Let fromValue be ? Get(O, from).
+            let from_value = o.get(r, context)?;
+
+            //     d. Perform ! CreateDataPropertyOrThrow(A, Pi, fromValue).
+            arr.create_data_property_or_throw(i, from_value, context)
+                .expect("cannot fail for a newly created array");
+
+            //     e. Set i to i + 1.
+            i += 1;
+            //     f. Set r to r + 1.
+            r += 1;
+        }
+
+        // 19. Return A.
+        Ok(arr.into())
     }
 
     /// `Array.prototype.filter( callback, [ thisArg ] )`
@@ -2462,6 +2609,65 @@ impl Array {
         Ok(JsValue::new(false))
     }
 
+    /// [`SortIndexedProperties ( obj, len, SortCompare, holes )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-sortindexedproperties
+    pub(crate) fn sort_indexed_properties<F>(
+        obj: &JsObject,
+        len: u64,
+        sort_compare: F,
+        skip_holes: bool,
+        context: &mut Context<'_>,
+    ) -> JsResult<Vec<JsValue>>
+    where
+        F: Fn(&JsValue, &JsValue, &mut Context<'_>) -> JsResult<Ordering>,
+    {
+        // 1. Let items be a new empty List.
+        // doesn't matter if it clamps since it's just a best-effort optimization
+        let mut items = Vec::with_capacity(len as usize);
+
+        // 2. Let k be 0.
+        // 3. Repeat, while k < len,
+        for i in 0..len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. If holes is skip-holes, then
+            let read = if skip_holes {
+                // i. Let kRead be ? HasProperty(obj, Pk).
+                obj.has_property(i, context)?
+            }
+            // c. Else,
+            else {
+                // i. Assert: holes is read-through-holes.
+                // ii. Let kRead be true.
+                true
+            };
+
+            // d. If kRead is true, then
+            if read {
+                // i. Let kValue be ? Get(obj, Pk).
+                // ii. Append kValue to items.
+                items.push(obj.get(i, context)?);
+            }
+            // e. Set k to k + 1.
+        }
+        // 4. Sort items using an implementation-defined sequence of calls to SortCompare. If any such call returns an abrupt completion, stop before performing any further calls to SortCompare and return that Completion Record.
+        let mut sort_err = Ok(());
+        items.sort_by(|x, y| {
+            if sort_err.is_ok() {
+                sort_compare(x, y, context).unwrap_or_else(|err| {
+                    sort_err = Err(err);
+                    Ordering::Equal
+                })
+            } else {
+                Ordering::Equal
+            }
+        });
+        sort_err?;
+
+        // 5. Return items.
+        Ok(items)
+    }
+
     /// Array.prototype.sort ( comparefn )
     ///
     /// The sort method sorts the elements of an array in place and returns the sorted array.
@@ -2490,111 +2696,100 @@ impl Array {
             }
         };
 
-        // Abstract method `SortCompare`.
-        //
-        // More information:
-        //  - [ECMAScript reference][spec]
-        //
-        // [spec]: https://tc39.es/ecma262/#sec-sortcompare
-        let sort_compare =
-            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<Ordering> {
-                match (x.is_undefined(), y.is_undefined()) {
-                    // 1. If x and y are both undefined, return +0𝔽.
-                    (true, true) => return Ok(Ordering::Equal),
-                    // 2. If x is undefined, return 1𝔽.
-                    (true, false) => return Ok(Ordering::Greater),
-                    // 3. If y is undefined, return -1𝔽.
-                    (false, true) => return Ok(Ordering::Less),
-                    _ => {}
-                }
-
-                // 4. If comparefn is not undefined, then
-                if let Some(cmp) = comparefn {
-                    let args = [x.clone(), y.clone()];
-                    // a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
-                    let v = cmp
-                        .call(&JsValue::Undefined, &args, context)?
-                        .to_number(context)?;
-                    // b. If v is NaN, return +0𝔽.
-                    // c. Return v.
-                    return Ok(v.partial_cmp(&0.0).unwrap_or(Ordering::Equal));
-                }
-                // 5. Let xString be ? ToString(x).
-                // 6. Let yString be ? ToString(y).
-                let x_str = x.to_string(context)?;
-                let y_str = y.to_string(context)?;
-
-                // 7. Let xSmaller be IsLessThan(xString, yString, true).
-                // 8. If xSmaller is true, return -1𝔽.
-                // 9. Let ySmaller be IsLessThan(yString, xString, true).
-                // 10. If ySmaller is true, return 1𝔽.
-                // 11. Return +0𝔽.
-
-                // NOTE: skipped IsLessThan because it just makes a lexicographic comparison
-                // when x and y are strings
-                Ok(x_str.cmp(&y_str))
-            };
-
         // 2. Let obj be ? ToObject(this value).
         let obj = this.to_object(context)?;
 
         // 3. Let len be ? LengthOfArrayLike(obj).
-        let length = obj.length_of_array_like(context)?;
+        let len = obj.length_of_array_like(context)?;
 
-        // 4. Let items be a new empty List.
-        let mut items = Vec::with_capacity(length as usize);
+        // 4. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
+        let sort_compare =
+            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<Ordering> {
+                // a. Return ? CompareArrayElements(x, y, comparefn).
+                compare_array_elements(x, y, comparefn, context)
+            };
 
-        // 5. Let k be 0.
-        // 6. Repeat, while k < len,
-        for k in 0..length {
-            // a. Let Pk be ! ToString(𝔽(k)).
-            // b. Let kPresent be ? HasProperty(obj, Pk).
-            // c. If kPresent is true, then
-            if obj.has_property(k, context)? {
-                // i. Let kValue be ? Get(obj, Pk).
-                let kval = obj.get(k, context)?;
-                // ii. Append kValue to items.
-                items.push(kval);
-            }
-            // d. Set k to k + 1.
-        }
+        // 5. Let sortedList be ? SortIndexedProperties(obj, len, SortCompare, skip-holes).
+        let sorted = Self::sort_indexed_properties(&obj, len, sort_compare, true, context)?;
 
-        // 7. Let itemCount be the number of elements in items.
-        let item_count = items.len() as u64;
+        let sorted_len = sorted.len() as u64;
 
-        // 8. Sort items using an implementation-defined sequence of calls to SortCompare.
-        // If any such call returns an abrupt completion, stop before performing any further
-        // calls to SortCompare or steps in this algorithm and return that completion.
-        let mut sort_err = Ok(());
-        items.sort_by(|x, y| {
-            if sort_err.is_ok() {
-                sort_compare(x, y, context).unwrap_or_else(|err| {
-                    sort_err = Err(err);
-                    Ordering::Equal
-                })
-            } else {
-                Ordering::Equal
-            }
-        });
-        sort_err?;
-
-        // 9. Let j be 0.
-        // 10. Repeat, while j < itemCount,
-        for (j, item) in items.into_iter().enumerate() {
-            // a. Perform ? Set(obj, ! ToString(𝔽(j)), items[j], true).
+        // 6. Let itemCount be the number of elements in sortedList.
+        // 7. Let j be 0.
+        // 8. Repeat, while j < itemCount,
+        for (j, item) in sorted.into_iter().enumerate() {
+            // a. Perform ? Set(obj, ! ToString(𝔽(j)), sortedList[j], true).
             obj.set(j, item, true, context)?;
+
             // b. Set j to j + 1.
         }
 
-        // 11. Repeat, while j < len,
-        for j in item_count..length {
+        // 9. NOTE: The call to SortIndexedProperties in step 5 uses skip-holes. The remaining indices
+        //    are deleted to preserve the number of holes that were detected and excluded from the sort.
+        // 10. Repeat, while j < len,
+        for j in sorted_len..len {
             // a. Perform ? DeletePropertyOrThrow(obj, ! ToString(𝔽(j))).
             obj.delete_property_or_throw(j, context)?;
+
             // b. Set j to j + 1.
         }
 
-        // 12. Return obj.
+        // 11. Return obj.
         Ok(obj.into())
+    }
+
+    /// [`Array.prototype.toSorted ( comparefn )`][spec]
+    ///
+    /// Orders the target array, returning the result in a new array.
+    ///
+    /// [spec]: https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.tosorted
+    pub(crate) fn to_sorted(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
+        let comparefn = match args.get_or_undefined(0) {
+            JsValue::Object(ref obj) if obj.is_callable() => Some(obj),
+            JsValue::Undefined => None,
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("The comparison function must be either a function or undefined")
+                    .into())
+            }
+        };
+
+        // 2. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 3. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        // 4. Let A be ? ArrayCreate(len).
+        let arr = Array::array_create(len, None, context)?;
+
+        // 5. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
+        let sort_compare =
+            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<Ordering> {
+                // a. Return ? CompareArrayElements(x, y, comparefn).
+                compare_array_elements(x, y, comparefn, context)
+            };
+
+        // 6. Let sortedList be ? SortIndexedProperties(O, len, SortCompare, read-through-holes).
+        let sorted = Self::sort_indexed_properties(&o, len, sort_compare, false, context)?;
+
+        // 7. Let j be 0.
+        // 8. Repeat, while j < len,
+        for (i, item) in sorted.into_iter().enumerate() {
+            //     a. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(j)), sortedList[j]).
+            arr.create_data_property_or_throw(i, item, context)
+                .expect("cannot fail for a newly created array");
+
+            //     b. Set j to j + 1.
+        }
+
+        // 9. Return A.
+        Ok(arr.into())
     }
 
     /// `Array.prototype.reduce( callbackFn [ , initialValue ] )`
@@ -2811,19 +3006,19 @@ impl Array {
         // 4. If relativeTarget is -∞, let to be 0.
         // 5. Else if relativeTarget < 0, let to be max(len + relativeTarget, 0).
         // 6. Else, let to be min(relativeTarget, len).
-        let mut to = Self::get_relative_start(context, args.get(0), len)? as i64;
+        let mut to = Self::get_relative_start(context, args.get_or_undefined(0), len)? as i64;
 
         // 7. Let relativeStart be ? ToIntegerOrInfinity(start).
         // 8. If relativeStart is -∞, let from be 0.
         // 9. Else if relativeStart < 0, let from be max(len + relativeStart, 0).
         // 10. Else, let from be min(relativeStart, len).
-        let mut from = Self::get_relative_start(context, args.get(1), len)? as i64;
+        let mut from = Self::get_relative_start(context, args.get_or_undefined(1), len)? as i64;
 
         // 11. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
         // 12. If relativeEnd is -∞, let final be 0.
         // 13. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
         // 14. Else, let final be min(relativeEnd, len).
-        let final_ = Self::get_relative_end(context, args.get(2), len)? as i64;
+        let final_ = Self::get_relative_end(context, args.get_or_undefined(2), len)? as i64;
 
         // 15. Let count be min(final - from, len - to).
         let mut count = min(final_ - from, len as i64 - to);
@@ -2954,17 +3149,79 @@ impl Array {
         ))
     }
 
+    /// [`Array.prototype.with ( index, value )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.with
+    pub(crate) fn with(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        // 3. Let relativeIndex be ? ToIntegerOrInfinity(index).
+        let IntegerOrInfinity::Integer(relative_index) =
+            args.get_or_undefined(0).to_integer_or_infinity(context)?
+        else {
+            return Err(JsNativeError::range()
+                .with_message("invalid integer index for TypedArray operation")
+                .into());
+        };
+
+        let value = args.get_or_undefined(1);
+
+        // 4. If relativeIndex ≥ 0, let actualIndex be relativeIndex.
+        let actual_index = u64::try_from(relative_index) // should succeed if `relative_index >= 0`
+            .ok()
+            // 5. Else, let actualIndex be len + relativeIndex.
+            .or_else(|| len.checked_add_signed(relative_index))
+            .filter(|&rel| rel < len)
+            .ok_or_else(|| {
+                // 6. If actualIndex ≥ len or actualIndex < 0, throw a RangeError exception.
+                JsNativeError::range()
+                    .with_message("invalid integer index for TypedArray operation")
+            })?;
+
+        // 7. Let A be ? ArrayCreate(len).
+        let new_array = Array::array_create(len, None, context)?;
+
+        // 8. Let k be 0.
+        // 9. Repeat, while k < len,
+        for k in 0..len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            let from_value = if k == actual_index {
+                // b. If k is actualIndex, let fromValue be value.
+                value.clone()
+            } else {
+                // c. Else, let fromValue be ? Get(O, Pk).
+                o.get(k, context)?
+            };
+
+            // d. Perform ! CreateDataPropertyOrThrow(A, Pk, fromValue).
+            new_array
+                .create_data_property_or_throw(k, from_value, context)
+                .expect("cannot fail for a newly created array");
+
+            // e. Set k to k + 1.
+        }
+
+        // 10. Return A.
+
+        Ok(new_array.into())
+    }
+
     /// Represents the algorithm to calculate `relativeStart` (or `k`) in array functions.
     pub(super) fn get_relative_start(
         context: &mut Context<'_>,
-        arg: Option<&JsValue>,
+        arg: &JsValue,
         len: u64,
     ) -> JsResult<u64> {
         // 1. Let relativeStart be ? ToIntegerOrInfinity(start).
-        let relative_start = arg
-            .cloned()
-            .unwrap_or_default()
-            .to_integer_or_infinity(context)?;
+        let relative_start = arg.to_integer_or_infinity(context)?;
         match relative_start {
             // 2. If relativeStart is -∞, let k be 0.
             IntegerOrInfinity::NegativeInfinity => Ok(0),
@@ -2982,11 +3239,9 @@ impl Array {
     /// Represents the algorithm to calculate `relativeEnd` (or `final`) in array functions.
     pub(super) fn get_relative_end(
         context: &mut Context<'_>,
-        arg: Option<&JsValue>,
+        value: &JsValue,
         len: u64,
     ) -> JsResult<u64> {
-        let default_value = JsValue::undefined();
-        let value = arg.unwrap_or(&default_value);
         // 1. If end is undefined, let relativeEnd be len [and return it]
         if value.is_undefined() {
             Ok(len)
@@ -3063,6 +3318,53 @@ impl Array {
         // 13. Return unscopableList.
         unscopable_list
     }
+}
+
+/// [`CompareArrayElements ( x, y, comparefn )`][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-comparearrayelements
+fn compare_array_elements(
+    x: &JsValue,
+    y: &JsValue,
+    comparefn: Option<&JsObject>,
+    context: &mut Context<'_>,
+) -> JsResult<Ordering> {
+    match (x.is_undefined(), y.is_undefined()) {
+        // 1. If x and y are both undefined, return +0𝔽.
+        (true, true) => return Ok(Ordering::Equal),
+        // 2. If x is undefined, return 1𝔽.
+        (true, false) => return Ok(Ordering::Greater),
+        // 3. If y is undefined, return -1𝔽.
+        (false, true) => return Ok(Ordering::Less),
+        _ => {}
+    }
+
+    // 4. If comparefn is not undefined, then
+    if let Some(cmp) = comparefn {
+        let args = [x.clone(), y.clone()];
+        //     a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
+        let v = cmp
+            .call(&JsValue::Undefined, &args, context)?
+            .to_number(context)?;
+        //     b. If v is NaN, return +0𝔽.
+        //     c. Return v.
+        return Ok(v.partial_cmp(&0.0).unwrap_or(Ordering::Equal));
+    }
+
+    // 5. Let xString be ? ToString(x).
+    let x_str = x.to_string(context)?;
+
+    // 6. Let yString be ? ToString(y).
+    let y_str = y.to_string(context)?;
+
+    // 7. Let xSmaller be ! IsLessThan(xString, yString, true).
+    // 8. If xSmaller is true, return -1𝔽.
+    // 9. Let ySmaller be ! IsLessThan(yString, xString, true).
+    // 10. If ySmaller is true, return 1𝔽.
+    // 11. Return +0𝔽.
+    // NOTE: skipped IsLessThan because it just makes a lexicographic comparison
+    // when x and y are strings
+    Ok(x_str.cmp(&y_str))
 }
 
 /// `FindViaPredicate ( O, len, direction, predicate, thisArg )`

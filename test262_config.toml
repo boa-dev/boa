@@ -10,7 +10,7 @@ features = [
     "FinalizationRegistry",
     "IsHTMLDDA",
     "Atomics",
-    "change-array-by-copy",
+    "resizable-arraybuffer",
     "symbols-as-weakmap-keys",
     "intl-normative-optional",
     "Intl.DisplayNames",
@@ -31,9 +31,6 @@ features = [
 
     # https://github.com/tc39/proposal-json-modules
     "json-modules",
-
-    # https://github.com/tc39/proposal-resizablearraybuffer
-    "resizable-arraybuffer",
 
     # https://github.com/tc39/proposal-arraybuffer-transfer
     "arraybuffer-transfer",

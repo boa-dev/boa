@@ -3,7 +3,7 @@ use std::sync::atomic;
 use boa_macros::utf16;
 
 use crate::{
-    builtins::Number,
+    builtins::{typed_array::is_valid_integer_index, Number},
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult, JsString, JsValue,
@@ -329,42 +329,6 @@ pub(crate) fn integer_indexed_exotic_own_property_keys(
 
     // 5. Return keys.
     Ok(keys)
-}
-
-/// Abstract operation `IsValidIntegerIndex ( O, index )`.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-isvalidintegerindex
-pub(crate) fn is_valid_integer_index(obj: &JsObject, index: f64) -> bool {
-    let obj = obj.borrow();
-    let inner = obj.as_typed_array().expect(
-        "integer indexed exotic method should only be callable from integer indexed objects",
-    );
-
-    // 1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.
-    if inner.is_detached() {
-        return false;
-    }
-
-    // 2. If IsIntegralNumber(index) is false, return false.
-    if index.is_nan() || index.is_infinite() || index.fract() != 0.0 {
-        return false;
-    }
-
-    // 3. If index is -0𝔽, return false.
-    if index == 0.0 && index.is_sign_negative() {
-        return false;
-    }
-
-    // 4. If ℝ(index) < 0 or ℝ(index) ≥ O.[[ArrayLength]], return false.
-    if index < 0.0 || index >= inner.array_length() as f64 {
-        return false;
-    }
-
-    // 5. Return true.
-    true
 }
 
 /// Abstract operation `IntegerIndexedElementGet ( O, index )`.
