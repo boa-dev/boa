@@ -819,9 +819,7 @@ impl JsNativeError {
             JsNativeErrorKind::Uri => (constructors.uri_error().prototype(), ErrorKind::Uri),
             #[cfg(feature = "fuzz")]
             JsNativeErrorKind::NoInstructionsRemain => {
-                unreachable!(
-                    "The NoInstructionsRemain native error cannot be converted to an opaque type."
-                )
+                (constructors.eval_error().prototype(), ErrorKind::Eval)
             }
             JsNativeErrorKind::RuntimeLimit => {
                 panic!("The RuntimeLimit native error cannot be converted to an opaque type.")
