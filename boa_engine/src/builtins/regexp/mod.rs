@@ -1887,12 +1887,11 @@ impl RegExp {
         {
             let mut obj = this.borrow_mut();
 
-            // Should just override the already existing `lastIndex` property.
-            obj.properties_mut().storage[0] = 0.into();
-
             *obj.as_regexp_mut()
                 .expect("already checked that the object was a RegExp") = regexp;
         }
+
+        this.set(utf16!("lastIndex"), 0, true, context)?;
 
         Ok(this.into())
     }

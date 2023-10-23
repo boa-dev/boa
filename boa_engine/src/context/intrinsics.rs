@@ -1323,6 +1323,7 @@ pub(crate) struct ObjectTemplates {
     symbol: ObjectTemplate,
     bigint: ObjectTemplate,
     boolean: ObjectTemplate,
+
     regexp: ObjectTemplate,
     regexp_without_proto: ObjectTemplate,
 

@@ -20,11 +20,12 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
+    native_function::NativeFunctionObject,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
 };
 use boa_profiler::Profiler;
 
@@ -115,20 +116,27 @@ pub(crate) struct ThrowTypeError;
 
 impl IntrinsicObject for ThrowTypeError {
     fn init(realm: &Realm) {
-        let obj = BuiltInBuilder::callable_with_intrinsic::<Self>(realm, |_, _, _| {
-            Err(JsNativeError::typ()
-                .with_message(
-                    "'caller', 'callee', and 'arguments' properties may not be accessed on strict mode \
-                    functions or the arguments objects for calls to them",
-                )
-                .into())
-        })
+        let obj = BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(realm.intrinsics().constructors().function().prototype())
             .static_property(utf16!("length"), 0, Attribute::empty())
             .static_property(utf16!("name"), js_string!(), Attribute::empty())
             .build();
 
         let mut obj = obj.borrow_mut();
+
+        *obj.as_native_function_mut()
+            .expect("`%ThrowTypeError%` must be a function") = NativeFunctionObject {
+            f: NativeFunction::from_fn_ptr(|_, _, _| {
+                Err(JsNativeError::typ()
+                    .with_message(
+                        "'caller', 'callee', and 'arguments' properties may not be accessed on strict mode \
+                        functions or the arguments objects for calls to them",
+                    )
+                    .into())
+            }),
+            constructor: None,
+            realm: Some(realm.clone()),
+        };
 
         obj.extensible = false;
     }
