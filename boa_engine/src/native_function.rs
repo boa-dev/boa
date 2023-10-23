@@ -5,7 +5,10 @@
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 
-use crate::{object::JsPromise, Context, JsResult, JsValue};
+use crate::{
+    builtins::function::ConstructorKind, object::JsPromise, realm::Realm, Context, JsResult,
+    JsValue,
+};
 
 /// The required signature for all native built-in function pointers.
 ///
@@ -54,6 +57,25 @@ where
     ) -> JsResult<JsValue> {
         (self.f)(this, args, &self.captures, context)
     }
+}
+
+#[derive(Clone, Debug, Finalize)]
+/// The data of an object containing a `NativeFunction`.
+pub struct NativeFunctionObject {
+    /// The rust function.
+    pub(crate) f: NativeFunction,
+    /// The kind of the function constructor if it is a constructor.
+    pub(crate) constructor: Option<ConstructorKind>,
+    /// The [`Realm`] in which the function is defined, or `None` if the realm is uninitialized.
+    pub(crate) realm: Option<Realm>,
+}
+
+// SAFETY: this traces all fields that need to be traced by the GC.
+unsafe impl Trace for NativeFunctionObject {
+    custom_trace!(this, {
+        mark(&this.f);
+        mark(&this.realm);
+    });
 }
 
 /// A callable Rust function that can be invoked by the engine.

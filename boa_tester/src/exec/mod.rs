@@ -250,17 +250,11 @@ impl Test {
                         module.clone(),
                     );
 
-                    let promise = match module.load_link_evaluate(context) {
-                        Ok(promise) => promise,
-                        Err(err) => return (false, format!("Uncaught {err}")),
-                    };
+                    let promise = module.load_link_evaluate(context);
 
                     context.run_jobs();
 
-                    match promise
-                        .state()
-                        .expect("tester can only use builtin promises")
-                    {
+                    match promise.state() {
                         PromiseState::Pending => {
                             return (false, "module should have been executed".to_string())
                         }
@@ -364,10 +358,7 @@ impl Test {
 
                 context.run_jobs();
 
-                match promise
-                    .state()
-                    .expect("tester can only use builtin promises")
-                {
+                match promise.state() {
                     PromiseState::Pending => {
                         return (false, "module didn't try to load".to_string())
                     }
@@ -428,10 +419,7 @@ impl Test {
 
                     context.run_jobs();
 
-                    match promise
-                        .state()
-                        .expect("tester can only use builtin promises")
-                    {
+                    match promise.state() {
                         PromiseState::Pending => {
                             return (false, "module didn't try to load".to_string())
                         }
@@ -449,10 +437,7 @@ impl Test {
 
                     context.run_jobs();
 
-                    match promise
-                        .state()
-                        .expect("tester can only use builtin promises")
-                    {
+                    match promise.state() {
                         PromiseState::Pending => {
                             return (false, "module didn't try to evaluate".to_string())
                         }

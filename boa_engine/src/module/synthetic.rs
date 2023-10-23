@@ -198,7 +198,6 @@ impl SyntheticModule {
     pub(super) fn load(context: &mut Context<'_>) -> JsPromise {
         // 1. Return ! PromiseResolve(%Promise%, undefined).
         JsPromise::resolve(JsValue::undefined(), context)
-            .expect("creating a promise from the %Promise% constructor must not fail")
     }
 
     /// Concrete method [`GetExportedNames ( [ exportStarSet ] )`][spec].

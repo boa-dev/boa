@@ -4,7 +4,6 @@ use boa_engine::{
     builtins::promise::PromiseState,
     js_string,
     module::{ModuleLoader, SimpleModuleLoader},
-    object::FunctionObjectBuilder,
     Context, JsError, JsNativeError, JsValue, Module, NativeFunction,
 };
 use boa_parser::Source;
@@ -57,50 +56,38 @@ fn main() -> Result<(), Box<dyn Error>> {
         // which allows async loads and async fetches.
         .load(context)
         .then(
-            Some(
-                FunctionObjectBuilder::new(
-                    context.realm(),
-                    NativeFunction::from_copy_closure_with_captures(
-                        |_, _, module, context| {
-                            // After loading, link all modules by resolving the imports
-                            // and exports on the full module graph, initializing module
-                            // environments. This returns a plain `Err` since all modules
-                            // must link at the same time.
-                            module.link(context)?;
-                            Ok(JsValue::undefined())
-                        },
-                        module.clone(),
-                    ),
-                )
-                .build(),
-            ),
+            Some(NativeFunction::from_copy_closure_with_captures(
+                |_, _, module, context| {
+                    // After loading, link all modules by resolving the imports
+                    // and exports on the full module graph, initializing module
+                    // environments. This returns a plain `Err` since all modules
+                    // must link at the same time.
+                    module.link(context)?;
+                    Ok(JsValue::undefined())
+                },
+                module.clone(),
+            )),
             None,
             context,
-        )?
+        )
         .then(
-            Some(
-                FunctionObjectBuilder::new(
-                    context.realm(),
-                    NativeFunction::from_copy_closure_with_captures(
-                        // Finally, evaluate the root module.
-                        // This returns a `JsPromise` since a module could have
-                        // top-level await statements, which defers module execution to the
-                        // job queue.
-                        |_, _, module, context| Ok(module.evaluate(context).into()),
-                        module.clone(),
-                    ),
-                )
-                .build(),
-            ),
+            Some(NativeFunction::from_copy_closure_with_captures(
+                // Finally, evaluate the root module.
+                // This returns a `JsPromise` since a module could have
+                // top-level await statements, which defers module execution to the
+                // job queue.
+                |_, _, module, context| Ok(module.evaluate(context).into()),
+                module.clone(),
+            )),
             None,
             context,
-        )?;
+        );
 
     // Very important to push forward the job queue after queueing promises.
     context.run_jobs();
 
     // Checking if the final promise didn't return an error.
-    match promise_result.state()? {
+    match promise_result.state() {
         PromiseState::Pending => return Err("module didn't execute!".into()),
         PromiseState::Fulfilled(v) => {
             assert_eq!(v, JsValue::undefined())

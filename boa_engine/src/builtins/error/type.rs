@@ -20,11 +20,11 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -115,16 +115,14 @@ pub(crate) struct ThrowTypeError;
 
 impl IntrinsicObject for ThrowTypeError {
     fn init(realm: &Realm) {
-        fn throw_type_error(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+        let obj = BuiltInBuilder::callable_with_intrinsic::<Self>(realm, |_, _, _| {
             Err(JsNativeError::typ()
                 .with_message(
                     "'caller', 'callee', and 'arguments' properties may not be accessed on strict mode \
                     functions or the arguments objects for calls to them",
                 )
                 .into())
-        }
-
-        let obj = BuiltInBuilder::with_intrinsic::<Self>(realm)
+        })
             .prototype(realm.intrinsics().constructors().function().prototype())
             .static_property(utf16!("length"), 0, Attribute::empty())
             .static_property(utf16!("name"), js_string!(), Attribute::empty())
@@ -133,11 +131,6 @@ impl IntrinsicObject for ThrowTypeError {
         let mut obj = obj.borrow_mut();
 
         obj.extensible = false;
-        *obj.kind_mut() = ObjectKind::NativeFunction {
-            function: NativeFunction::from_fn_ptr(throw_type_error),
-            constructor: None,
-            realm: realm.clone(),
-        }
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

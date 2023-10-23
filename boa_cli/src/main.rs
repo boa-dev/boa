@@ -325,7 +325,7 @@ fn evaluate_files(
                 Err(v) => eprintln!("Uncaught {v}"),
             }
         } else if args.module {
-            let result = (|| {
+            let result: JsResult<PromiseState> = (|| {
                 let module = Module::parse(Source::from_bytes(&buffer), None, context)?;
 
                 loader.insert(
@@ -334,10 +334,10 @@ fn evaluate_files(
                     module.clone(),
                 );
 
-                let promise = module.load_link_evaluate(context)?;
+                let promise = module.load_link_evaluate(context);
 
                 context.run_jobs();
-                promise.state()
+                Ok(promise.state())
             })();
 
             match result {

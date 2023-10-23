@@ -2,9 +2,10 @@ use crate::{
     builtins::function::{arguments::Arguments, FunctionKind, ThisMode},
     context::intrinsics::StandardConstructors,
     environments::{FunctionSlots, ThisBindingStatus},
+    native_function::NativeFunctionObject,
     object::{
         internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
-        JsObject, ObjectData, ObjectKind,
+        JsObject, ObjectData,
     },
     vm::{CallFrame, CallFrameFlags},
     Context, JsNativeError, JsResult, JsValue,
@@ -336,21 +337,18 @@ pub(crate) fn native_function_call(
     // vm, but we'll eventually have to combine the native stack with the vm stack.
     context.check_runtime_limits()?;
     let this_function_object = obj.clone();
-    let object = obj.borrow();
 
-    let ObjectKind::NativeFunction {
-        function,
+    let NativeFunctionObject {
+        f: function,
         constructor,
         realm,
-    } = object.kind()
-    else {
-        unreachable!("the object should be a native function object");
-    };
+    } = obj
+        .borrow()
+        .as_native_function()
+        .cloned()
+        .expect("the object should be a native function object");
 
-    let mut realm = realm.clone();
-    let function = function.clone();
-    let constructor = *constructor;
-    drop(object);
+    let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(&mut realm);
     context.vm.native_active_function = Some(this_function_object);
@@ -385,21 +383,18 @@ fn native_function_construct(
     // vm, but we'll eventually have to combine the native stack with the vm stack.
     context.check_runtime_limits()?;
     let this_function_object = obj.clone();
-    let object = obj.borrow();
 
-    let ObjectKind::NativeFunction {
-        function,
+    let NativeFunctionObject {
+        f: function,
         constructor,
         realm,
-    } = object.kind()
-    else {
-        unreachable!("the object should be a native function object");
-    };
+    } = obj
+        .borrow()
+        .as_native_function()
+        .cloned()
+        .expect("the object should be a native function object");
 
-    let mut realm = realm.clone();
-    let function = function.clone();
-    let constructor = *constructor;
-    drop(object);
+    let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(&mut realm);
     context.vm.native_active_function = Some(this_function_object);

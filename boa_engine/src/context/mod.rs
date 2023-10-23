@@ -75,7 +75,9 @@ use self::intrinsics::StandardConstructor;
 /// let arg = ObjectInitializer::new(&mut context)
 ///     .property(js_string!("x"), 12, Attribute::READONLY)
 ///     .build();
-/// context.register_global_property(js_string!("arg"), arg, Attribute::all());
+/// context
+///     .register_global_property(js_string!("arg"), arg, Attribute::all())
+///     .expect("property shouldn't exist");
 ///
 /// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
 ///

@@ -59,13 +59,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     // This uses the utility function to load, link and evaluate a module without having to deal
     // with callbacks. For an example demonstrating the whole lifecycle of a module, see
     // `modules.rs`
-    let promise_result = module.load_link_evaluate(context)?;
+    let promise_result = module.load_link_evaluate(context);
 
     // Very important to push forward the job queue after queueing promises.
     context.run_jobs();
 
     // Checking if the final promise didn't return an error.
-    match promise_result.state()? {
+    match promise_result.state() {
         PromiseState::Pending => return Err("module didn't execute!".into()),
         PromiseState::Fulfilled(v) => {
             assert_eq!(v, JsValue::undefined())

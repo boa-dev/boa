@@ -1,13 +1,15 @@
 //! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
 use crate::{
+    builtins::function::ConstructorKind,
+    native_function::NativeFunctionObject,
     object::{
         internal_methods::function::{
             NATIVE_CONSTRUCTOR_INTERNAL_METHODS, NATIVE_FUNCTION_INTERNAL_METHODS,
         },
-        JsObject, JsObjectType, Object,
+        JsObject, JsObjectType, Object, ObjectKind,
     },
     value::TryFromJs,
-    Context, JsNativeError, JsResult, JsValue,
+    Context, JsNativeError, JsResult, JsValue, NativeFunction,
 };
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
@@ -32,7 +34,11 @@ impl JsFunction {
     pub(crate) fn empty_intrinsic_function(constructor: bool) -> Self {
         Self {
             inner: JsObject::from_object_and_vtable(
-                Object::default(),
+                Object::with_kind(ObjectKind::NativeFunction(NativeFunctionObject {
+                    f: NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
+                    constructor: constructor.then_some(ConstructorKind::Base),
+                    realm: None,
+                })),
                 if constructor {
                     &NATIVE_CONSTRUCTOR_INTERNAL_METHODS
                 } else {
