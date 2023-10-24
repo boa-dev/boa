@@ -6,8 +6,10 @@
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 
 use crate::{
-    builtins::function::ConstructorKind, object::JsPromise, realm::Realm, Context, JsResult,
-    JsValue,
+    builtins::function::ConstructorKind,
+    object::{FunctionObjectBuilder, JsFunction, JsPromise},
+    realm::Realm,
+    Context, JsResult, JsValue,
 };
 
 /// The required signature for all native built-in function pointers.
@@ -301,5 +303,13 @@ impl NativeFunction {
             Inner::PointerFn(f) => f(this, args, context),
             Inner::Closure(ref c) => c.call(this, args, context),
         }
+    }
+
+    /// Converts this `NativeFunction` into a `JsFunction` without setting its name or length.
+    ///
+    /// Useful to create functions that will only be used once, such as callbacks.
+    #[must_use]
+    pub fn to_js_function(self, realm: &Realm) -> JsFunction {
+        FunctionObjectBuilder::new(realm, self).build()
     }
 }

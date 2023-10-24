@@ -484,21 +484,27 @@ impl Module {
         let promise = self
             .load(context)
             .then(
-                Some(NativeFunction::from_copy_closure_with_captures(
-                    |_, _, module, context| {
-                        module.link(context)?;
-                        Ok(JsValue::undefined())
-                    },
-                    self.clone(),
-                )),
+                Some(
+                    NativeFunction::from_copy_closure_with_captures(
+                        |_, _, module, context| {
+                            module.link(context)?;
+                            Ok(JsValue::undefined())
+                        },
+                        self.clone(),
+                    )
+                    .to_js_function(context.realm()),
+                ),
                 None,
                 context,
             )
             .then(
-                Some(NativeFunction::from_copy_closure_with_captures(
-                    |_, _, module, context| Ok(module.evaluate(context).into()),
-                    self.clone(),
-                )),
+                Some(
+                    NativeFunction::from_copy_closure_with_captures(
+                        |_, _, module, context| Ok(module.evaluate(context).into()),
+                        self.clone(),
+                    )
+                    .to_js_function(context.realm()),
+                ),
                 None,
                 context,
             );

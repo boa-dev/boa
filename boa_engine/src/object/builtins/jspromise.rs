@@ -2,14 +2,14 @@
 
 use std::{future::Future, pin::Pin, task};
 
-use super::JsArray;
+use super::{JsArray, JsFunction};
 use crate::{
     builtins::{
         promise::{PromiseState, ResolvingFunctions},
         Promise,
     },
     job::NativeJob,
-    object::{FunctionObjectBuilder, JsObject, JsObjectType, ObjectData},
+    object::{JsObject, JsObjectType, ObjectData},
     value::TryFromJs,
     Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
 };
@@ -55,17 +55,21 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///
 /// let promise = promise
 ///     .then(
-///         Some(NativeFunction::from_fn_ptr(|_, args, _| {
-///             Err(JsError::from_opaque(args.get_or_undefined(0).clone())
-///                 .into())
-///         })),
+///         Some(
+///             NativeFunction::from_fn_ptr(|_, args, _| {
+///                 Err(JsError::from_opaque(args.get_or_undefined(0).clone())
+///                     .into())
+///             })
+///             .to_js_function(context.realm()),
+///         ),
 ///         None,
 ///         context,
 ///     )
 ///     .catch(
 ///         NativeFunction::from_fn_ptr(|_, args, _| {
 ///             Ok(args.get_or_undefined(0).clone())
-///         }),
+///         })
+///         .to_js_function(context.realm()),
 ///         context,
 ///     )
 ///     .finally(
@@ -77,7 +81,8 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///                 context,
 ///             )?;
 ///             Ok(JsValue::undefined())
-///         }),
+///         })
+///         .to_js_function(context.realm()),
 ///         context,
 ///     );
 ///
@@ -473,11 +478,14 @@ impl JsPromise {
     ///     context,
     /// )
     /// .then(
-    ///     Some(NativeFunction::from_fn_ptr(|_, args, context| {
-    ///         args.get_or_undefined(0)
-    ///             .to_string(context)
-    ///             .map(JsValue::from)
-    ///     })),
+    ///     Some(
+    ///         NativeFunction::from_fn_ptr(|_, args, context| {
+    ///             args.get_or_undefined(0)
+    ///                 .to_string(context)
+    ///                 .map(JsValue::from)
+    ///         })
+    ///         .to_js_function(context.realm()),
+    ///     ),
     ///     None,
     ///     context,
     /// );
@@ -495,18 +503,13 @@ impl JsPromise {
     #[allow(clippy::return_self_not_must_use)] // Could just be used to add handlers on an existing promise
     pub fn then(
         &self,
-        on_fulfilled: Option<NativeFunction>,
-        on_rejected: Option<NativeFunction>,
+        on_fulfilled: Option<JsFunction>,
+        on_rejected: Option<JsFunction>,
         context: &mut Context<'_>,
     ) -> Self {
-        Promise::inner_then(
-            self,
-            on_fulfilled.map(|f| FunctionObjectBuilder::new(context.realm(), f).build()),
-            on_rejected.map(|f| FunctionObjectBuilder::new(context.realm(), f).build()),
-            context,
-        )
-        .and_then(Self::from_object)
-        .expect("`inner_then` cannot fail for native `JsPromise`")
+        Promise::inner_then(self, on_fulfilled, on_rejected, context)
+            .and_then(Self::from_object)
+            .expect("`inner_then` cannot fail for native `JsPromise`")
     }
 
     /// Schedules a callback to run when the promise is rejected.
@@ -546,7 +549,8 @@ impl JsPromise {
     ///         args.get_or_undefined(0)
     ///             .to_string(context)
     ///             .map(JsValue::from)
-    ///     }),
+    ///     })
+    ///     .to_js_function(context.realm()),
     ///     context,
     /// );
     ///
@@ -562,7 +566,7 @@ impl JsPromise {
     /// [then]: JsPromise::then
     #[inline]
     #[allow(clippy::return_self_not_must_use)] // Could just be used to add a handler on an existing promise
-    pub fn catch(&self, on_rejected: NativeFunction, context: &mut Context<'_>) -> Self {
+    pub fn catch(&self, on_rejected: JsFunction, context: &mut Context<'_>) -> Self {
         self.then(None, Some(on_rejected), context)
     }
 
@@ -617,7 +621,8 @@ impl JsPromise {
     ///             context,
     ///         )?;
     ///         Ok(JsValue::undefined())
-    ///     }),
+    ///     })
+    ///     .to_js_function(context.realm()),
     ///     context,
     /// );
     ///
@@ -639,10 +644,10 @@ impl JsPromise {
     /// [then]: JsPromise::then
     #[inline]
     #[allow(clippy::return_self_not_must_use)] // Could just be used to add a handler on an existing promise
-    pub fn finally(&self, on_finally: NativeFunction, context: &mut Context<'_>) -> Self {
+    pub fn finally(&self, on_finally: JsFunction, context: &mut Context<'_>) -> Self {
         let (then, catch) = Promise::then_catch_finally_closures(
             context.intrinsics().constructors().promise().constructor(),
-            FunctionObjectBuilder::new(context.realm(), on_finally).build(),
+            on_finally,
             context,
         );
         Promise::inner_then(self, Some(then), Some(catch), context)
@@ -1051,7 +1056,11 @@ impl JsPromise {
             )
         };
 
-        drop(self.then(Some(resolve), Some(reject), context));
+        drop(self.then(
+            Some(resolve.to_js_function(context.realm())),
+            Some(reject.to_js_function(context.realm())),
+            context,
+        ));
 
         JsFuture { inner: state }
     }
