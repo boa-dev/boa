@@ -57,7 +57,7 @@ jobs:
         uses: baptiste0928/cargo-install@v2.2.0
         with:
           crate: wasm-pack
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
       - run: npm ci
