@@ -1156,18 +1156,18 @@ impl Array {
         // 4. Let k be 0.
         // 5. Repeat, while k < len,
         for i in 0..len {
-            //     a. Let from be ! ToString(𝔽(len - k - 1)).
+            // a. Let from be ! ToString(𝔽(len - k - 1)).
             let from = len - i - 1;
 
-            //     b. Let Pk be ! ToString(𝔽(k)).
-            //     c. Let fromValue be ? Get(O, from).
+            // b. Let Pk be ! ToString(𝔽(k)).
+            // c. Let fromValue be ? Get(O, from).
             let from_value = o.get(from, context)?;
 
-            //     d. Perform ! CreateDataPropertyOrThrow(A, Pk, fromValue).
+            // d. Perform ! CreateDataPropertyOrThrow(A, Pk, fromValue).
             a.create_data_property_or_throw(i, from_value, context)
                 .expect("cannot fail per the spec");
 
-            //     e. Set k to k + 1.
+            // e. Set k to k + 1.
         }
 
         // 6. Return A.
@@ -3210,7 +3210,6 @@ impl Array {
         }
 
         // 10. Return A.
-
         Ok(new_array.into())
     }
 
