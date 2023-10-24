@@ -147,6 +147,8 @@ fn update_gh_pages_repo(path: &Path, verbose: u8) {
             );
         }
 
+        // TO-DO: only copy the last result, not the whole file.
+
         fs::copy(from, to).expect("could not copy the main results file");
     }
 }
