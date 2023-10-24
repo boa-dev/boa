@@ -54,7 +54,7 @@ jobs:
       # Run the results comparison
       - name: Compare results
         if: github.event_name == 'pull_request'
-        id: compare-non-vm
+        id: compare
         shell: bash
         run: |
           cd boa
@@ -85,8 +85,7 @@ jobs:
           body: |
             ### Test262 conformance changes
 
-            ${{ steps.compare-non-vm.outputs.comment }}
-            ${{ steps.compare-vm.outputs.comment }}
+            ${{ steps.compare.outputs.comment }}
           edit-mode: replace
 
       - name: Write a new comment
@@ -98,8 +97,7 @@ jobs:
           body: |
             ### Test262 conformance changes
 
-            ${{ steps.compare-non-vm.outputs.comment }}
-            ${{ steps.compare-vm.outputs.comment }}
+            ${{ steps.compare.outputs.comment }}
 
       # Commit changes to GitHub pages.
       - name: Commit files
