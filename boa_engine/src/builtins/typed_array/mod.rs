@@ -34,7 +34,7 @@ mod builtin;
 mod element;
 mod integer_indexed_object;
 
-pub(crate) use builtin::BuiltinTypedArray;
+pub(crate) use builtin::{is_valid_integer_index, BuiltinTypedArray};
 pub(crate) use element::{ClampedU8, Element};
 pub use integer_indexed_object::IntegerIndexed;
 

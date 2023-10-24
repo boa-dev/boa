@@ -51,7 +51,7 @@ impl JsArray {
 
     /// Get the length of the array.
     ///
-    /// Same a `array.length` in JavaScript.
+    /// Same as `array.length` in JavaScript.
     #[inline]
     pub fn length(&self, context: &mut Context<'_>) -> JsResult<u64> {
         self.inner.length_of_array_like(context)
@@ -372,6 +372,53 @@ impl JsArray {
             &[callback.into(), initial_value.into_or_undefined()],
             context,
         )
+    }
+
+    /// Calls `Array.prototype.toReversed`.
+    #[inline]
+    pub fn to_reversed(&self, context: &mut Context<'_>) -> JsResult<Self> {
+        let array = Array::to_reversed(&self.inner.clone().into(), &[], context)?;
+
+        Ok(Self {
+            inner: array
+                .as_object()
+                .cloned()
+                .expect("`to_reversed` must always return an `Array` on success"),
+        })
+    }
+
+    /// Calls `Array.prototype.toSorted`.
+    #[inline]
+    pub fn to_sorted(
+        &self,
+        compare_fn: Option<JsFunction>,
+        context: &mut Context<'_>,
+    ) -> JsResult<Self> {
+        let array = Array::to_sorted(
+            &self.inner.clone().into(),
+            &[compare_fn.into_or_undefined()],
+            context,
+        )?;
+
+        Ok(Self {
+            inner: array
+                .as_object()
+                .cloned()
+                .expect("`to_sorted` must always return an `Array` on success"),
+        })
+    }
+
+    /// Calls `Array.prototype.with`.
+    #[inline]
+    pub fn with(&self, index: u64, value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+        let array = Array::with(&self.inner.clone().into(), &[index.into(), value], context)?;
+
+        Ok(Self {
+            inner: array
+                .as_object()
+                .cloned()
+                .expect("`with` must always return an `Array` on success"),
+        })
     }
 }
 

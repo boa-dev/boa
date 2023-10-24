@@ -1,5 +1,6 @@
 use std::{cmp::Ordering, ptr, sync::atomic};
 
+use boa_gc::GcRef;
 use boa_macros::utf16;
 use num_traits::Zero;
 
@@ -11,13 +12,13 @@ use crate::{
             ArrayBuffer, BufferRef,
         },
         iterable::iterable_to_list,
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{
         internal_methods::{get_prototype_from_constructor, integer_indexed_element_set},
-        ObjectData,
+        Object, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
     realm::Realm,
@@ -135,6 +136,9 @@ impl IntrinsicObject for BuiltinTypedArray {
             .method(Self::sort, js_string!("sort"), 1)
             .method(Self::subarray, js_string!("subarray"), 2)
             .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
+            .method(Self::to_reversed, js_string!("toReversed"), 0)
+            .method(Self::to_sorted, js_string!("toSorted"), 1)
+            .method(Self::with, js_string!("with"), 2)
             // 23.2.3.29 %TypedArray%.prototype.toString ( )
             // The initial value of the %TypedArray%.prototype.toString data property is the same
             // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
@@ -289,6 +293,20 @@ impl BuiltinTypedArray {
 
         // 13. Return targetObj.
         Ok(target_obj.into())
+    }
+
+    /// [`TypedArrayCreateSameType ( exemplar, argumentList )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-create-same-type
+    fn from_kind_and_length(
+        kind: TypedArrayKind,
+        length: u64,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsObject> {
+        let constructor =
+            kind.standard_constructor()(context.intrinsics().constructors()).constructor();
+
+        Self::create(&constructor, &[length.into()], context)
     }
 
     /// `23.2.2.2 %TypedArray%.of ( ...items )`
@@ -1823,19 +1841,19 @@ impl BuiltinTypedArray {
         }
 
         // 3. Let len be O.[[ArrayLength]].
-        let len = o.array_length() as f64;
+        let len = o.array_length();
 
         drop(obj_borrow);
 
         // 4. Let middle be floor(len / 2).
-        let middle = (len / 2.0).floor();
+        let middle = len / 2;
 
         // 5. Let lower be 0.
-        let mut lower = 0.0;
+        let mut lower = 0;
         // 6. Repeat, while lower ≠ middle,
         while lower != middle {
             // a. Let upper be len - lower - 1.
-            let upper = len - lower - 1.0;
+            let upper = len - lower - 1;
 
             // b. Let upperP be ! ToString(𝔽(upper)).
             // c. Let lowerP be ! ToString(𝔽(lower)).
@@ -1852,11 +1870,62 @@ impl BuiltinTypedArray {
                 .expect("Set cannot fail here");
 
             // h. Set lower to lower + 1.
-            lower += 1.0;
+            lower += 1;
         }
 
         // 7. Return O.
         Ok(this.clone())
+    }
+
+    /// [`%TypedArray%.prototype.toReversed ( )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.toreversed
+    pub(crate) fn to_reversed(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Let iieoRecord be ? ValidateTypedArray(O, seq-cst).
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
+        let array = GcRef::try_map(obj.borrow(), Object::as_typed_array).ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
+        if array.is_detached() {
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
+        }
+
+        // 3. Let length be IntegerIndexedObjectLength(iieoRecord).
+        let length = array.array_length();
+
+        // 4. Let A be ? TypedArrayCreateSameType(O, « 𝔽(length) »).
+        let new_array = Self::from_kind_and_length(array.kind(), length, context)?;
+
+        drop(array);
+
+        // 5. Let k be 0.
+        // 6. Repeat, while k < length,
+        for k in 0..length {
+            // a. Let from be ! ToString(𝔽(length - k - 1)).
+            // b. Let Pk be ! ToString(𝔽(k)).
+            // c. Let fromValue be ! Get(O, from).
+            let value = obj
+                .get(length - k - 1, context)
+                .expect("cannot fail per the spec");
+            // d. Perform ! Set(A, Pk, fromValue, true).
+            new_array
+                .set(k, value, true, context)
+                .expect("cannot fail per the spec");
+            // e. Set k to k + 1.
+        }
+
+        // 7. Return A.
+
+        Ok(new_array.into())
     }
 
     /// `23.2.3.24 %TypedArray%.prototype.set ( source [ , offset ] )`
@@ -2489,12 +2558,13 @@ impl BuiltinTypedArray {
         };
 
         // 2. Let obj be the this value.
-        // 3. Perform ? ValidateTypedArray(obj).
-        // 4. Let len be obj.[[ArrayLength]].
+        // 3. Let iieoRecord be ? ValidateTypedArray(obj, seq-cst).
         let obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("TypedArray.sort must be called on typed array object")
         })?;
+
+        // 4. Let len be IntegerIndexedObjectLength(iieoRecord).
         let len =
             {
                 let obj_borrow = obj.borrow();
@@ -2513,56 +2583,18 @@ impl BuiltinTypedArray {
 
         // 5. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.30.
         // 6. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
-        let sort_compare = |x: &JsValue,
-                            y: &JsValue,
-                            compare_fn: Option<&JsObject>,
-                            context: &mut Context<'_>|
-         -> JsResult<Ordering> {
-            // a. Return ? CompareTypedArrayElements(x, y, comparefn).
-            compare_typed_array_elements(x, y, compare_fn, context)
-        };
+        let sort_compare =
+            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<Ordering> {
+                // a. Return ? CompareTypedArrayElements(x, y, comparefn).
+                compare_typed_array_elements(x, y, compare_fn, context)
+            };
 
-        // Note: This step is currently inlined.
         // 7. Let sortedList be ? SortIndexedProperties(obj, len, SortCompare, read-through-holes).
-        // 1. Let items be a new empty List.
-        let mut items = Vec::with_capacity(len as usize);
-
-        // 2. Let k be 0.
-        // 3. Repeat, while k < len,
-        for k in 0..len {
-            // a. Let Pk be ! ToString(𝔽(k)).
-            // b. If holes is skip-holes, then
-            // i. Let kRead be ? HasProperty(obj, Pk).
-            // c. Else,
-            // i. Assert: holes is read-through-holes.
-            // ii. Let kRead be true.
-            // d. If kRead is true, then
-            // i. Let kValue be ? Get(obj, Pk).
-            let k_value = obj.get(k, context)?;
-
-            // ii. Append kValue to items.
-            items.push(k_value);
-            // e. Set k to k + 1.
-        }
-
-        // 4. Sort items using an implementation-defined sequence of calls to SortCompare. If any such call returns an abrupt completion, stop before performing any further calls to SortCompare and return that Completion Record.
-        // 5. Return items.
-        let mut sort_err = Ok(());
-        items.sort_by(|x, y| {
-            if sort_err.is_ok() {
-                sort_compare(x, y, compare_fn, context).unwrap_or_else(|err| {
-                    sort_err = Err(err);
-                    Ordering::Equal
-                })
-            } else {
-                Ordering::Equal
-            }
-        });
-        sort_err?;
+        let sorted = Array::sort_indexed_properties(obj, len, sort_compare, false, context)?;
 
         // 8. Let j be 0.
         // 9. Repeat, while j < len,
-        for (j, item) in items.into_iter().enumerate() {
+        for (j, item) in sorted.into_iter().enumerate() {
             // a. Perform ! Set(obj, ! ToString(𝔽(j)), sortedList[j], true).
             obj.set(j, item, true, context)
                 .expect("cannot fail per spec");
@@ -2572,6 +2604,74 @@ impl BuiltinTypedArray {
 
         // 10. Return obj.
         Ok(obj.clone().into())
+    }
+
+    /// [`%TypedArray%.prototype.toSorted ( comparefn )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.tosorted
+    pub(crate) fn to_sorted(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
+        let compare_fn = match args.get(0) {
+            None | Some(JsValue::Undefined) => None,
+            Some(JsValue::Object(obj)) if obj.is_callable() => Some(obj),
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("TypedArray.sort called with non-callable comparefn")
+                    .into())
+            }
+        };
+
+        // 2. Let O be the this value.
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("TypedArray.sort must be called on typed array object")
+        })?;
+
+        // 3. Let iieoRecord be ? ValidateTypedArray(O, seq-cst).
+        let array = GcRef::try_map(obj.borrow(), Object::as_typed_array).ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
+        if array.is_detached() {
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
+        }
+
+        // 4. Let len be IntegerIndexedObjectLength(iieoRecord).
+        let len = array.array_length();
+
+        // 5. Let A be ? TypedArrayCreateSameType(O, « 𝔽(len) »).
+        let new_array = Self::from_kind_and_length(array.kind(), len, context)?;
+
+        drop(array);
+
+        // 6. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.34.
+        // 7. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
+        let sort_compare =
+            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<Ordering> {
+                // a. Return ? CompareTypedArrayElements(x, y, comparefn).
+                compare_typed_array_elements(x, y, compare_fn, context)
+            };
+
+        // 8. Let sortedList be ? SortIndexedProperties(O, len, SortCompare, read-through-holes).
+        let sorted = Array::sort_indexed_properties(obj, len, sort_compare, false, context)?;
+
+        //  9. Let j be 0.
+        //  10. Repeat, while j < len
+        for (j, item) in sorted.into_iter().enumerate() {
+            // a. Perform ! Set(A, ! ToString(𝔽(j)), sortedList[j], true).
+            new_array
+                .set(j, item, true, context)
+                .expect("cannot fail per spec");
+
+            // b. Set j to j + 1.
+        }
+        // 11. Return A.
+        Ok(new_array.into())
     }
 
     /// `23.2.3.28 %TypedArray%.prototype.subarray ( begin, end )`
@@ -2777,6 +2877,99 @@ impl BuiltinTypedArray {
             PropertyNameKind::Value,
             context,
         ))
+    }
+
+    /// [`%TypedArray%.prototype.with ( index, value )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.with
+    pub(crate) fn with(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("TypedArray.sort must be called on typed array object")
+        })?;
+
+        // 2. Let iieoRecord be ? ValidateTypedArray(O, seq-cst).
+        let array = GcRef::try_map(obj.borrow(), Object::as_typed_array).ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
+        if array.is_detached() {
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
+        }
+
+        // 3. Let len be IntegerIndexedObjectLength(iieoRecord).
+        let len = array.array_length();
+        let kind = array.kind();
+
+        drop(array);
+
+        // 4. Let relativeIndex be ? ToIntegerOrInfinity(index).
+        // triggers any conversion errors before throwing range errors.
+        let relative_index = args.get_or_undefined(0).to_integer_or_infinity(context)?;
+
+        let value = args.get_or_undefined(1);
+
+        // 7. If O.[[ContentType]] is bigint, let numericValue be ? ToBigInt(value).
+        let numeric_value: JsValue = if kind.content_type() == ContentType::BigInt {
+            value.to_bigint(context)?.into()
+        } else {
+            // 8. Else, let numericValue be ? ToNumber(value).
+            value.to_number(context)?.into()
+        };
+
+        // 9. If IsValidIntegerIndex(O, 𝔽(actualIndex)) is false, throw a RangeError exception.
+        let IntegerOrInfinity::Integer(relative_index) = relative_index else {
+            return Err(JsNativeError::range()
+                .with_message("invalid integer index for TypedArray operation")
+                .into());
+        };
+
+        let actual_index = u64::try_from(relative_index) // should succeed if `relative_index >= 0`
+            .ok()
+            .or_else(|| len.checked_add_signed(relative_index))
+            .filter(|&rel| rel < len)
+            .ok_or_else(|| {
+                JsNativeError::range()
+                    .with_message("invalid integer index for TypedArray operation")
+            })?;
+
+        // TODO: Replace with `is_valid_integer_index_u64` or equivalent.
+        if !is_valid_integer_index(obj, actual_index as f64) {
+            return Err(JsNativeError::range()
+                .with_message("invalid integer index for TypedArray operation")
+                .into());
+        }
+
+        // 10. Let A be ? TypedArrayCreateSameType(O, « 𝔽(len) »).
+        let new_array = Self::from_kind_and_length(kind, len, context)?;
+
+        // 11. Let k be 0.
+        // 12. Repeat, while k < len,
+        for k in 0..len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            let value = if k == actual_index {
+                // b. If k is actualIndex, let fromValue be numericValue.
+                numeric_value.clone()
+            } else {
+                // c. Else, let fromValue be ! Get(O, Pk).
+                obj.get(k, context).expect("cannot fail per the spec")
+            };
+            // d. Perform ! Set(A, Pk, fromValue, true).
+            new_array
+                .set(k, value, true, context)
+                .expect("cannot fail per the spec");
+
+            // e. Set k to k + 1.
+        }
+
+        // 13. Return A.
+        Ok(new_array.into())
     }
 
     /// `23.2.3.33 get %TypedArray%.prototype [ @@toStringTag ]`
@@ -3291,6 +3484,12 @@ impl BuiltinTypedArray {
     }
 }
 
+#[derive(Debug)]
+enum U64OrPositiveInfinity {
+    U64(u64),
+    PositiveInfinity,
+}
+
 /// `CompareTypedArrayElements ( x, y, comparefn )`
 ///
 /// More information:
@@ -3382,7 +3581,38 @@ fn compare_typed_array_elements(
     }
 }
 
-enum U64OrPositiveInfinity {
-    U64(u64),
-    PositiveInfinity,
+/// Abstract operation `IsValidIntegerIndex ( O, index )`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-isvalidintegerindex
+pub(crate) fn is_valid_integer_index(obj: &JsObject, index: f64) -> bool {
+    let obj = obj.borrow();
+    let inner = obj.as_typed_array().expect(
+        "integer indexed exotic method should only be callable from integer indexed objects",
+    );
+
+    // 1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.
+    if inner.is_detached() {
+        return false;
+    }
+
+    // 2. If IsIntegralNumber(index) is false, return false.
+    if index.is_nan() || index.is_infinite() || index.fract() != 0.0 {
+        return false;
+    }
+
+    // 3. If index is -0𝔽, return false.
+    if index == 0.0 && index.is_sign_negative() {
+        return false;
+    }
+
+    // 4. If ℝ(index) < 0 or ℝ(index) ≥ O.[[ArrayLength]], return false.
+    if index < 0.0 || index >= inner.array_length() as f64 {
+        return false;
+    }
+
+    // 5. Return true.
+    true
 }

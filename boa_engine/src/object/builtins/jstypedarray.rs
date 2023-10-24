@@ -14,7 +14,7 @@ use std::ops::Deref;
 /// builtin object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsTypedArray {
-    inner: JsValue,
+    inner: JsObject,
 }
 
 impl JsTypedArray {
@@ -26,9 +26,7 @@ impl JsTypedArray {
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.is_typed_array() {
-            Ok(Self {
-                inner: object.into(),
-            })
+            Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()
                 .with_message("object is not a TypedArray")
@@ -38,13 +36,15 @@ impl JsTypedArray {
 
     /// Get the length of the array.
     ///
-    /// Same a `array.length` in JavaScript.
+    /// Same as `array.length` in JavaScript.
     #[inline]
     pub fn length(&self, context: &mut Context<'_>) -> JsResult<usize> {
-        Ok(BuiltinTypedArray::length(&self.inner, &[], context)?
-            .as_number()
-            .map(|x| x as usize)
-            .expect("length should return a number"))
+        Ok(
+            BuiltinTypedArray::length(&self.inner.clone().into(), &[], context)?
+                .as_number()
+                .map(|x| x as usize)
+                .expect("length should return a number"),
+        )
     }
 
     /// Check if the array is empty, i.e. the `length` is zero.
@@ -58,25 +58,29 @@ impl JsTypedArray {
     where
         T: Into<i64>,
     {
-        BuiltinTypedArray::at(&self.inner, &[index.into().into()], context)
+        BuiltinTypedArray::at(&self.inner.clone().into(), &[index.into().into()], context)
     }
 
     /// Returns `TypedArray.prototype.byteLength`.
     #[inline]
     pub fn byte_length(&self, context: &mut Context<'_>) -> JsResult<usize> {
-        Ok(BuiltinTypedArray::byte_length(&self.inner, &[], context)?
-            .as_number()
-            .map(|x| x as usize)
-            .expect("byteLength should return a number"))
+        Ok(
+            BuiltinTypedArray::byte_length(&self.inner.clone().into(), &[], context)?
+                .as_number()
+                .map(|x| x as usize)
+                .expect("byteLength should return a number"),
+        )
     }
 
     /// Returns `TypedArray.prototype.byteOffset`.
     #[inline]
     pub fn byte_offset(&self, context: &mut Context<'_>) -> JsResult<usize> {
-        Ok(BuiltinTypedArray::byte_offset(&self.inner, &[], context)?
-            .as_number()
-            .map(|x| x as usize)
-            .expect("byteLength should return a number"))
+        Ok(
+            BuiltinTypedArray::byte_offset(&self.inner.clone().into(), &[], context)?
+                .as_number()
+                .map(|x| x as usize)
+                .expect("byteLength should return a number"),
+        )
     }
 
     /// Calls `TypedArray.prototype.fill()`.
@@ -91,7 +95,7 @@ impl JsTypedArray {
         T: Into<JsValue>,
     {
         BuiltinTypedArray::fill(
-            &self.inner,
+            &self.inner.clone().into(),
             &[
                 value.into(),
                 start.into_or_undefined(),
@@ -110,7 +114,7 @@ impl JsTypedArray {
         context: &mut Context<'_>,
     ) -> JsResult<bool> {
         let result = BuiltinTypedArray::every(
-            &self.inner,
+            &self.inner.clone().into(),
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
         )?
@@ -129,7 +133,7 @@ impl JsTypedArray {
         context: &mut Context<'_>,
     ) -> JsResult<bool> {
         let result = BuiltinTypedArray::some(
-            &self.inner,
+            &self.inner.clone().into(),
             &[callback.into(), this_arg.into_or_undefined()],
             context,
         )?
@@ -146,7 +150,11 @@ impl JsTypedArray {
         compare_fn: Option<JsFunction>,
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
-        BuiltinTypedArray::sort(&self.inner, &[compare_fn.into_or_undefined()], context)?;
+        BuiltinTypedArray::sort(
+            &self.inner.clone().into(),
+            &[compare_fn.into_or_undefined()],
+            context,
+        )?;
 
         Ok(self.clone())
     }
@@ -160,12 +168,17 @@ impl JsTypedArray {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let object = BuiltinTypedArray::filter(
-            &self.inner,
+            &self.inner.clone().into(),
             &[callback.into(), this_arg.into_or_undefined()],
             context,
         )?;
 
-        Ok(Self { inner: object })
+        Ok(Self {
+            inner: object
+                .as_object()
+                .cloned()
+                .expect("`filter` must always return a `TypedArray` on success"),
+        })
     }
 
     /// Calls `TypedArray.prototype.map()`.
@@ -177,12 +190,17 @@ impl JsTypedArray {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let object = BuiltinTypedArray::map(
-            &self.inner,
+            &self.inner.clone().into(),
             &[callback.into(), this_arg.into_or_undefined()],
             context,
         )?;
 
-        Ok(Self { inner: object })
+        Ok(Self {
+            inner: object
+                .as_object()
+                .cloned()
+                .expect("`map` must always return a `TypedArray` on success"),
+        })
     }
 
     /// Calls `TypedArray.prototype.reduce()`.
@@ -194,7 +212,7 @@ impl JsTypedArray {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         BuiltinTypedArray::reduce(
-            &self.inner,
+            &self.inner.clone().into(),
             &[callback.into(), initial_value.into_or_undefined()],
             context,
         )
@@ -209,7 +227,7 @@ impl JsTypedArray {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         BuiltinTypedArray::reduceright(
-            &self.inner,
+            &self.inner.clone().into(),
             &[callback.into(), initial_value.into_or_undefined()],
             context,
         )
@@ -218,7 +236,7 @@ impl JsTypedArray {
     /// Calls `TypedArray.prototype.reverse()`.
     #[inline]
     pub fn reverse(&self, context: &mut Context<'_>) -> JsResult<Self> {
-        BuiltinTypedArray::reverse(&self.inner, &[], context)?;
+        BuiltinTypedArray::reverse(&self.inner.clone().into(), &[], context)?;
         Ok(self.clone())
     }
 
@@ -231,12 +249,17 @@ impl JsTypedArray {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let object = BuiltinTypedArray::slice(
-            &self.inner,
+            &self.inner.clone().into(),
             &[start.into_or_undefined(), end.into_or_undefined()],
             context,
         )?;
 
-        Ok(Self { inner: object })
+        Ok(Self {
+            inner: object
+                .as_object()
+                .cloned()
+                .expect("`slice` must always return a `TypedArray` on success"),
+        })
     }
 
     /// Calls `TypedArray.prototype.find()`.
@@ -248,7 +271,7 @@ impl JsTypedArray {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         BuiltinTypedArray::find(
-            &self.inner,
+            &self.inner.clone().into(),
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
         )
@@ -265,7 +288,7 @@ impl JsTypedArray {
         T: Into<JsValue>,
     {
         let index = BuiltinTypedArray::index_of(
-            &self.inner,
+            &self.inner.clone().into(),
             &[search_element.into(), from_index.into_or_undefined()],
             context,
         )?
@@ -291,7 +314,7 @@ impl JsTypedArray {
         T: Into<JsValue>,
     {
         let index = BuiltinTypedArray::last_index_of(
-            &self.inner,
+            &self.inner.clone().into(),
             &[search_element.into(), from_index.into_or_undefined()],
             context,
         )?
@@ -313,10 +336,63 @@ impl JsTypedArray {
         separator: Option<JsString>,
         context: &mut Context<'_>,
     ) -> JsResult<JsString> {
-        BuiltinTypedArray::join(&self.inner, &[separator.into_or_undefined()], context).map(|x| {
+        BuiltinTypedArray::join(
+            &self.inner.clone().into(),
+            &[separator.into_or_undefined()],
+            context,
+        )
+        .map(|x| {
             x.as_string()
                 .cloned()
                 .expect("TypedArray.prototype.join always returns string")
+        })
+    }
+
+    /// Calls `TypedArray.prototype.toReversed ( )`.
+    #[inline]
+    pub fn to_reversed(&self, context: &mut Context<'_>) -> JsResult<Self> {
+        let array = BuiltinTypedArray::to_reversed(&self.inner.clone().into(), &[], context)?;
+
+        Ok(Self {
+            inner: array
+                .as_object()
+                .cloned()
+                .expect("`to_reversed` must always return a `TypedArray` on success"),
+        })
+    }
+
+    /// Calls `TypedArray.prototype.toSorted ( comparefn )`.
+    #[inline]
+    pub fn to_sorted(
+        &self,
+        compare_fn: Option<JsFunction>,
+        context: &mut Context<'_>,
+    ) -> JsResult<Self> {
+        let array = BuiltinTypedArray::to_sorted(
+            &self.inner.clone().into(),
+            &[compare_fn.into_or_undefined()],
+            context,
+        )?;
+
+        Ok(Self {
+            inner: array
+                .as_object()
+                .cloned()
+                .expect("`to_sorted` must always return a `TypedArray` on success"),
+        })
+    }
+
+    /// Calls `TypedArray.prototype.with ( index, value )`.
+    #[inline]
+    pub fn with(&self, index: u64, value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+        let array =
+            BuiltinTypedArray::with(&self.inner.clone().into(), &[index.into(), value], context)?;
+
+        Ok(Self {
+            inner: array
+                .as_object()
+                .cloned()
+                .expect("`with` must always return a `TypedArray` on success"),
         })
     }
 }
@@ -324,17 +400,14 @@ impl JsTypedArray {
 impl From<JsTypedArray> for JsObject {
     #[inline]
     fn from(o: JsTypedArray) -> Self {
-        o.inner
-            .as_object()
-            .expect("should always be an object")
-            .clone()
+        o.inner.clone()
     }
 }
 
 impl From<JsTypedArray> for JsValue {
     #[inline]
     fn from(o: JsTypedArray) -> Self {
-        o.inner.clone()
+        o.inner.clone().into()
     }
 }
 
@@ -343,7 +416,7 @@ impl Deref for JsTypedArray {
 
     #[inline]
     fn deref(&self) -> &Self::Target {
-        self.inner.as_object().expect("should always be an object")
+        &self.inner
     }
 }
 
@@ -463,8 +536,6 @@ macro_rules! JsTypedArrayType {
             fn from(o: $name) -> Self {
                 o.inner
                     .inner
-                    .as_object()
-                    .expect("should always be an object")
                     .clone()
             }
         }
@@ -472,7 +543,7 @@ macro_rules! JsTypedArrayType {
         impl From<$name> for JsValue {
             #[inline]
             fn from(o: $name) -> Self {
-                o.inner.inner.clone()
+                o.inner.inner.clone().into()
             }
         }
 
