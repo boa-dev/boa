@@ -55,11 +55,7 @@ pub(crate) struct PushClassFieldPrivate;
 impl PushClassFieldPrivate {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string_expect(index);
+        let name = context.vm.frame().code_block().constant_string(index);
         let field_function_value = context.vm.pop();
         let class_value = context.vm.pop();
 

@@ -22,7 +22,7 @@ impl PushDeclarativeEnvironment {
             .vm
             .frame()
             .code_block()
-            .constant_compile_time_environment_expect(compile_environments_index);
+            .constant_compile_time_environment(compile_environments_index);
         context.vm.environments.push_lexical(compile_environment);
         Ok(CompletionType::Normal)
     }
@@ -94,7 +94,7 @@ impl Operation for PushPrivateEnvironment {
                 .vm
                 .frame()
                 .code_block()
-                .constant_string_expect(index as usize);
+                .constant_string(index as usize);
             names.push(name);
         }
 

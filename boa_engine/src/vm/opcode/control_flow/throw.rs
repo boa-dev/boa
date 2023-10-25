@@ -123,11 +123,7 @@ pub(crate) struct ThrowNewTypeError;
 
 impl ThrowNewTypeError {
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let msg = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string_expect(index);
+        let msg = context.vm.frame().code_block().constant_string(index);
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");

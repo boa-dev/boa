@@ -19,7 +19,7 @@ impl DeletePropertyByName {
             .vm
             .frame()
             .code_block()
-            .constant_string_expect(index)
+            .constant_string(index)
             .into();
         let result = object.__delete__(&key, context)?;
         if !result && context.vm.frame().code_block.strict() {

@@ -29,7 +29,7 @@ impl SetPropertyByName {
             .vm
             .frame()
             .code_block()
-            .constant_string_expect(index)
+            .constant_string(index)
             .into();
 
         let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
@@ -185,7 +185,7 @@ impl SetPropertyGetterByName {
             .vm
             .frame()
             .code_block()
-            .constant_string_expect(index)
+            .constant_string(index)
             .into();
         let set = object
             .__get_own_property__(&name, context)?
@@ -280,7 +280,7 @@ impl SetPropertySetterByName {
             .vm
             .frame()
             .code_block()
-            .constant_string_expect(index)
+            .constant_string(index)
             .into();
         let get = object
             .__get_own_property__(&name, context)?

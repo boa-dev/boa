@@ -63,12 +63,8 @@ impl PushRegExp {
             .vm
             .frame()
             .code_block()
-            .constant_string_expect(pattern_index);
-        let flags = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string_expect(flags_index);
+            .constant_string(pattern_index);
+        let flags = context.vm.frame().code_block().constant_string(flags_index);
 
         let regexp = JsRegExp::new(pattern, flags, context)?;
         context.vm.push(regexp);

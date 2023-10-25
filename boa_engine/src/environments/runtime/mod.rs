@@ -672,7 +672,11 @@ impl Context<'_> {
         }
     }
 
-    /// Return the environment at the given index. Panics if the index is out of range.
+    /// Return the environment at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `index` is out of range.
     pub(crate) fn environment_expect(&self, index: u32) -> &Environment {
         self.vm
             .environments

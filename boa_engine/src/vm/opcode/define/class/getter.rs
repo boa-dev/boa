@@ -21,7 +21,7 @@ impl DefineClassStaticGetterByName {
             .vm
             .frame()
             .code_block()
-            .constant_string_expect(index)
+            .constant_string(index)
             .into();
         {
             let function_object = function
@@ -90,7 +90,7 @@ impl DefineClassGetterByName {
             .vm
             .frame()
             .code_block()
-            .constant_string_expect(index)
+            .constant_string(index)
             .into();
         {
             let function_object = function

@@ -251,31 +251,49 @@ impl CodeBlock {
             .find(|(_, handler)| handler.contains(pc))
     }
 
-    pub(crate) fn constant_string_expect(&self, index: usize) -> JsString {
-        if let Constant::String(value) = &self.constants[index] {
+    /// Get the [`JsString`] constant from the [`CodeBlock`].
+    ///
+    /// # Panics
+    ///
+    /// If the type of the [`Constant`] is not [`Constant::String`].
+    /// Or `index` is greater or equal to length of `constants`.
+    pub(crate) fn constant_string(&self, index: usize) -> JsString {
+        if let Some(Constant::String(value)) = self.constants.get(index) {
             return value.clone();
         }
 
-        panic!("there should be a string constant at index {index}")
+        panic!("expected string constant at index {index}")
     }
 
-    pub(crate) fn constant_function_expect(&self, index: usize) -> Gc<Self> {
-        if let Constant::Function(value) = &self.constants[index] {
+    /// Get the function ([`Gc<CodeBlock>`]) constant from the [`CodeBlock`].
+    ///
+    /// # Panics
+    ///
+    /// If the type of the [`Constant`] is not [`Constant::Function`].
+    /// Or `index` is greater or equal to length of `constants`.
+    pub(crate) fn constant_function(&self, index: usize) -> Gc<Self> {
+        if let Some(Constant::Function(value)) = self.constants.get(index) {
             return value.clone();
         }
 
-        panic!("there should be a function constant at index {index}")
+        panic!("expected function constant at index {index}")
     }
 
-    pub(crate) fn constant_compile_time_environment_expect(
+    /// Get the [`CompileTimeEnvironment`] constant from the [`CodeBlock`].
+    ///
+    /// # Panics
+    ///
+    /// If the type of the [`Constant`] is not [`Constant::CompileTimeEnvironment`].
+    /// Or `index` is greater or equal to length of `constants`.
+    pub(crate) fn constant_compile_time_environment(
         &self,
         index: usize,
     ) -> Rc<CompileTimeEnvironment> {
-        if let Constant::CompileTimeEnvironment(value) = &self.constants[index] {
+        if let Some(Constant::CompileTimeEnvironment(value)) = self.constants.get(index) {
             return value.clone();
         }
 
-        panic!("there should be a compile time environment constant at index {index}")
+        panic!("expected compile time environment constant at index {index}")
     }
 }
 
@@ -351,10 +369,10 @@ impl CodeBlock {
                 flags_index: flag_index,
             } => {
                 let pattern = self
-                    .constant_string_expect(source_index.value() as usize)
+                    .constant_string(source_index.value() as usize)
                     .to_std_string_escaped();
                 let flags = self
-                    .constant_string_expect(flag_index.value() as usize)
+                    .constant_string(flag_index.value() as usize)
                     .to_std_string_escaped();
                 format!("/{pattern}/{flags}")
             }
@@ -408,10 +426,8 @@ impl CodeBlock {
                 let index = index.value() as usize;
                 format!(
                     "{index:04}: '{}' (length: {}), method: {method}",
-                    self.constant_function_expect(index)
-                        .name()
-                        .to_std_string_escaped(),
-                    self.constant_function_expect(index).length
+                    self.constant_function(index).name().to_std_string_escaped(),
+                    self.constant_function(index).length
                 )
             }
             Instruction::GetArrowFunction { index }
@@ -421,10 +437,8 @@ impl CodeBlock {
                 let index = index.value() as usize;
                 format!(
                     "{index:04}: '{}' (length: {})",
-                    self.constant_function_expect(index)
-                        .name()
-                        .to_std_string_escaped(),
-                    self.constant_function_expect(index).length
+                    self.constant_function(index).name().to_std_string_escaped(),
+                    self.constant_function(index).length
                 )
             }
             Instruction::DefVar { index }
@@ -469,7 +483,7 @@ impl CodeBlock {
                 format!(
                     "{:04}: '{}'",
                     index.value(),
-                    self.constant_string_expect(index.value() as usize)
+                    self.constant_string(index.value() as usize)
                         .to_std_string_escaped(),
                 )
             }

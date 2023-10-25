@@ -97,7 +97,7 @@ pub(crate) fn function_call(
         let index = context
             .vm
             .environments
-            .push_lexical(code.constant_compile_time_environment_expect(last_env));
+            .push_lexical(code.constant_compile_time_environment(last_env));
         context
             .vm
             .environments
@@ -106,7 +106,7 @@ pub(crate) fn function_call(
     }
 
     context.vm.environments.push_function(
-        code.constant_compile_time_environment_expect(last_env),
+        code.constant_compile_time_environment(last_env),
         FunctionSlots::new(this, function_object.clone(), None),
     );
 
@@ -115,7 +115,7 @@ pub(crate) fn function_call(
         context
             .vm
             .environments
-            .push_lexical(code.constant_compile_time_environment_expect(last_env));
+            .push_lexical(code.constant_compile_time_environment(last_env));
     }
 
     // Taken from: `FunctionDeclarationInstantiation` abstract function.
@@ -225,7 +225,7 @@ fn function_construct(
         let index = context
             .vm
             .environments
-            .push_lexical(code.constant_compile_time_environment_expect(last_env));
+            .push_lexical(code.constant_compile_time_environment(last_env));
         context
             .vm
             .environments
@@ -234,7 +234,7 @@ fn function_construct(
     }
 
     context.vm.environments.push_function(
-        code.constant_compile_time_environment_expect(last_env),
+        code.constant_compile_time_environment(last_env),
         FunctionSlots::new(
             this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
                 ThisBindingStatus::Initialized(o.into())
@@ -254,7 +254,7 @@ fn function_construct(
         context
             .vm
             .environments
-            .push_lexical(code.constant_compile_time_environment_expect(last_env));
+            .push_lexical(code.constant_compile_time_environment(last_env));
     }
 
     // Taken from: `FunctionDeclarationInstantiation` abstract function.

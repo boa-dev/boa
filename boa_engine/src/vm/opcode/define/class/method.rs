@@ -21,7 +21,7 @@ impl DefineClassStaticMethodByName {
             .vm
             .frame()
             .code_block()
-            .constant_string_expect(index)
+            .constant_string(index)
             .into();
         {
             let function_object = function
@@ -86,7 +86,7 @@ impl DefineClassMethodByName {
             .vm
             .frame()
             .code_block()
-            .constant_string_expect(index)
+            .constant_string(index)
             .into();
         {
             let function_object = function

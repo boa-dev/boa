@@ -12,11 +12,7 @@ pub(crate) struct GetPrivateField;
 
 impl GetPrivateField {
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string_expect(index);
+        let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let base_obj = value.to_object(context)?;
 
