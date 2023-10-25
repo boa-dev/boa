@@ -56,7 +56,7 @@ impl IntrinsicObject for Object {
             .name(js_string!("set __proto__"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let obj = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(None)
             .accessor(
                 utf16!("__proto__"),
@@ -131,8 +131,12 @@ impl IntrinsicObject for Object {
                 1,
             )
             .static_method(Self::has_own, js_string!("hasOwn"), 2)
-            .static_method(Self::from_entries, js_string!("fromEntries"), 1)
-            .build();
+            .static_method(Self::from_entries, js_string!("fromEntries"), 1);
+
+        #[cfg(feature = "experimental")]
+        let obj = { obj.static_method(Self::group_by, js_string!("groupBy"), 2) };
+
+        obj.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -1333,6 +1337,110 @@ impl Object {
 
         // 6. Return ? AddEntriesFromIterable(obj, iterable, adder).
         map::add_entries_from_iterable(&obj, iterable, &adder.into(), context)
+    }
+
+    /// [`Object.groupBy ( items, callbackfn )`][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-array-grouping/#sec-object.groupby
+    #[cfg(feature = "experimental")]
+    pub(crate) fn group_by(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        use std::hash::BuildHasherDefault;
+
+        use indexmap::IndexMap;
+        use rustc_hash::FxHasher;
+
+        use crate::builtins::{iterable::if_abrupt_close_iterator, Number};
+
+        let items = args.get_or_undefined(0);
+        let callback = args.get_or_undefined(1);
+        // 1. Let groups be ? GroupBy(items, callbackfn, property).
+
+        // `GroupBy`
+        // https://tc39.es/proposal-array-grouping/#sec-group-by
+        // inlined to change the key type.
+
+        // 1. Perform ? RequireObjectCoercible(items).
+        items.require_object_coercible()?;
+
+        // 2. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let callback = callback.as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("callback must be a callable object")
+        })?;
+
+        // 3. Let groups be a new empty List.
+        let mut groups: IndexMap<PropertyKey, Vec<JsValue>, BuildHasherDefault<FxHasher>> =
+            IndexMap::default();
+
+        // 4. Let iteratorRecord be ? GetIterator(items).
+        let mut iterator = items.get_iterator(context, None, None)?;
+
+        // 5. Let k be 0.
+        let mut k = 0u64;
+
+        // 6. Repeat,
+        loop {
+            // a. If k ≥ 2^53 - 1, then
+            if k >= Number::MAX_SAFE_INTEGER as u64 {
+                // i. Let error be ThrowCompletion(a newly created TypeError object).
+                let error = JsNativeError::typ()
+                    .with_message("exceeded maximum safe integer")
+                    .into();
+
+                // ii. Return ? IteratorClose(iteratorRecord, error).
+                return iterator.close(Err(error), context);
+            }
+
+            // b. Let next be ? IteratorStep(iteratorRecord).
+            let done = iterator.step(context)?;
+
+            // c. If next is false, then
+            if done {
+                // i. Return groups.
+                break;
+            }
+
+            // d. Let value be ? IteratorValue(next).
+            let value = iterator.value(context)?;
+
+            // e. Let key be Completion(Call(callbackfn, undefined, « value, 𝔽(k) »)).
+            let key = callback.call(&JsValue::undefined(), &[value.clone(), k.into()], context);
+
+            // f. IfAbruptCloseIterator(key, iteratorRecord).
+            let key = if_abrupt_close_iterator!(key, iterator, context);
+
+            // g. If keyCoercion is property, then
+            //     i. Set key to Completion(ToPropertyKey(key)).
+            let key = key.to_property_key(context);
+
+            //     ii. IfAbruptCloseIterator(key, iteratorRecord).
+            let key = if_abrupt_close_iterator!(key, iterator, context);
+
+            // i. Perform AddValueToKeyedGroup(groups, key, value).
+            groups.entry(key).or_default().push(value);
+
+            // j. Set k to k + 1.
+            k += 1;
+        }
+
+        // 2. Let obj be OrdinaryObjectCreate(null).
+        let obj = JsObject::with_null_proto();
+
+        // 3. For each Record { [[Key]], [[Elements]] } g of groups, do
+        for (key, elements) in groups {
+            // a. Let elements be CreateArrayFromList(g.[[Elements]]).
+            let elements = Array::create_array_from_list(elements, context);
+
+            // b. Perform ! CreateDataPropertyOrThrow(obj, g.[[Key]], elements).
+            obj.create_data_property_or_throw(key, elements, context)
+                .expect("cannot fail for a newly created object");
+        }
+
+        // 4. Return obj.
+        Ok(obj.into())
     }
 }
 
