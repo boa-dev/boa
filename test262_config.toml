@@ -41,9 +41,6 @@ features = [
     # https://github.com/tc39/proposal-realms
     "ShadowRealm",
 
-    # https://github.com/tc39/proposal-array-grouping
-    "array-grouping",
-
     # https://github.com/tc39/proposal-intl-duration-format
     "Intl.DurationFormat",
 

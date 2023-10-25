@@ -54,7 +54,7 @@ impl IntrinsicObject for Map {
             .name(js_string!("entries"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let obj = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -89,8 +89,12 @@ impl IntrinsicObject for Map {
                 Some(get_size),
                 None,
                 Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        #[cfg(feature = "experimental")]
+        let obj = { obj.static_method(Self::group_by, js_string!("groupBy"), 2) };
+
+        obj.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -520,6 +524,117 @@ impl Map {
         // 1. Let M be the this value.
         // 2. Return ? CreateMapIterator(M, value).
         MapIterator::create_map_iterator(this, PropertyNameKind::Value, context)
+    }
+
+    /// [`Map.groupBy ( items, callbackfn )`][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-array-grouping/#sec-map.groupby
+    #[cfg(feature = "experimental")]
+    pub(crate) fn group_by(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        use std::hash::BuildHasherDefault;
+
+        use indexmap::IndexMap;
+        use rustc_hash::FxHasher;
+
+        use crate::builtins::{iterable::if_abrupt_close_iterator, Array, Number};
+
+        let items = args.get_or_undefined(0);
+        let callback = args.get_or_undefined(1);
+        // 1. Let groups be ? GroupBy(items, callbackfn, zero).
+
+        // `GroupBy`
+        // https://tc39.es/proposal-array-grouping/#sec-group-by
+        // inlined to change the key type.
+
+        // 1. Perform ? RequireObjectCoercible(items).
+        items.require_object_coercible()?;
+
+        // 2. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let callback = callback.as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("callback must be a callable object")
+        })?;
+
+        // 3. Let groups be a new empty List.
+        let mut groups: IndexMap<JsValue, Vec<JsValue>, BuildHasherDefault<FxHasher>> =
+            IndexMap::default();
+
+        // 4. Let iteratorRecord be ? GetIterator(items).
+        let mut iterator = items.get_iterator(context, None, None)?;
+
+        // 5. Let k be 0.
+        let mut k = 0u64;
+
+        // 6. Repeat,
+        loop {
+            // a. If k ≥ 2^53 - 1, then
+            if k >= Number::MAX_SAFE_INTEGER as u64 {
+                // i. Let error be ThrowCompletion(a newly created TypeError object).
+                let error = JsNativeError::typ()
+                    .with_message("exceeded maximum safe integer")
+                    .into();
+
+                // ii. Return ? IteratorClose(iteratorRecord, error).
+                return iterator.close(Err(error), context);
+            }
+
+            // b. Let next be ? IteratorStep(iteratorRecord).
+            let done = iterator.step(context)?;
+
+            // c. If next is false, then
+            if done {
+                // i. Return groups.
+                break;
+            }
+
+            // d. Let value be ? IteratorValue(next).
+            let value = iterator.value(context)?;
+
+            // e. Let key be Completion(Call(callbackfn, undefined, « value, 𝔽(k) »)).
+            let key = callback.call(&JsValue::undefined(), &[value.clone(), k.into()], context);
+
+            // f. IfAbruptCloseIterator(key, iteratorRecord).
+            let mut key = if_abrupt_close_iterator!(key, iterator, context);
+
+            // h. Else,
+            //     i. Assert: keyCoercion is zero.
+            //     ii. If key is -0𝔽, set key to +0𝔽.
+            if key.as_number() == Some(-0.0) {
+                key = 0.into();
+            }
+
+            // i. Perform AddValueToKeyedGroup(groups, key, value).
+            groups.entry(key).or_default().push(value);
+
+            // j. Set k to k + 1.
+            k += 1;
+        }
+
+        // 2. Let map be ! Construct(%Map%).
+        let mut map = OrderedMap::new();
+
+        // 3. For each Record { [[Key]], [[Elements]] } g of groups, do
+        for (key, elements) in groups {
+            // a. Let elements be CreateArrayFromList(g.[[Elements]]).
+            let elements = Array::create_array_from_list(elements, context);
+
+            // b. Let entry be the Record { [[Key]]: g.[[Key]], [[Value]]: elements }.
+            // c. Append entry to map.[[MapData]].
+            map.insert(key, elements.into());
+        }
+
+        let proto = context.intrinsics().constructors().map().prototype();
+
+        // 4. Return map.
+        Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            proto,
+            ObjectData::map(map),
+        )
+        .into())
     }
 }
 
