@@ -12,6 +12,11 @@ def new_valid_bench(bench):
         "fcf456e5ded032841e9c89255ef820070e3120e1",
         "099154cb34c4f7fec6cf8d45f1f96b6797e10dd4",
         "b0cf873a466bf3c71d258b20c81103f1ca696e97",
+        "5f8912907cd0d07bdfc8e5796e078f0db11d2147",
+        "4f36b8350e5768af0a52d6585cce1a16615e0348",
+        "610cf2c3c8bb7145829fb35ec3038365950d650d",
+        "8da46a9d21dd154cf4509b74fae39fa7c51d478c",
+        "6de1d15974393d102d8f2919b9353f8073ca1986"
     ]
 
     date = datetime.strptime(bench["commit"]["timestamp"], "%Y-%m-%dT%H:%M:%S%z")
