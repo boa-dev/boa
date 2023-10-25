@@ -2015,8 +2015,8 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(fun.realm().clone());
         }
 
-        <span class="kw">if let </span>ObjectKind::NativeFunction { realm, .. } = constructor.kind() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(realm.clone());
+        <span class="kw">if let </span>ObjectKind::NativeFunction(f) = constructor.kind() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(f.realm.clone().unwrap_or_else(|| context.realm().clone()));
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = constructor.as_bound_function() {

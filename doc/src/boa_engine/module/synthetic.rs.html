@@ -380,7 +380,6 @@
 <a href="#380" id="380">380</a>
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use </span>boa_ast::expression::Identifier;
@@ -581,7 +580,6 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>load(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsPromise {
         <span class="comment">// 1. Return ! PromiseResolve(%Promise%, undefined).
         </span>JsPromise::resolve(JsValue::undefined(), context)
-            .expect(<span class="string">&quot;creating a promise from the %Promise% constructor must not fail&quot;</span>)
     }
 
     <span class="doccomment">/// Concrete method [`GetExportedNames ( [ exportStarSet ] )`][spec].

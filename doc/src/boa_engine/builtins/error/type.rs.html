@@ -144,6 +144,7 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypeError` object.
 //!
 //! The `TypeError` object represents an error when an operation could not be performed,
@@ -166,7 +167,8 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
+    native_function::NativeFunctionObject,
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
@@ -261,15 +263,6 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ThrowTypeError {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">fn </span>throw_type_error(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-            <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(
-                    <span class="string">&quot;&#39;caller&#39;, &#39;callee&#39;, and &#39;arguments&#39; properties may not be accessed on strict mode \
-                    functions or the arguments objects for calls to them&quot;</span>,
-                )
-                .into())
-        }
-
         <span class="kw">let </span>obj = BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .prototype(realm.intrinsics().constructors().function().prototype())
             .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, Attribute::empty())
@@ -278,12 +271,21 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>obj = obj.borrow_mut();
 
-        obj.extensible = <span class="bool-val">false</span>;
-        <span class="kw-2">*</span>obj.kind_mut() = ObjectKind::NativeFunction {
-            function: NativeFunction::from_fn_ptr(throw_type_error),
+        <span class="kw-2">*</span>obj.as_native_function_mut()
+            .expect(<span class="string">&quot;`%ThrowTypeError%` must be a function&quot;</span>) = NativeFunctionObject {
+            f: NativeFunction::from_fn_ptr(|<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
+                <span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(
+                        <span class="string">&quot;&#39;caller&#39;, &#39;callee&#39;, and &#39;arguments&#39; properties may not be accessed on strict mode \
+                        functions or the arguments objects for calls to them&quot;</span>,
+                    )
+                    .into())
+            }),
             constructor: <span class="prelude-val">None</span>,
-            realm: realm.clone(),
-        }
+            realm: <span class="prelude-val">Some</span>(realm.clone()),
+        };
+
+        obj.extensible = <span class="bool-val">false</span>;
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {

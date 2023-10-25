@@ -3093,6 +3093,20 @@
 <a href="#3093" id="3093">3093</a>
 <a href="#3094" id="3094">3094</a>
 <a href="#3095" id="3095">3095</a>
+<a href="#3096" id="3096">3096</a>
+<a href="#3097" id="3097">3097</a>
+<a href="#3098" id="3098">3098</a>
+<a href="#3099" id="3099">3099</a>
+<a href="#3100" id="3100">3100</a>
+<a href="#3101" id="3101">3101</a>
+<a href="#3102" id="3102">3102</a>
+<a href="#3103" id="3103">3103</a>
+<a href="#3104" id="3104">3104</a>
+<a href="#3105" id="3105">3105</a>
+<a href="#3106" id="3106">3106</a>
+<a href="#3107" id="3107">3107</a>
+<a href="#3108" id="3108">3108</a>
+<a href="#3109" id="3109">3109</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -3162,7 +3176,7 @@
     context::intrinsics::StandardConstructor,
     js_string,
     module::ModuleNamespace,
-    native_function::NativeFunction,
+    native_function::{NativeFunction, NativeFunctionObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::utf16,
@@ -3451,16 +3465,7 @@
     </span>GeneratorFunction(OrdinaryFunction),
 
     <span class="doccomment">/// A native rust function.
-    </span>NativeFunction {
-        <span class="doccomment">/// The rust function.
-        </span>function: NativeFunction,
-
-        <span class="doccomment">/// The kind of the function constructor if it is a constructor.
-        </span>constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
-
-        <span class="doccomment">/// The [`Realm`] in which the function is defined.
-        </span>realm: Realm,
-    },
+    </span>NativeFunction(NativeFunctionObject),
 
     <span class="doccomment">/// The `Set` object kind.
     </span>Set(OrderedSet),
@@ -3605,10 +3610,7 @@
             <span class="self">Self</span>::OrdinaryFunction(f) | <span class="self">Self</span>::GeneratorFunction(f) | <span class="self">Self</span>::AsyncGeneratorFunction(f) =&gt; mark(f),
             <span class="self">Self</span>::BoundFunction(f) =&gt; mark(f),
             <span class="self">Self</span>::Generator(g) =&gt; mark(g),
-            <span class="self">Self</span>::NativeFunction { function, constructor: <span class="kw">_</span>, realm } =&gt; {
-                mark(function);
-                mark(realm);
-            }
+            <span class="self">Self</span>::NativeFunction(f) =&gt; mark(f),
             <span class="self">Self</span>::Set(s) =&gt; mark(s),
             <span class="self">Self</span>::SetIterator(i) =&gt; mark(i),
             <span class="self">Self</span>::StringIterator(i) =&gt; mark(i),
@@ -3754,9 +3756,9 @@
 
     <span class="doccomment">/// Create the `RegExp` object data
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>reg_exp(reg_exp: Box&lt;RegExp&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>regexp(reg_exp: RegExp) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            kind: ObjectKind::RegExp(reg_exp),
+            kind: ObjectKind::RegExp(Box::new(reg_exp)),
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -3832,8 +3834,8 @@
 
     <span class="doccomment">/// Create the native function object data
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>native_function(function: NativeFunction, constructor: bool, realm: Realm) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>internal_methods = <span class="kw">if </span>constructor {
+    </span><span class="kw">pub fn </span>native_function(function: NativeFunctionObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>internal_methods = <span class="kw">if </span>function.constructor.is_some() {
             <span class="kw-2">&amp;</span>NATIVE_CONSTRUCTOR_INTERNAL_METHODS
         } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span>NATIVE_FUNCTION_INTERNAL_METHODS
@@ -3841,11 +3843,7 @@
 
         <span class="self">Self </span>{
             internal_methods,
-            kind: ObjectKind::NativeFunction {
-                function,
-                constructor: constructor.then_some(ConstructorKind::Base),
-                realm,
-            },
+            kind: ObjectKind::NativeFunction(function),
         }
     }
 
@@ -4305,9 +4303,12 @@
 }
 
 <span class="kw">impl </span>Object {
-    <span class="doccomment">/// Returns a mutable reference to the kind of an object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>kind_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ObjectKind {
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>.kind
+    <span class="doccomment">/// Creates a new `Object` with the specified `ObjectKind`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_kind(kind: ObjectKind) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind,
+            ..<span class="self">Self</span>::default()
+        }
     }
 
     <span class="doccomment">/// Returns the shape of the object.
@@ -4821,6 +4822,16 @@
         }
     }
 
+    <span class="doccomment">/// Gets a mutable reference to the regexp data if the object is a regexp.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>as_regexp_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>RegExp&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
+            ObjectKind::RegExp(regexp) =&gt; <span class="prelude-val">Some</span>(regexp),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="doccomment">/// Checks if it a `TypedArray` object.
     </span><span class="attr">#[inline]
     #[must_use]
@@ -5053,6 +5064,30 @@
         }
     }
 
+    <span class="doccomment">/// Returns `true` if it holds a native Rust function.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>is_native_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::NativeFunction { .. })
+    }
+
+    <span class="doccomment">/// Returns this `NativeFunctionObject` if this object contains a `NativeFunctionObject`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_native_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NativeFunctionObject&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            ObjectKind::NativeFunction(f) =&gt; <span class="prelude-val">Some</span>(f),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Returns a mutable reference to this `NativeFunctionObject` if this object contains a
+    /// `NativeFunctionObject`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_native_function_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>NativeFunctionObject&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.kind {
+            ObjectKind::NativeFunction(f) =&gt; <span class="prelude-val">Some</span>(f),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="doccomment">/// Gets the prototype instance of this object.
     </span><span class="attr">#[inline]
     #[must_use]
@@ -5083,13 +5118,6 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>is_native_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::NativeObject(<span class="kw">_</span>))
-    }
-
-    <span class="doccomment">/// Returns `true` if it holds a native Rust function.
-    </span><span class="attr">#[inline]
-    #[must_use]
-    </span><span class="kw">pub const fn </span>is_native_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::NativeFunction { .. })
     }
 
     <span class="doccomment">/// Gets the native object data if the object is a `NativeObject`.
@@ -5697,11 +5725,11 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; JsFunction {
         <span class="kw">let </span>object = <span class="self">self</span>.realm.intrinsics().templates().function().create(
-            ObjectData::native_function(
-                <span class="self">self</span>.function,
-                <span class="self">self</span>.constructor.is_some(),
-                <span class="self">self</span>.realm.clone(),
-            ),
+            ObjectData::native_function(NativeFunctionObject {
+                f: <span class="self">self</span>.function,
+                constructor: <span class="self">self</span>.constructor,
+                realm: <span class="prelude-val">Some</span>(<span class="self">self</span>.realm.clone()),
+            }),
             <span class="macro">vec!</span>[<span class="self">self</span>.length.into(), <span class="self">self</span>.name.into()],
         );
 
@@ -6139,11 +6167,11 @@
             <span class="kw">let </span><span class="kw-2">mut </span>constructor = <span class="self">self</span>.constructor_object;
             constructor.insert(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), length);
             constructor.insert(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name);
-            <span class="kw">let </span>data = ObjectData::native_function(
-                <span class="self">self</span>.function,
-                <span class="self">self</span>.kind.is_some(),
-                <span class="self">self</span>.context.realm().clone(),
-            );
+            <span class="kw">let </span>data = ObjectData::native_function(NativeFunctionObject {
+                f: <span class="self">self</span>.function,
+                constructor: <span class="self">self</span>.kind,
+                realm: <span class="prelude-val">Some</span>(<span class="self">self</span>.context.realm().clone()),
+            });
 
             constructor.kind = data.kind;
 

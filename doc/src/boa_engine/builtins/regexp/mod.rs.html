@@ -1944,10 +1944,9 @@
     error::JsNativeError,
     js_string,
     object::{
-        internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData, ObjectKind,
-        CONSTRUCTOR,
+        internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData, CONSTRUCTOR,
     },
-    property::{Attribute, PropertyDescriptorBuilder},
+    property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16, CodePoint},
     symbol::JsSymbol,
@@ -2181,10 +2180,11 @@
         };
 
         <span class="comment">// 7. Let O be ? RegExpAlloc(newTarget).
-        </span><span class="kw">let </span>o = <span class="self">Self</span>::alloc(new_target, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>proto =
+            get_prototype_from_constructor(new_target, StandardConstructors::regexp, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 8.Return ? RegExpInitialize(O, P, F).
-        </span><span class="self">Self</span>::initialize(o, <span class="kw-2">&amp;</span>p, <span class="kw-2">&amp;</span>f, context)
+        </span><span class="self">Self</span>::initialize(<span class="prelude-val">Some</span>(proto), <span class="kw-2">&amp;</span>p, <span class="kw-2">&amp;</span>f, context)
     }
 }
 
@@ -2223,50 +2223,16 @@
         </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// `22.2.3.2.1 RegExpAlloc ( newTarget )`
+    <span class="doccomment">/// Compiles a `RegExp` from the provided pattern and flags.
     ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-regexpalloc
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>alloc(new_target: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsObject&gt; {
-        <span class="comment">// 1. Let obj be ? OrdinaryCreateFromConstructor(newTarget, &quot;%RegExp.prototype%&quot;, « [[RegExpMatcher]], [[OriginalSource]], [[OriginalFlags]] »).
-        </span><span class="kw">let </span>proto =
-            get_prototype_from_constructor(new_target, StandardConstructors::regexp, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            proto,
-            ObjectData::ordinary(),
-        );
-
-        <span class="comment">// 2. Perform ! DefinePropertyOrThrow(obj, &quot;lastIndex&quot;, PropertyDescriptor { [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-        </span>obj.define_property_or_throw(
-            <span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>),
-            PropertyDescriptorBuilder::new()
-                .writable(<span class="bool-val">true</span>)
-                .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">false</span>)
-                .build(),
-            context,
-        )
-        .expect(<span class="string">&quot;this cannot fail per spec&quot;</span>);
-
-        <span class="comment">// 3. Return obj.
-        </span><span class="prelude-val">Ok</span>(obj)
-    }
-
-    <span class="doccomment">/// `22.2.3.2.2 RegExpInitialize ( obj, pattern, flags )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
+    /// Equivalent to the beginning of [`RegExpInitialize ( obj, pattern, flags )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize(
-        obj: JsObject,
+    </span><span class="kw">fn </span>compile_native_regexp(
         pattern: <span class="kw-2">&amp;</span>JsValue,
         flags: <span class="kw-2">&amp;</span>JsValue,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    ) -&gt; JsResult&lt;RegExp&gt; {
         <span class="comment">// 1. If pattern is undefined, let P be the empty String.
         // 2. Else, let P be ? ToString(pattern).
         </span><span class="kw">let </span>p = <span class="kw">if </span>pattern.is_undefined() {
@@ -2291,43 +2257,66 @@
             <span class="prelude-val">Ok</span>(result) =&gt; result,
         };
 
-        <span class="comment">// 10. If u is true, then
-        //     a. Let patternText be StringToCodePoints(P).
-        // 11. Else,
-        //     a. Let patternText be the result of interpreting each of P&#39;s 16-bit elements as a Unicode BMP code point. UTF-16 decoding is not applied to the elements.
-        // 12. Let parseResult be ParsePattern(patternText, u).
-        // 13. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
-        // 14. Assert: parseResult is a Pattern Parse Node.
-        // 15. Set obj.[[OriginalSource]] to P.
-        // 16. Set obj.[[OriginalFlags]] to F.
-        // 17. Let capturingGroupsCount be CountLeftCapturingParensWithin(parseResult).
-        // 18. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m, [[DotAll]]: s, [[Unicode]]: u, [[CapturingGroupsCount]]: capturingGroupsCount }.
-        // 19. Set obj.[[RegExpRecord]] to rer.
-        // 20. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
+        <span class="comment">// 13. Let parseResult be ParsePattern(patternText, u, v).
+        // 14. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
         </span><span class="kw">let </span>matcher =
-            <span class="kw">match </span>Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags)) {
-                <span class="prelude-val">Err</span>(error) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+            Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags))
+                .map_err(|error| {
+                    JsNativeError::syntax()
                         .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to create matcher: {}&quot;</span>, error.text))
-                        .into());
-                }
-                <span class="prelude-val">Ok</span>(val) =&gt; val,
-            };
+                })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>regexp = <span class="self">Self </span>{
+        <span class="comment">// 15. Assert: parseResult is a Pattern Parse Node.
+        // 16. Set obj.[[OriginalSource]] to P.
+        // 17. Set obj.[[OriginalFlags]] to F.
+        // 18. Let capturingGroupsCount be CountLeftCapturingParensWithin(parseResult).
+        // 19. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m, [[DotAll]]: s, [[Unicode]]: u, [[UnicodeSets]]: v, [[CapturingGroupsCount]]: capturingGroupsCount }.
+        // 20. Set obj.[[RegExpRecord]] to rer.
+        // 21. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
+        </span><span class="prelude-val">Ok</span>(RegExp {
             matcher,
             flags,
             original_source: p,
             original_flags: f,
+        })
+    }
+
+    <span class="doccomment">/// `RegExpInitialize ( obj, pattern, flags )`
+    ///
+    /// If prototype is `None`, initializes the prototype to `%RegExp%.prototype`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize(
+        prototype: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+        pattern: <span class="kw-2">&amp;</span>JsValue,
+        flags: <span class="kw-2">&amp;</span>JsValue,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// Has the steps  of `RegExpInitialize`.
+        </span><span class="kw">let </span>regexp = <span class="self">Self</span>::compile_native_regexp(pattern, flags, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>data = ObjectData::regexp(regexp);
+
+        <span class="comment">// 22. Perform ? Set(obj, &quot;lastIndex&quot;, +0𝔽, true).
+        </span><span class="kw">let </span>obj = <span class="kw">if let </span><span class="prelude-val">Some</span>(prototype) = prototype {
+            <span class="kw">let </span><span class="kw-2">mut </span>template = context
+                .intrinsics()
+                .templates()
+                .regexp_without_proto()
+                .clone();
+            template.set_prototype(prototype);
+            template.create(data, <span class="macro">vec!</span>[<span class="number">0</span>.into()])
+        } <span class="kw">else </span>{
+            context
+                .intrinsics()
+                .templates()
+                .regexp()
+                .create(data, <span class="macro">vec!</span>[<span class="number">0</span>.into()])
         };
 
-        <span class="comment">// Safe to directly initialize since previous assertions ensure `obj` is a `Regexp` object.
-        </span><span class="kw-2">*</span>obj.borrow_mut().kind_mut() = ObjectKind::RegExp(Box::new(regexp));
-
-        <span class="comment">// 16. Perform ? Set(obj, &quot;lastIndex&quot;, +0𝔽, true).
-        </span>obj.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
-
-        <span class="comment">// 16. Return obj.
+        <span class="comment">// 23. Return obj.
         </span><span class="prelude-val">Ok</span>(obj.into())
     }
 
@@ -2339,10 +2328,8 @@
     /// [spec]: https://tc39.es/ecma262/#sec-regexpcreate
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create(p: <span class="kw-2">&amp;</span>JsValue, f: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let obj be ? RegExpAlloc(%RegExp%).
-        </span><span class="kw">let </span>obj = <span class="self">Self</span>::alloc(<span class="kw-2">&amp;</span>context.global_object().get(<span class="self">Self</span>::NAME, context)<span class="question-mark">?</span>, context)<span class="question-mark">?</span>;
-
-        <span class="comment">// 2. Return ? RegExpInitialize(obj, P, F).
-        </span><span class="self">Self</span>::initialize(obj, p, f, context)
+        // 2. Return ? RegExpInitialize(obj, P, F).
+        </span><span class="self">Self</span>::initialize(<span class="prelude-val">None</span>, p, f, context)
     }
 
     <span class="doccomment">/// `get RegExp [ @@species ]`
@@ -3788,6 +3775,7 @@
     </span><span class="kw">fn </span>compile(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[RegExpMatcher]]).
+
         </span><span class="kw">let </span>this = this
             .as_object()
             .filter(|o| o.borrow().is_regexp())
@@ -3822,8 +3810,20 @@
             //     b. Let F be flags.
             </span>(pattern.clone(), flags.clone())
         };
+
+        <span class="kw">let </span>regexp = <span class="self">Self</span>::compile_native_regexp(<span class="kw-2">&amp;</span>pattern, <span class="kw-2">&amp;</span>flags, context)<span class="question-mark">?</span>;
+
         <span class="comment">// 5. Return ? RegExpInitialize(O, P, F).
-        </span><span class="self">Self</span>::initialize(this, <span class="kw-2">&amp;</span>pattern, <span class="kw-2">&amp;</span>flags, context)
+        </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>obj = this.borrow_mut();
+
+            <span class="kw-2">*</span>obj.as_regexp_mut()
+                .expect(<span class="string">&quot;already checked that the object was a RegExp&quot;</span>) = regexp;
+        }
+
+        this.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(this.into())
     }
 }
 

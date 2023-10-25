@@ -1674,6 +1674,36 @@
 <a href="#1674" id="1674">1674</a>
 <a href="#1675" id="1675">1675</a>
 <a href="#1676" id="1676">1676</a>
+<a href="#1677" id="1677">1677</a>
+<a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
+<a href="#1680" id="1680">1680</a>
+<a href="#1681" id="1681">1681</a>
+<a href="#1682" id="1682">1682</a>
+<a href="#1683" id="1683">1683</a>
+<a href="#1684" id="1684">1684</a>
+<a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
+<a href="#1691" id="1691">1691</a>
+<a href="#1692" id="1692">1692</a>
+<a href="#1693" id="1693">1693</a>
+<a href="#1694" id="1694">1694</a>
+<a href="#1695" id="1695">1695</a>
+<a href="#1696" id="1696">1696</a>
+<a href="#1697" id="1697">1697</a>
+<a href="#1698" id="1698">1698</a>
+<a href="#1699" id="1699">1699</a>
+<a href="#1700" id="1700">1700</a>
+<a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
+<a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
+<a href="#1705" id="1705">1705</a>
+<a href="#1706" id="1706">1706</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -3000,6 +3030,9 @@
     bigint: ObjectTemplate,
     boolean: ObjectTemplate,
 
+    regexp: ObjectTemplate,
+    regexp_without_proto: ObjectTemplate,
+
     unmapped_arguments: ObjectTemplate,
     mapped_arguments: ObjectTemplate,
 
@@ -3044,6 +3077,12 @@
             Attribute::READONLY | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
         );
         string.set_prototype(constructors.string().prototype());
+
+        <span class="kw">let </span><span class="kw-2">mut </span>regexp_without_prototype = ObjectTemplate::new(root_shape);
+        regexp_without_prototype.property(<span class="macro">js_string!</span>(<span class="string">&quot;lastIndex&quot;</span>).into(), Attribute::WRITABLE);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>regexp = regexp_without_prototype.clone();
+        regexp.set_prototype(constructors.regexp().prototype());
 
         <span class="kw">let </span>name_property_key: PropertyKey = <span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>).into();
         <span class="kw">let </span><span class="kw-2">mut </span>function = ObjectTemplate::new(root_shape);
@@ -3150,6 +3189,8 @@
             symbol,
             bigint,
             boolean,
+            regexp,
+            regexp_without_proto: regexp_without_prototype,
             unmapped_arguments,
             mapped_arguments,
             function_with_prototype,
@@ -3238,6 +3279,25 @@
     /// 1. `__proto__`: `Boolean.prototype`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.boolean
+    }
+
+    <span class="doccomment">/// Cached regexp object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `&quot;lastIndex&quot;`: (`WRITABLE` , `PERMANENT`,`NON_ENUMERABLE`)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.regexp
+    }
+
+    <span class="doccomment">/// Cached regexp object template without `__proto__` template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `&quot;lastIndex&quot;`: (`WRITABLE` , `PERMANENT`,`NON_ENUMERABLE`)
+    /// 2. `__proto__`: `RegExp.prototype`
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>regexp_without_proto(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.regexp_without_proto
     }
 
     <span class="doccomment">/// Cached unmapped arguments object template.

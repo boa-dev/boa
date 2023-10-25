@@ -435,18 +435,14 @@
 <a href="#435" id="435">435</a>
 <a href="#436" id="436">436</a>
 <a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::{arguments::Arguments, FunctionKind, ThisMode},
     context::intrinsics::StandardConstructors,
     environments::{FunctionSlots, ThisBindingStatus},
+    native_function::NativeFunctionObject,
     object::{
         internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
-        JsObject, ObjectData, ObjectKind,
+        JsObject, ObjectData,
     },
     vm::{CallFrame, CallFrameFlags},
     Context, JsNativeError, JsResult, JsValue,
@@ -778,21 +774,18 @@
     // vm, but we&#39;ll eventually have to combine the native stack with the vm stack.
     </span>context.check_runtime_limits()<span class="question-mark">?</span>;
     <span class="kw">let </span>this_function_object = obj.clone();
-    <span class="kw">let </span>object = obj.borrow();
 
-    <span class="kw">let </span>ObjectKind::NativeFunction {
-        function,
+    <span class="kw">let </span>NativeFunctionObject {
+        f: function,
         constructor,
         realm,
-    } = object.kind()
-    <span class="kw">else </span>{
-        <span class="macro">unreachable!</span>(<span class="string">&quot;the object should be a native function object&quot;</span>);
-    };
+    } = obj
+        .borrow()
+        .as_native_function()
+        .cloned()
+        .expect(<span class="string">&quot;the object should be a native function object&quot;</span>);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>realm = realm.clone();
-    <span class="kw">let </span>function = function.clone();
-    <span class="kw">let </span>constructor = <span class="kw-2">*</span>constructor;
-    drop(object);
+    <span class="kw">let </span><span class="kw-2">mut </span>realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
     context.vm.native_active_function = <span class="prelude-val">Some</span>(this_function_object);
@@ -827,21 +820,18 @@
     // vm, but we&#39;ll eventually have to combine the native stack with the vm stack.
     </span>context.check_runtime_limits()<span class="question-mark">?</span>;
     <span class="kw">let </span>this_function_object = obj.clone();
-    <span class="kw">let </span>object = obj.borrow();
 
-    <span class="kw">let </span>ObjectKind::NativeFunction {
-        function,
+    <span class="kw">let </span>NativeFunctionObject {
+        f: function,
         constructor,
         realm,
-    } = object.kind()
-    <span class="kw">else </span>{
-        <span class="macro">unreachable!</span>(<span class="string">&quot;the object should be a native function object&quot;</span>);
-    };
+    } = obj
+        .borrow()
+        .as_native_function()
+        .cloned()
+        .expect(<span class="string">&quot;the object should be a native function object&quot;</span>);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>realm = realm.clone();
-    <span class="kw">let </span>function = function.clone();
-    <span class="kw">let </span>constructor = <span class="kw-2">*</span>constructor;
-    drop(object);
+    <span class="kw">let </span><span class="kw-2">mut </span>realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(<span class="kw-2">&amp;mut </span>realm);
     context.vm.native_active_function = <span class="prelude-val">Some</span>(this_function_object);

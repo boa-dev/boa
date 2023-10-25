@@ -281,6 +281,38 @@
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s wrappers for native Rust functions to be compatible with ECMAScript calls.
 //!
 //! [`NativeFunction`] is the main type of this module, providing APIs to create native callables
@@ -288,7 +320,12 @@
 
 </span><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Gc, Trace};
 
-<span class="kw">use crate</span>::{object::JsPromise, Context, JsResult, JsValue};
+<span class="kw">use crate</span>::{
+    builtins::function::ConstructorKind,
+    object::{FunctionObjectBuilder, JsFunction, JsPromise},
+    realm::Realm,
+    Context, JsResult, JsValue,
+};
 
 <span class="doccomment">/// The required signature for all native built-in function pointers.
 ///
@@ -337,6 +374,25 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         (<span class="self">self</span>.f)(this, args, <span class="kw-2">&amp;</span><span class="self">self</span>.captures, context)
     }
+}
+
+<span class="attr">#[derive(Clone, Debug, Finalize)]
+</span><span class="doccomment">/// The data of an object containing a `NativeFunction`.
+</span><span class="kw">pub struct </span>NativeFunctionObject {
+    <span class="doccomment">/// The rust function.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) f: NativeFunction,
+    <span class="doccomment">/// The kind of the function constructor if it is a constructor.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
+    <span class="doccomment">/// The [`Realm`] in which the function is defined, or `None` if the realm is uninitialized.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
+}
+
+<span class="comment">// SAFETY: this traces all fields that need to be traced by the GC.
+</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>NativeFunctionObject {
+    <span class="macro">custom_trace!</span>(this, {
+        mark(<span class="kw-2">&amp;</span>this.f);
+        mark(<span class="kw-2">&amp;</span>this.realm);
+    });
 }
 
 <span class="doccomment">/// A callable Rust function that can be invoked by the engine.
@@ -562,6 +618,14 @@
             Inner::PointerFn(f) =&gt; f(this, args, context),
             Inner::Closure(<span class="kw-2">ref </span>c) =&gt; c.call(this, args, context),
         }
+    }
+
+    <span class="doccomment">/// Converts this `NativeFunction` into a `JsFunction` without setting its name or length.
+    ///
+    /// Useful to create functions that will only be used once, such as callbacks.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>to_js_function(<span class="self">self</span>, realm: <span class="kw-2">&amp;</span>Realm) -&gt; JsFunction {
+        FunctionObjectBuilder::new(realm, <span class="self">self</span>).build()
     }
 }
 </code></pre></div></section></main></body></html>

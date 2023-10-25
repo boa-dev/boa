@@ -129,21 +129,21 @@
 }
 
 <span class="kw">impl </span>RegExpLiteral {
-    <span class="doccomment">/// Create a new [`RegExp`].
+    <span class="doccomment">/// Create a new [`RegExpLiteral`].
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub const fn </span>new(pattern: Sym, flags: Sym) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ pattern, flags }
     }
 
-    <span class="doccomment">/// Get the pattern part of the [`RegExp`].
+    <span class="doccomment">/// Get the pattern part of the [`RegExpLiteral`].
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub const fn </span>pattern(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
         <span class="self">self</span>.pattern
     }
 
-    <span class="doccomment">/// Get the flags part of the [`RegExp`].
+    <span class="doccomment">/// Get the flags part of the [`RegExpLiteral`].
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub const fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {

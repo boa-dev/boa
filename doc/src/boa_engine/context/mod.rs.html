@@ -1097,6 +1097,8 @@
 <a href="#1097" id="1097">1097</a>
 <a href="#1098" id="1098">1098</a>
 <a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1174,7 +1176,9 @@
 /// let arg = ObjectInitializer::new(&amp;mut context)
 ///     .property(js_string!(&quot;x&quot;), 12, Attribute::READONLY)
 ///     .build();
-/// context.register_global_property(js_string!(&quot;arg&quot;), arg, Attribute::all());
+/// context
+///     .register_global_property(js_string!(&quot;arg&quot;), arg, Attribute::all())
+///     .expect(&quot;property shouldn&#39;t exist&quot;);
 ///
 /// let value = context.eval(Source::from_bytes(&quot;test(arg)&quot;)).unwrap();
 ///
