@@ -15,10 +15,9 @@ use crate::{
     error::JsNativeError,
     js_string,
     object::{
-        internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData, ObjectKind,
-        CONSTRUCTOR,
+        internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData, CONSTRUCTOR,
     },
-    property::{Attribute, PropertyDescriptorBuilder},
+    property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16, CodePoint},
     symbol::JsSymbol,
@@ -252,10 +251,11 @@ impl BuiltInConstructor for RegExp {
         };
 
         // 7. Let O be ? RegExpAlloc(newTarget).
-        let o = Self::alloc(new_target, context)?;
+        let proto =
+            get_prototype_from_constructor(new_target, StandardConstructors::regexp, context)?;
 
         // 8.Return ? RegExpInitialize(O, P, F).
-        Self::initialize(o, &p, &f, context)
+        Self::initialize(Some(proto), &p, &f, context)
     }
 }
 
@@ -294,50 +294,16 @@ impl RegExp {
         Ok(None)
     }
 
-    /// `22.2.3.2.1 RegExpAlloc ( newTarget )`
+    /// Compiles a `RegExp` from the provided pattern and flags.
     ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-regexpalloc
-    pub(crate) fn alloc(new_target: &JsValue, context: &mut Context<'_>) -> JsResult<JsObject> {
-        // 1. Let obj be ? OrdinaryCreateFromConstructor(newTarget, "%RegExp.prototype%", « [[RegExpMatcher]], [[OriginalSource]], [[OriginalFlags]] »).
-        let proto =
-            get_prototype_from_constructor(new_target, StandardConstructors::regexp, context)?;
-        let obj = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            proto,
-            ObjectData::ordinary(),
-        );
-
-        // 2. Perform ! DefinePropertyOrThrow(obj, "lastIndex", PropertyDescriptor { [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-        obj.define_property_or_throw(
-            utf16!("lastIndex"),
-            PropertyDescriptorBuilder::new()
-                .writable(true)
-                .enumerable(false)
-                .configurable(false)
-                .build(),
-            context,
-        )
-        .expect("this cannot fail per spec");
-
-        // 3. Return obj.
-        Ok(obj)
-    }
-
-    /// `22.2.3.2.2 RegExpInitialize ( obj, pattern, flags )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
+    /// Equivalent to the beginning of [`RegExpInitialize ( obj, pattern, flags )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize
-    pub(crate) fn initialize(
-        obj: JsObject,
+    fn compile_native_regexp(
         pattern: &JsValue,
         flags: &JsValue,
         context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<RegExp> {
         // 1. If pattern is undefined, let P be the empty String.
         // 2. Else, let P be ? ToString(pattern).
         let p = if pattern.is_undefined() {
@@ -362,43 +328,66 @@ impl RegExp {
             Ok(result) => result,
         };
 
-        // 10. If u is true, then
-        //     a. Let patternText be StringToCodePoints(P).
-        // 11. Else,
-        //     a. Let patternText be the result of interpreting each of P's 16-bit elements as a Unicode BMP code point. UTF-16 decoding is not applied to the elements.
-        // 12. Let parseResult be ParsePattern(patternText, u).
-        // 13. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
-        // 14. Assert: parseResult is a Pattern Parse Node.
-        // 15. Set obj.[[OriginalSource]] to P.
-        // 16. Set obj.[[OriginalFlags]] to F.
-        // 17. Let capturingGroupsCount be CountLeftCapturingParensWithin(parseResult).
-        // 18. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m, [[DotAll]]: s, [[Unicode]]: u, [[CapturingGroupsCount]]: capturingGroupsCount }.
-        // 19. Set obj.[[RegExpRecord]] to rer.
-        // 20. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
+        // 13. Let parseResult be ParsePattern(patternText, u, v).
+        // 14. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
         let matcher =
-            match Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags)) {
-                Err(error) => {
-                    return Err(JsNativeError::syntax()
+            Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags))
+                .map_err(|error| {
+                    JsNativeError::syntax()
                         .with_message(format!("failed to create matcher: {}", error.text))
-                        .into());
-                }
-                Ok(val) => val,
-            };
+                })?;
 
-        let regexp = Self {
+        // 15. Assert: parseResult is a Pattern Parse Node.
+        // 16. Set obj.[[OriginalSource]] to P.
+        // 17. Set obj.[[OriginalFlags]] to F.
+        // 18. Let capturingGroupsCount be CountLeftCapturingParensWithin(parseResult).
+        // 19. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m, [[DotAll]]: s, [[Unicode]]: u, [[UnicodeSets]]: v, [[CapturingGroupsCount]]: capturingGroupsCount }.
+        // 20. Set obj.[[RegExpRecord]] to rer.
+        // 21. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
+        Ok(RegExp {
             matcher,
             flags,
             original_source: p,
             original_flags: f,
+        })
+    }
+
+    /// `RegExpInitialize ( obj, pattern, flags )`
+    ///
+    /// If prototype is `None`, initializes the prototype to `%RegExp%.prototype`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize
+    pub(crate) fn initialize(
+        prototype: Option<JsObject>,
+        pattern: &JsValue,
+        flags: &JsValue,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // Has the steps  of `RegExpInitialize`.
+        let regexp = Self::compile_native_regexp(pattern, flags, context)?;
+        let data = ObjectData::regexp(regexp);
+
+        // 22. Perform ? Set(obj, "lastIndex", +0𝔽, true).
+        let obj = if let Some(prototype) = prototype {
+            let mut template = context
+                .intrinsics()
+                .templates()
+                .regexp_without_proto()
+                .clone();
+            template.set_prototype(prototype);
+            template.create(data, vec![0.into()])
+        } else {
+            context
+                .intrinsics()
+                .templates()
+                .regexp()
+                .create(data, vec![0.into()])
         };
 
-        // Safe to directly initialize since previous assertions ensure `obj` is a `Regexp` object.
-        *obj.borrow_mut().kind_mut() = ObjectKind::RegExp(Box::new(regexp));
-
-        // 16. Perform ? Set(obj, "lastIndex", +0𝔽, true).
-        obj.set(utf16!("lastIndex"), 0, true, context)?;
-
-        // 16. Return obj.
+        // 23. Return obj.
         Ok(obj.into())
     }
 
@@ -410,10 +399,8 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexpcreate
     pub(crate) fn create(p: &JsValue, f: &JsValue, context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let obj be ? RegExpAlloc(%RegExp%).
-        let obj = Self::alloc(&context.global_object().get(Self::NAME, context)?, context)?;
-
         // 2. Return ? RegExpInitialize(obj, P, F).
-        Self::initialize(obj, p, f, context)
+        Self::initialize(None, p, f, context)
     }
 
     /// `get RegExp [ @@species ]`
@@ -1859,6 +1846,7 @@ impl RegExp {
     fn compile(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[RegExpMatcher]]).
+
         let this = this
             .as_object()
             .filter(|o| o.borrow().is_regexp())
@@ -1893,8 +1881,20 @@ impl RegExp {
             //     b. Let F be flags.
             (pattern.clone(), flags.clone())
         };
+
+        let regexp = Self::compile_native_regexp(&pattern, &flags, context)?;
+
         // 5. Return ? RegExpInitialize(O, P, F).
-        Self::initialize(this, &pattern, &flags, context)
+        {
+            let mut obj = this.borrow_mut();
+
+            *obj.as_regexp_mut()
+                .expect("already checked that the object was a RegExp") = regexp;
+        }
+
+        this.set(utf16!("lastIndex"), 0, true, context)?;
+
+        Ok(this.into())
     }
 }
 

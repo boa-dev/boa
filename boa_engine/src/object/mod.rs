@@ -67,7 +67,7 @@ use crate::{
     context::intrinsics::StandardConstructor,
     js_string,
     module::ModuleNamespace,
-    native_function::NativeFunction,
+    native_function::{NativeFunction, NativeFunctionObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::utf16,
@@ -356,16 +356,7 @@ pub enum ObjectKind {
     GeneratorFunction(OrdinaryFunction),
 
     /// A native rust function.
-    NativeFunction {
-        /// The rust function.
-        function: NativeFunction,
-
-        /// The kind of the function constructor if it is a constructor.
-        constructor: Option<ConstructorKind>,
-
-        /// The [`Realm`] in which the function is defined.
-        realm: Realm,
-    },
+    NativeFunction(NativeFunctionObject),
 
     /// The `Set` object kind.
     Set(OrderedSet),
@@ -510,10 +501,7 @@ unsafe impl Trace for ObjectKind {
             Self::OrdinaryFunction(f) | Self::GeneratorFunction(f) | Self::AsyncGeneratorFunction(f) => mark(f),
             Self::BoundFunction(f) => mark(f),
             Self::Generator(g) => mark(g),
-            Self::NativeFunction { function, constructor: _, realm } => {
-                mark(function);
-                mark(realm);
-            }
+            Self::NativeFunction(f) => mark(f),
             Self::Set(s) => mark(s),
             Self::SetIterator(i) => mark(i),
             Self::StringIterator(i) => mark(i),
@@ -659,9 +647,9 @@ impl ObjectData {
 
     /// Create the `RegExp` object data
     #[must_use]
-    pub fn reg_exp(reg_exp: Box<RegExp>) -> Self {
+    pub fn regexp(reg_exp: RegExp) -> Self {
         Self {
-            kind: ObjectKind::RegExp(reg_exp),
+            kind: ObjectKind::RegExp(Box::new(reg_exp)),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -737,8 +725,8 @@ impl ObjectData {
 
     /// Create the native function object data
     #[must_use]
-    pub fn native_function(function: NativeFunction, constructor: bool, realm: Realm) -> Self {
-        let internal_methods = if constructor {
+    pub fn native_function(function: NativeFunctionObject) -> Self {
+        let internal_methods = if function.constructor.is_some() {
             &NATIVE_CONSTRUCTOR_INTERNAL_METHODS
         } else {
             &NATIVE_FUNCTION_INTERNAL_METHODS
@@ -746,11 +734,7 @@ impl ObjectData {
 
         Self {
             internal_methods,
-            kind: ObjectKind::NativeFunction {
-                function,
-                constructor: constructor.then_some(ConstructorKind::Base),
-                realm,
-            },
+            kind: ObjectKind::NativeFunction(function),
         }
     }
 
@@ -1210,9 +1194,12 @@ impl Debug for ObjectKind {
 }
 
 impl Object {
-    /// Returns a mutable reference to the kind of an object.
-    pub(crate) fn kind_mut(&mut self) -> &mut ObjectKind {
-        &mut self.kind
+    /// Creates a new `Object` with the specified `ObjectKind`.
+    pub(crate) fn with_kind(kind: ObjectKind) -> Self {
+        Self {
+            kind,
+            ..Self::default()
+        }
     }
 
     /// Returns the shape of the object.
@@ -1726,6 +1713,16 @@ impl Object {
         }
     }
 
+    /// Gets a mutable reference to the regexp data if the object is a regexp.
+    #[inline]
+    #[must_use]
+    pub fn as_regexp_mut(&mut self) -> Option<&mut RegExp> {
+        match &mut self.kind {
+            ObjectKind::RegExp(regexp) => Some(regexp),
+            _ => None,
+        }
+    }
+
     /// Checks if it a `TypedArray` object.
     #[inline]
     #[must_use]
@@ -1958,6 +1955,30 @@ impl Object {
         }
     }
 
+    /// Returns `true` if it holds a native Rust function.
+    #[inline]
+    #[must_use]
+    pub const fn is_native_function(&self) -> bool {
+        matches!(self.kind, ObjectKind::NativeFunction { .. })
+    }
+
+    /// Returns this `NativeFunctionObject` if this object contains a `NativeFunctionObject`.
+    pub(crate) fn as_native_function(&self) -> Option<&NativeFunctionObject> {
+        match &self.kind {
+            ObjectKind::NativeFunction(f) => Some(f),
+            _ => None,
+        }
+    }
+
+    /// Returns a mutable reference to this `NativeFunctionObject` if this object contains a
+    /// `NativeFunctionObject`.
+    pub(crate) fn as_native_function_mut(&mut self) -> Option<&mut NativeFunctionObject> {
+        match &mut self.kind {
+            ObjectKind::NativeFunction(f) => Some(f),
+            _ => None,
+        }
+    }
+
     /// Gets the prototype instance of this object.
     #[inline]
     #[must_use]
@@ -1988,13 +2009,6 @@ impl Object {
     #[must_use]
     pub const fn is_native_object(&self) -> bool {
         matches!(self.kind, ObjectKind::NativeObject(_))
-    }
-
-    /// Returns `true` if it holds a native Rust function.
-    #[inline]
-    #[must_use]
-    pub const fn is_native_function(&self) -> bool {
-        matches!(self.kind, ObjectKind::NativeFunction { .. })
     }
 
     /// Gets the native object data if the object is a `NativeObject`.
@@ -2602,11 +2616,11 @@ impl<'realm> FunctionObjectBuilder<'realm> {
     #[must_use]
     pub fn build(self) -> JsFunction {
         let object = self.realm.intrinsics().templates().function().create(
-            ObjectData::native_function(
-                self.function,
-                self.constructor.is_some(),
-                self.realm.clone(),
-            ),
+            ObjectData::native_function(NativeFunctionObject {
+                f: self.function,
+                constructor: self.constructor,
+                realm: Some(self.realm.clone()),
+            }),
             vec![self.length.into(), self.name.into()],
         );
 
@@ -3044,11 +3058,11 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             let mut constructor = self.constructor_object;
             constructor.insert(utf16!("length"), length);
             constructor.insert(utf16!("name"), name);
-            let data = ObjectData::native_function(
-                self.function,
-                self.kind.is_some(),
-                self.context.realm().clone(),
-            );
+            let data = ObjectData::native_function(NativeFunctionObject {
+                f: self.function,
+                constructor: self.kind,
+                realm: Some(self.context.realm().clone()),
+            });
 
             constructor.kind = data.kind;
 

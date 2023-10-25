@@ -1324,6 +1324,9 @@ pub(crate) struct ObjectTemplates {
     bigint: ObjectTemplate,
     boolean: ObjectTemplate,
 
+    regexp: ObjectTemplate,
+    regexp_without_proto: ObjectTemplate,
+
     unmapped_arguments: ObjectTemplate,
     mapped_arguments: ObjectTemplate,
 
@@ -1368,6 +1371,12 @@ impl ObjectTemplates {
             Attribute::READONLY | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
         );
         string.set_prototype(constructors.string().prototype());
+
+        let mut regexp_without_prototype = ObjectTemplate::new(root_shape);
+        regexp_without_prototype.property(js_string!("lastIndex").into(), Attribute::WRITABLE);
+
+        let mut regexp = regexp_without_prototype.clone();
+        regexp.set_prototype(constructors.regexp().prototype());
 
         let name_property_key: PropertyKey = js_string!("name").into();
         let mut function = ObjectTemplate::new(root_shape);
@@ -1474,6 +1483,8 @@ impl ObjectTemplates {
             symbol,
             bigint,
             boolean,
+            regexp,
+            regexp_without_proto: regexp_without_prototype,
             unmapped_arguments,
             mapped_arguments,
             function_with_prototype,
@@ -1562,6 +1573,25 @@ impl ObjectTemplates {
     /// 1. `__proto__`: `Boolean.prototype`
     pub(crate) const fn boolean(&self) -> &ObjectTemplate {
         &self.boolean
+    }
+
+    /// Cached regexp object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"lastIndex"`: (`WRITABLE` , `PERMANENT`,`NON_ENUMERABLE`)
+    pub(crate) const fn regexp(&self) -> &ObjectTemplate {
+        &self.regexp
+    }
+
+    /// Cached regexp object template without `__proto__` template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"lastIndex"`: (`WRITABLE` , `PERMANENT`,`NON_ENUMERABLE`)
+    /// 2. `__proto__`: `RegExp.prototype`
+    pub(crate) const fn regexp_without_proto(&self) -> &ObjectTemplate {
+        &self.regexp_without_proto
     }
 
     /// Cached unmapped arguments object template.

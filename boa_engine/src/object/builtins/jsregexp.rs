@@ -60,15 +60,7 @@ impl JsRegExp {
     where
         S: Into<JsValue>,
     {
-        let constructor = &context
-            .intrinsics()
-            .constructors()
-            .regexp()
-            .constructor()
-            .into();
-        let obj = RegExp::alloc(constructor, context)?;
-
-        let regexp = RegExp::initialize(obj, &pattern.into(), &flags.into(), context)?
+        let regexp = RegExp::initialize(None, &pattern.into(), &flags.into(), context)?
             .as_object()
             .expect("RegExp::initialize must return a RegExp object")
             .clone();

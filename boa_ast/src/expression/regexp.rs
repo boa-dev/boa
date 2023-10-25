@@ -35,21 +35,21 @@ pub struct RegExpLiteral {
 }
 
 impl RegExpLiteral {
-    /// Create a new [`RegExp`].
+    /// Create a new [`RegExpLiteral`].
     #[inline]
     #[must_use]
     pub const fn new(pattern: Sym, flags: Sym) -> Self {
         Self { pattern, flags }
     }
 
-    /// Get the pattern part of the [`RegExp`].
+    /// Get the pattern part of the [`RegExpLiteral`].
     #[inline]
     #[must_use]
     pub const fn pattern(&self) -> Sym {
         self.pattern
     }
 
-    /// Get the flags part of the [`RegExp`].
+    /// Get the flags part of the [`RegExpLiteral`].
     #[inline]
     #[must_use]
     pub const fn flags(&self) -> Sym {

@@ -47,7 +47,7 @@ use crate::{
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
     js_string,
-    object::{FunctionObjectBuilder, JsObject, JsPromise, ObjectData},
+    object::{JsObject, JsPromise, ObjectData},
     realm::Realm,
     Context, HostDefined, JsError, JsResult, JsString, JsValue, NativeFunction,
 };
@@ -430,7 +430,7 @@ impl Module {
             ModuleKind::Synthetic(synth) => {
                 // a. Let promise be ! module.Evaluate().
                 let promise: JsPromise = synth.evaluate(context);
-                let state = promise.state()?;
+                let state = promise.state();
                 match state {
                     PromiseState::Pending => {
                         unreachable!("b. Assert: promise.[[PromiseState]] is not pending.")
@@ -467,59 +467,53 @@ impl Module {
     ///
     /// loader.insert(Path::new("main.mjs").to_path_buf(), module.clone());
     ///
-    /// let promise = module.load_link_evaluate(context).unwrap();
+    /// let promise = module.load_link_evaluate(context);
     ///
     /// context.run_jobs();
     ///
     /// assert_eq!(
-    ///     promise.state().unwrap(),
+    ///     promise.state(),
     ///     PromiseState::Fulfilled(JsValue::undefined())
     /// );
     /// ```
     #[allow(dropping_copy_types)]
     #[inline]
-    pub fn load_link_evaluate(&self, context: &mut Context<'_>) -> JsResult<JsPromise> {
+    pub fn load_link_evaluate(&self, context: &mut Context<'_>) -> JsPromise {
         let main_timer = Profiler::global().start_event("Module evaluation", "Main");
 
         let promise = self
             .load(context)
             .then(
                 Some(
-                    FunctionObjectBuilder::new(
-                        context.realm(),
-                        NativeFunction::from_copy_closure_with_captures(
-                            |_, _, module, context| {
-                                module.link(context)?;
-                                Ok(JsValue::undefined())
-                            },
-                            self.clone(),
-                        ),
+                    NativeFunction::from_copy_closure_with_captures(
+                        |_, _, module, context| {
+                            module.link(context)?;
+                            Ok(JsValue::undefined())
+                        },
+                        self.clone(),
                     )
-                    .build(),
+                    .to_js_function(context.realm()),
                 ),
                 None,
                 context,
-            )?
+            )
             .then(
                 Some(
-                    FunctionObjectBuilder::new(
-                        context.realm(),
-                        NativeFunction::from_copy_closure_with_captures(
-                            |_, _, module, context| Ok(module.evaluate(context).into()),
-                            self.clone(),
-                        ),
+                    NativeFunction::from_copy_closure_with_captures(
+                        |_, _, module, context| Ok(module.evaluate(context).into()),
+                        self.clone(),
                     )
-                    .build(),
+                    .to_js_function(context.realm()),
                 ),
                 None,
                 context,
-            )?;
+            );
 
         // The main_timer needs to be dropped before the Profiler is.
         drop(main_timer);
         Profiler::global().drop();
 
-        Ok(promise)
+        promise
     }
 
     /// Abstract operation [`GetModuleNamespace ( module )`][spec].

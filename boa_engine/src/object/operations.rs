@@ -720,8 +720,8 @@ impl JsObject {
             return Ok(fun.realm().clone());
         }
 
-        if let ObjectKind::NativeFunction { realm, .. } = constructor.kind() {
-            return Ok(realm.clone());
+        if let ObjectKind::NativeFunction(f) = constructor.kind() {
+            return Ok(f.realm.clone().unwrap_or_else(|| context.realm().clone()));
         }
 
         if let Some(bound) = constructor.as_bound_function() {
