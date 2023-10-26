@@ -14,7 +14,7 @@ pub use edge::*;
 pub use graph::*;
 pub use node::*;
 
-use super::{Instruction, InstructionIterator};
+use super::{Constant, Instruction, InstructionIterator};
 
 impl CodeBlock {
     /// Output the [`CodeBlock`] VM instructions into a [`Graph`].
@@ -526,9 +526,11 @@ impl CodeBlock {
             }
         }
 
-        for function in self.functions.as_ref() {
-            let subgraph = graph.subgraph(String::new());
-            function.to_graph(interner, subgraph);
+        for constant in &self.constants {
+            if let Constant::Function(function) = constant {
+                let subgraph = graph.subgraph(String::new());
+                function.to_graph(interner, subgraph);
+            }
         }
     }
 }

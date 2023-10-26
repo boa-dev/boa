@@ -16,7 +16,7 @@ pub(crate) struct SetPrivateField;
 
 impl SetPrivateField {
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block.names[index].clone();
+        let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let object = context.vm.pop();
         let base_obj = object.to_object(context)?;
@@ -64,7 +64,7 @@ pub(crate) struct DefinePrivateField;
 impl DefinePrivateField {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block.names[index].clone();
+        let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object
@@ -110,7 +110,7 @@ pub(crate) struct SetPrivateMethod;
 impl SetPrivateMethod {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block.names[index].clone();
+        let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let value = value.as_callable().expect("method must be callable");
 
@@ -170,7 +170,7 @@ pub(crate) struct SetPrivateSetter;
 impl SetPrivateSetter {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block.names[index].clone();
+        let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let value = value.as_callable().expect("setter must be callable");
         let object = context.vm.pop();
@@ -221,7 +221,7 @@ pub(crate) struct SetPrivateGetter;
 impl SetPrivateGetter {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block.names[index].clone();
+        let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let value = value.as_callable().expect("getter must be callable");
         let object = context.vm.pop();

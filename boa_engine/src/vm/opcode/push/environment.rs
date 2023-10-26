@@ -18,8 +18,11 @@ impl PushDeclarativeEnvironment {
         context: &mut Context<'_>,
         compile_environments_index: usize,
     ) -> JsResult<CompletionType> {
-        let compile_environment =
-            context.vm.frame().code_block.compile_environments[compile_environments_index].clone();
+        let compile_environment = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_compile_time_environment(compile_environments_index);
         context.vm.environments.push_lexical(compile_environment);
         Ok(CompletionType::Normal)
     }
@@ -87,7 +90,11 @@ impl Operation for PushPrivateEnvironment {
         let mut names = Vec::with_capacity(count as usize);
         for _ in 0..count {
             let index = context.vm.read::<u32>();
-            let name = context.vm.frame().code_block.names[index as usize].clone();
+            let name = context
+                .vm
+                .frame()
+                .code_block()
+                .constant_string(index as usize);
             names.push(name);
         }
 

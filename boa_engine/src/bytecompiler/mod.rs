@@ -18,10 +18,10 @@ use crate::{
     environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
     vm::{
-        BindingOpcode, CodeBlock, CodeBlockFlags, GeneratorResumeKind, Handler, Opcode,
+        BindingOpcode, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, Opcode,
         VaryingOperandKind,
     },
-    Context, JsBigInt, JsString, JsValue,
+    Context, JsBigInt, JsString,
 };
 use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
@@ -248,20 +248,10 @@ pub struct ByteCompiler<'ctx, 'host> {
     /// Bytecode
     pub(crate) bytecode: Vec<u8>,
 
-    /// Literals
-    pub(crate) literals: Vec<JsValue>,
-
-    /// Property field names and private name `[[Description]]`s.
-    pub(crate) names: Vec<JsString>,
+    pub(crate) constants: ThinVec<Constant>,
 
     /// Locators for all bindings in the codeblock.
     pub(crate) bindings: Vec<BindingLocator>,
-
-    /// Functions inside this function
-    pub(crate) functions: Vec<Gc<CodeBlock>>,
-
-    /// Compile time environments in this function.
-    pub(crate) compile_environments: Vec<Rc<CompileTimeEnvironment>>,
 
     /// The current variable environment.
     pub(crate) variable_environment: Rc<CompileTimeEnvironment>,
@@ -315,13 +305,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             function_name: name,
             length: 0,
             bytecode: Vec::default(),
-            literals: Vec::default(),
-            names: Vec::default(),
+            constants: ThinVec::default(),
             bindings: Vec::default(),
-            functions: Vec::default(),
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
-            compile_environments: Vec::default(),
             current_open_environments_count: 0,
 
             // This starts at two because the first value is the `this` value, then function object.
@@ -372,12 +359,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         }
 
         let value = match literal.clone() {
-            Literal::String(value) => JsValue::new(value),
-            Literal::BigInt(value) => JsValue::new(value),
+            Literal::String(value) => Constant::String(value),
+            Literal::BigInt(value) => Constant::BigInt(value),
         };
 
-        let index = self.literals.len() as u32;
-        self.literals.push(value);
+        let index = self.constants.len() as u32;
+        self.constants.push(value);
         self.literals_map.insert(literal, index);
         index
     }
@@ -388,8 +375,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         }
 
         let string = self.interner().resolve_expect(name.sym()).utf16();
-        let index = self.names.len() as u32;
-        self.names.push(js_string!(string));
+        let index = self.constants.len() as u32;
+        self.constants.push(Constant::String(js_string!(string)));
         self.names_map.insert(name, index);
         index
     }
@@ -408,6 +395,14 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         let index = self.bindings.len() as u32;
         self.bindings.push(binding);
         self.bindings_map.insert(binding, index);
+        index
+    }
+
+    #[inline]
+    #[must_use]
+    pub(crate) fn push_function_to_constants(&mut self, function: Gc<CodeBlock>) -> u32 {
+        let index = self.constants.len() as u32;
+        self.constants.push(Constant::Function(function));
         index
     }
 
@@ -1250,10 +1245,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 self.context,
             );
 
-        let index = self.functions.len() as u32;
-        self.functions.push(code);
-
-        index
+        self.push_function_to_constants(code)
     }
 
     /// Compiles a function AST Node into bytecode, setting its corresponding binding or
@@ -1348,8 +1340,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 self.context,
             );
 
-        let index = self.functions.len() as u32;
-        self.functions.push(code);
+        let index = self.push_function_to_constants(code);
 
         if r#async && generator {
             self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
@@ -1412,8 +1403,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 self.context,
             );
 
-        let index = self.functions.len() as u32;
-        self.functions.push(code);
+        let index = self.push_function_to_constants(code);
 
         if r#async && generator {
             self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
@@ -1535,11 +1525,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             this_mode: self.this_mode,
             params: self.params,
             bytecode: self.bytecode.into_boxed_slice(),
-            literals: self.literals.into_boxed_slice(),
-            names: self.names.into_boxed_slice(),
+            constants: self.constants,
             bindings: self.bindings.into_boxed_slice(),
-            functions: self.functions.into_boxed_slice(),
-            compile_environments: self.compile_environments.into_boxed_slice(),
             handlers: self.handlers,
             flags: Cell::new(self.code_block_flags),
         }

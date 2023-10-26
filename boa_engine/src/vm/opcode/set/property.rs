@@ -25,7 +25,12 @@ impl SetPropertyByName {
             object.to_object(context)?
         };
 
-        let name: PropertyKey = context.vm.frame().code_block.names[index].clone().into();
+        let name: PropertyKey = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index)
+            .into();
 
         let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
         if !succeeded && context.vm.frame().code_block.strict() {
@@ -176,7 +181,12 @@ impl SetPropertyGetterByName {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object.to_object(context)?;
-        let name = context.vm.frame().code_block.names[index].clone().into();
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index)
+            .into();
         let set = object
             .__get_own_property__(&name, context)?
             .as_ref()
@@ -266,7 +276,12 @@ impl SetPropertySetterByName {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object.to_object(context)?;
-        let name = context.vm.frame().code_block.names[index].clone().into();
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index)
+            .into();
         let get = object
             .__get_own_property__(&name, context)?
             .as_ref()

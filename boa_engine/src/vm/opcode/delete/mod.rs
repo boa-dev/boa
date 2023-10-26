@@ -15,7 +15,12 @@ impl DeletePropertyByName {
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = value.to_object(context)?;
-        let key = context.vm.frame().code_block.names[index].clone().into();
+        let key = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index)
+            .into();
         let result = object.__delete__(&key, context)?;
         if !result && context.vm.frame().code_block.strict() {
             return Err(JsNativeError::typ()

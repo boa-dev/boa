@@ -1,7 +1,7 @@
 use crate::{
     object::JsRegExp,
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    vm::{opcode::Operation, CompletionType, Constant},
+    Context, JsResult, JsValue,
 };
 
 /// `PushLiteral` implements the Opcode Operation for `Opcode::PushLiteral`
@@ -14,7 +14,12 @@ pub(crate) struct PushLiteral;
 impl PushLiteral {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let value = context.vm.frame().code_block.literals[index].clone();
+        let constant = &context.vm.frame().code_block().constants[index];
+        let value: JsValue = match constant {
+            Constant::BigInt(v) => v.clone().into(),
+            Constant::String(v) => v.clone().into(),
+            _ => unreachable!("constant should be a string or bigint"),
+        };
         context.vm.push(value);
         Ok(CompletionType::Normal)
     }
@@ -54,8 +59,12 @@ impl PushRegExp {
         pattern_index: usize,
         flags_index: usize,
     ) -> JsResult<CompletionType> {
-        let pattern = context.vm.frame().code_block.names[pattern_index].clone();
-        let flags = context.vm.frame().code_block.names[flags_index].clone();
+        let pattern = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(pattern_index);
+        let flags = context.vm.frame().code_block().constant_string(flags_index);
 
         let regexp = JsRegExp::new(pattern, flags, context)?;
         context.vm.push(regexp);

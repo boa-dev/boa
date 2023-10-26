@@ -81,8 +81,7 @@ impl ByteCompiler<'_, '_> {
         compiler.emit_opcode(Opcode::SetReturnValue);
 
         let code = Gc::new(compiler.finish());
-        let index = self.functions.len() as u32;
-        self.functions.push(code);
+        let index = self.push_function_to_constants(code);
         self.emit(
             Opcode::GetFunction,
             &[Operand::Varying(index), Operand::Bool(false)],
@@ -294,10 +293,8 @@ impl ByteCompiler<'_, '_> {
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
-                    let code = field_compiler.finish();
-                    let code = Gc::new(code);
-                    let index = self.functions.len() as u32;
-                    self.functions.push(code);
+                    let code = Gc::new(field_compiler.finish());
+                    let index = self.push_function_to_constants(code);
                     self.emit(
                         Opcode::GetFunction,
                         &[Operand::Varying(index), Operand::Bool(false)],
@@ -325,10 +322,8 @@ impl ByteCompiler<'_, '_> {
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
-                    let code = field_compiler.finish();
-                    let code = Gc::new(code);
-                    let index = self.functions.len() as u32;
-                    self.functions.push(code);
+                    let code = Gc::new(field_compiler.finish());
+                    let index = self.push_function_to_constants(code);
                     self.emit(
                         Opcode::GetFunction,
                         &[Operand::Varying(index), Operand::Bool(false)],
@@ -552,8 +547,7 @@ impl ByteCompiler<'_, '_> {
             match element {
                 StaticElement::StaticBlock(code) => {
                     self.emit_opcode(Opcode::Dup);
-                    let index = self.functions.len() as u32;
-                    self.functions.push(code);
+                    let index = self.push_function_to_constants(code);
                     self.emit(
                         Opcode::GetFunction,
                         &[Operand::Varying(index), Operand::Bool(false)],
@@ -565,8 +559,7 @@ impl ByteCompiler<'_, '_> {
                 StaticElement::StaticField((code, name_index)) => {
                     self.emit_opcode(Opcode::Dup);
                     self.emit_opcode(Opcode::Dup);
-                    let index = self.functions.len() as u32;
-                    self.functions.push(code);
+                    let index = self.push_function_to_constants(code);
                     self.emit(
                         Opcode::GetFunction,
                         &[Operand::Varying(index), Operand::Bool(false)],

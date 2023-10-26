@@ -17,7 +17,12 @@ impl DefineClassStaticSetterByName {
         let function = context.vm.pop();
         let class = context.vm.pop();
         let class = class.as_object().expect("class must be object");
-        let key = context.vm.frame().code_block.names[index].clone().into();
+        let key = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index)
+            .into();
         {
             let function_object = function
                 .as_object()
@@ -82,7 +87,12 @@ impl DefineClassSetterByName {
         let function = context.vm.pop();
         let class_proto = context.vm.pop();
         let class_proto = class_proto.as_object().expect("class must be object");
-        let key = context.vm.frame().code_block.names[index].clone().into();
+        let key = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index)
+            .into();
         {
             let function_object = function
                 .as_object()

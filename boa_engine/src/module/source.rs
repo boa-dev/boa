@@ -1657,7 +1657,7 @@ impl SourceTextModule {
 
         // deferred initialization of function exports
         for (index, locator, kind) in functions {
-            let code = codeblock.functions[index as usize].clone();
+            let code = codeblock.constant_function(index as usize);
 
             let function = if kind.is_generator() {
                 create_generator_function_object(code, kind.is_async(), None, context)

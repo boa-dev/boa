@@ -13,7 +13,7 @@ pub(crate) struct GetArrowFunction;
 impl GetArrowFunction {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let code = context.vm.frame().code_block.functions[index].clone();
+        let code = context.vm.frame().code_block().constant_function(index);
         let function = create_function_object_fast(code, false, true, false, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
@@ -51,7 +51,7 @@ pub(crate) struct GetAsyncArrowFunction;
 impl GetAsyncArrowFunction {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let code = context.vm.frame().code_block.functions[index].clone();
+        let code = context.vm.frame().code_block().constant_function(index);
         let function = create_function_object_fast(code, true, true, false, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
@@ -93,7 +93,7 @@ impl GetFunction {
         index: usize,
         method: bool,
     ) -> JsResult<CompletionType> {
-        let code = context.vm.frame().code_block.functions[index].clone();
+        let code = context.vm.frame().code_block().constant_function(index);
         let function = create_function_object_fast(code, false, false, method, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
@@ -138,7 +138,7 @@ impl GetFunctionAsync {
         index: usize,
         method: bool,
     ) -> JsResult<CompletionType> {
-        let code = context.vm.frame().code_block.functions[index].clone();
+        let code = context.vm.frame().code_block().constant_function(index);
         let function = create_function_object_fast(code, true, false, method, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)

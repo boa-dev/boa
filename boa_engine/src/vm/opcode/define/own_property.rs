@@ -20,7 +20,7 @@ impl DefineOwnPropertyByName {
         } else {
             object.to_object(context)?
         };
-        let name = context.vm.frame().code_block.names[index].clone();
+        let name = context.vm.frame().code_block().constant_string(index);
         object.__define_own_property__(
             &name.into(),
             PropertyDescriptor::builder()

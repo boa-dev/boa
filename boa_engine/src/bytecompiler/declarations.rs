@@ -282,7 +282,7 @@ impl ByteCompiler<'_, '_> {
                 );
 
             // Ensures global functions are printed when generating the global flowgraph.
-            self.functions.push(code.clone());
+            let _ = self.push_function_to_constants(code.clone());
 
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
             let function = if generator {
@@ -733,7 +733,7 @@ impl ByteCompiler<'_, '_> {
             // c. If varEnv is a Global Environment Record, then
             if var_env.is_global() {
                 // Ensures global functions are printed when generating the global flowgraph.
-                self.functions.push(code.clone());
+                let _ = self.push_function_to_constants(code.clone());
 
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let function = if generator {
@@ -749,8 +749,7 @@ impl ByteCompiler<'_, '_> {
             // d. Else,
             else {
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
-                let index = self.functions.len() as u32;
-                self.functions.push(code);
+                let index = self.push_function_to_constants(code);
                 if r#async && generator {
                     self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
                 } else if generator {
@@ -1034,7 +1033,7 @@ impl ByteCompiler<'_, '_> {
         }
 
         if generator {
-            self.emit(Opcode::Generator, &[Operand::U8(self.in_async().into())]);
+            self.emit(Opcode::Generator, &[Operand::Bool(self.in_async())]);
             self.emit_opcode(Opcode::Pop);
         }
 
