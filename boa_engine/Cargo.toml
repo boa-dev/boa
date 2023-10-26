@@ -110,7 +110,7 @@ criterion = "0.5.1"
 float-cmp = "0.9.0"
 indoc.workspace = true
 textwrap.workspace = true
-futures-lite = "1.13.0"
+futures-lite = "2.0.0"
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
 jemallocator = "0.5.4"
