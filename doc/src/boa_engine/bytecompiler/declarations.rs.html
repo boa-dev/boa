@@ -1216,7 +1216,6 @@
 <a href="#1216" id="1216">1216</a>
 <a href="#1217" id="1217">1217</a>
 <a href="#1218" id="1218">1218</a>
-<a href="#1219" id="1219">1219</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
@@ -1501,7 +1500,7 @@
                 );
 
             <span class="comment">// Ensures global functions are printed when generating the global flowgraph.
-            </span><span class="self">self</span>.functions.push(code.clone());
+            </span><span class="kw">let _ </span>= <span class="self">self</span>.push_function_to_constants(code.clone());
 
             <span class="comment">// b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
             </span><span class="kw">let </span>function = <span class="kw">if </span>generator {
@@ -1952,7 +1951,7 @@
             <span class="comment">// c. If varEnv is a Global Environment Record, then
             </span><span class="kw">if </span>var_env.is_global() {
                 <span class="comment">// Ensures global functions are printed when generating the global flowgraph.
-                </span><span class="self">self</span>.functions.push(code.clone());
+                </span><span class="kw">let _ </span>= <span class="self">self</span>.push_function_to_constants(code.clone());
 
                 <span class="comment">// b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 </span><span class="kw">let </span>function = <span class="kw">if </span>generator {
@@ -1968,8 +1967,7 @@
             <span class="comment">// d. Else,
             </span><span class="kw">else </span>{
                 <span class="comment">// b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
-                </span><span class="kw">let </span>index = <span class="self">self</span>.functions.len() <span class="kw">as </span>u32;
-                <span class="self">self</span>.functions.push(code);
+                </span><span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
                 <span class="kw">if </span>r#async &amp;&amp; generator {
                     <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
                 } <span class="kw">else if </span>generator {
@@ -2253,7 +2251,7 @@
         }
 
         <span class="kw">if </span>generator {
-            <span class="self">self</span>.emit(Opcode::Generator, <span class="kw-2">&amp;</span>[Operand::U8(<span class="self">self</span>.in_async().into())]);
+            <span class="self">self</span>.emit(Opcode::Generator, <span class="kw-2">&amp;</span>[Operand::Bool(<span class="self">self</span>.in_async())]);
             <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
 

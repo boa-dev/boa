@@ -93,7 +93,7 @@
 <span class="kw">impl </span>GetGenerator {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>code = context.vm.frame().code_block.functions[index].clone();
+        <span class="kw">let </span>code = context.vm.frame().code_block().constant_function(index);
         <span class="kw">let </span>function = create_generator_function_object(code, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, context);
         context.vm.push(function);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -131,7 +131,7 @@
 <span class="kw">impl </span>GetGeneratorAsync {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>code = context.vm.frame().code_block.functions[index].clone();
+        <span class="kw">let </span>code = context.vm.frame().code_block().constant_function(index);
         <span class="kw">let </span>function = create_generator_function_object(code, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
         context.vm.push(function);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)

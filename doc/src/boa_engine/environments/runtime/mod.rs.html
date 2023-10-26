@@ -681,6 +681,10 @@
 <a href="#681" id="681">681</a>
 <a href="#682" id="682">682</a>
 <a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
@@ -1355,7 +1359,11 @@
         }
     }
 
-    <span class="doccomment">/// Return the environment at the given index. Panics if the index is out of range.
+    <span class="doccomment">/// Return the environment at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `index` is out of range.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>environment_expect(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32) -&gt; <span class="kw-2">&amp;</span>Environment {
         <span class="self">self</span>.vm
             .environments

@@ -535,7 +535,7 @@
         <span class="kw">let </span>index = context
             .vm
             .environments
-            .push_lexical(code.compile_environments[last_env].clone());
+            .push_lexical(code.constant_compile_time_environment(last_env));
         context
             .vm
             .environments
@@ -544,7 +544,7 @@
     }
 
     context.vm.environments.push_function(
-        code.compile_environments[last_env].clone(),
+        code.constant_compile_time_environment(last_env),
         FunctionSlots::new(this, function_object.clone(), <span class="prelude-val">None</span>),
     );
 
@@ -553,7 +553,7 @@
         context
             .vm
             .environments
-            .push_lexical(code.compile_environments[last_env].clone());
+            .push_lexical(code.constant_compile_time_environment(last_env));
     }
 
     <span class="comment">// Taken from: `FunctionDeclarationInstantiation` abstract function.
@@ -663,7 +663,7 @@
         <span class="kw">let </span>index = context
             .vm
             .environments
-            .push_lexical(code.compile_environments[last_env].clone());
+            .push_lexical(code.constant_compile_time_environment(last_env));
         context
             .vm
             .environments
@@ -672,7 +672,7 @@
     }
 
     context.vm.environments.push_function(
-        code.compile_environments[last_env].clone(),
+        code.constant_compile_time_environment(last_env),
         FunctionSlots::new(
             this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
                 ThisBindingStatus::Initialized(o.into())
@@ -692,7 +692,7 @@
         context
             .vm
             .environments
-            .push_lexical(code.compile_environments[last_env].clone());
+            .push_lexical(code.constant_compile_time_environment(last_env));
     }
 
     <span class="comment">// Taken from: `FunctionDeclarationInstantiation` abstract function.

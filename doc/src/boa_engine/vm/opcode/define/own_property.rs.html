@@ -118,7 +118,7 @@
         } <span class="kw">else </span>{
             object.to_object(context)<span class="question-mark">?
         </span>};
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index].clone();
+        <span class="kw">let </span>name = context.vm.frame().code_block().constant_string(index);
         object.__define_own_property__(
             <span class="kw-2">&amp;</span>name.into(),
             PropertyDescriptor::builder()

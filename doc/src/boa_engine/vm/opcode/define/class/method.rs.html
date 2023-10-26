@@ -216,6 +216,16 @@
 <a href="#216" id="216">216</a>
 <a href="#217" id="217">217</a>
 <a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::set_function_name,
     property::PropertyDescriptor,
@@ -235,7 +245,12 @@
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>class = context.vm.pop();
         <span class="kw">let </span>class = class.as_object().expect(<span class="string">&quot;class must be object&quot;</span>);
-        <span class="kw">let </span>key = context.vm.frame().code_block.names[index].clone().into();
+        <span class="kw">let </span>key = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index)
+            .into();
         {
             <span class="kw">let </span>function_object = function
                 .as_object()
@@ -295,7 +310,12 @@
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>class_proto = context.vm.pop();
         <span class="kw">let </span>class_proto = class_proto.as_object().expect(<span class="string">&quot;class must be object&quot;</span>);
-        <span class="kw">let </span>key = context.vm.frame().code_block.names[index].clone().into();
+        <span class="kw">let </span>key = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index)
+            .into();
         {
             <span class="kw">let </span>function_object = function
                 .as_object()

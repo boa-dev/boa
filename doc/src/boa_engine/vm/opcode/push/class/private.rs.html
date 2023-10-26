@@ -193,7 +193,7 @@
 <span class="kw">impl </span>PushClassPrivateMethod {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index].clone();
+        <span class="kw">let </span>name = context.vm.frame().code_block().constant_string(index);
         <span class="kw">let </span>method = context.vm.pop();
         <span class="kw">let </span>method_object = method.as_callable().expect(<span class="string">&quot;method must be callable&quot;</span>);
 
@@ -255,7 +255,7 @@
 <span class="kw">impl </span>PushClassPrivateGetter {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index].clone();
+        <span class="kw">let </span>name = context.vm.frame().code_block().constant_string(index);
         <span class="kw">let </span>getter = context.vm.pop();
         <span class="kw">let </span>getter_object = getter.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
         <span class="kw">let </span>class = context.vm.pop();
@@ -308,7 +308,7 @@
 <span class="kw">impl </span>PushClassPrivateSetter {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index].clone();
+        <span class="kw">let </span>name = context.vm.frame().code_block().constant_string(index);
         <span class="kw">let </span>setter = context.vm.pop();
         <span class="kw">let </span>setter_object = setter.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
         <span class="kw">let </span>class = context.vm.pop();

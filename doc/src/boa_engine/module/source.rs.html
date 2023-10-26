@@ -3636,7 +3636,7 @@
 
         <span class="comment">// deferred initialization of function exports
         </span><span class="kw">for </span>(index, locator, kind) <span class="kw">in </span>functions {
-            <span class="kw">let </span>code = codeblock.functions[index <span class="kw">as </span>usize].clone();
+            <span class="kw">let </span>code = codeblock.constant_function(index <span class="kw">as </span>usize);
 
             <span class="kw">let </span>function = <span class="kw">if </span>kind.is_generator() {
                 create_generator_function_object(code, kind.is_async(), <span class="prelude-val">None</span>, context)

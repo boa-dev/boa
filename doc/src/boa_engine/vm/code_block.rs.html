@@ -1001,6 +1001,54 @@
 <a href="#1001" id="1001">1001</a>
 <a href="#1002" id="1002">1002</a>
 <a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1011,7 +1059,7 @@
     object::{JsObject, ObjectData, PROTOTYPE},
     property::PropertyDescriptor,
     string::utf16,
-    Context, JsString, JsValue,
+    Context, JsBigInt, JsString, JsValue,
 };
 <span class="kw">use </span>bitflags::bitflags;
 <span class="kw">use </span>boa_ast::function::FormalParameterList;
@@ -1111,6 +1159,21 @@
     }
 }
 
+<span class="attr">#[derive(Clone, Debug, Trace, Finalize)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Constant {
+    <span class="doccomment">/// Property field names and private names `[[description]]`s.
+    </span>String(JsString),
+    Function(Gc&lt;CodeBlock&gt;),
+    BigInt(<span class="attr">#[unsafe_ignore_trace] </span>JsBigInt),
+
+    <span class="doccomment">/// Compile time environments in this function.
+    ///
+    </span><span class="comment">// Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
+    //
+    // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.
+    </span>CompileTimeEnvironment(<span class="attr">#[unsafe_ignore_trace] </span>Rc&lt;CompileTimeEnvironment&gt;),
+}
+
 <span class="doccomment">/// The internal representation of a JavaScript function.
 ///
 /// A `CodeBlock` is generated for each function compiled by the
@@ -1138,29 +1201,15 @@
     <span class="doccomment">/// Bytecode
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) bytecode: Box&lt;[u8]&gt;,
 
-    <span class="doccomment">/// Literals
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) literals: Box&lt;[JsValue]&gt;,
-
-    <span class="doccomment">/// Property field names and private names `[[description]]`s.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) names: Box&lt;[JsString]&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) constants: ThinVec&lt;Constant&gt;,
 
     <span class="doccomment">/// Locators for all bindings in the codeblock.
     </span><span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) bindings: Box&lt;[BindingLocator]&gt;,
 
-    <span class="doccomment">/// Functions inside this function
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Box&lt;[Gc&lt;<span class="self">Self</span>&gt;]&gt;,
-
     <span class="doccomment">/// Exception [`Handler`]s.
     </span><span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) handlers: ThinVec&lt;Handler&gt;,
-
-    <span class="doccomment">/// Compile time environments in this function.
-    </span><span class="comment">// Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
-    //
-    // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.
-    </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Box&lt;[Rc&lt;CompileTimeEnvironment&gt;]&gt;,
 }
 
 <span class="doccomment">/// ---- `CodeBlock` public API ----
@@ -1172,17 +1221,14 @@
         flags.set(CodeBlockFlags::STRICT, strict);
         <span class="self">Self </span>{
             bytecode: Box::default(),
-            literals: Box::default(),
-            names: Box::default(),
+            constants: ThinVec::default(),
             bindings: Box::default(),
-            functions: Box::default(),
             name,
             flags: Cell::new(flags),
             length,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             handlers: ThinVec::default(),
-            compile_environments: Box::default(),
         }
     }
 
@@ -1254,6 +1300,51 @@
             .enumerate()
             .rev()
             .find(|(<span class="kw">_</span>, handler)| handler.contains(pc))
+    }
+
+    <span class="doccomment">/// Get the [`JsString`] constant from the [`CodeBlock`].
+    ///
+    /// # Panics
+    ///
+    /// If the type of the [`Constant`] is not [`Constant::String`].
+    /// Or `index` is greater or equal to length of `constants`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constant_string(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; JsString {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(Constant::String(value)) = <span class="self">self</span>.constants.get(index) {
+            <span class="kw">return </span>value.clone();
+        }
+
+        <span class="macro">panic!</span>(<span class="string">&quot;expected string constant at index {index}&quot;</span>)
+    }
+
+    <span class="doccomment">/// Get the function ([`Gc&lt;CodeBlock&gt;`]) constant from the [`CodeBlock`].
+    ///
+    /// # Panics
+    ///
+    /// If the type of the [`Constant`] is not [`Constant::Function`].
+    /// Or `index` is greater or equal to length of `constants`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constant_function(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; Gc&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(Constant::Function(value)) = <span class="self">self</span>.constants.get(index) {
+            <span class="kw">return </span>value.clone();
+        }
+
+        <span class="macro">panic!</span>(<span class="string">&quot;expected function constant at index {index}&quot;</span>)
+    }
+
+    <span class="doccomment">/// Get the [`CompileTimeEnvironment`] constant from the [`CodeBlock`].
+    ///
+    /// # Panics
+    ///
+    /// If the type of the [`Constant`] is not [`Constant::CompileTimeEnvironment`].
+    /// Or `index` is greater or equal to length of `constants`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constant_compile_time_environment(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        index: usize,
+    ) -&gt; Rc&lt;CompileTimeEnvironment&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(Constant::CompileTimeEnvironment(value)) = <span class="self">self</span>.constants.get(index) {
+            <span class="kw">return </span>value.clone();
+        }
+
+        <span class="macro">panic!</span>(<span class="string">&quot;expected compile time environment constant at index {index}&quot;</span>)
     }
 }
 
@@ -1328,11 +1419,11 @@
                 pattern_index: source_index,
                 flags_index: flag_index,
             } =&gt; {
-                <span class="kw">let </span>pattern = <span class="self">self</span>.names[source_index.value() <span class="kw">as </span>usize]
-                    .clone()
+                <span class="kw">let </span>pattern = <span class="self">self
+                    </span>.constant_string(source_index.value() <span class="kw">as </span>usize)
                     .to_std_string_escaped();
-                <span class="kw">let </span>flags = <span class="self">self</span>.names[flag_index.value() <span class="kw">as </span>usize]
-                    .clone()
+                <span class="kw">let </span>flags = <span class="self">self
+                    </span>.constant_string(flag_index.value() <span class="kw">as </span>usize)
                     .to_std_string_escaped();
                 <span class="macro">format!</span>(<span class="string">&quot;/{pattern}/{flags}&quot;</span>)
             }
@@ -1386,8 +1477,8 @@
                 <span class="kw">let </span>index = index.value() <span class="kw">as </span>usize;
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{index:04}: &#39;{}&#39; (length: {}), method: {method}&quot;</span>,
-                    <span class="self">self</span>.functions[index].name().to_std_string_escaped(),
-                    <span class="self">self</span>.functions[index].length
+                    <span class="self">self</span>.constant_function(index).name().to_std_string_escaped(),
+                    <span class="self">self</span>.constant_function(index).length
                 )
             }
             Instruction::GetArrowFunction { index }
@@ -1397,8 +1488,8 @@
                 <span class="kw">let </span>index = index.value() <span class="kw">as </span>usize;
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{index:04}: &#39;{}&#39; (length: {})&quot;</span>,
-                    <span class="self">self</span>.functions[index].name().to_std_string_escaped(),
-                    <span class="self">self</span>.functions[index].length
+                    <span class="self">self</span>.constant_function(index).name().to_std_string_escaped(),
+                    <span class="self">self</span>.constant_function(index).length
                 )
             }
             Instruction::DefVar { index }
@@ -1443,7 +1534,8 @@
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{:04}: &#39;{}&#39;&quot;</span>,
                     index.value(),
-                    <span class="self">self</span>.names[index.value() <span class="kw">as </span>usize].to_std_string_escaped(),
+                    <span class="self">self</span>.constant_string(index.value() <span class="kw">as </span>usize)
+                        .to_std_string_escaped(),
                 )
             }
             Instruction::PushPrivateEnvironment { name_indices } =&gt; {
@@ -1696,17 +1788,34 @@
             count += <span class="number">1</span>;
         }
 
-        f.push_str(<span class="string">&quot;\nLiterals:\n&quot;</span>);
+        f.push_str(<span class="string">&quot;\nConstants:&quot;</span>);
 
-        <span class="kw">if </span><span class="self">self</span>.literals.is_empty() {
-            f.push_str(<span class="string">&quot;    &lt;empty&gt;\n&quot;</span>);
+        <span class="kw">if </span><span class="self">self</span>.constants.is_empty() {
+            f.push_str(<span class="string">&quot; &lt;empty&gt;\n&quot;</span>);
         } <span class="kw">else </span>{
-            <span class="kw">for </span>(i, value) <span class="kw">in </span><span class="self">self</span>.literals.iter().enumerate() {
-                f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                    <span class="string">&quot;    {i:04}: &lt;{}&gt; {}\n&quot;</span>,
-                    value.type_of(),
-                    value.display()
-                ));
+            f.push(<span class="string">&#39;\n&#39;</span>);
+            <span class="kw">for </span>(i, value) <span class="kw">in </span><span class="self">self</span>.constants.iter().enumerate() {
+                f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;    {i:04}: &quot;</span>));
+                <span class="kw">let </span>value = <span class="kw">match </span>value {
+                    Constant::String(v) =&gt; {
+                        <span class="macro">format!</span>(<span class="string">&quot;[STRING] \&quot;{}\&quot;&quot;</span>, v.to_std_string_escaped().escape_debug())
+                    }
+                    Constant::BigInt(v) =&gt; <span class="macro">format!</span>(<span class="string">&quot;[BIGINT] {v}n&quot;</span>),
+                    Constant::Function(code) =&gt; <span class="macro">format!</span>(
+                        <span class="string">&quot;[FUNCTION] name: &#39;{}&#39; (length: {})\n&quot;</span>,
+                        code.name().to_std_string_escaped(),
+                        code.length
+                    ),
+                    Constant::CompileTimeEnvironment(v) =&gt; {
+                        <span class="macro">format!</span>(
+                            <span class="string">&quot;[ENVIRONMENT] index: {}, bindings: {}&quot;</span>,
+                            v.environment_index(),
+                            v.num_bindings()
+                        )
+                    }
+                };
+                f.push_str(<span class="kw-2">&amp;</span>value);
+                f.push(<span class="string">&#39;\n&#39;</span>);
             }
         }
 
@@ -1718,19 +1827,6 @@
                 f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                     <span class="string">&quot;    {i:04}: {}\n&quot;</span>,
                     interner.resolve_expect(binding_locator.name().sym())
-                ));
-            }
-        }
-
-        f.push_str(<span class="string">&quot;\nFunctions:\n&quot;</span>);
-        <span class="kw">if </span><span class="self">self</span>.functions.is_empty() {
-            f.push_str(<span class="string">&quot;    &lt;empty&gt;\n&quot;</span>);
-        } <span class="kw">else </span>{
-            <span class="kw">for </span>(i, code) <span class="kw">in </span><span class="self">self</span>.functions.iter().enumerate() {
-                f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                    <span class="string">&quot;    {i:04}: name: &#39;{}&#39; (length: {})\n&quot;</span>,
-                    code.name().to_std_string_escaped(),
-                    code.length
                 ));
             }
         }

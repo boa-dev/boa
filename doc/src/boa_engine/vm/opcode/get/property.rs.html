@@ -145,6 +145,11 @@
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     property::PropertyKey,
     vm::{opcode::Operation, CompletionType},
@@ -168,7 +173,12 @@
             value.to_object(context)<span class="question-mark">?
         </span>};
 
-        <span class="kw">let </span>key = context.vm.frame().code_block.names[index].clone().into();
+        <span class="kw">let </span>key = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index)
+            .into();
         <span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);

@@ -135,6 +135,11 @@
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
@@ -152,7 +157,12 @@
     <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = value.to_object(context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>key = context.vm.frame().code_block.names[index].clone().into();
+        <span class="kw">let </span>key = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index)
+            .into();
         <span class="kw">let </span>result = object.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
         <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
