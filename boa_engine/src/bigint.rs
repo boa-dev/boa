@@ -1,6 +1,6 @@
 //! Boa's implementation of ECMAScript's bigint primitive type.
 
-use crate::{builtins::Number, error::JsNativeError, JsResult};
+use crate::{builtins::Number, error::JsNativeError, JsResult, JsString};
 use num_integer::Integer;
 use num_traits::{pow::Pow, FromPrimitive, One, ToPrimitive, Zero};
 use std::{
@@ -84,6 +84,22 @@ impl JsBigInt {
         Some(Self {
             inner: Rc::new(RawBigInt::parse_bytes(buf.as_bytes(), radix)?),
         })
+    }
+
+    /// Abstract operation `StringToBigInt ( str )`
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringtobigint
+    pub(crate) fn from_js_string(string: &JsString) -> Option<JsBigInt> {
+        // 1. Let text be ! StringToCodePoints(str).
+        // 2. Let literal be ParseText(text, StringIntegerLiteral).
+        // 3. If literal is a List of errors, return undefined.
+        // 4. Let mv be the MV of literal.
+        // 5. Assert: mv is an integer.
+        // 6. Return ℤ(mv).
+        JsBigInt::from_string(string.to_std_string().ok().as_ref()?)
     }
 
     /// This function takes a string and converts it to `BigInt` type.

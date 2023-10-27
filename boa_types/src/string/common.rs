@@ -1,3 +1,5 @@
+//! List of commonly used strings in Javascript code.
+
 use crate::tagged::Tagged;
 
 use super::JsString;
@@ -8,8 +10,7 @@ macro_rules! well_known_statics {
         $(
             paste!{
                 #[doc = "Gets the static `JsString` for `\"" $string "\"`."]
-                #[allow(unused)]
-                pub(crate) const $name: JsString = JsString {
+                pub const $name: JsString = JsString {
                     ptr: Tagged::from_tag(
                         Self::find_index($string),
                     ),
@@ -22,8 +23,8 @@ macro_rules! well_known_statics {
 /// List of commonly used strings in Javascript code.
 ///
 /// Any strings defined here are used as a static [`JsString`] instead of allocating on the heap.
-#[derive(Debug)]
-pub(crate) struct StaticJsStrings;
+#[derive(Debug, Clone, Copy)]
+pub struct StaticJsStrings;
 
 impl StaticJsStrings {
     // useful to search at compile time a certain string in the array

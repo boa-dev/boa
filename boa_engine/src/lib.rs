@@ -128,8 +128,6 @@
 #[cfg(not(target_has_atomic = "ptr"))]
 compile_error!("Boa requires a lock free `AtomicUsize` in order to work properly.");
 
-extern crate static_assertions as sa;
-
 pub mod bigint;
 pub mod builtins;
 pub mod bytecompiler;
@@ -145,15 +143,12 @@ pub mod optimizer;
 pub mod property;
 pub mod realm;
 pub mod script;
-pub mod string;
-pub mod symbol;
 pub mod value;
 pub mod vm;
 
 mod host_defined;
 mod small_map;
 mod sys;
-mod tagged;
 
 #[cfg(test)]
 mod tests;
@@ -184,12 +179,16 @@ pub use crate::{
     native_function::NativeFunction,
     object::JsObject,
     script::Script,
-    string::JsString,
-    symbol::JsSymbol,
     value::JsValue,
 };
 #[doc(inline)]
 pub use boa_parser::Source;
+#[doc(inline)]
+pub use boa_types::{
+    js_string,
+    string::{self, JsString},
+    symbol::{self, JsSymbol},
+};
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 pub type JsResult<T> = StdResult<T, JsError>;

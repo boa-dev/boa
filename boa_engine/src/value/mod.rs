@@ -413,7 +413,7 @@ impl JsValue {
             Self::Undefined => Err(JsNativeError::typ()
                 .with_message("cannot convert undefined to a BigInt")
                 .into()),
-            Self::String(ref string) => string.to_big_int().map_or_else(
+            Self::String(ref string) => JsBigInt::from_js_string(string).map_or_else(
                 || {
                     Err(JsNativeError::syntax()
                         .with_message(format!(

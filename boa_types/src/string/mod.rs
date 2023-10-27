@@ -21,17 +21,12 @@
 // the same names from the unstable functions of the `std::ptr` module.
 #![allow(unstable_name_collisions)]
 
-pub(crate) mod common;
+pub mod common;
 mod slice;
 mod str;
 
-use crate::{
-    builtins::string::is_trimmable_whitespace,
-    tagged::{Tagged, UnwrappedTagged},
-    JsBigInt,
-};
+use crate::tagged::{Tagged, UnwrappedTagged};
 use boa_gc::{empty_trace, Finalize, Trace};
-pub use boa_macros::utf16;
 
 #[doc(inline)]
 pub use crate::string::{
@@ -64,7 +59,6 @@ fn alloc_overflow() -> ! {
 ///
 /// ```
 /// use boa_engine::js_string;
-/// use boa_engine::string::utf16;
 ///
 /// let empty_str = js_string!();
 /// assert!(empty_str.is_empty());
@@ -76,7 +70,6 @@ fn alloc_overflow() -> ! {
 ///
 /// ```
 /// # use boa_engine::js_string;
-/// # use boa_engine::string::utf16;
 /// let hw = js_string!("Hello, world!");
 /// assert_eq!(&hw, "Hello, world!");
 /// ```
@@ -93,7 +86,6 @@ fn alloc_overflow() -> ! {
 ///
 /// ```
 /// # use boa_engine::js_string;
-/// # use boa_engine::string::utf16;
 /// const NAME: &[u16] = "human! ";
 /// let greeting = js_string!("Hello, ");
 /// let msg = js_string!(&greeting, &NAME, "Nice to meet you!");
@@ -101,21 +93,22 @@ fn alloc_overflow() -> ! {
 /// assert_eq!(&msg, "Hello, human! Nice to meet you!");
 /// ```
 #[macro_export]
+#[allow(clippy::module_name_repetitions)]
 macro_rules! js_string {
     () => {
-        $crate::JsString::default()
+        $crate::string::JsString::default()
     };
     ($s:literal) => {
-        $crate::JsString::from($s)
+        $crate::string::JsString::from($s)
     };
     ($s:expr) => {
-        $crate::JsString::from($s)
+        $crate::string::JsString::from($s)
     };
     ( $x:expr, $y:expr ) => {
-        $crate::JsString::concat($crate::string::JsStringSlice::from($x), $crate::string::JsStringSlice::from($y))
+        $crate::string::JsString::concat($crate::string::JsStringSlice::from($x), $crate::string::JsStringSlice::from($y))
     };
     ( $( $s:expr ),+ ) => {
-        $crate::JsString::concat_array(&[ $( $crate::string::JsStringSlice::from($s) ),+ ])
+        $crate::string::JsString::concat_array(&[ $( $crate::string::JsStringSlice::from($s) ),+ ])
     };
 }
 
@@ -212,12 +205,13 @@ const DATA_OFFSET: usize = std::mem::size_of::<RawJsString>();
 /// [`JsString`] implements <code>[Deref]<Target = \[u16\]></code>, inheriting all of
 /// <code>\[u16\]</code>'s methods.
 #[derive(Finalize)]
+#[allow(clippy::module_name_repetitions)]
 pub struct JsString {
     ptr: Tagged<RawJsString>,
 }
 
 // JsString should always be pointer sized.
-sa::assert_eq_size!(JsString, *const ());
+static_assertions::assert_eq_size!(JsString, *const ());
 
 // Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
 unsafe impl Trace for JsString {
@@ -435,6 +429,9 @@ impl JsString {
     }
 
     /// Decodes a [`JsString`] into a [`String`], returning
+    ///
+    /// # Errors
+    ///
     /// [`FromUtf16Error`][std::string::FromUtf16Error] if it contains any invalid data.
     pub fn to_std_string(&self) -> Result<String, std::string::FromUtf16Error> {
         match self.as_str().variant() {
@@ -530,7 +527,7 @@ impl JsString {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringindexof
-    pub(crate) fn index_of(&self, search_value: &JsStr<'_>, from_index: usize) -> Option<usize> {
+    pub fn index_of(&self, search_value: &JsStr<'_>, from_index: usize) -> Option<usize> {
         let this = self.iter().collect::<Vec<_>>();
         let search_value = search_value.iter().collect::<Vec<_>>();
 
@@ -573,7 +570,12 @@ impl JsString {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-codepointat
-    pub(crate) fn code_point_at(&self, position: usize) -> CodePoint {
+    ///
+    /// # Panics
+    ///
+    /// If `position` is smaller than size of string.
+    #[must_use]
+    pub fn code_point_at(&self, position: usize) -> CodePoint {
         // 1. Let size be the length of string.
         let size = self.len();
 
@@ -613,7 +615,7 @@ impl JsString {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringtonumber
-    pub(crate) fn to_number(&self) -> f64 {
+    pub fn to_number(&self) -> f64 {
         // 1. Let text be ! StringToCodePoints(str).
         // 2. Let literal be ParseText(text, StringNumericLiteral).
         let Ok(string) = self.to_std_string() else {
@@ -621,7 +623,7 @@ impl JsString {
             return f64::NAN;
         };
         // 4. Return StringNumericValue of literal.
-        let string = string.trim_matches(is_trimmable_whitespace);
+        let string = string.trim_matches(crate::is_trimmable_whitespace);
         match string {
             "" => return 0.0,
             "-Infinity" => return f64::NEG_INFINITY,
@@ -666,22 +668,6 @@ impl JsString {
         }
 
         fast_float::parse(string).unwrap_or(f64::NAN)
-    }
-
-    /// Abstract operation `StringToBigInt ( str )`
-    ///
-    /// More information:
-    /// - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-stringtobigint
-    pub(crate) fn to_big_int(&self) -> Option<JsBigInt> {
-        // 1. Let text be ! StringToCodePoints(str).
-        // 2. Let literal be ParseText(text, StringIntegerLiteral).
-        // 3. If literal is a List of errors, return undefined.
-        // 4. Let mv be the MV of literal.
-        // 5. Assert: mv is an integer.
-        // 6. Return ℤ(mv).
-        JsBigInt::from_string(self.to_std_string().ok().as_ref()?)
     }
 
     /// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
@@ -866,15 +852,15 @@ impl JsString {
         }
     }
 
-    pub(crate) fn trim(&self) -> JsStringSlice<'_> {
+    pub fn trim(&self) -> JsStringSlice<'_> {
         self.as_str().trim()
     }
 
-    pub(crate) fn trim_start(&self) -> JsStringSlice<'_> {
+    pub fn trim_start(&self) -> JsStringSlice<'_> {
         self.as_str().trim_start()
     }
 
-    pub(crate) fn trim_end(&self) -> JsStringSlice<'_> {
+    pub fn trim_end(&self) -> JsStringSlice<'_> {
         self.as_str().trim_end()
     }
 
@@ -1172,8 +1158,8 @@ impl ToStringEscaped for [u16] {
 mod tests {
     use crate::tagged::UnwrappedTagged;
 
-    use super::utf16;
     use super::JsString;
+    use boa_macros::utf16;
 
     impl JsString {
         /// Gets the number of `JsString`s which point to this allocation.

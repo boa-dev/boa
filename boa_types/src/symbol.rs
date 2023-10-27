@@ -23,9 +23,8 @@
 
 use crate::{
     js_string,
-    string::common::StaticJsStrings,
+    string::{common::StaticJsStrings, JsString},
     tagged::{Tagged, UnwrappedTagged},
-    JsString,
 };
 use boa_gc::{empty_trace, Finalize, Trace};
 
@@ -131,6 +130,7 @@ struct Inner {
 }
 
 /// This represents a JavaScript symbol primitive.
+#[allow(clippy::module_name_repetitions)]
 pub struct JsSymbol {
     repr: Tagged<Inner>,
 }
@@ -151,7 +151,10 @@ unsafe impl Trace for JsSymbol {
 macro_rules! well_known_symbols {
     ( $( $(#[$attr:meta])* ($name:ident, $variant:path) ),+$(,)? ) => {
         $(
-            $(#[$attr])* pub(crate) const fn $name() -> JsSymbol {
+            $(#[$attr])*
+            #[must_use]
+            #[inline]
+            pub const fn $name() -> JsSymbol {
                 JsSymbol {
                     // the cast shouldn't matter since we only have 127 const symbols
                     repr: Tagged::from_tag($variant.hash() as usize),

@@ -1,0 +1,24 @@
+[package]
+name = "boa_types"
+description = "String for the Boa JavaScript engine."
+keywords = ["javascript", "js", "string"]
+categories = ["data-structures", "no-std"]
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+boa_gc.workspace = true
+fast-float.workspace = true
+sptr = "0.3.2"
+static_assertions.workspace = true
+num_enum = "0.7.0"
+paste = "1.0"
+portable-atomic = "1.5.0"
+phf.workspace = true
+
+[dev-dependencies]
+boa_macros.workspace = true

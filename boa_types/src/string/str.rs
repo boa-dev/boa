@@ -1,7 +1,6 @@
 use std::slice::SliceIndex;
 
 use crate::string::Iter;
-use boa_interner::JStrRef;
 
 use super::JsStringSlice;
 
@@ -73,13 +72,6 @@ impl<'a> JsStr<'a> {
     #[must_use]
     pub fn iter(self) -> Iter<'a> {
         Iter::new(self.into())
-    }
-
-    pub(crate) fn as_str_ref(&self) -> JStrRef<'_> {
-        match self.inner {
-            JsStrVariant::Ascii(s) => JStrRef::Utf8(s),
-            JsStrVariant::U16(s) => JStrRef::Utf16(s),
-        }
     }
 
     #[inline]

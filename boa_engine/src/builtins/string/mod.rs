@@ -17,12 +17,13 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
+    string::common::StaticJsStrings,
     string::CodePoint,
-    string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
+use boa_macros::utf16;
 use boa_profiler::Profiler;
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
 use std::cmp::{max, min};

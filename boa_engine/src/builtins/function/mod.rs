@@ -22,7 +22,7 @@ use crate::{
     object::{JsFunction, PrivateElement, PrivateName},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{ActiveRunnable, CodeBlock},
@@ -37,6 +37,7 @@ use boa_ast::{
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
+use boa_macros::utf16;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 use std::io::Read;

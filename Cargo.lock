@@ -397,6 +397,7 @@ dependencies = [
  "boa_macros",
  "boa_parser",
  "boa_profiler",
+ "boa_types",
  "bytemuck",
  "cfg-if",
  "chrono",
@@ -583,6 +584,21 @@ dependencies = [
  "serde_repr",
  "serde_yaml",
  "toml 0.8.6",
+]
+
+[[package]]
+name = "boa_types"
+version = "0.17.0"
+dependencies = [
+ "boa_gc",
+ "boa_macros",
+ "fast-float",
+ "num_enum",
+ "paste",
+ "phf",
+ "portable-atomic",
+ "sptr",
+ "static_assertions",
 ]
 
 [[package]]
