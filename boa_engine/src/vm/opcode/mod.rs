@@ -4,6 +4,7 @@ use std::iter::FusedIterator;
 use crate::{vm::CompletionType, Context, JsResult, JsValue};
 
 // Operation modules
+mod arguments;
 mod r#await;
 mod binary_ops;
 mod call;
@@ -34,6 +35,8 @@ mod unary_ops;
 mod value;
 
 // Operation structs
+#[doc(inline)]
+pub(crate) use arguments::*;
 #[doc(inline)]
 pub(crate) use binary_ops::*;
 #[doc(inline)]
@@ -2053,6 +2056,35 @@ generate_opcodes! {
     /// Stack: **=>**
     PopPrivateEnvironment,
 
+    /// Creates a mapped `arguments` object.
+    ///
+    /// Performs [`10.4.4.7 CreateMappedArgumentsObject ( func, formals, argumentsList, env )`]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>** `arguments`
+    CreateMappedArgumentsObject,
+
+    /// Creates an unmapped `arguments` object.
+    ///
+    /// Performs: [`10.4.4.6 CreateUnmappedArgumentsObject ( argumentsList )`]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createmappedargumentsobject
+    ///
+    /// Stack: **=>** `arguments`
+    CreateUnmappedArgumentsObject,
+
+    /// Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
+    ///
+    /// Operands: configurable: `bool`, `name_index`: `VaryingOperand`
+    ///
+    /// Stack: `value` **=>**
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
+    CreateGlobalFunctionBinding { configurable: bool, name_index: VaryingOperand },
+
     /// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -2190,12 +2222,6 @@ generate_opcodes! {
     Reserved57 => Reserved,
     /// Reserved [`Opcode`].
     Reserved58 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved61 => Reserved,
 }
 
 /// Specific opcodes for bindings.

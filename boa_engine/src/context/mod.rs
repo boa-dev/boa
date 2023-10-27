@@ -718,7 +718,7 @@ impl Context<'_> {
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
     pub(crate) fn create_global_function_binding(
         &mut self,
-        name: Identifier,
+        name: JsString,
         function: JsObject,
         configurable: bool,
     ) -> JsResult<()> {
@@ -727,8 +727,7 @@ impl Context<'_> {
         let global_object = self.realm().global_object().clone();
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
-        let existing_prop = global_object.__get_own_property__(&name, self)?;
+        let existing_prop = global_object.__get_own_property__(&name.clone().into(), self)?;
 
         // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
         let desc = if existing_prop.is_none()

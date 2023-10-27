@@ -141,3 +141,56 @@ impl Operation for PutLexicalValue {
         Self::operation(context, index as usize)
     }
 }
+
+/// `CreateGlobalFunctionBinding` implements the Opcode Operation for `Opcode::CreateGlobalFunctionBinding`
+///
+/// Operation:
+/// - Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CreateGlobalFunctionBinding;
+
+impl CreateGlobalFunctionBinding {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        context: &mut Context<'_>,
+        index: usize,
+        configurable: bool,
+    ) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block().constant_string(index);
+        let value = context.vm.pop();
+
+        let function = value
+            .as_object()
+            .expect("valeu should be an function")
+            .clone();
+        context.create_global_function_binding(name, function, configurable)?;
+
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for CreateGlobalFunctionBinding {
+    const NAME: &'static str = "CreateGlobalFunctionBinding";
+    const INSTRUCTION: &'static str = "INST - CreateGlobalFunctionBinding";
+    const COST: u8 = 2;
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let configurable = context.vm.read::<u8>() != 0;
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index, configurable)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let configurable = context.vm.read::<u8>() != 0;
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index, configurable)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let configurable = context.vm.read::<u8>() != 0;
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index, configurable)
+    }
+}

@@ -3,6 +3,7 @@ use std::rc::Rc;
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     environments::CompileTimeEnvironment,
+    js_string,
     vm::{create_function_object_fast, BindingOpcode, CodeBlockFlags, Opcode},
     JsNativeError, JsResult,
 };
@@ -285,6 +286,7 @@ impl ByteCompiler<'_, '_> {
             let function = create_function_object_fast(code, self.context);
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
+            let name = js_string!(self.interner().resolve_expect(name.sym()).utf16());
             self.context
                 .create_global_function_binding(name, function, false)?;
         }
@@ -726,14 +728,17 @@ impl ByteCompiler<'_, '_> {
             // c. If varEnv is a Global Environment Record, then
             if var_env.is_global() {
                 // Ensures global functions are printed when generating the global flowgraph.
-                let _ = self.push_function_to_constants(code.clone());
+                let index = self.push_function_to_constants(code.clone());
 
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
-                let function = create_function_object_fast(code, self.context);
+                self.emit_with_varying_operand(Opcode::GetFunction, index);
 
                 // i. Perform ? varEnv.CreateGlobalFunctionBinding(fn, fo, true).
-                self.context
-                    .create_global_function_binding(name, function, true)?;
+                let name_index = self.get_or_insert_name(name);
+                self.emit(
+                    Opcode::CreateGlobalFunctionBinding,
+                    &[Operand::Bool(true), Operand::Varying(name_index)],
+                );
             }
             // d. Else,
             else {
@@ -915,14 +920,19 @@ impl ByteCompiler<'_, '_> {
         // NOTE(HalidOdat): Has been moved up, so "arguments" gets registed as
         //     the first binding in the environment with index 0.
         if arguments_object_needed {
-            // Note: This happens at runtime.
             // a. If strict is true or simpleParameterList is false, then
-            //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+            if strict || !formals.is_simple() {
+                // i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+                self.emit_opcode(Opcode::CreateUnmappedArgumentsObject);
+            }
             // b. Else,
-            //     i. NOTE: A mapped argument object is only provided for non-strict functions
-            //              that don't have a rest parameter, any parameter
-            //              default value initializers, or any destructured parameters.
-            //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
+            else {
+                // i. NOTE: A mapped argument object is only provided for non-strict functions
+                //          that don't have a rest parameter, any parameter
+                //          default value initializers, or any destructured parameters.
+                // ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
+                self.emit_opcode(Opcode::CreateMappedArgumentsObject);
+            }
 
             // c. If strict is true, then
             if strict {
@@ -937,7 +947,8 @@ impl ByteCompiler<'_, '_> {
                 env.create_mutable_binding(arguments, false);
             }
 
-            self.code_block_flags |= CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT;
+            // e. Perform ! env.InitializeBinding("arguments", ao).
+            self.emit_binding(BindingOpcode::InitLexical, arguments);
         }
 
         // 21. For each String paramName of parameterNames, do
@@ -961,12 +972,9 @@ impl ByteCompiler<'_, '_> {
 
         // 22. If argumentsObjectNeeded is true, then
         if arguments_object_needed {
-            // MOVED: a-d.
+            // MOVED: a-e.
             //
             // NOTE(HalidOdat): Has been moved up, see comment above.
-
-            // Note: This happens at runtime.
-            // e. Perform ! env.InitializeBinding("arguments", ao).
 
             // f. Let parameterBindings be the list-concatenation of parameterNames and « "arguments" ».
             parameter_names.push(arguments);

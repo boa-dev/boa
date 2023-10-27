@@ -275,7 +275,7 @@ pub struct ByteCompiler<'ctx, 'host> {
     json_parse: bool,
 
     // TODO: remove when we separate scripts from the context
-    context: &'ctx mut Context<'host>,
+    pub(crate) context: &'ctx mut Context<'host>,
 
     #[cfg(feature = "annex-b")]
     annex_b_function_names: Vec<Identifier>,
