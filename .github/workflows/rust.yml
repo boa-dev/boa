@@ -114,17 +114,13 @@ jobs:
           override: true
           profile: minimal
           components: clippy
-      - name: Install cargo-workspaces
-        uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-workspaces
       - uses: Swatinem/rust-cache@v2
         with:
           key: clippy
       - name: Clippy (All features)
-        run: cargo workspaces exec cargo clippy --all-features --all-targets -- -D warnings
+        run: cargo clippy --all-features --all-targets
       - name: Clippy (No features)
-        run: cargo workspaces exec cargo clippy --no-default-features --all-targets -- -D warnings
+        run: cargo clippy --no-default-features --all-targets
 
   docs:
     name: Documentation

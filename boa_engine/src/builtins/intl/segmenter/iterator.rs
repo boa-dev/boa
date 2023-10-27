@@ -76,11 +76,7 @@ impl SegmentIterator {
     /// [`CreateSegmentIterator ( segmenter, string )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-createsegmentiterator
-    pub(crate) fn create(
-        segmenter: JsObject,
-        string: JsString,
-        context: &mut Context<'_>,
-    ) -> JsObject {
+    pub(crate) fn create(segmenter: JsObject, string: JsString, context: &Context<'_>) -> JsObject {
         // 1. Let internalSlotsList be « [[IteratingSegmenter]], [[IteratedString]], [[IteratedStringNextSegmentCodeUnitIndex]] ».
         // 2. Let iterator be OrdinaryObjectCreate(%SegmentIteratorPrototype%, internalSlotsList).
         // 3. Set iterator.[[IteratingSegmenter]] to segmenter.

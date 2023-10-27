@@ -183,38 +183,32 @@ impl fmt::Display for Error {
                 found,
                 span,
                 context,
-            } => write!(
-                f,
-                "expected {}, got '{found}' in {context} at line {}, col {}",
+            } => {
+                f.write_str("expected ")?;
                 if expected.len() == 1 {
-                    format!(
+                    write!(
+                        f,
                         "token '{}'",
                         expected.first().expect("already checked that length is 1")
-                    )
+                    )?;
                 } else {
-                    format!(
-                        "one of {}",
-                        expected
-                            .iter()
-                            .enumerate()
-                            .map(|(i, t)| {
-                                format!(
-                                    "{}'{t}'",
-                                    if i == 0 {
-                                        ""
-                                    } else if i == expected.len() - 1 {
-                                        " or "
-                                    } else {
-                                        ", "
-                                    },
-                                )
-                            })
-                            .collect::<String>()
-                    )
-                },
-                span.start().line_number(),
-                span.start().column_number()
-            ),
+                    f.write_str("one of ")?;
+                    for (i, t) in expected.iter().enumerate() {
+                        if i == expected.len() - 1 {
+                            f.write_str(" or ")?;
+                        } else if i != 0 {
+                            f.write_str(", ")?;
+                        }
+                        write!(f, "'{t}'")?;
+                    }
+                }
+                write!(
+                    f,
+                    ", got '{found}' in {context} at line {}, col {}",
+                    span.start().line_number(),
+                    span.start().column_number()
+                )
+            }
             Self::Unexpected {
                 found,
                 span,

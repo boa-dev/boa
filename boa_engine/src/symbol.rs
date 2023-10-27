@@ -340,7 +340,7 @@ impl PartialEq for JsSymbol {
 impl PartialOrd for JsSymbol {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.hash().partial_cmp(&other.hash())
+        Some(self.cmp(other))
     }
 }
 
@@ -352,6 +352,7 @@ impl Ord for JsSymbol {
 }
 
 impl Hash for JsSymbol {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.hash().hash(state);
     }

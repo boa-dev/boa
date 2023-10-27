@@ -62,7 +62,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         fn parse_const_access(
             token: &Token,
-            interner: &mut Interner,
+            interner: &Interner,
         ) -> ParseResult<OptionalOperationKind> {
             let item = match token.kind() {
                 TokenKind::IdentifierName((name, _)) => {
