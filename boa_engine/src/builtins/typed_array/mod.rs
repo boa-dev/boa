@@ -401,7 +401,7 @@ impl TypedArrayKind {
 
     /// Returns `true` if this kind of typed array supports `Atomics` operations
     ///
-    /// Equivalent to `IsUnclampedIntegerElementType(type) is false and IsBigIntElementType(type) is false`.
+    /// Equivalent to `IsUnclampedIntegerElementType(type) is true || IsBigIntElementType(type) is true`.
     pub(crate) fn supports_atomic_ops(self) -> bool {
         match self {
             TypedArrayKind::Int8
