@@ -56,20 +56,17 @@ bitflags! {
         /// The `[[IsClassConstructor]]` internal slot.
         const IS_CLASS_CONSTRUCTOR = 0b0000_0100;
 
-        /// Does this function have a parameters environment.
-        const PARAMETERS_ENV_BINDINGS = 0b0000_1000;
-
         /// The `[[ClassFieldInitializerName]]` internal slot.
-        const IN_CLASS_FIELD_INITIALIZER = 0b0001_0000;
+        const IN_CLASS_FIELD_INITIALIZER = 0b0000_1000;
 
         /// `[[ConstructorKind]]`
-        const IS_DERIVED_CONSTRUCTOR = 0b0010_0000;
+        const IS_DERIVED_CONSTRUCTOR = 0b0001_0000;
 
-        const IS_ASYNC = 0b0100_0000;
-        const IS_GENERATOR = 0b0000_1000_0000;
+        const IS_ASYNC = 0b0010_0000;
+        const IS_GENERATOR = 0b0100_0000;
 
         /// Arrow and method functions don't have `"prototype"` property.
-        const HAS_PROTOTYPE_PROPERTY = 0b0001_0000_0000;
+        const HAS_PROTOTYPE_PROPERTY = 0b1000_0000;
 
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
@@ -219,13 +216,6 @@ impl CodeBlock {
         self.flags
             .get()
             .contains(CodeBlockFlags::HAS_BINDING_IDENTIFIER)
-    }
-
-    /// Does this function have a parameters environment.
-    pub(crate) fn has_parameters_env_bindings(&self) -> bool {
-        self.flags
-            .get()
-            .contains(CodeBlockFlags::PARAMETERS_ENV_BINDINGS)
     }
 
     /// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.

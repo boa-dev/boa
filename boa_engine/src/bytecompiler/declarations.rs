@@ -4,7 +4,7 @@ use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     environments::CompileTimeEnvironment,
     js_string,
-    vm::{create_function_object_fast, BindingOpcode, CodeBlockFlags, Opcode},
+    vm::{create_function_object_fast, BindingOpcode, Opcode},
     JsNativeError, JsResult,
 };
 use boa_ast::{
@@ -909,8 +909,8 @@ impl ByteCompiler<'_, '_> {
             // c. Let env be NewDeclarativeEnvironment(calleeEnv).
             // d. Assert: The VariableEnvironment of calleeContext is calleeEnv.
             // e. Set the LexicalEnvironment of calleeContext to env.
-            let _ = self.push_compile_environment(false);
-            self.code_block_flags |= CodeBlockFlags::PARAMETERS_ENV_BINDINGS;
+            let env_index = self.push_compile_environment(false);
+            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
         };
 
         let env = self.lexical_environment.clone();

@@ -113,14 +113,6 @@ pub(crate) fn function_call(
         FunctionSlots::new(this, function_object.clone(), None),
     );
 
-    if code.has_parameters_env_bindings() {
-        last_env += 1;
-        context
-            .vm
-            .environments
-            .push_lexical(code.constant_compile_time_environment(last_env));
-    }
-
     Ok(CallValue::Ready)
 }
 
@@ -215,14 +207,6 @@ fn function_construct(
             ),
         ),
     );
-
-    if code.has_parameters_env_bindings() {
-        last_env += 1;
-        context
-            .vm
-            .environments
-            .push_lexical(code.constant_compile_time_environment(last_env));
-    }
 
     // Insert `this` value
     context
