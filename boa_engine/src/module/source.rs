@@ -1655,7 +1655,7 @@ impl SourceTextModule {
         for (index, locator) in functions {
             let code = codeblock.constant_function(index as usize);
 
-            let function = create_function_object_fast(code, false, context);
+            let function = create_function_object_fast(code, context);
 
             context.vm.environments.put_lexical_value(
                 locator.environment_index(),

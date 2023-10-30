@@ -72,7 +72,9 @@ bitflags! {
 
         const IS_ASYNC = 0b1000_0000;
         const IS_GENERATOR = 0b0001_0000_0000;
-        const IS_ARROW = 0b0010_0000_0000;
+
+        /// Arrow and method functions don't have `"prototype"` property.
+        const HAS_PROTOTYPE_PROPERTY = 0b0010_0000_0000;
 
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
@@ -268,9 +270,11 @@ impl CodeBlock {
         !self.is_async() && !self.is_generator()
     }
 
-    /// Returns true if this function an arrow function.
-    pub(crate) fn is_arrow(&self) -> bool {
-        self.flags.get().contains(CodeBlockFlags::IS_ARROW)
+    /// Returns true if this function has the `"prototype"` property when function object is created.
+    pub(crate) fn has_prototype_property(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::HAS_PROTOTYPE_PROPERTY)
     }
 
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
@@ -453,15 +457,7 @@ impl CodeBlock {
             Instruction::TemplateCreate { count, site } => {
                 format!("{}, {site}", count.value())
             }
-            Instruction::GetFunction { index, method } => {
-                let index = index.value() as usize;
-                format!(
-                    "{index:04}: '{}' (length: {}), method: {method}",
-                    self.constant_function(index).name().to_std_string_escaped(),
-                    self.constant_function(index).length
-                )
-            }
-            Instruction::GetArrowFunction { index } => {
+            Instruction::GetFunction { index } => {
                 let index = index.value() as usize;
                 format!(
                     "{index:04}: '{}' (length: {})",
@@ -714,7 +710,8 @@ impl CodeBlock {
             | Instruction::Reserved57
             | Instruction::Reserved58
             | Instruction::Reserved59
-            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved60
+            | Instruction::Reserved61 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
@@ -919,7 +916,6 @@ pub(crate) fn create_function_object(
 /// with all the properties and prototype set.
 pub(crate) fn create_function_object_fast(
     code: Gc<CodeBlock>,
-    method: bool,
     context: &mut Context<'_>,
 ) -> JsObject {
     let _timer = Profiler::global().start_event("create_function_object_fast", "vm");
@@ -931,7 +927,7 @@ pub(crate) fn create_function_object_fast(
 
     let is_async = code.is_async();
     let is_generator = code.is_generator();
-    let is_arrow = code.is_arrow();
+    let has_prototype_property = code.has_prototype_property();
     let function = OrdinaryFunction::new(
         code,
         context.vm.environments.clone(),
@@ -939,8 +935,10 @@ pub(crate) fn create_function_object_fast(
         context.realm().clone(),
     );
 
-    let data =
-        ObjectData::ordinary_function(function, !method && !is_arrow && !is_async && !is_generator);
+    let data = ObjectData::ordinary_function(
+        function,
+        has_prototype_property && !is_async && !is_generator,
+    );
 
     if is_generator {
         let prototype = JsObject::from_proto_and_data_with_shared_shape(
@@ -965,7 +963,7 @@ pub(crate) fn create_function_object_fast(
             .templates()
             .async_function()
             .create(data, vec![length, name])
-    } else if is_arrow || method {
+    } else if !has_prototype_property {
         context
             .intrinsics()
             .templates()

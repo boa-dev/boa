@@ -282,7 +282,7 @@ impl ByteCompiler<'_, '_> {
             let _ = self.push_function_to_constants(code.clone());
 
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
-            let function = create_function_object_fast(code, false, self.context);
+            let function = create_function_object_fast(code, self.context);
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
             self.context
@@ -729,7 +729,7 @@ impl ByteCompiler<'_, '_> {
                 let _ = self.push_function_to_constants(code.clone());
 
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
-                let function = create_function_object_fast(code, false, self.context);
+                let function = create_function_object_fast(code, self.context);
 
                 // i. Perform ? varEnv.CreateGlobalFunctionBinding(fn, fo, true).
                 self.context
@@ -739,10 +739,7 @@ impl ByteCompiler<'_, '_> {
             else {
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let index = self.push_function_to_constants(code);
-                self.emit(
-                    Opcode::GetFunction,
-                    &[Operand::Varying(index), Operand::Bool(false)],
-                );
+                self.emit_with_varying_operand(Opcode::GetFunction, index);
 
                 // i. Let bindingExists be ! varEnv.HasBinding(fn).
                 let binding_exists = var_env.has_binding(name);

@@ -299,6 +299,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     ) -> ByteCompiler<'ctx, 'host> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
+        code_block_flags |= CodeBlockFlags::HAS_PROTOTYPE_PROPERTY;
         Self {
             function_name: name,
             length: 0,
@@ -1253,18 +1254,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         use_expr: bool,
     ) {
         let name = function.name;
-        let arrow = function.kind.is_arrow();
 
         let index = self.function(function);
-
-        if arrow {
-            self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
-        } else {
-            self.emit(
-                Opcode::GetFunction,
-                &[Operand::Varying(index), Operand::Bool(false)],
-            );
-        }
+        self.emit_with_varying_operand(Opcode::GetFunction, index);
 
         match node_kind {
             NodeKind::Declaration => {
@@ -1312,6 +1304,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .r#async(r#async)
             .strict(self.strict())
             .arrow(arrow)
+            .method(true)
             .binding_identifier(binding_identifier)
             .compile(
                 parameters,
@@ -1322,15 +1315,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             );
 
         let index = self.push_function_to_constants(code);
-
-        if arrow {
-            self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
-        } else {
-            self.emit(
-                Opcode::GetFunction,
-                &[Operand::Varying(index), Operand::Bool(true)],
-            );
-        }
+        self.emit_with_varying_operand(Opcode::GetFunction, index);
     }
 
     /// Compile a class method AST Node into bytecode.
@@ -1364,6 +1349,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .r#async(r#async)
             .strict(true)
             .arrow(arrow)
+            .method(true)
             .binding_identifier(binding_identifier)
             .compile(
                 parameters,
@@ -1374,15 +1360,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             );
 
         let index = self.push_function_to_constants(code);
-
-        if arrow {
-            self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
-        } else {
-            self.emit(
-                Opcode::GetFunction,
-                &[Operand::Varying(index), Operand::Bool(true)],
-            );
-        }
+        self.emit_with_varying_operand(Opcode::GetFunction, index);
     }
 
     fn call(&mut self, callable: Callable<'_>, use_expr: bool) {
