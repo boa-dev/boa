@@ -596,6 +596,12 @@
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
 <a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, Operand};
 <span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode};
 <span class="kw">use </span>boa_ast::{
@@ -677,6 +683,12 @@
             compiler.emit_opcode(Opcode::PushUndefined);
         }
         compiler.emit_opcode(Opcode::SetReturnValue);
+
+        <span class="comment">// 17. If ClassHeritageopt is present, set F.[[ConstructorKind]] to derived.
+        </span>compiler.code_block_flags.set(
+            CodeBlockFlags::IS_DERIVED_CONSTRUCTOR,
+            class.super_ref().is_some(),
+        );
 
         <span class="kw">let </span>code = Gc::new(compiler.finish());
         <span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);

@@ -434,9 +434,8 @@
 <a href="#434" id="434">434</a>
 <a href="#435" id="435">435</a>
 <a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    builtins::function::{arguments::Arguments, FunctionKind, ThisMode},
+    builtins::function::{arguments::Arguments, ThisMode},
     context::intrinsics::StandardConstructors,
     environments::{FunctionSlots, ThisBindingStatus},
     native_function::NativeFunctionObject,
@@ -485,13 +484,15 @@
     <span class="kw">let </span>function = object.as_function().expect(<span class="string">&quot;not a function&quot;</span>);
     <span class="kw">let </span>realm = function.realm().clone();
 
-    <span class="kw">if let </span>FunctionKind::Ordinary { .. } = function.kind() {
-        <span class="kw">if </span>function.code.is_class_constructor() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;class constructor cannot be invoked without &#39;new&#39;&quot;</span>)
-                .with_realm(realm)
-                .into());
-        }
+    <span class="kw">if </span>function.code.is_class_constructor() {
+        <span class="macro">debug_assert!</span>(
+            function.is_ordinary(),
+            <span class="string">&quot;only ordinary functions can be classes&quot;
+        </span>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;class constructor cannot be invoked without &#39;new&#39;&quot;</span>)
+            .with_realm(realm)
+            .into());
     }
 
     <span class="kw">let </span>code = function.code.clone();
@@ -609,17 +610,14 @@
     <span class="kw">let </span>function = object.as_function().expect(<span class="string">&quot;not a function&quot;</span>);
     <span class="kw">let </span>realm = function.realm().clone();
 
-    <span class="kw">let </span>FunctionKind::Ordinary {
-        constructor_kind, ..
-    } = function.kind()
-    <span class="kw">else </span>{
-        <span class="macro">unreachable!</span>(<span class="string">&quot;not a constructor&quot;</span>)
-    };
+    <span class="macro">debug_assert!</span>(
+        function.is_ordinary(),
+        <span class="string">&quot;only ordinary functions can be constructed&quot;
+    </span>);
 
     <span class="kw">let </span>code = function.code.clone();
     <span class="kw">let </span>environments = function.environments.clone();
     <span class="kw">let </span>script_or_module = function.script_or_module.clone();
-    <span class="kw">let </span>constructor_kind = <span class="kw-2">*</span>constructor_kind;
     drop(object);
 
     <span class="kw">let </span>env_fp = environments.len() <span class="kw">as </span>u32;
@@ -628,7 +626,9 @@
 
     <span class="kw">let </span>at = context.vm.stack.len() - argument_count;
 
-    <span class="kw">let </span>this = <span class="kw">if </span>constructor_kind.is_base() {
+    <span class="kw">let </span>this = <span class="kw">if </span>code.is_derived_constructor() {
+        <span class="prelude-val">None
+    </span>} <span class="kw">else </span>{
         <span class="comment">// If the prototype of the constructor is not an object, then use the default object
         // prototype as prototype for the new object
         // see &lt;https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor&gt;
@@ -644,9 +644,7 @@
         this.initialize_instance_elements(this_function_object, context)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Some</span>(this)
-    } <span class="kw">else </span>{
-        <span class="prelude-val">None
-    </span>};
+    };
 
     <span class="kw">let </span>frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
         .with_argument_count(argument_count <span class="kw">as </span>u32)

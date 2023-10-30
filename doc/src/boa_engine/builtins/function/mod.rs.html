@@ -1046,16 +1046,6 @@
 <a href="#1046" id="1046">1046</a>
 <a href="#1047" id="1047">1047</a>
 <a href="#1048" id="1048">1048</a>
-<a href="#1049" id="1049">1049</a>
-<a href="#1050" id="1050">1050</a>
-<a href="#1051" id="1051">1051</a>
-<a href="#1052" id="1052">1052</a>
-<a href="#1053" id="1053">1053</a>
-<a href="#1054" id="1054">1054</a>
-<a href="#1055" id="1055">1055</a>
-<a href="#1056" id="1056">1056</a>
-<a href="#1057" id="1057">1057</a>
-<a href="#1058" id="1058">1058</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1205,9 +1195,6 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>FunctionKind {
     <span class="doccomment">/// A bytecode function.
     </span>Ordinary {
-        <span class="doccomment">/// The `[[ConstructorKind]]` internal slot.
-        </span>constructor_kind: ConstructorKind,
-
         <span class="doccomment">/// The `[[Fields]]` internal slot.
         </span>fields: ThinVec&lt;ClassFieldDefinition&gt;,
 
@@ -1306,15 +1293,8 @@
     }
 
     <span class="doccomment">/// Returns true if the function object is a derived constructor.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_derived_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">if let </span>FunctionKind::Ordinary {
-            constructor_kind, ..
-        } = <span class="self">self</span>.kind
-        {
-            constructor_kind.is_derived()
-        } <span class="kw">else </span>{
-            <span class="bool-val">false
-        </span>}
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_derived_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.code.is_derived_constructor()
     }
 
     <span class="doccomment">/// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
@@ -1388,9 +1368,9 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.kind
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the [`FunctionKind`] of the `Function`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>kind_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>FunctionKind {
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>.kind
+    <span class="doccomment">/// Check if function is [`FunctionKind::Ordinary`].
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_ordinary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind(), FunctionKind::Ordinary { .. })
     }
 }
 
