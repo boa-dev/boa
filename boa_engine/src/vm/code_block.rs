@@ -3,7 +3,7 @@
 //! This module is for the `CodeBlock` which implements a function representation in the VM
 
 use crate::{
-    builtins::function::{ConstructorKind, FunctionKind, OrdinaryFunction, ThisMode},
+    builtins::function::{FunctionKind, OrdinaryFunction, ThisMode},
     environments::{BindingLocator, CompileTimeEnvironment},
     object::{JsObject, ObjectData, PROTOTYPE},
     property::PropertyDescriptor,
@@ -68,6 +68,9 @@ bitflags! {
 
         /// The `[[ClassFieldInitializerName]]` internal slot.
         const IN_CLASS_FIELD_INITIALIZER = 0b0010_0000;
+
+        /// `[[ConstructorKind]]`
+        const IS_DERIVED_CONSTRUCTOR = 0b0100_0000;
 
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
@@ -239,6 +242,13 @@ impl CodeBlock {
         self.flags
             .get()
             .contains(CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER)
+    }
+
+    /// Returns true if this function is a derived constructor.
+    pub(crate) fn is_derived_constructor(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::IS_DERIVED_CONSTRUCTOR)
     }
 
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
@@ -838,7 +848,6 @@ pub(crate) fn create_function_object(
             home_object: None,
             script_or_module,
             kind: FunctionKind::Ordinary {
-                constructor_kind: ConstructorKind::Base,
                 fields: ThinVec::new(),
                 private_methods: ThinVec::new(),
             },
@@ -903,7 +912,6 @@ pub(crate) fn create_function_object_fast(
         FunctionKind::Async
     } else {
         FunctionKind::Ordinary {
-            constructor_kind: ConstructorKind::Base,
             fields: ThinVec::new(),
             private_methods: ThinVec::new(),
         }

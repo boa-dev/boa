@@ -1,5 +1,5 @@
 use crate::{
-    builtins::function::{arguments::Arguments, FunctionKind, ThisMode},
+    builtins::function::{arguments::Arguments, ThisMode},
     context::intrinsics::StandardConstructors,
     environments::{FunctionSlots, ThisBindingStatus},
     native_function::NativeFunctionObject,
@@ -48,13 +48,15 @@ pub(crate) fn function_call(
     let function = object.as_function().expect("not a function");
     let realm = function.realm().clone();
 
-    if let FunctionKind::Ordinary { .. } = function.kind() {
-        if function.code.is_class_constructor() {
-            return Err(JsNativeError::typ()
-                .with_message("class constructor cannot be invoked without 'new'")
-                .with_realm(realm)
-                .into());
-        }
+    if function.code.is_class_constructor() {
+        debug_assert!(
+            function.is_ordinary(),
+            "only ordinary functions can be classes"
+        );
+        return Err(JsNativeError::typ()
+            .with_message("class constructor cannot be invoked without 'new'")
+            .with_realm(realm)
+            .into());
     }
 
     let code = function.code.clone();
@@ -172,17 +174,14 @@ fn function_construct(
     let function = object.as_function().expect("not a function");
     let realm = function.realm().clone();
 
-    let FunctionKind::Ordinary {
-        constructor_kind, ..
-    } = function.kind()
-    else {
-        unreachable!("not a constructor")
-    };
+    debug_assert!(
+        function.is_ordinary(),
+        "only ordinary functions can be constructed"
+    );
 
     let code = function.code.clone();
     let environments = function.environments.clone();
     let script_or_module = function.script_or_module.clone();
-    let constructor_kind = *constructor_kind;
     drop(object);
 
     let env_fp = environments.len() as u32;
@@ -191,7 +190,9 @@ fn function_construct(
 
     let at = context.vm.stack.len() - argument_count;
 
-    let this = if constructor_kind.is_base() {
+    let this = if code.is_derived_constructor() {
+        None
+    } else {
         // If the prototype of the constructor is not an object, then use the default object
         // prototype as prototype for the new object
         // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
@@ -207,8 +208,6 @@ fn function_construct(
         this.initialize_instance_elements(this_function_object, context)?;
 
         Some(this)
-    } else {
-        None
     };
 
     let frame = CallFrame::new(code.clone(), script_or_module, environments, realm)

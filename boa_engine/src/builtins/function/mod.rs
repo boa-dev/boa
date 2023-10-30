@@ -147,9 +147,6 @@ unsafe impl Trace for ClassFieldDefinition {
 pub(crate) enum FunctionKind {
     /// A bytecode function.
     Ordinary {
-        /// The `[[ConstructorKind]]` internal slot.
-        constructor_kind: ConstructorKind,
-
         /// The `[[Fields]]` internal slot.
         fields: ThinVec<ClassFieldDefinition>,
 
@@ -248,15 +245,8 @@ impl OrdinaryFunction {
     }
 
     /// Returns true if the function object is a derived constructor.
-    pub(crate) const fn is_derived_constructor(&self) -> bool {
-        if let FunctionKind::Ordinary {
-            constructor_kind, ..
-        } = self.kind
-        {
-            constructor_kind.is_derived()
-        } else {
-            false
-        }
+    pub(crate) fn is_derived_constructor(&self) -> bool {
+        self.code.is_derived_constructor()
     }
 
     /// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
@@ -330,9 +320,9 @@ impl OrdinaryFunction {
         &self.kind
     }
 
-    /// Gets a mutable reference to the [`FunctionKind`] of the `Function`.
-    pub(crate) fn kind_mut(&mut self) -> &mut FunctionKind {
-        &mut self.kind
+    /// Check if function is [`FunctionKind::Ordinary`].
+    pub(crate) const fn is_ordinary(&self) -> bool {
+        matches!(self.kind(), FunctionKind::Ordinary { .. })
     }
 }
 
