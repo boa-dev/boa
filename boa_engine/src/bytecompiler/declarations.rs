@@ -739,14 +739,10 @@ impl ByteCompiler<'_, '_> {
             else {
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let index = self.push_function_to_constants(code);
-                if generator {
-                    self.emit_with_varying_operand(Opcode::GetGenerator, index);
-                } else {
-                    self.emit(
-                        Opcode::GetFunction,
-                        &[Operand::Varying(index), Operand::Bool(false)],
-                    );
-                }
+                self.emit(
+                    Opcode::GetFunction,
+                    &[Operand::Varying(index), Operand::Bool(false)],
+                );
 
                 // i. Let bindingExists be ! varEnv.HasBinding(fn).
                 let binding_exists = var_env.has_binding(name);

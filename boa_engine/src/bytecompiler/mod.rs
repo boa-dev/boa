@@ -1253,13 +1253,11 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         use_expr: bool,
     ) {
         let name = function.name;
-        let (generator, arrow) = (function.kind.is_generator(), function.kind.is_arrow());
+        let arrow = function.kind.is_arrow();
 
         let index = self.function(function);
 
-        if generator {
-            self.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } else if arrow {
+        if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
             self.emit(
@@ -1325,9 +1323,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
         let index = self.push_function_to_constants(code);
 
-        if generator {
-            self.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } else if arrow {
+        if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
             self.emit(
@@ -1379,9 +1375,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
         let index = self.push_function_to_constants(code);
 
-        if generator {
-            self.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } else if arrow {
+        if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
             self.emit(
