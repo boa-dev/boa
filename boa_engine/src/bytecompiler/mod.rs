@@ -1253,17 +1253,11 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         use_expr: bool,
     ) {
         let name = function.name;
-        let (generator, r#async, arrow) = (
-            function.kind.is_generator(),
-            function.kind.is_async(),
-            function.kind.is_arrow(),
-        );
+        let (generator, arrow) = (function.kind.is_generator(), function.kind.is_arrow());
 
         let index = self.function(function);
 
-        if r#async && generator {
-            self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-        } else if generator {
+        if generator {
             self.emit_with_varying_operand(Opcode::GetGenerator, index);
         } else if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
@@ -1331,9 +1325,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
         let index = self.push_function_to_constants(code);
 
-        if r#async && generator {
-            self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-        } else if generator {
+        if generator {
             self.emit_with_varying_operand(Opcode::GetGenerator, index);
         } else if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
@@ -1387,9 +1379,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
         let index = self.push_function_to_constants(code);
 
-        if r#async && generator {
-            self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-        } else if generator {
+        if generator {
             self.emit_with_varying_operand(Opcode::GetGenerator, index);
         } else if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);

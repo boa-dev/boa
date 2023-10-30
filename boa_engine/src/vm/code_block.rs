@@ -463,9 +463,7 @@ impl CodeBlock {
                     self.constant_function(index).length
                 )
             }
-            Instruction::GetArrowFunction { index }
-            | Instruction::GetGenerator { index }
-            | Instruction::GetGeneratorAsync { index } => {
+            Instruction::GetArrowFunction { index } | Instruction::GetGenerator { index } => {
                 let index = index.value() as usize;
                 format!(
                     "{index:04}: '{}' (length: {})",
@@ -716,7 +714,8 @@ impl CodeBlock {
             | Instruction::Reserved55
             | Instruction::Reserved56
             | Instruction::Reserved57
-            | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved58
+            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

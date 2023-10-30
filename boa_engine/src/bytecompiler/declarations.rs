@@ -750,9 +750,7 @@ impl ByteCompiler<'_, '_> {
             else {
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let index = self.push_function_to_constants(code);
-                if r#async && generator {
-                    self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-                } else if generator {
+                if generator {
                     self.emit_with_varying_operand(Opcode::GetGenerator, index);
                 } else {
                     self.emit(

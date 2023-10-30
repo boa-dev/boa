@@ -1690,13 +1690,6 @@ generate_opcodes! {
     /// Stack: **=>** func
     GetGenerator { index: VaryingOperand },
 
-    /// Get async generator function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `VaryingOperand`,
-    ///
-    /// Stack: **=>** func
-    GetGeneratorAsync { index: VaryingOperand },
-
     /// Call a function named "eval".
     ///
     /// Operands: argument_count: `VaryingOperand`
@@ -2211,6 +2204,8 @@ generate_opcodes! {
     Reserved57 => Reserved,
     /// Reserved [`Opcode`].
     Reserved58 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved59 => Reserved,
 }
 
 /// Specific opcodes for bindings.
