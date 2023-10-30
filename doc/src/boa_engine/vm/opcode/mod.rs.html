@@ -2282,21 +2282,6 @@
 <a href="#2282" id="2282">2282</a>
 <a href="#2283" id="2283">2283</a>
 <a href="#2284" id="2284">2284</a>
-<a href="#2285" id="2285">2285</a>
-<a href="#2286" id="2286">2286</a>
-<a href="#2287" id="2287">2287</a>
-<a href="#2288" id="2288">2288</a>
-<a href="#2289" id="2289">2289</a>
-<a href="#2290" id="2290">2290</a>
-<a href="#2291" id="2291">2291</a>
-<a href="#2292" id="2292">2292</a>
-<a href="#2293" id="2293">2293</a>
-<a href="#2294" id="2294">2294</a>
-<a href="#2295" id="2295">2295</a>
-<a href="#2296" id="2296">2296</a>
-<a href="#2297" id="2297">2297</a>
-<a href="#2298" id="2298">2298</a>
-<a href="#2299" id="2299">2299</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 
 <span class="doccomment">/// The opcodes of the vm.
@@ -3975,13 +3960,6 @@
     /// Stack: **=&gt;** func
     </span>GetArrowFunction { index: VaryingOperand },
 
-    <span class="doccomment">/// Get async arrow function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `VaryingOperand`
-    ///
-    /// Stack: **=&gt;** func
-    </span>GetAsyncArrowFunction { index: VaryingOperand },
-
     <span class="doccomment">/// Get function from the pre-compiled inner functions.
     ///
     /// Operands: index: `VaryingOperand`, is_method: `u8`
@@ -3989,26 +3967,12 @@
     /// Stack: **=&gt;** func
     </span>GetFunction { index: VaryingOperand, method: bool },
 
-    <span class="doccomment">/// Get async function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `VaryingOperand`, method: `u8`
-    ///
-    /// Stack: **=&gt;** func
-    </span>GetFunctionAsync { index: VaryingOperand, method: bool },
-
     <span class="doccomment">/// Get generator function from the pre-compiled inner functions.
     ///
     /// Operands: index: `VaryingOperand`,
     ///
     /// Stack: **=&gt;** func
     </span>GetGenerator { index: VaryingOperand },
-
-    <span class="doccomment">/// Get async generator function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `VaryingOperand`,
-    ///
-    /// Stack: **=&gt;** func
-    </span>GetGeneratorAsync { index: VaryingOperand },
 
     <span class="doccomment">/// Call a function named &quot;eval&quot;.
     ///
@@ -4520,6 +4484,12 @@
     </span>Reserved55 =&gt; Reserved,
     <span class="doccomment">/// Reserved [`Opcode`].
     </span>Reserved56 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved57 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved58 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved59 =&gt; Reserved,
 }
 
 <span class="doccomment">/// Specific opcodes for bindings.

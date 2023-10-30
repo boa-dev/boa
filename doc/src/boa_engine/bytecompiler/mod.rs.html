@@ -1505,41 +1505,6 @@
 <a href="#1505" id="1505">1505</a>
 <a href="#1506" id="1506">1506</a>
 <a href="#1507" id="1507">1507</a>
-<a href="#1508" id="1508">1508</a>
-<a href="#1509" id="1509">1509</a>
-<a href="#1510" id="1510">1510</a>
-<a href="#1511" id="1511">1511</a>
-<a href="#1512" id="1512">1512</a>
-<a href="#1513" id="1513">1513</a>
-<a href="#1514" id="1514">1514</a>
-<a href="#1515" id="1515">1515</a>
-<a href="#1516" id="1516">1516</a>
-<a href="#1517" id="1517">1517</a>
-<a href="#1518" id="1518">1518</a>
-<a href="#1519" id="1519">1519</a>
-<a href="#1520" id="1520">1520</a>
-<a href="#1521" id="1521">1521</a>
-<a href="#1522" id="1522">1522</a>
-<a href="#1523" id="1523">1523</a>
-<a href="#1524" id="1524">1524</a>
-<a href="#1525" id="1525">1525</a>
-<a href="#1526" id="1526">1526</a>
-<a href="#1527" id="1527">1527</a>
-<a href="#1528" id="1528">1528</a>
-<a href="#1529" id="1529">1529</a>
-<a href="#1530" id="1530">1530</a>
-<a href="#1531" id="1531">1531</a>
-<a href="#1532" id="1532">1532</a>
-<a href="#1533" id="1533">1533</a>
-<a href="#1534" id="1534">1534</a>
-<a href="#1535" id="1535">1535</a>
-<a href="#1536" id="1536">1536</a>
-<a href="#1537" id="1537">1537</a>
-<a href="#1538" id="1538">1538</a>
-<a href="#1539" id="1539">1539</a>
-<a href="#1540" id="1540">1540</a>
-<a href="#1541" id="1541">1541</a>
-<a href="#1542" id="1542">1542</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1803,14 +1768,12 @@
 
     current_open_environments_count: u32,
     current_stack_value_count: u32,
-    code_block_flags: CodeBlockFlags,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) code_block_flags: CodeBlockFlags,
     handlers: ThinVec&lt;Handler&gt;,
     literals_map: FxHashMap&lt;Literal, u32&gt;,
     names_map: FxHashMap&lt;Identifier, u32&gt;,
     bindings_map: FxHashMap&lt;BindingLocator, u32&gt;,
     jump_info: Vec&lt;JumpControlInfo&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) in_async: bool,
-    in_generator: bool,
 
     <span class="doccomment">/// Used to handle exception throws that escape the async function types.
     ///
@@ -1862,8 +1825,6 @@
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
-            in_async: <span class="bool-val">false</span>,
-            in_generator: <span class="bool-val">false</span>,
             async_handler: <span class="prelude-val">None</span>,
             json_parse,
             variable_environment,
@@ -1879,16 +1840,16 @@
         <span class="self">self</span>.code_block_flags.contains(CodeBlockFlags::STRICT)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>in_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.in_async
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.code_block_flags.contains(CodeBlockFlags::IS_ASYNC)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>in_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.in_generator
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.code_block_flags.contains(CodeBlockFlags::IS_GENERATOR)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>in_async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.in_async() &amp;&amp; <span class="self">self</span>.in_generator()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_async() &amp;&amp; <span class="self">self</span>.is_generator()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
@@ -2799,25 +2760,12 @@
         use_expr: bool,
     ) {
         <span class="kw">let </span>name = function.name;
-        <span class="kw">let </span>(generator, r#async, arrow) = (
-            function.kind.is_generator(),
-            function.kind.is_async(),
-            function.kind.is_arrow(),
-        );
+        <span class="kw">let </span>(generator, arrow) = (function.kind.is_generator(), function.kind.is_arrow());
 
         <span class="kw">let </span>index = <span class="self">self</span>.function(function);
 
-        <span class="kw">if </span>r#async &amp;&amp; generator {
-            <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-        } <span class="kw">else if </span>generator {
+        <span class="kw">if </span>generator {
             <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } <span class="kw">else if </span>r#async &amp;&amp; arrow {
-            <span class="self">self</span>.emit(Opcode::GetAsyncArrowFunction, <span class="kw-2">&amp;</span>[Operand::Varying(index)]);
-        } <span class="kw">else if </span>r#async {
-            <span class="self">self</span>.emit(
-                Opcode::GetFunctionAsync,
-                <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
-            );
         } <span class="kw">else if </span>arrow {
             <span class="self">self</span>.emit(Opcode::GetArrowFunction, <span class="kw-2">&amp;</span>[Operand::Varying(index)]);
         } <span class="kw">else </span>{
@@ -2884,17 +2832,8 @@
 
         <span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
 
-        <span class="kw">if </span>r#async &amp;&amp; generator {
-            <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-        } <span class="kw">else if </span>generator {
+        <span class="kw">if </span>generator {
             <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } <span class="kw">else if </span>r#async &amp;&amp; arrow {
-            <span class="self">self</span>.emit(Opcode::GetAsyncArrowFunction, <span class="kw-2">&amp;</span>[Operand::Varying(index)]);
-        } <span class="kw">else if </span>r#async {
-            <span class="self">self</span>.emit(
-                Opcode::GetFunctionAsync,
-                <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">true</span>)],
-            );
         } <span class="kw">else if </span>arrow {
             <span class="self">self</span>.emit(Opcode::GetArrowFunction, <span class="kw-2">&amp;</span>[Operand::Varying(index)]);
         } <span class="kw">else </span>{
@@ -2947,17 +2886,8 @@
 
         <span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
 
-        <span class="kw">if </span>r#async &amp;&amp; generator {
-            <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-        } <span class="kw">else if </span>generator {
+        <span class="kw">if </span>generator {
             <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } <span class="kw">else if </span>r#async &amp;&amp; arrow {
-            <span class="self">self</span>.emit(Opcode::GetAsyncArrowFunction, <span class="kw-2">&amp;</span>[Operand::Varying(index)]);
-        } <span class="kw">else if </span>r#async {
-            <span class="self">self</span>.emit(
-                Opcode::GetFunctionAsync,
-                <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">true</span>)],
-            );
         } <span class="kw">else if </span>arrow {
             <span class="self">self</span>.emit(Opcode::GetArrowFunction, <span class="kw-2">&amp;</span>[Operand::Varying(index)]);
         } <span class="kw">else </span>{

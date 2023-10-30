@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["GetGenerator","GetGeneratorAsync"]};
+window.SIDEBAR_ITEMS = {"struct":["GetGenerator"]};

@@ -698,7 +698,7 @@
                     compiler.emit_opcode(Opcode::SetReturnValue);
                 }
 
-                <span class="kw">match </span>(compiler.in_async(), compiler.in_generator()) {
+                <span class="kw">match </span>(compiler.is_async(), compiler.is_generator()) {
                     <span class="comment">// Taken from:
                     //  - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): https://tc39.es/ecma262/#sec-asyncgeneratorstart
                     //

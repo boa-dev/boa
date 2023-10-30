@@ -544,7 +544,7 @@
                 <span class="comment">// stack: value
 
                 </span><span class="kw">if </span>r#yield.delegate() {
-                    <span class="kw">if </span><span class="self">self</span>.in_async() {
+                    <span class="kw">if </span><span class="self">self</span>.is_async() {
                         <span class="self">self</span>.emit_opcode(Opcode::GetAsyncIterator);
                     } <span class="kw">else </span>{
                         <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
@@ -561,14 +561,14 @@
                     <span class="kw">let </span>(throw_method_undefined, return_method_undefined) =
                         <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::GeneratorDelegateNext);
 
-                    <span class="kw">if </span><span class="self">self</span>.in_async() {
+                    <span class="kw">if </span><span class="self">self</span>.is_async() {
                         <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         <span class="self">self</span>.emit_opcode(Opcode::Await);
                     }
 
                     <span class="kw">let </span>(return_gen, exit) =
                         <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::GeneratorDelegateResume);
-                    <span class="kw">if </span><span class="self">self</span>.in_async() {
+                    <span class="kw">if </span><span class="self">self</span>.is_async() {
                         <span class="self">self</span>.emit_opcode(Opcode::IteratorValue);
                         <span class="self">self</span>.async_generator_yield();
                     } <span class="kw">else </span>{
@@ -579,7 +579,7 @@
 
                     <span class="self">self</span>.patch_jump(return_gen);
                     <span class="self">self</span>.patch_jump(return_method_undefined);
-                    <span class="kw">if </span><span class="self">self</span>.in_async() {
+                    <span class="kw">if </span><span class="self">self</span>.is_async() {
                         <span class="self">self</span>.emit_opcode(Opcode::Await);
                         <span class="self">self</span>.emit_opcode(Opcode::Pop);
                     }
@@ -588,7 +588,7 @@
                     <span class="self">self</span>.r#return(<span class="bool-val">true</span>);
 
                     <span class="self">self</span>.patch_jump(throw_method_undefined);
-                    <span class="self">self</span>.iterator_close(<span class="self">self</span>.in_async());
+                    <span class="self">self</span>.iterator_close(<span class="self">self</span>.is_async());
                     <span class="self">self</span>.emit_opcode(Opcode::Throw);
 
                     <span class="self">self</span>.patch_jump(exit);

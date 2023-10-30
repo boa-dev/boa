@@ -190,7 +190,7 @@
             Statement::Return(ret) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = ret.target() {
                     <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
-                    <span class="kw">if </span><span class="self">self</span>.in_async_generator() {
+                    <span class="kw">if </span><span class="self">self</span>.is_async_generator() {
                         <span class="self">self</span>.emit_opcode(Opcode::Await);
                         <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
                     }

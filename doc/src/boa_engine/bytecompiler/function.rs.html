@@ -170,6 +170,13 @@
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
@@ -271,8 +278,15 @@
             context,
         );
         compiler.length = length;
-        compiler.in_async = <span class="self">self</span>.r#async;
-        compiler.in_generator = <span class="self">self</span>.generator;
+        compiler
+            .code_block_flags
+            .set(CodeBlockFlags::IS_ASYNC, <span class="self">self</span>.r#async);
+        compiler
+            .code_block_flags
+            .set(CodeBlockFlags::IS_GENERATOR, <span class="self">self</span>.generator);
+        compiler
+            .code_block_flags
+            .set(CodeBlockFlags::IS_ARROW, <span class="self">self</span>.arrow);
 
         <span class="kw">if </span><span class="self">self</span>.arrow {
             compiler.this_mode = ThisMode::Lexical;
@@ -297,7 +311,7 @@
         // `FunctionDeclarationInstantiation` (so they are propagated).
         //
         // See: 15.6.2 Runtime Semantics: EvaluateAsyncGeneratorBody: https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncgeneratorbody
-        </span><span class="kw">if </span>compiler.in_async() &amp;&amp; !compiler.in_generator() {
+        </span><span class="kw">if </span>compiler.is_async() &amp;&amp; !compiler.is_generator() {
             <span class="comment">// 1. Let promiseCapability be ! NewPromiseCapability(%Promise%).
             //
             // Note: If the promise capability is already set, then we do nothing.
@@ -326,10 +340,10 @@
         // - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): &lt;https://tc39.es/ecma262/#sec-asyncgeneratorstart&gt;
         //
         // Note: We do handle exceptions thrown by generator body in `AsyncGeneratorStart`.
-        </span><span class="kw">if </span>compiler.in_generator() {
+        </span><span class="kw">if </span>compiler.is_generator() {
             <span class="macro">assert!</span>(compiler.async_handler.is_none());
 
-            <span class="kw">if </span>compiler.in_async() {
+            <span class="kw">if </span>compiler.is_async() {
                 <span class="comment">// Patched in `ByteCompiler::finish()`.
                 </span>compiler.async_handler = <span class="prelude-val">Some</span>(compiler.push_handler());
             }

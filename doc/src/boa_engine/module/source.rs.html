@@ -2008,7 +2008,7 @@
     realm::Realm,
     vm::{
         create_function_object_fast, create_generator_function_object, ActiveRunnable, CallFrame,
-        CallFrameFlags, CodeBlock, CompletionRecord, Opcode,
+        CallFrameFlags, CodeBlock, CodeBlockFlags, CompletionRecord, Opcode,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
@@ -3392,7 +3392,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>compiler =
             ByteCompiler::new(Sym::MAIN, <span class="bool-val">true</span>, <span class="bool-val">false</span>, env.clone(), env.clone(), context);
 
-        compiler.in_async = <span class="bool-val">true</span>;
+        compiler.code_block_flags |= CodeBlockFlags::IS_ASYNC;
         compiler.async_handler = <span class="prelude-val">Some</span>(compiler.push_handler());
 
         <span class="kw">let </span><span class="kw-2">mut </span>imports = Vec::new();
@@ -3639,9 +3639,9 @@
             <span class="kw">let </span>code = codeblock.constant_function(index <span class="kw">as </span>usize);
 
             <span class="kw">let </span>function = <span class="kw">if </span>kind.is_generator() {
-                create_generator_function_object(code, kind.is_async(), <span class="prelude-val">None</span>, context)
+                create_generator_function_object(code, <span class="prelude-val">None</span>, context)
             } <span class="kw">else </span>{
-                create_function_object_fast(code, kind.is_async(), <span class="bool-val">false</span>, <span class="bool-val">false</span>, context)
+                create_function_object_fast(code, <span class="bool-val">false</span>, context)
             };
 
             context.vm.environments.put_lexical_value(

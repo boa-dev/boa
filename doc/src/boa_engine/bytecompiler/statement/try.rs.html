@@ -237,7 +237,7 @@
 
         <span class="comment">// If it has a finally but no catch and we are in a generator, then we still need it
         // to handle `return()` call on generators.
-        </span><span class="kw">let </span>catch_handler = <span class="kw">if </span>has_finally &amp;&amp; (<span class="self">self</span>.in_generator() || has_catch) {
+        </span><span class="kw">let </span>catch_handler = <span class="kw">if </span>has_finally &amp;&amp; (<span class="self">self</span>.is_generator() || has_catch) {
             <span class="self">self</span>.current_stack_value_count += <span class="number">2</span>;
             <span class="prelude-val">Some</span>(<span class="self">self</span>.push_handler())
         } <span class="kw">else </span>{
@@ -249,7 +249,7 @@
             <span class="self">self</span>.compile_catch_stmt(catch, has_finally, use_expr);
         } <span class="kw">else </span>{
             <span class="comment">// Note: implicit !has_catch
-            </span><span class="kw">if </span><span class="self">self</span>.in_generator() &amp;&amp; has_finally {
+            </span><span class="kw">if </span><span class="self">self</span>.is_generator() &amp;&amp; has_finally {
                 <span class="comment">// Is this a generator `return()` empty exception?
                 //
                 // This is false because when the `Exception` opcode is executed,
@@ -276,7 +276,7 @@
             }
 
             <span class="comment">// Note: implicit has_finally
-            </span><span class="kw">if </span>!has_catch &amp;&amp; <span class="self">self</span>.in_generator() {
+            </span><span class="kw">if </span>!has_catch &amp;&amp; <span class="self">self</span>.is_generator() {
                 <span class="comment">// Is this a generator `return()` empty exception?
                 </span><span class="self">self</span>.emit_opcode(Opcode::PushTrue);
             }
@@ -352,7 +352,7 @@
 
         <span class="kw">if </span>has_catch {
             <span class="self">self</span>.emit_opcode(Opcode::ReThrow);
-        } <span class="kw">else if </span><span class="self">self</span>.in_generator() {
+        } <span class="kw">else if </span><span class="self">self</span>.is_generator() {
             <span class="kw">let </span>is_generator_exit = <span class="self">self</span>.jump_if_true();
             <span class="self">self</span>.emit_opcode(Opcode::Throw);
             <span class="self">self</span>.patch_jump(is_generator_exit);
