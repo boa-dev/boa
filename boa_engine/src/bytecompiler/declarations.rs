@@ -3,10 +3,7 @@ use std::rc::Rc;
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     environments::CompileTimeEnvironment,
-    vm::{
-        create_function_object_fast, create_generator_function_object, BindingOpcode,
-        CodeBlockFlags, Opcode,
-    },
+    vm::{create_function_object_fast, BindingOpcode, CodeBlockFlags, Opcode},
     JsNativeError, JsResult,
 };
 use boa_ast::{
@@ -285,11 +282,7 @@ impl ByteCompiler<'_, '_> {
             let _ = self.push_function_to_constants(code.clone());
 
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
-            let function = if generator {
-                create_generator_function_object(code, None, self.context)
-            } else {
-                create_function_object_fast(code, false, self.context)
-            };
+            let function = create_function_object_fast(code, false, self.context);
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
             self.context
@@ -736,11 +729,7 @@ impl ByteCompiler<'_, '_> {
                 let _ = self.push_function_to_constants(code.clone());
 
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
-                let function = if generator {
-                    create_generator_function_object(code, None, self.context)
-                } else {
-                    create_function_object_fast(code, false, self.context)
-                };
+                let function = create_function_object_fast(code, false, self.context);
 
                 // i. Perform ? varEnv.CreateGlobalFunctionBinding(fn, fo, true).
                 self.context

@@ -5,9 +5,7 @@
 use crate::{
     builtins::function::{OrdinaryFunction, ThisMode},
     environments::{BindingLocator, CompileTimeEnvironment},
-    object::{JsObject, ObjectData, PROTOTYPE},
-    property::PropertyDescriptor,
-    string::utf16,
+    object::{JsObject, ObjectData},
     Context, JsBigInt, JsString, JsValue,
 };
 use bitflags::bitflags;
@@ -855,6 +853,7 @@ pub(crate) fn create_function_object(
     let script_or_module = context.get_active_script_or_module();
 
     let is_async = code.is_async();
+    let is_generator = code.is_generator();
     let function = OrdinaryFunction::new(
         code,
         context.vm.environments.clone(),
@@ -862,11 +861,27 @@ pub(crate) fn create_function_object(
         context.realm().clone(),
     );
 
-    let data = ObjectData::ordinary_function(function, !is_async);
+    let data = ObjectData::ordinary_function(function, !is_async && !is_generator);
 
     let templates = context.intrinsics().templates();
 
-    let (mut template, storage, constructor_prototype) = if is_async {
+    let (mut template, storage, constructor_prototype) = if is_generator {
+        let prototype = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            if is_async {
+                context.intrinsics().objects().async_generator()
+            } else {
+                context.intrinsics().objects().generator()
+            },
+            ObjectData::ordinary(),
+        );
+
+        (
+            templates.function_with_prototype_without_proto().clone(),
+            vec![length, name, prototype.into()],
+            None,
+        )
+    } else if is_async {
         (
             templates.function_without_proto().clone(),
             vec![length, name],
@@ -914,6 +929,7 @@ pub(crate) fn create_function_object_fast(
     let script_or_module = context.get_active_script_or_module();
 
     let is_async = code.is_async();
+    let is_generator = code.is_generator();
     let is_arrow = code.is_arrow();
     let function = OrdinaryFunction::new(
         code,
@@ -922,9 +938,27 @@ pub(crate) fn create_function_object_fast(
         context.realm().clone(),
     );
 
-    let data = ObjectData::ordinary_function(function, !method && !is_arrow && !is_async);
+    let data =
+        ObjectData::ordinary_function(function, !method && !is_arrow && !is_async && !is_generator);
 
-    if is_async {
+    if is_generator {
+        let prototype = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            if is_async {
+                context.intrinsics().objects().async_generator()
+            } else {
+                context.intrinsics().objects().generator()
+            },
+            ObjectData::ordinary(),
+        );
+        let template = if is_async {
+            context.intrinsics().templates().async_generator_function()
+        } else {
+            context.intrinsics().templates().generator_function()
+        };
+
+        template.create(data, vec![length, name, prototype.into()])
+    } else if is_async {
         context
             .intrinsics()
             .templates()
@@ -953,99 +987,4 @@ pub(crate) fn create_function_object_fast(
 
         constructor
     }
-}
-
-/// Creates a new generator function object.
-pub(crate) fn create_generator_function_object(
-    code: Gc<CodeBlock>,
-    prototype: Option<JsObject>,
-    context: &mut Context<'_>,
-) -> JsObject {
-    let is_async = code.is_async();
-    let function_prototype = if let Some(prototype) = prototype {
-        prototype
-    } else if is_async {
-        context
-            .intrinsics()
-            .constructors()
-            .async_generator_function()
-            .prototype()
-    } else {
-        context
-            .intrinsics()
-            .constructors()
-            .generator_function()
-            .prototype()
-    };
-
-    let name_property = PropertyDescriptor::builder()
-        .value(code.name().clone())
-        .writable(false)
-        .enumerable(false)
-        .configurable(true)
-        .build();
-
-    let length_property = PropertyDescriptor::builder()
-        .value(code.length)
-        .writable(false)
-        .enumerable(false)
-        .configurable(true)
-        .build();
-
-    let prototype = JsObject::from_proto_and_data_with_shared_shape(
-        context.root_shape(),
-        if is_async {
-            context.intrinsics().objects().async_generator()
-        } else {
-            context.intrinsics().objects().generator()
-        },
-        ObjectData::ordinary(),
-    );
-
-    let script_or_module = context.get_active_script_or_module();
-
-    let constructor = if is_async {
-        let function = OrdinaryFunction::new(
-            code,
-            context.vm.environments.clone(),
-            script_or_module,
-            context.realm().clone(),
-        );
-        JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            function_prototype,
-            ObjectData::async_generator_function(function),
-        )
-    } else {
-        let function = OrdinaryFunction::new(
-            code,
-            context.vm.environments.clone(),
-            script_or_module,
-            context.realm().clone(),
-        );
-        JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            function_prototype,
-            ObjectData::generator_function(function),
-        )
-    };
-
-    let prototype_property = PropertyDescriptor::builder()
-        .value(prototype)
-        .writable(true)
-        .enumerable(false)
-        .configurable(false)
-        .build();
-
-    constructor
-        .define_property_or_throw(PROTOTYPE, prototype_property, context)
-        .expect("failed to define the prototype property of the generator function");
-    constructor
-        .define_property_or_throw(utf16!("name"), name_property, context)
-        .expect("failed to define the name property of the generator function");
-    constructor
-        .define_property_or_throw(utf16!("length"), length_property, context)
-        .expect("failed to define the length property of the generator function");
-
-    constructor
 }

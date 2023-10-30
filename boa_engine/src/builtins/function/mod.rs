@@ -409,7 +409,7 @@ impl BuiltInFunctionObject {
         // 22. Let proto be ? GetPrototypeFromConstructor(newTarget, fallbackProto).
         let prototype = get_prototype_from_constructor(&new_target, default, context)?;
 
-        if let Some((body_arg, args)) = args.split_last() {
+        let (parameters, body) = if let Some((body_arg, args)) = args.split_last() {
             let parameters = if args.is_empty() {
                 FormalParameterList::default()
             } else {
@@ -551,66 +551,28 @@ impl BuiltInFunctionObject {
                     .into());
             }
 
-            let code = FunctionCompiler::new()
-                .name(Sym::ANONYMOUS)
-                .generator(generator)
-                .r#async(r#async)
-                .compile(
-                    &parameters,
-                    &body,
-                    context.realm().environment().compile_env(),
-                    context.realm().environment().compile_env(),
-                    context,
-                );
-
-            let environments = context.vm.environments.pop_to_global();
-
-            let function_object = if generator {
-                crate::vm::create_generator_function_object(code, Some(prototype), context)
-            } else {
-                crate::vm::create_function_object(code, prototype, context)
-            };
-
-            context.vm.environments.extend(environments);
-
-            Ok(function_object)
-        } else if generator {
-            let code = FunctionCompiler::new()
-                .name(Sym::ANONYMOUS)
-                .generator(true)
-                .r#async(r#async)
-                .compile(
-                    &FormalParameterList::default(),
-                    &FunctionBody::default(),
-                    context.realm().environment().compile_env(),
-                    context.realm().environment().compile_env(),
-                    context,
-                );
-
-            let environments = context.vm.environments.pop_to_global();
-            let function_object =
-                crate::vm::create_generator_function_object(code, Some(prototype), context);
-            context.vm.environments.extend(environments);
-
-            Ok(function_object)
+            (parameters, body)
         } else {
-            let code = FunctionCompiler::new()
-                .r#async(r#async)
-                .name(Sym::ANONYMOUS)
-                .compile(
-                    &FormalParameterList::default(),
-                    &FunctionBody::default(),
-                    context.realm().environment().compile_env(),
-                    context.realm().environment().compile_env(),
-                    context,
-                );
+            (FormalParameterList::default(), FunctionBody::default())
+        };
 
-            let environments = context.vm.environments.pop_to_global();
-            let function_object = crate::vm::create_function_object(code, prototype, context);
-            context.vm.environments.extend(environments);
+        let code = FunctionCompiler::new()
+            .name(Sym::ANONYMOUS)
+            .generator(generator)
+            .r#async(r#async)
+            .compile(
+                &parameters,
+                &body,
+                context.realm().environment().compile_env(),
+                context.realm().environment().compile_env(),
+                context,
+            );
 
-            Ok(function_object)
-        }
+        let environments = context.vm.environments.pop_to_global();
+        let function_object = crate::vm::create_function_object(code, prototype, context);
+        context.vm.environments.extend(environments);
+
+        Ok(function_object)
     }
 
     /// `Function.prototype.apply ( thisArg, argArray )`

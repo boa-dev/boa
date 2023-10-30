@@ -1,5 +1,5 @@
 use crate::{
-    vm::{code_block::create_generator_function_object, opcode::Operation, CompletionType},
+    vm::{create_function_object_fast, opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,7 +14,7 @@ impl GetGenerator {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let code = context.vm.frame().code_block().constant_function(index);
-        let function = create_generator_function_object(code, None, context);
+        let function = create_function_object_fast(code, false, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
     }

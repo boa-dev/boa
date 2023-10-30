@@ -304,9 +304,6 @@ pub enum ObjectKind {
     /// The `AsyncGenerator` object kind.
     AsyncGenerator(AsyncGenerator),
 
-    /// The `AsyncGeneratorFunction` object kind.
-    AsyncGeneratorFunction(OrdinaryFunction),
-
     /// The `Array` object kind.
     Array,
 
@@ -351,9 +348,6 @@ pub enum ObjectKind {
 
     /// The `Generator` object kind.
     Generator(Generator),
-
-    /// The `GeneratorFunction` object kind.
-    GeneratorFunction(OrdinaryFunction),
 
     /// A native rust function.
     NativeFunction(NativeFunctionObject),
@@ -498,7 +492,7 @@ unsafe impl Trace for ObjectKind {
             Self::RegExpStringIterator(i) => mark(i),
             Self::DataView(v) => mark(v),
             Self::ForInIterator(i) => mark(i),
-            Self::OrdinaryFunction(f) | Self::GeneratorFunction(f) | Self::AsyncGeneratorFunction(f) => mark(f),
+            Self::OrdinaryFunction(f) => mark(f),
             Self::BoundFunction(f) => mark(f),
             Self::Generator(g) => mark(g),
             Self::NativeFunction(f) => mark(f),
@@ -579,15 +573,6 @@ impl ObjectData {
         Self {
             kind: ObjectKind::AsyncGenerator(async_generator),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `AsyncGeneratorFunction` object data
-    #[must_use]
-    pub fn async_generator_function(function: OrdinaryFunction) -> Self {
-        Self {
-            internal_methods: &FUNCTION_INTERNAL_METHODS,
-            kind: ObjectKind::GeneratorFunction(function),
         }
     }
 
@@ -757,15 +742,6 @@ impl ObjectData {
         Self {
             kind: ObjectKind::Generator(generator),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `GeneratorFunction` object data
-    #[must_use]
-    pub fn generator_function(function: OrdinaryFunction) -> Self {
-        Self {
-            internal_methods: &FUNCTION_INTERNAL_METHODS,
-            kind: ObjectKind::GeneratorFunction(function),
         }
     }
 
@@ -1116,7 +1092,6 @@ impl Debug for ObjectKind {
         f.write_str(match self {
             Self::AsyncFromSyncIterator(_) => "AsyncFromSyncIterator",
             Self::AsyncGenerator(_) => "AsyncGenerator",
-            Self::AsyncGeneratorFunction(_) => "AsyncGeneratorFunction",
             Self::Array => "Array",
             Self::ArrayIterator(_) => "ArrayIterator",
             Self::ArrayBuffer(_) => "ArrayBuffer",
@@ -1125,7 +1100,6 @@ impl Debug for ObjectKind {
             Self::OrdinaryFunction(_) => "Function",
             Self::BoundFunction(_) => "BoundFunction",
             Self::Generator(_) => "Generator",
-            Self::GeneratorFunction(_) => "GeneratorFunction",
             Self::NativeFunction { .. } => "NativeFunction",
             Self::RegExp(_) => "RegExp",
             Self::RegExpStringIterator(_) => "RegExpStringIterator",
@@ -1515,10 +1489,7 @@ impl Object {
     #[inline]
     #[must_use]
     pub const fn is_ordinary_function(&self) -> bool {
-        matches!(
-            self.kind,
-            ObjectKind::OrdinaryFunction(_) | ObjectKind::GeneratorFunction(_)
-        )
+        matches!(self.kind, ObjectKind::OrdinaryFunction(_))
     }
 
     /// Gets the function data if the object is a `Function`.
@@ -1526,8 +1497,7 @@ impl Object {
     #[must_use]
     pub const fn as_function(&self) -> Option<&OrdinaryFunction> {
         match self.kind {
-            ObjectKind::OrdinaryFunction(ref function)
-            | ObjectKind::GeneratorFunction(ref function) => Some(function),
+            ObjectKind::OrdinaryFunction(ref function) => Some(function),
             _ => None,
         }
     }
@@ -1536,8 +1506,7 @@ impl Object {
     #[inline]
     pub fn as_function_mut(&mut self) -> Option<&mut OrdinaryFunction> {
         match self.kind {
-            ObjectKind::OrdinaryFunction(ref mut function)
-            | ObjectKind::GeneratorFunction(ref mut function) => Some(function),
+            ObjectKind::OrdinaryFunction(ref mut function) => Some(function),
             _ => None,
         }
     }

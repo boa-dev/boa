@@ -40,8 +40,7 @@ pub use {
 pub(crate) use {
     call_frame::CallFrameFlags,
     code_block::{
-        create_function_object, create_function_object_fast, create_generator_function_object,
-        CodeBlockFlags, Constant, Handler,
+        create_function_object, create_function_object_fast, CodeBlockFlags, Constant, Handler,
     },
     completion_record::CompletionRecord,
     opcode::BindingOpcode,
