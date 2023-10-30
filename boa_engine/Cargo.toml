@@ -78,7 +78,7 @@ sptr = "0.3.2"
 static_assertions.workspace = true
 thiserror = "1.0.50"
 dashmap = "5.5.3"
-num_enum = "0.7.0"
+num_enum = "0.7.1"
 pollster.workspace = true
 thin-vec.workspace = true
 itertools = { version = "0.11.0", default-features = false }
