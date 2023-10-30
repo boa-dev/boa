@@ -105,6 +105,9 @@ impl FunctionCompiler {
         compiler
             .code_block_flags
             .set(CodeBlockFlags::IS_GENERATOR, self.generator);
+        compiler
+            .code_block_flags
+            .set(CodeBlockFlags::IS_ARROW, self.arrow);
 
         if self.arrow {
             compiler.this_mode = ThisMode::Lexical;

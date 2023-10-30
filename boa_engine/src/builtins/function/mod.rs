@@ -566,9 +566,9 @@ impl BuiltInFunctionObject {
             let environments = context.vm.environments.pop_to_global();
 
             let function_object = if generator {
-                crate::vm::create_generator_function_object(code, r#async, Some(prototype), context)
+                crate::vm::create_generator_function_object(code, Some(prototype), context)
             } else {
-                crate::vm::create_function_object(code, r#async, prototype, context)
+                crate::vm::create_function_object(code, prototype, context)
             };
 
             context.vm.environments.extend(environments);
@@ -588,12 +588,8 @@ impl BuiltInFunctionObject {
                 );
 
             let environments = context.vm.environments.pop_to_global();
-            let function_object = crate::vm::create_generator_function_object(
-                code,
-                r#async,
-                Some(prototype),
-                context,
-            );
+            let function_object =
+                crate::vm::create_generator_function_object(code, Some(prototype), context);
             context.vm.environments.extend(environments);
 
             Ok(function_object)
@@ -610,8 +606,7 @@ impl BuiltInFunctionObject {
                 );
 
             let environments = context.vm.environments.pop_to_global();
-            let function_object =
-                crate::vm::create_function_object(code, r#async, prototype, context);
+            let function_object = crate::vm::create_function_object(code, prototype, context);
             context.vm.environments.extend(environments);
 
             Ok(function_object)

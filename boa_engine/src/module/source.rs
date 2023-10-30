@@ -1660,9 +1660,9 @@ impl SourceTextModule {
             let code = codeblock.constant_function(index as usize);
 
             let function = if kind.is_generator() {
-                create_generator_function_object(code, kind.is_async(), None, context)
+                create_generator_function_object(code, None, context)
             } else {
-                create_function_object_fast(code, kind.is_async(), false, false, context)
+                create_function_object_fast(code, false, context)
             };
 
             context.vm.environments.put_lexical_value(

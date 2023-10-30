@@ -74,6 +74,7 @@ bitflags! {
 
         const IS_ASYNC = 0b1000_0000;
         const IS_GENERATOR = 0b0001_0000_0000;
+        const IS_ARROW = 0b0010_0000_0000;
 
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
@@ -267,6 +268,11 @@ impl CodeBlock {
     /// Returns true if this function an async function.
     pub(crate) fn is_ordinary(&self) -> bool {
         !self.is_async() && !self.is_generator()
+    }
+
+    /// Returns true if this function an arrow function.
+    pub(crate) fn is_arrow(&self) -> bool {
+        self.flags.get().contains(CodeBlockFlags::IS_ARROW)
     }
 
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
@@ -839,7 +845,6 @@ impl ToInternedString for CodeBlock {
 /// This is slower than direct object template construction that is done in [`create_function_object_fast`].
 pub(crate) fn create_function_object(
     code: Gc<CodeBlock>,
-    r#async: bool,
     prototype: JsObject,
     context: &mut Context<'_>,
 ) -> JsObject {
@@ -850,6 +855,7 @@ pub(crate) fn create_function_object(
 
     let script_or_module = context.get_active_script_or_module();
 
+    let is_async = code.is_async();
     let function = OrdinaryFunction::new(
         code,
         context.vm.environments.clone(),
@@ -857,11 +863,11 @@ pub(crate) fn create_function_object(
         context.realm().clone(),
     );
 
-    let data = ObjectData::ordinary_function(function, !r#async);
+    let data = ObjectData::ordinary_function(function, !is_async);
 
     let templates = context.intrinsics().templates();
 
-    let (mut template, storage, constructor_prototype) = if r#async {
+    let (mut template, storage, constructor_prototype) = if is_async {
         (
             templates.function_without_proto().clone(),
             vec![length, name],
@@ -898,8 +904,6 @@ pub(crate) fn create_function_object(
 /// with all the properties and prototype set.
 pub(crate) fn create_function_object_fast(
     code: Gc<CodeBlock>,
-    r#async: bool,
-    arrow: bool,
     method: bool,
     context: &mut Context<'_>,
 ) -> JsObject {
@@ -910,6 +914,8 @@ pub(crate) fn create_function_object_fast(
 
     let script_or_module = context.get_active_script_or_module();
 
+    let is_async = code.is_async();
+    let is_arrow = code.is_arrow();
     let function = OrdinaryFunction::new(
         code,
         context.vm.environments.clone(),
@@ -917,15 +923,15 @@ pub(crate) fn create_function_object_fast(
         context.realm().clone(),
     );
 
-    let data = ObjectData::ordinary_function(function, !method && !arrow && !r#async);
+    let data = ObjectData::ordinary_function(function, !method && !is_arrow && !is_async);
 
-    if r#async {
+    if is_async {
         context
             .intrinsics()
             .templates()
             .async_function()
             .create(data, vec![length, name])
-    } else if arrow || method {
+    } else if is_arrow || method {
         context
             .intrinsics()
             .templates()
@@ -953,13 +959,13 @@ pub(crate) fn create_function_object_fast(
 /// Creates a new generator function object.
 pub(crate) fn create_generator_function_object(
     code: Gc<CodeBlock>,
-    r#async: bool,
     prototype: Option<JsObject>,
     context: &mut Context<'_>,
 ) -> JsObject {
+    let is_async = code.is_async();
     let function_prototype = if let Some(prototype) = prototype {
         prototype
-    } else if r#async {
+    } else if is_async {
         context
             .intrinsics()
             .constructors()
@@ -989,7 +995,7 @@ pub(crate) fn create_generator_function_object(
 
     let prototype = JsObject::from_proto_and_data_with_shared_shape(
         context.root_shape(),
-        if r#async {
+        if is_async {
             context.intrinsics().objects().async_generator()
         } else {
             context.intrinsics().objects().generator()
@@ -999,7 +1005,7 @@ pub(crate) fn create_generator_function_object(
 
     let script_or_module = context.get_active_script_or_module();
 
-    let constructor = if r#async {
+    let constructor = if is_async {
         let function = OrdinaryFunction::new(
             code,
             context.vm.environments.clone(),

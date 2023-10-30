@@ -14,7 +14,7 @@ impl GetGenerator {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let code = context.vm.frame().code_block().constant_function(index);
-        let function = create_generator_function_object(code, false, None, context);
+        let function = create_generator_function_object(code, None, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
     }
@@ -52,7 +52,7 @@ impl GetGeneratorAsync {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
         let code = context.vm.frame().code_block().constant_function(index);
-        let function = create_generator_function_object(code, true, None, context);
+        let function = create_generator_function_object(code, None, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
     }
