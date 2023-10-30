@@ -99,8 +99,12 @@ impl FunctionCompiler {
             context,
         );
         compiler.length = length;
-        compiler.in_async = self.r#async;
-        compiler.in_generator = self.generator;
+        compiler
+            .code_block_flags
+            .set(CodeBlockFlags::IS_ASYNC, self.r#async);
+        compiler
+            .code_block_flags
+            .set(CodeBlockFlags::IS_GENERATOR, self.generator);
 
         if self.arrow {
             compiler.this_mode = ThisMode::Lexical;
@@ -125,7 +129,7 @@ impl FunctionCompiler {
         // `FunctionDeclarationInstantiation` (so they are propagated).
         //
         // See: 15.6.2 Runtime Semantics: EvaluateAsyncGeneratorBody: https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncgeneratorbody
-        if compiler.in_async() && !compiler.in_generator() {
+        if compiler.is_async() && !compiler.is_generator() {
             // 1. Let promiseCapability be ! NewPromiseCapability(%Promise%).
             //
             // Note: If the promise capability is already set, then we do nothing.
@@ -154,10 +158,10 @@ impl FunctionCompiler {
         // - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): <https://tc39.es/ecma262/#sec-asyncgeneratorstart>
         //
         // Note: We do handle exceptions thrown by generator body in `AsyncGeneratorStart`.
-        if compiler.in_generator() {
+        if compiler.is_generator() {
             assert!(compiler.async_handler.is_none());
 
-            if compiler.in_async() {
+            if compiler.is_async() {
                 // Patched in `ByteCompiler::finish()`.
                 compiler.async_handler = Some(compiler.push_handler());
             }

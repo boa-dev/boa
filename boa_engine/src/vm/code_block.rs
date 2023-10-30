@@ -3,7 +3,7 @@
 //! This module is for the `CodeBlock` which implements a function representation in the VM
 
 use crate::{
-    builtins::function::{FunctionKind, OrdinaryFunction, ThisMode},
+    builtins::function::{OrdinaryFunction, ThisMode},
     environments::{BindingLocator, CompileTimeEnvironment},
     object::{JsObject, ObjectData, PROTOTYPE},
     property::PropertyDescriptor,
@@ -48,7 +48,7 @@ unsafe impl Readable for f64 {}
 bitflags! {
     /// Flags for [`CodeBlock`].
     #[derive(Clone, Copy, Debug, Finalize)]
-    pub(crate) struct CodeBlockFlags: u8 {
+    pub(crate) struct CodeBlockFlags: u16 {
         /// Is this function in strict mode.
         const STRICT = 0b0000_0001;
 
@@ -72,9 +72,12 @@ bitflags! {
         /// `[[ConstructorKind]]`
         const IS_DERIVED_CONSTRUCTOR = 0b0100_0000;
 
+        const IS_ASYNC = 0b1000_0000;
+        const IS_GENERATOR = 0b0001_0000_0000;
+
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
-        const TRACEABLE = 0b1000_0000;
+        const TRACEABLE = 0b1000_0000_0000_0000;
     }
 }
 
@@ -249,6 +252,21 @@ impl CodeBlock {
         self.flags
             .get()
             .contains(CodeBlockFlags::IS_DERIVED_CONSTRUCTOR)
+    }
+
+    /// Returns true if this function an async function.
+    pub(crate) fn is_async(&self) -> bool {
+        self.flags.get().contains(CodeBlockFlags::IS_ASYNC)
+    }
+
+    /// Returns true if this function an generator function.
+    pub(crate) fn is_generator(&self) -> bool {
+        self.flags.get().contains(CodeBlockFlags::IS_GENERATOR)
+    }
+
+    /// Returns true if this function an async function.
+    pub(crate) fn is_ordinary(&self) -> bool {
+        !self.is_async() && !self.is_generator()
     }
 
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
@@ -832,28 +850,12 @@ pub(crate) fn create_function_object(
 
     let script_or_module = context.get_active_script_or_module();
 
-    let function = if r#async {
-        OrdinaryFunction {
-            code,
-            environments: context.vm.environments.clone(),
-            home_object: None,
-            script_or_module,
-            kind: FunctionKind::Async,
-            realm: context.realm().clone(),
-        }
-    } else {
-        OrdinaryFunction {
-            code,
-            environments: context.vm.environments.clone(),
-            home_object: None,
-            script_or_module,
-            kind: FunctionKind::Ordinary {
-                fields: ThinVec::new(),
-                private_methods: ThinVec::new(),
-            },
-            realm: context.realm().clone(),
-        }
-    };
+    let function = OrdinaryFunction::new(
+        code,
+        context.vm.environments.clone(),
+        script_or_module,
+        context.realm().clone(),
+    );
 
     let data = ObjectData::ordinary_function(function, !r#async);
 
@@ -908,23 +910,12 @@ pub(crate) fn create_function_object_fast(
 
     let script_or_module = context.get_active_script_or_module();
 
-    let kind = if r#async {
-        FunctionKind::Async
-    } else {
-        FunctionKind::Ordinary {
-            fields: ThinVec::new(),
-            private_methods: ThinVec::new(),
-        }
-    };
-
-    let function = OrdinaryFunction {
+    let function = OrdinaryFunction::new(
         code,
-        environments: context.vm.environments.clone(),
+        context.vm.environments.clone(),
         script_or_module,
-        home_object: None,
-        kind,
-        realm: context.realm().clone(),
-    };
+        context.realm().clone(),
+    );
 
     let data = ObjectData::ordinary_function(function, !method && !arrow && !r#async);
 
@@ -1009,28 +1000,24 @@ pub(crate) fn create_generator_function_object(
     let script_or_module = context.get_active_script_or_module();
 
     let constructor = if r#async {
-        let function = OrdinaryFunction {
+        let function = OrdinaryFunction::new(
             code,
-            environments: context.vm.environments.clone(),
-            home_object: None,
+            context.vm.environments.clone(),
             script_or_module,
-            kind: FunctionKind::AsyncGenerator,
-            realm: context.realm().clone(),
-        };
+            context.realm().clone(),
+        );
         JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             function_prototype,
             ObjectData::async_generator_function(function),
         )
     } else {
-        let function = OrdinaryFunction {
+        let function = OrdinaryFunction::new(
             code,
-            environments: context.vm.environments.clone(),
-            home_object: None,
+            context.vm.environments.clone(),
             script_or_module,
-            kind: FunctionKind::Generator,
-            realm: context.realm().clone(),
-        };
+            context.realm().clone(),
+        );
         JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             function_prototype,

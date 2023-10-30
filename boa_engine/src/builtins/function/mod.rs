@@ -39,7 +39,7 @@ use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
-use std::{fmt, io::Read};
+use std::io::Read;
 use thin_vec::ThinVec;
 
 pub(crate) mod arguments;
@@ -143,68 +143,6 @@ unsafe impl Trace for ClassFieldDefinition {
     }}
 }
 
-#[derive(Finalize)]
-pub(crate) enum FunctionKind {
-    /// A bytecode function.
-    Ordinary {
-        /// The `[[Fields]]` internal slot.
-        fields: ThinVec<ClassFieldDefinition>,
-
-        /// The `[[PrivateMethods]]` internal slot.
-        private_methods: ThinVec<(PrivateName, PrivateElement)>,
-    },
-
-    /// A bytecode async function.
-    Async,
-
-    /// A bytecode generator function.
-    Generator,
-
-    /// A bytecode async generator function.
-    AsyncGenerator,
-}
-
-impl fmt::Debug for FunctionKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Ordinary { .. } => f
-                .debug_struct("FunctionKind::Ordinary")
-                .finish_non_exhaustive(),
-            Self::Async { .. } => f
-                .debug_struct("FunctionKind::Async")
-                .finish_non_exhaustive(),
-            Self::Generator { .. } => f
-                .debug_struct("FunctionKind::Generator")
-                .finish_non_exhaustive(),
-            Self::AsyncGenerator { .. } => f
-                .debug_struct("FunctionKind::AsyncGenerator")
-                .finish_non_exhaustive(),
-        }
-    }
-}
-
-unsafe impl Trace for FunctionKind {
-    custom_trace! {this, {
-        match this {
-            Self::Ordinary {
-                fields,
-                private_methods,
-                ..
-            } => {
-                for elem in fields {
-                    mark(elem);
-                }
-                for (_, elem) in private_methods {
-                    mark(elem);
-                }
-            }
-            Self::Async
-            | Self::Generator
-            | Self::AsyncGenerator => {}
-        }
-    }}
-}
-
 /// Boa representation of a JavaScript Function Object.
 ///
 /// `FunctionBody` is specific to this interpreter, it will either be Rust code or JavaScript code
@@ -228,11 +166,31 @@ pub struct OrdinaryFunction {
     /// The [`Realm`] the function is defined in.
     pub(crate) realm: Realm,
 
-    /// The kind of ordinary function.
-    pub(crate) kind: FunctionKind,
+    /// The `[[Fields]]` internal slot.
+    fields: ThinVec<ClassFieldDefinition>,
+
+    /// The `[[PrivateMethods]]` internal slot.
+    private_methods: ThinVec<(PrivateName, PrivateElement)>,
 }
 
 impl OrdinaryFunction {
+    pub(crate) fn new(
+        code: Gc<CodeBlock>,
+        environments: EnvironmentStack,
+        script_or_module: Option<ActiveRunnable>,
+        realm: Realm,
+    ) -> Self {
+        Self {
+            code,
+            environments,
+            home_object: None,
+            script_or_module,
+            realm,
+            fields: ThinVec::default(),
+            private_methods: ThinVec::default(),
+        }
+    }
+
     /// Returns the codeblock of the function.
     #[must_use]
     pub fn codeblock(&self) -> &CodeBlock {
@@ -266,47 +224,27 @@ impl OrdinaryFunction {
 
     /// Returns the values of the `[[Fields]]` internal slot.
     pub(crate) fn get_fields(&self) -> &[ClassFieldDefinition] {
-        if let FunctionKind::Ordinary { fields, .. } = &self.kind {
-            fields
-        } else {
-            &[]
-        }
+        &self.fields
     }
 
     /// Pushes a value to the `[[Fields]]` internal slot if present.
     pub(crate) fn push_field(&mut self, key: PropertyKey, value: JsFunction) {
-        if let FunctionKind::Ordinary { fields, .. } = &mut self.kind {
-            fields.push(ClassFieldDefinition::Public(key, value));
-        }
+        self.fields.push(ClassFieldDefinition::Public(key, value));
     }
 
     /// Pushes a private value to the `[[Fields]]` internal slot if present.
     pub(crate) fn push_field_private(&mut self, name: PrivateName, value: JsFunction) {
-        if let FunctionKind::Ordinary { fields, .. } = &mut self.kind {
-            fields.push(ClassFieldDefinition::Private(name, value));
-        }
+        self.fields.push(ClassFieldDefinition::Private(name, value));
     }
 
     /// Returns the values of the `[[PrivateMethods]]` internal slot.
     pub(crate) fn get_private_methods(&self) -> &[(PrivateName, PrivateElement)] {
-        if let FunctionKind::Ordinary {
-            private_methods, ..
-        } = &self.kind
-        {
-            private_methods
-        } else {
-            &[]
-        }
+        &self.private_methods
     }
 
     /// Pushes a private method to the `[[PrivateMethods]]` internal slot if present.
     pub(crate) fn push_private_method(&mut self, name: PrivateName, method: PrivateElement) {
-        if let FunctionKind::Ordinary {
-            private_methods, ..
-        } = &mut self.kind
-        {
-            private_methods.push((name, method));
-        }
+        self.private_methods.push((name, method));
     }
 
     /// Gets the `Realm` from where this function originates.
@@ -315,14 +253,9 @@ impl OrdinaryFunction {
         &self.realm
     }
 
-    /// Gets a reference to the [`FunctionKind`] of the `Function`.
-    pub(crate) const fn kind(&self) -> &FunctionKind {
-        &self.kind
-    }
-
     /// Check if function is [`FunctionKind::Ordinary`].
-    pub(crate) const fn is_ordinary(&self) -> bool {
-        matches!(self.kind(), FunctionKind::Ordinary { .. })
+    pub(crate) fn is_ordinary(&self) -> bool {
+        self.code.is_ordinary()
     }
 }
 

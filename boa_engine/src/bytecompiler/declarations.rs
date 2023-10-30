@@ -1033,7 +1033,7 @@ impl ByteCompiler<'_, '_> {
         }
 
         if generator {
-            self.emit(Opcode::Generator, &[Operand::Bool(self.in_async())]);
+            self.emit(Opcode::Generator, &[Operand::Bool(self.is_async())]);
             self.emit_opcode(Opcode::Pop);
         }
 

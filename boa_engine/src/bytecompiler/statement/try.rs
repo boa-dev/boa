@@ -38,7 +38,7 @@ impl ByteCompiler<'_, '_> {
 
         // If it has a finally but no catch and we are in a generator, then we still need it
         // to handle `return()` call on generators.
-        let catch_handler = if has_finally && (self.in_generator() || has_catch) {
+        let catch_handler = if has_finally && (self.is_generator() || has_catch) {
             self.current_stack_value_count += 2;
             Some(self.push_handler())
         } else {
@@ -50,7 +50,7 @@ impl ByteCompiler<'_, '_> {
             self.compile_catch_stmt(catch, has_finally, use_expr);
         } else {
             // Note: implicit !has_catch
-            if self.in_generator() && has_finally {
+            if self.is_generator() && has_finally {
                 // Is this a generator `return()` empty exception?
                 //
                 // This is false because when the `Exception` opcode is executed,
@@ -77,7 +77,7 @@ impl ByteCompiler<'_, '_> {
             }
 
             // Note: implicit has_finally
-            if !has_catch && self.in_generator() {
+            if !has_catch && self.is_generator() {
                 // Is this a generator `return()` empty exception?
                 self.emit_opcode(Opcode::PushTrue);
             }
@@ -153,7 +153,7 @@ impl ByteCompiler<'_, '_> {
 
         if has_catch {
             self.emit_opcode(Opcode::ReThrow);
-        } else if self.in_generator() {
+        } else if self.is_generator() {
             let is_generator_exit = self.jump_if_true();
             self.emit_opcode(Opcode::Throw);
             self.patch_jump(is_generator_exit);
