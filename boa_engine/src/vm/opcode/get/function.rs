@@ -41,44 +41,6 @@ impl Operation for GetArrowFunction {
     }
 }
 
-/// `GetAsyncArrowFunction` implements the Opcode Operation for `Opcode::GetAsyncArrowFunction`
-///
-/// Operation:
-///  - Get async arrow function from the pre-compiled inner functions.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct GetAsyncArrowFunction;
-
-impl GetAsyncArrowFunction {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
-        let code = context.vm.frame().code_block().constant_function(index);
-        let function = create_function_object_fast(code, false, context);
-        context.vm.push(function);
-        Ok(CompletionType::Normal)
-    }
-}
-
-impl Operation for GetAsyncArrowFunction {
-    const NAME: &'static str = "GetAsyncArrowFunction";
-    const INSTRUCTION: &'static str = "INST - GetAsyncArrowFunction";
-    const COST: u8 = 3;
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
-}
-
 /// `GetFunction` implements the Opcode Operation for `Opcode::GetFunction`
 ///
 /// Operation:
@@ -103,51 +65,6 @@ impl GetFunction {
 impl Operation for GetFunction {
     const NAME: &'static str = "GetFunction";
     const INSTRUCTION: &'static str = "INST - GetFunction";
-    const COST: u8 = 3;
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        let method = context.vm.read::<u8>() != 0;
-        Self::operation(context, index, method)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        let method = context.vm.read::<u8>() != 0;
-        Self::operation(context, index, method)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        let method = context.vm.read::<u8>() != 0;
-        Self::operation(context, index, method)
-    }
-}
-
-/// `GetFunctionAsync` implements the Opcode Operation for `Opcode::GetFunctionAsync`
-///
-/// Operation:
-///  - Get async function from the pre-compiled inner functions.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct GetFunctionAsync;
-
-impl GetFunctionAsync {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        context: &mut Context<'_>,
-        index: usize,
-        method: bool,
-    ) -> JsResult<CompletionType> {
-        let code = context.vm.frame().code_block().constant_function(index);
-        let function = create_function_object_fast(code, method, context);
-        context.vm.push(function);
-        Ok(CompletionType::Normal)
-    }
-}
-
-impl Operation for GetFunctionAsync {
-    const NAME: &'static str = "GetFunctionAsync";
-    const INSTRUCTION: &'static str = "INST - GetFunctionAsync";
     const COST: u8 = 3;
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {

@@ -754,11 +754,6 @@ impl ByteCompiler<'_, '_> {
                     self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
                 } else if generator {
                     self.emit_with_varying_operand(Opcode::GetGenerator, index);
-                } else if r#async {
-                    self.emit(
-                        Opcode::GetFunctionAsync,
-                        &[Operand::Varying(index), Operand::Bool(false)],
-                    );
                 } else {
                     self.emit(
                         Opcode::GetFunction,

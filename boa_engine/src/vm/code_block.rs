@@ -455,8 +455,7 @@ impl CodeBlock {
             Instruction::TemplateCreate { count, site } => {
                 format!("{}, {site}", count.value())
             }
-            Instruction::GetFunction { index, method }
-            | Instruction::GetFunctionAsync { index, method } => {
+            Instruction::GetFunction { index, method } => {
                 let index = index.value() as usize;
                 format!(
                     "{index:04}: '{}' (length: {}), method: {method}",
@@ -465,7 +464,6 @@ impl CodeBlock {
                 )
             }
             Instruction::GetArrowFunction { index }
-            | Instruction::GetAsyncArrowFunction { index }
             | Instruction::GetGenerator { index }
             | Instruction::GetGeneratorAsync { index } => {
                 let index = index.value() as usize;
@@ -716,7 +714,9 @@ impl CodeBlock {
             | Instruction::Reserved53
             | Instruction::Reserved54
             | Instruction::Reserved55
-            | Instruction::Reserved56 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved56
+            | Instruction::Reserved57
+            | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

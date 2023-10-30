@@ -1265,13 +1265,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
         } else if generator {
             self.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } else if r#async && arrow {
-            self.emit(Opcode::GetAsyncArrowFunction, &[Operand::Varying(index)]);
-        } else if r#async {
-            self.emit(
-                Opcode::GetFunctionAsync,
-                &[Operand::Varying(index), Operand::Bool(false)],
-            );
         } else if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
@@ -1342,13 +1335,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
         } else if generator {
             self.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } else if r#async && arrow {
-            self.emit(Opcode::GetAsyncArrowFunction, &[Operand::Varying(index)]);
-        } else if r#async {
-            self.emit(
-                Opcode::GetFunctionAsync,
-                &[Operand::Varying(index), Operand::Bool(true)],
-            );
         } else if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
@@ -1405,13 +1391,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
         } else if generator {
             self.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } else if r#async && arrow {
-            self.emit(Opcode::GetAsyncArrowFunction, &[Operand::Varying(index)]);
-        } else if r#async {
-            self.emit(
-                Opcode::GetFunctionAsync,
-                &[Operand::Varying(index), Operand::Bool(true)],
-            );
         } else if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
