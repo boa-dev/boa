@@ -80,6 +80,12 @@ impl ByteCompiler<'_, '_> {
         }
         compiler.emit_opcode(Opcode::SetReturnValue);
 
+        // 17. If ClassHeritageopt is present, set F.[[ConstructorKind]] to derived.
+        compiler.code_block_flags.set(
+            CodeBlockFlags::IS_DERIVED_CONSTRUCTOR,
+            class.super_ref().is_some(),
+        );
+
         let code = Gc::new(compiler.finish());
         let index = self.push_function_to_constants(code);
         self.emit(

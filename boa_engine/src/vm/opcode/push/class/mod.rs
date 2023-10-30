@@ -1,5 +1,4 @@
 use crate::{
-    builtins::function::{ConstructorKind, FunctionKind},
     error::JsNativeError,
     object::PROTOTYPE,
     vm::{opcode::Operation, CompletionType},
@@ -68,21 +67,6 @@ impl Operation for PushClassPrototype {
         if let Some(constructor_parent) = constructor_parent {
             class_object.set_prototype(Some(constructor_parent));
         }
-
-        let mut class_object_mut = class_object.borrow_mut();
-        let class_function = class_object_mut
-            .as_function_mut()
-            .expect("class must be function object");
-
-        // 17. If ClassHeritageopt is present, set F.[[ConstructorKind]] to derived.
-        if let FunctionKind::Ordinary {
-            constructor_kind, ..
-        } = class_function.kind_mut()
-        {
-            *constructor_kind = ConstructorKind::Derived;
-        }
-
-        drop(class_object_mut);
 
         context.vm.push(class);
         context.vm.push(proto_parent);
