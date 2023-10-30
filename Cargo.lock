@@ -1411,9 +1411,9 @@ dependencies = [
 
 [[package]]
 name = "icu_datagen"
-version = "1.3.2"
+version = "1.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cdad9848f19a7b00f64cd28bb8f16113f54212323c5be9f9da5238cbb6611b6"
+checksum = "212acb6e6f3793755dbd6785e95c0fa5048c43a44e817154cdfb909f72afb57d"
 dependencies = [
  "displaydoc",
  "elsa",
