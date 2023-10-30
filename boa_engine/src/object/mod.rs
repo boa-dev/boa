@@ -244,7 +244,7 @@ unsafe impl Trace for Object {
 }
 
 /// A Private Name.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Trace, Finalize)]
 pub struct PrivateName {
     /// The `[[Description]]` internal slot of the private name.
     description: JsString,

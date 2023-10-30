@@ -286,9 +286,9 @@ impl ByteCompiler<'_, '_> {
 
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
             let function = if generator {
-                create_generator_function_object(code, r#async, None, self.context)
+                create_generator_function_object(code, None, self.context)
             } else {
-                create_function_object_fast(code, r#async, false, false, self.context)
+                create_function_object_fast(code, false, self.context)
             };
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
@@ -737,9 +737,9 @@ impl ByteCompiler<'_, '_> {
 
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let function = if generator {
-                    create_generator_function_object(code, r#async, None, self.context)
+                    create_generator_function_object(code, None, self.context)
                 } else {
-                    create_function_object_fast(code, r#async, false, false, self.context)
+                    create_function_object_fast(code, false, self.context)
                 };
 
                 // i. Perform ? varEnv.CreateGlobalFunctionBinding(fn, fo, true).
@@ -750,15 +750,8 @@ impl ByteCompiler<'_, '_> {
             else {
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let index = self.push_function_to_constants(code);
-                if r#async && generator {
-                    self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-                } else if generator {
+                if generator {
                     self.emit_with_varying_operand(Opcode::GetGenerator, index);
-                } else if r#async {
-                    self.emit(
-                        Opcode::GetFunctionAsync,
-                        &[Operand::Varying(index), Operand::Bool(false)],
-                    );
                 } else {
                     self.emit(
                         Opcode::GetFunction,
@@ -1033,7 +1026,7 @@ impl ByteCompiler<'_, '_> {
         }
 
         if generator {
-            self.emit(Opcode::Generator, &[Operand::Bool(self.in_async())]);
+            self.emit(Opcode::Generator, &[Operand::Bool(self.is_async())]);
             self.emit_opcode(Opcode::Pop);
         }
 

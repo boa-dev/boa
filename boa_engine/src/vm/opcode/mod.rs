@@ -1676,13 +1676,6 @@ generate_opcodes! {
     /// Stack: **=>** func
     GetArrowFunction { index: VaryingOperand },
 
-    /// Get async arrow function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `VaryingOperand`
-    ///
-    /// Stack: **=>** func
-    GetAsyncArrowFunction { index: VaryingOperand },
-
     /// Get function from the pre-compiled inner functions.
     ///
     /// Operands: index: `VaryingOperand`, is_method: `u8`
@@ -1690,26 +1683,12 @@ generate_opcodes! {
     /// Stack: **=>** func
     GetFunction { index: VaryingOperand, method: bool },
 
-    /// Get async function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `VaryingOperand`, method: `u8`
-    ///
-    /// Stack: **=>** func
-    GetFunctionAsync { index: VaryingOperand, method: bool },
-
     /// Get generator function from the pre-compiled inner functions.
     ///
     /// Operands: index: `VaryingOperand`,
     ///
     /// Stack: **=>** func
     GetGenerator { index: VaryingOperand },
-
-    /// Get async generator function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `VaryingOperand`,
-    ///
-    /// Stack: **=>** func
-    GetGeneratorAsync { index: VaryingOperand },
 
     /// Call a function named "eval".
     ///
@@ -2221,6 +2200,12 @@ generate_opcodes! {
     Reserved55 => Reserved,
     /// Reserved [`Opcode`].
     Reserved56 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved57 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved58 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved59 => Reserved,
 }
 
 /// Specific opcodes for bindings.

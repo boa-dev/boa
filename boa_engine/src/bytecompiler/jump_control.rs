@@ -129,7 +129,7 @@ impl JumpRecord {
                     compiler.emit_opcode(Opcode::SetReturnValue);
                 }
 
-                match (compiler.in_async(), compiler.in_generator()) {
+                match (compiler.is_async(), compiler.is_generator()) {
                     // Taken from:
                     //  - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): https://tc39.es/ecma262/#sec-asyncgeneratorstart
                     //

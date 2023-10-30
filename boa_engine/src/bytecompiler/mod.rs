@@ -261,14 +261,12 @@ pub struct ByteCompiler<'ctx, 'host> {
 
     current_open_environments_count: u32,
     current_stack_value_count: u32,
-    code_block_flags: CodeBlockFlags,
+    pub(crate) code_block_flags: CodeBlockFlags,
     handlers: ThinVec<Handler>,
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
-    pub(crate) in_async: bool,
-    in_generator: bool,
 
     /// Used to handle exception throws that escape the async function types.
     ///
@@ -320,8 +318,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
-            in_async: false,
-            in_generator: false,
             async_handler: None,
             json_parse,
             variable_environment,
@@ -337,16 +333,16 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         self.code_block_flags.contains(CodeBlockFlags::STRICT)
     }
 
-    pub(crate) const fn in_async(&self) -> bool {
-        self.in_async
+    pub(crate) const fn is_async(&self) -> bool {
+        self.code_block_flags.contains(CodeBlockFlags::IS_ASYNC)
     }
 
-    pub(crate) const fn in_generator(&self) -> bool {
-        self.in_generator
+    pub(crate) const fn is_generator(&self) -> bool {
+        self.code_block_flags.contains(CodeBlockFlags::IS_GENERATOR)
     }
 
-    pub(crate) const fn in_async_generator(&self) -> bool {
-        self.in_async() && self.in_generator()
+    pub(crate) const fn is_async_generator(&self) -> bool {
+        self.is_async() && self.is_generator()
     }
 
     pub(crate) fn interner(&self) -> &Interner {
@@ -1257,25 +1253,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         use_expr: bool,
     ) {
         let name = function.name;
-        let (generator, r#async, arrow) = (
-            function.kind.is_generator(),
-            function.kind.is_async(),
-            function.kind.is_arrow(),
-        );
+        let (generator, arrow) = (function.kind.is_generator(), function.kind.is_arrow());
 
         let index = self.function(function);
 
-        if r#async && generator {
-            self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-        } else if generator {
+        if generator {
             self.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } else if r#async && arrow {
-            self.emit(Opcode::GetAsyncArrowFunction, &[Operand::Varying(index)]);
-        } else if r#async {
-            self.emit(
-                Opcode::GetFunctionAsync,
-                &[Operand::Varying(index), Operand::Bool(false)],
-            );
         } else if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
@@ -1342,17 +1325,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
         let index = self.push_function_to_constants(code);
 
-        if r#async && generator {
-            self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-        } else if generator {
+        if generator {
             self.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } else if r#async && arrow {
-            self.emit(Opcode::GetAsyncArrowFunction, &[Operand::Varying(index)]);
-        } else if r#async {
-            self.emit(
-                Opcode::GetFunctionAsync,
-                &[Operand::Varying(index), Operand::Bool(true)],
-            );
         } else if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {
@@ -1405,17 +1379,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
         let index = self.push_function_to_constants(code);
 
-        if r#async && generator {
-            self.emit_with_varying_operand(Opcode::GetGeneratorAsync, index);
-        } else if generator {
+        if generator {
             self.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } else if r#async && arrow {
-            self.emit(Opcode::GetAsyncArrowFunction, &[Operand::Varying(index)]);
-        } else if r#async {
-            self.emit(
-                Opcode::GetFunctionAsync,
-                &[Operand::Varying(index), Operand::Bool(true)],
-            );
         } else if arrow {
             self.emit(Opcode::GetArrowFunction, &[Operand::Varying(index)]);
         } else {

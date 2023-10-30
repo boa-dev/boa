@@ -29,7 +29,7 @@ use crate::{
     realm::Realm,
     vm::{
         create_function_object_fast, create_generator_function_object, ActiveRunnable, CallFrame,
-        CallFrameFlags, CodeBlock, CompletionRecord, Opcode,
+        CallFrameFlags, CodeBlock, CodeBlockFlags, CompletionRecord, Opcode,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
@@ -1413,7 +1413,7 @@ impl SourceTextModule {
         let mut compiler =
             ByteCompiler::new(Sym::MAIN, true, false, env.clone(), env.clone(), context);
 
-        compiler.in_async = true;
+        compiler.code_block_flags |= CodeBlockFlags::IS_ASYNC;
         compiler.async_handler = Some(compiler.push_handler());
 
         let mut imports = Vec::new();
@@ -1660,9 +1660,9 @@ impl SourceTextModule {
             let code = codeblock.constant_function(index as usize);
 
             let function = if kind.is_generator() {
-                create_generator_function_object(code, kind.is_async(), None, context)
+                create_generator_function_object(code, None, context)
             } else {
-                create_function_object_fast(code, kind.is_async(), false, false, context)
+                create_function_object_fast(code, false, context)
             };
 
             context.vm.environments.put_lexical_value(
