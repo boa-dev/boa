@@ -39,8 +39,8 @@ bitflags! {
 ///
 /// ## Table 17: Temporal field requirements
 ///
-/// |   Property   |           Conversion            |  Default   |
-/// | -------------|---------------------------------|------------|
+/// |   Property   |           Conversion              |  Default   |
+/// | -------------|-----------------------------------|------------|
 /// | "year"       |     `ToIntegerWithTruncation`     | undefined  |
 /// | "month"      | `ToPositiveIntegerWithTruncation` | undefined  |
 /// | "monthCode"  |   `ToPrimitiveAndRequireString`   | undefined  |
@@ -54,7 +54,7 @@ bitflags! {
 /// | "offset"     |   `ToPrimitiveAndRequireString`   | undefined  |
 /// | "era"        |   `ToPrimitiveAndRequireString`   | undefined  |
 /// | "eraYear"    |     `ToIntegerWithTruncation`     | undefined  |
-/// | "timeZone"   |                                 | undefined  |
+/// | "timeZone"   |              `None`               | undefined  |
 #[derive(Debug)]
 pub(crate) struct TemporalFields {
     bit_map: FieldMap,
@@ -114,11 +114,11 @@ impl TemporalFields {
     #[inline]
     fn set_field_value(
         &mut self,
-        field: &str,
+        field: &JsString,
         value: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<()> {
-        match field {
+        match field.to_std_string_escaped().as_str() {
             "year" => self.set_year(value, context)?,
             "month" => self.set_month(value, context)?,
             "monthCode" => self.set_month_code(value, context)?,
@@ -281,9 +281,9 @@ impl TemporalFields {
     /// This is the equivalant to Abstract Operation 13.46 `PrepareTemporalFields`
     pub(crate) fn from_js_object(
         fields: &JsObject,
-        field_names: &mut Vec<String>,
-        required_fields: &mut Vec<String>, // None when Partial
-        extended_fields: Option<Vec<(String, bool)>>,
+        field_names: &mut Vec<JsString>,
+        required_fields: &mut Vec<JsString>, // None when Partial
+        extended_fields: Option<Vec<(JsString, bool)>>,
         partial: bool,
         dup_behaviour: Option<JsString>,
         context: &mut Context<'_>,
@@ -319,7 +319,9 @@ impl TemporalFields {
         // 7. For each property name property of sortedFieldNames, do
         for field in &*field_names {
             // a. If property is one of "constructor" or "__proto__", then
-            if field.as_str() == "constructor" || field.as_str() == "__proto__" {
+            if field.to_std_string_escaped().as_str() == "constructor"
+                || field.to_std_string_escaped().as_str() == "__proto__"
+            {
                 // i. Throw a RangeError exception.
                 return Err(JsNativeError::range()
                     .with_message("constructor or proto is out of field range.")
@@ -331,8 +333,7 @@ impl TemporalFields {
             // b. If property is not equal to previousProperty, then
             if new_value {
                 // i. Let value be ? Get(fields, property).
-                let value =
-                    fields.get(PropertyKey::from(JsString::from(field.clone())), context)?;
+                let value = fields.get(PropertyKey::from(field.clone()), context)?;
                 // ii. If value is not undefined, then
                 if !value.is_undefined() {
                     // 1. Set any to true.

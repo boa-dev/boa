@@ -3,9 +3,11 @@
 use self::iso::IsoCalendar;
 
 use super::{
+    create_temporal_date, create_temporal_duration, create_temporal_month_day,
+    create_temporal_year_month,
     options::{ArithmeticOverflow, TemporalUnit, TemporalUnitGroup},
     plain_date::iso::IsoDateRecord,
-    PlainDate, TemporalFields,
+    DurationRecord, PlainDate, TemporalFields,
 };
 use crate::{
     builtins::{
@@ -16,7 +18,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData},
-    property::{Attribute, PropertyKey},
+    property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
@@ -30,6 +32,27 @@ pub(crate) mod utils;
 #[cfg(test)]
 mod tests;
 
+pub(crate) enum FieldsType {
+    Date,
+    YearMonth,
+    MonthDay,
+}
+
+impl From<&[JsString]> for FieldsType {
+    fn from(value: &[JsString]) -> Self {
+        let year_present = value.contains(&js_string!("year"));
+        let day_present = value.contains(&js_string!("day"));
+
+        if year_present && day_present {
+            FieldsType::Date
+        } else if year_present {
+            FieldsType::YearMonth
+        } else {
+            FieldsType::MonthDay
+        }
+    }
+}
+
 // TODO: Determine how many methods actually need the context on them while using
 // `icu_calendar`.
 //
@@ -42,111 +65,70 @@ pub(crate) trait BuiltinCalendar {
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    ) -> JsResult<IsoDateRecord>;
     /// Creates a `Temporal.PlainYearMonth` object from the provided fields.
     fn year_month_from_fields(
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    ) -> JsResult<IsoDateRecord>;
     /// Creates a `Temporal.PlainMonthDay` object from the provided fields.
     fn month_day_from_fields(
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    ) -> JsResult<IsoDateRecord>;
     /// Returns a `Temporal.PlainDate` based off an added date.
     fn date_add(
         &self,
         date: &PlainDate,
-        duration: &temporal::DurationRecord,
+        duration: &DurationRecord,
         overflow: ArithmeticOverflow,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    ) -> JsResult<IsoDateRecord>;
     /// Returns a `Temporal.Duration` representing the duration between two dates.
     fn date_until(
         &self,
         one: &PlainDate,
         two: &PlainDate,
         largest_unit: TemporalUnit,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    ) -> JsResult<DurationRecord>;
     /// Returns the era for a given `temporaldatelike`.
-    fn era(&self, date_like: &IsoDateRecord, context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn era(&self, date_like: &IsoDateRecord) -> JsResult<Option<JsString>>;
     /// Returns the era year for a given `temporaldatelike`
-    fn era_year(&self, date_like: &IsoDateRecord, context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn era_year(&self, date_like: &IsoDateRecord) -> JsResult<Option<i32>>;
     /// Returns the `year` for a given `temporaldatelike`
-    fn year(&self, date_like: &IsoDateRecord, context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn year(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
     /// Returns the `month` for a given `temporaldatelike`
-    fn month(&self, date_like: &IsoDateRecord, context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn month(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
+    // Note: Best practice would probably be to switch to a MonthCode enum after extraction.
     /// Returns the `monthCode` for a given `temporaldatelike`
-    fn month_code(&self, date_like: &IsoDateRecord, context: &mut Context<'_>)
-        -> JsResult<JsValue>;
+    fn month_code(&self, date_like: &IsoDateRecord) -> JsResult<JsString>;
     /// Returns the `day` for a given `temporaldatelike`
-    fn day(&self, date_like: &IsoDateRecord, context: &mut Context<'_>) -> JsResult<JsValue>;
+    fn day(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
     /// Returns a value representing the day of the week for a date.
-    fn day_of_week(
-        &self,
-        date_like: &IsoDateRecord,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    fn day_of_week(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
     /// Returns a value representing the day of the year for a given calendar.
-    fn day_of_year(
-        &self,
-        date_like: &IsoDateRecord,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    fn day_of_year(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
     /// Returns a value representing the week of the year for a given calendar.
-    fn week_of_year(
-        &self,
-        date_like: &IsoDateRecord,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    fn week_of_year(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
     /// Returns the year of a given week.
-    fn year_of_week(
-        &self,
-        date_like: &IsoDateRecord,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    fn year_of_week(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
     /// Returns the days in a week for a given calendar.
-    fn days_in_week(
-        &self,
-        date_like: &IsoDateRecord,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    fn days_in_week(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
     /// Returns the days in a month for a given calendar.
-    fn days_in_month(
-        &self,
-        date_like: &IsoDateRecord,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    fn days_in_month(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
     /// Returns the days in a year for a given calendar.
-    fn days_in_year(
-        &self,
-        date_like: &IsoDateRecord,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    fn days_in_year(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
     /// Returns the months in a year for a given calendar.
-    fn months_in_year(
-        &self,
-        date_like: &IsoDateRecord,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    fn months_in_year(&self, date_like: &IsoDateRecord) -> JsResult<i32>;
     /// Returns whether a value is within a leap year according to the designated calendar.
-    fn in_leap_year(
-        &self,
-        date_like: &IsoDateRecord,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    fn in_leap_year(&self, date_like: &IsoDateRecord) -> JsResult<bool>;
     /// Resolve the `TemporalFields` for the implemented Calendar
-    fn resolve_fields(&self, fields: &mut TemporalFields, r#type: &str) -> JsResult<()>;
+    fn resolve_fields(&self, fields: &mut TemporalFields, r#type: FieldsType) -> JsResult<()>;
     /// Return this calendar's a fieldName and whether it is required depending on type (date, day-month).
-    fn field_descriptors(&self, r#type: &[String]) -> Vec<(String, bool)>;
+    fn field_descriptors(&self, r#type: FieldsType) -> Vec<(JsString, bool)>;
     /// Return the fields to ignore for this Calendar based on provided keys.
-    fn field_keys_to_ignore(&self, additional_keys: Vec<PropertyKey>) -> Vec<PropertyKey>;
+    fn field_keys_to_ignore(&self, additional_keys: Vec<JsString>) -> Vec<JsString>;
     /// Debug name
     fn debug_name(&self) -> &str;
 }
@@ -334,16 +316,16 @@ impl Calendar {
 
         // 5. Let relevantFieldNames be « "day", "month", "monthCode", "year" ».
         let mut relevant_field_names = Vec::from([
-            "day".to_owned(),
-            "month".to_owned(),
-            "monthCode".to_owned(),
-            "year".to_owned(),
+            js_string!("day"),
+            js_string!("month"),
+            js_string!("monthCode"),
+            js_string!("year"),
         ]);
 
         // 6. If calendar.[[Identifier]] is "iso8601", then
         let mut fields = if calendar.identifier.as_slice() == ISO {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year", "day" »).
-            let mut required_fields = Vec::from(["year".to_owned(), "day".to_owned()]);
+            let mut required_fields = Vec::from([js_string!("year"), js_string!("day")]);
             temporal::TemporalFields::from_js_object(
                 fields_obj,
                 &mut relevant_field_names,
@@ -356,7 +338,7 @@ impl Calendar {
         // 7. Else,
         } else {
             // a. Let calendarRelevantFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], date).
-            let calendar_relevant_fields = this_calendar.field_descriptors(&["date".to_owned()]);
+            let calendar_relevant_fields = this_calendar.field_descriptors(FieldsType::Date);
             // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
             temporal::TemporalFields::from_js_object(
                 fields_obj,
@@ -381,7 +363,10 @@ impl Calendar {
         // a. Perform ? CalendarResolveFields(calendar.[[Identifier]], fields, date).
         // b. Let result be ? CalendarDateToISO(calendar.[[Identifier]], fields, overflow).
 
-        this_calendar.date_from_fields(&mut fields, overflow, context)
+        let result = this_calendar.date_from_fields(&mut fields, overflow)?;
+
+        create_temporal_date(result, calendar.identifier.clone().into(), None, context)
+            .map(Into::into)
     }
 
     /// 15.8.2.2 `Temporal.Calendar.prototype.yearMonthFromFields ( fields [ , options ] )` - Supercedes 12.5.5
@@ -412,15 +397,15 @@ impl Calendar {
         let options = get_options_object(args.get_or_undefined(1))?;
 
         let mut relevant_field_names = Vec::from([
-            "year".to_owned(),
-            "month".to_owned(),
-            "monthCode".to_owned(),
+            js_string!("year"),
+            js_string!("month"),
+            js_string!("monthCode"),
         ]);
 
         // 6. Set fields to ? PrepareTemporalFields(fields, « "month", "monthCode", "year" », « "year" »).
         let mut fields = if calendar.identifier.as_slice() == ISO {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year" »).
-            let mut required_fields = Vec::from(["year".to_owned()]);
+            let mut required_fields = Vec::from([js_string!("year")]);
             temporal::TemporalFields::from_js_object(
                 fields_obj,
                 &mut relevant_field_names,
@@ -434,8 +419,7 @@ impl Calendar {
             // a. Let calendarRelevantFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], year-month).
             // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
 
-            let calendar_relevant_fields =
-                this_calendar.field_descriptors(&["year-month".to_owned()]);
+            let calendar_relevant_fields = this_calendar.field_descriptors(FieldsType::YearMonth);
             temporal::TemporalFields::from_js_object(
                 fields_obj,
                 &mut relevant_field_names,
@@ -454,7 +438,10 @@ impl Calendar {
         let overflow = get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
-        this_calendar.year_month_from_fields(&mut fields, overflow, context)
+        let result = this_calendar.year_month_from_fields(&mut fields, overflow)?;
+
+        create_temporal_year_month(result, calendar.identifier.clone().into(), None, context)
+            .map(Into::into)
     }
 
     /// 15.8.2.3 `Temporal.Calendar.prototype.monthDayFromFields ( fields [ , options ] )` - Supercedes 12.5.6
@@ -490,16 +477,16 @@ impl Calendar {
 
         // 5. Let relevantFieldNames be « "day", "month", "monthCode", "year" ».
         let mut relevant_field_names = Vec::from([
-            "day".to_owned(),
-            "month".to_owned(),
-            "monthCode".to_owned(),
-            "year".to_owned(),
+            js_string!("day"),
+            js_string!("month"),
+            js_string!("monthCode"),
+            js_string!("year"),
         ]);
 
         // 6. If calendar.[[Identifier]] is "iso8601", then
         let mut fields = if calendar.identifier.as_slice() == ISO {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "day" »).
-            let mut required_fields = Vec::from(["day".to_owned()]);
+            let mut required_fields = Vec::from([js_string!("day")]);
             temporal::TemporalFields::from_js_object(
                 fields_obj,
                 &mut relevant_field_names,
@@ -512,8 +499,7 @@ impl Calendar {
         // 7. Else,
         } else {
             // a. Let calendarRelevantFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], month-day).
-            let calendar_relevant_fields =
-                this_calendar.field_descriptors(&["month-day".to_owned()]);
+            let calendar_relevant_fields = this_calendar.field_descriptors(FieldsType::MonthDay);
             // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
             temporal::TemporalFields::from_js_object(
                 fields_obj,
@@ -530,7 +516,10 @@ impl Calendar {
         let overflow = get_option(&options, utf16!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
-        this_calendar.month_day_from_fields(&mut fields, overflow, context)
+        let result = this_calendar.month_day_from_fields(&mut fields, overflow)?;
+
+        create_temporal_month_day(result, calendar.identifier.clone().into(), None, context)
+            .map(Into::into)
     }
 
     /// 15.8.2.4 `Temporal.Calendar.prototype.dateAdd ( date, duration [ , options ] )` - supercedes 12.5.7
@@ -571,7 +560,10 @@ impl Calendar {
         // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
         duration.balance_time_duration(TemporalUnit::Day, None)?;
 
-        this_calendar.date_add(&date, &duration, overflow, context)
+        let result = this_calendar.date_add(&date, &duration, overflow)?;
+
+        create_temporal_date(result, calendar.identifier.clone().into(), None, context)
+            .map(Into::into)
     }
 
     ///15.8.2.5 `Temporal.Calendar.prototype.dateUntil ( one, two [ , options ] )` - Supercedes 12.5.8
@@ -616,7 +608,9 @@ impl Calendar {
         )?
         .unwrap_or(TemporalUnit::Day);
 
-        this_calendar.date_until(&one, &two, largest_unit, context)
+        let result = this_calendar.date_until(&one, &two, largest_unit)?;
+
+        create_temporal_duration(result, None, context).map(Into::into)
     }
 
     /// 15.8.2.6 `Temporal.Calendar.prototype.era ( temporalDateLike )`
@@ -662,7 +656,9 @@ impl Calendar {
             }
         };
 
-        this_calendar.era(&date_info, context)
+        this_calendar
+            .era(&date_info)
+            .map(|r| r.map_or(JsValue::undefined(), Into::into))
     }
 
     /// 15.8.2.7 `Temporal.Calendar.prototype.eraYear ( temporalDateLike )`
@@ -708,7 +704,9 @@ impl Calendar {
             }
         };
 
-        this_calendar.era_year(&date_info, context)
+        this_calendar
+            .era_year(&date_info)
+            .map(|r| r.map_or(JsValue::undefined(), JsValue::from))
     }
 
     /// 15.8.2.8 `Temporal.Calendar.prototype.year ( temporalDateLike )`
@@ -754,7 +752,7 @@ impl Calendar {
             }
         };
 
-        this_calendar.year(&date_record, context)
+        this_calendar.year(&date_record).map(Into::into)
     }
 
     /// 15.8.2.9 `Temporal.Calendar.prototype.month ( temporalDateLike )`
@@ -809,7 +807,7 @@ impl Calendar {
             }
         };
 
-        this_calendar.month(&date_record, context)
+        this_calendar.month(&date_record).map(Into::into)
     }
 
     /// 15.8.2.10 `Temporal.Calendar.prototype.monthCode ( temporalDateLike )`
@@ -865,7 +863,7 @@ impl Calendar {
             }
         };
 
-        this_calendar.month_code(&date_record, context)
+        this_calendar.month_code(&date_record).map(Into::into)
     }
 
     /// 15.8.2.11 `Temporal.Calendar.prototype.day ( temporalDateLike )`
@@ -911,7 +909,7 @@ impl Calendar {
             }
         };
 
-        this_calendar.day(&date_record, context)
+        this_calendar.day(&date_record).map(Into::into)
     }
 
     /// 15.8.2.12 `Temporal.Calendar.prototype.dayOfWeek ( dateOrDateTime )`
@@ -939,7 +937,9 @@ impl Calendar {
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        this_calendar.day_of_week(&date.inner, context)
+        let result = this_calendar.day_of_week(&date.inner);
+
+        result.map(Into::into)
     }
 
     /// 15.8.2.13 `Temporal.Calendar.prototype.dayOfYear ( temporalDateLike )`
@@ -966,7 +966,9 @@ impl Calendar {
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        this_calendar.day_of_year(&date.inner, context)
+        let result = this_calendar.day_of_year(&date.inner);
+
+        result.map(Into::into)
     }
 
     /// 15.8.2.14 `Temporal.Calendar.prototype.weekOfYear ( temporalDateLike )`
@@ -992,7 +994,9 @@ impl Calendar {
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        this_calendar.week_of_year(&date.inner, context)
+        let result = this_calendar.week_of_year(&date.inner);
+
+        result.map(Into::into)
     }
 
     /// 15.8.2.15 `Temporal.Calendar.prototype.yearOfWeek ( temporalDateLike )`
@@ -1018,7 +1022,9 @@ impl Calendar {
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        this_calendar.year_of_week(&date.inner, context)
+        let result = this_calendar.year_of_week(&date.inner);
+
+        result.map(Into::into)
     }
 
     /// 15.8.2.16 `Temporal.Calendar.prototype.daysInWeek ( temporalDateLike )`
@@ -1044,7 +1050,9 @@ impl Calendar {
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        this_calendar.days_in_week(&date.inner, context)
+        let result = this_calendar.days_in_week(&date.inner);
+
+        result.map(Into::into)
     }
 
     /// 15.8.2.17 `Temporal.Calendar.prototype.daysInMonth ( temporalDateLike )`
@@ -1094,7 +1102,9 @@ impl Calendar {
             }
         };
 
-        this_calendar.days_in_month(&date_record, context)
+        let result = this_calendar.days_in_month(&date_record);
+
+        result.map(Into::into)
     }
 
     /// 15.8.2.18 `Temporal.Calendar.prototype.daysInYear ( temporalDateLike )`
@@ -1144,7 +1154,9 @@ impl Calendar {
             }
         };
 
-        this_calendar.days_in_year(&date_record, context)
+        let result = this_calendar.days_in_year(&date_record);
+
+        result.map(Into::into)
     }
 
     /// 15.8.2.19 `Temporal.Calendar.prototype.monthsInYear ( temporalDateLike )`
@@ -1194,7 +1206,9 @@ impl Calendar {
             }
         };
 
-        this_calendar.months_in_year(&date_record, context)
+        let result = this_calendar.months_in_year(&date_record);
+
+        result.map(Into::into)
     }
 
     /// 15.8.2.20 `Temporal.Calendar.prototype.inLeapYear ( temporalDateLike )`
@@ -1244,7 +1258,9 @@ impl Calendar {
             }
         };
 
-        this_calendar.in_leap_year(&date_record, context)
+        let result = this_calendar.in_leap_year(&date_record);
+
+        result.map(Into::into)
     }
 
     /// 15.8.2.21 `Temporal.Calendar.prototype.fields ( fields )`
@@ -1290,12 +1306,9 @@ impl Calendar {
                 // 1. Let completion be ThrowCompletion(a newly created RangeError object).
                 // 2. Return ? IteratorClose(iteratorRecord, completion).
                 // v. Append nextValue to the end of the List fieldNames.
-                let this_name = value.to_std_string_escaped();
-                match this_name.as_str() {
-                    "year" | "month" | "monthCode" | "day"
-                        if !fields_names.contains(&this_name) =>
-                    {
-                        fields_names.push(this_name);
+                match value.to_std_string_escaped().as_str() {
+                    "year" | "month" | "monthCode" | "day" if !fields_names.contains(&value) => {
+                        fields_names.push(value);
                     }
                     _ => {
                         let completion = Err(JsNativeError::range()
@@ -1319,7 +1332,8 @@ impl Calendar {
         if calendar.identifier.as_slice() != ISO {
             // a. NOTE: Every built-in calendar preserves all input field names in output.
             // b. Let extraFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], fieldNames).
-            let extended_fields = this_calendar.field_descriptors(&fields_names);
+            let extended_fields =
+                this_calendar.field_descriptors(FieldsType::from(&fields_names[..]));
             // c. For each Calendar Field Descriptor Record desc of extraFieldDescriptors, do
             for descriptor in extended_fields {
                 // i. Append desc.[[Property]] to result.
@@ -1328,13 +1342,10 @@ impl Calendar {
         }
 
         // 9. Return CreateArrayFromList(result).
-        Ok(Array::create_array_from_list(
-            fields_names
-                .iter()
-                .map(|s| JsString::from(s.clone()).into()),
-            context,
+        Ok(
+            Array::create_array_from_list(fields_names.iter().map(|s| s.clone().into()), context)
+                .into(),
         )
-        .into())
     }
 
     /// 15.8.2.22 `Temporal.Calendar.prototype.mergeFields ( fields, additionalFields )`
@@ -1380,7 +1391,11 @@ impl Calendar {
 
         // 5. NOTE: Every property of fieldsCopy and additionalFieldsCopy is an enumerable data property with non-undefined value, but some property keys may be Symbols.
         // 6. Let additionalKeys be ! additionalFieldsCopy.[[OwnPropertyKeys]]().
-        let add_keys = additional_fields_copy.__own_property_keys__(context)?;
+        let add_keys = additional_fields_copy
+            .__own_property_keys__(context)?
+            .iter()
+            .map(|k| JsString::from(k.to_string()))
+            .collect::<Vec<_>>();
 
         // 7. If calendar.[[Identifier]] is "iso8601", then
         // a. Let overriddenKeys be ISOFieldKeysToIgnore(additionalKeys).
@@ -1395,23 +1410,28 @@ impl Calendar {
         // matches that of fields as modified by omitting overridden properties and
         // appending non-overlapping properties from additionalFields in iteration order.
         // 11. Let fieldsKeys be ! fieldsCopy.[[OwnPropertyKeys]]().
-        let field_keys = fields_copy.__own_property_keys__(context)?;
+        let field_keys = fields_copy
+            .__own_property_keys__(context)?
+            .iter()
+            .map(|k| JsString::from(k.to_string()))
+            .collect::<Vec<_>>();
+
         // 12. For each element key of fieldsKeys, do
         for key in field_keys {
             // a. Let propValue be undefined.
             // b. If overriddenKeys contains key, then
             let prop_value = if overridden_keys.contains(&key) {
                 // i. Set propValue to ! Get(additionalFieldsCopy, key).
-                additional_fields_copy.get(key.clone(), context)?
+                additional_fields_copy.get(key.as_slice(), context)?
             // c. Else,
             } else {
                 // i. Set propValue to ! Get(fieldsCopy, key).
-                fields_copy.get(key.clone(), context)?
+                fields_copy.get(key.as_slice(), context)?
             };
 
             // d. If propValue is not undefined, perform ! CreateDataPropertyOrThrow(merged, key, propValue).
             if !prop_value.is_undefined() {
-                merged.create_data_property_or_throw(key, prop_value, context)?;
+                merged.create_data_property_or_throw(key.as_slice(), prop_value, context)?;
             }
         }
 
@@ -1590,7 +1610,7 @@ fn to_temporal_calendar_slot_value(
     Ok(js_string!(ISO).into())
 }
 
-// ---------------------------- AbstractCalendar Methods ----------------------------
+// ---------------------------- Native Abstract Calendar Methods ----------------------------
 //
 // The above refers to the functions in the Abstract Operations section of the Calendar
 // spec takes either a calendar identifier or `Temporal.Calendar` and calls the a
@@ -1625,7 +1645,8 @@ fn call_method_on_abstract_calendar(
 
 /// 12.2.2 `CalendarFields ( calendar, fieldNames )`
 ///
-/// Returns either a normal completion containing a List of Strings, or a throw completion.
+/// `CalendarFields` takes the input fields and adds the `extraFieldDescriptors` for
+/// that specific calendar.
 #[allow(unused)]
 pub(crate) fn calendar_fields(
     calendar: &JsValue,
@@ -1688,14 +1709,13 @@ pub(crate) fn calendar_merge_fields(
 #[allow(unused)]
 pub(crate) fn calendar_date_add(
     calendar: &JsValue,
-    date: &JsObject,
-    duration: &JsObject,
-    options: Option<JsValue>,
+    date: &PlainDate,
+    duration: &DurationRecord,
+    options: &JsValue,
     context: &mut Context<'_>,
-) -> JsResult<JsObject> {
+) -> JsResult<PlainDate> {
+    // NOTE: The specification never calls CalendarDateAdd without an options argument provided.
     // 1. If options is not present, set options to undefined.
-    let options = options.unwrap_or(JsValue::undefined());
-
     // 2. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.dateAdd%, calendar, « date, duration, options »).
@@ -1704,14 +1724,22 @@ pub(crate) fn calendar_date_add(
     let added_date = call_method_on_abstract_calendar(
         calendar,
         &JsString::from("dateAdd"),
-        &[date.clone().into(), duration.clone().into(), options],
+        &[
+            date.as_object(context)?.into(),
+            duration.as_object(context)?.into(),
+            options.clone(),
+        ],
         context,
     )?;
 
     // 5. Perform ? RequireInternalSlot(addedDate, [[InitializedTemporalDate]]).
     // 6. Return addedDate.
     match added_date {
-        JsValue::Object(o) if o.is_plain_date() => Ok(o),
+        JsValue::Object(o) if o.is_plain_date() => {
+            let obj = o.borrow();
+            let result = obj.as_plain_date().expect("must be a plain date");
+            Ok(result.clone())
+        }
         _ => Err(JsNativeError::typ()
             .with_message("dateAdd returned a value other than a Temoporal.PlainDate")
             .into()),
@@ -1724,11 +1752,11 @@ pub(crate) fn calendar_date_add(
 #[allow(unused)]
 pub(crate) fn calendar_date_until(
     calendar: &JsValue,
-    one: &JsObject,
-    two: &JsObject,
+    one: &PlainDate,
+    two: &PlainDate,
     options: &JsValue,
     context: &mut Context<'_>,
-) -> JsResult<super::duration::DurationRecord> {
+) -> JsResult<DurationRecord> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.dateUntil%, calendar, « one, two, options »).
@@ -1737,7 +1765,11 @@ pub(crate) fn calendar_date_until(
     let duration = call_method_on_abstract_calendar(
         calendar,
         &JsString::from("dateUntil"),
-        &[one.clone().into(), two.clone().into(), options.clone()],
+        &[
+            one.as_object(context)?.into(),
+            two.as_object(context)?.into(),
+            options.clone(),
+        ],
         context,
     )?;
 
@@ -1920,6 +1952,23 @@ pub(crate) fn calendar_day_of_week(
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
+    let identifier = match calendar {
+        JsValue::String(s) => s.clone(),
+        JsValue::Object(o) if o.is_calendar() => {
+            let obj = o.borrow();
+            let calendar = obj.as_calendar().expect("value must be a calendar");
+            calendar.identifier.clone()
+        }
+        _ => unreachable!(
+            "A calendar slot value not being a calendar obj or string is an implementation error."
+        ),
+    };
+
+    let calendars = available_calendars();
+    let this = calendars.get(identifier.as_slice()).ok_or_else(|| {
+        JsNativeError::range().with_message("calendar value was not an implemented calendar")
+    })?;
+
     // b. Return ? Call(%Temporal.Calendar.prototype.dayOfWeek%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "dayOfWeek", « dateLike »).
     let result = call_method_on_abstract_calendar(
@@ -1963,6 +2012,49 @@ pub(crate) fn calendar_day_of_year(
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
+    // b. Return ? Call(%Temporal.Calendar.prototype.dayOfWeek%, calendar, « dateLike »).
+    // 2. Let result be ? Invoke(calendar, "dayOfWeek", « dateLike »).
+    let result = call_method_on_abstract_calendar(
+        calendar,
+        &JsString::from("dayOfWeek"),
+        &[datelike.clone()],
+        context,
+    )?;
+
+    // 3. If Type(result) is not Number, throw a TypeError exception.
+    let Some(number) = result.as_number() else {
+        return Err(JsNativeError::typ()
+            .with_message("CalendarDayOfWeek result must be a number.")
+            .into());
+    };
+
+    // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+    if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
+        return Err(JsNativeError::range()
+            .with_message("CalendarDayOfWeek was not integral.")
+            .into());
+    }
+
+    // 5. If result < 1𝔽, throw a RangeError exception.
+    if number < 1.0 {
+        return Err(JsNativeError::range()
+            .with_message("dayOfWeek must be 1 or greater.")
+            .into());
+    }
+
+    // 6. Return ℝ(result).
+    Ok(number)
+}
+
+/// 12.2.12 `CalendarWeekOfYear ( calendar, dateLike )`
+#[allow(unused)]
+pub(crate) fn calendar_week_of_year(
+    calendar: &JsValue,
+    datelike: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<f64> {
+    // 1. If calendar is a String, then
+    // a. Set calendar to ! CreateTemporalCalendar(calendar).
     // b. Return ? Call(%Temporal.Calendar.prototype.dayOfYear%, calendar, « dateLike »).
     // 2. Let result be ? Invoke(calendar, "dayOfYear", « dateLike »).
     let result = call_method_on_abstract_calendar(
@@ -1990,49 +2082,6 @@ pub(crate) fn calendar_day_of_year(
     if number < 1.0 {
         return Err(JsNativeError::range()
             .with_message("dayOfYear must be 1 or greater.")
-            .into());
-    }
-
-    // 6. Return ℝ(result).
-    Ok(number)
-}
-
-/// 12.2.12 `CalendarWeekOfYear ( calendar, dateLike )`
-#[allow(unused)]
-pub(crate) fn calendar_week_of_year(
-    calendar: &JsValue,
-    datelike: &JsValue,
-    context: &mut Context<'_>,
-) -> JsResult<f64> {
-    // 1. If calendar is a String, then
-    // a. Set calendar to ! CreateTemporalCalendar(calendar).
-    // b. Return ? Call(%Temporal.Calendar.prototype.weekOfYear%, calendar, « dateLike »).
-    // 2. Let result be ? Invoke(calendar, "weekOfYear", « dateLike »).
-    let result = call_method_on_abstract_calendar(
-        calendar,
-        &JsString::from("weekOfYear"),
-        &[datelike.clone()],
-        context,
-    )?;
-
-    // 3. If Type(result) is not Number, throw a TypeError exception.
-    let Some(number) = result.as_number() else {
-        return Err(JsNativeError::typ()
-            .with_message("CalendarWeekOfYear result must be a number.")
-            .into());
-    };
-
-    // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
-    if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-        return Err(JsNativeError::range()
-            .with_message("CalendarWeekOfYear was not integral.")
-            .into());
-    }
-
-    // 5. If result < 1𝔽, throw a RangeError exception.
-    if number < 1.0 {
-        return Err(JsNativeError::range()
-            .with_message("weekOfYear must be 1 or greater.")
             .into());
     }
 
@@ -2279,7 +2328,7 @@ pub(crate) fn calendar_in_lear_year(
 /// 12.2.24 `CalendarDateFromFields ( calendar, fields [ , options [ , dateFromFields ] ] )`
 #[allow(unused)]
 pub(crate) fn calendar_date_from_fields(
-    _calendar: &JsValue,
+    calendar: &JsValue,
     _fields: &JsObject,
     options: Option<&JsValue>,
     _date_from_fields: Option<&JsObject>,

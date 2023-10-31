@@ -2,18 +2,16 @@
 
 use crate::{
     builtins::temporal::{
-        self, create_temporal_date,
+        self,
         date_equations::mathematical_days_in_year,
+        duration::DurationRecord,
         options::{ArithmeticOverflow, TemporalUnit},
         plain_date::iso::IsoDateRecord,
     },
-    js_string,
-    property::PropertyKey,
-    string::utf16,
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    js_string, JsNativeError, JsResult, JsString,
 };
 
-use super::BuiltinCalendar;
+use super::{BuiltinCalendar, FieldsType};
 
 use icu_calendar::{
     iso::Iso,
@@ -31,8 +29,7 @@ impl BuiltinCalendar for IsoCalendar {
         &self,
         fields: &mut temporal::TemporalFields,
         overflow: ArithmeticOverflow,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<IsoDateRecord> {
         // NOTE: we are in ISO by default here.
         // a. Perform ? ISOResolveMonth(fields).
         // b. Let result be ? ISODateFromFields(fields, overflow).
@@ -49,13 +46,7 @@ impl BuiltinCalendar for IsoCalendar {
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
         // 9. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], "iso8601").
-        Ok(create_temporal_date(
-            IsoDateRecord::from_date_iso(date),
-            js_string!("iso8601").into(),
-            None,
-            context,
-        )?
-        .into())
+        Ok(IsoDateRecord::from_date_iso(date))
     }
 
     /// 12.5.5 `Temporal.Calendar.prototype.yearMonthFromFields ( fields [ , options ] )`
@@ -65,8 +56,7 @@ impl BuiltinCalendar for IsoCalendar {
         &self,
         fields: &mut temporal::TemporalFields,
         overflow: ArithmeticOverflow,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<IsoDateRecord> {
         // 9. If calendar.[[Identifier]] is "iso8601", then
         // a. Perform ? ISOResolveMonth(fields).
         fields.iso_resolve_month()?;
@@ -82,12 +72,7 @@ impl BuiltinCalendar for IsoCalendar {
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
         // 10. Return ? CreateTemporalYearMonth(result.[[Year]], result.[[Month]], "iso8601", result.[[ReferenceISODay]]).
-        temporal::create_temporal_year_month(
-            IsoDateRecord::from_date_iso(result),
-            js_string!("iso8601").into(),
-            None,
-            context,
-        )
+        Ok(IsoDateRecord::from_date_iso(result))
     }
 
     /// 12.5.6 `Temporal.Calendar.prototype.monthDayFromFields ( fields [ , options ] )`
@@ -97,8 +82,7 @@ impl BuiltinCalendar for IsoCalendar {
         &self,
         fields: &mut temporal::TemporalFields,
         overflow: ArithmeticOverflow,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<IsoDateRecord> {
         // 8. Perform ? ISOResolveMonth(fields).
         fields.iso_resolve_month()?;
 
@@ -114,12 +98,7 @@ impl BuiltinCalendar for IsoCalendar {
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
         // 10. Return ? CreateTemporalMonthDay(result.[[Month]], result.[[Day]], "iso8601", result.[[ReferenceISOYear]]).
-        temporal::create_temporal_month_day(
-            IsoDateRecord::from_date_iso(result),
-            js_string!("iso8601").into(),
-            None,
-            context,
-        )
+        Ok(IsoDateRecord::from_date_iso(result))
     }
 
     /// 12.5.7 `Temporal.Calendar.prototype.dateAdd ( date, duration [ , options ] )`
@@ -128,10 +107,9 @@ impl BuiltinCalendar for IsoCalendar {
     fn date_add(
         &self,
         _date: &temporal::PlainDate,
-        _duration: &temporal::duration::DurationRecord,
+        _duration: &DurationRecord,
         _overflow: ArithmeticOverflow,
-        _context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<IsoDateRecord> {
         // TODO: Not stable on `ICU4X`. Implement once completed.
         Err(JsNativeError::range()
             .with_message("feature not implemented.")
@@ -149,8 +127,7 @@ impl BuiltinCalendar for IsoCalendar {
         _one: &temporal::PlainDate,
         _two: &temporal::PlainDate,
         _largest_unit: TemporalUnit,
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<DurationRecord> {
         // TODO: Not stable on `ICU4X`. Implement once completed.
         Err(JsNativeError::range()
             .with_message("Feature not yet implemented.")
@@ -161,19 +138,19 @@ impl BuiltinCalendar for IsoCalendar {
     }
 
     /// `Temporal.Calendar.prototype.era( dateLike )` for iso8601 calendar.
-    fn era(&self, _: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn era(&self, _: &IsoDateRecord) -> JsResult<Option<JsString>> {
         // Returns undefined on iso8601.
-        Ok(JsValue::undefined())
+        Ok(None)
     }
 
     /// `Temporal.Calendar.prototype.eraYear( dateLike )` for iso8601 calendar.
-    fn era_year(&self, _: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn era_year(&self, _: &IsoDateRecord) -> JsResult<Option<i32>> {
         // Returns undefined on iso8601.
-        Ok(JsValue::undefined())
+        Ok(None)
     }
 
     /// Returns the `year` for the `Iso` calendar.
-    fn year(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn year(&self, date_like: &IsoDateRecord) -> JsResult<i32> {
         let date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() as u8,
@@ -181,11 +158,11 @@ impl BuiltinCalendar for IsoCalendar {
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(date.year().number.into())
+        Ok(date.year().number)
     }
 
     /// Returns the `month` for the `Iso` calendar.
-    fn month(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn month(&self, date_like: &IsoDateRecord) -> JsResult<i32> {
         let date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() as u8,
@@ -193,11 +170,11 @@ impl BuiltinCalendar for IsoCalendar {
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(date.month().ordinal.into())
+        Ok(date.month().ordinal as i32)
     }
 
     /// Returns the `monthCode` for the `Iso` calendar.
-    fn month_code(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn month_code(&self, date_like: &IsoDateRecord) -> JsResult<JsString> {
         let date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() as u8,
@@ -205,11 +182,11 @@ impl BuiltinCalendar for IsoCalendar {
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(JsString::from(date.month().code.to_string()).into())
+        Ok(JsString::from(date.month().code.to_string()))
     }
 
     /// Returns the `day` for the `Iso` calendar.
-    fn day(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn day(&self, date_like: &IsoDateRecord) -> JsResult<i32> {
         let date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() as u8,
@@ -217,11 +194,11 @@ impl BuiltinCalendar for IsoCalendar {
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(date.day_of_month().0.into())
+        Ok(date.day_of_month().0 as i32)
     }
 
     /// Returns the `dayOfWeek` for the `Iso` calendar.
-    fn day_of_week(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn day_of_week(&self, date_like: &IsoDateRecord) -> JsResult<i32> {
         let date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() as u8,
@@ -229,11 +206,11 @@ impl BuiltinCalendar for IsoCalendar {
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok((date.day_of_week() as u8).into())
+        Ok(date.day_of_week() as i32)
     }
 
     /// Returns the `dayOfYear` for the `Iso` calendar.
-    fn day_of_year(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn day_of_year(&self, date_like: &IsoDateRecord) -> JsResult<i32> {
         let date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() as u8,
@@ -241,11 +218,11 @@ impl BuiltinCalendar for IsoCalendar {
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(i32::from(date.day_of_year_info().day_of_year).into())
+        Ok(i32::from(date.day_of_year_info().day_of_year))
     }
 
     /// Returns the `weekOfYear` for the `Iso` calendar.
-    fn week_of_year(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn week_of_year(&self, date_like: &IsoDateRecord) -> JsResult<i32> {
         // TODO: Determine `ICU4X` equivalent.
         let date = Date::try_new_iso_date(
             date_like.year(),
@@ -260,11 +237,11 @@ impl BuiltinCalendar for IsoCalendar {
             .week_of_year(&week_calculator)
             .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(week_of.week.into())
+        Ok(i32::from(week_of.week))
     }
 
     /// Returns the `yearOfWeek` for the `Iso` calendar.
-    fn year_of_week(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn year_of_week(&self, date_like: &IsoDateRecord) -> JsResult<i32> {
         // TODO: Determine `ICU4X` equivalent.
         let date = Date::try_new_iso_date(
             date_like.year(),
@@ -280,19 +257,19 @@ impl BuiltinCalendar for IsoCalendar {
             .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
         match week_of.unit {
-            RelativeUnit::Previous => Ok((date.year().number - 1).into()),
-            RelativeUnit::Current => Ok(date.year().number.into()),
-            RelativeUnit::Next => Ok((date.year().number + 1).into()),
+            RelativeUnit::Previous => Ok(date.year().number - 1),
+            RelativeUnit::Current => Ok(date.year().number),
+            RelativeUnit::Next => Ok(date.year().number + 1),
         }
     }
 
     /// Returns the `daysInWeek` value for the `Iso` calendar.
-    fn days_in_week(&self, _: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
-        Ok(7.into())
+    fn days_in_week(&self, _: &IsoDateRecord) -> JsResult<i32> {
+        Ok(7)
     }
 
     /// Returns the `daysInMonth` value for the `Iso` calendar.
-    fn days_in_month(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn days_in_month(&self, date_like: &IsoDateRecord) -> JsResult<i32> {
         let date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() as u8,
@@ -300,11 +277,11 @@ impl BuiltinCalendar for IsoCalendar {
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(date.days_in_month().into())
+        Ok(i32::from(date.days_in_month()))
     }
 
     /// Returns the `daysInYear` value for the `Iso` calendar.
-    fn days_in_year(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn days_in_year(&self, date_like: &IsoDateRecord) -> JsResult<i32> {
         let date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() as u8,
@@ -312,31 +289,31 @@ impl BuiltinCalendar for IsoCalendar {
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
-        Ok(date.days_in_year().into())
+        Ok(i32::from(date.days_in_year()))
     }
 
     /// Return the amount of months in an ISO Calendar.
-    fn months_in_year(&self, _: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
-        Ok(12.into())
+    fn months_in_year(&self, _: &IsoDateRecord) -> JsResult<i32> {
+        Ok(12)
     }
 
     /// Returns whether provided date is in a leap year according to this calendar.
-    fn in_leap_year(&self, date_like: &IsoDateRecord, _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn in_leap_year(&self, date_like: &IsoDateRecord) -> JsResult<bool> {
         // `ICU4X`'s `CalendarArithmetic` is currently private.
         if mathematical_days_in_year(date_like.year()) == 366 {
-            return Ok(true.into());
+            return Ok(true);
         }
-        Ok(false.into())
+        Ok(false)
     }
 
     // Resolve the fields for the iso calendar.
-    fn resolve_fields(&self, fields: &mut temporal::TemporalFields, _: &str) -> JsResult<()> {
+    fn resolve_fields(&self, fields: &mut temporal::TemporalFields, _: FieldsType) -> JsResult<()> {
         fields.iso_resolve_month()?;
         Ok(())
     }
 
     /// Returns the ISO field descriptors, which is not called for the iso8601 calendar.
-    fn field_descriptors(&self, _: &[String]) -> Vec<(String, bool)> {
+    fn field_descriptors(&self, _: FieldsType) -> Vec<(JsString, bool)> {
         // NOTE(potential improvement): look into implementing field descriptors and call
         // ISO like any other calendar?
         // Field descriptors is unused on ISO8601.
@@ -344,15 +321,14 @@ impl BuiltinCalendar for IsoCalendar {
     }
 
     /// Returns the `CalendarFieldKeysToIgnore` implementation for ISO.
-    fn field_keys_to_ignore(&self, additional_keys: Vec<PropertyKey>) -> Vec<PropertyKey> {
+    fn field_keys_to_ignore(&self, additional_keys: Vec<JsString>) -> Vec<JsString> {
         let mut result = Vec::new();
-        for key in additional_keys {
-            let key_string = key.to_string();
-            result.push(key);
-            if key_string.as_str() == "month" {
-                result.push(utf16!("monthCode").into());
-            } else if key_string.as_str() == "monthCode" {
-                result.push(utf16!("month").into());
+        for key in &additional_keys {
+            result.push(key.clone());
+            if key.to_std_string_escaped().as_str() == "month" {
+                result.push(js_string!("monthCode"));
+            } else if key.to_std_string_escaped().as_str() == "monthCode" {
+                result.push(js_string!("month"));
             }
         }
         result
