@@ -28,8 +28,8 @@ use crate::{
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
     realm::Realm,
     vm::{
-        create_function_object_fast, create_generator_function_object, ActiveRunnable, CallFrame,
-        CallFrameFlags, CodeBlock, CodeBlockFlags, CompletionRecord, Opcode,
+        create_function_object_fast, ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock,
+        CodeBlockFlags, CompletionRecord, Opcode,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
@@ -1583,11 +1583,7 @@ impl SourceTextModule {
             // are correctly resolved to the outer functions instead of as global bindings.
             let functions = functions
                 .into_iter()
-                .map(|(spec, locator)| {
-                    let kind = spec.kind;
-
-                    (compiler.function(spec), locator, kind)
-                })
+                .map(|(spec, locator)| (compiler.function(spec), locator))
                 .collect::<Vec<_>>();
 
             compiler.compile_module_item_list(self.inner.code.source.items());
@@ -1656,14 +1652,10 @@ impl SourceTextModule {
         }
 
         // deferred initialization of function exports
-        for (index, locator, kind) in functions {
+        for (index, locator) in functions {
             let code = codeblock.constant_function(index as usize);
 
-            let function = if kind.is_generator() {
-                create_generator_function_object(code, None, context)
-            } else {
-                create_function_object_fast(code, false, context)
-            };
+            let function = create_function_object_fast(code, context);
 
             context.vm.environments.put_lexical_value(
                 locator.environment_index(),

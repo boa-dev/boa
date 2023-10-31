@@ -1348,6 +1348,8 @@ pub(crate) struct ObjectTemplates {
 
     function: ObjectTemplate,
     async_function: ObjectTemplate,
+    generator_function: ObjectTemplate,
+    async_generator_function: ObjectTemplate,
 
     function_without_proto: ObjectTemplate,
     function_with_prototype_without_proto: ObjectTemplate,
@@ -1410,12 +1412,16 @@ impl ObjectTemplates {
             PROTOTYPE.into(),
             Attribute::WRITABLE | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
         );
+        let mut generator_function = function_with_prototype.clone();
+        let mut async_generator_function = function_with_prototype.clone();
 
         let function_with_prototype_without_proto = function_with_prototype.clone();
 
         function.set_prototype(constructors.function().prototype());
         function_with_prototype.set_prototype(constructors.function().prototype());
         async_function.set_prototype(constructors.async_function().prototype());
+        generator_function.set_prototype(constructors.generator_function().prototype());
+        async_generator_function.set_prototype(constructors.async_generator_function().prototype());
 
         let mut function_prototype = ordinary_object.clone();
         function_prototype.property(
@@ -1504,6 +1510,8 @@ impl ObjectTemplates {
             function_prototype,
             function,
             async_function,
+            generator_function,
+            async_generator_function,
             function_without_proto,
             function_with_prototype_without_proto,
             namespace,
@@ -1673,6 +1681,30 @@ impl ObjectTemplates {
     /// 3. `__proto__`: `AsyncFunction.prototype`
     pub(crate) const fn async_function(&self) -> &ObjectTemplate {
         &self.async_function
+    }
+
+    /// Cached function object property template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"prototype"`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
+    /// 4. `__proto__`: `GeneratorFunction.prototype`
+    pub(crate) const fn generator_function(&self) -> &ObjectTemplate {
+        &self.generator_function
+    }
+
+    /// Cached function object property template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"prototype"`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
+    /// 4. `__proto__`: `AsyncGeneratorFunction.prototype`
+    pub(crate) const fn async_generator_function(&self) -> &ObjectTemplate {
+        &self.async_generator_function
     }
 
     /// Cached function object without `__proto__` template.

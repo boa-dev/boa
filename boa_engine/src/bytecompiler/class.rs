@@ -88,10 +88,7 @@ impl ByteCompiler<'_, '_> {
 
         let code = Gc::new(compiler.finish());
         let index = self.push_function_to_constants(code);
-        self.emit(
-            Opcode::GetFunction,
-            &[Operand::Varying(index), Operand::Bool(false)],
-        );
+        self.emit_with_varying_operand(Opcode::GetFunction, index);
 
         self.emit_opcode(Opcode::Dup);
         if let Some(node) = class.super_ref() {
@@ -301,10 +298,7 @@ impl ByteCompiler<'_, '_> {
 
                     let code = Gc::new(field_compiler.finish());
                     let index = self.push_function_to_constants(code);
-                    self.emit(
-                        Opcode::GetFunction,
-                        &[Operand::Varying(index), Operand::Bool(false)],
-                    );
+                    self.emit_with_varying_operand(Opcode::GetFunction, index);
                     self.emit_opcode(Opcode::PushClassField);
                 }
                 ClassElement::PrivateFieldDefinition(name, field) => {
@@ -330,10 +324,7 @@ impl ByteCompiler<'_, '_> {
 
                     let code = Gc::new(field_compiler.finish());
                     let index = self.push_function_to_constants(code);
-                    self.emit(
-                        Opcode::GetFunction,
-                        &[Operand::Varying(index), Operand::Bool(false)],
-                    );
+                    self.emit_with_varying_operand(Opcode::GetFunction, index);
                     self.emit_with_varying_operand(Opcode::PushClassFieldPrivate, name_index);
                 }
                 ClassElement::StaticFieldDefinition(name, field) => {
@@ -554,10 +545,7 @@ impl ByteCompiler<'_, '_> {
                 StaticElement::StaticBlock(code) => {
                     self.emit_opcode(Opcode::Dup);
                     let index = self.push_function_to_constants(code);
-                    self.emit(
-                        Opcode::GetFunction,
-                        &[Operand::Varying(index), Operand::Bool(false)],
-                    );
+                    self.emit_with_varying_operand(Opcode::GetFunction, index);
                     self.emit_opcode(Opcode::SetHomeObject);
                     self.emit_with_varying_operand(Opcode::Call, 0);
                     self.emit_opcode(Opcode::Pop);
@@ -566,10 +554,7 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::Dup);
                     self.emit_opcode(Opcode::Dup);
                     let index = self.push_function_to_constants(code);
-                    self.emit(
-                        Opcode::GetFunction,
-                        &[Operand::Varying(index), Operand::Bool(false)],
-                    );
+                    self.emit_with_varying_operand(Opcode::GetFunction, index);
                     self.emit_opcode(Opcode::SetHomeObject);
                     self.emit_with_varying_operand(Opcode::Call, 0);
                     if let Some(name_index) = name_index {

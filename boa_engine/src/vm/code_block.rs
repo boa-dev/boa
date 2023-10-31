@@ -5,9 +5,7 @@
 use crate::{
     builtins::function::{OrdinaryFunction, ThisMode},
     environments::{BindingLocator, CompileTimeEnvironment},
-    object::{JsObject, ObjectData, PROTOTYPE},
-    property::PropertyDescriptor,
-    string::utf16,
+    object::{JsObject, ObjectData},
     Context, JsBigInt, JsString, JsValue,
 };
 use bitflags::bitflags;
@@ -74,7 +72,9 @@ bitflags! {
 
         const IS_ASYNC = 0b1000_0000;
         const IS_GENERATOR = 0b0001_0000_0000;
-        const IS_ARROW = 0b0010_0000_0000;
+
+        /// Arrow and method functions don't have `"prototype"` property.
+        const HAS_PROTOTYPE_PROPERTY = 0b0010_0000_0000;
 
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
@@ -269,9 +269,11 @@ impl CodeBlock {
         !self.is_async() && !self.is_generator()
     }
 
-    /// Returns true if this function an arrow function.
-    pub(crate) fn is_arrow(&self) -> bool {
-        self.flags.get().contains(CodeBlockFlags::IS_ARROW)
+    /// Returns true if this function has the `"prototype"` property when function object is created.
+    pub(crate) fn has_prototype_property(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::HAS_PROTOTYPE_PROPERTY)
     }
 
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
@@ -454,15 +456,7 @@ impl CodeBlock {
             Instruction::TemplateCreate { count, site } => {
                 format!("{}, {site}", count.value())
             }
-            Instruction::GetFunction { index, method } => {
-                let index = index.value() as usize;
-                format!(
-                    "{index:04}: '{}' (length: {}), method: {method}",
-                    self.constant_function(index).name().to_std_string_escaped(),
-                    self.constant_function(index).length
-                )
-            }
-            Instruction::GetArrowFunction { index } | Instruction::GetGenerator { index } => {
+            Instruction::GetFunction { index } => {
                 let index = index.value() as usize;
                 format!(
                     "{index:04}: '{}' (length: {})",
@@ -714,7 +708,9 @@ impl CodeBlock {
             | Instruction::Reserved56
             | Instruction::Reserved57
             | Instruction::Reserved58
-            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved59
+            | Instruction::Reserved60
+            | Instruction::Reserved61 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
@@ -854,6 +850,7 @@ pub(crate) fn create_function_object(
     let script_or_module = context.get_active_script_or_module();
 
     let is_async = code.is_async();
+    let is_generator = code.is_generator();
     let function = OrdinaryFunction::new(
         code,
         context.vm.environments.clone(),
@@ -861,11 +858,27 @@ pub(crate) fn create_function_object(
         context.realm().clone(),
     );
 
-    let data = ObjectData::ordinary_function(function, !is_async);
+    let data = ObjectData::ordinary_function(function, !is_async && !is_generator);
 
     let templates = context.intrinsics().templates();
 
-    let (mut template, storage, constructor_prototype) = if is_async {
+    let (mut template, storage, constructor_prototype) = if is_generator {
+        let prototype = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            if is_async {
+                context.intrinsics().objects().async_generator()
+            } else {
+                context.intrinsics().objects().generator()
+            },
+            ObjectData::ordinary(),
+        );
+
+        (
+            templates.function_with_prototype_without_proto().clone(),
+            vec![length, name, prototype.into()],
+            None,
+        )
+    } else if is_async {
         (
             templates.function_without_proto().clone(),
             vec![length, name],
@@ -902,7 +915,6 @@ pub(crate) fn create_function_object(
 /// with all the properties and prototype set.
 pub(crate) fn create_function_object_fast(
     code: Gc<CodeBlock>,
-    method: bool,
     context: &mut Context<'_>,
 ) -> JsObject {
     let _timer = Profiler::global().start_event("create_function_object_fast", "vm");
@@ -913,7 +925,8 @@ pub(crate) fn create_function_object_fast(
     let script_or_module = context.get_active_script_or_module();
 
     let is_async = code.is_async();
-    let is_arrow = code.is_arrow();
+    let is_generator = code.is_generator();
+    let has_prototype_property = code.has_prototype_property();
     let function = OrdinaryFunction::new(
         code,
         context.vm.environments.clone(),
@@ -921,15 +934,35 @@ pub(crate) fn create_function_object_fast(
         context.realm().clone(),
     );
 
-    let data = ObjectData::ordinary_function(function, !method && !is_arrow && !is_async);
+    let data = ObjectData::ordinary_function(
+        function,
+        has_prototype_property && !is_async && !is_generator,
+    );
 
-    if is_async {
+    if is_generator {
+        let prototype = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            if is_async {
+                context.intrinsics().objects().async_generator()
+            } else {
+                context.intrinsics().objects().generator()
+            },
+            ObjectData::ordinary(),
+        );
+        let template = if is_async {
+            context.intrinsics().templates().async_generator_function()
+        } else {
+            context.intrinsics().templates().generator_function()
+        };
+
+        template.create(data, vec![length, name, prototype.into()])
+    } else if is_async {
         context
             .intrinsics()
             .templates()
             .async_function()
             .create(data, vec![length, name])
-    } else if is_arrow || method {
+    } else if !has_prototype_property {
         context
             .intrinsics()
             .templates()
@@ -952,99 +985,4 @@ pub(crate) fn create_function_object_fast(
 
         constructor
     }
-}
-
-/// Creates a new generator function object.
-pub(crate) fn create_generator_function_object(
-    code: Gc<CodeBlock>,
-    prototype: Option<JsObject>,
-    context: &mut Context<'_>,
-) -> JsObject {
-    let is_async = code.is_async();
-    let function_prototype = if let Some(prototype) = prototype {
-        prototype
-    } else if is_async {
-        context
-            .intrinsics()
-            .constructors()
-            .async_generator_function()
-            .prototype()
-    } else {
-        context
-            .intrinsics()
-            .constructors()
-            .generator_function()
-            .prototype()
-    };
-
-    let name_property = PropertyDescriptor::builder()
-        .value(code.name().clone())
-        .writable(false)
-        .enumerable(false)
-        .configurable(true)
-        .build();
-
-    let length_property = PropertyDescriptor::builder()
-        .value(code.length)
-        .writable(false)
-        .enumerable(false)
-        .configurable(true)
-        .build();
-
-    let prototype = JsObject::from_proto_and_data_with_shared_shape(
-        context.root_shape(),
-        if is_async {
-            context.intrinsics().objects().async_generator()
-        } else {
-            context.intrinsics().objects().generator()
-        },
-        ObjectData::ordinary(),
-    );
-
-    let script_or_module = context.get_active_script_or_module();
-
-    let constructor = if is_async {
-        let function = OrdinaryFunction::new(
-            code,
-            context.vm.environments.clone(),
-            script_or_module,
-            context.realm().clone(),
-        );
-        JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            function_prototype,
-            ObjectData::async_generator_function(function),
-        )
-    } else {
-        let function = OrdinaryFunction::new(
-            code,
-            context.vm.environments.clone(),
-            script_or_module,
-            context.realm().clone(),
-        );
-        JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            function_prototype,
-            ObjectData::generator_function(function),
-        )
-    };
-
-    let prototype_property = PropertyDescriptor::builder()
-        .value(prototype)
-        .writable(true)
-        .enumerable(false)
-        .configurable(false)
-        .build();
-
-    constructor
-        .define_property_or_throw(PROTOTYPE, prototype_property, context)
-        .expect("failed to define the prototype property of the generator function");
-    constructor
-        .define_property_or_throw(utf16!("name"), name_property, context)
-        .expect("failed to define the name property of the generator function");
-    constructor
-        .define_property_or_throw(utf16!("length"), length_property, context)
-        .expect("failed to define the length property of the generator function");
-
-    constructor
 }

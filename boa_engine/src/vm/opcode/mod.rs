@@ -1669,26 +1669,12 @@ generate_opcodes! {
     /// Stack: `value` **=>**
     Default { address: u32 },
 
-    /// Get arrow function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: **=>** func
-    GetArrowFunction { index: VaryingOperand },
-
     /// Get function from the pre-compiled inner functions.
     ///
-    /// Operands: index: `VaryingOperand`, is_method: `u8`
+    /// Operands: index: `VaryingOperand`
     ///
     /// Stack: **=>** func
-    GetFunction { index: VaryingOperand, method: bool },
-
-    /// Get generator function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `VaryingOperand`,
-    ///
-    /// Stack: **=>** func
-    GetGenerator { index: VaryingOperand },
+    GetFunction { index: VaryingOperand },
 
     /// Call a function named "eval".
     ///
@@ -2206,6 +2192,10 @@ generate_opcodes! {
     Reserved58 => Reserved,
     /// Reserved [`Opcode`].
     Reserved59 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved60 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved61 => Reserved,
 }
 
 /// Specific opcodes for bindings.

@@ -20,6 +20,7 @@ pub(crate) struct FunctionCompiler {
     r#async: bool,
     strict: bool,
     arrow: bool,
+    method: bool,
     binding_identifier: Option<Sym>,
 }
 
@@ -32,6 +33,7 @@ impl FunctionCompiler {
             r#async: false,
             strict: false,
             arrow: false,
+            method: false,
             binding_identifier: None,
         }
     }
@@ -51,6 +53,11 @@ impl FunctionCompiler {
     /// Indicate if the function is an arrow function.
     pub(crate) const fn arrow(mut self, arrow: bool) -> Self {
         self.arrow = arrow;
+        self
+    }
+    /// Indicate if the function is a method function.
+    pub(crate) const fn method(mut self, method: bool) -> Self {
+        self.method = method;
         self
     }
     /// Indicate if the function is a generator function.
@@ -105,9 +112,10 @@ impl FunctionCompiler {
         compiler
             .code_block_flags
             .set(CodeBlockFlags::IS_GENERATOR, self.generator);
-        compiler
-            .code_block_flags
-            .set(CodeBlockFlags::IS_ARROW, self.arrow);
+        compiler.code_block_flags.set(
+            CodeBlockFlags::HAS_PROTOTYPE_PROPERTY,
+            !self.arrow && !self.method,
+        );
 
         if self.arrow {
             compiler.this_mode = ThisMode::Lexical;
