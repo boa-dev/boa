@@ -549,7 +549,7 @@
             // 9. Return RawBytesToNumeric(type, rawValue, isLittleEndian).
 
             // SAFETY: The invariants of this operation are ensured by the caller.
-            </span><span class="kw">unsafe </span>{ T::read_from_buffer(buffer, order) }
+            </span><span class="kw">unsafe </span>{ T::read(buffer).load(order) }
         }
 
         <span class="kw">let </span>buffer = <span class="kw-2">*</span><span class="self">self</span>;
@@ -717,7 +717,7 @@
 
             // SAFETY: The invariants of this operation are ensured by the caller.
             </span><span class="kw">unsafe </span>{
-                T::write_to_buffer(buffer, value, order);
+                T::read_mut(buffer).store(value, order);
             }
         }
 

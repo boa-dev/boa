@@ -122,8 +122,6 @@
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cmp::Ordering;
 
 <span class="doccomment">/// Represents the result of the `ToIntegerOrInfinity` operation
@@ -148,8 +146,6 @@
     /// Panics if `min &gt; max`.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>clamp_finite(<span class="self">self</span>, min: i64, max: i64) -&gt; i64 {
-        <span class="macro">assert!</span>(min &lt;= max);
-
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Integer(i) =&gt; i.clamp(min, max),
             <span class="self">Self</span>::PositiveInfinity =&gt; max,

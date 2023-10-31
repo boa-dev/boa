@@ -1704,6 +1704,19 @@
 <a href="#1704" id="1704">1704</a>
 <a href="#1705" id="1705">1705</a>
 <a href="#1706" id="1706">1706</a>
+<a href="#1707" id="1707">1707</a>
+<a href="#1708" id="1708">1708</a>
+<a href="#1709" id="1709">1709</a>
+<a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
+<a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -2749,6 +2762,9 @@
     <span class="doccomment">/// [`%AsyncGeneratorFunction.prototype.prototype%`](https://tc39.es/ecma262/#sec-properties-of-asyncgenerator-prototype)
     </span>async_generator: JsObject,
 
+    <span class="doccomment">/// [`%Atomics%`](https://tc39.es/ecma262/#sec-atomics)
+    </span>atomics: JsObject,
+
     <span class="doccomment">/// [`%eval%`](https://tc39.es/ecma262/#sec-eval-x)
     </span>eval: JsFunction,
 
@@ -2804,6 +2820,7 @@
             iterator_prototypes: IteratorPrototypes::default(),
             generator: JsObject::default(),
             async_generator: JsObject::default(),
+            atomics: JsObject::default(),
             eval: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
             uri_functions: UriFunctions::default(),
             is_finite: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
@@ -2870,13 +2887,22 @@
         <span class="self">self</span>.generator.clone()
     }
 
-    <span class="doccomment">/// Gets the [`%AsyncGeneratorFunction.prototype.prototype%`] intrinsic object.
+    <span class="doccomment">/// Gets the [`%AsyncGeneratorFunction.prototype.prototype%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.async_generator.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%Atomics%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-atomics
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>atomics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.atomics.clone()
     }
 
     <span class="doccomment">/// Gets the [`%eval%`][spec] intrinsic function.

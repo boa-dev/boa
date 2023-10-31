@@ -3616,7 +3616,8 @@
 <a href="#3616" id="3616">3616</a>
 <a href="#3617" id="3617">3617</a>
 <a href="#3618" id="3618">3618</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{cmp::Ordering, ptr, sync::atomic};
+<a href="#3619" id="3619">3619</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{cmp, ptr, sync::atomic};
 
 <span class="kw">use </span>boa_gc::GcRef;
 <span class="kw">use </span>boa_macros::utf16;
@@ -5822,6 +5823,7 @@
                     .expect(<span class="string">&quot;value can only be f64 or BigInt&quot;</span>);
 
                 <span class="comment">// ii. Perform SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true, Unordered).
+                // SAFETY: previous checks preserve the validity  of the indices.
                 </span><span class="kw">unsafe </span>{
                     target_buffer
                         .subslice_mut(target_byte_index..)
@@ -6202,7 +6204,7 @@
         <span class="comment">// 5. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.30.
         // 6. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         </span><span class="kw">let </span>sort_compare =
-            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| -&gt; JsResult&lt;Ordering&gt; {
+            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| -&gt; JsResult&lt;cmp::Ordering&gt; {
                 <span class="comment">// a. Return ? CompareTypedArrayElements(x, y, comparefn).
                 </span>compare_typed_array_elements(x, y, compare_fn, context)
             };
@@ -6270,7 +6272,7 @@
         <span class="comment">// 6. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.34.
         // 7. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         </span><span class="kw">let </span>sort_compare =
-            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| -&gt; JsResult&lt;Ordering&gt; {
+            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| -&gt; JsResult&lt;cmp::Ordering&gt; {
                 <span class="comment">// a. Return ? CompareTypedArrayElements(x, y, comparefn).
                 </span>compare_typed_array_elements(x, y, compare_fn, context)
             };
@@ -7119,7 +7121,7 @@
     y: <span class="kw-2">&amp;</span>JsValue,
     compare_fn: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt;,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;Ordering&gt; {
+) -&gt; JsResult&lt;cmp::Ordering&gt; {
     <span class="comment">// 1. Assert: x is a Number and y is a Number, or x is a BigInt and y is a BigInt.
 
     // 2. If comparefn is not undefined, then
@@ -7131,14 +7133,14 @@
 
         <span class="comment">// b. If v is NaN, return +0𝔽.
         </span><span class="kw">if </span>v.is_nan() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Equal);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(cmp::Ordering::Equal);
         }
 
         <span class="comment">// c. Return v.
         </span><span class="kw">if </span>v.is_sign_positive() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Greater);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(cmp::Ordering::Greater);
         }
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Less);
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(cmp::Ordering::Less);
     }
 
     <span class="kw">match </span>(x, y) {
@@ -7159,41 +7161,41 @@
         (JsValue::Rational(x), JsValue::Rational(y)) =&gt; {
             <span class="comment">// 3. If x and y are both NaN, return +0𝔽.
             </span><span class="kw">if </span>x.is_nan() &amp;&amp; y.is_nan() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Equal);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(cmp::Ordering::Equal);
             }
 
             <span class="comment">// 4. If x is NaN, return 1𝔽.
             </span><span class="kw">if </span>x.is_nan() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Greater);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(cmp::Ordering::Greater);
             }
 
             <span class="comment">// 5. If y is NaN, return -1𝔽.
             </span><span class="kw">if </span>y.is_nan() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Less);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(cmp::Ordering::Less);
             }
 
             <span class="comment">// 6. If x &lt; y, return -1𝔽.
             </span><span class="kw">if </span>x &lt; y {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Less);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(cmp::Ordering::Less);
             }
 
             <span class="comment">// 7. If x &gt; y, return 1𝔽.
             </span><span class="kw">if </span>x &gt; y {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Greater);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(cmp::Ordering::Greater);
             }
 
             <span class="comment">// 8. If x is -0𝔽 and y is +0𝔽, return -1𝔽.
             </span><span class="kw">if </span>x.is_sign_negative() &amp;&amp; x.is_zero() &amp;&amp; y.is_sign_positive() &amp;&amp; y.is_zero() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Less);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(cmp::Ordering::Less);
             }
 
             <span class="comment">// 9. If x is +0𝔽 and y is -0𝔽, return 1𝔽.
             </span><span class="kw">if </span>x.is_sign_positive() &amp;&amp; x.is_zero() &amp;&amp; y.is_sign_negative() &amp;&amp; y.is_zero() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Greater);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(cmp::Ordering::Greater);
             }
 
             <span class="comment">// 10. Return +0𝔽.
-            </span><span class="prelude-val">Ok</span>(Ordering::Equal)
+            </span><span class="prelude-val">Ok</span>(cmp::Ordering::Equal)
         }
         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;x and y must be both Numbers or BigInts&quot;</span>),
     }

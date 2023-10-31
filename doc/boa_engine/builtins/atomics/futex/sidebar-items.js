@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["AtomicsWaitResult"],"fn":["notify","wait"],"static":["CRITICAL_SECTION"],"struct":["FutexWaiter","FutexWaiterAdapter","FutexWaiters"]};

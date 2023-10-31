@@ -1021,6 +1021,26 @@
 <a href="#1021" id="1021">1021</a>
 <a href="#1022" id="1022">1022</a>
 <a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
@@ -1108,6 +1128,7 @@
 };
 <span class="kw">use </span>colored::Colorize;
 <span class="kw">use </span>edition::SpecEdition;
+<span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>read::ErrorType;
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>serde::{
@@ -1118,7 +1139,10 @@
     ops::{Add, AddAssign},
     path::{Path, PathBuf},
     process::Command,
+    time::Instant,
 };
+
+<span class="kw">static </span>START: Lazy&lt;Instant&gt; = Lazy::new(Instant::now);
 
 <span class="doccomment">/// Structure that contains the configuration of the tester.
 </span><span class="attr">#[derive(Debug, Deserialize)]
@@ -1239,6 +1263,10 @@
         <span class="doccomment">/// Displays the conformance results per ECMAScript edition.
         </span><span class="attr">#[arg(long)]
         </span>versioned: bool,
+
+        <span class="doccomment">/// Injects the `Console` object into every context created.
+        </span><span class="attr">#[arg(long)]
+        </span>console: bool,
     },
     <span class="doccomment">/// Compare two test suite results.
     </span>Compare {
@@ -1260,6 +1288,8 @@
 
 <span class="doccomment">/// Program entry point.
 </span><span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="comment">// initializes the monotonic clock.
+    </span>Lazy::force(<span class="kw-2">&amp;</span>START);
     color_eyre::install()<span class="question-mark">?</span>;
     <span class="kw">match </span>Cli::parse() {
         Cli::Run {
@@ -1273,6 +1303,7 @@
             config: config_path,
             edition,
             versioned,
+            console,
         } =&gt; {
             <span class="kw">let </span>config: Config = {
                 <span class="kw">let </span>input = std::fs::read_to_string(config_path)<span class="question-mark">?</span>;
@@ -1306,6 +1337,7 @@
                 } <span class="kw">else </span>{
                     OptimizerOptions::empty()
                 },
+                console,
             )
         }
         Cli::Compare {
@@ -1464,6 +1496,7 @@
     edition: SpecEdition,
     versioned: bool,
     optimizer_options: OptimizerOptions,
+    console: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = output {
         <span class="kw">if </span>path.exists() {
@@ -1490,7 +1523,7 @@
             <span class="kw">if </span>verbose != <span class="number">0 </span>{
                 <span class="macro">println!</span>(<span class="string">&quot;Test loaded, starting...&quot;</span>);
             }
-            test.run(<span class="kw-2">&amp;</span>harness, verbose, optimizer_options);
+            test.run(<span class="kw-2">&amp;</span>harness, verbose, optimizer_options, console);
         } <span class="kw">else </span>{
             <span class="macro">println!</span>(
                 <span class="string">&quot;Minimum spec edition of test is bigger than the specified edition. Skipping.&quot;
@@ -1508,7 +1541,14 @@
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(<span class="string">&quot;Test suite loaded, starting tests...&quot;</span>);
         }
-        <span class="kw">let </span>results = suite.run(<span class="kw-2">&amp;</span>harness, verbose, parallel, edition, optimizer_options);
+        <span class="kw">let </span>results = suite.run(
+            <span class="kw-2">&amp;</span>harness,
+            verbose,
+            parallel,
+            edition,
+            optimizer_options,
+            console,
+        );
 
         <span class="kw">if </span>versioned {
             <span class="kw">let </span><span class="kw-2">mut </span>table = comfy_table::Table::new();

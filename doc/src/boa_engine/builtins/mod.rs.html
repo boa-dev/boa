@@ -1020,6 +1020,10 @@
 <a href="#1020" id="1020">1020</a>
 <a href="#1021" id="1021">1021</a>
 <a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
 </span><span class="kw">pub mod </span>array;
@@ -1027,6 +1031,7 @@
 <span class="kw">pub mod </span>async_function;
 <span class="kw">pub mod </span>async_generator;
 <span class="kw">pub mod </span>async_generator_function;
+<span class="kw">pub mod </span>atomics;
 <span class="kw">pub mod </span>bigint;
 <span class="kw">pub mod </span>boolean;
 <span class="kw">pub mod </span>dataview;
@@ -1108,6 +1113,7 @@
         array_buffer::{ArrayBuffer, SharedArrayBuffer},
         async_generator::AsyncGenerator,
         async_generator_function::AsyncGeneratorFunction,
+        atomics::Atomics,
         error::r#type::ThrowTypeError,
         generator::Generator,
         generator_function::GeneratorFunction,
@@ -1285,6 +1291,7 @@
         WeakRef::init(<span class="self">self</span>);
         WeakMap::init(<span class="self">self</span>);
         WeakSet::init(<span class="self">self</span>);
+        Atomics::init(<span class="self">self</span>);
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
         </span>{
@@ -1410,6 +1417,7 @@
     global_binding::&lt;WeakRef&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;WeakMap&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;WeakSet&gt;(context)<span class="question-mark">?</span>;
+    global_binding::&lt;Atomics&gt;(context)<span class="question-mark">?</span>;
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
     </span>{

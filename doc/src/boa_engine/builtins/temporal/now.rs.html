@@ -198,12 +198,12 @@
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
+    sys::time::SystemTime,
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use super</span>::{ns_max_instant, ns_min_instant};
-<span class="kw">use </span>std::time::SystemTime;
 
 <span class="doccomment">/// JavaScript `Temporal.Now` object.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

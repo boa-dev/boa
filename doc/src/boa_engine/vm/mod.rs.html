@@ -621,9 +621,9 @@
 <span class="kw">use </span>std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">use </span>boa_interner::ToInternedString;
+</span><span class="kw">use </span><span class="kw">crate</span>::sys::time::Instant;
 <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">use </span>std::time::Instant;
+</span><span class="kw">use </span>boa_interner::ToInternedString;
 
 <span class="kw">mod </span>call_frame;
 <span class="kw">mod </span>code_block;

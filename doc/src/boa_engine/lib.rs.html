@@ -477,6 +477,8 @@
 <a href="#477" id="477">477</a>
 <a href="#478" id="478">478</a>
 <a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -630,6 +632,8 @@
 <span class="kw">pub mod </span>vm;
 
 <span class="kw">mod </span>host_defined;
+<span class="kw">mod </span>small_map;
+<span class="kw">mod </span>sys;
 <span class="kw">mod </span>tagged;
 
 <span class="attr">#[cfg(test)]

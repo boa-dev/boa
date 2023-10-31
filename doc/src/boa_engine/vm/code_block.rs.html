@@ -1048,7 +1048,6 @@
 <a href="#1048" id="1048">1048</a>
 <a href="#1049" id="1049">1049</a>
 <a href="#1050" id="1050">1050</a>
-<a href="#1051" id="1051">1051</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1174,7 +1173,6 @@
     BigInt(<span class="attr">#[unsafe_ignore_trace] </span>JsBigInt),
 
     <span class="doccomment">/// Compile time environments in this function.
-    ///
     </span><span class="comment">// Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
     //
     // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.
