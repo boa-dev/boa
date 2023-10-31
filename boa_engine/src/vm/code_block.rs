@@ -123,7 +123,6 @@ pub(crate) enum Constant {
     BigInt(#[unsafe_ignore_trace] JsBigInt),
 
     /// Compile time environments in this function.
-    ///
     // Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
     //
     // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.

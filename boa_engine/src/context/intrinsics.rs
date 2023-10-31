@@ -1043,6 +1043,9 @@ pub struct IntrinsicObjects {
     /// [`%AsyncGeneratorFunction.prototype.prototype%`](https://tc39.es/ecma262/#sec-properties-of-asyncgenerator-prototype)
     async_generator: JsObject,
 
+    /// [`%Atomics%`](https://tc39.es/ecma262/#sec-atomics)
+    atomics: JsObject,
+
     /// [`%eval%`](https://tc39.es/ecma262/#sec-eval-x)
     eval: JsFunction,
 
@@ -1098,6 +1101,7 @@ impl Default for IntrinsicObjects {
             iterator_prototypes: IteratorPrototypes::default(),
             generator: JsObject::default(),
             async_generator: JsObject::default(),
+            atomics: JsObject::default(),
             eval: JsFunction::empty_intrinsic_function(false),
             uri_functions: UriFunctions::default(),
             is_finite: JsFunction::empty_intrinsic_function(false),
@@ -1164,13 +1168,22 @@ impl IntrinsicObjects {
         self.generator.clone()
     }
 
-    /// Gets the [`%AsyncGeneratorFunction.prototype.prototype%`] intrinsic object.
+    /// Gets the [`%AsyncGeneratorFunction.prototype.prototype%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
     #[inline]
     #[must_use]
     pub fn async_generator(&self) -> JsObject {
         self.async_generator.clone()
+    }
+
+    /// Gets the [`%Atomics%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-atomics
+    #[inline]
+    #[must_use]
+    pub fn atomics(&self) -> JsObject {
+        self.atomics.clone()
     }
 
     /// Gets the [`%eval%`][spec] intrinsic function.

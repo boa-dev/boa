@@ -35,7 +35,7 @@ mod element;
 mod integer_indexed_object;
 
 pub(crate) use builtin::{is_valid_integer_index, BuiltinTypedArray};
-pub(crate) use element::{ClampedU8, Element};
+pub(crate) use element::{Atomic, ClampedU8, Element};
 pub use integer_indexed_object::IntegerIndexed;
 
 pub(crate) trait TypedArray {
@@ -399,6 +399,29 @@ impl TypedArrayKind {
         }
     }
 
+    /// Returns `true` if this kind of typed array supports `Atomics` operations
+    ///
+    /// Equivalent to `IsUnclampedIntegerElementType(type) is true || IsBigIntElementType(type) is true`.
+    pub(crate) fn supports_atomic_ops(self) -> bool {
+        match self {
+            TypedArrayKind::Int8
+            | TypedArrayKind::Uint8
+            | TypedArrayKind::Int16
+            | TypedArrayKind::Uint16
+            | TypedArrayKind::Int32
+            | TypedArrayKind::Uint32
+            | TypedArrayKind::BigInt64
+            | TypedArrayKind::BigUint64 => true,
+            // `f32` and `f64` support atomic operations on certain platforms, but it's not common and
+            // could require polyfilling the operations using CAS.
+            // `u8` clamps to the limits, which atomic operations don't support since
+            // they always overflow.
+            TypedArrayKind::Uint8Clamped | TypedArrayKind::Float32 | TypedArrayKind::Float64 => {
+                false
+            }
+        }
+    }
+
     /// Gets the size of the type of element of this `TypedArrayKind`.
     pub(crate) const fn element_size(self) -> u64 {
         match self {
@@ -475,6 +498,29 @@ pub(crate) enum TypedArrayElement {
     BigUint64(u64),
     Float32(f32),
     Float64(f64),
+}
+
+impl TypedArrayElement {
+    /// Converts the element into its extended bytes representation as a `u64`.
+    ///
+    /// This is guaranteed to never fail, since all numeric types supported by JS are less than
+    /// 8 bytes long.
+    pub(crate) fn to_bytes(self) -> u64 {
+        #[allow(clippy::cast_lossless)]
+        match self {
+            TypedArrayElement::Int8(num) => num as u64,
+            TypedArrayElement::Uint8(num) => num as u64,
+            TypedArrayElement::Uint8Clamped(num) => num.0 as u64,
+            TypedArrayElement::Int16(num) => num as u64,
+            TypedArrayElement::Uint16(num) => num as u64,
+            TypedArrayElement::Int32(num) => num as u64,
+            TypedArrayElement::Uint32(num) => num as u64,
+            TypedArrayElement::BigInt64(num) => num as u64,
+            TypedArrayElement::BigUint64(num) => num,
+            TypedArrayElement::Float32(num) => num.to_bits() as u64,
+            TypedArrayElement::Float64(num) => num.to_bits(),
+        }
+    }
 }
 
 impl From<i8> for TypedArrayElement {

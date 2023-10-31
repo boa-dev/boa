@@ -14,7 +14,7 @@ pub use maybe_shared::MaybeShared;
 
 #[cfg(not(feature = "intl"))]
 pub use std::marker::PhantomData;
-use std::{io::Read, path::Path, rc::Rc};
+use std::{cell::Cell, io::Read, path::Path, rc::Rc};
 
 use crate::{
     builtins,
@@ -38,6 +38,10 @@ use boa_profiler::Profiler;
 use crate::vm::RuntimeLimits;
 
 use self::intrinsics::StandardConstructor;
+
+thread_local! {
+    static CANNOT_BLOCK_COUNTER: Cell<u64> = Cell::new(0);
+}
 
 /// ECMAScript context. It is the primary way to interact with the runtime.
 ///
@@ -98,6 +102,8 @@ pub struct Context<'host> {
 
     pub(crate) kept_alive: Vec<JsObject>,
 
+    can_block: bool,
+
     /// ICU related utilities
     #[cfg(feature = "intl")]
     icu: icu::Icu<'host>,
@@ -132,7 +138,15 @@ impl std::fmt::Debug for Context<'_> {
         #[cfg(feature = "intl")]
         debug.field("icu", &self.icu);
 
-        debug.finish()
+        debug.finish_non_exhaustive()
+    }
+}
+
+impl Drop for Context<'_> {
+    fn drop(&mut self) {
+        if !self.can_block {
+            CANNOT_BLOCK_COUNTER.set(CANNOT_BLOCK_COUNTER.get() - 1);
+        }
     }
 }
 
@@ -568,6 +582,13 @@ impl<'host> Context<'host> {
     pub fn runtime_limits_mut(&mut self) -> &mut RuntimeLimits {
         &mut self.vm.runtime_limits
     }
+
+    /// Returns `true` if this context can be suspended by an `Atomics.wait` call.
+    #[inline]
+    #[must_use]
+    pub fn can_block(&self) -> bool {
+        self.can_block
+    }
 }
 
 // ==== Private API ====
@@ -844,6 +865,7 @@ pub struct ContextBuilder<'icu, 'hooks, 'queue, 'module> {
     host_hooks: Option<MaybeShared<'hooks, dyn HostHooks>>,
     job_queue: Option<MaybeShared<'queue, dyn JobQueue>>,
     module_loader: Option<MaybeShared<'module, dyn ModuleLoader>>,
+    can_block: bool,
     #[cfg(feature = "intl")]
     icu: Option<icu::Icu<'icu>>,
     #[cfg(not(feature = "intl"))]
@@ -869,7 +891,8 @@ impl std::fmt::Debug for ContextBuilder<'_, '_, '_, '_> {
             .field(
                 "module_loader",
                 &self.module_loader.as_ref().map(|_| ModuleLoader),
-            );
+            )
+            .field("can_block", &self.can_block);
 
         #[cfg(feature = "intl")]
         out.field("icu", &self.icu);
@@ -971,6 +994,27 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
         }
     }
 
+    /// [`AgentCanSuspend ( )`][spec] aka `[[CanBlock]]`
+    ///
+    /// Defines if this context can be suspended by calls to the [`Atomics.wait`][wait] function.
+    ///
+    /// # Note
+    ///
+    /// By the specification, multiple agents cannot share the same thread if any of them has its
+    /// `[[CanBlock]]` field set to true. The builder will verify at build time that all contexts on
+    /// the current thread fulfill this requisite.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-agentcansuspend
+    /// [wait]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/wait
+    #[must_use]
+    pub const fn can_block(
+        mut self,
+        can_block: bool,
+    ) -> ContextBuilder<'icu, 'hooks, 'queue, 'module> {
+        self.can_block = can_block;
+        self
+    }
+
     /// Specifies the number of instructions remaining to the [`Context`].
     ///
     /// This function is only available if the `fuzz` feature is enabled.
@@ -992,6 +1036,18 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
         'queue: 'host,
         'module: 'host,
     {
+        if self.can_block {
+            if CANNOT_BLOCK_COUNTER.get() > 0 {
+                return Err(JsNativeError::typ()
+                    .with_message(
+                        "a context that can block must be the only active context in its current thread",
+                    )
+                    .into());
+            }
+        } else {
+            CANNOT_BLOCK_COUNTER.set(CANNOT_BLOCK_COUNTER.get() + 1);
+        }
+
         let root_shape = RootShape::default();
 
         let host_hooks = self.host_hooks.unwrap_or_else(|| {
@@ -1038,6 +1094,7 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
             parser_identifier: 0,
+            can_block: self.can_block,
         };
 
         builtins::set_default_global_bindings(&mut context)?;

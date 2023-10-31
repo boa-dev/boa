@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, ptr, sync::atomic};
+use std::{cmp, ptr, sync::atomic};
 
 use boa_gc::GcRef;
 use boa_macros::utf16;
@@ -2204,6 +2204,7 @@ impl BuiltinTypedArray {
                     .expect("value can only be f64 or BigInt");
 
                 // ii. Perform SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true, Unordered).
+                // SAFETY: previous checks preserve the validity  of the indices.
                 unsafe {
                     target_buffer
                         .subslice_mut(target_byte_index..)
@@ -2584,7 +2585,7 @@ impl BuiltinTypedArray {
         // 5. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.30.
         // 6. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         let sort_compare =
-            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<Ordering> {
+            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<cmp::Ordering> {
                 // a. Return ? CompareTypedArrayElements(x, y, comparefn).
                 compare_typed_array_elements(x, y, compare_fn, context)
             };
@@ -2652,7 +2653,7 @@ impl BuiltinTypedArray {
         // 6. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.34.
         // 7. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         let sort_compare =
-            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<Ordering> {
+            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<cmp::Ordering> {
                 // a. Return ? CompareTypedArrayElements(x, y, comparefn).
                 compare_typed_array_elements(x, y, compare_fn, context)
             };
@@ -3501,7 +3502,7 @@ fn compare_typed_array_elements(
     y: &JsValue,
     compare_fn: Option<&JsObject>,
     context: &mut Context<'_>,
-) -> JsResult<Ordering> {
+) -> JsResult<cmp::Ordering> {
     // 1. Assert: x is a Number and y is a Number, or x is a BigInt and y is a BigInt.
 
     // 2. If comparefn is not undefined, then
@@ -3513,14 +3514,14 @@ fn compare_typed_array_elements(
 
         // b. If v is NaN, return +0𝔽.
         if v.is_nan() {
-            return Ok(Ordering::Equal);
+            return Ok(cmp::Ordering::Equal);
         }
 
         // c. Return v.
         if v.is_sign_positive() {
-            return Ok(Ordering::Greater);
+            return Ok(cmp::Ordering::Greater);
         }
-        return Ok(Ordering::Less);
+        return Ok(cmp::Ordering::Less);
     }
 
     match (x, y) {
@@ -3541,41 +3542,41 @@ fn compare_typed_array_elements(
         (JsValue::Rational(x), JsValue::Rational(y)) => {
             // 3. If x and y are both NaN, return +0𝔽.
             if x.is_nan() && y.is_nan() {
-                return Ok(Ordering::Equal);
+                return Ok(cmp::Ordering::Equal);
             }
 
             // 4. If x is NaN, return 1𝔽.
             if x.is_nan() {
-                return Ok(Ordering::Greater);
+                return Ok(cmp::Ordering::Greater);
             }
 
             // 5. If y is NaN, return -1𝔽.
             if y.is_nan() {
-                return Ok(Ordering::Less);
+                return Ok(cmp::Ordering::Less);
             }
 
             // 6. If x < y, return -1𝔽.
             if x < y {
-                return Ok(Ordering::Less);
+                return Ok(cmp::Ordering::Less);
             }
 
             // 7. If x > y, return 1𝔽.
             if x > y {
-                return Ok(Ordering::Greater);
+                return Ok(cmp::Ordering::Greater);
             }
 
             // 8. If x is -0𝔽 and y is +0𝔽, return -1𝔽.
             if x.is_sign_negative() && x.is_zero() && y.is_sign_positive() && y.is_zero() {
-                return Ok(Ordering::Less);
+                return Ok(cmp::Ordering::Less);
             }
 
             // 9. If x is +0𝔽 and y is -0𝔽, return 1𝔽.
             if x.is_sign_positive() && x.is_zero() && y.is_sign_negative() && y.is_zero() {
-                return Ok(Ordering::Greater);
+                return Ok(cmp::Ordering::Greater);
             }
 
             // 10. Return +0𝔽.
-            Ok(Ordering::Equal)
+            Ok(cmp::Ordering::Equal)
         }
         _ => unreachable!("x and y must be both Numbers or BigInts"),
     }

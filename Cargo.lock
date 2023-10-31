@@ -127,6 +127,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "arrayvec"
+version = "0.7.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96d30a06541fbafbc7f82ed10c06164cfbd2c401138f6addd8404629c4b16711"
+
+[[package]]
 name = "async-channel"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -382,6 +388,7 @@ dependencies = [
 name = "boa_engine"
 version = "0.17.0"
 dependencies = [
+ "arrayvec",
  "bitflags 2.4.1",
  "boa_ast",
  "boa_gc",
@@ -391,6 +398,7 @@ dependencies = [
  "boa_parser",
  "boa_profiler",
  "bytemuck",
+ "cfg-if",
  "chrono",
  "criterion",
  "dashmap",
@@ -411,6 +419,7 @@ dependencies = [
  "icu_segmenter",
  "indexmap 2.0.2",
  "indoc",
+ "intrusive-collections",
  "itertools 0.11.0",
  "jemallocator",
  "num-bigint",
@@ -434,6 +443,7 @@ dependencies = [
  "textwrap",
  "thin-vec",
  "thiserror",
+ "web-time",
  "writeable",
  "yoke",
  "zerofrom",
@@ -556,6 +566,8 @@ dependencies = [
  "bitflags 2.4.1",
  "boa_engine",
  "boa_gc",
+ "boa_runtime",
+ "bus",
  "clap",
  "color-eyre",
  "colored",
@@ -588,6 +600,17 @@ name = "bumpalo"
 version = "3.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f30e7476521f6f8af1a1c4c0b8cc94f0bee37d91763d0ca2665f299b6cd8aec"
+
+[[package]]
+name = "bus"
+version = "2.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b7118d0221d84fada881b657c2ddb7cd55108db79c8764c9ee212c0c259b783"
+dependencies = [
+ "crossbeam-channel",
+ "num_cpus",
+ "parking_lot_core 0.9.9",
+]
 
 [[package]]
 name = "bytecheck"
@@ -925,6 +948,16 @@ name = "critical-section"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7059fff8937831a9ae6f0fe4d658ffabf58f2ca96aa9dec1c889f936f705f216"
+
+[[package]]
+name = "crossbeam-channel"
+version = "0.5.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a33c2bf77f2df06183c3aa30d1e96c0695a313d4f9c453cc3762a6db39f99200"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils",
+]
 
 [[package]]
 name = "crossbeam-deque"
@@ -1997,6 +2030,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "intrusive-collections"
+version = "0.9.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b694dc9f70c3bda874626d2aed13b780f137aab435f4e9814121955cf706122e"
+dependencies = [
+ "memoffset 0.9.0",
+]
+
+[[package]]
 name = "io-lifetimes"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2335,6 +2377,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39e3200413f237f41ab11ad6d161bc7239c84dcb631773ccd7de3dfe4b5c267c"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "num_cpus"
+version = "1.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4161fcb6d602d4d2081af7c3a45852d875a03dd337a6bfdd6e06407b61342a43"
+dependencies = [
+ "hermit-abi",
+ "libc",
 ]
 
 [[package]]
@@ -4254,6 +4306,16 @@ name = "web-sys"
 version = "0.3.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b85cbef8c220a6abc02aefd892dfc0fc23afb1c6a426316ec33253a3877249b"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "web-time"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8208e3fdbc243c8fd30805721869242a7f6de3e2e9f3b057652ab36e52ae1e87"
 dependencies = [
  "js-sys",
  "wasm-bindgen",

@@ -22,8 +22,6 @@ impl IntegerOrInfinity {
     /// Panics if `min > max`.
     #[must_use]
     pub fn clamp_finite(self, min: i64, max: i64) -> i64 {
-        assert!(min <= max);
-
         match self {
             Self::Integer(i) => i.clamp(min, max),
             Self::PositiveInfinity => max,
