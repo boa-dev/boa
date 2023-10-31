@@ -3076,37 +3076,6 @@
 <a href="#3076" id="3076">3076</a>
 <a href="#3077" id="3077">3077</a>
 <a href="#3078" id="3078">3078</a>
-<a href="#3079" id="3079">3079</a>
-<a href="#3080" id="3080">3080</a>
-<a href="#3081" id="3081">3081</a>
-<a href="#3082" id="3082">3082</a>
-<a href="#3083" id="3083">3083</a>
-<a href="#3084" id="3084">3084</a>
-<a href="#3085" id="3085">3085</a>
-<a href="#3086" id="3086">3086</a>
-<a href="#3087" id="3087">3087</a>
-<a href="#3088" id="3088">3088</a>
-<a href="#3089" id="3089">3089</a>
-<a href="#3090" id="3090">3090</a>
-<a href="#3091" id="3091">3091</a>
-<a href="#3092" id="3092">3092</a>
-<a href="#3093" id="3093">3093</a>
-<a href="#3094" id="3094">3094</a>
-<a href="#3095" id="3095">3095</a>
-<a href="#3096" id="3096">3096</a>
-<a href="#3097" id="3097">3097</a>
-<a href="#3098" id="3098">3098</a>
-<a href="#3099" id="3099">3099</a>
-<a href="#3100" id="3100">3100</a>
-<a href="#3101" id="3101">3101</a>
-<a href="#3102" id="3102">3102</a>
-<a href="#3103" id="3103">3103</a>
-<a href="#3104" id="3104">3104</a>
-<a href="#3105" id="3105">3105</a>
-<a href="#3106" id="3106">3106</a>
-<a href="#3107" id="3107">3107</a>
-<a href="#3108" id="3108">3108</a>
-<a href="#3109" id="3109">3109</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -3413,9 +3382,6 @@
     <span class="doccomment">/// The `AsyncGenerator` object kind.
     </span>AsyncGenerator(AsyncGenerator),
 
-    <span class="doccomment">/// The `AsyncGeneratorFunction` object kind.
-    </span>AsyncGeneratorFunction(OrdinaryFunction),
-
     <span class="doccomment">/// The `Array` object kind.
     </span>Array,
 
@@ -3460,9 +3426,6 @@
 
     <span class="doccomment">/// The `Generator` object kind.
     </span>Generator(Generator),
-
-    <span class="doccomment">/// The `GeneratorFunction` object kind.
-    </span>GeneratorFunction(OrdinaryFunction),
 
     <span class="doccomment">/// A native rust function.
     </span>NativeFunction(NativeFunctionObject),
@@ -3607,7 +3570,7 @@
             <span class="self">Self</span>::RegExpStringIterator(i) =&gt; mark(i),
             <span class="self">Self</span>::DataView(v) =&gt; mark(v),
             <span class="self">Self</span>::ForInIterator(i) =&gt; mark(i),
-            <span class="self">Self</span>::OrdinaryFunction(f) | <span class="self">Self</span>::GeneratorFunction(f) | <span class="self">Self</span>::AsyncGeneratorFunction(f) =&gt; mark(f),
+            <span class="self">Self</span>::OrdinaryFunction(f) =&gt; mark(f),
             <span class="self">Self</span>::BoundFunction(f) =&gt; mark(f),
             <span class="self">Self</span>::Generator(g) =&gt; mark(g),
             <span class="self">Self</span>::NativeFunction(f) =&gt; mark(f),
@@ -3688,15 +3651,6 @@
         <span class="self">Self </span>{
             kind: ObjectKind::AsyncGenerator(async_generator),
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    <span class="doccomment">/// Create the `AsyncGeneratorFunction` object data
-    </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>async_generator_function(function: OrdinaryFunction) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            internal_methods: <span class="kw-2">&amp;</span>FUNCTION_INTERNAL_METHODS,
-            kind: ObjectKind::GeneratorFunction(function),
         }
     }
 
@@ -3866,15 +3820,6 @@
         <span class="self">Self </span>{
             kind: ObjectKind::Generator(generator),
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    <span class="doccomment">/// Create the `GeneratorFunction` object data
-    </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>generator_function(function: OrdinaryFunction) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            internal_methods: <span class="kw-2">&amp;</span>FUNCTION_INTERNAL_METHODS,
-            kind: ObjectKind::GeneratorFunction(function),
         }
     }
 
@@ -4225,7 +4170,6 @@
         f.write_str(<span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::AsyncFromSyncIterator(<span class="kw">_</span>) =&gt; <span class="string">&quot;AsyncFromSyncIterator&quot;</span>,
             <span class="self">Self</span>::AsyncGenerator(<span class="kw">_</span>) =&gt; <span class="string">&quot;AsyncGenerator&quot;</span>,
-            <span class="self">Self</span>::AsyncGeneratorFunction(<span class="kw">_</span>) =&gt; <span class="string">&quot;AsyncGeneratorFunction&quot;</span>,
             <span class="self">Self</span>::Array =&gt; <span class="string">&quot;Array&quot;</span>,
             <span class="self">Self</span>::ArrayIterator(<span class="kw">_</span>) =&gt; <span class="string">&quot;ArrayIterator&quot;</span>,
             <span class="self">Self</span>::ArrayBuffer(<span class="kw">_</span>) =&gt; <span class="string">&quot;ArrayBuffer&quot;</span>,
@@ -4234,7 +4178,6 @@
             <span class="self">Self</span>::OrdinaryFunction(<span class="kw">_</span>) =&gt; <span class="string">&quot;Function&quot;</span>,
             <span class="self">Self</span>::BoundFunction(<span class="kw">_</span>) =&gt; <span class="string">&quot;BoundFunction&quot;</span>,
             <span class="self">Self</span>::Generator(<span class="kw">_</span>) =&gt; <span class="string">&quot;Generator&quot;</span>,
-            <span class="self">Self</span>::GeneratorFunction(<span class="kw">_</span>) =&gt; <span class="string">&quot;GeneratorFunction&quot;</span>,
             <span class="self">Self</span>::NativeFunction { .. } =&gt; <span class="string">&quot;NativeFunction&quot;</span>,
             <span class="self">Self</span>::RegExp(<span class="kw">_</span>) =&gt; <span class="string">&quot;RegExp&quot;</span>,
             <span class="self">Self</span>::RegExpStringIterator(<span class="kw">_</span>) =&gt; <span class="string">&quot;RegExpStringIterator&quot;</span>,
@@ -4624,10 +4567,7 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub const fn </span>is_ordinary_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>.kind,
-            ObjectKind::OrdinaryFunction(<span class="kw">_</span>) | ObjectKind::GeneratorFunction(<span class="kw">_</span>)
-        )
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, ObjectKind::OrdinaryFunction(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Gets the function data if the object is a `Function`.
@@ -4635,8 +4575,7 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>as_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OrdinaryFunction&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind {
-            ObjectKind::OrdinaryFunction(<span class="kw-2">ref </span>function)
-            | ObjectKind::GeneratorFunction(<span class="kw-2">ref </span>function) =&gt; <span class="prelude-val">Some</span>(function),
+            ObjectKind::OrdinaryFunction(<span class="kw-2">ref </span>function) =&gt; <span class="prelude-val">Some</span>(function),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -4645,8 +4584,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_function_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>OrdinaryFunction&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind {
-            ObjectKind::OrdinaryFunction(<span class="kw-2">ref mut </span>function)
-            | ObjectKind::GeneratorFunction(<span class="kw-2">ref mut </span>function) =&gt; <span class="prelude-val">Some</span>(function),
+            ObjectKind::OrdinaryFunction(<span class="kw-2">ref mut </span>function) =&gt; <span class="prelude-val">Some</span>(function),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }

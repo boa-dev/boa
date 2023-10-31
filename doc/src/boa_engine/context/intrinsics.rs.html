@@ -1717,6 +1717,38 @@
 <a href="#1717" id="1717">1717</a>
 <a href="#1718" id="1718">1718</a>
 <a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a>
+<a href="#1736" id="1736">1736</a>
+<a href="#1737" id="1737">1737</a>
+<a href="#1738" id="1738">1738</a>
+<a href="#1739" id="1739">1739</a>
+<a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -3067,6 +3099,8 @@
 
     function: ObjectTemplate,
     async_function: ObjectTemplate,
+    generator_function: ObjectTemplate,
+    async_generator_function: ObjectTemplate,
 
     function_without_proto: ObjectTemplate,
     function_with_prototype_without_proto: ObjectTemplate,
@@ -3129,12 +3163,16 @@
             PROTOTYPE.into(),
             Attribute::WRITABLE | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
         );
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_function = function_with_prototype.clone();
+        <span class="kw">let </span><span class="kw-2">mut </span>async_generator_function = function_with_prototype.clone();
 
         <span class="kw">let </span>function_with_prototype_without_proto = function_with_prototype.clone();
 
         function.set_prototype(constructors.function().prototype());
         function_with_prototype.set_prototype(constructors.function().prototype());
         async_function.set_prototype(constructors.async_function().prototype());
+        generator_function.set_prototype(constructors.generator_function().prototype());
+        async_generator_function.set_prototype(constructors.async_generator_function().prototype());
 
         <span class="kw">let </span><span class="kw-2">mut </span>function_prototype = ordinary_object.clone();
         function_prototype.property(
@@ -3223,6 +3261,8 @@
             function_prototype,
             function,
             async_function,
+            generator_function,
+            async_generator_function,
             function_without_proto,
             function_with_prototype_without_proto,
             namespace,
@@ -3392,6 +3432,30 @@
     /// 3. `__proto__`: `AsyncFunction.prototype`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>async_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.async_function
+    }
+
+    <span class="doccomment">/// Cached function object property template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `&quot;length&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `&quot;name&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `&quot;prototype&quot;`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
+    /// 4. `__proto__`: `GeneratorFunction.prototype`
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.generator_function
+    }
+
+    <span class="doccomment">/// Cached function object property template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `&quot;length&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `&quot;name&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `&quot;prototype&quot;`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
+    /// 4. `__proto__`: `AsyncGeneratorFunction.prototype`
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>async_generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.async_generator_function
     }
 
     <span class="doccomment">/// Cached function object without `__proto__` template.

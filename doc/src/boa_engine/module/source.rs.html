@@ -1969,14 +1969,6 @@
 <a href="#1969" id="1969">1969</a>
 <a href="#1970" id="1970">1970</a>
 <a href="#1971" id="1971">1971</a>
-<a href="#1972" id="1972">1972</a>
-<a href="#1973" id="1973">1973</a>
-<a href="#1974" id="1974">1974</a>
-<a href="#1975" id="1975">1975</a>
-<a href="#1976" id="1976">1976</a>
-<a href="#1977" id="1977">1977</a>
-<a href="#1978" id="1978">1978</a>
-<a href="#1979" id="1979">1979</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -2007,8 +1999,8 @@
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
     realm::Realm,
     vm::{
-        create_function_object_fast, create_generator_function_object, ActiveRunnable, CallFrame,
-        CallFrameFlags, CodeBlock, CodeBlockFlags, CompletionRecord, Opcode,
+        create_function_object_fast, ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock,
+        CodeBlockFlags, CompletionRecord, Opcode,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
@@ -3562,11 +3554,7 @@
             // are correctly resolved to the outer functions instead of as global bindings.
             </span><span class="kw">let </span>functions = functions
                 .into_iter()
-                .map(|(spec, locator)| {
-                    <span class="kw">let </span>kind = spec.kind;
-
-                    (compiler.function(spec), locator, kind)
-                })
+                .map(|(spec, locator)| (compiler.function(spec), locator))
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
             compiler.compile_module_item_list(<span class="self">self</span>.inner.code.source.items());
@@ -3635,14 +3623,10 @@
         }
 
         <span class="comment">// deferred initialization of function exports
-        </span><span class="kw">for </span>(index, locator, kind) <span class="kw">in </span>functions {
+        </span><span class="kw">for </span>(index, locator) <span class="kw">in </span>functions {
             <span class="kw">let </span>code = codeblock.constant_function(index <span class="kw">as </span>usize);
 
-            <span class="kw">let </span>function = <span class="kw">if </span>kind.is_generator() {
-                create_generator_function_object(code, <span class="prelude-val">None</span>, context)
-            } <span class="kw">else </span>{
-                create_function_object_fast(code, <span class="bool-val">false</span>, context)
-            };
+            <span class="kw">let </span>function = create_function_object_fast(code, context);
 
             context.vm.environments.put_lexical_value(
                 locator.environment_index(),

@@ -177,6 +177,14 @@
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
@@ -199,6 +207,7 @@
     r#async: bool,
     strict: bool,
     arrow: bool,
+    method: bool,
     binding_identifier: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
 }
 
@@ -211,6 +220,7 @@
             r#async: <span class="bool-val">false</span>,
             strict: <span class="bool-val">false</span>,
             arrow: <span class="bool-val">false</span>,
+            method: <span class="bool-val">false</span>,
             binding_identifier: <span class="prelude-val">None</span>,
         }
     }
@@ -230,6 +240,11 @@
     <span class="doccomment">/// Indicate if the function is an arrow function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>arrow(<span class="kw-2">mut </span><span class="self">self</span>, arrow: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.arrow = arrow;
+        <span class="self">self
+    </span>}
+    <span class="doccomment">/// Indicate if the function is a method function.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>method(<span class="kw-2">mut </span><span class="self">self</span>, method: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.method = method;
         <span class="self">self
     </span>}
     <span class="doccomment">/// Indicate if the function is a generator function.
@@ -284,9 +299,10 @@
         compiler
             .code_block_flags
             .set(CodeBlockFlags::IS_GENERATOR, <span class="self">self</span>.generator);
-        compiler
-            .code_block_flags
-            .set(CodeBlockFlags::IS_ARROW, <span class="self">self</span>.arrow);
+        compiler.code_block_flags.set(
+            CodeBlockFlags::HAS_PROTOTYPE_PROPERTY,
+            !<span class="self">self</span>.arrow &amp;&amp; !<span class="self">self</span>.method,
+        );
 
         <span class="kw">if </span><span class="self">self</span>.arrow {
             compiler.this_mode = ThisMode::Lexical;

@@ -1477,34 +1477,6 @@
 <a href="#1477" id="1477">1477</a>
 <a href="#1478" id="1478">1478</a>
 <a href="#1479" id="1479">1479</a>
-<a href="#1480" id="1480">1480</a>
-<a href="#1481" id="1481">1481</a>
-<a href="#1482" id="1482">1482</a>
-<a href="#1483" id="1483">1483</a>
-<a href="#1484" id="1484">1484</a>
-<a href="#1485" id="1485">1485</a>
-<a href="#1486" id="1486">1486</a>
-<a href="#1487" id="1487">1487</a>
-<a href="#1488" id="1488">1488</a>
-<a href="#1489" id="1489">1489</a>
-<a href="#1490" id="1490">1490</a>
-<a href="#1491" id="1491">1491</a>
-<a href="#1492" id="1492">1492</a>
-<a href="#1493" id="1493">1493</a>
-<a href="#1494" id="1494">1494</a>
-<a href="#1495" id="1495">1495</a>
-<a href="#1496" id="1496">1496</a>
-<a href="#1497" id="1497">1497</a>
-<a href="#1498" id="1498">1498</a>
-<a href="#1499" id="1499">1499</a>
-<a href="#1500" id="1500">1500</a>
-<a href="#1501" id="1501">1501</a>
-<a href="#1502" id="1502">1502</a>
-<a href="#1503" id="1503">1503</a>
-<a href="#1504" id="1504">1504</a>
-<a href="#1505" id="1505">1505</a>
-<a href="#1506" id="1506">1506</a>
-<a href="#1507" id="1507">1507</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1806,6 +1778,7 @@
     ) -&gt; ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
+        code_block_flags |= CodeBlockFlags::HAS_PROTOTYPE_PROPERTY;
         <span class="self">Self </span>{
             function_name: name,
             length: <span class="number">0</span>,
@@ -2760,20 +2733,9 @@
         use_expr: bool,
     ) {
         <span class="kw">let </span>name = function.name;
-        <span class="kw">let </span>(generator, arrow) = (function.kind.is_generator(), function.kind.is_arrow());
 
         <span class="kw">let </span>index = <span class="self">self</span>.function(function);
-
-        <span class="kw">if </span>generator {
-            <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } <span class="kw">else if </span>arrow {
-            <span class="self">self</span>.emit(Opcode::GetArrowFunction, <span class="kw-2">&amp;</span>[Operand::Varying(index)]);
-        } <span class="kw">else </span>{
-            <span class="self">self</span>.emit(
-                Opcode::GetFunction,
-                <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
-            );
-        }
+        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetFunction, index);
 
         <span class="kw">match </span>node_kind {
             NodeKind::Declaration =&gt; {
@@ -2821,6 +2783,7 @@
             .r#async(r#async)
             .strict(<span class="self">self</span>.strict())
             .arrow(arrow)
+            .method(<span class="bool-val">true</span>)
             .binding_identifier(binding_identifier)
             .compile(
                 parameters,
@@ -2831,17 +2794,7 @@
             );
 
         <span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
-
-        <span class="kw">if </span>generator {
-            <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } <span class="kw">else if </span>arrow {
-            <span class="self">self</span>.emit(Opcode::GetArrowFunction, <span class="kw-2">&amp;</span>[Operand::Varying(index)]);
-        } <span class="kw">else </span>{
-            <span class="self">self</span>.emit(
-                Opcode::GetFunction,
-                <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">true</span>)],
-            );
-        }
+        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetFunction, index);
     }
 
     <span class="doccomment">/// Compile a class method AST Node into bytecode.
@@ -2875,6 +2828,7 @@
             .r#async(r#async)
             .strict(<span class="bool-val">true</span>)
             .arrow(arrow)
+            .method(<span class="bool-val">true</span>)
             .binding_identifier(binding_identifier)
             .compile(
                 parameters,
@@ -2885,17 +2839,7 @@
             );
 
         <span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
-
-        <span class="kw">if </span>generator {
-            <span class="self">self</span>.emit_with_varying_operand(Opcode::GetGenerator, index);
-        } <span class="kw">else if </span>arrow {
-            <span class="self">self</span>.emit(Opcode::GetArrowFunction, <span class="kw-2">&amp;</span>[Operand::Varying(index)]);
-        } <span class="kw">else </span>{
-            <span class="self">self</span>.emit(
-                Opcode::GetFunction,
-                <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">true</span>)],
-            );
-        }
+        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetFunction, index);
     }
 
     <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, callable: Callable&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool) {

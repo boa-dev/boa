@@ -587,21 +587,6 @@
 <a href="#587" id="587">587</a>
 <a href="#588" id="588">588</a>
 <a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, Operand};
 <span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode};
 <span class="kw">use </span>boa_ast::{
@@ -692,10 +677,7 @@
 
         <span class="kw">let </span>code = Gc::new(compiler.finish());
         <span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
-        <span class="self">self</span>.emit(
-            Opcode::GetFunction,
-            <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
-        );
+        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetFunction, index);
 
         <span class="self">self</span>.emit_opcode(Opcode::Dup);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = class.super_ref() {
@@ -905,10 +887,7 @@
 
                     <span class="kw">let </span>code = Gc::new(field_compiler.finish());
                     <span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
-                    <span class="self">self</span>.emit(
-                        Opcode::GetFunction,
-                        <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
-                    );
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::GetFunction, index);
                     <span class="self">self</span>.emit_opcode(Opcode::PushClassField);
                 }
                 ClassElement::PrivateFieldDefinition(name, field) =&gt; {
@@ -934,10 +913,7 @@
 
                     <span class="kw">let </span>code = Gc::new(field_compiler.finish());
                     <span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
-                    <span class="self">self</span>.emit(
-                        Opcode::GetFunction,
-                        <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
-                    );
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::GetFunction, index);
                     <span class="self">self</span>.emit_with_varying_operand(Opcode::PushClassFieldPrivate, name_index);
                 }
                 ClassElement::StaticFieldDefinition(name, field) =&gt; {
@@ -1158,10 +1134,7 @@
                 StaticElement::StaticBlock(code) =&gt; {
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
                     <span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
-                    <span class="self">self</span>.emit(
-                        Opcode::GetFunction,
-                        <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
-                    );
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::GetFunction, index);
                     <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
                     <span class="self">self</span>.emit_with_varying_operand(Opcode::Call, <span class="number">0</span>);
                     <span class="self">self</span>.emit_opcode(Opcode::Pop);
@@ -1170,10 +1143,7 @@
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
                     <span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
-                    <span class="self">self</span>.emit(
-                        Opcode::GetFunction,
-                        <span class="kw-2">&amp;</span>[Operand::Varying(index), Operand::Bool(<span class="bool-val">false</span>)],
-                    );
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::GetFunction, index);
                     <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
                     <span class="self">self</span>.emit_with_varying_operand(Opcode::Call, <span class="number">0</span>);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(name_index) = name_index {

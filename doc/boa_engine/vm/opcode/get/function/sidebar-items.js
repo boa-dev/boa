@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["GetArrowFunction","GetFunction"]};
+window.SIDEBAR_ITEMS = {"struct":["GetFunction"]};

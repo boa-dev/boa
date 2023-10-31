@@ -2272,16 +2272,6 @@
 <a href="#2272" id="2272">2272</a>
 <a href="#2273" id="2273">2273</a>
 <a href="#2274" id="2274">2274</a>
-<a href="#2275" id="2275">2275</a>
-<a href="#2276" id="2276">2276</a>
-<a href="#2277" id="2277">2277</a>
-<a href="#2278" id="2278">2278</a>
-<a href="#2279" id="2279">2279</a>
-<a href="#2280" id="2280">2280</a>
-<a href="#2281" id="2281">2281</a>
-<a href="#2282" id="2282">2282</a>
-<a href="#2283" id="2283">2283</a>
-<a href="#2284" id="2284">2284</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 
 <span class="doccomment">/// The opcodes of the vm.
@@ -3953,26 +3943,12 @@
     /// Stack: `value` **=&gt;**
     </span>Default { address: u32 },
 
-    <span class="doccomment">/// Get arrow function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: **=&gt;** func
-    </span>GetArrowFunction { index: VaryingOperand },
-
     <span class="doccomment">/// Get function from the pre-compiled inner functions.
     ///
-    /// Operands: index: `VaryingOperand`, is_method: `u8`
+    /// Operands: index: `VaryingOperand`
     ///
     /// Stack: **=&gt;** func
-    </span>GetFunction { index: VaryingOperand, method: bool },
-
-    <span class="doccomment">/// Get generator function from the pre-compiled inner functions.
-    ///
-    /// Operands: index: `VaryingOperand`,
-    ///
-    /// Stack: **=&gt;** func
-    </span>GetGenerator { index: VaryingOperand },
+    </span>GetFunction { index: VaryingOperand },
 
     <span class="doccomment">/// Call a function named &quot;eval&quot;.
     ///
@@ -4490,6 +4466,10 @@
     </span>Reserved58 =&gt; Reserved,
     <span class="doccomment">/// Reserved [`Opcode`].
     </span>Reserved59 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved60 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved61 =&gt; Reserved,
 }
 
 <span class="doccomment">/// Specific opcodes for bindings.
