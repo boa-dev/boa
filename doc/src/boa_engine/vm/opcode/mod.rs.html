@@ -2272,13 +2272,40 @@
 <a href="#2272" id="2272">2272</a>
 <a href="#2273" id="2273">2273</a>
 <a href="#2274" id="2274">2274</a>
+<a href="#2275" id="2275">2275</a>
+<a href="#2276" id="2276">2276</a>
+<a href="#2277" id="2277">2277</a>
+<a href="#2278" id="2278">2278</a>
+<a href="#2279" id="2279">2279</a>
+<a href="#2280" id="2280">2280</a>
+<a href="#2281" id="2281">2281</a>
+<a href="#2282" id="2282">2282</a>
+<a href="#2283" id="2283">2283</a>
+<a href="#2284" id="2284">2284</a>
+<a href="#2285" id="2285">2285</a>
+<a href="#2286" id="2286">2286</a>
+<a href="#2287" id="2287">2287</a>
+<a href="#2288" id="2288">2288</a>
+<a href="#2289" id="2289">2289</a>
+<a href="#2290" id="2290">2290</a>
+<a href="#2291" id="2291">2291</a>
+<a href="#2292" id="2292">2292</a>
+<a href="#2293" id="2293">2293</a>
+<a href="#2294" id="2294">2294</a>
+<a href="#2295" id="2295">2295</a>
+<a href="#2296" id="2296">2296</a>
+<a href="#2297" id="2297">2297</a>
+<a href="#2298" id="2298">2298</a>
+<a href="#2299" id="2299">2299</a>
+<a href="#2300" id="2300">2300</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 
 <span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult, JsValue};
 
 <span class="comment">// Operation modules
-</span><span class="kw">mod </span>r#await;
+</span><span class="kw">mod </span>arguments;
+<span class="kw">mod </span>r#await;
 <span class="kw">mod </span>binary_ops;
 <span class="kw">mod </span>call;
 <span class="kw">mod </span>concat;
@@ -2309,6 +2336,8 @@
 
 <span class="comment">// Operation structs
 </span><span class="attr">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>arguments::<span class="kw-2">*</span>;
+<span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>binary_ops::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>call::<span class="kw-2">*</span>;
@@ -4327,6 +4356,35 @@
     /// Stack: **=&gt;**
     </span>PopPrivateEnvironment,
 
+    <span class="doccomment">/// Creates a mapped `arguments` object.
+    ///
+    /// Performs [`10.4.4.7 CreateMappedArgumentsObject ( func, formals, argumentsList, env )`]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=&gt;** `arguments`
+    </span>CreateMappedArgumentsObject,
+
+    <span class="doccomment">/// Creates an unmapped `arguments` object.
+    ///
+    /// Performs: [`10.4.4.6 CreateUnmappedArgumentsObject ( argumentsList )`]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createmappedargumentsobject
+    ///
+    /// Stack: **=&gt;** `arguments`
+    </span>CreateUnmappedArgumentsObject,
+
+    <span class="doccomment">/// Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
+    ///
+    /// Operands: configurable: `bool`, `name_index`: `VaryingOperand`
+    ///
+    /// Stack: `value` **=&gt;**
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
+    </span>CreateGlobalFunctionBinding { configurable: bool, name_index: VaryingOperand },
+
     <span class="doccomment">/// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -4464,12 +4522,6 @@
     </span>Reserved57 =&gt; Reserved,
     <span class="doccomment">/// Reserved [`Opcode`].
     </span>Reserved58 =&gt; Reserved,
-    <span class="doccomment">/// Reserved [`Opcode`].
-    </span>Reserved59 =&gt; Reserved,
-    <span class="doccomment">/// Reserved [`Opcode`].
-    </span>Reserved60 =&gt; Reserved,
-    <span class="doccomment">/// Reserved [`Opcode`].
-    </span>Reserved61 =&gt; Reserved,
 }
 
 <span class="doccomment">/// Specific opcodes for bindings.

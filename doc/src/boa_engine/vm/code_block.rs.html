@@ -982,10 +982,6 @@
 <a href="#982" id="982">982</a>
 <a href="#983" id="983">983</a>
 <a href="#984" id="984">984</a>
-<a href="#985" id="985">985</a>
-<a href="#986" id="986">986</a>
-<a href="#987" id="987">987</a>
-<a href="#988" id="988">988</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1047,22 +1043,17 @@
         <span class="doccomment">/// Does this function have a parameters environment.
         </span><span class="kw">const </span>PARAMETERS_ENV_BINDINGS = <span class="number">0b0000_1000</span>;
 
-        <span class="doccomment">/// Does this function need a `&quot;arguments&quot;` object.
-        ///
-        /// The `&quot;arguments&quot;` binding is the first binding.
-        </span><span class="kw">const </span>NEEDS_ARGUMENTS_OBJECT = <span class="number">0b0001_0000</span>;
-
         <span class="doccomment">/// The `[[ClassFieldInitializerName]]` internal slot.
-        </span><span class="kw">const </span>IN_CLASS_FIELD_INITIALIZER = <span class="number">0b0010_0000</span>;
+        </span><span class="kw">const </span>IN_CLASS_FIELD_INITIALIZER = <span class="number">0b0001_0000</span>;
 
         <span class="doccomment">/// `[[ConstructorKind]]`
-        </span><span class="kw">const </span>IS_DERIVED_CONSTRUCTOR = <span class="number">0b0100_0000</span>;
+        </span><span class="kw">const </span>IS_DERIVED_CONSTRUCTOR = <span class="number">0b0010_0000</span>;
 
-        <span class="kw">const </span>IS_ASYNC = <span class="number">0b1000_0000</span>;
-        <span class="kw">const </span>IS_GENERATOR = <span class="number">0b0001_0000_0000</span>;
+        <span class="kw">const </span>IS_ASYNC = <span class="number">0b0100_0000</span>;
+        <span class="kw">const </span>IS_GENERATOR = <span class="number">0b0000_1000_0000</span>;
 
         <span class="doccomment">/// Arrow and method functions don&#39;t have `&quot;prototype&quot;` property.
-        </span><span class="kw">const </span>HAS_PROTOTYPE_PROPERTY = <span class="number">0b0010_0000_0000</span>;
+        </span><span class="kw">const </span>HAS_PROTOTYPE_PROPERTY = <span class="number">0b0001_0000_0000</span>;
 
         <span class="doccomment">/// Trace instruction execution to `stdout`.
         </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
@@ -1219,13 +1210,6 @@
         <span class="self">self</span>.flags
             .get()
             .contains(CodeBlockFlags::PARAMETERS_ENV_BINDINGS)
-    }
-
-    <span class="doccomment">/// Does this function need a `&quot;arguments&quot;` object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>needs_arguments_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.flags
-            .get()
-            .contains(CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT)
     }
 
     <span class="doccomment">/// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
@@ -1514,6 +1498,15 @@
             Instruction::CreateIteratorResult { done } =&gt; {
                 <span class="macro">format!</span>(<span class="string">&quot;done: {done}&quot;</span>)
             }
+            Instruction::CreateGlobalFunctionBinding {
+                name_index,
+                configurable,
+            } =&gt; {
+                <span class="kw">let </span>name = <span class="self">self
+                    </span>.constant_string(name_index.value() <span class="kw">as </span>usize)
+                    .to_std_string_escaped();
+                <span class="macro">format!</span>(<span class="string">&quot;name: {name}, configurable: {configurable}&quot;</span>)
+            }
             Instruction::Pop
             | Instruction::Dup
             | Instruction::Swap
@@ -1634,6 +1627,8 @@
             | Instruction::GetReturnValue
             | Instruction::SetReturnValue
             | Instruction::BindThisValue
+            | Instruction::CreateMappedArgumentsObject
+            | Instruction::CreateUnmappedArgumentsObject
             | Instruction::Nop =&gt; String::new(),
 
             Instruction::U16Operands
@@ -1695,10 +1690,7 @@
             | Instruction::Reserved55
             | Instruction::Reserved56
             | Instruction::Reserved57
-            | Instruction::Reserved58
-            | Instruction::Reserved59
-            | Instruction::Reserved60
-            | Instruction::Reserved61 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Instruction::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
         }
     }
 }

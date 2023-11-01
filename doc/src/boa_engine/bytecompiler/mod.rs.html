@@ -1754,7 +1754,7 @@
     json_parse: bool,
 
     <span class="comment">// TODO: remove when we separate scripts from the context
-    </span>context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
     </span>annex_b_function_names: Vec&lt;Identifier&gt;,

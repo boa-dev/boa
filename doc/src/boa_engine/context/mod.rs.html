@@ -1155,7 +1155,6 @@
 <a href="#1155" id="1155">1155</a>
 <a href="#1156" id="1156">1156</a>
 <a href="#1157" id="1157">1157</a>
-<a href="#1158" id="1158">1158</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1876,7 +1875,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_global_function_binding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: Identifier,
+        name: JsString,
         function: JsObject,
         configurable: bool,
     ) -&gt; JsResult&lt;()&gt; {
@@ -1885,8 +1884,7 @@
         </span><span class="kw">let </span>global_object = <span class="self">self</span>.realm().global_object().clone();
 
         <span class="comment">// 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        </span><span class="kw">let </span>name = PropertyKey::from(<span class="self">self</span>.interner().resolve_expect(name.sym()).utf16());
-        <span class="kw">let </span>existing_prop = global_object.__get_own_property__(<span class="kw-2">&amp;</span>name, <span class="self">self</span>)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>existing_prop = global_object.__get_own_property__(<span class="kw-2">&amp;</span>name.clone().into(), <span class="self">self</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
         </span><span class="kw">let </span>desc = <span class="kw">if </span>existing_prop.is_none()
