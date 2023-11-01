@@ -59,22 +59,17 @@ bitflags! {
         /// Does this function have a parameters environment.
         const PARAMETERS_ENV_BINDINGS = 0b0000_1000;
 
-        /// Does this function need a `"arguments"` object.
-        ///
-        /// The `"arguments"` binding is the first binding.
-        const NEEDS_ARGUMENTS_OBJECT = 0b0001_0000;
-
         /// The `[[ClassFieldInitializerName]]` internal slot.
-        const IN_CLASS_FIELD_INITIALIZER = 0b0010_0000;
+        const IN_CLASS_FIELD_INITIALIZER = 0b0001_0000;
 
         /// `[[ConstructorKind]]`
-        const IS_DERIVED_CONSTRUCTOR = 0b0100_0000;
+        const IS_DERIVED_CONSTRUCTOR = 0b0010_0000;
 
-        const IS_ASYNC = 0b1000_0000;
-        const IS_GENERATOR = 0b0001_0000_0000;
+        const IS_ASYNC = 0b0100_0000;
+        const IS_GENERATOR = 0b0000_1000_0000;
 
         /// Arrow and method functions don't have `"prototype"` property.
-        const HAS_PROTOTYPE_PROPERTY = 0b0010_0000_0000;
+        const HAS_PROTOTYPE_PROPERTY = 0b0001_0000_0000;
 
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
@@ -231,13 +226,6 @@ impl CodeBlock {
         self.flags
             .get()
             .contains(CodeBlockFlags::PARAMETERS_ENV_BINDINGS)
-    }
-
-    /// Does this function need a `"arguments"` object.
-    pub(crate) fn needs_arguments_object(&self) -> bool {
-        self.flags
-            .get()
-            .contains(CodeBlockFlags::NEEDS_ARGUMENTS_OBJECT)
     }
 
     /// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
@@ -526,6 +514,15 @@ impl CodeBlock {
             Instruction::CreateIteratorResult { done } => {
                 format!("done: {done}")
             }
+            Instruction::CreateGlobalFunctionBinding {
+                name_index,
+                configurable,
+            } => {
+                let name = self
+                    .constant_string(name_index.value() as usize)
+                    .to_std_string_escaped();
+                format!("name: {name}, configurable: {configurable}")
+            }
             Instruction::Pop
             | Instruction::Dup
             | Instruction::Swap
@@ -646,6 +643,8 @@ impl CodeBlock {
             | Instruction::GetReturnValue
             | Instruction::SetReturnValue
             | Instruction::BindThisValue
+            | Instruction::CreateMappedArgumentsObject
+            | Instruction::CreateUnmappedArgumentsObject
             | Instruction::Nop => String::new(),
 
             Instruction::U16Operands
@@ -707,10 +706,7 @@ impl CodeBlock {
             | Instruction::Reserved55
             | Instruction::Reserved56
             | Instruction::Reserved57
-            | Instruction::Reserved58
-            | Instruction::Reserved59
-            | Instruction::Reserved60
-            | Instruction::Reserved61 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

@@ -451,6 +451,9 @@ impl CodeBlock {
                 | Instruction::MaybeException
                 | Instruction::CheckReturn
                 | Instruction::BindThisValue
+                | Instruction::CreateMappedArgumentsObject
+                | Instruction::CreateUnmappedArgumentsObject
+                | Instruction::CreateGlobalFunctionBinding { .. }
                 | Instruction::Nop => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
@@ -517,10 +520,7 @@ impl CodeBlock {
                 | Instruction::Reserved55
                 | Instruction::Reserved56
                 | Instruction::Reserved57
-                | Instruction::Reserved58
-                | Instruction::Reserved59
-                | Instruction::Reserved60
-                | Instruction::Reserved61 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

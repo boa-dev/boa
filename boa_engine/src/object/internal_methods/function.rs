@@ -1,5 +1,5 @@
 use crate::{
-    builtins::function::{arguments::Arguments, ThisMode},
+    builtins::function::ThisMode,
     context::intrinsics::StandardConstructors,
     environments::{FunctionSlots, ThisBindingStatus},
     native_function::NativeFunctionObject,
@@ -121,39 +121,6 @@ pub(crate) fn function_call(
             .push_lexical(code.constant_compile_time_environment(last_env));
     }
 
-    // Taken from: `FunctionDeclarationInstantiation` abstract function.
-    //
-    // Spec: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
-    //
-    // 22. If argumentsObjectNeeded is true, then
-    if code.needs_arguments_object() {
-        // a. If strict is true or simpleParameterList is false, then
-        //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
-        // b. Else,
-        //     i. NOTE: A mapped argument object is only provided for non-strict functions
-        //              that don't have a rest parameter, any parameter
-        //              default value initializers, or any destructured parameters.
-        //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
-        let args = context.vm.stack[(fp + CallFrame::FIRST_ARGUMENT_POSITION)..].to_vec();
-        let arguments_obj = if code.strict() || !code.params.is_simple() {
-            Arguments::create_unmapped_arguments_object(&args, context)
-        } else {
-            let env = context.vm.environments.current();
-            Arguments::create_mapped_arguments_object(
-                function_object,
-                &code.params,
-                &args,
-                env.declarative_expect(),
-                context,
-            )
-        };
-        let env_index = context.vm.environments.len() as u32 - 1;
-        context
-            .vm
-            .environments
-            .put_lexical_value(env_index, 0, arguments_obj.into());
-    }
-
     Ok(CallValue::Ready)
 }
 
@@ -255,39 +222,6 @@ fn function_construct(
             .vm
             .environments
             .push_lexical(code.constant_compile_time_environment(last_env));
-    }
-
-    // Taken from: `FunctionDeclarationInstantiation` abstract function.
-    //
-    // Spec: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
-    //
-    // 22. If argumentsObjectNeeded is true, then
-    if code.needs_arguments_object() {
-        // a. If strict is true or simpleParameterList is false, then
-        //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
-        // b. Else,
-        //     i. NOTE: A mapped argument object is only provided for non-strict functions
-        //              that don't have a rest parameter, any parameter
-        //              default value initializers, or any destructured parameters.
-        //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
-        let args = context.vm.stack[at..].to_vec();
-        let arguments_obj = if code.strict() || !code.params.is_simple() {
-            Arguments::create_unmapped_arguments_object(&args, context)
-        } else {
-            let env = context.vm.environments.current();
-            Arguments::create_mapped_arguments_object(
-                this_function_object,
-                &code.params,
-                &args,
-                env.declarative_expect(),
-                context,
-            )
-        };
-        let env_index = context.vm.environments.len() as u32 - 1;
-        context
-            .vm
-            .environments
-            .put_lexical_value(env_index, 0, arguments_obj.into());
     }
 
     // Insert `this` value
