@@ -1205,7 +1205,7 @@
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     environments::CompileTimeEnvironment,
     js_string,
-    vm::{create_function_object_fast, BindingOpcode, CodeBlockFlags, Opcode},
+    vm::{create_function_object_fast, BindingOpcode, Opcode},
     JsNativeError, JsResult,
 };
 <span class="kw">use </span>boa_ast::{
@@ -2110,8 +2110,8 @@
             // c. Let env be NewDeclarativeEnvironment(calleeEnv).
             // d. Assert: The VariableEnvironment of calleeContext is calleeEnv.
             // e. Set the LexicalEnvironment of calleeContext to env.
-            </span><span class="kw">let _ </span>= <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
-            <span class="self">self</span>.code_block_flags |= CodeBlockFlags::PARAMETERS_ENV_BINDINGS;
+            </span><span class="kw">let </span>env_index = <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+            <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
         };
 
         <span class="kw">let </span>env = <span class="self">self</span>.lexical_environment.clone();
