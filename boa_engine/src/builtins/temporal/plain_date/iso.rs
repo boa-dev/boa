@@ -1,7 +1,7 @@
 //! An `IsoDateRecord` that represents the `[[ISOYear]]`, `[[ISOMonth]]`, and `[[ISODay]]` internal slots.
 
 use crate::{
-    builtins::temporal::{self, TemporalFields},
+    builtins::temporal::{self, options::ArithmeticOverflow, DateDuration, TemporalFields},
     JsNativeError, JsResult, JsString,
 };
 
@@ -59,16 +59,16 @@ impl IsoDateRecord {
         year: i32,
         month: i32,
         day: i32,
-        overflow: &JsString,
+        overflow: ArithmeticOverflow,
     ) -> JsResult<Self> {
-        match overflow.to_std_string_escaped().as_str() {
-            "constrain" => {
+        match overflow {
+            ArithmeticOverflow::Constrain => {
                 let m = month.clamp(1, 12);
                 let days_in_month = temporal::calendar::utils::iso_days_in_month(year, month);
                 let d = day.clamp(1, days_in_month);
                 Ok(Self::new(year, m, d))
             }
-            "reject" => {
+            ArithmeticOverflow::Reject => {
                 let date = Self::new(year, month, day);
                 if !date.is_valid() {
                     return Err(JsNativeError::range()
@@ -77,7 +77,6 @@ impl IsoDateRecord {
                 }
                 Ok(date)
             }
-            _ => unreachable!(),
         }
     }
 
@@ -86,7 +85,7 @@ impl IsoDateRecord {
     /// Note: fields.month must be resolved prior to using `from_temporal_fields`
     pub(crate) fn from_temporal_fields(
         fields: &TemporalFields,
-        overflow: &JsString,
+        overflow: ArithmeticOverflow,
     ) -> JsResult<Self> {
         Self::from_unregulated(
             fields.year().expect("Cannot fail per spec"),
@@ -99,7 +98,7 @@ impl IsoDateRecord {
     /// Create a Month-Day record from a `TemporalFields` object.
     pub(crate) fn month_day_from_temporal_fields(
         fields: &TemporalFields,
-        overflow: &JsString,
+        overflow: ArithmeticOverflow,
     ) -> JsResult<Self> {
         match fields.year() {
             Some(year) => Self::from_unregulated(
@@ -202,15 +201,16 @@ impl IsoDateRecord {
     /// 3.5.11 `AddISODate ( year, month, day, years, months, weeks, days, overflow )`
     pub(crate) fn add_iso_date(
         &self,
-        years: i32,
-        months: i32,
-        weeks: i32,
-        days: i32,
-        overflow: &JsString,
+        date_duration: DateDuration,
+        overflow: ArithmeticOverflow,
     ) -> JsResult<Self> {
         // 1. Assert: year, month, day, years, months, weeks, and days are integers.
         // 2. Assert: overflow is either "constrain" or "reject".
-        let mut intermediate = Self::new(self.year + years, self.month + months, 0);
+        let mut intermediate = Self::new(
+            self.year + date_duration.years() as i32,
+            self.month + date_duration.months() as i32,
+            0,
+        );
 
         // 3. Let intermediate be ! BalanceISOYearMonth(year + years, month + months).
         intermediate.balance_year_month();
@@ -225,7 +225,7 @@ impl IsoDateRecord {
 
         // 5. Set days to days + 7 × weeks.
         // 6. Let d be intermediate.[[Day]] + days.
-        let additional_days = days + (weeks * 7);
+        let additional_days = date_duration.days() as i32 + (date_duration.weeks() as i32 * 7);
         new_date.day += additional_days;
 
         // 7. Return BalanceISODate(intermediate.[[Year]], intermediate.[[Month]], d).

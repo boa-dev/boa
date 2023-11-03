@@ -606,10 +606,12 @@ fn diff_instant(
             nanoseconds.to_f64(),
         ),
     );
-    let _rem = roundable_duration.round_duration(
+    let _total = roundable_duration.round_duration(
         rounding_increment,
         smallest_unit,
         rounding_mode,
+        None,
+        None,
         None,
         context,
     )?;

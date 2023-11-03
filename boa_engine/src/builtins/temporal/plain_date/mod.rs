@@ -4,6 +4,7 @@
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
+        temporal::options::TemporalUnit,
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -17,7 +18,10 @@ use crate::{
 use boa_parser::temporal::{IsoCursor, TemporalDateTimeString};
 use boa_profiler::Profiler;
 
-use super::{options::ArithmeticOverflow, plain_date::iso::IsoDateRecord, plain_date_time};
+use super::{
+    calendar, duration::DurationRecord, options::ArithmeticOverflow,
+    plain_date::iso::IsoDateRecord, plain_date_time, DateDuration, TimeDuration,
+};
 
 pub(crate) mod iso;
 
@@ -26,6 +30,15 @@ pub(crate) mod iso;
 pub struct PlainDate {
     pub(crate) inner: IsoDateRecord,
     pub(crate) calendar: JsValue, // Calendar can probably be stored as a JsObject.
+}
+
+impl PlainDate {
+    pub(crate) fn new(record: IsoDateRecord, calendar: JsValue) -> Self {
+        Self {
+            inner: record,
+            calendar,
+        }
+    }
 }
 
 impl BuiltInObject for PlainDate {
@@ -378,6 +391,13 @@ impl PlainDate {
 
 // -- `PlainDate` Abstract Operations --
 
+impl PlainDate {
+    /// Utitily function for translating a `Temporal.PlainDate` into a `JsObject`.
+    pub(crate) fn as_object(&self, context: &mut Context<'_>) -> JsResult<JsObject> {
+        create_temporal_date(self.inner, self.calendar.clone(), None, context)
+    }
+}
+
 // 3.5.2 `CreateIsoDateRecord`
 // Implemented on `IsoDateRecord`
 
@@ -429,10 +449,7 @@ pub(crate) fn create_temporal_date(
     // 8. Set object.[[Calendar]] to calendar.
     let obj = JsObject::from_proto_and_data(
         prototype,
-        ObjectData::plain_date(PlainDate {
-            inner: iso_date,
-            calendar,
-        }),
+        ObjectData::plain_date(PlainDate::new(iso_date, calendar)),
     );
 
     // 9. Return object.
@@ -554,14 +571,94 @@ pub(crate) fn to_temporal_date(
 // 3.5.5. DifferenceIsoDate
 // Implemented on IsoDateRecord.
 
-// 3.5.6 RegulateIsoDate
+/// 3.5.6 `DifferenceDate ( calendar, one, two, options )`
+pub(crate) fn difference_date(
+    calendar: &JsValue,
+    one: &PlainDate,
+    two: &PlainDate,
+    largest_unit: TemporalUnit,
+    context: &mut Context<'_>,
+) -> JsResult<DurationRecord> {
+    // 1. Assert: one.[[Calendar]] and two.[[Calendar]] have been determined to be equivalent as with CalendarEquals.
+    // 2. Assert: options is an ordinary Object.
+    // 3. Assert: options.[[Prototype]] is null.
+    // 4. Assert: options has a "largestUnit" data property.
+    // 5. If one.[[ISOYear]] = two.[[ISOYear]] and one.[[ISOMonth]] = two.[[ISOMonth]] and one.[[ISODay]] = two.[[ISODay]], then
+    if one.inner.year() == two.inner.year()
+        && one.inner.month() == two.inner.month()
+        && one.inner.day() == two.inner.day()
+    {
+        // a. Return ! CreateTemporalDuration(0, 0, 0, 0, 0, 0, 0, 0, 0, 0).
+        return Ok(DurationRecord::default());
+    }
+    // 6. If ! Get(options, "largestUnit") is "day", then
+    if largest_unit == TemporalUnit::Day {
+        // a. Let days be DaysUntil(one, two).
+        let days = super::duration::days_until(one, two);
+        // b. Return ! CreateTemporalDuration(0, 0, 0, days, 0, 0, 0, 0, 0, 0).
+        return Ok(DurationRecord::new(
+            DateDuration::new(0.0, 0.0, 0.0, f64::from(days)),
+            TimeDuration::default(),
+        ));
+    }
+
+    // Create the options object prior to sending it to the calendars.
+    let options_obj = JsObject::with_null_proto();
+
+    options_obj.create_data_property_or_throw(
+        utf16!("largestUnit"),
+        JsString::from(largest_unit.to_string()),
+        context,
+    )?;
+
+    // 7. Return ? CalendarDateUntil(calendar, one, two, options).
+    calendar::calendar_date_until(calendar, one, two, &options_obj.into(), context)
+}
+
+// 3.5.7 RegulateIsoDate
 // Implemented on IsoDateRecord.
 
-// 3.5.7 IsValidIsoDate
+// 3.5.8 IsValidIsoDate
 // Implemented on IsoDateRecord.
 
-// 3.5.8 BalanceIsoDate
+// 3.5.9 BalanceIsoDate
 // Implemented on IsoDateRecord.
 
-// 3.5.11 AddISODate ( year, month, day, years, months, weeks, days, overflow )
+// 3.5.12 AddISODate ( year, month, day, years, months, weeks, days, overflow )
 // Implemented on IsoDateRecord
+
+/// 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ]] )`
+pub(crate) fn add_date(
+    calendar: &JsValue,
+    plain_date: &PlainDate,
+    duration: &DurationRecord,
+    options: &JsValue,
+    context: &mut Context<'_>,
+) -> JsResult<PlainDate> {
+    // 1. If options is not present, set options to undefined.
+    // 2. If duration.[[Years]] ≠ 0, or duration.[[Months]] ≠ 0, or duration.[[Weeks]] ≠ 0, then
+    if duration.years() != 0.0 || duration.months() != 0.0 || duration.weeks() != 0.0 {
+        // a. If dateAdd is not present, then
+        // i. Set dateAdd to unused.
+        // ii. If calendar is an Object, set dateAdd to ? GetMethod(calendar, "dateAdd").
+        // b. Return ? CalendarDateAdd(calendar, plainDate, duration, options, dateAdd).
+        return calendar::calendar_date_add(calendar, plain_date, duration, options, context);
+    }
+
+    // 3. Let overflow be ? ToTemporalOverflow(options).
+    let options_obj = get_options_object(options)?;
+    let overflow = get_option(&options_obj, utf16!("overflow"), context)?
+        .unwrap_or(ArithmeticOverflow::Constrain);
+
+    let mut intermediate = *duration;
+    // 4. Let days be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").[[Days]].
+    intermediate.balance_time_duration(TemporalUnit::Day, None)?;
+
+    // 5. Let result be ? AddISODate(plainDate.[[ISOYear]], plainDate.[[ISOMonth]], plainDate.[[ISODay]], 0, 0, 0, days, overflow).
+    let result = plain_date
+        .inner
+        .add_iso_date(intermediate.date(), overflow)?;
+
+    // 6. Return ! CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
+    Ok(PlainDate::new(result, plain_date.calendar.clone()))
+}

@@ -294,7 +294,7 @@ pub(crate) fn validate_temporal_rounding_increment(
 pub(crate) fn to_relative_temporal_object(
     _options: &JsObject,
     _context: &mut Context<'_>,
-) -> JsResult<JsValue> {
+) -> JsResult<(Option<PlainDate>, Option<ZonedDateTime>)> {
     Err(JsNativeError::range()
         .with_message("not yet implemented.")
         .into())
