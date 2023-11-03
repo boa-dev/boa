@@ -691,41 +691,7 @@ impl Duration {
 
         // 24. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
         if let Some(max) = maximum {
-            validate_temporal_rounding_increment(rounding_increment.into(), max.into(), false)?;
-        }
-
-        // 25. Let hoursToDaysConversionMayOccur be false.
-        // 26. If duration.[[Days]] ≠ 0 and zonedRelativeTo is not undefined, set hoursToDaysConversionMayOccur to true.
-        // 27. Else if abs(duration.[[Hours]]) ≥ 24, set hoursToDaysConversionMayOccur to true.
-        let conversion_may_occur = if duration.inner.days() != 0.0 && zoned_relative_to.is_some() {
-            true
-        } else {
-            24f64 <= duration.inner.hours().abs()
-        };
-
-        // 28. If smallestUnit is "nanosecond" and roundingIncrement = 1, let roundingGranularityIsNoop be true; else let roundingGranularityIsNoop be false.
-        let is_noop = smallest_unit == TemporalUnit::Nanosecond && rounding_increment == 1;
-
-        // 29. If duration.[[Years]] = 0 and duration.[[Months]] = 0 and duration.[[Weeks]] = 0, let calendarUnitsPresent be false; else let calendarUnitsPresent be true.
-        let calendar_units_present = !(duration.inner.years() == 0f64
-            || duration.inner.months() == 0f64
-            || duration.inner.weeks() == 0f64);
-
-        // 30. If roundingGranularityIsNoop is true, and largestUnit is existingLargestUnit,
-        // and calendarUnitsPresent is false, and hoursToDaysConversionMayOccur is false,
-        // and abs(duration.[[Minutes]]) < 60, and abs(duration.[[Seconds]]) < 60,
-        // and abs(duration.[[Milliseconds]]) < 1000, and abs(duration.[[Microseconds]]) < 1000,
-        // and abs(duration.[[Nanoseconds]]) < 1000, then
-        if is_noop
-            && largest_unit == existing_largest_unit
-            && !calendar_units_present
-            && !conversion_may_occur
-            && duration.inner.is_time_within_range()
-        {
-            // a. NOTE: The above conditions mean that the operation will have no effect: the smallest unit and
-            // rounding increment will leave the total duration unchanged, and it can be determined without
-            // calling a calendar or time zone method that no balancing will take place.
-            // b. Return ! CreateTemporalDuration(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]]).
+            validate_temporal_rounding_increment(rounding_increment, f64::from(max), false)?;
         }
 
         // 31. Let precalculatedPlainDateTime be undefined.
