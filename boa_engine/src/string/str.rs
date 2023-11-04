@@ -1,6 +1,6 @@
 use std::slice::SliceIndex;
 
-use crate::{builtins::string::is_trimmable_whitespace, string::Iter};
+use crate::string::Iter;
 use boa_interner::JStrRef;
 
 use super::JsStringSlice;

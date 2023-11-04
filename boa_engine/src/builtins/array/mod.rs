@@ -134,7 +134,7 @@ impl IntrinsicObject for Array {
             .method(Self::unshift, "unshift", 1)
             .method(Self::with, "with", 2)
             .property(
-                utf16!("toString"),
+                "toString",
                 to_string_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )

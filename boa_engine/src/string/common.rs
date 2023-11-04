@@ -1,18 +1,13 @@
-use std::hash::BuildHasherDefault;
-
 use crate::tagged::Tagged;
 
 use super::JsString;
 use paste::paste;
-use rustc_hash::{FxHashMap, FxHasher};
 
 macro_rules! well_known_statics {
     ( $( $(#[$attr:meta])* ($name:ident, $string:literal) ),+$(,)? ) => {
         $(
             paste!{
-                // TODO: doc
-                // #[doc = "Gets the static `JsString` for `\"" $string "\"`."]
-                #[doc = "Gets the static `JsString`."]
+                #[doc = "Gets the static `JsString` for `\"" $string "\"`."]
                 #[allow(unused)]
                 pub(crate) const $name: JsString = JsString {
                     ptr: Tagged::from_tag(
@@ -47,15 +42,18 @@ impl StaticJsStrings {
             }
             true
         }
+
+        let len = RAW_STATICS.len();
         let mut i = 0;
-        while i < RAW_STATICS.len() {
-            let s = RAW_STATICS[i];
-            // assert!(s.is_ascii());
+        while i < len {
+            // TOOD: Because `get_index` is not const, we are accessing doc hidden stuff, that may change.
+            let s = RAW_STATICS.map.entries[i].0;
             if const_eq(s, candidate) {
                 return i;
             }
             i += 1;
         }
+
         panic!("couldn't find the required string on the common string array");
     }
 
@@ -66,7 +64,7 @@ impl StaticJsStrings {
             return None;
         }
 
-        let index = RAW_STATICS_CACHE.with(|map| map.get(string).copied())?;
+        let index = RAW_STATICS.get_index(string)?;
 
         Some(JsString {
             ptr: Tagged::from_tag(index),
@@ -76,7 +74,7 @@ impl StaticJsStrings {
     /// Gets the `&[u16]` slice corresponding to the provided index, or `None` if the index
     /// provided exceeds the size of the static array.
     pub(crate) fn get(index: usize) -> Option<&'static str> {
-        RAW_STATICS.get(index).copied()
+        RAW_STATICS.index(index).copied()
     }
 
     // Some consts are only used on certain features, which triggers the unused lint.
@@ -192,11 +190,12 @@ impl StaticJsStrings {
     }
 }
 
-static MAX_STATIC_LENGTH: usize = {
+const MAX_STATIC_LENGTH: usize = {
     let mut max = 0;
     let mut i = 0;
     while i < RAW_STATICS.len() {
-        let len = RAW_STATICS[i].len();
+        // TOOD: Because `get_index` is not const, we are accessing doc hidden stuff, that may change.
+        let len = RAW_STATICS.map.entries[i].0.len();
         if len > max {
             max = len;
         }
@@ -205,24 +204,8 @@ static MAX_STATIC_LENGTH: usize = {
     max
 };
 
-thread_local! {
-    /// Map from a string inside [`RAW_STATICS`] to its corresponding static index on `RAW_STATICS`.
-    static RAW_STATICS_CACHE: FxHashMap<&'static str, usize> = {
-        let mut constants = FxHashMap::with_capacity_and_hasher(
-            RAW_STATICS.len(),
-            BuildHasherDefault::<FxHasher>::default(),
-        );
-
-        for (idx, &s) in RAW_STATICS.iter().enumerate() {
-            constants.insert(s, idx);
-        }
-
-        constants
-    };
-}
-
 /// Array of raw static strings that aren't reference counted.
-const RAW_STATICS: &[&str] = &[
+const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     "",
     // Well known symbols
     "Symbol.asyncIterator",
@@ -251,6 +234,8 @@ const RAW_STATICS: &[&str] = &[
     "[Symbol.toStringTag]",
     "Symbol.unscopables",
     "[Symbol.unscopables]",
+    "get [Symbol.species]",
+    "get [Symbol.toStringTag]",
     // Well known builtins
     "Array",
     "ArrayBuffer",
@@ -361,7 +346,6 @@ const RAW_STATICS: &[&str] = &[
     "enumerable",
     "configurable",
     // Object object
-    "Object",
     "assign",
     "create",
     "toString",
@@ -386,10 +370,26 @@ const RAW_STATICS: &[&str] = &[
     "values",
     "entries",
     "fromEntries",
+    "propertyIsEnumerable",
+    "preventExtensions",
+    "getOwnPropertyDescriptor",
+    "getOwnPropertyDescriptors",
+    "getOwnPropertyNames",
+    "getOwnPropertySymbols",
+    "__defineGetter__",
+    "__defineSetter__",
+    "__lookupGetter__",
+    "__lookupSetter__",
+    "__proto__",
+    "get __proto__",
+    "set __proto__",
     // Function object
     "apply",
     "bind",
     "call",
+    "caller",
+    // Arguments object
+    "callee",
     // Array object
     "at",
     "from",
@@ -422,6 +422,11 @@ const RAW_STATICS: &[&str] = &[
     "unshift",
     "push",
     "pop",
+    "groupBy",
+    "toReversed",
+    "toSorted",
+    "toSpliced",
+    "with",
     // String object
     "charAt",
     "charCodeAt",
@@ -451,6 +456,26 @@ const RAW_STATICS: &[&str] = &[
     "trim",
     "trimEnd",
     "trimStart",
+    "isWellFormed",
+    "localeCompare",
+    "toWellFormed",
+    "toLocaleLowerCase",
+    "toLocaleUpperCase",
+    "trimLeft",
+    "trimRight",
+    "anchor",
+    "big",
+    "blink",
+    "bold",
+    "fixed",
+    "fontcolor",
+    "fontsize",
+    "italics",
+    "link",
+    "small",
+    "strike",
+    "sub",
+    "sup",
     // Number object
     "Infinity",
     "NaN",
@@ -459,6 +484,8 @@ const RAW_STATICS: &[&str] = &[
     "MIN_SAFE_INTEGER",
     "MAX_VALUE",
     "MIN_VALUE",
+    "NEGATIVE_INFINITY",
+    "POSITIVE_INFINITY",
     "isSafeInteger",
     "isInteger",
     "toExponential",
@@ -470,6 +497,7 @@ const RAW_STATICS: &[&str] = &[
     // RegExp object
     "exec",
     "test",
+    "compile",
     "flags",
     "index",
     "lastIndex",
@@ -500,6 +528,7 @@ const RAW_STATICS: &[&str] = &[
     "iterator",
     "toStringTag",
     "toPrimitive",
+    "isConcatSpreadable",
     "get description",
     // Map object
     "clear",
@@ -554,15 +583,35 @@ const RAW_STATICS: &[&str] = &[
     "toUTCString",
     "now",
     "UTC",
+    "getTimezoneOffset",
+    "getUTCMilliseconds",
+    "setUTCMilliseconds",
+    "toLocaleDateString",
+    "toLocaleTimeString",
     // JSON object
     "parse",
     "stringify",
+    // Promise object
+    "promise",
+    "resolve",
+    "reject",
+    "all",
+    "allSettled",
+    "any",
+    "race",
+    "then",
+    "catch",
+    "finally",
+    "withResolvers",
     // Iterator object
     "Array Iterator",
     "Set Iterator",
     "String Iterator",
     "Map Iterator",
     "For In Iterator",
+    "RegExp String Iterator",
+    // Iterator result object
+    "done",
     // Math object
     "LN10",
     "LN2",
@@ -607,6 +656,7 @@ const RAW_STATICS: &[&str] = &[
     "tanh",
     "trunc",
     // TypedArray object
+    "BYTES_PER_ELEMENT",
     "buffer",
     "byteLength",
     "byteOffset",
@@ -638,6 +688,168 @@ const RAW_STATICS: &[&str] = &[
     "setUint8",
     "setUint16",
     "setUint32",
+    // WeakRef object
+    "deref",
+    // Atomic object
+    "and",
+    "compareExchange",
+    "exchange",
+    "isLockFree",
+    "load",
+    "or",
+    "store",
+    "wait",
+    "notify",
+    "xor",
+    // Intl object
+    "getCanonicalLocales",
+    "get compare",
+    "supportedLocalesOf",
+    "Intl.Collator",
+    "compare",
+    "resolvedOptions",
+    "Intl.ListFormat",
+    "format",
+    "formatToParts",
+    "get baseName",
+    "get calendar",
+    "get caseFirst",
+    "get collation",
+    "get hourCycle",
+    "get numeric",
+    "get numberingSystem",
+    "get language",
+    "get script",
+    "get region",
+    "Intl.Locale",
+    "maximize",
+    "minimize",
+    "baseName",
+    "calendar",
+    "caseFirst",
+    "collation",
+    "hourCycle",
+    "numeric",
+    "numberingSystem",
+    "language",
+    "script",
+    "region",
+    "Intl.Segmenter",
+    "segment",
+    "containing",
+    "Segmenter String Iterator",
+    "Intl.PluralRules",
+    "select",
+    // Temporal object
+    "get Id",
+    "getOffsetNanosecondsFor",
+    "getOffsetStringFor",
+    "getPlainDateTimeFor",
+    "getInstantFor",
+    "getPossibleInstantFor",
+    "getNextTransition",
+    "getPreviousTransition",
+    "id",
+    "Now",
+    "Calendar",
+    "Duration",
+    "Instant",
+    "PlainDate",
+    "PlainDateTime",
+    "PlainMonthDay",
+    "PlainTime",
+    "PlainYearMonth",
+    "TimeZone",
+    "ZonedDateTime",
+    "timeZoneId",
+    "instant",
+    "plainDateTime",
+    "plainDateTimeISO",
+    "zonedDateTime",
+    "zonedDateTimeISO",
+    "plainDate",
+    "plainDateISO",
+    "get epochSeconds",
+    "get epochMilliseconds",
+    "get epochMicroseconds",
+    "get epochNanoseconds",
+    "epochSeconds",
+    "epochMilliseconds",
+    "epochMicroseconds",
+    "epochNanoseconds",
+    "subtract",
+    "until",
+    "since",
+    "equals",
+    "toZonedDateTime",
+    "toZonedDateTimeISO",
+    "get Years",
+    "get Months",
+    "get Weeks",
+    "get Days",
+    "get Hours",
+    "get Minutes",
+    "get Seconds",
+    "get Milliseconds",
+    "get Microseconds",
+    "get Nanoseconds",
+    "get Sign",
+    "get blank",
+    "years",
+    "months",
+    "weeks",
+    "days",
+    "hours",
+    "minutes",
+    "seconds",
+    "milliseconds",
+    "microseconds",
+    "nanoseconds",
+    "blank",
+    "negated",
+    "total",
+    "get calendarId",
+    "get year",
+    "get month",
+    "get monthCode",
+    "get day",
+    "get dayOfWeek",
+    "get dayOfYear",
+    "get weekOfYear",
+    "get yearOfWeek",
+    "get daysInWeek",
+    "get daysInMonth",
+    "get daysInYear",
+    "get monthsInYear",
+    "get inLeapYear",
+    "calendarId",
+    "year",
+    "month",
+    "monthCode",
+    "day",
+    "dayOfWeek",
+    "dayOfYear",
+    "weekOfYear",
+    "yearOfWeek",
+    "daysInWeek",
+    "daysInMonth",
+    "daysInYear",
+    "monthsInYear",
+    "inLeapYear",
+    "toPlainYearMonth",
+    "toPlainMonthDay",
+    "getISOFields",
+    "getCalendar",
+    "withCalendar",
+    "dateFromFields",
+    "yearMonthFromFields",
+    "monthDayFromFields",
+    "dateAdd",
+    "dateUntil",
+    "era",
+    "eraYear",
+    "fields",
+    "mergeFields",
     // Console object
     "console",
     "assert",
@@ -659,7 +871,6 @@ const RAW_STATICS: &[&str] = &[
     "dirxml",
     // Minified name
     "a",
-    "",
     "c",
     "d",
     "e",
@@ -685,7 +896,6 @@ const RAW_STATICS: &[&str] = &[
     "y",
     "z",
     "A",
-    "",
     "C",
     "D",
     "E",
@@ -712,4 +922,4 @@ const RAW_STATICS: &[&str] = &[
     "Z",
     "_",
     "$",
-];
+);
