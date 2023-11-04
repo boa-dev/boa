@@ -870,7 +870,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
             realm,
             function,
             length: 0,
-            name: js_string!(""),
+            name: js_string!(),
         }
     }
 
@@ -883,7 +883,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
             object: I::get(realm.intrinsics()),
             kind: Callable {
                 function,
-                name: js_string!(""),
+                name: js_string!(),
                 length: 0,
                 kind: OrdinaryFunction,
                 realm: realm.clone(),
@@ -902,7 +902,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
             object,
             kind: Callable {
                 function,
-                name: js_string!(""),
+                name: js_string!(),
                 length: 0,
                 kind: OrdinaryFunction,
                 realm: realm.clone(),

@@ -2622,7 +2622,7 @@ impl<'realm> FunctionObjectBuilder<'realm> {
 ///     .property(1, 1, Attribute::all())
 ///     .function(
 ///         NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
-///         js_string!("func"),
+///         "func",
 ///         0,
 ///     )
 ///     .build();

@@ -12,7 +12,6 @@ use crate::{
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     object::{JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
@@ -52,7 +51,7 @@ impl IntrinsicObject for SetIterator {
             .static_method(Self::next, "next", 0)
             .static_property(
                 JsSymbol::to_string_tag(),
-                js_string!("Set Iterator"),
+                "Set Iterator",
                 Attribute::CONFIGURABLE,
             )
             .build();

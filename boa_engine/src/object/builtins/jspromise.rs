@@ -35,7 +35,7 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 /// let context = &mut Context::default();
 ///
 /// context.register_global_property(
-///     js_string!("finally"),
+///     "finally",
 ///     false,
 ///     Attribute::all(),
 /// );

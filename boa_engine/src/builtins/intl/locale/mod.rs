@@ -76,7 +76,7 @@ impl IntrinsicObject for Locale {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                js_string!("Intl.Locale"),
+                "Intl.Locale",
                 Attribute::CONFIGURABLE,
             )
             .method(Self::maximize, "maximize", 0)

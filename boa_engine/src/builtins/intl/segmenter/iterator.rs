@@ -68,7 +68,7 @@ impl IntrinsicObject for SegmentIterator {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
-                js_string!("Segmenter String Iterator"),
+                "Segmenter String Iterator",
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::next, "next", 0)

@@ -69,7 +69,7 @@ fn function_prototype() {
 fn function_prototype_call() {
     run_test_actions([TestAction::assert_eq(
         "Object.prototype.toString.call(new Error())",
-        js_string!("[object Error]"),
+        "[object Error]",
     )]);
 }
 
@@ -134,9 +134,9 @@ fn closure_capture_clone() {
             let object = JsObject::with_object_proto(ctx.intrinsics());
             object
                 .define_property_or_throw(
-                    js_string!("key"),
+                    "key",
                     PropertyDescriptor::builder()
-                        .value(js_string!(" world!"))
+                        .value(" world!")
                         .writable(false)
                         .enumerable(false)
                         .configurable(false),
@@ -168,10 +168,10 @@ fn closure_capture_clone() {
             .name("closure")
             .build();
 
-            ctx.register_global_property(js_string!("closure"), func, Attribute::default())
+            ctx.register_global_property("closure", func, Attribute::default())
                 .unwrap();
         }),
-        TestAction::assert_eq("closure()", js_string!("Hello world!")),
+        TestAction::assert_eq("closure()", "Hello world!"),
     ]);
 }
 

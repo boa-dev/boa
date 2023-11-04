@@ -4,7 +4,6 @@ use boa_profiler::Profiler;
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
@@ -36,7 +35,7 @@ impl IntrinsicObject for WeakRef {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                js_string!("WeakRef"),
+                "WeakRef",
                 Attribute::CONFIGURABLE,
             )
             .method(Self::deref, "deref", 0)

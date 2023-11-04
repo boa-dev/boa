@@ -10,7 +10,7 @@ use boa_engine::{
     js_string,
     native_function::NativeFunction,
     property::Attribute,
-    Context, JsArgs, JsResult, JsValue, Source,
+    Context, JsArgs, JsResult, JsString, JsValue, Source,
 };
 use boa_runtime::Console;
 use futures_util::{stream::FuturesUnordered, Future};
@@ -142,7 +142,7 @@ fn add_runtime(context: &mut Context<'_>) {
     // Then, bind the defined async function to the ECMAScript function "delay".
     context
         .register_global_builtin_callable(
-            js_string!("delay"),
+            JsString::from("delay"),
             1,
             NativeFunction::from_async_fn(delay),
         )

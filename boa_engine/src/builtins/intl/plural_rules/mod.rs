@@ -54,7 +54,7 @@ impl IntrinsicObject for PluralRules {
             .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
             .property(
                 JsSymbol::to_string_tag(),
-                js_string!("Intl.PluralRules"),
+                "Intl.PluralRules",
                 Attribute::CONFIGURABLE,
             )
             .method(Self::resolved_options, "resolvedOptions", 0)
@@ -266,14 +266,14 @@ impl PluralRules {
             .property(
                 "type",
                 match plural_rules.rule_type {
-                    PluralRuleType::Cardinal => js_string!("cardinal"),
-                    PluralRuleType::Ordinal => js_string!("ordinal"),
-                    _ => js_string!("unknown"),
+                    PluralRuleType::Cardinal => "cardinal",
+                    PluralRuleType::Ordinal => "ordinal",
+                    _ => "unknown",
                 },
                 Attribute::all(),
             )
             .property(
-                js_string!("minimumIntegerDigits"),
+                "minimumIntegerDigits",
                 plural_rules.format_options.minimum_integer_digits,
                 Attribute::all(),
             );
@@ -282,16 +282,8 @@ impl PluralRules {
             plural_rules.format_options.rounding_type.fraction_digits()
         {
             options
-                .property(
-                    js_string!("minimumFractionDigits"),
-                    minimum,
-                    Attribute::all(),
-                )
-                .property(
-                    js_string!("maximumFractionDigits"),
-                    maximum,
-                    Attribute::all(),
-                );
+                .property("minimumFractionDigits", minimum, Attribute::all())
+                .property("maximumFractionDigits", maximum, Attribute::all());
         }
 
         if let Some(Extrema { minimum, maximum }) = plural_rules
@@ -300,31 +292,23 @@ impl PluralRules {
             .significant_digits()
         {
             options
-                .property(
-                    js_string!("minimumSignificantDigits"),
-                    minimum,
-                    Attribute::all(),
-                )
-                .property(
-                    js_string!("maximumSignificantDigits"),
-                    maximum,
-                    Attribute::all(),
-                );
+                .property("minimumSignificantDigits", minimum, Attribute::all())
+                .property("maximumSignificantDigits", maximum, Attribute::all());
         }
 
         options
             .property(
-                js_string!("roundingMode"),
+                "roundingMode",
                 js_string!(plural_rules.format_options.rounding_mode.to_string()),
                 Attribute::all(),
             )
             .property(
-                js_string!("roundingIncrement"),
+                "roundingIncrement",
                 plural_rules.format_options.rounding_increment,
                 Attribute::all(),
             )
             .property(
-                js_string!("trailingZeroDisplay"),
+                "trailingZeroDisplay",
                 js_string!(plural_rules
                     .format_options
                     .trailing_zero_display
@@ -343,11 +327,7 @@ impl PluralRules {
         );
 
         // 6. Perform ! CreateDataProperty(options, "pluralCategories", CreateArrayFromList(pluralCategories)).
-        options.property(
-            js_string!("pluralCategories"),
-            plural_categories,
-            Attribute::all(),
-        );
+        options.property("pluralCategories", plural_categories, Attribute::all());
 
         // 7. If pr.[[RoundingType]] is morePrecision, then
         //     a. Perform ! CreateDataPropertyOrThrow(options, "roundingPriority", "morePrecision").
@@ -356,7 +336,7 @@ impl PluralRules {
         // 9. Else,
         //     a. Perform ! CreateDataPropertyOrThrow(options, "roundingPriority", "auto").
         options.property(
-            js_string!("roundingPriority"),
+            "roundingPriority",
             js_string!(plural_rules.format_options.rounding_priority.to_string()),
             Attribute::all(),
         );
@@ -410,11 +390,12 @@ fn resolve_plural(plural_rules: &PluralRules, n: f64) -> ResolvedPlural {
 
 fn plural_category_to_js_string(category: PluralCategory) -> JsString {
     match category {
-        PluralCategory::Zero => js_string!("zero"),
-        PluralCategory::One => js_string!("one"),
-        PluralCategory::Two => js_string!("two"),
-        PluralCategory::Few => js_string!("few"),
-        PluralCategory::Many => js_string!("many"),
-        PluralCategory::Other => js_string!("other"),
+        PluralCategory::Zero => "zero",
+        PluralCategory::One => "one",
+        PluralCategory::Two => "two",
+        PluralCategory::Few => "few",
+        PluralCategory::Many => "many",
+        PluralCategory::Other => "other",
     }
+    .into()
 }

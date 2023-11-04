@@ -80,7 +80,7 @@ thread_local! {
 ///     .property("x", 12, Attribute::READONLY)
 ///     .build();
 /// context
-///     .register_global_property(js_string!("arg"), arg, Attribute::all())
+///     .register_global_property("arg", arg, Attribute::all())
 ///     .expect("property shouldn't exist");
 ///
 /// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();

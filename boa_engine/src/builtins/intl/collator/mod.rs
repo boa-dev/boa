@@ -160,7 +160,7 @@ impl IntrinsicObject for Collator {
             .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
             .property(
                 JsSymbol::to_string_tag(),
-                js_string!("Intl.Collator"),
+                "Intl.Collator",
                 Attribute::CONFIGURABLE,
             )
             .accessor("compare", Some(compare), None, Attribute::CONFIGURABLE)
@@ -520,8 +520,8 @@ impl Collator {
             .create_data_property_or_throw(
                 "usage",
                 match collator.usage {
-                    Usage::Search => js_string!("search"),
-                    Usage::Sort => js_string!("sort"),
+                    Usage::Search => "search",
+                    Usage::Sort => "sort",
                 },
                 context,
             )
@@ -530,24 +530,24 @@ impl Collator {
             .create_data_property_or_throw(
                 "sensitivity",
                 match collator.sensitivity {
-                    Sensitivity::Base => js_string!("base"),
-                    Sensitivity::Accent => js_string!("accent"),
-                    Sensitivity::Case => js_string!("case"),
-                    Sensitivity::Variant => js_string!("variant"),
+                    Sensitivity::Base => "base",
+                    Sensitivity::Accent => "accent",
+                    Sensitivity::Case => "case",
+                    Sensitivity::Variant => "variant",
                 },
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_string!("ignorePunctuation"),
+                "ignorePunctuation",
                 collator.ignore_punctuation,
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_string!("collation"),
+                "collation",
                 js_string!(collator.collation.to_string()),
                 context,
             )
@@ -558,11 +558,11 @@ impl Collator {
         if let Some(kf) = collator.case_first {
             options
                 .create_data_property_or_throw(
-                    js_string!("caseFirst"),
+                    "caseFirst",
                     match kf {
-                        CaseFirst::Off => js_string!("false"),
-                        CaseFirst::LowerFirst => js_string!("lower"),
-                        CaseFirst::UpperFirst => js_string!("upper"),
+                        CaseFirst::Off => "false",
+                        CaseFirst::LowerFirst => "lower",
+                        CaseFirst::UpperFirst => "upper",
                         _ => unreachable!(),
                     },
                     context,

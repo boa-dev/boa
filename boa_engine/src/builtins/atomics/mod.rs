@@ -17,7 +17,6 @@ use std::sync::atomic::Ordering;
 use crate::{
     builtins::BuiltInObject,
     context::intrinsics::Intrinsics,
-    js_string,
     object::{JsObject, Object},
     property::Attribute,
     realm::Realm,
@@ -472,9 +471,9 @@ impl Atomics {
         };
 
         Ok(match result {
-            futex::AtomicsWaitResult::NotEqual => js_string!("not-equal"),
-            futex::AtomicsWaitResult::TimedOut => js_string!("timed-out"),
-            futex::AtomicsWaitResult::Ok => js_string!("ok"),
+            futex::AtomicsWaitResult::NotEqual => "not-equal",
+            futex::AtomicsWaitResult::TimedOut => "timed-out",
+            futex::AtomicsWaitResult::Ok => "ok",
         }
         .into())
     }

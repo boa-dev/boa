@@ -220,14 +220,14 @@ impl Console {
 
         if !assertion {
             let mut args: Vec<JsValue> = args.iter().skip(1).cloned().collect();
-            let message = js_string!("Assertion failed");
+            let message = "Assertion failed";
             if args.is_empty() {
                 args.push(JsValue::new(message));
             } else if !args[0].is_string() {
                 args.insert(0, JsValue::new(message));
             } else {
-                let value: Vec<u16> = args[0].display().to_string().encode_utf16().collect();
-                let concat = js_string!(&message, ": ", &value[..]);
+                let value = args[0].display().to_string();
+                let concat = js_string!(message, ": ", value.as_str());
                 args[0] = JsValue::new(concat);
             }
 

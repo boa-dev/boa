@@ -32,7 +32,7 @@ use crate::{
 ///
 ///     assert_eq!(
 ///         date.to_date_string(context)?,
-///         JsValue::from(js_string!("Mon Dec 04 1995"))
+///         JsValue::from("Mon Dec 04 1995")
 ///     );
 ///
 ///     Ok(())

@@ -7,6 +7,14 @@ use super::{JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
 mod serde_json;
 pub(super) mod try_from_js;
 
+impl From<&str> for JsValue {
+    fn from(value: &str) -> Self {
+        let _timer = Profiler::global().start_event("From<&str>", "value");
+
+        Self::String(JsString::from(value))
+    }
+}
+
 impl From<JsString> for JsValue {
     fn from(value: JsString) -> Self {
         let _timer = Profiler::global().start_event("From<JsString>", "value");

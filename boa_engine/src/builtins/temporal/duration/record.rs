@@ -9,7 +9,7 @@ use crate::{
             round_number_to_increment, to_temporal_date, NS_PER_DAY,
         },
     },
-    js_string, Context, JsNativeError, JsObject, JsResult, JsValue,
+    Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 
 use super::super::{
@@ -1121,11 +1121,7 @@ impl DurationRecord {
                 // n. Let untilOptions be OrdinaryObjectCreate(null).
                 let until_options = JsObject::with_null_proto();
                 // o. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "month").
-                until_options.create_data_property_or_throw(
-                    "largestUnit",
-                    js_string!("month"),
-                    context,
-                )?;
+                until_options.create_data_property_or_throw("largestUnit", "month", context)?;
 
                 // p. Let untilResult be ? CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil).
                 let until_result = calendar::calendar_date_until(
@@ -1161,11 +1157,7 @@ impl DurationRecord {
                     // v. Set untilOptions to OrdinaryObjectCreate(null).
                     let until_options = JsObject::with_null_proto();
                     // vi. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "month").
-                    until_options.create_data_property_or_throw(
-                        "largestUnit",
-                        js_string!("month"),
-                        context,
-                    )?;
+                    until_options.create_data_property_or_throw("largestUnit", "month", context)?;
                     // vii. Set untilResult to ? CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil).
                     let until_result = calendar::calendar_date_until(
                         calendar,

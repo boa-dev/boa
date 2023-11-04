@@ -181,7 +181,7 @@ mod tests {
 
     use crate::object::JsArray;
     use crate::JsValue;
-    use crate::{js_string, run_test_actions, TestAction};
+    use crate::{run_test_actions, TestAction};
 
     #[test]
     fn json_conversions() {
@@ -209,7 +209,7 @@ mod tests {
 
             let value = JsValue::from_json(&json, ctx).unwrap();
             let obj = value.as_object().unwrap();
-            assert_eq!(obj.get("name", ctx).unwrap(), js_string!("John Doe").into());
+            assert_eq!(obj.get("name", ctx).unwrap(), "John Doe".into());
             assert_eq!(obj.get("age", ctx).unwrap(), 43_i32.into());
             assert_eq!(obj.get("minor", ctx).unwrap(), false.into());
             assert_eq!(obj.get("adult", ctx).unwrap(), true.into());
@@ -223,7 +223,7 @@ mod tests {
                 let phones = phones.as_object().unwrap();
 
                 let arr = JsArray::from_object(phones.clone()).unwrap();
-                assert_eq!(arr.at(0, ctx).unwrap(), js_string!("+44 1234567").into());
+                assert_eq!(arr.at(0, ctx).unwrap(), "+44 1234567".into());
                 assert_eq!(arr.at(1, ctx).unwrap(), JsValue::from(-45_i32));
                 assert!(arr.at(2, ctx).unwrap().is_object());
                 assert_eq!(arr.at(3, ctx).unwrap(), true.into());

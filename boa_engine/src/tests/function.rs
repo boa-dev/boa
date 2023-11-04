@@ -1,4 +1,4 @@
-use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -24,7 +24,7 @@ fn property_accessor_member_expression_dot_notation_on_function() {
             function asd () {};
             asd.name;
         "#},
-        js_string!("asd"),
+        "asd",
     )]);
 }
 
@@ -35,7 +35,7 @@ fn property_accessor_member_expression_bracket_notation_on_function() {
             function asd () {};
             asd['name'];
         "#},
-        js_string!("asd"),
+        "asd",
     )]);
 }
 
@@ -62,7 +62,7 @@ fn early_return() {
                 }
                 outer_fnct()
             "#},
-            js_string!("outer"),
+            "outer",
         ),
     ]);
 }
@@ -78,8 +78,8 @@ fn should_set_this_value() {
 
                 var bar = new Foo();
             "#}),
-        TestAction::assert_eq("bar.a", js_string!("a")),
-        TestAction::assert_eq("bar.b", js_string!("b")),
+        TestAction::assert_eq("bar.a", "a"),
+        TestAction::assert_eq("bar.b", "b"),
     ]);
 }
 

@@ -267,7 +267,7 @@ pub(crate) fn to_date_time_options(
         // a. For each property name prop of « "year", "month", "day" », do
         for property in ["year", "month", "day"] {
             // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
-            options.create_data_property_or_throw(property, js_string!("numeric"), context)?;
+            options.create_data_property_or_throw(property, "numeric", context)?;
         }
     }
 
@@ -276,7 +276,7 @@ pub(crate) fn to_date_time_options(
         // a. For each property name prop of « "hour", "minute", "second" », do
         for property in ["hour", "minute", "second"] {
             // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
-            options.create_data_property_or_throw(property, js_string!("numeric"), context)?;
+            options.create_data_property_or_throw(property, "numeric", context)?;
         }
     }
 

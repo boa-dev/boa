@@ -33,9 +33,9 @@ fn r#type(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValu
     let shape = object.shape();
 
     Ok(if shape.is_shared() {
-        js_string!("shared")
+        "shared"
     } else {
-        js_string!("unique")
+        "unique"
     }
     .into())
 }

@@ -793,11 +793,11 @@ impl Object {
     ) -> JsResult<JsValue> {
         // 1. If the this value is undefined, return "[object Undefined]".
         if this.is_undefined() {
-            return Ok(js_string!("[object Undefined]").into());
+            return Ok("[object Undefined]".into());
         }
         // 2. If the this value is null, return "[object Null]".
         if this.is_null() {
-            return Ok(js_string!("[object Null]").into());
+            return Ok("[object Null]".into());
         }
         // 3. Let O be ! ToObject(this value).
         let o = this.to_object(context).expect("toObject cannot fail here");

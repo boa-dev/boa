@@ -11,7 +11,6 @@ use crate::{
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     object::{JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
@@ -48,10 +47,10 @@ impl IntrinsicObject for ArrayIterator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, js_string!("next"), 0)
+            .static_method(Self::next, "next", 0)
             .static_property(
                 JsSymbol::to_string_tag(),
-                js_string!("Array Iterator"),
+                "Array Iterator",
                 Attribute::CONFIGURABLE,
             )
             .build();

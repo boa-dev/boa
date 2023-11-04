@@ -90,7 +90,7 @@ impl IntrinsicObject for Segmenter {
             .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
             .property(
                 JsSymbol::to_string_tag(),
-                js_string!("Intl.Segmenter"),
+                "Intl.Segmenter",
                 Attribute::CONFIGURABLE,
             )
             .method(Self::resolved_options, "resolvedOptions", 0)

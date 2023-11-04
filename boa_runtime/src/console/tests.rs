@@ -21,7 +21,7 @@ fn formatter_empty_format_string_is_empty_string() {
 fn formatter_format_without_args_renders_verbatim() {
     run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(
-            formatter(&[JsValue::new(js_string!("%d %s %% %f"))], ctx).unwrap(),
+            formatter(&[JsValue::new("%d %s %% %f")], ctx).unwrap(),
             "%d %s %% %f"
         );
     })]);
@@ -33,9 +33,9 @@ fn formatter_empty_format_string_concatenates_rest_of_args() {
         assert_eq!(
             formatter(
                 &[
-                    JsValue::new(js_string!("")),
-                    JsValue::new(js_string!("to powinno zostać")),
-                    JsValue::new(js_string!("połączone")),
+                    JsValue::new(""),
+                    JsValue::new("to powinno zostać"),
+                    JsValue::new("połączone"),
                 ],
                 ctx
             )
@@ -51,10 +51,10 @@ fn formatter_utf_8_checks() {
         assert_eq!(
             formatter(
                 &[
-                    JsValue::new(js_string!("Są takie chwile %dą %są tu%sów %привет%ź")),
+                    JsValue::new("Są takie chwile %dą %są tu%sów %привет%ź"),
                     JsValue::new(123),
                     JsValue::new(1.23),
-                    JsValue::new(js_string!("ł")),
+                    JsValue::new("ł"),
                 ],
                 ctx
             )
@@ -68,14 +68,7 @@ fn formatter_utf_8_checks() {
 fn formatter_trailing_format_leader_renders() {
     run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(
-            formatter(
-                &[
-                    JsValue::new(js_string!("%%%%%")),
-                    JsValue::new(js_string!("|"))
-                ],
-                ctx
-            )
-            .unwrap(),
+            formatter(&[JsValue::new("%%%%%"), JsValue::new("|")], ctx).unwrap(),
             "%%% |"
         );
     })]);
@@ -86,7 +79,7 @@ fn formatter_trailing_format_leader_renders() {
 fn formatter_float_format_works() {
     run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(
-            formatter(&[JsValue::new(js_string!("%f")), JsValue::new(3.1415)], ctx).unwrap(),
+            formatter(&[JsValue::new("%f"), JsValue::new(3.1415)], ctx).unwrap(),
             "3.141500"
         );
     })]);

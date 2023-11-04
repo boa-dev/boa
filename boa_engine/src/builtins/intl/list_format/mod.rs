@@ -51,7 +51,7 @@ impl IntrinsicObject for ListFormat {
             .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
             .property(
                 JsSymbol::to_string_tag(),
-                js_string!("Intl.ListFormat"),
+                "Intl.ListFormat",
                 Attribute::CONFIGURABLE,
             )
             .method(Self::format, "format", 1)
@@ -437,9 +437,9 @@ impl ListFormat {
             .create_data_property_or_throw(
                 "type",
                 match lf.typ {
-                    ListFormatType::Conjunction => js_string!("conjunction"),
-                    ListFormatType::Disjunction => js_string!("disjunction"),
-                    ListFormatType::Unit => js_string!("unit"),
+                    ListFormatType::Conjunction => "conjunction",
+                    ListFormatType::Disjunction => "disjunction",
+                    ListFormatType::Unit => "unit",
                 },
                 context,
             )
@@ -448,9 +448,9 @@ impl ListFormat {
             .create_data_property_or_throw(
                 "style",
                 match lf.style {
-                    ListLength::Wide => js_string!("long"),
-                    ListLength::Short => js_string!("short"),
-                    ListLength::Narrow => js_string!("narrow"),
+                    ListLength::Wide => "long",
+                    ListLength::Short => "short",
+                    ListLength::Narrow => "narrow",
                     _ => unreachable!(),
                 },
                 context,

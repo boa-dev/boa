@@ -9,7 +9,6 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     job::{JobCallback, NativeJob},
-    js_string,
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
@@ -901,12 +900,8 @@ impl Promise {
                         let obj = JsObject::with_object_proto(context.intrinsics());
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
-                        obj.create_data_property_or_throw(
-                            "status",
-                            js_string!("fulfilled"),
-                            context,
-                        )
-                        .expect("cannot fail per spec");
+                        obj.create_data_property_or_throw("status", "fulfilled", context)
+                            .expect("cannot fail per spec");
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "value", x).
                         obj.create_data_property_or_throw(
@@ -991,12 +986,8 @@ impl Promise {
                         let obj = JsObject::with_object_proto(context.intrinsics());
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
-                        obj.create_data_property_or_throw(
-                            "status",
-                            js_string!("rejected"),
-                            context,
-                        )
-                        .expect("cannot fail per spec");
+                        obj.create_data_property_or_throw("status", "rejected", context)
+                            .expect("cannot fail per spec");
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "reason", x).
                         obj.create_data_property_or_throw(

@@ -1,6 +1,6 @@
 use indoc::indoc;
 
-use crate::{js_string, run_test_actions, JsNativeErrorKind, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, TestAction};
 
 #[test]
 // https://github.com/boa-dev/boa/issues/2317
@@ -15,7 +15,7 @@ fn fun_block_eval_2317() {
                     return y + x;
                 })("arg");
             "#},
-            js_string!("arginner"),
+            "arginner",
         ),
         TestAction::assert_eq(
             indoc! {r#"
@@ -26,7 +26,7 @@ fn fun_block_eval_2317() {
                     return y + x;
                 })();
             "#},
-            js_string!("defaultinner"),
+            "defaultinner",
         ),
     ]);
 }

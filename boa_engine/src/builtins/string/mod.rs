@@ -2091,7 +2091,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, "g").
-        let rx = RegExp::create(regexp, &JsValue::new(js_string!("g")), context)?;
+        let rx = RegExp::create(regexp, &JsValue::new("g"), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
         rx.invoke(JsSymbol::match_all(), &[JsValue::new(s)], context)

@@ -652,7 +652,7 @@ impl RegExp {
                     this,
                     &JsValue::new(context.intrinsics().constructors().regexp().prototype()),
                 ) {
-                    Ok(JsValue::new(js_string!("(?:)")))
+                    Ok(JsValue::new("(?:)"))
                 } else {
                     Err(JsNativeError::typ()
                         .with_message("RegExp.prototype.source method called on incompatible value")
@@ -680,7 +680,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-escaperegexppattern
     fn escape_pattern(src: &JsString, _flags: &JsString) -> JsValue {
         if src.is_empty() {
-            js_string!("(?:)").into()
+            "(?:)".into()
         } else {
             let mut s = Vec::with_capacity(src.len());
             let mut buf = [0; 2];
@@ -1850,7 +1850,7 @@ impl RegExp {
                 .expect("already checked that the object was a RegExp") = regexp;
         }
 
-        this.set(utf16!("lastIndex"), 0, true, context)?;
+        this.set("lastIndex", 0, true, context)?;
 
         Ok(this.into())
     }

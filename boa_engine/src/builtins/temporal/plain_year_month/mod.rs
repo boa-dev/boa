@@ -3,7 +3,6 @@
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectData},
     property::Attribute,
     realm::Realm,
@@ -158,12 +157,7 @@ impl BuiltInConstructor for PlainYearMonth {
 
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
         let record = IsoDateRecord::new(y, m, ref_day);
-        create_temporal_year_month(
-            record,
-            JsValue::from(js_string!("iso8601")),
-            Some(new_target),
-            context,
-        )
+        create_temporal_year_month(record, JsValue::from("iso8601"), Some(new_target), context)
     }
 }
 

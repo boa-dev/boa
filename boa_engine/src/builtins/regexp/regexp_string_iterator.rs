@@ -14,7 +14,6 @@ use crate::{
     builtins::{iterable::create_iter_result_object, regexp, BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     object::{JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
@@ -55,7 +54,7 @@ impl IntrinsicObject for RegExpStringIterator {
             .static_method(Self::next, "next", 0)
             .static_property(
                 JsSymbol::to_string_tag(),
-                js_string!("RegExp String Iterator"),
+                "RegExp String Iterator",
                 Attribute::CONFIGURABLE,
             )
             .build();

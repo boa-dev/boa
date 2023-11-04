@@ -19,7 +19,6 @@ use crate::{
         Number,
     },
     error::JsNativeError,
-    js_string,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
@@ -367,9 +366,9 @@ impl JsValue {
                 //     1. Assert: preferredType is number.
                 //     2. Let hint be "number".
                 let hint = match preferred_type {
-                    PreferredType::Default => js_string!("default"),
-                    PreferredType::String => js_string!("string"),
-                    PreferredType::Number => js_string!("number"),
+                    PreferredType::Default => "default",
+                    PreferredType::String => "string",
+                    PreferredType::Number => "number",
                 }
                 .into();
 
@@ -983,21 +982,22 @@ impl JsValue {
     #[must_use]
     pub fn js_type_of(&self) -> JsString {
         match *self {
-            Self::Rational(_) | Self::Integer(_) => js_string!("number"),
-            Self::String(_) => js_string!("string"),
-            Self::Boolean(_) => js_string!("boolean"),
-            Self::Symbol(_) => js_string!("symbol"),
-            Self::Null => js_string!("object"),
-            Self::Undefined => js_string!("undefined"),
-            Self::BigInt(_) => js_string!("bigint"),
+            Self::Rational(_) | Self::Integer(_) => "number",
+            Self::String(_) => "string",
+            Self::Boolean(_) => "boolean",
+            Self::Symbol(_) => "symbol",
+            Self::Null => "object",
+            Self::Undefined => "undefined",
+            Self::BigInt(_) => "bigint",
             Self::Object(ref object) => {
                 if object.is_callable() {
-                    js_string!("function")
+                    "function"
                 } else {
-                    js_string!("object")
+                    "object"
                 }
             }
         }
+        .into()
     }
 
     /// Abstract operation `IsArray ( argument )`

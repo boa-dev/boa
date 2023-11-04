@@ -677,13 +677,13 @@ impl Number {
         }
 
         if x == -0. {
-            return Ok(JsValue::new(js_string!("0")));
+            return Ok(JsValue::new("0"));
         } else if x.is_nan() {
-            return Ok(JsValue::new(js_string!("NaN")));
+            return Ok(JsValue::new("NaN"));
         } else if x.is_infinite() && x.is_sign_positive() {
-            return Ok(JsValue::new(js_string!("Infinity")));
+            return Ok(JsValue::new("Infinity"));
         } else if x.is_infinite() && x.is_sign_negative() {
-            return Ok(JsValue::new(js_string!("-Infinity")));
+            return Ok(JsValue::new("-Infinity"));
         }
 
         // This is a Optimization from the v8 source code to print values that can fit in a single character

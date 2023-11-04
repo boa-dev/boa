@@ -1,7 +1,6 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    js_string,
     native_function::NativeFunction,
     object::{builtins::JsUint8Array, FunctionObjectBuilder},
     property::Attribute,
@@ -43,7 +42,7 @@ fn main() -> JsResult<()> {
 
     context
         .register_global_property(
-            js_string!("myUint8Array"),
+            "myUint8Array",
             array,
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
         )

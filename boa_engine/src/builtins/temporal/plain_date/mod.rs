@@ -219,7 +219,7 @@ impl BuiltInConstructor for PlainDate {
         let iso_year = super::to_integer_with_truncation(args.get_or_undefined(0), context)?;
         let iso_month = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
         let iso_day = super::to_integer_with_truncation(args.get_or_undefined(2), context)?;
-        let default_calendar = JsValue::from(js_string!("iso8601"));
+        let default_calendar = JsValue::from("iso8601");
         let calendar_like = args.get(3).unwrap_or(&default_calendar);
 
         let iso = IsoDateRecord::new(iso_year, iso_month, iso_day);

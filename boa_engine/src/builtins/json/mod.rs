@@ -358,7 +358,7 @@ impl Json {
                 .to_integer_or_infinity(context)
                 .expect("ToIntegerOrInfinity cannot fail on number")
             {
-                IntegerOrInfinity::PositiveInfinity => js_string!("          "),
+                IntegerOrInfinity::PositiveInfinity => "          ".into(),
                 IntegerOrInfinity::NegativeInfinity => js_string!(),
                 IntegerOrInfinity::Integer(i) if i < 1 => js_string!(),
                 IntegerOrInfinity::Integer(i) => {
@@ -466,7 +466,7 @@ impl Json {
 
         // 5. If value is null, return "null".
         if value.is_null() {
-            return Ok(Some(js_string!("null")));
+            return Ok(Some("null".into()));
         }
 
         // 6. If value is true, return "true".
@@ -496,7 +496,7 @@ impl Json {
             }
 
             // b. Return "null".
-            return Ok(Some(js_string!("null")));
+            return Ok(Some("null".into()));
         }
 
         // 10. If Type(value) is BigInt, throw a TypeError exception.

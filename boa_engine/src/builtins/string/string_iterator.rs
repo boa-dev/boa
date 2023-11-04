@@ -46,7 +46,7 @@ impl IntrinsicObject for StringIterator {
             .static_method(Self::next, "next", 0)
             .static_property(
                 JsSymbol::to_string_tag(),
-                js_string!("String Iterator"),
+                "String Iterator",
                 Attribute::CONFIGURABLE,
             )
             .build();

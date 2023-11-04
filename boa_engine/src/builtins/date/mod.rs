@@ -1246,7 +1246,7 @@ impl Date {
         // 2. Let tv be ? thisTimeValue(O).
         let Some(tv) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
             // 3. If tv is NaN, return "Invalid Date".
-            return Ok(js_string!("Invalid Date").into());
+            return Ok("Invalid Date".into());
         };
 
         // 4. Let t be LocalTime(tv).
@@ -1393,7 +1393,7 @@ impl Date {
         // 1. Let tv be ? thisTimeValue(this value).
         // 2. Return ToDateString(tv).
         let Some(tv) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
-            return Ok(js_string!("Invalid Date").into());
+            return Ok("Invalid Date".into());
         };
         Ok(js_string!(context
             .host_hooks()
@@ -1422,7 +1422,7 @@ impl Date {
         // 2. Let tv be ? thisTimeValue(O).
         let Some(tv) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
             // 3. If tv is NaN, return "Invalid Date".
-            return Ok(js_string!("Invalid Date").into());
+            return Ok("Invalid Date".into());
         };
 
         // 4. Let t be LocalTime(tv).
@@ -1452,7 +1452,7 @@ impl Date {
         // 1. Let O be this Date object.
         let Some(t) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
             // 3. If tv is NaN, return "Invalid Date".
-            return Ok(js_string!("Invalid Date").into());
+            return Ok("Invalid Date".into());
         };
 
         // 2. Let tv be ? thisTimeValue(O).

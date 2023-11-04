@@ -1,11 +1,11 @@
-use crate::{js_string, run_test_actions, TestAction};
+use crate::{run_test_actions, TestAction};
 
 #[test]
 fn calendar_constructor() {
     // TODO: Add other BuiltinCalendars
     run_test_actions([TestAction::assert_eq(
         "new Temporal.Calendar('iso8601').id",
-        js_string!("iso8601"),
+        "iso8601",
     )]);
 }
 

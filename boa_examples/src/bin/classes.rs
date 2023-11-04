@@ -119,7 +119,7 @@ impl Class for Person {
         // of `"Im a static property"` and attribute flags `WRITABLE`, `ENUMERABLE` and `PERMANENT`.
         class.static_property(
             "staticProperty",
-            js_string!("Im a static property"),
+            "Im a static property",
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::PERMANENT,
         );
 

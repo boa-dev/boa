@@ -1,6 +1,4 @@
-use boa_engine::{
-    context::HostHooks, js_string, object::builtins::JsDate, Context, JsResult, JsValue,
-};
+use boa_engine::{context::HostHooks, object::builtins::JsDate, Context, JsResult, JsValue};
 use chrono::{DateTime, FixedOffset, LocalResult, NaiveDateTime, TimeZone};
 
 struct CustomTimezone;
@@ -66,27 +64,27 @@ fn main() -> JsResult<()> {
 
     assert_eq!(
         date.to_json(context)?,
-        JsValue::from(js_string!("2000-10-09T20:12:59.059Z"))
+        JsValue::from("2000-10-09T20:12:59.059Z")
     );
 
     assert_eq!(
         date.to_date_string(context)?,
-        JsValue::from(js_string!("Mon Oct 09 2000"))
+        JsValue::from("Mon Oct 09 2000")
     );
 
     assert_eq!(
         date.to_iso_string(context)?,
-        JsValue::from(js_string!("2000-10-09T20:12:59.059Z"))
+        JsValue::from("2000-10-09T20:12:59.059Z")
     );
 
     assert_eq!(
         date.to_time_string(context)?,
-        JsValue::from(js_string!("23:12:59 GMT+0300"))
+        JsValue::from("23:12:59 GMT+0300")
     );
 
     assert_eq!(
         date.to_string(context)?,
-        JsValue::from(js_string!("Mon Oct 09 2000 23:12:59 GMT+0300"))
+        JsValue::from("Mon Oct 09 2000 23:12:59 GMT+0300")
     );
 
     Ok(())

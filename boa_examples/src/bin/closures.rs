@@ -23,7 +23,7 @@ fn main() -> Result<(), JsError> {
     // We register a global closure function that has the name 'closure' with length 0.
     context
         .register_global_callable(
-            js_string!("closure"),
+            JsString::from("closure"),
             0,
             NativeFunction::from_copy_closure(move |_, _, _| {
                 println!("Called `closure`");
@@ -54,7 +54,7 @@ fn main() -> Result<(), JsError> {
     object.define_property_or_throw(
         "name",
         PropertyDescriptor::builder()
-            .value(js_string!("Boa dev"))
+            .value("Boa dev")
             .writable(false)
             .enumerable(false)
             .configurable(false),
@@ -121,13 +121,13 @@ fn main() -> Result<(), JsError> {
 
     assert_eq!(
         context.eval(Source::from_bytes("createMessage()"))?,
-        js_string!("message from `Boa dev`: Hello!").into()
+        "message from `Boa dev`: Hello!".into()
     );
 
     // The data mutates between calls
     assert_eq!(
         context.eval(Source::from_bytes("createMessage(); createMessage();"))?,
-        js_string!("message from `Boa dev`: Hello! Hello! Hello!").into()
+        "message from `Boa dev`: Hello! Hello! Hello!".into()
     );
 
     // We have moved `Clone` variables into a closure and executed that closure
@@ -144,7 +144,7 @@ fn main() -> Result<(), JsError> {
     // We register a global closure that is not `Copy`.
     context
         .register_global_callable(
-            js_string!("enumerate"),
+            JsString::from("enumerate"),
             0,
             // Note that it is required to use `unsafe` code, since the compiler cannot verify that the
             // types captured by the closure are not traceable.

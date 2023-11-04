@@ -1,4 +1,4 @@
-use crate::{js_string, run_test_actions, JsValue, TestAction};
+use crate::{run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -68,10 +68,7 @@ fn get_prototype_of() {
                 function F() { this.p = 42 };
                 let f = new F();
             "#}),
-        TestAction::assert_eq(
-            "Reflect.getPrototypeOf(f).constructor.name",
-            js_string!("F"),
-        ),
+        TestAction::assert_eq("Reflect.getPrototypeOf(f).constructor.name", "F"),
     ]);
 }
 
@@ -134,6 +131,6 @@ fn set_prototype_of() {
                 let obj = {}
                 Reflect.setPrototypeOf(obj, F);
             "#}),
-        TestAction::assert_eq("Reflect.getPrototypeOf(obj).name", js_string!("F")),
+        TestAction::assert_eq("Reflect.getPrototypeOf(obj).name", "F"),
     ]);
 }

@@ -46,7 +46,6 @@ use boa_profiler::Profiler;
 use crate::{
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
-    js_string,
     object::{JsObject, JsPromise, ObjectData},
     realm::Realm,
     Context, HostDefined, JsError, JsResult, JsString, JsValue, NativeFunction,
@@ -615,7 +614,7 @@ impl ModuleNamespace {
         // 8. Create own properties of M corresponding to the definitions in 28.3.
         let namespace = context.intrinsics().templates().namespace().create(
             ObjectData::module_namespace(Self { module, exports }),
-            vec![js_string!("Module").into()],
+            vec!["Module".into()],
         );
 
         // 9. Set module.[[Namespace]] to M.
