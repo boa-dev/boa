@@ -920,6 +920,10 @@ impl JsString {
     pub(crate) fn trim_end(&self) -> JsStr<'_> {
         self.as_str().trim_end()
     }
+
+    pub fn is_static(&self) -> bool {
+        self.ptr.is_tagged()
+    }
 }
 
 impl Clone for JsString {
