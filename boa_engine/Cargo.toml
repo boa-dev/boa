@@ -62,6 +62,7 @@ boa_profiler.workspace = true
 boa_macros.workspace = true
 boa_ast.workspace = true
 boa_parser.workspace = true
+boa_temporal.workspace = true
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
 rand = "0.8.5"

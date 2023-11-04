@@ -20,3 +20,42 @@ fn calendar_methods() {
         TestAction::assert_eq("iso.daysInWeek('2021-11-20')", 7),
     ]);
 }
+
+#[test]
+fn run_custom_calendar() {
+    run_test_actions([
+        TestAction::run(
+            r#"const custom = {
+            dateAdd() {},
+            dateFromFields() {},
+            dateUntil() {},
+            day() {},
+            dayOfWeek() {},
+            dayOfYear() {},
+            daysInMonth() { return 14 },
+            daysInWeek() {return 6},
+            daysInYear() {return 360},
+            fields() {},
+            id: "custom-calendar",
+            inLeapYear() {},
+            mergeFields() {},
+            month() {},
+            monthCode() {},
+            monthDayFromFields() {},
+            monthsInYear() {},
+            weekOfYear() {},
+            year() {},
+            yearMonthFromFields() {},
+            yearOfWeek() {},
+          };
+
+          let cal = Temporal.Calendar.from(custom);
+          let date = "1972-05-01";
+        "#,
+        ),
+        TestAction::assert_eq("cal.id", js_string!("custom-calendar")),
+        TestAction::assert_eq("cal.daysInMonth(date)", 14),
+        TestAction::assert_eq("cal.daysInWeek(date)", 6),
+        TestAction::assert_eq("cal.daysInYear(date)", 360),
+    ])
+}

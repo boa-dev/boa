@@ -12,13 +12,19 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::plain_date::iso::IsoDateRecord;
+use super::calendar::to_temporal_calendar_slot_value;
+use boa_temporal::{options::ArithmeticOverflow, year_month::TemporalYearMonth as InnerYearMonth};
 
 /// The `Temporal.PlainYearMonth` object.
 #[derive(Debug, Clone)]
 pub struct PlainYearMonth {
-    pub(crate) inner: IsoDateRecord,
-    pub(crate) calendar: JsValue,
+    pub(crate) inner: InnerYearMonth,
+}
+
+impl PlainYearMonth {
+    pub(crate) fn new(inner: InnerYearMonth) -> Self {
+        Self { inner }
+    }
 }
 
 impl BuiltInObject for PlainYearMonth {
@@ -152,18 +158,13 @@ impl BuiltInConstructor for PlainYearMonth {
         let y = super::to_integer_with_truncation(args.get_or_undefined(0), context)?;
         // 4. Let m be ? ToIntegerWithTruncation(isoMonth).
         let m = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
-
-        // TODO: calendar handling.
         // 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
+        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2), context)?;
 
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
-        let record = IsoDateRecord::new(y, m, ref_day);
-        create_temporal_year_month(
-            record,
-            JsValue::from(js_string!("iso8601")),
-            Some(new_target),
-            context,
-        )
+        let inner = InnerYearMonth::new(y, m, calendar, ArithmeticOverflow::Reject)?;
+
+        create_temporal_year_month(inner, Some(new_target), context)
     }
 }
 
@@ -266,24 +267,12 @@ impl PlainYearMonth {
 
 // 9.5.5 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
 pub(crate) fn create_temporal_year_month(
-    year_month_record: IsoDateRecord,
-    calendar: JsValue,
+    ym: InnerYearMonth,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(isoYear, isoMonth, referenceISODay) is false, throw a RangeError exception.
-    if !year_month_record.is_valid() {
-        return Err(JsNativeError::range()
-            .with_message("PlainYearMonth values are not a valid ISO date.")
-            .into());
-    }
-
     // 2. If ! ISOYearMonthWithinLimits(isoYear, isoMonth) is false, throw a RangeError exception.
-    if year_month_record.within_year_month_limits() {
-        return Err(JsNativeError::range()
-            .with_message("PlainYearMonth values are not a valid ISO date.")
-            .into());
-    }
 
     // 3. If newTarget is not present, set newTarget to %Temporal.PlainYearMonth%.
     let new_target = if let Some(target) = new_target {
@@ -310,13 +299,8 @@ pub(crate) fn create_temporal_year_month(
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISODay]] to referenceISODay.
 
-    let obj = JsObject::from_proto_and_data(
-        proto,
-        ObjectData::plain_year_month(PlainYearMonth {
-            inner: year_month_record,
-            calendar,
-        }),
-    );
+    let obj =
+        JsObject::from_proto_and_data(proto, ObjectData::plain_year_month(PlainYearMonth::new(ym)));
 
     // 9. Return object.
     Ok(obj.into())

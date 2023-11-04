@@ -11,13 +11,18 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::{plain_date::iso::IsoDateRecord, plain_date_time::iso::IsoDateTimeRecord};
+use boa_temporal::{datetime::TemporalDateTime, month_day::TemporalMonthDay as InnerMonthDay};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone)]
 pub struct PlainMonthDay {
-    pub(crate) inner: IsoDateRecord,
-    pub(crate) calendar: JsValue,
+    pub(crate) inner: InnerMonthDay,
+}
+
+impl PlainMonthDay {
+    fn new(inner: InnerMonthDay) -> Self {
+        Self { inner }
+    }
 }
 
 impl BuiltInObject for PlainMonthDay {
@@ -62,24 +67,13 @@ impl BuiltInConstructor for PlainMonthDay {
 // ==== `PlainMonthDay` Abstract Operations ====
 
 pub(crate) fn create_temporal_month_day(
-    iso: IsoDateRecord,
-    calendar: JsValue,
+    inner: InnerMonthDay,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
-    if iso.is_valid() {
-        return Err(JsNativeError::range()
-            .with_message("PlainMonthDay is not a valid ISO date.")
-            .into());
-    }
-
     // 2. If ISODateTimeWithinLimits(referenceISOYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    let iso_date_time = IsoDateTimeRecord::default()
-        .with_date(iso.year(), iso.month(), iso.day())
-        .with_time(12, 0, 0, 0, 0, 0);
-
-    if !iso_date_time.is_valid() {
+    if TemporalDateTime::validate_month_day(&inner) {
         return Err(JsNativeError::range()
             .with_message("PlainMonthDay is not a valid ISO date time.")
             .into());
@@ -111,10 +105,7 @@ pub(crate) fn create_temporal_month_day(
     // 8. Set object.[[ISOYear]] to referenceISOYear.
     let obj = JsObject::from_proto_and_data(
         proto,
-        ObjectData::plain_month_day(PlainMonthDay {
-            inner: iso,
-            calendar,
-        }),
+        ObjectData::plain_month_day(PlainMonthDay::new(inner)),
     );
 
     // 9. Return object.

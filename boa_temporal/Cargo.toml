@@ -1,0 +1,21 @@
+[package]
+name = "boa_temporal"
+keywords = ["javascript", "js", "compiler", "temporal", "calendar", "date", "time"]
+categories = ["date", "time", "calendars"]
+readme = "./README.md"
+description.workspace = true
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+
+[dependencies]
+icu_calendar = { version = "~1.3.2", default-features = false }
+tinystr = "0.7.4"
+bitflags.workspace = true
+rustc-hash = { workspace = true, features = ["std"] }
+num-bigint = { workspace = true, features = ["serde"] }
+num-traits.workspace = true

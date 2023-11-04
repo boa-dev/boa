@@ -1,10 +1,11 @@
 //! An `IsoDateRecord` that represents the `[[ISOYear]]`, `[[ISOMonth]]`, and `[[ISODay]]` internal slots.
 
 use crate::{
-    builtins::temporal::{self, options::ArithmeticOverflow, DateDuration, TemporalFields},
+    builtins::temporal::{self, DateDuration },
     JsNativeError, JsResult, JsString,
 };
 
+use boa_temporal::options::ArithmeticOverflow;
 use icu_calendar::{Date, Iso};
 
 // TODO: Move ISODateRecord to a more generalized location.
