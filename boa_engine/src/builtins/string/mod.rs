@@ -633,9 +633,11 @@ impl String {
 
         match position {
             // 4. Let size be the length of S.
-            IntegerOrInfinity::Integer(i) if i >= 0 && i < string.len() as i64 => {
+            IntegerOrInfinity::Integer(i) if i >= 0 => {
                 // 6. Return the Number value for the numeric value of the code unit at index position within the String S.
-                Ok(u32::from(string.to_vec()[i as usize]).into())
+                Ok(string
+                    .get(i as usize)
+                    .map_or_else(JsValue::nan, JsValue::from))
             }
             // 5. If position < 0 or position ≥ size, return NaN.
             _ => Ok(JsValue::nan()),

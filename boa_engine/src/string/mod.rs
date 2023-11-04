@@ -46,7 +46,7 @@ use std::{
     str::FromStr,
 };
 
-use self::common::StaticJsStrings;
+use self::{common::StaticJsStrings, str::JsSliceIndex};
 
 fn alloc_overflow() -> ! {
     panic!("detected overflow during string allocation")
@@ -883,17 +883,6 @@ impl JsString {
         self.len() == 0
     }
 
-    // pub fn get<I>(&self, index: I) -> Option<<I::Output as ToOwned>::Owned>
-    // where
-    //     I: SliceIndex<[u16]>,
-    //     <I as SliceIndex<[u16]>>::Output: ToOwned,
-    // {
-    //     match self.as_slice() {
-    //         StringSlice::Ascii(v) => v.get(index).map(ToOwned::to_owned),
-    //         StringSlice::U16(v) => v.get(index).map(ToOwned::to_owned),
-    //     }
-    // }
-
     pub fn to_vec(&self) -> Vec<u16> {
         match self.as_str().variant() {
             JsStrVariant::Ascii(v) => v.bytes().map(u16::from).collect(),
@@ -923,6 +912,20 @@ impl JsString {
 
     pub fn is_static(&self) -> bool {
         self.ptr.is_tagged()
+    }
+
+    pub fn get<'a, I>(&'a self, index: I) -> Option<I::Value>
+    where
+        I: JsSliceIndex<'a>,
+    {
+        I::get(self.as_str(), index)
+    }
+
+    pub fn get_expect<'a, I>(&'a self, index: I) -> I::Value
+    where
+        I: JsSliceIndex<'a>,
+    {
+        self.get(index).expect("Index out of bounds")
     }
 }
 
@@ -1088,15 +1091,6 @@ impl Hash for JsString {
         self.as_str().hash(state);
     }
 }
-
-// impl<I: SliceIndex<[u16]>> Index<I> for JsString {
-//     type Output = I::Output;
-
-//     #[inline]
-//     fn index(&self, index: I) -> &Self::Output {
-//         Index::index(&**self, index)
-//     }
-// }
 
 impl Ord for JsString {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {

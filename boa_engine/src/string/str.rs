@@ -1,3 +1,5 @@
+use std::slice::SliceIndex;
+
 use crate::{builtins::string::is_trimmable_whitespace, string::Iter};
 use boa_interner::JStrRef;
 
@@ -149,5 +151,63 @@ impl<'a> JsStr<'a> {
                 unsafe { JsStr::u16_unchecked(value) }
             }
         }
+    }
+
+    pub fn get<I>(&'a self, index: I) -> Option<I::Value>
+    where
+        I: JsSliceIndex<'a>,
+    {
+        I::get(*self, index)
+    }
+}
+
+pub trait JsSliceIndex<'a>: SliceIndex<[u8]> + SliceIndex<[u16]> {
+    type Value;
+
+    fn get(_: JsStr<'a>, index: Self) -> Option<Self::Value>;
+}
+
+impl<'a> JsSliceIndex<'a> for usize {
+    type Value = u16;
+
+    fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
+        match value.variant() {
+            JsStrVariant::Ascii(v) => v.as_bytes().get(index).copied().map(u16::from),
+            JsStrVariant::U16(v) => v.get(index).copied(),
+        }
+    }
+}
+
+impl<'a> JsSliceIndex<'a> for std::ops::Range<usize> {
+    type Value = JsStr<'a>;
+
+    fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
+        match value.variant() {
+            JsStrVariant::Ascii(v) => {
+                let slice = v.as_bytes().get(index)?;
+                // SAFETY: Getting a sub-slice of an ASCII array, retuns an ASCII array, so this is safe.
+                let str = unsafe { std::str::from_utf8_unchecked(slice) };
+
+                // SAFETY: `from_utf8_unchecked` does not alter the string, so this is safe.
+                Some(unsafe { JsStr::ascii_unchecked(str) })
+            }
+            JsStrVariant::U16(v) => {
+                let slice = v.get(index)?;
+
+                // TODO: If we sub-slice an utf16 array, and the sub-slice has only ASCII characters then we need,
+                //       account for that.
+                //
+                // SAFETY:
+                Some(unsafe { JsStr::u16_unchecked(slice) })
+            }
+        }
+    }
+}
+
+impl<'a> JsSliceIndex<'a> for std::ops::RangeFull {
+    type Value = JsStr<'a>;
+
+    fn get(value: JsStr<'a>, _index: Self) -> Option<Self::Value> {
+        Some(value)
     }
 }

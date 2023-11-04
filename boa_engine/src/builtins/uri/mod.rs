@@ -309,7 +309,7 @@ where
         }
 
         // b. Let C be the code unit at index k within string.
-        let c = string.to_vec()[k];
+        let c = string.get_expect(k);
 
         // c. If C is in unescapedSet, then
         if unescaped_set(c) {
@@ -384,7 +384,7 @@ where
         }
 
         // b. Let C be the code unit at index k within string.
-        let c = string.to_vec()[k];
+        let c = string.get_expect(k);
 
         // c. If C is not the code unit 0x0025 (PERCENT SIGN), then
         #[allow(clippy::if_not_else)]
@@ -406,9 +406,10 @@ where
             // iii. If the code units at index (k + 1) and (k + 2) within string do not represent
             // hexadecimal digits, throw a URIError exception.
             // iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-            let b = decode_hex_byte(string.to_vec()[k + 1], string.to_vec()[k + 2]).ok_or_else(
-                || JsNativeError::uri().with_message("invalid hexadecimal digit found"),
-            )?;
+            let b = decode_hex_byte(string.get_expect(k + 1), string.get_expect(k + 2))
+                .ok_or_else(|| {
+                    JsNativeError::uri().with_message("invalid hexadecimal digit found")
+                })?;
 
             // v. Set k to k + 2.
             k += 2;
@@ -456,7 +457,7 @@ where
                     k += 1;
 
                     // b. If the code unit at index k within string is not the code unit 0x0025 (PERCENT SIGN), throw a URIError exception.
-                    if string.to_vec()[k] != 0x0025 {
+                    if string.get_expect(k) != 0x0025 {
                         return Err(JsNativeError::uri()
                             .with_message("escape characters must be preceded with a % sign")
                             .into());
@@ -464,7 +465,7 @@ where
 
                     // c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.
                     // d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-                    let b = decode_hex_byte(string.to_vec()[k + 1], string.to_vec()[k + 2])
+                    let b = decode_hex_byte(string.get_expect(k + 1), string.get_expect(k + 2))
                         .ok_or_else(|| {
                             JsNativeError::uri().with_message("invalid hexadecimal digit found")
                         })?;
