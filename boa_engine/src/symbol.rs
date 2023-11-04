@@ -213,7 +213,7 @@ impl JsSymbol {
             return wk.fn_name();
         }
         self.description()
-            .map(|s| js_string!("[", s, "]"))
+            .map(|s| js_string!("[", &s, "]"))
             .unwrap_or_default()
     }
 

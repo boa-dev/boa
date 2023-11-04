@@ -26,7 +26,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, CowJsString},
+    string::{common::StaticJsStrings, JsStringSlice},
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
@@ -836,7 +836,7 @@ impl Object {
         let tag_str = tag
             .as_string()
             .map(JsString::as_str)
-            .map_or(CowJsString::from(builtin_tag), Into::into);
+            .map_or(JsStringSlice::from(builtin_tag), Into::into);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
         Ok(js_string!("[object ", tag_str, "]").into())

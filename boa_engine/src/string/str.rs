@@ -3,6 +3,8 @@ use std::slice::SliceIndex;
 use crate::{builtins::string::is_trimmable_whitespace, string::Iter};
 use boa_interner::JStrRef;
 
+use super::JsStringSlice;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum JsStrVariant<'a> {
     Ascii(&'a str),
@@ -69,8 +71,8 @@ impl<'a> JsStr<'a> {
     /// TODO: doc
     #[inline]
     #[must_use]
-    pub fn iter(&self) -> Iter<'_> {
-        Iter::new(*self)
+    pub fn iter(self) -> Iter<'a> {
+        Iter::new(self.into())
     }
 
     pub(crate) fn as_str_ref(&self) -> JStrRef<'_> {
@@ -89,68 +91,22 @@ impl<'a> JsStr<'a> {
     /// Trims both leading and trailing space.
     #[inline]
     #[must_use]
-    pub fn trim(&self) -> Self {
+    pub fn trim(self) -> JsStringSlice<'a> {
         self.trim_start().trim_end()
     }
 
     /// Trims all leading space.
     #[inline]
     #[must_use]
-    pub fn trim_start(&self) -> Self {
-        match self.variant() {
-            JsStrVariant::Ascii(s) => {
-                // SAFETY: Calling `trim_start()` on ASCII string always returns ASCII string, so this is safe.
-                unsafe { JsStr::ascii_unchecked(s.trim_start()) }
-            }
-            JsStrVariant::U16(s) => {
-                let value = if let Some(left) = s.iter().copied().position(|r| {
-                    !char::from_u32(u32::from(r))
-                        .map(is_trimmable_whitespace)
-                        .unwrap_or_default()
-                }) {
-                    &s[left..]
-                } else {
-                    // SAFETY: An empty string is valid ASCII, so this is safe.
-                    return unsafe { JsStr::ascii_unchecked("") };
-                };
-
-                // TODO: If we have a string that has ascii non-white space characters,
-                //       and a leading non-ascii white space, that is trimmed making this ascii.
-                //
-                // SAFETY:
-                unsafe { JsStr::u16_unchecked(value) }
-            }
-        }
+    pub fn trim_start(self) -> JsStringSlice<'a> {
+        JsStringSlice::from(self).trim_start()
     }
 
     /// Trims all trailing space.
     #[inline]
     #[must_use]
-    pub fn trim_end(&self) -> Self {
-        match self.variant() {
-            JsStrVariant::Ascii(s) => {
-                // SAFETY: Calling `trim_end()` on ASCII string always returns ASCII string, so this is safe.
-                unsafe { JsStr::ascii_unchecked(s.trim_end()) }
-            }
-            JsStrVariant::U16(s) => {
-                let value = if let Some(right) = s.iter().copied().rposition(|r| {
-                    !char::from_u32(u32::from(r))
-                        .map(is_trimmable_whitespace)
-                        .unwrap_or_default()
-                }) {
-                    &s[..=right]
-                } else {
-                    // SAFETY: An empty string is valid ASCII, so this is safe.
-                    return unsafe { JsStr::ascii_unchecked("") };
-                };
-
-                // TODO: If we have a string that has ascii non-white space characters,
-                //       and a trailing non-ascii white space, that is trimmed making this ascii.
-                //
-                // SAFETY:
-                unsafe { JsStr::u16_unchecked(value) }
-            }
-        }
+    pub fn trim_end(self) -> JsStringSlice<'a> {
+        JsStringSlice::from(self).trim_end()
     }
 
     pub fn get<I>(&'a self, index: I) -> Option<I::Value>

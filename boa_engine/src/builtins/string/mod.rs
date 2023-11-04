@@ -2350,13 +2350,13 @@ impl String {
             //    the code unit 0x0022 (QUOTATION MARK)
             //    escapedV
             //    the code unit 0x0022 (QUOTATION MARK)
-            p1 = js_string!(p1, " ", attribute, "=\"", &escaped_v[..], "\"");
+            p1 = js_string!(&p1, " ", attribute, "=\"", &escaped_v[..], "\"");
         }
 
         // 5. Let p2 be the string-concatenation of p1 and ">".
         // 6. Let p3 be the string-concatenation of p2 and S.
         // 7. Let p4 be the string-concatenation of p3, "</", tag, and ">".
-        let p4 = js_string!(p1, ">", s, "</", tag, ">");
+        let p4 = js_string!(&p1, ">", &s, "</", tag, ">");
 
         // 8. Return p4.
         Ok(p4.into())
