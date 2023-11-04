@@ -237,7 +237,7 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! An `IsoDateRecord` that represents the `[[ISOYear]]`, `[[ISOMonth]]`, and `[[ISODay]]` internal slots.
 
 </span><span class="kw">use crate</span>::{
-    builtins::temporal::{<span class="self">self</span>, TemporalFields},
+    builtins::temporal::{<span class="self">self</span>, options::ArithmeticOverflow, DateDuration, TemporalFields},
     JsNativeError, JsResult, JsString,
 };
 
@@ -295,16 +295,16 @@
         year: i32,
         month: i32,
         day: i32,
-        overflow: <span class="kw-2">&amp;</span>JsString,
+        overflow: ArithmeticOverflow,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">match </span>overflow.to_std_string_escaped().as_str() {
-            <span class="string">&quot;constrain&quot; </span>=&gt; {
+        <span class="kw">match </span>overflow {
+            ArithmeticOverflow::Constrain =&gt; {
                 <span class="kw">let </span>m = month.clamp(<span class="number">1</span>, <span class="number">12</span>);
                 <span class="kw">let </span>days_in_month = temporal::calendar::utils::iso_days_in_month(year, month);
                 <span class="kw">let </span>d = day.clamp(<span class="number">1</span>, days_in_month);
                 <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new(year, m, d))
             }
-            <span class="string">&quot;reject&quot; </span>=&gt; {
+            ArithmeticOverflow::Reject =&gt; {
                 <span class="kw">let </span>date = <span class="self">Self</span>::new(year, month, day);
                 <span class="kw">if </span>!date.is_valid() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
@@ -313,7 +313,6 @@
                 }
                 <span class="prelude-val">Ok</span>(date)
             }
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
@@ -322,7 +321,7 @@
     /// Note: fields.month must be resolved prior to using `from_temporal_fields`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_temporal_fields(
         fields: <span class="kw-2">&amp;</span>TemporalFields,
-        overflow: <span class="kw-2">&amp;</span>JsString,
+        overflow: ArithmeticOverflow,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="self">Self</span>::from_unregulated(
             fields.year().expect(<span class="string">&quot;Cannot fail per spec&quot;</span>),
@@ -335,7 +334,7 @@
     <span class="doccomment">/// Create a Month-Day record from a `TemporalFields` object.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>month_day_from_temporal_fields(
         fields: <span class="kw-2">&amp;</span>TemporalFields,
-        overflow: <span class="kw-2">&amp;</span>JsString,
+        overflow: ArithmeticOverflow,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>fields.year() {
             <span class="prelude-val">Some</span>(year) =&gt; <span class="self">Self</span>::from_unregulated(
@@ -438,15 +437,16 @@
     <span class="doccomment">/// 3.5.11 `AddISODate ( year, month, day, years, months, weeks, days, overflow )`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_iso_date(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        years: i32,
-        months: i32,
-        weeks: i32,
-        days: i32,
-        overflow: <span class="kw-2">&amp;</span>JsString,
+        date_duration: DateDuration,
+        overflow: ArithmeticOverflow,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 1. Assert: year, month, day, years, months, weeks, and days are integers.
         // 2. Assert: overflow is either &quot;constrain&quot; or &quot;reject&quot;.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>intermediate = <span class="self">Self</span>::new(<span class="self">self</span>.year + years, <span class="self">self</span>.month + months, <span class="number">0</span>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>intermediate = <span class="self">Self</span>::new(
+            <span class="self">self</span>.year + date_duration.years() <span class="kw">as </span>i32,
+            <span class="self">self</span>.month + date_duration.months() <span class="kw">as </span>i32,
+            <span class="number">0</span>,
+        );
 
         <span class="comment">// 3. Let intermediate be ! BalanceISOYearMonth(year + years, month + months).
         </span>intermediate.balance_year_month();
@@ -461,7 +461,7 @@
 
         <span class="comment">// 5. Set days to days + 7 × weeks.
         // 6. Let d be intermediate.[[Day]] + days.
-        </span><span class="kw">let </span>additional_days = days + (weeks * <span class="number">7</span>);
+        </span><span class="kw">let </span>additional_days = date_duration.days() <span class="kw">as </span>i32 + (date_duration.weeks() <span class="kw">as </span>i32 * <span class="number">7</span>);
         new_date.day += additional_days;
 
         <span class="comment">// 7. Return BalanceISODate(intermediate.[[Year]], intermediate.[[Month]], d).

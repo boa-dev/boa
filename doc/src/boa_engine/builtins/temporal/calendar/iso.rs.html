@@ -341,46 +341,20 @@
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
 <a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
-<a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implementation of the &quot;iso8601&quot; `BuiltinCalendar`.
 
 </span><span class="kw">use crate</span>::{
     builtins::temporal::{
-        <span class="self">self</span>, create_temporal_date,
+        <span class="self">self</span>,
         date_equations::mathematical_days_in_year,
+        duration::DurationRecord,
         options::{ArithmeticOverflow, TemporalUnit},
         plain_date::iso::IsoDateRecord,
     },
-    js_string,
-    property::PropertyKey,
-    string::utf16,
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    js_string, JsNativeError, JsResult, JsString,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::BuiltinCalendar;
+<span class="kw">use super</span>::{BuiltinCalendar, FieldsType};
 
 <span class="kw">use </span>icu_calendar::{
     iso::Iso,
@@ -398,8 +372,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;mut </span>temporal::TemporalFields,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    ) -&gt; JsResult&lt;IsoDateRecord&gt; {
         <span class="comment">// NOTE: we are in ISO by default here.
         // a. Perform ? ISOResolveMonth(fields).
         // b. Let result be ? ISODateFromFields(fields, overflow).
@@ -416,13 +389,7 @@
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// 9. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], &quot;iso8601&quot;).
-        </span><span class="prelude-val">Ok</span>(create_temporal_date(
-            IsoDateRecord::from_date_iso(date),
-            <span class="macro">js_string!</span>(<span class="string">&quot;iso8601&quot;</span>).into(),
-            <span class="prelude-val">None</span>,
-            context,
-        )<span class="question-mark">?
-        </span>.into())
+        </span><span class="prelude-val">Ok</span>(IsoDateRecord::from_date_iso(date))
     }
 
     <span class="doccomment">/// 12.5.5 `Temporal.Calendar.prototype.yearMonthFromFields ( fields [ , options ] )`
@@ -432,8 +399,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;mut </span>temporal::TemporalFields,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    ) -&gt; JsResult&lt;IsoDateRecord&gt; {
         <span class="comment">// 9. If calendar.[[Identifier]] is &quot;iso8601&quot;, then
         // a. Perform ? ISOResolveMonth(fields).
         </span>fields.iso_resolve_month()<span class="question-mark">?</span>;
@@ -449,12 +415,7 @@
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// 10. Return ? CreateTemporalYearMonth(result.[[Year]], result.[[Month]], &quot;iso8601&quot;, result.[[ReferenceISODay]]).
-        </span>temporal::create_temporal_year_month(
-            IsoDateRecord::from_date_iso(result),
-            <span class="macro">js_string!</span>(<span class="string">&quot;iso8601&quot;</span>).into(),
-            <span class="prelude-val">None</span>,
-            context,
-        )
+        </span><span class="prelude-val">Ok</span>(IsoDateRecord::from_date_iso(result))
     }
 
     <span class="doccomment">/// 12.5.6 `Temporal.Calendar.prototype.monthDayFromFields ( fields [ , options ] )`
@@ -464,8 +425,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;mut </span>temporal::TemporalFields,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    ) -&gt; JsResult&lt;IsoDateRecord&gt; {
         <span class="comment">// 8. Perform ? ISOResolveMonth(fields).
         </span>fields.iso_resolve_month()<span class="question-mark">?</span>;
 
@@ -481,12 +441,7 @@
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// 10. Return ? CreateTemporalMonthDay(result.[[Month]], result.[[Day]], &quot;iso8601&quot;, result.[[ReferenceISOYear]]).
-        </span>temporal::create_temporal_month_day(
-            IsoDateRecord::from_date_iso(result),
-            <span class="macro">js_string!</span>(<span class="string">&quot;iso8601&quot;</span>).into(),
-            <span class="prelude-val">None</span>,
-            context,
-        )
+        </span><span class="prelude-val">Ok</span>(IsoDateRecord::from_date_iso(result))
     }
 
     <span class="doccomment">/// 12.5.7 `Temporal.Calendar.prototype.dateAdd ( date, duration [ , options ] )`
@@ -495,10 +450,9 @@
     </span><span class="kw">fn </span>date_add(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         _date: <span class="kw-2">&amp;</span>temporal::PlainDate,
-        _duration: <span class="kw-2">&amp;</span>temporal::duration::DurationRecord,
+        _duration: <span class="kw-2">&amp;</span>DurationRecord,
         _overflow: ArithmeticOverflow,
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    ) -&gt; JsResult&lt;IsoDateRecord&gt; {
         <span class="comment">// TODO: Not stable on `ICU4X`. Implement once completed.
         </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;feature not implemented.&quot;</span>)
@@ -516,8 +470,7 @@
         _one: <span class="kw-2">&amp;</span>temporal::PlainDate,
         _two: <span class="kw-2">&amp;</span>temporal::PlainDate,
         _largest_unit: TemporalUnit,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    ) -&gt; JsResult&lt;DurationRecord&gt; {
         <span class="comment">// TODO: Not stable on `ICU4X`. Implement once completed.
         </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;Feature not yet implemented.&quot;</span>)
@@ -528,19 +481,19 @@
     </span>}
 
     <span class="doccomment">/// `Temporal.Calendar.prototype.era( dateLike )` for iso8601 calendar.
-    </span><span class="kw">fn </span>era(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>era(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsString&gt;&gt; {
         <span class="comment">// Returns undefined on iso8601.
-        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+        </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// `Temporal.Calendar.prototype.eraYear( dateLike )` for iso8601 calendar.
-    </span><span class="kw">fn </span>era_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>era_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;i32&gt;&gt; {
         <span class="comment">// Returns undefined on iso8601.
-        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+        </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Returns the `year` for the `Iso` calendar.
-    </span><span class="kw">fn </span>year(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>year(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
         <span class="kw">let </span>date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() <span class="kw">as </span>u8,
@@ -548,11 +501,11 @@
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.year().number.into())
+        <span class="prelude-val">Ok</span>(date.year().number)
     }
 
     <span class="doccomment">/// Returns the `month` for the `Iso` calendar.
-    </span><span class="kw">fn </span>month(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>month(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
         <span class="kw">let </span>date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() <span class="kw">as </span>u8,
@@ -560,11 +513,11 @@
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.month().ordinal.into())
+        <span class="prelude-val">Ok</span>(date.month().ordinal <span class="kw">as </span>i32)
     }
 
     <span class="doccomment">/// Returns the `monthCode` for the `Iso` calendar.
-    </span><span class="kw">fn </span>month_code(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>month_code(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;JsString&gt; {
         <span class="kw">let </span>date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() <span class="kw">as </span>u8,
@@ -572,11 +525,11 @@
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(JsString::from(date.month().code.to_string()).into())
+        <span class="prelude-val">Ok</span>(JsString::from(date.month().code.to_string()))
     }
 
     <span class="doccomment">/// Returns the `day` for the `Iso` calendar.
-    </span><span class="kw">fn </span>day(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>day(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
         <span class="kw">let </span>date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() <span class="kw">as </span>u8,
@@ -584,11 +537,11 @@
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.day_of_month().<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(date.day_of_month().<span class="number">0 </span><span class="kw">as </span>i32)
     }
 
     <span class="doccomment">/// Returns the `dayOfWeek` for the `Iso` calendar.
-    </span><span class="kw">fn </span>day_of_week(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>day_of_week(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
         <span class="kw">let </span>date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() <span class="kw">as </span>u8,
@@ -596,11 +549,11 @@
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>((date.day_of_week() <span class="kw">as </span>u8).into())
+        <span class="prelude-val">Ok</span>(date.day_of_week() <span class="kw">as </span>i32)
     }
 
     <span class="doccomment">/// Returns the `dayOfYear` for the `Iso` calendar.
-    </span><span class="kw">fn </span>day_of_year(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>day_of_year(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
         <span class="kw">let </span>date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() <span class="kw">as </span>u8,
@@ -608,11 +561,11 @@
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(i32::from(date.day_of_year_info().day_of_year).into())
+        <span class="prelude-val">Ok</span>(i32::from(date.day_of_year_info().day_of_year))
     }
 
     <span class="doccomment">/// Returns the `weekOfYear` for the `Iso` calendar.
-    </span><span class="kw">fn </span>week_of_year(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>week_of_year(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
         <span class="comment">// TODO: Determine `ICU4X` equivalent.
         </span><span class="kw">let </span>date = Date::try_new_iso_date(
             date_like.year(),
@@ -627,11 +580,11 @@
             .week_of_year(<span class="kw-2">&amp;</span>week_calculator)
             .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(week_of.week.into())
+        <span class="prelude-val">Ok</span>(i32::from(week_of.week))
     }
 
     <span class="doccomment">/// Returns the `yearOfWeek` for the `Iso` calendar.
-    </span><span class="kw">fn </span>year_of_week(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>year_of_week(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
         <span class="comment">// TODO: Determine `ICU4X` equivalent.
         </span><span class="kw">let </span>date = Date::try_new_iso_date(
             date_like.year(),
@@ -647,19 +600,19 @@
             .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">match </span>week_of.unit {
-            RelativeUnit::Previous =&gt; <span class="prelude-val">Ok</span>((date.year().number - <span class="number">1</span>).into()),
-            RelativeUnit::Current =&gt; <span class="prelude-val">Ok</span>(date.year().number.into()),
-            RelativeUnit::Next =&gt; <span class="prelude-val">Ok</span>((date.year().number + <span class="number">1</span>).into()),
+            RelativeUnit::Previous =&gt; <span class="prelude-val">Ok</span>(date.year().number - <span class="number">1</span>),
+            RelativeUnit::Current =&gt; <span class="prelude-val">Ok</span>(date.year().number),
+            RelativeUnit::Next =&gt; <span class="prelude-val">Ok</span>(date.year().number + <span class="number">1</span>),
         }
     }
 
     <span class="doccomment">/// Returns the `daysInWeek` value for the `Iso` calendar.
-    </span><span class="kw">fn </span>days_in_week(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="prelude-val">Ok</span>(<span class="number">7</span>.into())
+    </span><span class="kw">fn </span>days_in_week(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
+        <span class="prelude-val">Ok</span>(<span class="number">7</span>)
     }
 
     <span class="doccomment">/// Returns the `daysInMonth` value for the `Iso` calendar.
-    </span><span class="kw">fn </span>days_in_month(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>days_in_month(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
         <span class="kw">let </span>date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() <span class="kw">as </span>u8,
@@ -667,11 +620,11 @@
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.days_in_month().into())
+        <span class="prelude-val">Ok</span>(i32::from(date.days_in_month()))
     }
 
     <span class="doccomment">/// Returns the `daysInYear` value for the `Iso` calendar.
-    </span><span class="kw">fn </span>days_in_year(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>days_in_year(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
         <span class="kw">let </span>date = Date::try_new_iso_date(
             date_like.year(),
             date_like.month() <span class="kw">as </span>u8,
@@ -679,31 +632,31 @@
         )
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.days_in_year().into())
+        <span class="prelude-val">Ok</span>(i32::from(date.days_in_year()))
     }
 
     <span class="doccomment">/// Return the amount of months in an ISO Calendar.
-    </span><span class="kw">fn </span>months_in_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="prelude-val">Ok</span>(<span class="number">12</span>.into())
+    </span><span class="kw">fn </span>months_in_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;i32&gt; {
+        <span class="prelude-val">Ok</span>(<span class="number">12</span>)
     }
 
     <span class="doccomment">/// Returns whether provided date is in a leap year according to this calendar.
-    </span><span class="kw">fn </span>in_leap_year(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>in_leap_year(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>IsoDateRecord) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// `ICU4X`&#39;s `CalendarArithmetic` is currently private.
         </span><span class="kw">if </span>mathematical_days_in_year(date_like.year()) == <span class="number">366 </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>.into());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
         }
-        <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>.into())
+        <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
     }
 
     <span class="comment">// Resolve the fields for the iso calendar.
-    </span><span class="kw">fn </span>resolve_fields(<span class="kw-2">&amp;</span><span class="self">self</span>, fields: <span class="kw-2">&amp;mut </span>temporal::TemporalFields, <span class="kw">_</span>: <span class="kw-2">&amp;</span>str) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>resolve_fields(<span class="kw-2">&amp;</span><span class="self">self</span>, fields: <span class="kw-2">&amp;mut </span>temporal::TemporalFields, <span class="kw">_</span>: FieldsType) -&gt; JsResult&lt;()&gt; {
         fields.iso_resolve_month()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Returns the ISO field descriptors, which is not called for the iso8601 calendar.
-    </span><span class="kw">fn </span>field_descriptors(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[String]) -&gt; Vec&lt;(String, bool)&gt; {
+    </span><span class="kw">fn </span>field_descriptors(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: FieldsType) -&gt; Vec&lt;(JsString, bool)&gt; {
         <span class="comment">// NOTE(potential improvement): look into implementing field descriptors and call
         // ISO like any other calendar?
         // Field descriptors is unused on ISO8601.
@@ -711,15 +664,14 @@
     }
 
     <span class="doccomment">/// Returns the `CalendarFieldKeysToIgnore` implementation for ISO.
-    </span><span class="kw">fn </span>field_keys_to_ignore(<span class="kw-2">&amp;</span><span class="self">self</span>, additional_keys: Vec&lt;PropertyKey&gt;) -&gt; Vec&lt;PropertyKey&gt; {
+    </span><span class="kw">fn </span>field_keys_to_ignore(<span class="kw-2">&amp;</span><span class="self">self</span>, additional_keys: Vec&lt;JsString&gt;) -&gt; Vec&lt;JsString&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::new();
-        <span class="kw">for </span>key <span class="kw">in </span>additional_keys {
-            <span class="kw">let </span>key_string = key.to_string();
-            result.push(key);
-            <span class="kw">if </span>key_string.as_str() == <span class="string">&quot;month&quot; </span>{
-                result.push(<span class="macro">utf16!</span>(<span class="string">&quot;monthCode&quot;</span>).into());
-            } <span class="kw">else if </span>key_string.as_str() == <span class="string">&quot;monthCode&quot; </span>{
-                result.push(<span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>).into());
+        <span class="kw">for </span>key <span class="kw">in </span><span class="kw-2">&amp;</span>additional_keys {
+            result.push(key.clone());
+            <span class="kw">if </span>key.to_std_string_escaped().as_str() == <span class="string">&quot;month&quot; </span>{
+                result.push(<span class="macro">js_string!</span>(<span class="string">&quot;monthCode&quot;</span>));
+            } <span class="kw">else if </span>key.to_std_string_escaped().as_str() == <span class="string">&quot;monthCode&quot; </span>{
+                result.push(<span class="macro">js_string!</span>(<span class="string">&quot;month&quot;</span>));
             }
         }
         result

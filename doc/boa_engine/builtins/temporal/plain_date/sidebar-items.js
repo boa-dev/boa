@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["create_temporal_date","to_temporal_date"],"mod":["iso"],"struct":["PlainDate"]};
+window.SIDEBAR_ITEMS = {"fn":["add_date","create_temporal_date","difference_date","to_temporal_date"],"mod":["iso"],"struct":["PlainDate"]};

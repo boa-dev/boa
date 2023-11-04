@@ -1817,18 +1817,25 @@
 <a href="#1817" id="1817">1817</a>
 <a href="#1818" id="1818">1818</a>
 <a href="#1819" id="1819">1819</a>
-<a href="#1820" id="1820">1820</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+</pre></div><pre class="rust"><code><span class="doccomment">//! The `DurationRecord` implements the internal representation of a Temporal Duration.
+
+</span><span class="kw">use crate</span>::{
     builtins::{
         options::RoundingMode,
-        temporal::{<span class="self">self</span>, create_temporal_date, options::TemporalUnit, to_temporal_date},
+        temporal::{
+            <span class="self">self</span>,
+            options::{ArithmeticOverflow, TemporalUnit},
+            round_number_to_increment, to_temporal_date, NS_PER_DAY,
+        },
     },
     js_string,
     string::utf16,
     Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::{calendar, to_integer_if_integral, zoned_date_time};
+<span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::{
+    calendar, plain_date, to_integer_if_integral, PlainDate, PlainDateTime, ZonedDateTime,
+};
 
 <span class="comment">// ==== `DateDuration` ====
 
@@ -1863,6 +1870,22 @@
             weeks: f64::NAN,
             days: f64::NAN,
         }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>years(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="self">self</span>.years
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>months(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="self">self</span>.months
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>weeks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="self">self</span>.weeks
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>days(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="self">self</span>.days
     }
 }
 
@@ -2371,11 +2394,13 @@
     }
 
     <span class="attr">#[inline]
+    #[allow(unused)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_positive_overflow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.years().is_infinite() &amp;&amp; <span class="self">self</span>.years().is_sign_positive()
     }
 
     <span class="attr">#[inline]
+    #[allow(unused)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_negative_overflow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.years().is_infinite() &amp;&amp; <span class="self">self</span>.years().is_sign_negative()
     }
@@ -2662,6 +2687,7 @@
     }
 
     <span class="doccomment">/// 7.5.20 `UnbalanceDurationRelative ( years, months, weeks, days, largestUnit, relativeTo )`
+    </span><span class="attr">#[allow(dead_code)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unbalance_duration_relative(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         largest_unit: TemporalUnit,
@@ -2823,31 +2849,20 @@
 
         <span class="comment">// 5. Let sign be ! DurationSign(years, months, weeks, days, 0, 0, 0, 0, 0, 0).
         // 6. Assert: sign ≠ 0.
-        </span><span class="kw">let </span>sign = <span class="self">self</span>.duration_sign();
+        </span><span class="kw">let </span>sign = f64::from(<span class="self">self</span>.duration_sign());
 
         <span class="comment">// 7. Let oneYear be ! CreateTemporalDuration(sign, 0, 0, 0, 0, 0, 0, 0, 0, 0).
-        </span><span class="kw">let </span>one_year = <span class="self">Self</span>::new(
-            DateDuration::new(f64::from(sign), <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>),
-            TimeDuration::default(),
-        );
+        </span><span class="kw">let </span>one_year = <span class="self">Self</span>::from_date_duration(DateDuration::new(sign, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>));
         <span class="comment">// 8. Let oneMonth be ! CreateTemporalDuration(0, sign, 0, 0, 0, 0, 0, 0, 0, 0).
-        </span><span class="kw">let </span>one_month = <span class="self">Self</span>::new(
-            DateDuration::new(<span class="number">0.0</span>, f64::from(sign), <span class="number">0.0</span>, <span class="number">0.0</span>),
-            TimeDuration::default(),
-        );
+        </span><span class="kw">let </span>one_month = <span class="self">Self</span>::from_date_duration(DateDuration::new(<span class="number">0.0</span>, sign, <span class="number">0.0</span>, <span class="number">0.0</span>));
         <span class="comment">// 9. Let oneWeek be ! CreateTemporalDuration(0, 0, sign, 0, 0, 0, 0, 0, 0, 0).
-        </span><span class="kw">let </span>_one_week = <span class="self">Self</span>::new(
-            DateDuration::new(<span class="number">0.0</span>, <span class="number">0.0</span>, f64::from(sign), <span class="number">0.0</span>),
-            TimeDuration::default(),
-        );
+        </span><span class="kw">let </span>one_week = <span class="self">Self</span>::from_date_duration(DateDuration::new(<span class="number">0.0</span>, <span class="number">0.0</span>, sign, <span class="number">0.0</span>));
 
         <span class="comment">// 10. Set relativeTo to ? ToTemporalDate(relativeTo).
-        </span><span class="kw">let </span>date = to_temporal_date(relative_to, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>relative_to = to_temporal_date(relative_to, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 11. Let calendar be relativeTo.[[Calendar]].
-        </span><span class="kw">let </span>calendar = <span class="kw-2">&amp;</span>date.calendar.clone();
-
-        <span class="kw">let </span>relative_to = create_temporal_date(date.inner, date.calendar, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>calendar = <span class="kw-2">&amp;</span>relative_to.calendar.clone();
 
         <span class="kw">match </span>largest_unit {
             <span class="comment">// 12. If largestUnit is &quot;year&quot;, then
@@ -2857,12 +2872,8 @@
                 // b. Else,
                 // i. Let dateAdd be unused.
                 // c. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneYear, dateAdd).
-                </span><span class="kw">let </span>move_result = <span class="kw">super</span>::move_relative_date(
-                    calendar,
-                    <span class="kw-2">&amp;</span>relative_to,
-                    <span class="kw-2">&amp;</span>one_year.as_object(context)<span class="question-mark">?</span>,
-                    context,
-                )<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>move_result =
+                    <span class="kw">super</span>::move_relative_date(calendar, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_year, context)<span class="question-mark">?</span>;
 
                 <span class="comment">// d. Let newRelativeTo be moveResult.[[RelativeTo]].
                 </span><span class="kw">let </span><span class="kw-2">mut </span>new_relative = move_result.<span class="number">0</span>;
@@ -2875,17 +2886,13 @@
                     </span><span class="self">self</span>.set_days(<span class="self">self</span>.days() - one_year_days);
 
                     <span class="comment">// ii. Set years to years + sign.
-                    </span><span class="self">self</span>.set_years(<span class="self">self</span>.years() + f64::from(sign));
+                    </span><span class="self">self</span>.set_years(<span class="self">self</span>.years() + sign);
 
                     <span class="comment">// iii. Set relativeTo to newRelativeTo.
                     </span><span class="kw">let </span>relative_to = new_relative;
                     <span class="comment">// iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneYear, dateAdd).
-                    </span><span class="kw">let </span>move_result = <span class="kw">super</span>::move_relative_date(
-                        calendar,
-                        <span class="kw-2">&amp;</span>relative_to,
-                        <span class="kw-2">&amp;</span>one_year.as_object(context)<span class="question-mark">?</span>,
-                        context,
-                    )<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>move_result =
+                        <span class="kw">super</span>::move_relative_date(calendar, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_year, context)<span class="question-mark">?</span>;
 
                     <span class="comment">// v. Set newRelativeTo to moveResult.[[RelativeTo]].
                     </span>new_relative = move_result.<span class="number">0</span>;
@@ -2894,77 +2901,137 @@
                 }
 
                 <span class="comment">// g. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
-                </span><span class="kw">let </span>move_result = <span class="kw">super</span>::move_relative_date(
-                    calendar,
-                    <span class="kw-2">&amp;</span>relative_to,
-                    <span class="kw-2">&amp;</span>one_month.as_object(context)<span class="question-mark">?</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// h. Set newRelativeTo to moveResult.[[RelativeTo]].
-                </span><span class="kw">let </span><span class="kw-2">mut </span>new_relative = move_result.<span class="number">0</span>;
-                <span class="comment">// i. Let oneMonthDays be moveResult.[[Days]].
-                </span><span class="kw">let </span><span class="kw-2">mut </span>one_month_days = move_result.<span class="number">1</span>;
+                // h. Set newRelativeTo to moveResult.[[RelativeTo]].
+                // i. Let oneMonthDays be moveResult.[[Days]].
+                </span><span class="kw">let </span>(<span class="kw-2">mut </span>new_relative_to, <span class="kw-2">mut </span>one_month_days) =
+                    <span class="kw">super</span>::move_relative_date(calendar, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_month, context)<span class="question-mark">?</span>;
 
                 <span class="comment">// j. Repeat, while abs(days) ≥ abs(oneMonthDays),
                 </span><span class="kw">while </span><span class="self">self</span>.days().abs() &gt;= one_month_days.abs() {
                     <span class="comment">// i. Set days to days - oneMonthDays.
                     </span><span class="self">self</span>.set_days(<span class="self">self</span>.days() - one_month_days);
                     <span class="comment">// ii. Set months to months + sign.
-                    </span><span class="self">self</span>.set_months(<span class="self">self</span>.months() + f64::from(sign));
+                    </span><span class="self">self</span>.set_months(<span class="self">self</span>.months() + sign);
                     <span class="comment">// iii. Set relativeTo to newRelativeTo.
 
-                    </span><span class="kw">let </span>relative_to = new_relative;
+                    </span><span class="kw">let </span>relative_to = new_relative.clone();
                     <span class="comment">// iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
-                    </span><span class="kw">let </span>move_result = <span class="kw">super</span>::move_relative_date(
-                        calendar,
-                        <span class="kw-2">&amp;</span>relative_to,
-                        <span class="kw-2">&amp;</span>one_month.as_object(context)<span class="question-mark">?</span>,
-                        context,
-                    )<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>move_result =
+                        <span class="kw">super</span>::move_relative_date(calendar, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_month, context)<span class="question-mark">?</span>;
 
                     <span class="comment">// v. Set newRelativeTo to moveResult.[[RelativeTo]].
-                    </span>new_relative = move_result.<span class="number">0</span>;
+                    </span>new_relative_to = move_result.<span class="number">0</span>;
                     <span class="comment">// vi. Set oneMonthDays to moveResult.[[Days]].
                     </span>one_month_days = move_result.<span class="number">1</span>;
                 }
 
                 <span class="comment">// k. Set newRelativeTo to ? CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd).
-                // l. If calendar is an Object, then
+                </span>new_relative_to = calendar::calendar_date_add(
+                    calendar,
+                    <span class="kw-2">&amp;</span>relative_to,
+                    <span class="kw-2">&amp;</span>one_year,
+                    <span class="kw-2">&amp;</span>JsValue::undefined(),
+                    context,
+                )<span class="question-mark">?</span>;
+
+                <span class="comment">// l. If calendar is an Object, then
                 // i. Let dateUntil be ? GetMethod(calendar, &quot;dateUntil&quot;).
                 // m. Else,
                 // i. Let dateUntil be unused.
+
                 // n. Let untilOptions be OrdinaryObjectCreate(null).
-                // o. Perform ! CreateDataPropertyOrThrow(untilOptions, &quot;largestUnit&quot;, &quot;month&quot;).
-                // p. Let untilResult be ? CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil).
-                // q. Let oneYearMonths be untilResult.[[Months]].
-                // r. Repeat, while abs(months) ≥ abs(oneYearMonths),
-                // i. Set months to months - oneYearMonths.
-                // ii. Set years to years + sign.
-                // iii. Set relativeTo to newRelativeTo.
-                // iv. Set newRelativeTo to ? CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd).
-                // v. Set untilOptions to OrdinaryObjectCreate(null).
-                // vi. Perform ! CreateDataPropertyOrThrow(untilOptions, &quot;largestUnit&quot;, &quot;month&quot;).
-                // vii. Set untilResult to ? CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil).
-                // viii. Set oneYearMonths to untilResult.[[Months]].
-            </span>}
+                </span><span class="kw">let </span>until_options = JsObject::with_null_proto();
+                <span class="comment">// o. Perform ! CreateDataPropertyOrThrow(untilOptions, &quot;largestUnit&quot;, &quot;month&quot;).
+                </span>until_options.create_data_property_or_throw(
+                    <span class="macro">utf16!</span>(<span class="string">&quot;largestUnit&quot;</span>),
+                    <span class="macro">js_string!</span>(<span class="string">&quot;month&quot;</span>),
+                    context,
+                )<span class="question-mark">?</span>;
+
+                <span class="comment">// p. Let untilResult be ? CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil).
+                </span><span class="kw">let </span>until_result = calendar::calendar_date_until(
+                    calendar,
+                    <span class="kw-2">&amp;</span>relative_to,
+                    <span class="kw-2">&amp;</span>new_relative_to,
+                    <span class="kw-2">&amp;</span>until_options.into(),
+                    context,
+                )<span class="question-mark">?</span>;
+
+                <span class="comment">// q. Let oneYearMonths be untilResult.[[Months]].
+                </span><span class="kw">let </span><span class="kw-2">mut </span>one_year_months = until_result.months();
+
+                <span class="comment">// r. Repeat, while abs(months) ≥ abs(oneYearMonths),
+                </span><span class="kw">while </span><span class="self">self</span>.months().abs() &gt;= one_year_months.abs() {
+                    <span class="comment">// i. Set months to months - oneYearMonths.
+                    </span><span class="self">self</span>.set_months(<span class="self">self</span>.months() - one_year_months);
+                    <span class="comment">// ii. Set years to years + sign.
+                    </span><span class="self">self</span>.set_years(<span class="self">self</span>.years() + sign);
+
+                    <span class="comment">// iii. Set relativeTo to newRelativeTo.
+                    </span>relative_to = new_relative_to;
+
+                    <span class="comment">// iv. Set newRelativeTo to ? CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd).
+                    </span>new_relative_to = calendar::calendar_date_add(
+                        calendar,
+                        <span class="kw-2">&amp;</span>relative_to,
+                        <span class="kw-2">&amp;</span>one_year,
+                        <span class="kw-2">&amp;</span>JsValue::undefined(),
+                        context,
+                    )<span class="question-mark">?</span>;
+
+                    <span class="comment">// v. Set untilOptions to OrdinaryObjectCreate(null).
+                    </span><span class="kw">let </span>until_options = JsObject::with_null_proto();
+                    <span class="comment">// vi. Perform ! CreateDataPropertyOrThrow(untilOptions, &quot;largestUnit&quot;, &quot;month&quot;).
+                    </span>until_options.create_data_property_or_throw(
+                        <span class="macro">utf16!</span>(<span class="string">&quot;largestUnit&quot;</span>),
+                        <span class="macro">js_string!</span>(<span class="string">&quot;month&quot;</span>),
+                        context,
+                    )<span class="question-mark">?</span>;
+                    <span class="comment">// vii. Set untilResult to ? CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil).
+                    </span><span class="kw">let </span>until_result = calendar::calendar_date_until(
+                        calendar,
+                        <span class="kw-2">&amp;</span>relative_to,
+                        <span class="kw-2">&amp;</span>new_relative_to,
+                        <span class="kw-2">&amp;</span>until_options.into(),
+                        context,
+                    )<span class="question-mark">?</span>;
+                    <span class="comment">// viii. Set oneYearMonths to untilResult.[[Months]].
+                    </span>one_year_months = until_result.months();
+                }
+            }
             <span class="comment">// 13. Else if largestUnit is &quot;month&quot;, then
             </span>TemporalUnit::Month =&gt; {
                 <span class="comment">// a. If calendar is an Object, then
                 // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
                 // b. Else,
                 // i. Let dateAdd be unused.
+
                 // c. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
                 // d. Let newRelativeTo be moveResult.[[RelativeTo]].
                 // e. Let oneMonthDays be moveResult.[[Days]].
-                // f. Repeat, while abs(days) ≥ abs(oneMonthDays),
-                // i. Set days to days - oneMonthDays.
-                // ii. Set months to months + sign.
-                // iii. Set relativeTo to newRelativeTo.
-                // iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
-                // v. Set newRelativeTo to moveResult.[[RelativeTo]].
-                // vi. Set oneMonthDays to moveResult.[[Days]].
-            </span>}
+                </span><span class="kw">let </span>(<span class="kw-2">mut </span>new_relative_to, <span class="kw-2">mut </span>one_month_days) =
+                    <span class="kw">super</span>::move_relative_date(calendar, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_month, context)<span class="question-mark">?</span>;
+
+                <span class="comment">// f. Repeat, while abs(days) ≥ abs(oneMonthDays),
+                </span><span class="kw">while </span><span class="self">self</span>.days().abs() &gt;= one_month_days.abs() {
+                    <span class="comment">// i. Set days to days - oneMonthDays.
+                    </span><span class="self">self</span>.set_days(<span class="self">self</span>.days() - one_month_days);
+
+                    <span class="comment">// ii. Set months to months + sign.
+                    </span><span class="self">self</span>.set_months(<span class="self">self</span>.months() + sign);
+
+                    <span class="comment">// iii. Set relativeTo to newRelativeTo.
+                    </span>relative_to = new_relative_to;
+
+                    <span class="comment">// iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
+                    </span><span class="kw">let </span>move_result =
+                        <span class="kw">super</span>::move_relative_date(calendar, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_month, context)<span class="question-mark">?</span>;
+                    <span class="comment">// v. Set newRelativeTo to moveResult.[[RelativeTo]].
+                    </span>new_relative_to = move_result.<span class="number">0</span>;
+                    <span class="comment">// vi. Set oneMonthDays to moveResult.[[Days]].
+                    </span>one_month_days = move_result.<span class="number">1</span>;
+                }
+            }
             <span class="comment">// 14. Else,
             </span>TemporalUnit::Week =&gt; {
                 <span class="comment">// a. Assert: largestUnit is &quot;week&quot;.
@@ -2972,600 +3039,531 @@
                 // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
                 // c. Else,
                 // i. Let dateAdd be unused.
+
                 // d. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
                 // e. Let newRelativeTo be moveResult.[[RelativeTo]].
                 // f. Let oneWeekDays be moveResult.[[Days]].
-                // g. Repeat, while abs(days) ≥ abs(oneWeekDays),
-                // i. Set days to days - oneWeekDays.
-                // ii. Set weeks to weeks + sign.
-                // iii. Set relativeTo to newRelativeTo.
-                // iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
-                // v. Set newRelativeTo to moveResult.[[RelativeTo]].
-                // vi. Set oneWeekDays to moveResult.[[Days]].
-                </span><span class="macro">todo!</span>(<span class="string">&quot;week not implemented yet.&quot;</span>)
+                </span><span class="kw">let </span>(<span class="kw-2">mut </span>new_relative_to, <span class="kw-2">mut </span>one_week_days) =
+                    <span class="kw">super</span>::move_relative_date(calendar, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_week, context)<span class="question-mark">?</span>;
+
+                <span class="comment">// g. Repeat, while abs(days) ≥ abs(oneWeekDays),
+                </span><span class="kw">while </span><span class="self">self</span>.days().abs() &gt;= one_week_days.abs() {
+                    <span class="comment">// i. Set days to days - oneWeekDays.
+                    </span><span class="self">self</span>.set_days(<span class="self">self</span>.days() - one_week_days);
+                    <span class="comment">// ii. Set weeks to weeks + sign.
+                    </span><span class="self">self</span>.set_weeks(<span class="self">self</span>.weeks() + sign);
+                    <span class="comment">// iii. Set relativeTo to newRelativeTo.
+                    </span>relative_to = new_relative_to;
+                    <span class="comment">// iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
+                    </span><span class="kw">let </span>move_result =
+                        <span class="kw">super</span>::move_relative_date(calendar, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_week, context)<span class="question-mark">?</span>;
+                    <span class="comment">// v. Set newRelativeTo to moveResult.[[RelativeTo]].
+                    </span>new_relative_to = move_result.<span class="number">0</span>;
+                    <span class="comment">// vi. Set oneWeekDays to moveResult.[[Days]].
+                    </span>one_week_days = move_result.<span class="number">1</span>;
+                }
             }
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
 
         <span class="comment">// 15. Return ! CreateDateDurationRecord(years, months, weeks, days).
-
-        </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
-            .into())
+        </span><span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Abstract Operation 7.5.26 `RoundDuration ( years, months, weeks, days, hours, minutes,
+    <span class="comment">// TODO: Refactor relative_to&#39;s into a RelativeTo struct?
+    </span><span class="doccomment">/// Abstract Operation 7.5.26 `RoundDuration ( years, months, weeks, days, hours, minutes,
     ///   seconds, milliseconds, microseconds, nanoseconds, increment, unit,
-    ///   roundingMode [ , relativeTo ] )`
+    ///   roundingMode [ , plainRelativeTo [, zonedRelativeTo [, precalculatedDateTime]]] )`
+    </span><span class="attr">#[allow(clippy::too_many_arguments)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>round_duration(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         increment: f64,
         unit: TemporalUnit,
         rounding_mode: RoundingMode,
-        relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
+        plain_relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PlainDate&gt;,
+        zoned_relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ZonedDateTime&gt;,
+        _precalc_datetime: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PlainDateTime&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;f64&gt; {
-        <span class="comment">// 1. If relativeTo is not present, set relativeTo to undefined.
-        </span><span class="kw">let </span>relative_to = <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = relative_to {
-            val.clone()
-        } <span class="kw">else </span>{
-            JsValue::undefined()
-        };
+        <span class="comment">// 1. If plainRelativeTo is not present, set plainRelativeTo to undefined.
+        // 2. If zonedRelativeTo is not present, set zonedRelativeTo to undefined.
+        // 3. If precalculatedPlainDateTime is not present, set precalculatedPlainDateTime to undefined.
 
-        <span class="comment">// 2. If unit is &quot;year&quot;, &quot;month&quot;, or &quot;week&quot;, and relativeTo is undefined, then
-        </span><span class="kw">if </span>relative_to.is_undefined()
-            &amp;&amp; (unit == TemporalUnit::Year
-                || unit == TemporalUnit::Month
-                || unit == TemporalUnit::Week)
-        {
-            <span class="comment">// a. Throw a RangeError exception.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;relativeTo was out of range while rounding self.&quot;</span>)
-                .into());
-        }
-
-        <span class="comment">// TODO: Handle `ZonedDateTime`
-        // 3. Let zonedRelativeTo be undefined.
-        </span><span class="kw">let </span>zoned_relative_to = JsValue::undefined();
-
-        <span class="comment">// 4. If relativeTo is not undefined, then
-        </span><span class="kw">let </span>(calendar, relative_to) = <span class="kw">if </span>relative_to.is_object() {
-            <span class="kw">let </span>relative_to_obj = relative_to.as_object().expect(
-                <span class="string">&quot;relativeTo must be a Temporal.ZonedDateTime or Temporal.PlainDate object if defined.&quot;</span>,
-            );
-            <span class="comment">// a. If relativeTo has an [[InitializedTemporalZonedDateTime]] internal slot, then
-            </span><span class="kw">if </span>relative_to_obj.is_zoned_date_time() {
-                <span class="comment">// i. Set zonedRelativeTo to relativeTo.
-                // TODO: ii. Set relativeTo to ? ToTemporalDate(relativeTo).
+        </span><span class="kw">let </span>(frac_days, frac_secs) = <span class="kw">match </span>unit {
+            <span class="comment">// 4. If unit is &quot;year&quot;, &quot;month&quot;, or &quot;week&quot;, and plainRelativeTo is undefined, then
+            </span>TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week
+                <span class="kw">if </span>plain_relative_to.is_none() =&gt;
+            {
+                <span class="comment">// a. Throw a RangeError exception.
                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;ZonedDateTime is not yet implemented.&quot;</span>)
+                    .with_message(<span class="string">&quot;plainRelativeTo canot be undefined with given TemporalUnit&quot;</span>)
                     .into());
-                <span class="comment">// b. Else,
-            </span>};
-
-            <span class="kw">let </span>obj = relative_to_obj.borrow();
-            <span class="kw">let </span>plain_date = obj.as_plain_date().expect(<span class="string">&quot;object must be a PlainDate&quot;</span>);
-
-            <span class="comment">// c. Let calendar be relativeTo.[[Calendar]].
-            </span><span class="kw">let </span>calendar = plain_date.calendar.clone();
-
-            drop(obj);
-
-            (<span class="prelude-val">Some</span>(calendar), <span class="prelude-val">Some</span>(relative_to_obj))
-        <span class="comment">// 5. Else,
-        </span>} <span class="kw">else </span>{
-            <span class="comment">// a. NOTE: calendar will not be used below.
-            </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
-        };
-
-        <span class="comment">// 6. If unit is one of &quot;year&quot;, &quot;month&quot;, &quot;week&quot;, or &quot;day&quot;, then
-        </span><span class="kw">let </span>fractional_secs = <span class="kw">match </span>unit {
-            TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week | TemporalUnit::Day =&gt; {
-                <span class="comment">// a. Let nanoseconds be ! TotalDurationNanoseconds(0, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, 0).
-                </span><span class="kw">let </span>nanoseconds =
+            }
+            <span class="comment">// 5. If unit is one of &quot;year&quot;, &quot;month&quot;, &quot;week&quot;, or &quot;day&quot;, then
+            </span>TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week | TemporalUnit::Day =&gt; {
+                <span class="comment">// a. Let nanoseconds be TotalDurationNanoseconds(hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
+                </span><span class="kw">let </span>nanos =
                     <span class="self">Self</span>::from_day_and_time(<span class="number">0.0</span>, <span class="self">self</span>.time()).total_duration_nanoseconds(<span class="number">0.0</span>);
 
-                <span class="comment">// b. Let intermediate be undefined.
-                </span><span class="kw">let </span>intermediate = JsValue::undefined();
-                <span class="comment">// c. If zonedRelativeTo is not undefined, then
-                </span><span class="kw">if </span>!zoned_relative_to.is_undefined() {
-                    <span class="comment">// i. Let intermediate be ? MoveRelativeZonedDateTime(zonedRelativeTo, years, months, weeks, days).
-                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::error()
-                        .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+                <span class="comment">// b. If zonedRelativeTo is not undefined, then
+                // i. Let intermediate be ? MoveRelativeZonedDateTime(zonedRelativeTo, years, months, weeks, days, precalculatedPlainDateTime).
+                // ii. Let result be ? NanosecondsToDays(nanoseconds, intermediate).
+                // iii. Let fractionalDays be days + result.[[Days]] + result.[[Nanoseconds]] / result.[[DayLength]].
+                // c. Else,
+                // i. Let fractionalDays be days + nanoseconds / nsPerDay.
+                </span><span class="kw">let </span>frac_days = <span class="kw">if </span>zoned_relative_to.is_none() {
+                    <span class="self">self</span>.days() + nanos / NS_PER_DAY <span class="kw">as </span>f64
+                } <span class="kw">else </span>{
+                    <span class="comment">// implementation of b: i-iii needed.
+                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                        .with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)
                         .into());
-                }
-                <span class="comment">// d. Let result be ? NanosecondsToDays(nanoseconds, intermediate).
-                </span><span class="kw">let </span>result = zoned_date_time::nanoseconds_to_days(nanoseconds, <span class="kw-2">&amp;</span>intermediate)<span class="question-mark">?</span>;
-
-                <span class="comment">// e. Set days to days + result.[[Days]] + result.[[Nanoseconds]] / result.[[DayLength]].
-                </span><span class="kw">let </span>days = <span class="self">self</span>.days() <span class="kw">as </span>i32;
-                <span class="self">self</span>.set_days(f64::from(days + result.<span class="number">0 </span>+ result.<span class="number">1 </span>/ result.<span class="number">2</span>));
-
-                <span class="comment">// f. Set hours, minutes, seconds, milliseconds, microseconds, and nanoseconds to 0.
-                </span><span class="self">self</span>.set_time_duration(TimeDuration::default());
-
-                <span class="number">0_f64
-            </span>}
-            <span class="comment">// 7. Else,
+                };
+                <span class="comment">// d. Set days, hours, minutes, seconds, milliseconds, microseconds, and nanoseconds to 0.
+                </span><span class="self">self</span>.set_days(<span class="number">0.0</span>);
+                <span class="self">self</span>.set_time_duration(TimeDuration::default());
+                <span class="comment">// e. Assert: fractionalSeconds is not used below.
+                </span>(<span class="prelude-val">Some</span>(frac_days), <span class="prelude-val">None</span>)
+            }
+            <span class="comment">// 6. Else,
             </span><span class="kw">_ </span>=&gt; {
                 <span class="comment">// a. Let fractionalSeconds be nanoseconds × 10-9 + microseconds × 10-6 + milliseconds × 10-3 + seconds.
-                </span><span class="self">self</span>.seconds().mul_add(
-                    <span class="number">1000_f64</span>,
-                    <span class="self">self</span>.nanoseconds()
-                        .mul_add(<span class="number">1_000_000_000_f64</span>, <span class="self">self</span>.microseconds() * <span class="number">1_000_000_f64</span>),
-                )
+                </span><span class="kw">let </span>frac_secs = <span class="self">self</span>.nanoseconds().mul_add(
+                    <span class="number">1_000_000_000f64</span>,
+                    <span class="self">self</span>.microseconds().mul_add(
+                        <span class="number">1_000_000f64</span>,
+                        <span class="self">self</span>.milliseconds().mul_add(<span class="number">1_000f64</span>, <span class="self">self</span>.seconds()),
+                    ),
+                );
+
+                <span class="comment">// b. Assert: fractionalDays is not used below.
+                </span>(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(frac_secs))
             }
         };
 
-        <span class="comment">// 8. Let remainder be undefined.
+        <span class="comment">// 7. let total be unset.
         // We begin matching against unit and return the remainder value.
-        </span><span class="kw">let </span>remainder = <span class="kw">match </span>unit {
-            <span class="comment">// 9. If unit is &quot;year&quot;, then
+        </span><span class="kw">let </span>total = <span class="kw">match </span>unit {
+            <span class="comment">// 8. If unit is &quot;year&quot;, then
             </span>TemporalUnit::Year =&gt; {
-                <span class="comment">// This should be safe as we throw a range error if relative_to does not exist.
-                </span><span class="macro">assert!</span>(calendar.is_some() &amp;&amp; relative_to.is_some());
-                <span class="kw">let </span>calendar_obj = calendar.expect(<span class="string">&quot;calendar must exist at this point.&quot;</span>);
-                <span class="kw">let </span>relative_to = relative_to.expect(<span class="string">&quot;relative_to must exist at this point.&quot;</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>frac_days =
+                    frac_days.expect(<span class="string">&quot;assert that fractionalDays exists for TemporalUnit == year&quot;</span>);
 
-                <span class="comment">// a. Let yearsDuration be ! CreateTemporalDuration(years, 0, 0, 0, 0, 0, 0, 0, 0, 0).
-                </span><span class="kw">let </span>years_duration = <span class="kw">super</span>::create_temporal_duration(
-                    <span class="self">Self</span>::new(
-                        DateDuration::new(<span class="self">self</span>.years(), <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>),
-                        TimeDuration::default(),
-                    ),
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
+                <span class="kw">let </span>plain_relative_to = plain_relative_to.expect(<span class="string">&quot;this must exist.&quot;</span>);
+                <span class="comment">// a. Let calendar be plainRelativeTo.[[Calendar]].
+                </span><span class="kw">let </span>calendar = <span class="kw-2">&amp;</span>plain_relative_to.calendar;
 
-                <span class="comment">// b. If calendar is an Object, then
-                // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
-                // c. Else,
-                // i. Let dateAdd be unused.
-                // d. Let yearsLater be ? CalendarDateAdd(calendar, relativeTo, yearsDuration, undefined, dateAdd).
-
-                </span><span class="kw">let </span>years_later = calendar::calendar_date_add(
-                    <span class="kw-2">&amp;</span>calendar_obj,
-                    relative_to,
-                    <span class="kw-2">&amp;</span>years_duration,
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// e. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
-                </span><span class="kw">let </span>years_months_weeks = <span class="kw">super</span>::create_temporal_duration(
-                    <span class="self">Self</span>::new(
-                        DateDuration::new(<span class="self">self</span>.years(), <span class="self">self</span>.months(), <span class="self">self</span>.weeks(), <span class="number">0.0</span>),
-                        TimeDuration::default(),
-                    ),
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// f. Let yearsMonthsWeeksLater be ? CalendarDateAdd(calendar, relativeTo, yearsMonthsWeeks, undefined, dateAdd).
-                </span><span class="kw">let </span>years_months_weeks_later = calendar::calendar_date_add(
-                    <span class="kw-2">&amp;</span>calendar_obj,
-                    relative_to,
-                    <span class="kw-2">&amp;</span>years_months_weeks,
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// g. Let monthsWeeksInDays be DaysUntil(yearsLater, yearsMonthsWeeksLater).
-                </span><span class="kw">let </span>months_weeks_in_days =
-                    <span class="kw">super</span>::days_until(<span class="kw-2">&amp;</span>years_later, <span class="kw-2">&amp;</span>years_months_weeks_later);
-
-                <span class="comment">// h. Set relativeTo to yearsLater.
-                </span><span class="kw">let </span>relative_to = years_later;
-
-                <span class="comment">// i. Let days be days + monthsWeeksInDays.
-                </span><span class="self">self</span>.set_days(<span class="self">self</span>.days() + f64::from(months_weeks_in_days));
-
-                <span class="comment">// j. Let wholeDaysDuration be ? CreateTemporalDuration(0, 0, 0, truncate(days), 0, 0, 0, 0, 0, 0).
-                </span><span class="kw">let </span>whole_days_duration = <span class="kw">super</span>::create_temporal_duration(
-                    <span class="self">Self</span>::new(
-                        DateDuration::new(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="self">self</span>.days().trunc()),
-                        TimeDuration::default(),
-                    ),
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// k. Let wholeDaysLater be ? CalendarDateAdd(calendar, relativeTo, wholeDaysDuration, undefined, dateAdd).
-                </span><span class="kw">let </span>whole_days_later = calendar::calendar_date_add(
-                    <span class="kw-2">&amp;</span>calendar_obj,
-                    <span class="kw-2">&amp;</span>relative_to,
-                    <span class="kw-2">&amp;</span>whole_days_duration,
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// l. Let untilOptions be OrdinaryObjectCreate(null).
-                </span><span class="kw">let </span>until_options = JsObject::with_null_proto();
-                <span class="comment">// m. Perform ! CreateDataPropertyOrThrow(untilOptions, &quot;largestUnit&quot;, &quot;year&quot;).
-                </span>until_options.create_data_property_or_throw(
-                    <span class="macro">utf16!</span>(<span class="string">&quot;largestUnit&quot;</span>),
-                    <span class="macro">js_string!</span>(<span class="string">&quot;year&quot;</span>),
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// n. Let timePassed be ? CalendarDateUntil(calendar, relativeTo, wholeDaysLater, untilOptions).
-                </span><span class="kw">let </span>time_passed = calendar::calendar_date_until(
-                    <span class="kw-2">&amp;</span>calendar_obj,
-                    <span class="kw-2">&amp;</span>relative_to,
-                    <span class="kw-2">&amp;</span>whole_days_later,
-                    <span class="kw-2">&amp;</span>until_options.into(),
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// o. Let yearsPassed be timePassed.[[Years]].
-                </span><span class="kw">let </span>years_passed = time_passed.years();
-                <span class="comment">// p. Set years to years + yearsPassed.
-                </span><span class="self">self</span>.set_years(<span class="self">self</span>.years() + years_passed);
-
-                <span class="comment">// q. Let oldRelativeTo be relativeTo.
-                </span><span class="kw">let </span>old_relative_to = relative_to.clone();
-
-                <span class="comment">// r. Let yearsDuration be ! CreateTemporalDuration(yearsPassed, 0, 0, 0, 0, 0, 0, 0, 0, 0).
-                </span><span class="kw">let </span>years_duration = <span class="kw">super</span>::create_temporal_duration(
-                    <span class="self">Self</span>::new(
-                        DateDuration::new(years_passed, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>),
-                        TimeDuration::default(),
-                    ),
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// s. Set relativeTo to ? CalendarDateAdd(calendar, relativeTo, yearsDuration, undefined, dateAdd).
-                </span><span class="kw">let </span>relative_to = calendar::calendar_date_add(
-                    <span class="kw-2">&amp;</span>calendar_obj,
-                    <span class="kw-2">&amp;</span>relative_to,
-                    <span class="kw-2">&amp;</span>years_duration,
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// t. Let daysPassed be DaysUntil(oldRelativeTo, relativeTo).
-                </span><span class="kw">let </span>days_passed = <span class="kw">super</span>::days_until(<span class="kw-2">&amp;</span>old_relative_to, <span class="kw-2">&amp;</span>relative_to);
-
-                <span class="comment">// u. Set days to days - daysPassed.
-                </span><span class="self">self</span>.set_days(<span class="self">self</span>.days() - f64::from(days_passed));
-
-                <span class="comment">// v. If days &lt; 0, let sign be -1; else, let sign be 1.
-                </span><span class="kw">let </span>sign = <span class="kw">if </span><span class="self">self</span>.days() &lt; <span class="number">0_f64 </span>{ -<span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">1 </span>};
-
-                <span class="comment">// w. Let oneYear be ! CreateTemporalDuration(sign, 0, 0, 0, 0, 0, 0, 0, 0, 0).
-                </span><span class="kw">let </span>one_year = <span class="kw">super</span>::create_temporal_duration(
-                    <span class="self">Self</span>::new(
-                        DateDuration::new(f64::from(sign), <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>),
-                        TimeDuration::default(),
-                    ),
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// x. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneYear, dateAdd).
-                </span><span class="kw">let </span>move_result =
-                    <span class="kw">super</span>::move_relative_date(<span class="kw-2">&amp;</span>calendar_obj, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_year, context)<span class="question-mark">?</span>;
-
-                <span class="comment">// y. Let oneYearDays be moveResult.[[Days]].
-                </span><span class="kw">let </span>one_year_days = move_result.<span class="number">1</span>;
-                <span class="comment">// z. Let fractionalYears be years + days / abs(oneYearDays).
-                </span><span class="kw">let </span>fractional_years = <span class="self">self</span>.years() + <span class="self">self</span>.days() / one_year_days.abs();
-
-                <span class="comment">// ?. Set years to RoundNumberToIncrement(fractionalYears, increment, roundingMode).
-                </span><span class="self">self</span>.set_years(temporal::round_number_to_increment(
-                    fractional_years,
-                    increment,
-                    rounding_mode,
-                ));
-
-                <span class="comment">// ?. Set months, weeks, and days to 0.
-                </span><span class="self">self</span>.set_months(<span class="number">0_f64</span>);
-                <span class="self">self</span>.set_weeks(<span class="number">0_f64</span>);
-                <span class="self">self</span>.set_days(<span class="number">0_f64</span>);
-
-                fractional_years - <span class="self">self</span>.years()
-            }
-            <span class="comment">// 10. Else if unit is &quot;month&quot;, then
-            </span>TemporalUnit::Month =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>relative_to = relative_to
-                    .expect(<span class="string">&quot;relative_to must exist if unit is a month&quot;</span>)
-                    .clone();
-                <span class="kw">let </span>calendar_obj = calendar.expect(<span class="string">&quot;calendar must exist at this point.&quot;</span>);
-
-                <span class="comment">// a. Let yearsMonths be ! CreateTemporalDuration(years, months, 0, 0, 0, 0, 0, 0, 0, 0).
-                </span><span class="kw">let </span>years_month = <span class="kw">super</span>::create_temporal_duration(
-                    <span class="self">Self</span>::new(
-                        DateDuration::new(<span class="self">self</span>.years(), <span class="self">self</span>.months(), <span class="number">0.0</span>, <span class="number">0.0</span>),
-                        TimeDuration::default(),
-                    ),
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// b. If calendar is an Object, then
-                // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
-                // c. Else,
-                // i. Let dateAdd be unused.
-
-                // d. Let yearsMonthsLater be ? CalendarDateAdd(calendar, relativeTo, yearsMonths, undefined, dateAdd).
-                </span><span class="kw">let </span>years_months_later = calendar::calendar_date_add(
-                    <span class="kw-2">&amp;</span>calendar_obj,
-                    <span class="kw-2">&amp;</span>relative_to,
-                    <span class="kw-2">&amp;</span>years_month,
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// e. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
-                </span><span class="kw">let </span>years_months_weeks = <span class="kw">super</span>::create_temporal_duration(
-                    <span class="self">Self</span>::new(
-                        DateDuration::new(<span class="self">self</span>.years(), <span class="self">self</span>.months(), <span class="self">self</span>.weeks(), <span class="number">0.0</span>),
-                        TimeDuration::default(),
-                    ),
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// f. Let yearsMonthsWeeksLater be ? CalendarDateAdd(calendar, relativeTo, yearsMonthsWeeks, undefined, dateAdd).
-                </span><span class="kw">let </span>years_months_weeks_later = calendar::calendar_date_add(
-                    <span class="kw-2">&amp;</span>calendar_obj,
-                    <span class="kw-2">&amp;</span>relative_to,
-                    <span class="kw-2">&amp;</span>years_months_weeks,
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-                <span class="comment">// g. Let weeksInDays be DaysUntil(yearsMonthsLater, yearsMonthsWeeksLater).
-                </span><span class="kw">let </span>weeks_in_days =
-                    <span class="kw">super</span>::days_until(<span class="kw-2">&amp;</span>years_months_later, <span class="kw-2">&amp;</span>years_months_weeks_later);
-
-                <span class="comment">// h. Set relativeTo to yearsMonthsLater.
-                </span>relative_to = years_months_later;
-
-                <span class="comment">// i. Let days be days + weeksInDays.
-                </span><span class="self">self</span>.set_days(<span class="self">self</span>.days() + f64::from(weeks_in_days));
-
-                <span class="comment">// j. If days &lt; 0, let sign be -1; else, let sign be 1.
-                </span><span class="kw">let </span>sign = <span class="kw">if </span><span class="self">self</span>.days() &lt; <span class="number">0_f64 </span>{ -<span class="number">1_f64 </span>} <span class="kw">else </span>{ <span class="number">1_f64 </span>};
-
-                <span class="comment">// k. Let oneMonth be ! CreateTemporalDuration(0, sign, 0, 0, 0, 0, 0, 0, 0, 0).
-                </span><span class="kw">let </span>one_month = <span class="kw">super</span>::create_temporal_duration(
-                    <span class="self">Self</span>::new(
-                        DateDuration::new(<span class="number">0.0</span>, sign, <span class="number">0.0</span>, <span class="number">0.0</span>),
-                        TimeDuration::default(),
-                    ),
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
-
-                <span class="comment">// l. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
-                </span><span class="kw">let </span>move_result =
-                    <span class="kw">super</span>::move_relative_date(<span class="kw-2">&amp;</span>calendar_obj, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_month, context)<span class="question-mark">?</span>;
-
-                <span class="comment">// m. Set relativeTo to moveResult.[[RelativeTo]].
-                </span>relative_to = move_result.<span class="number">0</span>;
-                <span class="comment">// n. Let oneMonthDays be moveResult.[[Days]].
-                </span><span class="kw">let </span><span class="kw-2">mut </span>one_month_days = move_result.<span class="number">1</span>;
-
-                <span class="comment">// o. Repeat, while abs(days) ≥ abs(oneMonthDays),
-                </span><span class="kw">while </span><span class="self">self</span>.days().abs() &gt;= one_month_days.abs() {
-                    <span class="comment">// i. Set months to months + sign.
-                    </span><span class="self">self</span>.set_months(<span class="self">self</span>.months() + sign);
-                    <span class="comment">// ii. Set days to days - oneMonthDays.
-                    </span><span class="self">self</span>.set_days(<span class="self">self</span>.days() - one_month_days);
-                    <span class="comment">// iii. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
-                    </span><span class="kw">let </span>move_result = <span class="kw">super</span>::move_relative_date(
-                        <span class="kw-2">&amp;</span>calendar_obj,
-                        <span class="kw-2">&amp;</span>relative_to,
-                        <span class="kw-2">&amp;</span>one_month.clone(),
-                        context,
-                    )<span class="question-mark">?</span>;
-
-                    <span class="comment">// iv. Set relativeTo to moveResult.[[RelativeTo]].
-                    </span>relative_to = move_result.<span class="number">0</span>;
-                    <span class="comment">// v. Set oneMonthDays to moveResult.[[Days]].
-                    </span>one_month_days = move_result.<span class="number">1</span>;
-                }
-
-                <span class="comment">// p. Let fractionalMonths be months + days / abs(oneMonthDays).
-                </span><span class="kw">let </span>fractional_months = <span class="self">self</span>.months() + (<span class="self">self</span>.days() / one_month_days.abs());
-                <span class="comment">// q. Set months to RoundNumberToIncrement(fractionalMonths, increment, roundingMode).
-                </span><span class="self">self</span>.set_months(temporal::round_number_to_increment(
-                    fractional_months,
-                    increment,
-                    rounding_mode,
-                ));
-                <span class="comment">// r. Set remainder to fractionalMonths - months.
-                // s. Set weeks and days to 0.
-                </span><span class="self">self</span>.set_weeks(<span class="number">0_f64</span>);
-                <span class="self">self</span>.set_days(<span class="number">0_f64</span>);
-                fractional_months - <span class="self">self</span>.months()
-            }
-            <span class="comment">// 11. Else if unit is &quot;week&quot;, then
-            </span>TemporalUnit::Week =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>relative_to = relative_to
-                    .expect(<span class="string">&quot;relative_to must exist if unit is a month&quot;</span>)
-                    .clone();
-                <span class="kw">let </span>calendar_obj = calendar.expect(<span class="string">&quot;calendar must exist at this point.&quot;</span>);
-                <span class="comment">// a. If days &lt; 0, let sign be -1; else, let sign be 1.
-                </span><span class="kw">let </span>sign = <span class="kw">if </span><span class="self">self</span>.days() &lt; <span class="number">0_f64 </span>{ -<span class="number">1_f64 </span>} <span class="kw">else </span>{ <span class="number">1_f64 </span>};
-                <span class="comment">// b. Let oneWeek be ! CreateTemporalDuration(0, 0, sign, 0, 0, 0, 0, 0, 0, 0).
-                </span><span class="kw">let </span>one_week = <span class="kw">super</span>::create_temporal_duration(
-                    <span class="self">Self</span>::new(
-                        DateDuration::new(<span class="number">0.0</span>, <span class="number">0.0</span>, sign, <span class="number">0.0</span>),
-                        TimeDuration::default(),
-                    ),
-                    <span class="prelude-val">None</span>,
-                    context,
-                )<span class="question-mark">?</span>;
+                <span class="comment">// b. Let yearsDuration be ! CreateTemporalDuration(years, 0, 0, 0, 0, 0, 0, 0, 0, 0).
+                </span><span class="kw">let </span>years = DateDuration::new(<span class="self">self</span>.years(), <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>);
+                <span class="kw">let </span>years_duration = DurationRecord::new(years, TimeDuration::default());
 
                 <span class="comment">// c. If calendar is an Object, then
                 // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
                 // d. Else,
                 // i. Let dateAdd be unused.
 
-                // e. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
-                </span><span class="kw">let </span>move_result =
-                    <span class="kw">super</span>::move_relative_date(<span class="kw-2">&amp;</span>calendar_obj, <span class="kw-2">&amp;</span>relative_to, <span class="kw-2">&amp;</span>one_week, context)<span class="question-mark">?</span>;
+                // e. Let yearsLater be ? AddDate(calendar, plainRelativeTo, yearsDuration, undefined, dateAdd).
+                </span><span class="kw">let </span>years_later = plain_date::add_date(
+                    calendar,
+                    plain_relative_to,
+                    <span class="kw-2">&amp;</span>years_duration,
+                    <span class="kw-2">&amp;</span>JsValue::undefined(),
+                    context,
+                )<span class="question-mark">?</span>;
 
-                <span class="comment">// f. Set relativeTo to moveResult.[[RelativeTo]].
-                </span>relative_to = move_result.<span class="number">0</span>;
-                <span class="comment">// g. Let oneWeekDays be moveResult.[[Days]].
-                </span><span class="kw">let </span><span class="kw-2">mut </span>one_week_days = move_result.<span class="number">1</span>;
+                <span class="comment">// f. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
+                </span><span class="kw">let </span>years_months_weeks = <span class="self">Self</span>::new(
+                    DateDuration::new(<span class="self">self</span>.years(), <span class="self">self</span>.months(), <span class="self">self</span>.weeks(), <span class="number">0.0</span>),
+                    TimeDuration::default(),
+                );
 
-                <span class="comment">// h. Repeat, while abs(days) ≥ abs(oneWeekDays),
-                </span><span class="kw">while </span>one_week_days.abs() &lt;= <span class="self">self</span>.days().abs() {
-                    <span class="comment">// i. Set weeks to weeks + sign.
-                    </span><span class="self">self</span>.set_weeks(<span class="self">self</span>.weeks() + sign);
-                    <span class="comment">// ii. Set days to days - oneWeekDays.
-                    </span><span class="self">self</span>.set_days(<span class="self">self</span>.days() - one_week_days);
-                    <span class="comment">// iii. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
+                <span class="comment">// g. Let yearsMonthsWeeksLater be ? AddDate(calendar, plainRelativeTo, yearsMonthsWeeks, undefined, dateAdd).
+                </span><span class="kw">let </span>years_months_weeks_later = plain_date::add_date(
+                    calendar,
+                    plain_relative_to,
+                    <span class="kw-2">&amp;</span>years_months_weeks,
+                    <span class="kw-2">&amp;</span>JsValue::undefined(),
+                    context,
+                )<span class="question-mark">?</span>;
+
+                <span class="comment">// h. Let monthsWeeksInDays be DaysUntil(yearsLater, yearsMonthsWeeksLater).
+                </span><span class="kw">let </span>months_weeks_in_days =
+                    <span class="kw">super</span>::days_until(<span class="kw-2">&amp;</span>years_later, <span class="kw-2">&amp;</span>years_months_weeks_later);
+
+                <span class="comment">// i. Set plainRelativeTo to yearsLater.
+                </span><span class="kw">let </span>plain_relative_to = years_later;
+
+                <span class="comment">// j. Set fractionalDays to fractionalDays + monthsWeeksInDays.
+                </span>frac_days += f64::from(months_weeks_in_days);
+
+                <span class="comment">// k. Let isoResult be ! AddISODate(plainRelativeTo.[[ISOYear]]. plainRelativeTo.[[ISOMonth]], plainRelativeTo.[[ISODay]], 0, 0, 0, truncate(fractionalDays), &quot;constrain&quot;).
+                </span><span class="kw">let </span>iso_result = plain_relative_to.inner.add_iso_date(
+                    DateDuration::new(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, frac_days.trunc()),
+                    ArithmeticOverflow::Constrain,
+                )<span class="question-mark">?</span>;
+
+                <span class="comment">// l. Let wholeDaysLater be ? CreateTemporalDate(isoResult.[[Year]], isoResult.[[Month]], isoResult.[[Day]], calendar).
+                </span><span class="kw">let </span>whole_days_later = PlainDate::new(iso_result, calendar.clone());
+
+                <span class="comment">// m. Let untilOptions be OrdinaryObjectCreate(null).
+                // n. Perform ! CreateDataPropertyOrThrow(untilOptions, &quot;largestUnit&quot;, &quot;year&quot;).
+                // o. Let timePassed be ? DifferenceDate(calendar, plainRelativeTo, wholeDaysLater, untilOptions).
+                </span><span class="kw">let </span>time_passed = plain_date::difference_date(
+                    calendar,
+                    <span class="kw-2">&amp;</span>plain_relative_to,
+                    <span class="kw-2">&amp;</span>whole_days_later,
+                    TemporalUnit::Year,
+                    context,
+                )<span class="question-mark">?</span>;
+
+                <span class="comment">// p. Let yearsPassed be timePassed.[[Years]].
+                </span><span class="kw">let </span>years_passed = time_passed.years();
+
+                <span class="comment">// q. Set years to years + yearsPassed.
+                </span><span class="self">self</span>.set_years(<span class="self">self</span>.years() + years_passed);
+
+                <span class="comment">// r. Let yearsDuration be ! CreateTemporalDuration(yearsPassed, 0, 0, 0, 0, 0, 0, 0, 0, 0).
+                </span><span class="kw">let </span>years_duration = <span class="self">Self</span>::new(
+                    DateDuration::new(years_passed, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>),
+                    TimeDuration::default(),
+                );
+
+                <span class="comment">// s. Let moveResult be ? MoveRelativeDate(calendar, plainRelativeTo, yearsDuration, dateAdd).
+                // t. Set plainRelativeTo to moveResult.[[RelativeTo]].
+                // u. Let daysPassed be moveResult.[[Days]].
+                </span><span class="kw">let </span>(plain_relative_to, days_passed) = <span class="kw">super</span>::move_relative_date(
+                    calendar,
+                    <span class="kw-2">&amp;</span>plain_relative_to,
+                    <span class="kw-2">&amp;</span>years_duration,
+                    context,
+                )<span class="question-mark">?</span>;
+
+                <span class="comment">// v. Set fractionalDays to fractionalDays - daysPassed.
+                </span>frac_days -= days_passed;
+
+                <span class="comment">// w. If fractionalDays &lt; 0, let sign be -1; else, let sign be 1.
+                </span><span class="kw">let </span>sign = <span class="kw">if </span>frac_days &lt; <span class="number">0.0 </span>{ -<span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">1 </span>};
+
+                <span class="comment">// x. Let oneYear be ! CreateTemporalDuration(sign, 0, 0, 0, 0, 0, 0, 0, 0, 0).
+                </span><span class="kw">let </span>one_year = <span class="self">Self</span>::new(
+                    DateDuration::new(f64::from(sign), <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>),
+                    TimeDuration::default(),
+                );
+
+                <span class="comment">// y. Set moveResult to ? MoveRelativeDate(calendar, plainRelativeTo, oneYear, dateAdd).
+                // z. Let oneYearDays be moveResult.[[Days]].
+                </span><span class="kw">let </span>(<span class="kw">_</span>, one_year_days) =
+                    <span class="kw">super</span>::move_relative_date(calendar, <span class="kw-2">&amp;</span>plain_relative_to, <span class="kw-2">&amp;</span>one_year, context)<span class="question-mark">?</span>;
+
+                <span class="comment">// aa. Let fractionalYears be years + fractionalDays / abs(oneYearDays).
+                </span><span class="kw">let </span>frac_years = <span class="self">self</span>.years() + (frac_days / one_year_days.abs());
+
+                <span class="comment">// ab. Set years to RoundNumberToIncrement(fractionalYears, increment, roundingMode).
+                </span><span class="self">self</span>.set_years(round_number_to_increment(
+                    frac_years,
+                    increment,
+                    rounding_mode,
+                ));
+
+                <span class="comment">// ac. Set total to fractionalYears.
+                // ad. Set months and weeks to 0.
+                </span><span class="self">self</span>.set_months(<span class="number">0.0</span>);
+                <span class="self">self</span>.set_weeks(<span class="number">0.0</span>);
+
+                frac_years
+            }
+            <span class="comment">// 9. Else if unit is &quot;month&quot;, then
+            </span>TemporalUnit::Month =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>frac_days =
+                    frac_days.expect(<span class="string">&quot;assert that fractionalDays exists for TemporalUnit::Month&quot;</span>);
+
+                <span class="comment">// a. Let calendar be plainRelativeTo.[[Calendar]].
+                </span><span class="kw">let </span>plain_relative_to = plain_relative_to.expect(<span class="string">&quot;this must exist.&quot;</span>);
+                <span class="kw">let </span>calendar = <span class="kw-2">&amp;</span>plain_relative_to.calendar;
+
+                <span class="comment">// b. Let yearsMonths be ! CreateTemporalDuration(years, months, 0, 0, 0, 0, 0, 0, 0, 0).
+                </span><span class="kw">let </span>years_months = <span class="self">Self</span>::new(
+                    DateDuration::new(<span class="self">self</span>.years(), <span class="self">self</span>.months(), <span class="number">0.0</span>, <span class="number">0.0</span>),
+                    TimeDuration::default(),
+                );
+
+                <span class="comment">// c. If calendar is an Object, then
+                // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
+                // d. Else,
+                // i. Let dateAdd be unused.
+
+                // e. Let yearsMonthsLater be ? AddDate(calendar, plainRelativeTo, yearsMonths, undefined, dateAdd).
+                </span><span class="kw">let </span>years_months_later = plain_date::add_date(
+                    calendar,
+                    plain_relative_to,
+                    <span class="kw-2">&amp;</span>years_months,
+                    <span class="kw-2">&amp;</span>JsValue::undefined(),
+                    context,
+                )<span class="question-mark">?</span>;
+
+                <span class="comment">// f. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
+                </span><span class="kw">let </span>years_months_weeks = <span class="self">Self</span>::new(
+                    DateDuration::new(<span class="self">self</span>.years(), <span class="self">self</span>.months(), <span class="self">self</span>.weeks(), <span class="number">0.0</span>),
+                    TimeDuration::default(),
+                );
+
+                <span class="comment">// g. Let yearsMonthsWeeksLater be ? AddDate(calendar, plainRelativeTo, yearsMonthsWeeks, undefined, dateAdd).
+                </span><span class="kw">let </span>years_months_weeks_later = plain_date::add_date(
+                    calendar,
+                    plain_relative_to,
+                    <span class="kw-2">&amp;</span>years_months_weeks,
+                    <span class="kw-2">&amp;</span>JsValue::undefined(),
+                    context,
+                )<span class="question-mark">?</span>;
+
+                <span class="comment">// h. Let weeksInDays be DaysUntil(yearsMonthsLater, yearsMonthsWeeksLater).
+                </span><span class="kw">let </span>weeks_in_days =
+                    <span class="kw">super</span>::days_until(<span class="kw-2">&amp;</span>years_months_later, <span class="kw-2">&amp;</span>years_months_weeks_later);
+
+                <span class="comment">// i. Set plainRelativeTo to yearsMonthsLater.
+                </span><span class="kw">let </span>plain_relative_to = years_months_later;
+
+                <span class="comment">// j. Set fractionalDays to fractionalDays + weeksInDays.
+                </span>frac_days += f64::from(weeks_in_days);
+
+                <span class="comment">// k. If fractionalDays &lt; 0, let sign be -1; else, let sign be 1.
+                </span><span class="kw">let </span>sign = <span class="kw">if </span>frac_days &lt; <span class="number">0.0 </span>{ -<span class="number">1f64 </span>} <span class="kw">else </span>{ <span class="number">1f64 </span>};
+
+                <span class="comment">// l. Let oneMonth be ! CreateTemporalDuration(0, sign, 0, 0, 0, 0, 0, 0, 0, 0).
+                </span><span class="kw">let </span>one_month = <span class="self">Self</span>::new(
+                    DateDuration::new(<span class="number">0.0</span>, sign, <span class="number">0.0</span>, <span class="number">0.0</span>),
+                    TimeDuration::default(),
+                );
+
+                <span class="comment">// m. Let moveResult be ? MoveRelativeDate(calendar, plainRelativeTo, oneMonth, dateAdd).
+                // n. Set plainRelativeTo to moveResult.[[RelativeTo]].
+                // o. Let oneMonthDays be moveResult.[[Days]].
+                </span><span class="kw">let </span>(<span class="kw-2">mut </span>plain_relative_to, <span class="kw-2">mut </span>one_month_days) =
+                    <span class="kw">super</span>::move_relative_date(calendar, <span class="kw-2">&amp;</span>plain_relative_to, <span class="kw-2">&amp;</span>one_month, context)<span class="question-mark">?</span>;
+
+                <span class="comment">// p. Repeat, while abs(fractionalDays) ≥ abs(oneMonthDays),
+                </span><span class="kw">while </span>frac_days.abs() &gt;= one_month_days.abs() {
+                    <span class="comment">// i. Set months to months + sign.
+                    </span><span class="self">self</span>.set_months(<span class="self">self</span>.months() + sign);
+
+                    <span class="comment">// ii. Set fractionalDays to fractionalDays - oneMonthDays.
+                    </span>frac_days -= one_month_days;
+
+                    <span class="comment">// iii. Set moveResult to ? MoveRelativeDate(calendar, plainRelativeTo, oneMonth, dateAdd).
                     </span><span class="kw">let </span>move_result = <span class="kw">super</span>::move_relative_date(
-                        <span class="kw-2">&amp;</span>calendar_obj,
-                        <span class="kw-2">&amp;</span>relative_to,
-                        <span class="kw-2">&amp;</span>one_week.clone(),
+                        calendar,
+                        <span class="kw-2">&amp;</span>plain_relative_to,
+                        <span class="kw-2">&amp;</span>one_month,
                         context,
                     )<span class="question-mark">?</span>;
-                    <span class="comment">// iv. Set relativeTo to moveResult.[[RelativeTo]].
-                    </span>relative_to = move_result.<span class="number">0</span>;
+                    <span class="comment">// iv. Set plainRelativeTo to moveResult.[[RelativeTo]].
+                    </span>plain_relative_to = move_result.<span class="number">0</span>;
+                    <span class="comment">// v. Set oneMonthDays to moveResult.[[Days]].
+                    </span>one_month_days = move_result.<span class="number">1</span>;
+                }
+
+                <span class="comment">// q. Let fractionalMonths be months + fractionalDays / abs(oneMonthDays).
+                </span><span class="kw">let </span>frac_months = <span class="self">self</span>.months() + frac_days / one_month_days.abs();
+
+                <span class="comment">// r. Set months to RoundNumberToIncrement(fractionalMonths, increment, roundingMode).
+                </span><span class="self">self</span>.set_months(round_number_to_increment(
+                    frac_months,
+                    increment,
+                    rounding_mode,
+                ));
+
+                <span class="comment">// s. Set total to fractionalMonths.
+                // t. Set weeks to 0.
+                </span><span class="self">self</span>.set_weeks(<span class="number">0.0</span>);
+                frac_months
+            }
+            <span class="comment">// 10. Else if unit is &quot;week&quot;, then
+            </span>TemporalUnit::Week =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>frac_days =
+                    frac_days.expect(<span class="string">&quot;assert that fractionalDays exists for TemporalUnit::Month&quot;</span>);
+                <span class="comment">// a. Let calendar be plainRelativeTo.[[Calendar]].
+                </span><span class="kw">let </span>plain_relative_to = plain_relative_to.expect(<span class="string">&quot;date must exist given Week&quot;</span>);
+                <span class="kw">let </span>calendar = <span class="kw-2">&amp;</span>plain_relative_to.calendar;
+
+                <span class="comment">// b. If fractionalDays &lt; 0, let sign be -1; else, let sign be 1.
+                </span><span class="kw">let </span>sign = <span class="kw">if </span>frac_days &lt; <span class="number">0.0 </span>{ -<span class="number">1f64 </span>} <span class="kw">else </span>{ <span class="number">1f64 </span>};
+
+                <span class="comment">// c. Let oneWeek be ! CreateTemporalDuration(0, 0, sign, 0, 0, 0, 0, 0, 0, 0).
+                </span><span class="kw">let </span>one_week = <span class="self">Self</span>::new(
+                    DateDuration::new(<span class="number">0.0</span>, <span class="number">0.0</span>, sign, <span class="number">0.0</span>),
+                    TimeDuration::default(),
+                );
+
+                <span class="comment">// d. If calendar is an Object, then
+                // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
+                // e. Else,
+                // i. Let dateAdd be unused.
+
+                // f. Let moveResult be ? MoveRelativeDate(calendar, plainRelativeTo, oneWeek, dateAdd).
+                // g. Set plainRelativeTo to moveResult.[[RelativeTo]].
+                // h. Let oneWeekDays be moveResult.[[Days]].
+                </span><span class="kw">let </span>(<span class="kw-2">mut </span>plain_relative_to, <span class="kw-2">mut </span>one_week_days) =
+                    <span class="kw">super</span>::move_relative_date(calendar, plain_relative_to, <span class="kw-2">&amp;</span>one_week, context)<span class="question-mark">?</span>;
+
+                <span class="comment">// i. Repeat, while abs(fractionalDays) ≥ abs(oneWeekDays),
+                </span><span class="kw">while </span>frac_days.abs() &gt;= one_week_days.abs() {
+                    <span class="comment">// i. Set weeks to weeks + sign.
+                    </span><span class="self">self</span>.set_weeks(<span class="self">self</span>.weeks() + sign);
+
+                    <span class="comment">// ii. Set fractionalDays to fractionalDays - oneWeekDays.
+                    </span>frac_days -= one_week_days;
+
+                    <span class="comment">// iii. Set moveResult to ? MoveRelativeDate(calendar, plainRelativeTo, oneWeek, dateAdd).
+                    </span><span class="kw">let </span>move_result = <span class="kw">super</span>::move_relative_date(
+                        calendar,
+                        <span class="kw-2">&amp;</span>plain_relative_to,
+                        <span class="kw-2">&amp;</span>one_week,
+                        context,
+                    )<span class="question-mark">?</span>;
+
+                    <span class="comment">// iv. Set plainRelativeTo to moveResult.[[RelativeTo]].
+                    </span>plain_relative_to = move_result.<span class="number">0</span>;
                     <span class="comment">// v. Set oneWeekDays to moveResult.[[Days]].
                     </span>one_week_days = move_result.<span class="number">1</span>;
                 }
 
-                <span class="comment">// i. Let fractionalWeeks be weeks + days / abs(oneWeekDays).
-                </span><span class="kw">let </span>fractional_weeks = <span class="self">self</span>.weeks() + (<span class="self">self</span>.days() / one_week_days.abs());
+                <span class="comment">// j. Let fractionalWeeks be weeks + fractionalDays / abs(oneWeekDays).
+                </span><span class="kw">let </span>frac_weeks = <span class="self">self</span>.weeks() + frac_days / one_week_days.abs();
 
-                <span class="comment">// j. Set weeks to RoundNumberToIncrement(fractionalWeeks, increment, roundingMode).
-                </span><span class="self">self</span>.set_weeks(temporal::round_number_to_increment(
-                    fractional_weeks,
+                <span class="comment">// k. Set weeks to RoundNumberToIncrement(fractionalWeeks, increment, roundingMode).
+                </span><span class="self">self</span>.set_weeks(round_number_to_increment(
+                    frac_weeks,
                     increment,
                     rounding_mode,
                 ));
-                <span class="comment">// k. Set remainder to fractionalWeeks - weeks.
-                // l. Set days to 0.
-                </span><span class="self">self</span>.set_days(<span class="number">0_f64</span>);
-                fractional_weeks - <span class="self">self</span>.weeks()
+                <span class="comment">// l. Set total to fractionalWeeks.
+                </span>frac_weeks
             }
-            <span class="comment">// 12. Else if unit is &quot;day&quot;, then
+            <span class="comment">// 11. Else if unit is &quot;day&quot;, then
             </span>TemporalUnit::Day =&gt; {
-                <span class="comment">// a. Let fractionalDays be days.
-                </span><span class="kw">let </span>fractional_days = <span class="self">self</span>.days();
-                <span class="comment">// b. Set days to RoundNumberToIncrement(days, increment, roundingMode).
-                </span><span class="self">self</span>.set_days(temporal::round_number_to_increment(
-                    <span class="self">self</span>.days(),
-                    increment,
-                    rounding_mode,
-                ));
-                <span class="comment">// c. Set remainder to fractionalDays - days.
-                </span>fractional_days - <span class="self">self</span>.days()
-            }
-            <span class="comment">// 13. Else if unit is &quot;hour&quot;, then
-            </span>TemporalUnit::Hour =&gt; {
-                <span class="comment">// a. Let fractionalHours be (fractionalSeconds / 60 + minutes) / 60 + hours.
-                </span><span class="kw">let </span>fractional_hours =
-                    (fractional_secs / (<span class="number">60_f64 </span>+ <span class="self">self</span>.minutes())) / <span class="number">60_f64 </span>+ <span class="self">self</span>.hours();
-                <span class="comment">// b. Set hours to RoundNumberToIncrement(fractionalHours, increment, roundingMode).
-                </span><span class="self">self</span>.set_hours(temporal::round_number_to_increment(
-                    fractional_hours,
-                    increment,
-                    rounding_mode,
-                ));
-                <span class="comment">// d. Set minutes, seconds, milliseconds, microseconds, and nanoseconds to 0.
-                </span><span class="self">self</span>.set_time_duration(TimeDuration::new(<span class="self">self</span>.hours(), <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>));
+                <span class="kw">let </span>frac_days =
+                    frac_days.expect(<span class="string">&quot;assert that fractionalDays exists for TemporalUnit::Day&quot;</span>);
 
-                <span class="comment">// c. Set remainder to fractionalHours - hours.
-                </span>fractional_hours - <span class="self">self</span>.hours()
+                <span class="comment">// a. Set days to RoundNumberToIncrement(fractionalDays, increment, roundingMode).
+                </span><span class="self">self</span>.set_days(round_number_to_increment(
+                    frac_days,
+                    increment,
+                    rounding_mode,
+                ));
+                <span class="comment">// b. Set total to fractionalDays.
+                </span>frac_days
             }
-            <span class="comment">// 14. Else if unit is &quot;minute&quot;, then
+            <span class="comment">// 12. Else if unit is &quot;hour&quot;, then
+            </span>TemporalUnit::Hour =&gt; {
+                <span class="kw">let </span>frac_secs =
+                    frac_secs.expect(<span class="string">&quot;Assert fractionSeconds exists for Temporal::Hour&quot;</span>);
+                <span class="comment">// a. Let fractionalHours be (fractionalSeconds / 60 + minutes) / 60 + hours.
+                </span><span class="kw">let </span>frac_hours = (frac_secs / <span class="number">60f64 </span>+ <span class="self">self</span>.minutes()) / <span class="number">60f64 </span>+ <span class="self">self</span>.hours();
+                <span class="comment">// b. Set hours to RoundNumberToIncrement(fractionalHours, increment, roundingMode).
+                </span><span class="kw">let </span>rounded_hours = round_number_to_increment(frac_hours, increment, rounding_mode);
+                <span class="comment">// c. Set total to fractionalHours.
+                // d. Set minutes, seconds, milliseconds, microseconds, and nanoseconds to 0.
+                </span><span class="self">self</span>.set_time_duration(TimeDuration::new(rounded_hours, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>));
+                frac_hours
+            }
+            <span class="comment">// 13. Else if unit is &quot;minute&quot;, then
             </span>TemporalUnit::Minute =&gt; {
+                <span class="kw">let </span>frac_secs =
+                    frac_secs.expect(<span class="string">&quot;Assert fractionSeconds exists for Temporal::Hour&quot;</span>);
                 <span class="comment">// a. Let fractionalMinutes be fractionalSeconds / 60 + minutes.
-                </span><span class="kw">let </span>fraction_minutes = fractional_secs / <span class="number">60_f64 </span>+ <span class="self">self</span>.minutes();
+                </span><span class="kw">let </span>frac_minutes = frac_secs / <span class="number">60f64 </span>+ <span class="self">self</span>.minutes();
                 <span class="comment">// b. Set minutes to RoundNumberToIncrement(fractionalMinutes, increment, roundingMode).
-                </span><span class="self">self</span>.set_minutes(temporal::round_number_to_increment(
-                    fraction_minutes,
-                    increment,
-                    rounding_mode,
+                </span><span class="kw">let </span>rounded_minutes =
+                    round_number_to_increment(frac_minutes, increment, rounding_mode);
+                <span class="comment">// c. Set total to fractionalMinutes.
+                // d. Set seconds, milliseconds, microseconds, and nanoseconds to 0.
+                </span><span class="self">self</span>.set_time_duration(TimeDuration::new(
+                    <span class="self">self</span>.hours(),
+                    rounded_minutes,
+                    <span class="number">0.0</span>,
+                    <span class="number">0.0</span>,
+                    <span class="number">0.0</span>,
+                    <span class="number">0.0</span>,
                 ));
-                <span class="comment">// d. Set seconds, milliseconds, microseconds, and nanoseconds to 0.
-                </span><span class="self">self</span>.set_seconds(<span class="number">0_f64</span>);
-                <span class="self">self</span>.set_milliseconds(<span class="number">0_f64</span>);
-                <span class="self">self</span>.set_microseconds(<span class="number">0_f64</span>);
-                <span class="self">self</span>.set_nanoseconds(<span class="number">0_f64</span>);
-                <span class="comment">// c. Set remainder to fractionalMinutes - minutes.
-                </span>fraction_minutes - <span class="self">self</span>.minutes()
+
+                frac_minutes
             }
-            <span class="comment">// 15. Else if unit is &quot;second&quot;, then
+            <span class="comment">// 14. Else if unit is &quot;second&quot;, then
             </span>TemporalUnit::Second =&gt; {
+                <span class="kw">let </span>frac_secs =
+                    frac_secs.expect(<span class="string">&quot;Assert fractionSeconds exists for Temporal::Second&quot;</span>);
                 <span class="comment">// a. Set seconds to RoundNumberToIncrement(fractionalSeconds, increment, roundingMode).
-                </span><span class="self">self</span>.set_seconds(temporal::round_number_to_increment(
-                    fractional_secs,
+                </span><span class="self">self</span>.set_seconds(round_number_to_increment(
+                    frac_secs,
                     increment,
                     rounding_mode,
                 ));
-                <span class="comment">// c. Set milliseconds, microseconds, and nanoseconds to 0.
-                </span><span class="self">self</span>.set_milliseconds(<span class="number">0_f64</span>);
-                <span class="self">self</span>.set_microseconds(<span class="number">0_f64</span>);
-                <span class="self">self</span>.set_nanoseconds(<span class="number">0_f64</span>);
-                <span class="comment">// b. Set remainder to fractionalSeconds - seconds.
-                </span>fractional_secs - <span class="self">self</span>.seconds()
+                <span class="comment">// b. Set total to fractionalSeconds.
+                // c. Set milliseconds, microseconds, and nanoseconds to 0.
+                </span><span class="self">self</span>.set_milliseconds(<span class="number">0.0</span>);
+                <span class="self">self</span>.set_microseconds(<span class="number">0.0</span>);
+                <span class="self">self</span>.set_nanoseconds(<span class="number">0.0</span>);
+
+                frac_secs
             }
-            <span class="comment">// 16. Else if unit is &quot;millisecond&quot;, then
+            <span class="comment">// 15. Else if unit is &quot;millisecond&quot;, then
             </span>TemporalUnit::Millisecond =&gt; {
                 <span class="comment">// a. Let fractionalMilliseconds be nanoseconds × 10-6 + microseconds × 10-3 + milliseconds.
-                </span><span class="kw">let </span>fractional_millis = <span class="self">self
-                    </span>.nanoseconds()
-                    .mul_add(<span class="number">1_000_000_f64</span>, <span class="self">self</span>.microseconds() * <span class="number">1_000_f64</span>)
-                    + <span class="self">self</span>.milliseconds();
+                </span><span class="kw">let </span>fraction_millis = <span class="self">self</span>.nanoseconds().mul_add(
+                    <span class="number">1_000_000f64</span>,
+                    <span class="self">self</span>.microseconds().mul_add(<span class="number">1_000f64</span>, <span class="self">self</span>.milliseconds()),
+                );
+
                 <span class="comment">// b. Set milliseconds to RoundNumberToIncrement(fractionalMilliseconds, increment, roundingMode).
-                </span><span class="self">self</span>.set_milliseconds(temporal::round_number_to_increment(
-                    fractional_millis,
+                </span><span class="self">self</span>.set_milliseconds(round_number_to_increment(
+                    fraction_millis,
                     increment,
                     rounding_mode,
                 ));
-                <span class="comment">// d. Set microseconds and nanoseconds to 0.
-                </span><span class="self">self</span>.set_microseconds(<span class="number">0_f64</span>);
-                <span class="self">self</span>.set_nanoseconds(<span class="number">0_f64</span>);
-                <span class="comment">// c. Set remainder to fractionalMilliseconds - milliseconds.
-                </span>fractional_millis - <span class="self">self</span>.milliseconds()
+
+                <span class="comment">// c. Set total to fractionalMilliseconds.
+                // d. Set microseconds and nanoseconds to 0.
+                </span><span class="self">self</span>.set_microseconds(<span class="number">0.0</span>);
+                <span class="self">self</span>.set_nanoseconds(<span class="number">0.0</span>);
+                fraction_millis
             }
-            <span class="comment">// 17. Else if unit is &quot;microsecond&quot;, then
+            <span class="comment">// 16. Else if unit is &quot;microsecond&quot;, then
             </span>TemporalUnit::Microsecond =&gt; {
                 <span class="comment">// a. Let fractionalMicroseconds be nanoseconds × 10-3 + microseconds.
-                </span><span class="kw">let </span>fractional_micros = <span class="self">self</span>.nanoseconds().mul_add(<span class="number">1_000_f64</span>, <span class="self">self</span>.microseconds());
+                </span><span class="kw">let </span>frac_micros = <span class="self">self</span>.nanoseconds().mul_add(<span class="number">1_000f64</span>, <span class="self">self</span>.microseconds());
+
                 <span class="comment">// b. Set microseconds to RoundNumberToIncrement(fractionalMicroseconds, increment, roundingMode).
-                </span><span class="self">self</span>.set_microseconds(temporal::round_number_to_increment(
-                    fractional_micros,
+                </span><span class="self">self</span>.set_microseconds(round_number_to_increment(
+                    frac_micros,
                     increment,
                     rounding_mode,
                 ));
-                <span class="comment">// d. Set nanoseconds to 0.
-                </span><span class="self">self</span>.set_nanoseconds(<span class="number">0_f64</span>);
-                <span class="comment">// c. Set remainder to fractionalMicroseconds - microseconds.
-                </span>fractional_micros - <span class="self">self</span>.microseconds()
+
+                <span class="comment">// c. Set total to fractionalMicroseconds.
+                // d. Set nanoseconds to 0.
+                </span><span class="self">self</span>.set_nanoseconds(<span class="number">0.0</span>);
+                frac_micros
             }
-            <span class="comment">// 18. Else,
+            <span class="comment">// 17. Else,
             </span>TemporalUnit::Nanosecond =&gt; {
                 <span class="comment">// a. Assert: unit is &quot;nanosecond&quot;.
-                // b. Set remainder to nanoseconds.
-                </span><span class="kw">let </span>remainder = <span class="self">self</span>.nanoseconds();
+                // b. Set total to nanoseconds.
+                </span><span class="kw">let </span>total = <span class="self">self</span>.nanoseconds();
                 <span class="comment">// c. Set nanoseconds to RoundNumberToIncrement(nanoseconds, increment, roundingMode).
-                </span><span class="self">self</span>.set_nanoseconds(temporal::round_number_to_increment(
+                </span><span class="self">self</span>.set_nanoseconds(round_number_to_increment(
                     <span class="self">self</span>.nanoseconds(),
                     increment,
                     rounding_mode,
                 ));
-                <span class="comment">// d. Set remainder to remainder - nanoseconds.
-                </span>remainder - <span class="self">self</span>.nanoseconds()
+
+                total
             }
             TemporalUnit::Auto =&gt; <span class="macro">unreachable!</span>(),
         };
 
-        <span class="comment">// 19. Assert: days is an integer.
-        </span><span class="macro">assert!</span>(<span class="self">self</span>.days().fract() == <span class="number">0.0</span>);
-
-        <span class="comment">// 20. Let duration be ? CreateDurationRecord(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
-        // 21. Return the Record { [[DurationRecord]]: duration, [[Remainder]]: remainder }.
-        </span><span class="prelude-val">Ok</span>(remainder)
+        <span class="comment">// 18. Let duration be ? CreateDurationRecord(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
+        // 19. Return the Record { [[DurationRecord]]: duration, [[Total]]: total }.
+        </span><span class="prelude-val">Ok</span>(total)
     }
 
     <span class="doccomment">/// 7.5.27 `AdjustRoundedDurationDays ( years, months, weeks, days, hours, minutes, seconds, milliseconds,

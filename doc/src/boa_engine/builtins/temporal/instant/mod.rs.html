@@ -782,6 +782,8 @@
 <a href="#782" id="782">782</a>
 <a href="#783" id="783">783</a>
 <a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Temporal.Instant` builtin object.
 </span><span class="attr">#![allow(dead_code)]
 
@@ -1390,10 +1392,12 @@
             nanoseconds.to_f64(),
         ),
     );
-    <span class="kw">let </span>_rem = roundable_duration.round_duration(
+    <span class="kw">let </span>_total = roundable_duration.round_duration(
         rounding_increment,
         smallest_unit,
         rounding_mode,
+        <span class="prelude-val">None</span>,
+        <span class="prelude-val">None</span>,
         <span class="prelude-val">None</span>,
         context,
     )<span class="question-mark">?</span>;

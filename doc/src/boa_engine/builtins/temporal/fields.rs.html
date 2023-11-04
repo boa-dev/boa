@@ -584,6 +584,7 @@
 <a href="#584" id="584">584</a>
 <a href="#585" id="585">585</a>
 <a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust native implementation of the `fields` object used in `Temporal`.
 
 </span><span class="kw">use crate</span>::{
@@ -625,8 +626,8 @@
 ///
 /// ## Table 17: Temporal field requirements
 ///
-/// |   Property   |           Conversion            |  Default   |
-/// | -------------|---------------------------------|------------|
+/// |   Property   |           Conversion              |  Default   |
+/// | -------------|-----------------------------------|------------|
 /// | &quot;year&quot;       |     `ToIntegerWithTruncation`     | undefined  |
 /// | &quot;month&quot;      | `ToPositiveIntegerWithTruncation` | undefined  |
 /// | &quot;monthCode&quot;  |   `ToPrimitiveAndRequireString`   | undefined  |
@@ -640,7 +641,7 @@
 /// | &quot;offset&quot;     |   `ToPrimitiveAndRequireString`   | undefined  |
 /// | &quot;era&quot;        |   `ToPrimitiveAndRequireString`   | undefined  |
 /// | &quot;eraYear&quot;    |     `ToIntegerWithTruncation`     | undefined  |
-/// | &quot;timeZone&quot;   |                                 | undefined  |
+/// | &quot;timeZone&quot;   |              `None`               | undefined  |
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TemporalFields {
     bit_map: FieldMap,
@@ -700,11 +701,11 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_field_value(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        field: <span class="kw-2">&amp;</span>str,
+        field: <span class="kw-2">&amp;</span>JsString,
         value: <span class="kw-2">&amp;</span>JsValue,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">match </span>field {
+        <span class="kw">match </span>field.to_std_string_escaped().as_str() {
             <span class="string">&quot;year&quot; </span>=&gt; <span class="self">self</span>.set_year(value, context)<span class="question-mark">?</span>,
             <span class="string">&quot;month&quot; </span>=&gt; <span class="self">self</span>.set_month(value, context)<span class="question-mark">?</span>,
             <span class="string">&quot;monthCode&quot; </span>=&gt; <span class="self">self</span>.set_month_code(value, context)<span class="question-mark">?</span>,
@@ -867,9 +868,9 @@
     /// This is the equivalant to Abstract Operation 13.46 `PrepareTemporalFields`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_js_object(
         fields: <span class="kw-2">&amp;</span>JsObject,
-        field_names: <span class="kw-2">&amp;mut </span>Vec&lt;String&gt;,
-        required_fields: <span class="kw-2">&amp;mut </span>Vec&lt;String&gt;, <span class="comment">// None when Partial
-        </span>extended_fields: <span class="prelude-ty">Option</span>&lt;Vec&lt;(String, bool)&gt;&gt;,
+        field_names: <span class="kw-2">&amp;mut </span>Vec&lt;JsString&gt;,
+        required_fields: <span class="kw-2">&amp;mut </span>Vec&lt;JsString&gt;, <span class="comment">// None when Partial
+        </span>extended_fields: <span class="prelude-ty">Option</span>&lt;Vec&lt;(JsString, bool)&gt;&gt;,
         partial: bool,
         dup_behaviour: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -905,7 +906,9 @@
         <span class="comment">// 7. For each property name property of sortedFieldNames, do
         </span><span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;*</span>field_names {
             <span class="comment">// a. If property is one of &quot;constructor&quot; or &quot;__proto__&quot;, then
-            </span><span class="kw">if </span>field.as_str() == <span class="string">&quot;constructor&quot; </span>|| field.as_str() == <span class="string">&quot;__proto__&quot; </span>{
+            </span><span class="kw">if </span>field.to_std_string_escaped().as_str() == <span class="string">&quot;constructor&quot;
+                </span>|| field.to_std_string_escaped().as_str() == <span class="string">&quot;__proto__&quot;
+            </span>{
                 <span class="comment">// i. Throw a RangeError exception.
                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
                     .with_message(<span class="string">&quot;constructor or proto is out of field range.&quot;</span>)
@@ -917,8 +920,7 @@
             <span class="comment">// b. If property is not equal to previousProperty, then
             </span><span class="kw">if </span>new_value {
                 <span class="comment">// i. Let value be ? Get(fields, property).
-                </span><span class="kw">let </span>value =
-                    fields.get(PropertyKey::from(JsString::from(field.clone())), context)<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>value = fields.get(PropertyKey::from(field.clone()), context)<span class="question-mark">?</span>;
                 <span class="comment">// ii. If value is not undefined, then
                 </span><span class="kw">if </span>!value.is_undefined() {
                     <span class="comment">// 1. Set any to true.
