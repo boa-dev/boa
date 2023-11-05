@@ -1477,6 +1477,8 @@
 <a href="#1477" id="1477">1477</a>
 <a href="#1478" id="1478">1478</a>
 <a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1886,8 +1888,10 @@
         <span class="kw">match </span>opcode {
             BindingOpcode::Var =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.variable_environment.get_identifier_reference(name);
-                <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
-                <span class="self">self</span>.emit_with_varying_operand(Opcode::DefVar, index);
+                <span class="kw">if </span>!binding.locator().is_global() {
+                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
+                    <span class="self">self</span>.emit_with_varying_operand(Opcode::DefVar, index);
+                }
             }
             BindingOpcode::InitVar =&gt; <span class="kw">match </span><span class="self">self</span>.lexical_environment.set_mutable_binding(name) {
                 <span class="prelude-val">Ok</span>(binding) =&gt; {

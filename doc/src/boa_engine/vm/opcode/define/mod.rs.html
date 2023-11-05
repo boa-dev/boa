@@ -190,10 +190,6 @@
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -218,15 +214,11 @@
         <span class="comment">// TODO: spec specifies to return `empty` on empty vars, but we&#39;re trying to initialize.
         </span><span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index];
 
-        <span class="kw">if </span>binding_locator.is_global() {
-            <span class="comment">// already initialized at compile time
-        </span>} <span class="kw">else </span>{
-            context.vm.environments.put_value_if_uninitialized(
-                binding_locator.environment_index(),
-                binding_locator.binding_index(),
-                JsValue::undefined(),
-            );
-        }
+        context.vm.environments.put_value_if_uninitialized(
+            binding_locator.environment_index(),
+            binding_locator.binding_index(),
+            JsValue::undefined(),
+        );
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
