@@ -4,7 +4,6 @@ use boa_ast::{
     Expression, Statement,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 macro_rules! check_call_property_identifier {
     ($property:literal) => {{
@@ -14,11 +13,11 @@ macro_rules! check_call_property_identifier {
             vec![Statement::Expression(Expression::PropertyAccess(
                 SimplePropertyAccess::new(
                     Call::new(
-                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                        Identifier::new(interner.get_or_intern("a")).into(),
                         Box::default(),
                     )
                     .into(),
-                    interner.get_or_intern_static($property, utf16!($property)),
+                    interner.get_or_intern($property),
                 )
                 .into(),
             ))
@@ -44,8 +43,8 @@ macro_rules! check_member_property_identifier {
             format!("a.{}", $property).as_str(),
             vec![Statement::Expression(Expression::PropertyAccess(
                 SimplePropertyAccess::new(
-                    Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                    interner.get_or_intern_static($property, utf16!($property)),
+                    Identifier::new(interner.get_or_intern("a")).into(),
+                    interner.get_or_intern($property),
                 )
                 .into(),
             ))

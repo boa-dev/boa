@@ -60,7 +60,8 @@ impl StaticJsStrings {
 
     /// Gets the `JsString` corresponding to `string`, or `None` if the string
     /// doesn't exist inside the static array.
-    pub(crate) fn get_string(string: &str) -> Option<JsString> {
+    #[must_use]
+    pub fn get_string(string: &str) -> Option<JsString> {
         if string.len() > MAX_STATIC_LENGTH {
             return None;
         }
@@ -74,7 +75,8 @@ impl StaticJsStrings {
 
     /// Gets the `&[u16]` slice corresponding to the provided index, or `None` if the index
     /// provided exceeds the size of the static array.
-    pub(crate) fn get(index: usize) -> Option<&'static str> {
+    #[must_use]
+    pub fn get(index: usize) -> Option<&'static str> {
         RAW_STATICS.index(index).copied()
     }
 
@@ -206,8 +208,82 @@ const MAX_STATIC_LENGTH: usize = {
 };
 
 /// Array of raw static strings that aren't reference counted.
-const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
+pub const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
+    // Reserved identifiers
+    // See: <https://tc39.es/ecma262/#prod-ReservedWord>
+    // Note, they must all be together.
+    "break",
+    "case",
+    "catch",
+    "class",
+    "const",
+    "continue",
+    "debugger",
+    "default",
+    "delete",
+    "do",
+    "else",
+    "enum",
+    "export",
+    "extends",
+    "false",
+    "finally",
+    "for",
+    "function",
+    "if",
+    "import",
+    "in",
+    "instanceof",
+    "new",
+    "null",
+    "return",
+    "super",
+    "switch",
+    "this",
+    "throw",
+    "true",
+    "try",
+    "typeof",
+    "var",
+    "void",
+    "while",
+    "with",
+    // End reserved identifier
+
+    // strict reserved identifiers.
+    // See: <https://tc39.es/ecma262/#prod-Identifier>
+    // Note, they must all be together.
+    "implements",
+    "interface",
+    "let",
+    "package",
+    "private",
+    "protected",
+    "public",
+    "static",
+    "yield",
+    // End strict reserved identifiers
     "",
+    "prototype",
+    "constructor",
+    "arguments",
+    "eval",
+    "RegExp",
+    "get",
+    "set",
+    "<main>",
+    "raw",
+    "anonymous",
+    "async",
+    "of",
+    "target",
+    "as",
+    "from",
+    "__proto__",
+    "name",
+    "await",
+    "*default*",
+    "meta",
     // Well known symbols
     "Symbol.asyncIterator",
     "[Symbol.asyncIterator]",
@@ -259,7 +335,6 @@ const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     "URIError",
     "escape",
     "unescape",
-    "eval",
     "Function",
     "Generator",
     "GeneratorFunction",
@@ -282,7 +357,6 @@ const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     "Promise",
     "Proxy",
     "Reflect",
-    "RegExp",
     "Set",
     "String",
     "Symbol",
@@ -321,28 +395,18 @@ const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     ",",
     ":",
     // Generic use
-    "name",
     "length",
-    "arguments",
-    "prototype",
-    "constructor",
-    "return",
-    "throw",
     "global",
     "globalThis",
     // typeof
-    "null",
     "undefined",
     "number",
     "string",
     "symbol",
     "bigint",
     "object",
-    "function",
     // Property descriptor
     "value",
-    "get",
-    "set",
     "writable",
     "enumerable",
     "configurable",
@@ -381,7 +445,6 @@ const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     "__defineSetter__",
     "__lookupGetter__",
     "__lookupSetter__",
-    "__proto__",
     "get __proto__",
     "set __proto__",
     // Function object
@@ -393,9 +456,7 @@ const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     "callee",
     // Array object
     "at",
-    "from",
     "isArray",
-    "of",
     "copyWithin",
     "every",
     "fill",
@@ -427,7 +488,6 @@ const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     "toReversed",
     "toSorted",
     "toSpliced",
-    "with",
     // String object
     "charAt",
     "charCodeAt",
@@ -442,7 +502,6 @@ const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     "normalize",
     "padEnd",
     "padStart",
-    "raw",
     "repeat",
     "replace",
     "replaceAll",
@@ -519,7 +578,6 @@ const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     "get flags",
     "get source",
     // Symbol object
-    "for",
     "keyFor",
     "description",
     "asyncIterator",
@@ -533,7 +591,6 @@ const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     "get description",
     // Map object
     "clear",
-    "delete",
     "has",
     "size",
     // Set object
@@ -601,8 +658,6 @@ const RAW_STATICS: phf::OrderedSet<&'static str> = phf::phf_ordered_set!(
     "any",
     "race",
     "then",
-    "catch",
-    "finally",
     "withResolvers",
     // Iterator object
     "Array Iterator",

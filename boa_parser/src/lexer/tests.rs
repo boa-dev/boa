@@ -7,7 +7,6 @@ use crate::lexer::{
 };
 use boa_ast::Keyword;
 use boa_interner::Sym;
-use boa_macros::utf16;
 use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
@@ -66,7 +65,7 @@ fn check_multi_line_comment() {
     let mut lexer = Lexer::new(s.as_bytes());
     let interner = &mut Interner::default();
 
-    let sym = interner.get_or_intern_static("x", utf16!("x"));
+    let sym = interner.get_or_intern("x");
     let expected = [
         TokenKind::Keyword((Keyword::Var, false)),
         TokenKind::LineTerminator,
@@ -83,29 +82,18 @@ fn check_identifier() {
     let interner = &mut Interner::default();
 
     let expected = [
-        TokenKind::identifier(interner.get_or_intern_static("x", utf16!("x"))),
-        TokenKind::identifier(interner.get_or_intern_static("x1", utf16!("x1"))),
-        TokenKind::identifier(interner.get_or_intern_static("_x", utf16!("_x"))),
-        TokenKind::identifier(interner.get_or_intern_static("$x", utf16!("$x"))),
-        TokenKind::identifier(interner.get_or_intern_static("__", utf16!("__"))),
-        TokenKind::identifier(interner.get_or_intern_static("$$", utf16!("$$"))),
-        TokenKind::identifier(interner.get_or_intern_static("Ѐ", utf16!("Ѐ"))),
-        TokenKind::identifier(interner.get_or_intern_static("ЀЀ", utf16!("ЀЀ"))),
-        TokenKind::identifier(
-            interner.get_or_intern_static("x\u{200C}\u{200D}", utf16!("x\u{200C}\u{200D}")),
-        ),
-        TokenKind::IdentifierName((
-            interner.get_or_intern_static("x", utf16!("x")),
-            ContainsEscapeSequence(true),
-        )),
-        TokenKind::IdentifierName((
-            interner.get_or_intern_static("xx", utf16!("xx")),
-            ContainsEscapeSequence(true),
-        )),
-        TokenKind::IdentifierName((
-            interner.get_or_intern_static("xxx", utf16!("xxx")),
-            ContainsEscapeSequence(true),
-        )),
+        TokenKind::identifier(interner.get_or_intern("x")),
+        TokenKind::identifier(interner.get_or_intern("x1")),
+        TokenKind::identifier(interner.get_or_intern("_x")),
+        TokenKind::identifier(interner.get_or_intern("$x")),
+        TokenKind::identifier(interner.get_or_intern("__")),
+        TokenKind::identifier(interner.get_or_intern("$$")),
+        TokenKind::identifier(interner.get_or_intern("Ѐ")),
+        TokenKind::identifier(interner.get_or_intern("ЀЀ")),
+        TokenKind::identifier(interner.get_or_intern("x\u{200C}\u{200D}")),
+        TokenKind::IdentifierName((interner.get_or_intern("x"), ContainsEscapeSequence(true))),
+        TokenKind::IdentifierName((interner.get_or_intern("xx"), ContainsEscapeSequence(true))),
+        TokenKind::IdentifierName((interner.get_or_intern("xxx"), ContainsEscapeSequence(true))),
     ];
 
     expect_tokens(&mut lexer, &expected, interner);
@@ -129,7 +117,7 @@ fn check_invalid_identifier_part() {
     let invalid_identifier_parts = [" ", "\n", ".", "*", "😀", "\u{007F}"];
     let interner = &mut Interner::default();
 
-    let sym = interner.get_or_intern_static("x", utf16!("x"));
+    let sym = interner.get_or_intern("x");
     for part in &invalid_identifier_parts {
         let s = String::from("x") + part;
         let mut lexer = Lexer::new(s.as_bytes());
@@ -147,8 +135,8 @@ fn check_string() {
     let mut lexer = Lexer::new(s.as_bytes());
     let interner = &mut Interner::default();
 
-    let a_sym = interner.get_or_intern_static("aaa", utf16!("aaa"));
-    let b_sym = interner.get_or_intern_static("bbb", utf16!("bbb"));
+    let a_sym = interner.get_or_intern("aaa");
+    let b_sym = interner.get_or_intern("bbb");
     let expected = [
         TokenKind::string_literal(a_sym, EscapeSequence::empty()),
         TokenKind::string_literal(b_sym, EscapeSequence::empty()),
@@ -163,8 +151,7 @@ fn check_template_literal_simple() {
     let mut lexer = Lexer::new(s.as_bytes());
     let interner = &mut Interner::default();
 
-    let sym =
-        interner.get_or_intern_static("I'm a template literal", utf16!("I'm a template literal"));
+    let sym = interner.get_or_intern("I'm a template literal");
 
     assert_eq!(
         lexer.next(interner).unwrap().unwrap().kind(),
@@ -308,8 +295,8 @@ fn check_variable_definition_tokens() {
     let mut lexer = Lexer::new(s.as_bytes());
     let interner = &mut Interner::default();
 
-    let a_sym = interner.get_or_intern_static("a", utf16!("a"));
-    let hello_sym = interner.get_or_intern_static("hello", utf16!("hello"));
+    let a_sym = interner.get_or_intern("a");
+    let hello_sym = interner.get_or_intern("hello");
     let expected = [
         TokenKind::Keyword((Keyword::Let, false)),
         TokenKind::identifier(a_sym),
@@ -601,7 +588,7 @@ fn hexadecimal_edge_case() {
     let mut lexer = Lexer::new(&b"0xffff.ff 0xffffff"[..]);
     let interner = &mut Interner::default();
 
-    let sym = interner.get_or_intern_static("ff", utf16!("ff"));
+    let sym = interner.get_or_intern("ff");
     let expected = [
         TokenKind::numeric_literal(0xffff),
         TokenKind::Punctuator(Punctuator::Dot),
@@ -641,7 +628,7 @@ fn regex_literal() {
     let interner = &mut Interner::default();
 
     let expected = [TokenKind::regular_expression_literal(
-        interner.get_or_intern_static("(?:)", utf16!("(?:)")),
+        interner.get_or_intern("(?:)"),
         Sym::EMPTY_STRING,
     )];
 
@@ -655,12 +642,9 @@ fn regex_equals_following_assignment() {
 
     let expected = [
         TokenKind::Keyword((Keyword::Const, false)),
-        TokenKind::identifier(interner.get_or_intern_static("myRegex", utf16!("myRegex"))),
+        TokenKind::identifier(interner.get_or_intern("myRegex")),
         TokenKind::Punctuator(Punctuator::Assign),
-        TokenKind::regular_expression_literal(
-            interner.get_or_intern_static("=", utf16!("=")),
-            Sym::EMPTY_STRING,
-        ),
+        TokenKind::regular_expression_literal(interner.get_or_intern("="), Sym::EMPTY_STRING),
         TokenKind::Punctuator(Punctuator::Semicolon),
     ];
 
@@ -673,8 +657,8 @@ fn regex_literal_flags() {
     let interner = &mut Interner::default();
 
     let expected = [TokenKind::regular_expression_literal(
-        interner.get_or_intern_static("\\/[^\\/]*\\/*", utf16!("\\/[^\\/]*\\/*")),
-        interner.get_or_intern_static("gim", utf16!("gim")),
+        interner.get_or_intern("\\/[^\\/]*\\/*"),
+        interner.get_or_intern("gim"),
     )];
 
     expect_tokens(&mut lexer, &expected, interner);
@@ -950,7 +934,7 @@ fn string_unicode() {
     let mut lexer = Lexer::new(s.as_bytes());
     let interner = &mut Interner::default();
 
-    let sym = interner.get_or_intern_static("中文", utf16!("中文"));
+    let sym = interner.get_or_intern("中文");
     let expected = [
         TokenKind::StringLiteral((sym, EscapeSequence::empty())),
         TokenKind::Punctuator(Punctuator::Semicolon),
@@ -964,8 +948,7 @@ fn string_unicode_escape_with_braces() {
     let mut lexer = Lexer::new(&br"'{\u{20ac}\u{a0}\u{a0}}'"[..]);
     let interner = &mut Interner::default();
 
-    let sym =
-        interner.get_or_intern_static("{\u{20ac}\u{a0}\u{a0}}", utf16!("{\u{20ac}\u{a0}\u{a0}}"));
+    let sym = interner.get_or_intern("{\u{20ac}\u{a0}\u{a0}}");
     let expected = [TokenKind::StringLiteral((sym, EscapeSequence::OTHER))];
 
     expect_tokens(&mut lexer, &expected, interner);
@@ -1000,7 +983,7 @@ fn string_unicode_escape_with_braces_2() {
     let mut lexer = Lexer::new(s.as_bytes());
     let interner = &mut Interner::default();
 
-    let sym = interner.get_or_intern_static("\u{20ac}\u{a0}\u{a0}", utf16!("\u{20ac}\u{a0}\u{a0}"));
+    let sym = interner.get_or_intern("\u{20ac}\u{a0}\u{a0}");
     let expected = [TokenKind::StringLiteral((sym, EscapeSequence::OTHER))];
 
     expect_tokens(&mut lexer, &expected, interner);
@@ -1013,7 +996,7 @@ fn string_with_single_escape() {
     let mut lexer = Lexer::new(s.as_bytes());
     let interner = &mut Interner::default();
 
-    let sym = interner.get_or_intern_static("Б", utf16!("Б"));
+    let sym = interner.get_or_intern("Б");
     let expected = [TokenKind::StringLiteral((sym, EscapeSequence::OTHER))];
 
     expect_tokens(&mut lexer, &expected, interner);
@@ -1115,7 +1098,7 @@ fn string_line_continuation() {
     let mut lexer = Lexer::new(s.as_bytes());
     let interner = &mut Interner::default();
 
-    let sym = interner.get_or_intern_static("hello world", utf16!("hello world"));
+    let sym = interner.get_or_intern("hello world");
     let expected_tokens = [TokenKind::StringLiteral((sym, EscapeSequence::OTHER))];
 
     expect_tokens(&mut lexer, &expected_tokens, interner);

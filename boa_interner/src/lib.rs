@@ -77,18 +77,26 @@
 
 extern crate alloc;
 
-mod fixed_string;
-mod interned_str;
-mod raw;
 mod sym;
 
 #[cfg(test)]
 mod tests;
 
-use alloc::{borrow::Cow, format, string::String};
-use raw::RawInterner;
+use alloc::{format, string::String};
+use boa_types::string::{
+    common::{StaticJsStrings, RAW_STATICS},
+    JsString, JsStringSlice,
+};
 
+use alloc::vec::Vec;
+use core::hash::BuildHasherDefault;
+use hashbrown::{hash_map::Entry, HashMap};
+use rustc_hash::FxHasher;
 pub use sym::*;
+
+pub use boa_types::js_string;
+
+type Map<T, U> = HashMap<T, U, BuildHasherDefault<FxHasher>>;
 
 /// An enumeration of all slice types [`Interner`] can internally store.
 ///
@@ -121,107 +129,47 @@ impl<'a, const N: usize> From<&'a [u16; N]> for JStrRef<'a> {
     }
 }
 
-/// A double reference to an interned string inside [`Interner`].
-///
-/// [`JSInternedStrRef::utf8`] returns an [`Option`], since not every `UTF-16` string is fully
-/// representable as a `UTF-8` string (because of unpaired surrogates). However, every `UTF-8`
-/// string is representable as a `UTF-16` string, so `JSInternedStrRef::utf8` returns a
-/// [<code>&\[u16\]</code>][core::slice].
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct JSInternedStrRef<'a, 'b> {
-    utf8: Option<&'a str>,
-    utf16: &'b [u16],
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct JSInternedStrRef {
+    inner: JsString,
 }
 
-impl<'a, 'b> JSInternedStrRef<'a, 'b> {
-    /// Returns the inner reference to the interned string in `UTF-8` encoding.
-    /// if the string is not representable in `UTF-8`, returns [`None`]
-    #[inline]
-    #[must_use]
-    pub const fn utf8(&self) -> Option<&'a str> {
-        self.utf8
-    }
-
-    /// Returns the inner reference to the interned string in `UTF-16` encoding.
-    #[inline]
-    #[must_use]
-    pub const fn utf16(&self) -> &'b [u16] {
-        self.utf16
-    }
-
-    /// Joins the result of both possible strings into a common type.
-    ///
-    /// If `self` is representable by a `UTF-8` string and the `prioritize_utf8` argument is set,
-    /// it will prioritize calling `f`, and will only call `g` if `self` is only representable by a
-    /// `UTF-16` string. Otherwise, it will directly call `g`.
-    pub fn join<F, G, T>(self, f: F, g: G, prioritize_utf8: bool) -> T
-    where
-        F: FnOnce(&'a str) -> T,
-        G: FnOnce(&'b [u16]) -> T,
-    {
-        if prioritize_utf8 {
-            if let Some(str) = self.utf8 {
-                return f(str);
-            }
-        }
-        g(self.utf16)
-    }
-
-    /// Same as [`join`][`JSInternedStrRef::join`], but where you can pass an additional context.
-    ///
-    /// Useful when you have a `&mut Context` context that cannot be borrowed by both closures at
-    /// the same time.
-    pub fn join_with_context<C, F, G, T>(self, f: F, g: G, ctx: C, prioritize_utf8: bool) -> T
-    where
-        F: FnOnce(&'a str, C) -> T,
-        G: FnOnce(&'b [u16], C) -> T,
-    {
-        if prioritize_utf8 {
-            if let Some(str) = self.utf8 {
-                return f(str, ctx);
-            }
-        }
-        g(self.utf16, ctx)
-    }
-
-    /// Converts both string types into a common type `C`.
-    ///
-    /// If `self` is representable by a `UTF-8` string and the `prioritize_utf8` argument is set, it
-    /// will prioritize converting its `UTF-8` representation first, and will only convert its
-    /// `UTF-16` representation if it is only representable by a `UTF-16` string. Otherwise, it will
-    /// directly convert its `UTF-16` representation.
-    pub fn into_common<C>(self, prioritize_utf8: bool) -> C
-    where
-        C: From<&'a str> + From<&'b [u16]>,
-    {
-        self.join(Into::into, Into::into, prioritize_utf8)
+impl core::ops::Deref for JSInternedStrRef {
+    type Target = JsString;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }
 
-impl core::fmt::Display for JSInternedStrRef<'_, '_> {
+impl From<JsString> for JSInternedStrRef {
+    fn from(value: JsString) -> Self {
+        Self { inner: value }
+    }
+}
+
+impl From<JSInternedStrRef> for JsString {
+    fn from(value: JSInternedStrRef) -> Self {
+        value.inner
+    }
+}
+
+impl core::fmt::Display for JSInternedStrRef {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        self.join_with_context(
-            core::fmt::Display::fmt,
-            |js, f| {
-                char::decode_utf16(js.iter().copied())
-                    .map(|r| match r {
-                        Ok(c) => String::from(c),
-                        Err(e) => format!("\\u{:04X}", e.unpaired_surrogate()),
-                    })
-                    .collect::<String>()
-                    .fmt(f)
-            },
-            f,
-            true,
-        )
+        char::decode_utf16(self.inner.iter())
+            .map(|r| match r {
+                Ok(c) => String::from(c),
+                Err(e) => format!("\\u{:04X}", e.unpaired_surrogate()),
+            })
+            .collect::<String>()
+            .fmt(f)
     }
 }
 
 /// The string interner for Boa.
 #[derive(Debug, Default)]
 pub struct Interner {
-    utf8_interner: RawInterner<u8>,
-    utf16_interner: RawInterner<u16>,
+    symbol_cache: Map<JsString, usize>,
+    full: Vec<JsString>,
 }
 
 impl Interner {
@@ -235,10 +183,10 @@ impl Interner {
     /// Creates a new [`Interner`] with the specified capacity.
     #[inline]
     #[must_use]
-    pub fn with_capacity(capacity: usize) -> Self {
+    pub fn with_capacity(_capacity: usize) -> Self {
         Self {
-            utf8_interner: RawInterner::with_capacity(capacity),
-            utf16_interner: RawInterner::with_capacity(capacity),
+            symbol_cache: Map::default(),
+            full: Vec::new(),
         }
     }
 
@@ -246,37 +194,14 @@ impl Interner {
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
-        // `utf16_interner.len()` == `utf8_interner.len()`,
-        // so we can use any of them.
-        COMMON_STRINGS_UTF8.len() + self.utf16_interner.len()
+        self.full.len()
     }
 
     /// Returns `true` if the [`Interner`] contains no interned strings.
     #[inline]
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        COMMON_STRINGS_UTF8.is_empty() && self.utf16_interner.is_empty()
-    }
-
-    /// Returns the symbol for the given string if any.
-    ///
-    /// Can be used to query if a string has already been interned without interning.
-    pub fn get<'a, T>(&self, string: T) -> Option<Sym>
-    where
-        T: Into<JStrRef<'a>>,
-    {
-        let string = string.into();
-        Self::get_common(string).or_else(|| {
-            let index = match string {
-                JStrRef::Utf8(s) => self.utf8_interner.get(s.as_bytes()),
-                JStrRef::Utf16(s) => self.utf16_interner.get(s),
-            };
-            // SAFETY:
-            // `get_or_intern/get_or_intern_static` already have checks to avoid returning indices
-            // that could cause overflows, meaning the indices returned by
-            // `idx + 1 + COMMON_STRINGS_UTF8.len()` cannot cause overflows.
-            unsafe { index.map(|i| Sym::new_unchecked(i + 1 + COMMON_STRINGS_UTF8.len())) }
-        })
+        self.full.is_empty()
     }
 
     /// Interns the given string.
@@ -288,116 +213,39 @@ impl Interner {
     /// If the interner already interns the maximum number of strings possible by the chosen symbol type.
     pub fn get_or_intern<'a, T>(&mut self, string: T) -> Sym
     where
-        T: Into<JStrRef<'a>>,
+        T: Into<JsStringSlice<'a>>,
     {
-        let string = string.into();
-        self.get(string).unwrap_or_else(|| {
-            let (utf8, utf16) = match string {
-                JStrRef::Utf8(s) => (
-                    Some(Cow::Borrowed(s)),
-                    Cow::Owned(s.encode_utf16().collect()),
-                ),
-                JStrRef::Utf16(s) => (String::from_utf16(s).ok().map(Cow::Owned), Cow::Borrowed(s)),
-            };
+        let string = JsString::from(string.into());
+        if let Some(index) = string.as_static() {
+            return Sym::new(index + 1).expect("should not be zero");
+        }
+        let next_index = self.full.len();
+        match self.symbol_cache.entry(string.clone()) {
+            Entry::Occupied(entry) => {
+                return Sym::new(*entry.get() + 1 + RAW_STATICS.len()).expect("should not be zero");
+            }
+            Entry::Vacant(entry) => {
+                entry.insert(next_index);
+            }
+        }
 
-            // We need a way to check for the strings that can be interned by `utf16_interner` but
-            // not by `utf8_interner` (since there are some UTF-16 strings with surrogates that are
-            // not representable in UTF-8), so we use the sentinel value `""` as a marker indicating
-            // that the `Sym` corresponding to that string is only available in `utf16_interner`.
-            //
-            // We don't need to worry about matches with `""` inside `get`, because
-            // `COMMON_STRINGS_UTF8` filters all the empty strings before interning.
-            let index = if let Some(utf8) = utf8 {
-                self.utf8_interner.intern(utf8.as_bytes())
-            } else {
-                self.utf8_interner.intern_static(b"")
-            };
+        self.full.push(string);
 
-            let utf16_index = self.utf16_interner.intern(&utf16);
-
-            // Just to check everything is okay
-            assert_eq!(index, utf16_index);
-
-            index
-                .checked_add(1 + COMMON_STRINGS_UTF8.len())
-                .and_then(Sym::new)
-                .expect("Cannot intern new string: integer overflow")
-        })
-    }
-
-    /// Interns the given `'static` string.
-    ///
-    /// Returns a symbol for resolution into the original string.
-    ///
-    /// # Note
-    ///
-    /// This is more efficient than [`Interner::get_or_intern`], since it avoids allocating space
-    /// for one `string` inside the [`Interner`], with the disadvantage that you need to provide
-    /// both the `UTF-8` and the `UTF-16` representation of the string.
-    ///
-    /// # Panics
-    ///
-    /// If the interner already interns the maximum number of strings possible by the chosen symbol type.
-    pub fn get_or_intern_static(&mut self, utf8: &'static str, utf16: &'static [u16]) -> Sym {
-        // Uses the utf8 because it's quicker to check inside `COMMON_STRINGS_UTF8`
-        // (which is a perfect hash set) than to check inside `COMMON_STRINGS_UTF16`
-        // (which is a lazy static hash set).
-        self.get(utf8).unwrap_or_else(|| {
-            let index = self.utf8_interner.intern(utf8.as_bytes());
-            let utf16_index = self.utf16_interner.intern(utf16);
-
-            // Just to check everything is okay
-            debug_assert_eq!(index, utf16_index);
-
-            index
-                .checked_add(1 + COMMON_STRINGS_UTF8.len())
-                .and_then(Sym::new)
-                .expect("Cannot intern new string: integer overflow")
-        })
+        Sym::new(next_index + 1 + RAW_STATICS.len()).expect("should not be zero")
     }
 
     /// Returns the string for the given symbol if any.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the size of both statics is not equal or the interners do
-    /// not have the same size
     #[must_use]
-    pub fn resolve(&self, symbol: Sym) -> Option<JSInternedStrRef<'_, '_>> {
-        let index = symbol.get() - 1;
+    pub fn resolve(&self, sym: Sym) -> Option<JSInternedStrRef> {
+        let index = sym.get() - 1;
 
-        if let Some(utf8) = COMMON_STRINGS_UTF8.index(index).copied() {
-            let utf16 = COMMON_STRINGS_UTF16
-                .get_index(index)
-                .copied()
-                .expect("The sizes of both statics must be equal");
-            return Some(JSInternedStrRef {
-                utf8: Some(utf8),
-                utf16,
-            });
+        if index < RAW_STATICS.len() {
+            return StaticJsStrings::get_string(StaticJsStrings::get(index)?).map(Into::into);
         }
 
-        let index = index - COMMON_STRINGS_UTF8.len();
+        let index = index - RAW_STATICS.len();
 
-        if let Some(utf16) = self.utf16_interner.index(index) {
-            let index = index - (self.utf16_interner.len() - self.utf8_interner.len());
-            // SAFETY:
-            // We only manipulate valid UTF-8 `str`s and convert them to `[u8]` for convenience,
-            // so converting back to a `str` is safe.
-            let utf8 = unsafe {
-                core::str::from_utf8_unchecked(
-                    self.utf8_interner
-                        .index(index)
-                        .expect("both interners must have the same size"),
-                )
-            };
-            return Some(JSInternedStrRef {
-                utf8: if utf8.is_empty() { None } else { Some(utf8) },
-                utf16,
-            });
-        }
-
-        None
+        self.full.get(index).cloned().map(Into::into)
     }
 
     /// Returns the string for the given symbol.
@@ -407,26 +255,8 @@ impl Interner {
     /// If the interner cannot resolve the given symbol.
     #[inline]
     #[must_use]
-    pub fn resolve_expect(&self, symbol: Sym) -> JSInternedStrRef<'_, '_> {
+    pub fn resolve_expect(&self, symbol: Sym) -> JSInternedStrRef {
         self.resolve(symbol).expect("string disappeared")
-    }
-
-    /// Gets the symbol of the common string if one of them
-    fn get_common(string: JStrRef<'_>) -> Option<Sym> {
-        match string {
-            JStrRef::Utf8(s) => COMMON_STRINGS_UTF8.get_index(s).map(|idx| {
-                // SAFETY: `idx >= 0`, since it's an `usize`, and `idx + 1 > 0`.
-                // In this case, we don't need to worry about overflows because we have a static
-                // assertion in place checking that `COMMON_STRINGS.len() < usize::MAX`.
-                unsafe { Sym::new_unchecked(idx + 1) }
-            }),
-            JStrRef::Utf16(s) => COMMON_STRINGS_UTF16.get_index_of(&s).map(|idx| {
-                // SAFETY: `idx >= 0`, since it's an `usize`, and `idx + 1 > 0`.
-                // In this case, we don't need to worry about overflows because we have a static
-                // assertion in place checking that `COMMON_STRINGS.len() < usize::MAX`.
-                unsafe { Sym::new_unchecked(idx + 1) }
-            }),
-        }
     }
 }
 

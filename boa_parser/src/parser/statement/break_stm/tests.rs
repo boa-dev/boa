@@ -5,7 +5,6 @@ use boa_ast::{
     Statement, StatementListItem,
 };
 use boa_interner::{Interner, Sym};
-use boa_macros::utf16;
 
 #[test]
 fn inline() {
@@ -61,11 +60,11 @@ fn new_line_semicolon_insertion() {
             LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
                 Literal::from(true).into(),
                 Block::from(vec![StatementListItem::Statement(Statement::Break(
-                    Break::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
+                    Break::new(Some(interner.get_or_intern("test"))),
                 ))])
                 .into(),
             ))),
-            interner.get_or_intern_static("test", utf16!("test")),
+            interner.get_or_intern("test"),
         ))
         .into()],
         interner,
@@ -99,11 +98,11 @@ fn new_line_block() {
             LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
                 Literal::from(true).into(),
                 Block::from(vec![StatementListItem::Statement(Statement::Break(
-                    Break::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
+                    Break::new(Some(interner.get_or_intern("test"))),
                 ))])
                 .into(),
             ))),
-            interner.get_or_intern_static("test", utf16!("test")),
+            interner.get_or_intern("test"),
         ))
         .into()],
         interner,

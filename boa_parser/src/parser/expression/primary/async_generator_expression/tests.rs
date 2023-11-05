@@ -7,14 +7,12 @@ use boa_ast::{
     Declaration, Statement, StatementListItem,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 ///checks async generator expression parsing
-
 #[test]
 fn check_async_generator_expr() {
     let interner = &mut Interner::default();
-    let add = interner.get_or_intern_static("add", utf16!("add"));
+    let add = interner.get_or_intern("add");
     check_script_parser(
         "const add = async function*(){
             return 1;
@@ -49,8 +47,8 @@ fn check_async_generator_expr() {
 #[test]
 fn check_nested_async_generator_expr() {
     let interner = &mut Interner::default();
-    let a = interner.get_or_intern_static("a", utf16!("a"));
-    let b = interner.get_or_intern_static("b", utf16!("b"));
+    let a = interner.get_or_intern("a");
+    let b = interner.get_or_intern("b");
     check_script_parser(
         "const a = async function*() {
             const b = async function*() {

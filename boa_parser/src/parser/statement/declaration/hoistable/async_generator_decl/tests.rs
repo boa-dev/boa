@@ -4,7 +4,6 @@ use boa_ast::{
     Declaration,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 #[test]
 fn async_generator_function_declaration() {
@@ -12,7 +11,7 @@ fn async_generator_function_declaration() {
     check_script_parser(
         "async function* gen() {}",
         vec![Declaration::AsyncGenerator(AsyncGenerator::new(
-            Some(interner.get_or_intern_static("gen", utf16!("gen")).into()),
+            Some(interner.get_or_intern("gen").into()),
             FormalParameterList::default(),
             FunctionBody::default(),
             false,

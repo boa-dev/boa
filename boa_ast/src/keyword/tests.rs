@@ -71,171 +71,130 @@ fn as_binary_op() {
 fn as_str() {
     for k in all_keywords() {
         match k.as_str() {
-            ("await", utf16) => {
+            "await" => {
                 assert_eq!(k, Keyword::Await);
-                assert_eq!(utf16, utf16!("await"));
             }
-            ("async", utf16) => {
+            "async" => {
                 assert_eq!(k, Keyword::Async);
-                assert_eq!(utf16, utf16!("async"));
             }
-            ("break", utf16) => {
+            "break" => {
                 assert_eq!(k, Keyword::Break);
-                assert_eq!(utf16, utf16!("break"));
             }
-            ("case", utf16) => {
+            "case" => {
                 assert_eq!(k, Keyword::Case);
-                assert_eq!(utf16, utf16!("case"));
             }
-            ("catch", utf16) => {
+            "catch" => {
                 assert_eq!(k, Keyword::Catch);
-                assert_eq!(utf16, utf16!("catch"));
             }
-            ("class", utf16) => {
+            "class" => {
                 assert_eq!(k, Keyword::Class);
-                assert_eq!(utf16, utf16!("class"));
             }
-            ("continue", utf16) => {
+            "continue" => {
                 assert_eq!(k, Keyword::Continue);
-                assert_eq!(utf16, utf16!("continue"));
             }
-            ("const", utf16) => {
+            "const" => {
                 assert_eq!(k, Keyword::Const);
-                assert_eq!(utf16, utf16!("const"));
             }
-            ("debugger", utf16) => {
+            "debugger" => {
                 assert_eq!(k, Keyword::Debugger);
-                assert_eq!(utf16, utf16!("debugger"));
             }
-            ("default", utf16) => {
+            "default" => {
                 assert_eq!(k, Keyword::Default);
-                assert_eq!(utf16, utf16!("default"));
             }
-            ("delete", utf16) => {
+            "delete" => {
                 assert_eq!(k, Keyword::Delete);
-                assert_eq!(utf16, utf16!("delete"));
             }
-            ("do", utf16) => {
+            "do" => {
                 assert_eq!(k, Keyword::Do);
-                assert_eq!(utf16, utf16!("do"));
             }
-            ("else", utf16) => {
+            "else" => {
                 assert_eq!(k, Keyword::Else);
-                assert_eq!(utf16, utf16!("else"));
             }
-            ("enum", utf16) => {
+            "enum" => {
                 assert_eq!(k, Keyword::Enum);
-                assert_eq!(utf16, utf16!("enum"));
             }
-            ("extends", utf16) => {
+            "extends" => {
                 assert_eq!(k, Keyword::Extends);
-                assert_eq!(utf16, utf16!("extends"));
             }
-            ("export", utf16) => {
+            "export" => {
                 assert_eq!(k, Keyword::Export);
-                assert_eq!(utf16, utf16!("export"));
             }
-            ("false", utf16) => {
+            "false" => {
                 assert_eq!(k, Keyword::False);
-                assert_eq!(utf16, utf16!("false"));
             }
-            ("finally", utf16) => {
+            "finally" => {
                 assert_eq!(k, Keyword::Finally);
-                assert_eq!(utf16, utf16!("finally"));
             }
-            ("for", utf16) => {
+            "for" => {
                 assert_eq!(k, Keyword::For);
-                assert_eq!(utf16, utf16!("for"));
             }
-            ("function", utf16) => {
+            "function" => {
                 assert_eq!(k, Keyword::Function);
-                assert_eq!(utf16, utf16!("function"));
             }
-            ("if", utf16) => {
+            "if" => {
                 assert_eq!(k, Keyword::If);
-                assert_eq!(utf16, utf16!("if"));
             }
-            ("in", utf16) => {
+            "in" => {
                 assert_eq!(k, Keyword::In);
-                assert_eq!(utf16, utf16!("in"));
             }
-            ("instanceof", utf16) => {
+            "instanceof" => {
                 assert_eq!(k, Keyword::InstanceOf);
-                assert_eq!(utf16, utf16!("instanceof"));
             }
-            ("import", utf16) => {
+            "import" => {
                 assert_eq!(k, Keyword::Import);
-                assert_eq!(utf16, utf16!("import"));
             }
-            ("let", utf16) => {
+            "let" => {
                 assert_eq!(k, Keyword::Let);
-                assert_eq!(utf16, utf16!("let"));
             }
-            ("new", utf16) => {
+            "new" => {
                 assert_eq!(k, Keyword::New);
-                assert_eq!(utf16, utf16!("new"));
             }
-            ("null", utf16) => {
+            "null" => {
                 assert_eq!(k, Keyword::Null);
-                assert_eq!(utf16, utf16!("null"));
             }
-            ("of", utf16) => {
+            "of" => {
                 assert_eq!(k, Keyword::Of);
-                assert_eq!(utf16, utf16!("of"));
             }
-            ("return", utf16) => {
+            "return" => {
                 assert_eq!(k, Keyword::Return);
-                assert_eq!(utf16, utf16!("return"));
             }
-            ("super", utf16) => {
+            "super" => {
                 assert_eq!(k, Keyword::Super);
-                assert_eq!(utf16, utf16!("super"));
             }
-            ("switch", utf16) => {
+            "switch" => {
                 assert_eq!(k, Keyword::Switch);
-                assert_eq!(utf16, utf16!("switch"));
             }
-            ("this", utf16) => {
+            "this" => {
                 assert_eq!(k, Keyword::This);
-                assert_eq!(utf16, utf16!("this"));
             }
-            ("throw", utf16) => {
+            "throw" => {
                 assert_eq!(k, Keyword::Throw);
-                assert_eq!(utf16, utf16!("throw"));
             }
-            ("true", utf16) => {
+            "true" => {
                 assert_eq!(k, Keyword::True);
-                assert_eq!(utf16, utf16!("true"));
             }
-            ("try", utf16) => {
+            "try" => {
                 assert_eq!(k, Keyword::Try);
-                assert_eq!(utf16, utf16!("try"));
             }
-            ("typeof", utf16) => {
+            "typeof" => {
                 assert_eq!(k, Keyword::TypeOf);
-                assert_eq!(utf16, utf16!("typeof"));
             }
-            ("var", utf16) => {
+            "var" => {
                 assert_eq!(k, Keyword::Var);
-                assert_eq!(utf16, utf16!("var"));
             }
-            ("void", utf16) => {
+            "void" => {
                 assert_eq!(k, Keyword::Void);
-                assert_eq!(utf16, utf16!("void"));
             }
-            ("while", utf16) => {
+            "while" => {
                 assert_eq!(k, Keyword::While);
-                assert_eq!(utf16, utf16!("while"));
             }
-            ("with", utf16) => {
+            "with" => {
                 assert_eq!(k, Keyword::With);
-                assert_eq!(utf16, utf16!("with"));
             }
-            ("yield", utf16) => {
+            "yield" => {
                 assert_eq!(k, Keyword::Yield);
-                assert_eq!(utf16, utf16!("yield"));
             }
-            (_, _) => unreachable!("unknown keyword {k:?} found"),
+            _ => unreachable!("unknown keyword {k:?} found"),
         }
     }
 }
@@ -341,7 +300,7 @@ fn try_into_binary_op() {
 #[test]
 fn from_str() {
     for k in all_keywords() {
-        let str = k.as_str().0;
+        let str = k.as_str();
         assert_eq!(str.parse::<Keyword>().unwrap(), k);
     }
 

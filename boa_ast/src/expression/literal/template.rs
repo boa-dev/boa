@@ -1,15 +1,12 @@
 //! Template literal Expression.
 
-use core::ops::ControlFlow;
-use std::borrow::Cow;
-
 use boa_interner::{Interner, Sym, ToInternedString};
+use core::ops::ControlFlow;
 
 use crate::{
     expression::Expression,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    ToStringEscaped,
 };
 
 /// Template literals are string literals allowing embedded expressions.
@@ -72,11 +69,9 @@ impl ToInternedString for TemplateLiteral {
 
         for elt in &*self.elements {
             match elt {
-                TemplateElement::String(s) => buf.push_str(&interner.resolve_expect(*s).join(
-                    Cow::Borrowed,
-                    |utf16| Cow::Owned(utf16.to_string_escaped()),
-                    true,
-                )),
+                TemplateElement::String(s) => {
+                    buf.push_str(&interner.resolve_expect(*s).to_std_string_escaped());
+                }
                 TemplateElement::Expr(n) => {
                     buf.push_str(&format!("${{{}}}", n.to_interned_string(interner)));
                 }

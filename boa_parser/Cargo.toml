@@ -12,7 +12,6 @@ rust-version.workspace = true
 
 [dependencies]
 boa_interner.workspace = true
-boa_macros.workspace = true
 boa_ast.workspace = true
 boa_profiler.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }

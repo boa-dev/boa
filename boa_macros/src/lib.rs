@@ -178,26 +178,6 @@ pub fn static_syms(input: TokenStream) -> TokenStream {
             ::static_assertions::const_assert!(COMMON_STRINGS.len() < usize::MAX);
             COMMON_STRINGS
         };
-
-        /// Ordered set of commonly used static `UTF-16` strings.
-        ///
-        /// # Note
-        ///
-        /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
-        /// defined in [`Sym`] must always be in sync.
-        // FIXME: use phf when const expressions are allowed.
-        // <https://github.com/rust-phf/rust-phf/issues/188>
-        pub(super) static COMMON_STRINGS_UTF16: ::once_cell::sync::Lazy<Set<&'static [u16]>> =
-            ::once_cell::sync::Lazy::new(|| {
-                let mut set = Set::with_capacity_and_hasher(
-                    COMMON_STRINGS_UTF8.len(),
-                    ::core::hash::BuildHasherDefault::default()
-                );
-                #(
-                    set.insert(::boa_macros::utf16!(#literals));
-                )*
-                set
-            });
     };
 
     quote! {

@@ -867,6 +867,12 @@ impl JsString {
     pub fn is_static(&self) -> bool {
         self.ptr.is_tagged()
     }
+    pub fn as_static(&self) -> Option<usize> {
+        if let UnwrappedTagged::Tag(index) = self.ptr.unwrap() {
+            return Some(index);
+        }
+        None
+    }
 
     pub fn get<'a, I>(&'a self, index: I) -> Option<I::Value>
     where

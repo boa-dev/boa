@@ -110,10 +110,8 @@ where
         let ident = Identifier.parse(cursor, interner)?;
         match ident.sym() {
             Sym::ARGUMENTS | Sym::EVAL if cursor.strict() => {
-                let name = interner
-                    .resolve_expect(ident.sym())
-                    .utf8()
-                    .expect("keyword must be utf-8");
+                let name = interner.resolve_expect(ident.sym());
+                name.as_str().as_ascii().expect("keyword must be utf-8");
                 Err(Error::general(
                     format!("binding identifier `{name}` not allowed in strict mode"),
                     span.start(),
@@ -179,7 +177,8 @@ where
             return Err(Error::unexpected(
                 interner
                     .resolve_expect(ident)
-                    .utf8()
+                    .as_str()
+                    .as_ascii()
                     .expect("keyword must always be utf-8"),
                 tok.span(),
                 "strict reserved word cannot be an identifier",
@@ -198,7 +197,8 @@ where
             return Err(Error::unexpected(
                 interner
                     .resolve_expect(ident)
-                    .utf8()
+                    .as_str()
+                    .as_ascii()
                     .expect("keyword must always be utf-8"),
                 tok.span(),
                 "reserved word cannot be an identifier",

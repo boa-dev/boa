@@ -16,7 +16,6 @@ use boa_ast::{
     Expression, Statement, StatementListItem,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 /// Checks do-while statement parsing.
 #[test]
@@ -31,7 +30,7 @@ fn check_do_while() {
                 vec![StatementListItem::Statement(Statement::Expression(
                     Expression::from(Assign::new(
                         AssignOp::Add,
-                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                        Identifier::new(interner.get_or_intern("a")).into(),
                         Literal::from(1).into(),
                     )),
                 ))]
@@ -54,7 +53,7 @@ fn check_do_while_semicolon_insertion() {
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("i", utf16!("i")).into(),
+                    interner.get_or_intern("i").into(),
                     Some(Literal::from(0).into()),
                 )]
                 .try_into()
@@ -67,19 +66,12 @@ fn check_do_while_semicolon_insertion() {
                         Expression::from(Call::new(
                             Expression::PropertyAccess(
                                 SimplePropertyAccess::new(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("console", utf16!("console")),
-                                    )
-                                    .into(),
-                                    interner.get_or_intern_static("log", utf16!("log")),
+                                    Identifier::new(interner.get_or_intern("console")).into(),
+                                    interner.get_or_intern("log"),
                                 )
                                 .into(),
                             ),
-                            vec![Literal::from(
-                                interner.get_or_intern_static("hello", utf16!("hello")),
-                            )
-                            .into()]
-                            .into(),
+                            vec![Literal::from(interner.get_or_intern("hello")).into()].into(),
                         )),
                     ))]
                     .into(),
@@ -88,9 +80,7 @@ fn check_do_while_semicolon_insertion() {
                     RelationalOp::LessThan.into(),
                     Update::new(
                         UpdateOp::IncrementPost,
-                        UpdateTarget::Identifier(Identifier::new(
-                            interner.get_or_intern_static("i", utf16!("i")),
-                        )),
+                        UpdateTarget::Identifier(Identifier::new(interner.get_or_intern("i"))),
                     )
                     .into(),
                     Literal::from(10).into(),
@@ -101,16 +91,12 @@ fn check_do_while_semicolon_insertion() {
             Statement::Expression(Expression::from(Call::new(
                 Expression::PropertyAccess(
                     SimplePropertyAccess::new(
-                        Identifier::new(
-                            interner.get_or_intern_static("console", utf16!("console")),
-                        )
-                        .into(),
-                        interner.get_or_intern_static("log", utf16!("log")),
+                        Identifier::new(interner.get_or_intern("console")).into(),
+                        interner.get_or_intern("log"),
                     )
                     .into(),
                 ),
-                vec![Literal::from(interner.get_or_intern_static("end", utf16!("end"))).into()]
-                    .into(),
+                vec![Literal::from(interner.get_or_intern("end")).into()].into(),
             )))
             .into(),
         ],
@@ -129,7 +115,7 @@ fn check_do_while_semicolon_insertion_no_space() {
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("i", utf16!("i")).into(),
+                    interner.get_or_intern("i").into(),
                     Some(Literal::from(0).into()),
                 )]
                 .try_into()
@@ -142,19 +128,12 @@ fn check_do_while_semicolon_insertion_no_space() {
                         Expression::from(Call::new(
                             Expression::PropertyAccess(
                                 SimplePropertyAccess::new(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("console", utf16!("console")),
-                                    )
-                                    .into(),
-                                    interner.get_or_intern_static("log", utf16!("log")),
+                                    Identifier::new(interner.get_or_intern("console")).into(),
+                                    interner.get_or_intern("log"),
                                 )
                                 .into(),
                             ),
-                            vec![Literal::from(
-                                interner.get_or_intern_static("hello", utf16!("hello")),
-                            )
-                            .into()]
-                            .into(),
+                            vec![Literal::from(interner.get_or_intern("hello")).into()].into(),
                         )),
                     ))]
                     .into(),
@@ -163,9 +142,7 @@ fn check_do_while_semicolon_insertion_no_space() {
                     RelationalOp::LessThan.into(),
                     Update::new(
                         UpdateOp::IncrementPost,
-                        UpdateTarget::Identifier(Identifier::new(
-                            interner.get_or_intern_static("i", utf16!("i")),
-                        )),
+                        UpdateTarget::Identifier(Identifier::new(interner.get_or_intern("i"))),
                     )
                     .into(),
                     Literal::from(10).into(),
@@ -176,16 +153,12 @@ fn check_do_while_semicolon_insertion_no_space() {
             Statement::Expression(Expression::from(Call::new(
                 Expression::PropertyAccess(
                     SimplePropertyAccess::new(
-                        Identifier::new(
-                            interner.get_or_intern_static("console", utf16!("console")),
-                        )
-                        .into(),
-                        interner.get_or_intern_static("log", utf16!("log")),
+                        Identifier::new(interner.get_or_intern("console")).into(),
+                        interner.get_or_intern("log"),
                     )
                     .into(),
                 ),
-                vec![Literal::from(interner.get_or_intern_static("end", utf16!("end"))).into()]
-                    .into(),
+                vec![Literal::from(interner.get_or_intern("end")).into()].into(),
             )))
             .into(),
         ],

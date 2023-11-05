@@ -6,7 +6,7 @@ use crate::{
     property::{MethodDefinition, PropertyName},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, ToStringEscaped,
+    Declaration,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -90,11 +90,7 @@ impl Class {
 impl ToIndentedString for Class {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let class_name = self.name.map_or(Cow::Borrowed(""), |s| {
-            interner.resolve_expect(s.sym()).join(
-                Cow::Borrowed,
-                |utf16| Cow::Owned(utf16.to_string_escaped()),
-                true,
-            )
+            Cow::Owned(interner.resolve_expect(s.sym()).to_std_string_escaped())
         });
         if self.elements.is_empty() && self.constructor().is_none() {
             return format!(

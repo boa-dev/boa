@@ -11,14 +11,13 @@ use boa_ast::{
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 #[test]
 fn check_async_ordinary_method() {
     let interner = &mut Interner::default();
 
     let elements = vec![ClassElement::MethodDefinition(
-        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+        PropertyName::Literal(interner.get_or_intern("async")),
         MethodDefinition::Ordinary(Function::new(
             None,
             FormalParameterList::default(),
@@ -32,7 +31,7 @@ fn check_async_ordinary_method() {
          }
         ",
         [Declaration::Class(Class::new(
-            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
+            Some(interner.get_or_intern("A").into()),
             None,
             None,
             elements.into(),
@@ -48,7 +47,7 @@ fn check_async_field_initialization() {
     let interner = &mut Interner::default();
 
     let elements = vec![ClassElement::FieldDefinition(
-        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+        PropertyName::Literal(interner.get_or_intern("async")),
         Some(Literal::from(1).into()),
     )];
 
@@ -59,7 +58,7 @@ fn check_async_field_initialization() {
          }
         ",
         [Declaration::Class(Class::new(
-            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
+            Some(interner.get_or_intern("A").into()),
             None,
             None,
             elements.into(),
@@ -75,7 +74,7 @@ fn check_async_field() {
     let interner = &mut Interner::default();
 
     let elements = vec![ClassElement::FieldDefinition(
-        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+        PropertyName::Literal(interner.get_or_intern("async")),
         None,
     )];
 
@@ -85,7 +84,7 @@ fn check_async_field() {
          }
         ",
         [Declaration::Class(Class::new(
-            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
+            Some(interner.get_or_intern("A").into()),
             None,
             None,
             elements.into(),
@@ -101,24 +100,20 @@ fn check_new_target_with_property_access() {
     let interner = &mut Interner::default();
 
     let new_target = Expression::PropertyAccess(
-        SimplePropertyAccess::new(
-            Expression::NewTarget,
-            interner.get_or_intern_static("name", utf16!("name")),
-        )
-        .into(),
+        SimplePropertyAccess::new(Expression::NewTarget, interner.get_or_intern("name")).into(),
     );
 
     let console = Expression::Call(Call::new(
         PropertyAccess::Simple(SimplePropertyAccess::new(
-            Identifier::from(interner.get_or_intern_static("console", utf16!("console"))).into(),
-            interner.get_or_intern_static("log", utf16!("log")),
+            Identifier::from(interner.get_or_intern("console")).into(),
+            interner.get_or_intern("log"),
         ))
         .into(),
         [new_target].into(),
     ));
 
     let constructor = Function::new(
-        Some(interner.get_or_intern_static("A", utf16!("A")).into()),
+        Some(interner.get_or_intern("A").into()),
         FormalParameterList::default(),
         FunctionBody::new(StatementList::new(
             [Statement::Expression(console).into()],
@@ -127,7 +122,7 @@ fn check_new_target_with_property_access() {
     );
 
     let class = Class::new(
-        Some(interner.get("A").unwrap().into()),
+        Some(interner.get_or_intern("A").into()),
         None,
         Some(constructor),
         Box::default(),
@@ -136,7 +131,7 @@ fn check_new_target_with_property_access() {
 
     let instantiation = Expression::New(
         Call::new(
-            Identifier::from(interner.get("A").unwrap()).into(),
+            Identifier::from(interner.get_or_intern("A")).into(),
             Box::default(),
         )
         .into(),
@@ -145,7 +140,7 @@ fn check_new_target_with_property_access() {
     let const_decl = LexicalDeclaration::Const(
         VariableList::new(
             [Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                interner.get_or_intern("a").into(),
                 Some(instantiation),
             )]
             .into(),

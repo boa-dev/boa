@@ -298,7 +298,7 @@ where
         match tok.kind() {
             TokenKind::StringLiteral((name, _)) => {
                 let name = *name;
-                if interner.resolve_expect(name).utf8().is_none() {
+                if !interner.resolve_expect(name).as_str().is_ascii() {
                     return Err(Error::general(
                         "import specifiers don't allow unpaired surrogates",
                         tok.span().end(),

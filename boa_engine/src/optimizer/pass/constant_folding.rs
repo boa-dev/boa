@@ -15,9 +15,7 @@ use boa_ast::{
 
 fn literal_to_js_value(literal: &Literal, context: &mut Context<'_>) -> JsValue {
     match literal {
-        Literal::String(v) => JsValue::new(JsString::from(
-            context.interner().resolve_expect(*v).utf16(),
-        )),
+        Literal::String(v) => JsValue::new(JsString::from(context.interner().resolve_expect(*v))),
         Literal::Num(v) => JsValue::new(*v),
         Literal::Int(v) => JsValue::new(*v),
         Literal::BigInt(v) => JsValue::new(JsBigInt::new(v.clone())),
@@ -32,11 +30,7 @@ fn js_value_to_literal(value: JsValue, context: &mut Context<'_>) -> Literal {
         JsValue::Null => Literal::Null,
         JsValue::Undefined => Literal::Undefined,
         JsValue::Boolean(v) => Literal::Bool(v),
-        JsValue::String(v) => Literal::String(
-            context
-                .interner_mut()
-                .get_or_intern(v.as_str().as_str_ref()),
-        ),
+        JsValue::String(v) => Literal::String(context.interner_mut().get_or_intern(v.as_str())),
         JsValue::Rational(v) => Literal::Num(v),
         JsValue::Integer(v) => Literal::Int(v),
         JsValue::BigInt(v) => Literal::BigInt(Box::new(v.as_inner().clone())),

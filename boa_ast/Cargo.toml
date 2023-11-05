@@ -17,7 +17,6 @@ temporal = []
 
 [dependencies]
 boa_interner.workspace = true
-boa_macros.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 bitflags.workspace = true
 num-bigint.workspace = true

@@ -8,7 +8,6 @@ use boa_ast::{
     Expression, Statement,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 #[test]
 fn simple() {
@@ -21,9 +20,7 @@ fn simple() {
                 Literal::Int(5).into(),
                 vec![OptionalOperation::new(
                     OptionalOperationKind::SimplePropertyAccess {
-                        field: PropertyAccessField::Const(
-                            interner.get_or_intern_static("name", utf16!("name")),
-                        ),
+                        field: PropertyAccessField::Const(interner.get_or_intern("name")),
                     },
                     true,
                 )]
@@ -44,13 +41,11 @@ fn complex_chain() {
         r#"a?.b(true)?.["c"]"#,
         vec![Statement::Expression(
             Optional::new(
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(interner.get_or_intern("a")).into(),
                 vec![
                     OptionalOperation::new(
                         OptionalOperationKind::SimplePropertyAccess {
-                            field: PropertyAccessField::Const(
-                                interner.get_or_intern_static("b", utf16!("b")),
-                            ),
+                            field: PropertyAccessField::Const(interner.get_or_intern("b")),
                         },
                         true,
                     ),
@@ -63,8 +58,7 @@ fn complex_chain() {
                     OptionalOperation::new(
                         OptionalOperationKind::SimplePropertyAccess {
                             field: PropertyAccessField::Expr(Box::new(
-                                Literal::String(interner.get_or_intern_static("c", utf16!("c")))
-                                    .into(),
+                                Literal::String(interner.get_or_intern("c")).into(),
                             )),
                         },
                         true,

@@ -11,7 +11,6 @@
 
 use crate::expression::operator::binary::{BinaryOp, RelationalOp};
 use boa_interner::Sym;
-use boa_macros::utf16;
 use std::{convert::TryFrom, error, fmt, str::FromStr};
 
 #[cfg(test)]
@@ -491,49 +490,49 @@ impl Keyword {
 
     /// Gets the keyword as a tuple of strings.
     #[must_use]
-    pub const fn as_str(self) -> (&'static str, &'static [u16]) {
+    pub const fn as_str(self) -> &'static str {
         match self {
-            Self::Await => ("await", utf16!("await")),
-            Self::Async => ("async", utf16!("async")),
-            Self::Break => ("break", utf16!("break")),
-            Self::Case => ("case", utf16!("case")),
-            Self::Catch => ("catch", utf16!("catch")),
-            Self::Class => ("class", utf16!("class")),
-            Self::Continue => ("continue", utf16!("continue")),
-            Self::Const => ("const", utf16!("const")),
-            Self::Debugger => ("debugger", utf16!("debugger")),
-            Self::Default => ("default", utf16!("default")),
-            Self::Delete => ("delete", utf16!("delete")),
-            Self::Do => ("do", utf16!("do")),
-            Self::Else => ("else", utf16!("else")),
-            Self::Enum => ("enum", utf16!("enum")),
-            Self::Extends => ("extends", utf16!("extends")),
-            Self::Export => ("export", utf16!("export")),
-            Self::False => ("false", utf16!("false")),
-            Self::Finally => ("finally", utf16!("finally")),
-            Self::For => ("for", utf16!("for")),
-            Self::Function => ("function", utf16!("function")),
-            Self::If => ("if", utf16!("if")),
-            Self::In => ("in", utf16!("in")),
-            Self::InstanceOf => ("instanceof", utf16!("instanceof")),
-            Self::Import => ("import", utf16!("import")),
-            Self::Let => ("let", utf16!("let")),
-            Self::New => ("new", utf16!("new")),
-            Self::Null => ("null", utf16!("null")),
-            Self::Of => ("of", utf16!("of")),
-            Self::Return => ("return", utf16!("return")),
-            Self::Super => ("super", utf16!("super")),
-            Self::Switch => ("switch", utf16!("switch")),
-            Self::This => ("this", utf16!("this")),
-            Self::Throw => ("throw", utf16!("throw")),
-            Self::True => ("true", utf16!("true")),
-            Self::Try => ("try", utf16!("try")),
-            Self::TypeOf => ("typeof", utf16!("typeof")),
-            Self::Var => ("var", utf16!("var")),
-            Self::Void => ("void", utf16!("void")),
-            Self::While => ("while", utf16!("while")),
-            Self::With => ("with", utf16!("with")),
-            Self::Yield => ("yield", utf16!("yield")),
+            Self::Await => "await",
+            Self::Async => "async",
+            Self::Break => "break",
+            Self::Case => "case",
+            Self::Catch => "catch",
+            Self::Class => "class",
+            Self::Continue => "continue",
+            Self::Const => "const",
+            Self::Debugger => "debugger",
+            Self::Default => "default",
+            Self::Delete => "delete",
+            Self::Do => "do",
+            Self::Else => "else",
+            Self::Enum => "enum",
+            Self::Extends => "extends",
+            Self::Export => "export",
+            Self::False => "false",
+            Self::Finally => "finally",
+            Self::For => "for",
+            Self::Function => "function",
+            Self::If => "if",
+            Self::In => "in",
+            Self::InstanceOf => "instanceof",
+            Self::Import => "import",
+            Self::Let => "let",
+            Self::New => "new",
+            Self::Null => "null",
+            Self::Of => "of",
+            Self::Return => "return",
+            Self::Super => "super",
+            Self::Switch => "switch",
+            Self::This => "this",
+            Self::Throw => "throw",
+            Self::True => "true",
+            Self::Try => "try",
+            Self::TypeOf => "typeof",
+            Self::Var => "var",
+            Self::Void => "void",
+            Self::While => "while",
+            Self::With => "with",
+            Self::Yield => "yield",
         }
     }
 
@@ -661,6 +660,6 @@ impl FromStr for Keyword {
 
 impl fmt::Display for Keyword {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(self.as_str().0, f)
+        fmt::Display::fmt(self.as_str(), f)
     }
 }

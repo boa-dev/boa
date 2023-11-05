@@ -436,10 +436,8 @@ impl SourceTextModule {
                     //       1. Perform HostLoadImportedModule(module, required, state.[[HostDefined]], state).
                     //       2. NOTE: HostLoadImportedModule will call FinishLoadingImportedModule, which re-enters
                     //          the graph loading process through ContinueModuleLoading.
-                    let name_specifier: JsString = context
-                        .interner()
-                        .resolve_expect(required)
-                        .into_common(false);
+                    let name_specifier: JsString =
+                        context.interner().resolve_expect(required).into();
                     let src = self.clone();
                     let state = state.clone();
                     context.module_loader().load_imported_module(

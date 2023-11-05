@@ -371,9 +371,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             return *index;
         }
 
-        let string = self.interner().resolve_expect(name.sym()).utf16();
+        let string = js_string!(self.interner().resolve_expect(name.sym()));
         let index = self.constants.len() as u32;
-        self.constants.push(Constant::String(js_string!(string)));
+        self.constants.push(Constant::String(string));
         self.names_map.insert(name, index);
         index
     }
@@ -1453,7 +1453,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             .context
             .interner()
             .resolve_expect(self.function_name)
-            .utf16()
             .into();
 
         CodeBlock {

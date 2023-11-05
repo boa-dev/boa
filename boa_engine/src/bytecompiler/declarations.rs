@@ -286,7 +286,7 @@ impl ByteCompiler<'_, '_> {
             let function = create_function_object_fast(code, self.context);
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
-            let name = js_string!(self.interner().resolve_expect(name.sym()).utf16());
+            let name = js_string!(self.interner().resolve_expect(name.sym()));
             self.context
                 .create_global_function_binding(name, function, false)?;
         }
@@ -454,12 +454,7 @@ impl ByteCompiler<'_, '_> {
         let private_identifiers = self.context.vm.environments.private_name_descriptions();
         let private_identifiers = private_identifiers
             .into_iter()
-            .map(|ident| {
-                self.context
-                    .interner()
-                    .get(ident.as_str().as_str_ref())
-                    .expect("string should be in interner")
-            })
+            .map(|ident| self.context.interner_mut().get_or_intern(ident.as_str()))
             .collect();
 
         // 7. If AllPrivateIdentifiersValid of body with argument privateIdentifiers is false, throw a SyntaxError exception.

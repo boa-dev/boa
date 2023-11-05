@@ -1,4 +1,4 @@
-use crate::{Interner, Sym, COMMON_STRINGS_UTF16, COMMON_STRINGS_UTF8};
+use crate::{Interner, Sym, COMMON_STRINGS_UTF8};
 use boa_macros::utf16;
 
 #[track_caller]
@@ -34,13 +34,13 @@ fn check_resolve() {
     for (s8, s16) in utf_8_strings.zip(utf_16_strings) {
         let sym = interner.get_or_intern(s8);
         let resolved = interner.resolve(sym).unwrap();
-        assert_eq!(Some(s8), resolved.utf8());
+        assert_eq!(s8, &*resolved);
         let new_sym = interner.get_or_intern(s8);
         assert_eq!(sym, new_sym);
 
         let sym = interner.get_or_intern(s16);
         let resolved = interner.resolve(sym).unwrap();
-        assert_eq!(s16, resolved.utf16());
+        assert_eq!(s16, &*resolved);
         let new_sym = interner.get_or_intern(s16);
         assert_eq!(sym, new_sym);
     }
@@ -50,26 +50,16 @@ fn check_resolve() {
 fn check_static_resolve() {
     let mut interner = Interner::default();
 
-    for (utf8, utf16) in COMMON_STRINGS_UTF8
+    for string in COMMON_STRINGS_UTF8
         .into_iter()
         .copied()
-        .zip(COMMON_STRINGS_UTF16.iter().copied())
-        .chain(
-            [
-                ("my test str", utf16!("my test str")),
-                ("hello world", utf16!("hello world")),
-                (";", utf16!(";")),
-            ]
-            .into_iter(),
-        )
+        .chain(["my test str", "hello world", ";"].into_iter())
     {
-        let sym = interner.get_or_intern_static(utf8, utf16);
+        let sym = interner.get_or_intern(string);
         let resolved = interner.resolve(sym).unwrap();
-        assert_eq!(Some(utf8), resolved.utf8());
-        assert_eq!(utf16, resolved.utf16());
+        assert_eq!(string, &*resolved);
 
-        let new_sym = interner.get_or_intern(utf8);
-
+        let new_sym = interner.get_or_intern(string);
         assert_eq!(sym, new_sym);
     }
 }
@@ -88,29 +78,18 @@ fn check_unpaired_surrogates() {
     let sym = interner.get_or_intern("abc");
     let sym2 = interner.get_or_intern("def");
 
-    let sym3 = interner.get_or_intern(unp);
-    let sym4 = interner.get_or_intern(utf16!("ghi"));
-    let sym5 = interner.get_or_intern(unp2);
+    let sym3 = interner.get_or_intern(&unp[..]);
+    let sym4 = interner.get_or_intern("ghi");
+    let sym5 = interner.get_or_intern(&unp2[..]);
 
     let sym6 = interner.get_or_intern("jkl");
 
-    assert_eq!(interner.resolve_expect(sym).utf8(), Some("abc"));
-    assert_eq!(interner.resolve_expect(sym).utf16(), utf16!("abc"));
-
-    assert_eq!(interner.resolve_expect(sym2).utf8(), Some("def"));
-    assert_eq!(interner.resolve_expect(sym2).utf16(), utf16!("def"));
-
-    assert!(interner.resolve_expect(sym3).utf8().is_none());
-    assert_eq!(interner.resolve_expect(sym3).utf16(), unp);
-
-    assert_eq!(interner.resolve_expect(sym4).utf8(), Some("ghi"));
-    assert_eq!(interner.resolve_expect(sym4).utf16(), utf16!("ghi"));
-
-    assert!(interner.resolve_expect(sym5).utf8().is_none());
-    assert_eq!(interner.resolve_expect(sym5).utf16(), unp2);
-
-    assert_eq!(interner.resolve_expect(sym6).utf8(), Some("jkl"));
-    assert_eq!(interner.resolve_expect(sym6).utf16(), utf16!("jkl"));
+    assert_eq!(&*interner.resolve_expect(sym), "abc");
+    assert_eq!(&*interner.resolve_expect(sym2), "def");
+    assert_eq!(&*interner.resolve_expect(sym3), &unp[..]);
+    assert_eq!(&*interner.resolve_expect(sym4), "ghi");
+    assert_eq!(&*interner.resolve_expect(sym5), &unp2[..]);
+    assert_eq!(&*interner.resolve_expect(sym6), "jkl");
 }
 
 #[test]
