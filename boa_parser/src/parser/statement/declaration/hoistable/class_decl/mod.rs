@@ -28,8 +28,7 @@ use boa_ast::{
     property::{ClassElementName, MethodDefinition},
     Expression, Keyword, Punctuator,
 };
-use boa_interner::{Interner, Sym};
-use boa_macros::utf16;
+use boa_interner::{js_string, Interner, Sym};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
@@ -1162,11 +1161,8 @@ where
             }
             TokenKind::PrivateIdentifier(name) => {
                 let name = *name;
-                let name_private = interner.get_or_intern(
-                    [utf16!("#"), interner.resolve_expect(name).utf16()]
-                        .concat()
-                        .as_slice(),
-                );
+                let name_private = interner
+                    .get_or_intern(js_string!("#", &*interner.resolve_expect(name)).as_str());
                 cursor.advance(interner);
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {

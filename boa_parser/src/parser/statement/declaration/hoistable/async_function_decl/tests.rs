@@ -4,7 +4,6 @@ use boa_ast::{
     Declaration,
 };
 use boa_interner::{Interner, Sym};
-use boa_macros::utf16;
 
 /// Async function declaration parsing.
 #[test]
@@ -13,11 +12,7 @@ fn async_function_declaration() {
     check_script_parser(
         "async function hello() {}",
         vec![Declaration::AsyncFunction(AsyncFunction::new(
-            Some(
-                interner
-                    .get_or_intern_static("hello", utf16!("hello"))
-                    .into(),
-            ),
+            Some(interner.get_or_intern("hello").into()),
             FormalParameterList::default(),
             FunctionBody::default(),
             false,

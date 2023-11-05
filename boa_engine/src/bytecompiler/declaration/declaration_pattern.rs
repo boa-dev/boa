@@ -77,7 +77,7 @@ impl ByteCompiler<'_, '_> {
 
                             for key in excluded_keys {
                                 self.emit_push_literal(Literal::String(
-                                    self.interner().resolve_expect(key.sym()).into_common(false),
+                                    self.interner().resolve_expect(key.sym()).into(),
                                 ));
                             }
 
@@ -98,7 +98,7 @@ impl ByteCompiler<'_, '_> {
                             self.emit_opcode(Opcode::PushEmptyObject);
                             for key in excluded_keys {
                                 self.emit_push_literal(Literal::String(
-                                    self.interner().resolve_expect(key.sym()).into_common(false),
+                                    self.interner().resolve_expect(key.sym()).into(),
                                 ));
                             }
                             self.emit(

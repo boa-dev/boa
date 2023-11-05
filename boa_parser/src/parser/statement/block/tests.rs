@@ -17,7 +17,6 @@ use boa_ast::{
     Declaration, Expression, Statement, StatementListItem,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 /// Helper function to check a block.
 #[track_caller]
@@ -40,7 +39,7 @@ fn empty() {
 #[test]
 fn non_empty() {
     let interner = &mut Interner::default();
-    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let a = interner.get_or_intern("a");
     check_block(
         r"{
             var a = 10;
@@ -66,8 +65,8 @@ fn non_empty() {
     );
 
     let interner = &mut Interner::default();
-    let hello = interner.get_or_intern_static("hello", utf16!("hello"));
-    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let hello = interner.get_or_intern("hello");
+    let a = interner.get_or_intern("a");
     check_block(
         r"{
             function hello() {
@@ -111,8 +110,8 @@ fn non_empty() {
 #[test]
 fn hoisting() {
     let interner = &mut Interner::default();
-    let hello = interner.get_or_intern_static("hello", utf16!("hello"));
-    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let hello = interner.get_or_intern("hello");
+    let a = interner.get_or_intern("a");
     check_block(
         r"{
             var a = hello();
@@ -151,7 +150,7 @@ fn hoisting() {
     );
 
     let interner = &mut Interner::default();
-    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let a = interner.get_or_intern("a");
     check_block(
         r"{
             a = 10;

@@ -6,7 +6,6 @@ use boa_ast::{
     Declaration, Expression, Statement,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 /// Checks parsing malformed switch with no closeblock.
 #[test]
@@ -148,9 +147,9 @@ fn check_separated_switch() {
         "#;
 
     let interner = &mut Interner::default();
-    let log = interner.get_or_intern_static("log", utf16!("log"));
-    let console = interner.get_or_intern_static("console", utf16!("console"));
-    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let log = interner.get_or_intern("log");
+    let console = interner.get_or_intern("console");
+    let a = interner.get_or_intern("a");
 
     check_script_parser(
         s,
@@ -203,11 +202,7 @@ fn check_separated_switch() {
                                 SimplePropertyAccess::new(Identifier::new(console).into(), log)
                                     .into(),
                             ),
-                            vec![Literal::from(
-                                interner.get_or_intern_static("Default", utf16!("Default")),
-                            )
-                            .into()]
-                            .into(),
+                            vec![Literal::from(interner.get_or_intern("Default")).into()].into(),
                         )))
                         .into()]
                         .into(),

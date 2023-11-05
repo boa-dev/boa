@@ -6,12 +6,11 @@ use boa_ast::{
     Declaration, Expression, Statement, StatementListItem,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 #[test]
 fn check_generator_function_expression() {
     let interner = &mut Interner::default();
-    let gen = interner.get_or_intern_static("gen", utf16!("gen"));
+    let gen = interner.get_or_intern("gen");
     check_script_parser(
         "const gen = function*() {
             yield 1;
@@ -46,7 +45,7 @@ fn check_generator_function_expression() {
 #[test]
 fn check_generator_function_delegate_yield_expression() {
     let interner = &mut Interner::default();
-    let gen = interner.get_or_intern_static("gen", utf16!("gen"));
+    let gen = interner.get_or_intern("gen");
     check_script_parser(
         "const gen = function*() {
             yield* 1;

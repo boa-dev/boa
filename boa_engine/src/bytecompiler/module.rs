@@ -57,10 +57,7 @@ impl ByteCompiler<'_, '_> {
                         self.compile_expr(expr, true);
 
                         if expr.is_anonymous_function_definition() {
-                            let default = self
-                                .interner()
-                                .resolve_expect(Sym::DEFAULT)
-                                .into_common(false);
+                            let default = self.interner().resolve_expect(Sym::DEFAULT).into();
                             self.emit_push_literal(Literal::String(default));
                             self.emit_opcode(Opcode::Swap);
                             self.emit(Opcode::SetFunctionName, &[Operand::U8(0)]);

@@ -401,12 +401,12 @@ impl EnvironmentStack {
     }
 
     /// Return all private name descriptions in all private environments.
-    pub(crate) fn private_name_descriptions(&self) -> Vec<&JsString> {
+    pub(crate) fn private_name_descriptions(&self) -> Vec<JsString> {
         let mut names = Vec::new();
         for environment in self.private_stack.iter().rev() {
             for name in environment.descriptions() {
-                if !names.contains(&name) {
-                    names.push(name);
+                if !names.contains(name) {
+                    names.push(name.clone());
                 }
             }
         }
@@ -523,10 +523,7 @@ impl Context<'_> {
                 }
                 Environment::Object(o) => {
                     let o = o.clone();
-                    let key: JsString = self
-                        .interner()
-                        .resolve_expect(locator.name.sym())
-                        .into_common(false);
+                    let key: JsString = self.interner().resolve_expect(locator.name.sym()).into();
                     if o.has_property(key.clone(), self)? {
                         if let Some(unscopables) = o.get(JsSymbol::unscopables(), self)?.as_object()
                         {
@@ -552,19 +549,13 @@ impl Context<'_> {
     /// Panics if the environment or binding index are out of range.
     pub(crate) fn is_initialized_binding(&mut self, locator: &BindingLocator) -> JsResult<bool> {
         if locator.global {
-            let key: JsString = self
-                .interner()
-                .resolve_expect(locator.name.sym())
-                .into_common(false);
+            let key: JsString = self.interner().resolve_expect(locator.name.sym()).into();
             self.global_object().has_property(key, self)
         } else {
             match self.environment_expect(locator.environment_index) {
                 Environment::Declarative(env) => Ok(env.get(locator.binding_index).is_some()),
                 Environment::Object(obj) => {
-                    let key: JsString = self
-                        .interner()
-                        .resolve_expect(locator.name.sym())
-                        .into_common(false);
+                    let key: JsString = self.interner().resolve_expect(locator.name.sym()).into();
                     obj.clone().has_property(key, self)
                 }
             }
@@ -579,10 +570,7 @@ impl Context<'_> {
     pub(crate) fn get_binding(&mut self, locator: BindingLocator) -> JsResult<Option<JsValue>> {
         if locator.global {
             let global = self.global_object();
-            let key: JsString = self
-                .interner()
-                .resolve_expect(locator.name.sym())
-                .into_common(false);
+            let key: JsString = self.interner().resolve_expect(locator.name.sym()).into();
             if global.has_property(key.clone(), self)? {
                 global.get(key, self).map(Some)
             } else {
@@ -593,10 +581,7 @@ impl Context<'_> {
                 Environment::Declarative(env) => Ok(env.get(locator.binding_index)),
                 Environment::Object(obj) => {
                     let obj = obj.clone();
-                    let key: JsString = self
-                        .interner()
-                        .resolve_expect(locator.name.sym())
-                        .into_common(false);
+                    let key: JsString = self.interner().resolve_expect(locator.name.sym()).into();
                     obj.get(key, self).map(Some)
                 }
             }
@@ -616,10 +601,7 @@ impl Context<'_> {
         strict: bool,
     ) -> JsResult<()> {
         if locator.global {
-            let key = self
-                .interner()
-                .resolve_expect(locator.name().sym())
-                .into_common::<JsString>(false);
+            let key: JsString = self.interner().resolve_expect(locator.name().sym()).into();
 
             self.global_object().set(key, value, strict, self)?;
         } else {
@@ -629,10 +611,7 @@ impl Context<'_> {
                 }
                 Environment::Object(obj) => {
                     let obj = obj.clone();
-                    let key: JsString = self
-                        .interner()
-                        .resolve_expect(locator.name.sym())
-                        .into_common(false);
+                    let key: JsString = self.interner().resolve_expect(locator.name.sym()).into();
 
                     obj.set(key, value, strict, self)?;
                 }
@@ -651,20 +630,14 @@ impl Context<'_> {
     /// Panics if the environment or binding index are out of range.
     pub(crate) fn delete_binding(&mut self, locator: BindingLocator) -> JsResult<bool> {
         if locator.is_global() {
-            let key: JsString = self
-                .interner()
-                .resolve_expect(locator.name().sym())
-                .into_common::<JsString>(false);
+            let key: JsString = self.interner().resolve_expect(locator.name().sym()).into();
             self.global_object().__delete__(&key.into(), self)
         } else {
             match self.environment_expect(locator.environment_index) {
                 Environment::Declarative(_) => Ok(false),
                 Environment::Object(obj) => {
                     let obj = obj.clone();
-                    let key: JsString = self
-                        .interner()
-                        .resolve_expect(locator.name.sym())
-                        .into_common(false);
+                    let key: JsString = self.interner().resolve_expect(locator.name.sym()).into();
 
                     obj.__delete__(&key.into(), self)
                 }

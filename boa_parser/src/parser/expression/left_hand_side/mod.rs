@@ -99,7 +99,7 @@ where
                             return Err(Error::general(
                                 format!(
                                     "keyword `{}` cannot contain escaped characters",
-                                    kw.as_str().0
+                                    kw.as_str()
                                 ),
                                 next.span().start(),
                             ));

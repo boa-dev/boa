@@ -617,7 +617,7 @@ impl Context<'_> {
         let global_object = self.realm().global_object().clone();
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let name = self.interner().resolve_expect(name.sym()).utf16().into();
+        let name = JsString::from(self.interner().resolve_expect(name.sym())).into();
         let existing_prop = global_object.__get_own_property__(&name, self)?;
 
         // 4. If existingProp is undefined, return ? IsExtensible(globalObject).
@@ -654,7 +654,7 @@ impl Context<'_> {
         let global_object = self.realm().global_object().clone();
 
         // 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
-        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
+        let name = JsString::from(self.interner().resolve_expect(name.sym()));
         let has_property = global_object.has_own_property(name, self)?;
 
         // 4. If hasProperty is true, return true.
@@ -682,7 +682,7 @@ impl Context<'_> {
         let global_object = self.realm().global_object().clone();
 
         // 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
-        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
+        let name = JsString::from(self.interner().resolve_expect(name.sym()));
         let has_property = global_object.has_own_property(name.clone(), self)?;
 
         // 4. Let extensible be ? IsExtensible(globalObject).
@@ -773,8 +773,8 @@ impl Context<'_> {
         let global_object = self.realm().global_object().clone();
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
-        let existing_prop = global_object.__get_own_property__(&name, self)?;
+        let name = JsString::from(self.interner().resolve_expect(name.sym()));
+        let existing_prop = global_object.__get_own_property__(&name.into(), self)?;
 
         // 4. If existingProp is undefined, return false.
         let Some(existing_prop) = existing_prop else {

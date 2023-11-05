@@ -56,7 +56,6 @@ use boa_ast::{
     Keyword, Punctuator,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -317,12 +316,9 @@ where
                     ast::StatementListItem::Statement(ast::Statement::Expression(
                         ast::Expression::Literal(ast::expression::literal::Literal::String(string)),
                     )) if !strict => {
-                        if interner.resolve_expect(*string).join(
-                            |s| s == "use strict",
-                            |g| g == utf16!("use strict"),
-                            true,
-                        ) && directives_stack.last().expect("token should exist").1
-                            == EscapeSequence::empty()
+                        if &*interner.resolve_expect(*string) == "use strict"
+                            && directives_stack.last().expect("token should exist").1
+                                == EscapeSequence::empty()
                         {
                             cursor.set_strict(true);
                             strict = true;

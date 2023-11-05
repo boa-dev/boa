@@ -37,8 +37,7 @@ use boa_ast::{
     property::{self, MethodDefinition},
     Expression, Keyword, Punctuator,
 };
-use boa_interner::{Interner, Sym};
-use boa_macros::utf16;
+use boa_interner::{js_string, Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -358,9 +357,9 @@ where
                 )?;
 
                 let name = property_name.literal().map(|name| {
-                    let s = interner.resolve_expect(name).utf16();
+                    let s = interner.resolve_expect(name);
                     interner
-                        .get_or_intern([utf16!("get "), s].concat().as_slice())
+                        .get_or_intern(js_string!("get ", &*s).as_str())
                         .into()
                 });
 
@@ -451,9 +450,9 @@ where
                 )?;
 
                 let name = property_name.literal().map(|name| {
-                    let s = interner.resolve_expect(name).utf16();
+                    let s = interner.resolve_expect(name);
                     interner
-                        .get_or_intern([utf16!("set "), s].concat().as_slice())
+                        .get_or_intern(js_string!("set ", &*s).as_str())
                         .into()
                 });
 
@@ -599,10 +598,7 @@ where
                 Numeric::Integer(num) => Expression::Literal(Literal::from(*num)).into(),
                 Numeric::BigInt(num) => Expression::Literal(Literal::from(num.clone())).into(),
             },
-            TokenKind::Keyword((word, _)) => {
-                let (utf8, utf16) = word.as_str();
-                interner.get_or_intern_static(utf8, utf16).into()
-            }
+            TokenKind::Keyword((word, _)) => interner.get_or_intern(word.as_str()).into(),
             TokenKind::NullLiteral(_) => (Sym::NULL).into(),
             TokenKind::BooleanLiteral((bool, _)) => match bool {
                 true => Sym::TRUE.into(),

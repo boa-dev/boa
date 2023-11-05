@@ -6,7 +6,6 @@ use boa_ast::{
     Expression, Statement,
 };
 use boa_interner::{Interner, Sym};
-use boa_macros::utf16;
 
 /// Checks an empty array.
 #[test]
@@ -108,7 +107,7 @@ fn check_combined() {
         vec![
             Statement::Expression(Expression::from(ArrayLiteral::from(vec![
                 Some(Literal::from(1).into()),
-                Some(Literal::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
+                Some(Literal::from(interner.get_or_intern("a")).into()),
                 Some(Literal::from(2).into()),
             ])))
             .into(),

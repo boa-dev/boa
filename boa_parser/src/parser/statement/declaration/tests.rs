@@ -5,7 +5,6 @@ use boa_ast::{
     Declaration, Statement,
 };
 use boa_interner::{Interner, Sym};
-use boa_macros::utf16;
 
 /// Checks `var` declaration parsing.
 #[test]
@@ -15,7 +14,7 @@ fn var_declaration() {
         "var a = 5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                interner.get_or_intern("a").into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -68,7 +67,7 @@ fn var_declaration_no_spaces() {
         "var a=5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                interner.get_or_intern("a").into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -87,7 +86,7 @@ fn empty_var_declaration() {
         "var a;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                interner.get_or_intern("a").into(),
                 None,
             )]
             .try_into()
@@ -107,15 +106,12 @@ fn multiple_var_declaration() {
         vec![Statement::Var(VarDeclaration(
             vec![
                 Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    interner.get_or_intern("a").into(),
                     Some(Literal::from(5).into()),
                 ),
+                Variable::from_identifier(interner.get_or_intern("b").into(), None),
                 Variable::from_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")).into(),
-                    None,
-                ),
-                Variable::from_identifier(
-                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    interner.get_or_intern("c").into(),
                     Some(Literal::from(6).into()),
                 ),
             ]
@@ -135,7 +131,7 @@ fn let_declaration() {
         "let a = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                interner.get_or_intern("a").into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -188,7 +184,7 @@ fn let_declaration_no_spaces() {
         "let a=5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                interner.get_or_intern("a").into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -207,7 +203,7 @@ fn empty_let_declaration() {
         "let a;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                interner.get_or_intern("a").into(),
                 None,
             )]
             .try_into()
@@ -227,15 +223,12 @@ fn multiple_let_declaration() {
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![
                 Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    interner.get_or_intern("a").into(),
                     Some(Literal::from(5).into()),
                 ),
+                Variable::from_identifier(interner.get_or_intern("b").into(), None),
                 Variable::from_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")).into(),
-                    None,
-                ),
-                Variable::from_identifier(
-                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    interner.get_or_intern("c").into(),
                     Some(Literal::from(6).into()),
                 ),
             ]
@@ -255,7 +248,7 @@ fn const_declaration() {
         "const a = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                interner.get_or_intern("a").into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -308,7 +301,7 @@ fn const_declaration_no_spaces() {
         "const a=5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                interner.get_or_intern("a").into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -334,11 +327,11 @@ fn multiple_const_declaration() {
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![
                 Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    interner.get_or_intern("a").into(),
                     Some(Literal::from(5).into()),
                 ),
                 Variable::from_identifier(
-                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    interner.get_or_intern("c").into(),
                     Some(Literal::from(6).into()),
                 ),
             ]

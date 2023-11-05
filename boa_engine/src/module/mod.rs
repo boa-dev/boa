@@ -181,11 +181,7 @@ impl Module {
     ) -> Self {
         let names: FxHashSet<Sym> = export_names
             .iter()
-            .map(|string| {
-                context
-                    .interner_mut()
-                    .get_or_intern(string.as_str().as_str_ref())
-            })
+            .map(|string| context.interner_mut().get_or_intern(string.as_str()))
             .collect();
         let realm = realm.unwrap_or_else(|| context.realm().clone());
         let inner = Gc::new_cyclic(|weak| {
@@ -594,15 +590,7 @@ impl ModuleNamespace {
         // 6. Let sortedExports be a List whose elements are the elements of exports ordered as if an Array of the same values had been sorted using %Array.prototype.sort% using undefined as comparefn.
         let mut exports = names
             .into_iter()
-            .map(|sym| {
-                (
-                    context
-                        .interner()
-                        .resolve_expect(sym)
-                        .into_common::<JsString>(false),
-                    sym,
-                )
-            })
+            .map(|sym| (context.interner().resolve_expect(sym).into(), sym))
             .collect::<IndexMap<_, _, _>>();
         exports.sort_keys();
 

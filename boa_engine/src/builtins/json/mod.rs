@@ -15,6 +15,7 @@
 
 use std::{borrow::Cow, iter::once};
 
+use boa_macros::utf16;
 use itertools::Itertools;
 
 use crate::{
@@ -26,7 +27,7 @@ use crate::{
     object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16, CodePoint},
+    string::{common::StaticJsStrings, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{CallFrame, CallFrameFlags},

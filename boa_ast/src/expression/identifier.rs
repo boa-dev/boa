@@ -1,9 +1,6 @@
 //! Local identifier Expression.
 
-use crate::{
-    visitor::{VisitWith, Visitor, VisitorMut},
-    ToStringEscaped,
-};
+use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -83,11 +80,7 @@ impl Identifier {
 impl ToInternedString for Identifier {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
-        interner.resolve_expect(self.ident).join(
-            String::from,
-            ToStringEscaped::to_string_escaped,
-            true,
-        )
+        interner.resolve_expect(self.ident).to_std_string_escaped()
     }
 }
 

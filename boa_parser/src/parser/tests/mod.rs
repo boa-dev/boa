@@ -27,7 +27,6 @@ use boa_ast::{
     Expression, Script, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 /// Checks that the given JavaScript string gives the expected expression.
 #[track_caller]
@@ -61,12 +60,11 @@ fn check_construct_call_precedence() {
             Expression::PropertyAccess(
                 SimplePropertyAccess::new(
                     New::from(Call::new(
-                        Identifier::new(interner.get_or_intern_static("Date", utf16!("Date")))
-                            .into(),
+                        Identifier::new(interner.get_or_intern("Date")).into(),
                         Box::default(),
                     ))
                     .into(),
-                    interner.get_or_intern_static("getTime", utf16!("getTime")),
+                    interner.get_or_intern("getTime"),
                 )
                 .into(),
             ),
@@ -84,10 +82,10 @@ fn assign_operator_precedence() {
         "a = a + 1",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Assign,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            Identifier::new(interner.get_or_intern("a")).into(),
             Binary::new(
                 ArithmeticOp::Add.into(),
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(interner.get_or_intern("a")).into(),
                 Literal::from(1).into(),
             )
             .into(),
@@ -100,8 +98,8 @@ fn assign_operator_precedence() {
 #[test]
 fn hoisting() {
     let interner = &mut Interner::default();
-    let hello = interner.get_or_intern_static("hello", utf16!("hello"));
-    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let hello = interner.get_or_intern("hello");
+    let a = interner.get_or_intern("a");
     check_script_parser(
         r"
             var a = hello();
@@ -137,7 +135,7 @@ fn hoisting() {
     );
 
     let interner = &mut Interner::default();
-    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let a = interner.get_or_intern("a");
     check_script_parser(
         r"
             a = 10;
@@ -179,13 +177,13 @@ fn ambigous_regex_divide_expression() {
             Binary::new(
                 ArithmeticOp::Div.into(),
                 Literal::Int(1).into(),
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(interner.get_or_intern("a")).into(),
             )
             .into(),
             Binary::new(
                 ArithmeticOp::Div.into(),
                 Literal::Int(1).into(),
-                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                Identifier::new(interner.get_or_intern("b")).into(),
             )
             .into(),
         )))
@@ -199,7 +197,7 @@ fn two_divisions_in_expression() {
     let s = "a !== 0 || 1 / a === 1 / b;";
 
     let interner = &mut Interner::default();
-    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let a = interner.get_or_intern("a");
     check_script_parser(
         s,
         vec![Statement::Expression(Expression::from(Binary::new(
@@ -221,7 +219,7 @@ fn two_divisions_in_expression() {
                 Binary::new(
                     ArithmeticOp::Div.into(),
                     Literal::Int(1).into(),
-                    Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                    Identifier::new(interner.get_or_intern("b")).into(),
                 )
                 .into(),
             )
@@ -245,7 +243,7 @@ fn comment_semi_colon_insertion() {
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    interner.get_or_intern("a").into(),
                     Some(Literal::Int(10).into()),
                 )]
                 .try_into()
@@ -254,7 +252,7 @@ fn comment_semi_colon_insertion() {
             .into(),
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    interner.get_or_intern("b").into(),
                     Some(Literal::Int(20).into()),
                 )]
                 .try_into()
@@ -281,7 +279,7 @@ fn multiline_comment_semi_colon_insertion() {
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    interner.get_or_intern("a").into(),
                     Some(Literal::Int(10).into()),
                 )]
                 .try_into()
@@ -290,7 +288,7 @@ fn multiline_comment_semi_colon_insertion() {
             .into(),
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    interner.get_or_intern("b").into(),
                     Some(Literal::Int(20).into()),
                 )]
                 .try_into()
@@ -314,7 +312,7 @@ fn multiline_comment_no_lineterminator() {
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    interner.get_or_intern("a").into(),
                     Some(Literal::Int(10).into()),
                 )]
                 .try_into()
@@ -323,7 +321,7 @@ fn multiline_comment_no_lineterminator() {
             .into(),
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    interner.get_or_intern("b").into(),
                     Some(Literal::Int(20).into()),
                 )]
                 .try_into()
@@ -350,7 +348,7 @@ fn assignment_line_terminator() {
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    interner.get_or_intern("a").into(),
                     Some(Literal::Int(3).into()),
                 )]
                 .try_into()
@@ -359,7 +357,7 @@ fn assignment_line_terminator() {
             .into(),
             Statement::Expression(Expression::from(Assign::new(
                 AssignOp::Assign,
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(interner.get_or_intern("a")).into(),
                 Literal::from(5).into(),
             )))
             .into(),
@@ -381,7 +379,7 @@ fn assignment_multiline_terminator() {
     "#;
 
     let interner = &mut Interner::default();
-    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let a = interner.get_or_intern("a");
     check_script_parser(
         s,
         vec![
@@ -413,10 +411,7 @@ fn bracketed_expr() {
     check_script_parser(
         s,
         vec![Statement::Expression(
-            Parenthesized::new(
-                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-            )
-            .into(),
+            Parenthesized::new(Identifier::new(interner.get_or_intern("b")).into()).into(),
         )
         .into()],
         interner,
@@ -428,7 +423,7 @@ fn increment_in_comma_op() {
     let s = r#"(b++, b)"#;
 
     let interner = &mut Interner::default();
-    let b = interner.get_or_intern_static("b", utf16!("b"));
+    let b = interner.get_or_intern("b");
     check_script_parser(
         s,
         vec![Statement::Expression(
@@ -463,20 +458,15 @@ fn spread_in_object() {
     let interner = &mut Interner::default();
 
     let object_properties = vec![
-        PropertyDefinition::Property(
-            interner.get_or_intern_static("a", utf16!("a")).into(),
-            Literal::from(1).into(),
-        ),
-        PropertyDefinition::SpreadObject(
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-        ),
+        PropertyDefinition::Property(interner.get_or_intern("a").into(), Literal::from(1).into()),
+        PropertyDefinition::SpreadObject(Identifier::new(interner.get_or_intern("b")).into()),
     ];
 
     check_script_parser(
         s,
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("x", utf16!("x")).into(),
+                interner.get_or_intern("x").into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
             .try_into()
@@ -496,7 +486,7 @@ fn spread_in_arrow_function() {
     "#;
 
     let interner = &mut Interner::default();
-    let b = interner.get_or_intern_static("b", utf16!("b"));
+    let b = interner.get_or_intern("b");
     let params = FormalParameterList::from(FormalParameter::new(
         Variable::from_identifier(b.into(), None),
         true,
@@ -520,7 +510,7 @@ fn spread_in_arrow_function() {
 #[test]
 fn empty_statement() {
     let interner = &mut Interner::default();
-    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let a = interner.get_or_intern("a");
     check_script_parser(
         r"
             ;;var a = 10;
@@ -547,11 +537,9 @@ fn empty_statement() {
 #[test]
 fn empty_statement_ends_directive_prologues() {
     let interner = &mut Interner::default();
-    let a = interner.get_or_intern_static("a", utf16!("a"));
-    let use_strict = interner.get_or_intern_static("use strict", utf16!("use strict"));
-    let public = interner
-        .get_or_intern_static("public", utf16!("public"))
-        .into();
+    let a = interner.get_or_intern("a");
+    let use_strict = interner.get_or_intern("use strict");
+    let public = interner.get_or_intern("public").into();
     check_script_parser(
         r#"
             "a";

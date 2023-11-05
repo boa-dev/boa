@@ -7,13 +7,12 @@ use boa_ast::{
     Declaration, Statement, StatementListItem,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 /// Checks async expression parsing.
 #[test]
 fn check_function_expression() {
     let interner = &mut Interner::default();
-    let add = interner.get_or_intern_static("add", utf16!("add"));
+    let add = interner.get_or_intern("add");
     check_script_parser(
         "const add = function() {
             return 1;
@@ -47,8 +46,8 @@ fn check_function_expression() {
 #[test]
 fn check_nested_function_expression() {
     let interner = &mut Interner::default();
-    let a = interner.get_or_intern_static("a", utf16!("a"));
-    let b = interner.get_or_intern_static("b", utf16!("b"));
+    let a = interner.get_or_intern("a");
+    let b = interner.get_or_intern("b");
     check_script_parser(
         "const a = function() {
             const b = function() {
@@ -107,10 +106,10 @@ fn check_function_non_reserved_keyword() {
         ($keyword:literal, $interner:expr) => {
             vec![Declaration::Lexical(LexicalDeclaration::Const(
                 vec![Variable::from_identifier(
-                    $interner.get_or_intern_static("add", utf16!("add")).into(),
+                    $interner.get_or_intern("add").into(),
                     Some(
                         Function::new_with_binding_identifier(
-                            Some($interner.get_or_intern_static($keyword, utf16!($keyword)).into()),
+                            Some($interner.get_or_intern($keyword).into()),
                             FormalParameterList::default(),
                             FunctionBody::new(
                                 vec![StatementListItem::Statement(

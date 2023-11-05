@@ -22,9 +22,9 @@ use boa_ast::{
 impl ByteCompiler<'_, '_> {
     fn compile_literal(&mut self, lit: &AstLiteral, use_expr: bool) {
         match lit {
-            AstLiteral::String(v) => self.emit_push_literal(Literal::String(
-                self.interner().resolve_expect(*v).into_common(false),
-            )),
+            AstLiteral::String(v) => {
+                self.emit_push_literal(Literal::String(self.interner().resolve_expect(*v).into()));
+            }
             AstLiteral::Int(v) => self.emit_push_integer(*v),
             AstLiteral::Num(v) => self.emit_push_rational(*v),
             AstLiteral::BigInt(v) => {
@@ -58,9 +58,8 @@ impl ByteCompiler<'_, '_> {
     fn compile_template_literal(&mut self, template_literal: &TemplateLiteral, use_expr: bool) {
         for element in template_literal.elements() {
             match element {
-                TemplateElement::String(s) => self.emit_push_literal(Literal::String(
-                    self.interner().resolve_expect(*s).into_common(false),
-                )),
+                TemplateElement::String(s) => self
+                    .emit_push_literal(Literal::String(self.interner().resolve_expect(*s).into())),
                 TemplateElement::Expr(expr) => {
                     self.compile_expr(expr, true);
                 }
@@ -269,13 +268,13 @@ impl ByteCompiler<'_, '_> {
                 for (cooked, raw) in template.cookeds().iter().zip(template.raws()) {
                     if let Some(cooked) = cooked {
                         self.emit_push_literal(Literal::String(
-                            self.interner().resolve_expect(*cooked).into_common(false),
+                            self.interner().resolve_expect(*cooked).into(),
                         ));
                     } else {
                         self.emit_opcode(Opcode::PushUndefined);
                     }
                     self.emit_push_literal(Literal::String(
-                        self.interner().resolve_expect(*raw).into_common(false),
+                        self.interner().resolve_expect(*raw).into(),
                     ));
                 }
 

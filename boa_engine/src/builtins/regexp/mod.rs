@@ -19,11 +19,12 @@ use crate::{
     },
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16, CodePoint},
+    string::{common::StaticJsStrings, CodePoint},
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
 };
+use boa_macros::utf16;
 use boa_parser::lexer::regex::RegExpFlags;
 use boa_profiler::Profiler;
 use regress::{Flags, Range, Regex};

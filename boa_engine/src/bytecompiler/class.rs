@@ -269,7 +269,7 @@ impl ByteCompiler<'_, '_> {
                     match name {
                         PropertyName::Literal(name) => {
                             self.emit_push_literal(Literal::String(
-                                self.interner().resolve_expect(*name).into_common(false),
+                                self.interner().resolve_expect(*name).into(),
                             ));
                         }
                         PropertyName::Computed(name) => {

@@ -359,9 +359,7 @@ impl SyntheticModule {
         export_value: JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<()> {
-        let identifier = context
-            .interner_mut()
-            .get_or_intern(export_name.as_str().as_str_ref());
+        let identifier = context.interner_mut().get_or_intern(export_name.as_str());
         let identifier = Identifier::new(identifier);
 
         let environment = self

@@ -1,7 +1,6 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{expression::literal::Literal, Expression, Statement};
 use boa_interner::{Interner, Sym};
-use boa_macros::utf16;
 
 #[test]
 fn check_string() {
@@ -17,7 +16,7 @@ fn check_string() {
     check_script_parser(
         "\"hello\"",
         vec![Statement::Expression(Expression::from(Literal::from(
-            interner.get_or_intern_static("hello", utf16!("hello")),
+            interner.get_or_intern("hello"),
         )))
         .into()],
         interner,

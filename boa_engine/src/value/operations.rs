@@ -537,11 +537,9 @@ impl JsValue {
 
                 match (px, py) {
                     (Self::String(ref x), Self::String(ref y)) => (x < y).into(),
-                    (Self::BigInt(ref x), Self::String(ref y)) => y
-                        .to_big_int()
+                    (Self::BigInt(ref x), Self::String(ref y)) => JsBigInt::from_js_string(y)
                         .map_or(AbstractRelation::Undefined, |y| (*x < y).into()),
-                    (Self::String(ref x), Self::BigInt(ref y)) => x
-                        .to_big_int()
+                    (Self::String(ref x), Self::BigInt(ref y)) => JsBigInt::from_js_string(x)
                         .map_or(AbstractRelation::Undefined, |x| (x < *y).into()),
                     (px, py) => match (px.to_numeric(context)?, py.to_numeric(context)?) {
                         (Numeric::Number(x), Numeric::Number(y)) => Number::less_than(x, y),

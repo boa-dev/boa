@@ -3,7 +3,6 @@ use crate::{
     parser::cursor::BufferedLexer,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 
 #[test]
 fn peek_skip_accending() {
@@ -15,42 +14,42 @@ fn peek_skip_accending() {
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("a", utf16!("a")))
+        TokenKind::identifier(interner.get_or_intern("a"))
     );
     assert_eq!(
         *cur.peek(1, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("b", utf16!("b")))
+        TokenKind::identifier(interner.get_or_intern("b"))
     );
     assert_eq!(
         *cur.peek(2, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("c", utf16!("c")))
+        TokenKind::identifier(interner.get_or_intern("c"))
     );
     assert_eq!(
         *cur.peek(2, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("c", utf16!("c")))
+        TokenKind::identifier(interner.get_or_intern("c"))
     );
     assert_eq!(
         *cur.peek(1, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("b", utf16!("b")))
+        TokenKind::identifier(interner.get_or_intern("b"))
     );
     assert_eq!(
         *cur.peek(0, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("a", utf16!("a")))
+        TokenKind::identifier(interner.get_or_intern("a"))
     );
 }
 
@@ -64,77 +63,77 @@ fn peek_skip_next() {
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("a", utf16!("a")))
+        TokenKind::identifier(interner.get_or_intern("a"))
     );
     assert_eq!(
         *cur.peek(1, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("b", utf16!("b")))
+        TokenKind::identifier(interner.get_or_intern("b"))
     );
     assert_eq!(
         *cur.peek(2, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("c", utf16!("c")))
+        TokenKind::identifier(interner.get_or_intern("c"))
     );
     assert_eq!(
         *cur.next(false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("a", utf16!("a")))
+        TokenKind::identifier(interner.get_or_intern("a"))
     );
     assert_eq!(
         *cur.next(false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("b", utf16!("b")))
+        TokenKind::identifier(interner.get_or_intern("b"))
     );
     assert_eq!(
         *cur.next(false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("c", utf16!("c")))
+        TokenKind::identifier(interner.get_or_intern("c"))
     );
     assert_eq!(
         *cur.next(false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("d", utf16!("d")))
+        TokenKind::identifier(interner.get_or_intern("d"))
     );
     assert_eq!(
         *cur.next(false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("e", utf16!("e")))
+        TokenKind::identifier(interner.get_or_intern("e"))
     );
     assert_eq!(
         *cur.peek(0, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("f", utf16!("f")))
+        TokenKind::identifier(interner.get_or_intern("f"))
     );
     assert_eq!(
         *cur.peek(1, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("g", utf16!("g")))
+        TokenKind::identifier(interner.get_or_intern("g"))
     );
     assert_eq!(
         *cur.peek(2, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("h", utf16!("h")))
+        TokenKind::identifier(interner.get_or_intern("h"))
     );
 }
 
@@ -148,49 +147,49 @@ fn peek_skip_next_alternating() {
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("a", utf16!("a")))
+        TokenKind::identifier(interner.get_or_intern("a"))
     );
     assert_eq!(
         *cur.next(false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("a", utf16!("a")))
+        TokenKind::identifier(interner.get_or_intern("a"))
     );
     assert_eq!(
         *cur.peek(1, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("c", utf16!("c")))
+        TokenKind::identifier(interner.get_or_intern("c"))
     );
     assert_eq!(
         *cur.next(false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("b", utf16!("b")))
+        TokenKind::identifier(interner.get_or_intern("b"))
     );
     assert_eq!(
         *cur.peek(1, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("d", utf16!("d")))
+        TokenKind::identifier(interner.get_or_intern("d"))
     );
     assert_eq!(
         *cur.next(false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("c", utf16!("c")))
+        TokenKind::identifier(interner.get_or_intern("c"))
     );
     assert_eq!(
         *cur.peek(2, false, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("f", utf16!("f")))
+        TokenKind::identifier(interner.get_or_intern("f"))
     );
 }
 
@@ -244,14 +243,14 @@ fn skip_peeked_terminators() {
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("A", utf16!("A")))
+        TokenKind::identifier(interner.get_or_intern("A"))
     );
     assert_eq!(
         *cur.peek(0, true, interner)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("A", utf16!("A")))
+        TokenKind::identifier(interner.get_or_intern("A"))
     );
 
     assert_eq!(
@@ -266,7 +265,7 @@ fn skip_peeked_terminators() {
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("B", utf16!("B"))) /* This value is after the line terminator */
+        TokenKind::identifier(interner.get_or_intern("B")) /* This value is after the line terminator */
     );
 
     assert_eq!(
@@ -274,7 +273,7 @@ fn skip_peeked_terminators() {
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier(interner.get_or_intern_static("B", utf16!("B")))
+        TokenKind::identifier(interner.get_or_intern("B"))
     );
     // End of stream
     assert!(cur.peek(2, true, interner).unwrap().is_none());
