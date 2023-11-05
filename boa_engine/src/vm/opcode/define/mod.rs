@@ -22,15 +22,11 @@ impl DefVar {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let binding_locator = context.vm.frame().code_block.bindings[index];
 
-        if binding_locator.is_global() {
-            // already initialized at compile time
-        } else {
-            context.vm.environments.put_value_if_uninitialized(
-                binding_locator.environment_index(),
-                binding_locator.binding_index(),
-                JsValue::undefined(),
-            );
-        }
+        context.vm.environments.put_value_if_uninitialized(
+            binding_locator.environment_index(),
+            binding_locator.binding_index(),
+            JsValue::undefined(),
+        );
         Ok(CompletionType::Normal)
     }
 }
