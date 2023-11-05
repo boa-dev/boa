@@ -407,8 +407,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         match opcode {
             BindingOpcode::Var => {
                 let binding = self.variable_environment.get_identifier_reference(name);
-                let index = self.get_or_insert_binding(binding.locator());
-                self.emit_with_varying_operand(Opcode::DefVar, index);
+                if !binding.locator().is_global() {
+                    let index = self.get_or_insert_binding(binding.locator());
+                    self.emit_with_varying_operand(Opcode::DefVar, index);
+                }
             }
             BindingOpcode::InitVar => match self.lexical_environment.set_mutable_binding(name) {
                 Ok(binding) => {
