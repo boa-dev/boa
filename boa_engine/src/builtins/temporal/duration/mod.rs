@@ -695,7 +695,7 @@ impl Duration {
 
         // 24. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
         if let Some(max) = maximum {
-            validate_temporal_rounding_increment(rounding_increment, f64::from(max), false)?;
+            validate_temporal_rounding_increment(rounding_increment.into(), f64::from(max), false)?;
         }
 
         // 25. Let hoursToDaysConversionMayOccur be false.
@@ -709,7 +709,7 @@ impl Duration {
 
         // 28. If smallestUnit is "nanosecond" and roundingIncrement = 1, let roundingGranularityIsNoop be true; else let roundingGranularityIsNoop be false.
         let is_noop = smallest_unit == TemporalUnit::Nanosecond
-            && (rounding_increment - 1f64).abs() < f64::EPSILON;
+            && rounding_increment == 1;
 
         // 29. If duration.[[Years]] = 0 and duration.[[Months]] = 0 and duration.[[Weeks]] = 0, let calendarUnitsPresent be false; else let calendarUnitsPresent be true.
         let calendar_units_present = !(duration.inner.years() == 0f64
@@ -780,7 +780,7 @@ impl Duration {
         // roundingIncrement, smallestUnit, roundingMode, plainRelativeTo, zonedRelativeTo, precalculatedPlainDateTime).
         let (_round_result, _) = duration.inner.round_duration(
             unbalance_result,
-            rounding_increment,
+            rounding_increment.into(),
             smallest_unit,
             rounding_mode,
             (

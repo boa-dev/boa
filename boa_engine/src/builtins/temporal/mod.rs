@@ -555,7 +555,7 @@ pub(crate) fn get_diff_settings(
 
     // 13. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
     if let Some(max) = maximum {
-        validate_temporal_rounding_increment(rounding_increment, f64::from(max), false)?;
+        validate_temporal_rounding_increment(rounding_increment.into(), f64::from(max), false)?;
     }
 
     // 14. Return the Record { [[SmallestUnit]]: smallestUnit, [[LargestUnit]]: largestUnit, [[RoundingMode]]: roundingMode, [[RoundingIncrement]]: roundingIncrement, }.
@@ -563,7 +563,7 @@ pub(crate) fn get_diff_settings(
         smallest_unit,
         largest_unit,
         rounding_mode,
-        rounding_increment,
+        rounding_increment.into(),
     ))
 }
 

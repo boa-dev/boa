@@ -20,7 +20,7 @@ use std::{fmt, str::FromStr};
 pub(crate) fn get_temporal_rounding_increment(
     options: &JsObject,
     context: &mut Context<'_>,
-) -> JsResult<f64> {
+) -> JsResult<u32> {
     // 1. Let increment be ? GetOption(normalizedOptions, "roundingIncrement", "number", undefined, 1𝔽).
     let value = options.get(js_string!("roundingIncrement"), context)?;
 
@@ -41,14 +41,14 @@ pub(crate) fn get_temporal_rounding_increment(
     let integer_increment = increment.trunc();
 
     // 4. If integerIncrement < 1 or integerIncrement > 10^9, throw a RangeError exception.
-    if (1.0..=1_000_000_000.0).contains(&integer_increment) {
+    if !(1.0..=1_000_000_000.0).contains(&integer_increment) {
         return Err(JsNativeError::range()
             .with_message("rounding increment was out of range.")
             .into());
     }
 
     // 5. Return integerIncrement.
-    Ok(integer_increment)
+    Ok(integer_increment as u32)
 }
 
 /// Gets the `TemporalUnit` from an options object.
