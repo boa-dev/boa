@@ -16,7 +16,7 @@ impl Operation for This {
     const INSTRUCTION: &'static str = "INST - This";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let this = context.vm.environments.get_this_binding()?;
         context.vm.push(this);
         Ok(CompletionType::Normal)
@@ -35,7 +35,7 @@ impl Operation for Super {
     const INSTRUCTION: &'static str = "INST - Super";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let home_object = {
             let env = context
                 .vm
@@ -76,7 +76,7 @@ impl Operation for SuperCallPrepare {
     const INSTRUCTION: &'static str = "INST - SuperCallPrepare";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let this_env = context
             .vm
             .environments
@@ -103,7 +103,7 @@ impl Operation for SuperCallPrepare {
 pub(crate) struct SuperCall;
 
 impl SuperCall {
-    fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, argument_count: usize) -> JsResult<CompletionType> {
         let super_constructor_index = context.vm.stack.len() - argument_count - 1;
         let super_constructor = context.vm.stack[super_constructor_index].clone();
         let Some(super_constructor) = super_constructor.as_constructor() else {
@@ -139,17 +139,17 @@ impl Operation for SuperCall {
     const INSTRUCTION: &'static str = "INST - SuperCall";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value_count = context.vm.read::<u8>() as usize;
         Self::operation(context, value_count)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let value_count = context.vm.read::<u16>() as usize;
         Self::operation(context, value_count)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let value_count = context.vm.read::<u32>() as usize;
         Self::operation(context, value_count)
     }
@@ -167,7 +167,7 @@ impl Operation for SuperCallSpread {
     const INSTRUCTION: &'static str = "INST - SuperCallSpread";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -226,7 +226,7 @@ impl Operation for SuperCallDerived {
     const INSTRUCTION: &'static str = "INST - SuperCallDerived";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.frame().argument_count as usize;
 
         let this_env = context
@@ -279,7 +279,7 @@ impl Operation for BindThisValue {
     const INSTRUCTION: &'static str = "INST - BindThisValue";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         // Taken from `SuperCall : super Arguments` steps 7-12.
         //
         // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>

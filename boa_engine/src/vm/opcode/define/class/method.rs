@@ -13,7 +13,7 @@ use crate::{
 pub(crate) struct DefineClassStaticMethodByName;
 
 impl DefineClassStaticMethodByName {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let class = context.vm.pop();
         let class = class.as_object().expect("class must be object");
@@ -54,17 +54,17 @@ impl Operation for DefineClassStaticMethodByName {
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByName";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -78,7 +78,7 @@ impl Operation for DefineClassStaticMethodByName {
 pub(crate) struct DefineClassMethodByName;
 
 impl DefineClassMethodByName {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let class_proto = context.vm.pop();
         let class_proto = class_proto.as_object().expect("class must be object");
@@ -119,17 +119,17 @@ impl Operation for DefineClassMethodByName {
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -147,7 +147,7 @@ impl Operation for DefineClassStaticMethodByValue {
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByValue";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let key = context.vm.pop();
         let class = context.vm.pop();
@@ -193,7 +193,7 @@ impl Operation for DefineClassMethodByValue {
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByValue";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let key = context.vm.pop();
         let class_proto = context.vm.pop();

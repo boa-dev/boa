@@ -9,7 +9,7 @@ use crate::{
 use boa_engine::{
     builtins::promise::PromiseState,
     js_string,
-    module::{Module, ModuleLoader, SimpleModuleLoader},
+    module::{Module, SimpleModuleLoader},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     optimizer::OptimizerOptions,
@@ -243,13 +243,14 @@ impl Test {
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
                 let async_result = AsyncResult::default();
-                let loader = &SimpleModuleLoader::new(
-                    self.path.parent().expect("test should have a parent dir"),
-                )
-                .expect("test path should be canonicalizable");
-                let dyn_loader: &dyn ModuleLoader = loader;
+                let loader = Rc::new(
+                    SimpleModuleLoader::new(
+                        self.path.parent().expect("test should have a parent dir"),
+                    )
+                    .expect("test path should be canonicalizable"),
+                );
                 let context = &mut Context::builder()
-                    .module_loader(dyn_loader)
+                    .module_loader(loader.clone())
                     .can_block(!self.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
                     .build()
                     .expect("cannot fail with default global object");
@@ -374,13 +375,14 @@ impl Test {
                 phase: Phase::Resolution,
                 error_type,
             } => {
-                let loader = &SimpleModuleLoader::new(
-                    self.path.parent().expect("test should have a parent dir"),
-                )
-                .expect("test path should be canonicalizable");
-                let dyn_loader: &dyn ModuleLoader = loader;
+                let loader = Rc::new(
+                    SimpleModuleLoader::new(
+                        self.path.parent().expect("test should have a parent dir"),
+                    )
+                    .expect("test path should be canonicalizable"),
+                );
                 let context = &mut Context::builder()
-                    .module_loader(dyn_loader)
+                    .module_loader(loader.clone())
                     .build()
                     .expect("cannot fail with default global object");
 
@@ -429,13 +431,14 @@ impl Test {
                 phase: Phase::Runtime,
                 error_type,
             } => {
-                let loader = &SimpleModuleLoader::new(
-                    self.path.parent().expect("test should have a parent dir"),
-                )
-                .expect("test path should be canonicalizable");
-                let dyn_loader: &dyn ModuleLoader = loader;
+                let loader = Rc::new(
+                    SimpleModuleLoader::new(
+                        self.path.parent().expect("test should have a parent dir"),
+                    )
+                    .expect("test path should be canonicalizable"),
+                );
                 let context = &mut Context::builder()
-                    .module_loader(dyn_loader)
+                    .module_loader(loader.clone())
                     .can_block(!self.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
                     .build()
                     .expect("cannot fail with default global object");
@@ -586,7 +589,7 @@ impl Test {
     fn set_up_env(
         &self,
         harness: &Harness,
-        context: &mut Context<'_>,
+        context: &mut Context,
         async_result: AsyncResult,
         handles: WorkerHandles,
         console: bool,
@@ -651,7 +654,7 @@ impl Test {
 }
 
 /// Returns `true` if `error` is a `target_type` error.
-fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context<'_>) -> bool {
+fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context) -> bool {
     if let Ok(error) = error.try_native(context) {
         match &error.kind {
             JsNativeErrorKind::Syntax if target_type == ErrorType::SyntaxError => {}
@@ -679,7 +682,7 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context<
 }
 
 /// Registers the print function in the context.
-fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
+fn register_print_fn(context: &mut Context, async_result: AsyncResult) {
     // We use `FunctionBuilder` to define a closure with additional captures.
     let js_function = FunctionObjectBuilder::new(
         context.realm(),

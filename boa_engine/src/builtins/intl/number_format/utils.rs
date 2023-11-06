@@ -24,7 +24,7 @@ pub(crate) fn get_digit_format_options(
     min_float_digits_default: u8,
     mut max_float_digits_default: u8,
     notation: Notation,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<DigitFormatOptions> {
     const VALID_ROUNDING_INCREMENTS: [u16; 15] = [
         1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000,

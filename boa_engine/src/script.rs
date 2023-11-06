@@ -79,7 +79,7 @@ impl Script {
     pub fn parse<R: Read>(
         src: Source<'_, R>,
         realm: Option<Realm>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Script parsing", "Main");
         let mut parser = Parser::new(src);
@@ -106,7 +106,7 @@ impl Script {
     /// Compiles the codeblock of this script.
     ///
     /// This is a no-op if this has been called previously.
-    pub fn codeblock(&self, context: &mut Context<'_>) -> JsResult<Gc<CodeBlock>> {
+    pub fn codeblock(&self, context: &mut Context) -> JsResult<Gc<CodeBlock>> {
         let mut codeblock = self.inner.codeblock.borrow_mut();
 
         if let Some(codeblock) = &*codeblock {
@@ -143,7 +143,7 @@ impl Script {
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     ///
     /// [`JobQueue::run_jobs`]: crate::job::JobQueue::run_jobs
-    pub fn evaluate(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn evaluate(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Execution", "Main");
 
         self.prepare_run(context)?;
@@ -162,7 +162,7 @@ impl Script {
     /// execution is suspended. See [`Script::evaluate_async_with_budget`] if you want to also
     /// customize this parameter.
     #[allow(clippy::future_not_send)]
-    pub async fn evaluate_async(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub async fn evaluate_async(&self, context: &mut Context) -> JsResult<JsValue> {
         self.evaluate_async_with_budget(context, 256).await
     }
 
@@ -176,7 +176,7 @@ impl Script {
     #[allow(clippy::future_not_send)]
     pub async fn evaluate_async_with_budget(
         &self,
-        context: &mut Context<'_>,
+        context: &mut Context,
         budget: u32,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Async Execution", "Main");
@@ -191,7 +191,7 @@ impl Script {
         record.consume()
     }
 
-    fn prepare_run(&self, context: &mut Context<'_>) -> JsResult<()> {
+    fn prepare_run(&self, context: &mut Context) -> JsResult<()> {
         let codeblock = self.codeblock(context)?;
 
         let env_fp = context.vm.environments.len() as u32;

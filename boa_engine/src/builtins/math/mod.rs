@@ -106,11 +106,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.abs
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
-    pub(crate) fn abs(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn abs(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -132,11 +128,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.acos
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos
-    pub(crate) fn acos(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn acos(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -156,11 +148,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.acosh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
-    pub(crate) fn acosh(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn acosh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -181,11 +169,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.asin
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asin
-    pub(crate) fn asin(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn asin(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -205,11 +189,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.asinh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh
-    pub(crate) fn asinh(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn asinh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -228,11 +208,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.atan
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan
-    pub(crate) fn atan(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn atan(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -253,11 +229,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.atanh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh
-    pub(crate) fn atanh(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn atanh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -279,11 +251,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.atan2
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
-    pub(crate) fn atan2(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn atan2(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let ny be ? ToNumber(y).
         let y = args.get_or_undefined(0).to_number(context)?;
 
@@ -326,11 +294,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.cbrt
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cbrt
-    pub(crate) fn cbrt(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn cbrt(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -349,11 +313,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.ceil
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
-    pub(crate) fn ceil(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn ceil(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -374,11 +334,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.clz32
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/clz32
-    pub(crate) fn clz32(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn clz32(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToUint32(x).
@@ -397,11 +353,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.cos
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos
-    pub(crate) fn cos(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn cos(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -421,11 +373,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.cosh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cosh
-    pub(crate) fn cosh(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn cosh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -446,11 +394,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.exp
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp
-    pub(crate) fn exp(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn exp(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -473,11 +417,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.expm1
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/expm1
-    pub(crate) fn expm1(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn expm1(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -497,11 +437,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.floor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
-    pub(crate) fn floor(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn floor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -525,7 +461,7 @@ impl Math {
     pub(crate) fn fround(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let n be ? ToNumber(x).
         let x = args.get_or_undefined(0).to_number(context)?;
@@ -546,11 +482,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.hypot
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot
-    pub(crate) fn hypot(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn hypot(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let coerced be a new empty List.
         // 2. For each element arg of args, do
         // a. Let n be ? ToNumber(arg).
@@ -580,11 +512,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.imul
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul
-    pub(crate) fn imul(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn imul(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let a be ℝ(? ToUint32(x)).
         let x = args.get_or_undefined(0).to_u32(context)?;
 
@@ -604,11 +532,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.log
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log
-    pub(crate) fn log(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn log(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -630,11 +554,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.log1p
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log1p
-    pub(crate) fn log1p(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn log1p(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -655,11 +575,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.log10
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10
-    pub(crate) fn log10(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn log10(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -681,11 +597,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.log2
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2
-    pub(crate) fn log2(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn log2(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -707,11 +619,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.max
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max
-    pub(crate) fn max(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn max(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let coerced be a new empty List.
         // 2. For each element arg of args, do
         // b. Append n to coerced.
@@ -749,11 +657,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.min
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
-    pub(crate) fn min(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn min(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let coerced be a new empty List.
         // 2. For each element arg of args, do
         // b. Append n to coerced.
@@ -792,11 +696,7 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.pow
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
     #[allow(clippy::float_cmp)]
-    pub(crate) fn pow(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn pow(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Set base to ? ToNumber(base).
         let x = args.get_or_undefined(0).to_number(context)?;
 
@@ -821,7 +721,7 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.random
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn random(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn random(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // NOTE: Each Math.random function created for distinct realms must produce a distinct sequence of values from successive calls.
         Ok(rand::random::<f64>().into())
     }
@@ -835,11 +735,7 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.round
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
     #[allow(clippy::float_cmp)]
-    pub(crate) fn round(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn round(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let num = args
             .get_or_undefined(0)
             //1. Let n be ? ToNumber(x).
@@ -865,11 +761,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.sign
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
-    pub(crate) fn sign(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn sign(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let n be ? ToNumber(x).
         let n = args.get_or_undefined(0).to_number(context)?;
 
@@ -890,11 +782,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.sin
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin
-    pub(crate) fn sin(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn sin(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -914,11 +802,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.sinh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sinh
-    pub(crate) fn sinh(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn sinh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -937,11 +821,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.sqrt
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sqrt
-    pub(crate) fn sqrt(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn sqrt(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -961,11 +841,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.tan
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tan
-    pub(crate) fn tan(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn tan(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -985,11 +861,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.tanh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tanh
-    pub(crate) fn tanh(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn tanh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
@@ -1010,11 +882,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.trunc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
-    pub(crate) fn trunc(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn trunc(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).

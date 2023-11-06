@@ -205,7 +205,7 @@ impl BuiltInConstructor for String {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
@@ -249,7 +249,7 @@ impl String {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringcreate
-    fn string_create(value: JsString, prototype: JsObject, context: &mut Context<'_>) -> JsObject {
+    fn string_create(value: JsString, prototype: JsObject, context: &mut Context) -> JsObject {
         // 7. Let length be the number of code unit elements in value.
         let len = value.len();
 
@@ -318,7 +318,7 @@ impl String {
     pub(crate) fn from_code_point(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let result be the empty String.
         let mut result = Vec::with_capacity(args.len());
@@ -372,11 +372,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.raw
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/raw
-    pub(crate) fn raw(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn raw(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let substitutions = args.get(1..).unwrap_or_default();
 
         // 1. Let numberOfSubstitutions be the number of elements in substitutions.
@@ -450,7 +446,7 @@ impl String {
     pub(crate) fn from_char_code(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let result be the empty String.
         let mut result = Vec::new();
@@ -475,11 +471,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tostring
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? thisStringValue(this value).
         Ok(Self::this_string_value(this)?.into())
     }
@@ -503,7 +495,7 @@ impl String {
     pub(crate) fn char_at(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -537,11 +529,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/proposal-relative-indexing-method/#sec-string.prototype.at
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/at
-    pub(crate) fn at(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
 
@@ -585,7 +573,7 @@ impl String {
     pub(crate) fn code_point_at(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -628,7 +616,7 @@ impl String {
     pub(crate) fn char_code_at(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -667,7 +655,7 @@ impl String {
     pub(crate) fn concat(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -701,7 +689,7 @@ impl String {
     pub(crate) fn repeat(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -754,7 +742,7 @@ impl String {
     pub(crate) fn slice(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -819,7 +807,7 @@ impl String {
     pub(crate) fn starts_with(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -888,7 +876,7 @@ impl String {
     pub(crate) fn ends_with(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -954,7 +942,7 @@ impl String {
     pub(crate) fn includes(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -1006,7 +994,7 @@ impl String {
     pub(crate) fn replace(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // Helper enum.
         enum CallableOrString<'a> {
@@ -1115,7 +1103,7 @@ impl String {
     pub(crate) fn replace_all(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
@@ -1267,7 +1255,7 @@ impl String {
     pub(crate) fn index_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -1306,7 +1294,7 @@ impl String {
     pub(crate) fn is_well_formed(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
@@ -1339,7 +1327,7 @@ impl String {
     pub(crate) fn last_index_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -1406,7 +1394,7 @@ impl String {
     pub(crate) fn locale_compare(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
@@ -1469,7 +1457,7 @@ impl String {
     pub(crate) fn r#match(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
@@ -1509,7 +1497,7 @@ impl String {
         max_length: &JsValue,
         fill_string: &JsValue,
         placement: Placement,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let S be ? ToString(O).
         let string = object.to_string(context)?;
@@ -1581,7 +1569,7 @@ impl String {
     pub(crate) fn pad_end(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -1608,7 +1596,7 @@ impl String {
     pub(crate) fn pad_start(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -1632,11 +1620,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
-    pub(crate) fn trim(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn trim(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Return ? TrimString(S, start+end).
         let object = this.require_object_coercible()?;
@@ -1659,7 +1643,7 @@ impl String {
     pub(crate) fn trim_start(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Return ? TrimString(S, start).
@@ -1683,7 +1667,7 @@ impl String {
     pub(crate) fn trim_end(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Return ? TrimString(S, end).
@@ -1707,7 +1691,7 @@ impl String {
     pub(crate) fn to_case<const UPPER: bool>(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -1739,7 +1723,7 @@ impl String {
     pub(crate) fn to_locale_case<const UPPER: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
@@ -1774,7 +1758,7 @@ impl String {
             // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode Character Database contains language sensitive case mappings. Implementations may add additional language tags if they support case mapping for additional locales.
             // 6. Let locale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
             // 7. If locale is undefined, set locale to "und".
-            let lang = best_available_locale::<CaseMapV1Marker>(lang, &context.icu().provider())
+            let lang = best_available_locale::<CaseMapV1Marker>(lang, context.icu().provider())
                 .unwrap_or(LanguageIdentifier::UND);
 
             let casemapper = context.icu().case_mapper();
@@ -1814,7 +1798,7 @@ impl String {
     pub(crate) fn to_well_formed(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
@@ -1857,7 +1841,7 @@ impl String {
     pub(crate) fn substring(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -1907,7 +1891,7 @@ impl String {
     pub(crate) fn split(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
@@ -2026,7 +2010,7 @@ impl String {
     pub(crate) fn value_of(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Return ? thisStringValue(this value).
         Self::this_string_value(this).map(JsValue::from)
@@ -2047,7 +2031,7 @@ impl String {
     pub(crate) fn match_all(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
@@ -2104,7 +2088,7 @@ impl String {
     pub(crate) fn normalize(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         /// Represents the type of normalization applied to a [`JsString`]
         #[derive(Clone, Copy)]
@@ -2185,7 +2169,7 @@ impl String {
     pub(crate) fn search(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
@@ -2215,7 +2199,7 @@ impl String {
     pub(crate) fn iterator(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
@@ -2242,7 +2226,7 @@ impl String {
     pub(crate) fn substr(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
@@ -2306,7 +2290,7 @@ impl String {
         string: &JsValue,
         tag: &[u16],
         attribute_and_value: Option<(&[u16], &JsValue)>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let str be ? RequireObjectCoercible(string).
         let str = string.require_object_coercible()?;
@@ -2379,7 +2363,7 @@ impl String {
     pub(crate) fn anchor(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let name = args.get_or_undefined(0);
 
@@ -2397,11 +2381,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.big
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/big
-    pub(crate) fn big(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn big(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "big", "", "").
@@ -2416,11 +2396,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.blink
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/blink
-    pub(crate) fn blink(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn blink(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "blink", "", "").
@@ -2435,11 +2411,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.bold
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/bold
-    pub(crate) fn bold(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn bold(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "b", "", "").
@@ -2454,11 +2426,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.fixed
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fixed
-    pub(crate) fn fixed(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn fixed(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "big", "", "").
@@ -2476,7 +2444,7 @@ impl String {
     pub(crate) fn fontcolor(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let color = args.get_or_undefined(0);
 
@@ -2497,7 +2465,7 @@ impl String {
     pub(crate) fn fontsize(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let size = args.get_or_undefined(0);
 
@@ -2518,7 +2486,7 @@ impl String {
     pub(crate) fn italics(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         let s = this;
@@ -2537,7 +2505,7 @@ impl String {
     pub(crate) fn link(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let url = args.get_or_undefined(0);
 
@@ -2555,11 +2523,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.small
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/small
-    pub(crate) fn small(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn small(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "small", "", "").
@@ -2577,7 +2541,7 @@ impl String {
     pub(crate) fn strike(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         let s = this;
@@ -2593,11 +2557,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.sub
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/sub
-    pub(crate) fn sub(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn sub(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "sub", "", "").
@@ -2612,11 +2572,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.sup
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/sup
-    pub(crate) fn sup(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn sup(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         let s = this;
         // 2. Return ? CreateHTML(S, "sup", "", "").
@@ -2637,7 +2593,7 @@ pub(crate) fn get_substitution(
     captures: &[JsValue],
     named_captures: &JsValue,
     replacement: &JsString,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsString> {
     let mut buf = [0; 2];
     // 1. Assert: Type(matched) is String.

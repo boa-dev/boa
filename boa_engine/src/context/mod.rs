@@ -4,13 +4,11 @@ mod hooks;
 #[cfg(feature = "intl")]
 pub(crate) mod icu;
 pub mod intrinsics;
-mod maybe_shared;
 
 pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::{BoaProvider, IcuError};
 use intrinsics::Intrinsics;
-pub use maybe_shared::MaybeShared;
 
 #[cfg(not(feature = "intl"))]
 pub use std::marker::PhantomData;
@@ -87,7 +85,7 @@ thread_local! {
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
-pub struct Context<'host> {
+pub struct Context {
     /// String interner in the context.
     interner: Interner,
 
@@ -106,13 +104,13 @@ pub struct Context<'host> {
 
     /// ICU related utilities
     #[cfg(feature = "intl")]
-    icu: icu::Icu<'host>,
+    icu: icu::Icu,
 
-    host_hooks: MaybeShared<'host, dyn HostHooks>,
+    host_hooks: &'static dyn HostHooks,
 
-    job_queue: MaybeShared<'host, dyn JobQueue>,
+    job_queue: Rc<dyn JobQueue>,
 
-    module_loader: MaybeShared<'host, dyn ModuleLoader>,
+    module_loader: Rc<dyn ModuleLoader>,
 
     optimizer_options: OptimizerOptions,
     root_shape: RootShape,
@@ -121,7 +119,7 @@ pub struct Context<'host> {
     parser_identifier: u32,
 }
 
-impl std::fmt::Debug for Context<'_> {
+impl std::fmt::Debug for Context {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut debug = f.debug_struct("Context");
 
@@ -142,7 +140,7 @@ impl std::fmt::Debug for Context<'_> {
     }
 }
 
-impl Drop for Context<'_> {
+impl Drop for Context {
     fn drop(&mut self) {
         if !self.can_block {
             CANNOT_BLOCK_COUNTER.set(CANNOT_BLOCK_COUNTER.get() - 1);
@@ -150,7 +148,7 @@ impl Drop for Context<'_> {
     }
 }
 
-impl Default for Context<'_> {
+impl Default for Context {
     fn default() -> Self {
         ContextBuilder::default()
             .build()
@@ -159,11 +157,11 @@ impl Default for Context<'_> {
 }
 
 // ==== Public API ====
-impl<'host> Context<'host> {
+impl Context {
     /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
     #[must_use]
-    pub fn builder() -> ContextBuilder<'static, 'static, 'static, 'static> {
+    pub fn builder() -> ContextBuilder {
         ContextBuilder::default()
     }
 
@@ -490,8 +488,8 @@ impl<'host> Context<'host> {
     /// # Note
     ///
     /// Concurrent job execution cannot be guaranteed by the engine, since this depends on the
-    /// specific handling of each [`JobQueue`]. If you need to ensure that jobs are executed
-    /// concurrently, you can provide a custom implementor of `JobQueue` to the context.
+    /// specific handling of each [`JobQueue`]. If you want to execute jobs concurrently, you must
+    /// provide a custom implementor of `JobQueue` to the context.
     #[allow(clippy::future_not_send)]
     pub async fn run_jobs_async(&mut self) {
         self.job_queue().run_jobs_async(self).await;
@@ -528,7 +526,7 @@ impl<'host> Context<'host> {
 
     /// Create a new Realm with the default global bindings.
     pub fn create_realm(&mut self) -> JsResult<Realm> {
-        let realm = Realm::create(&*self.host_hooks, &self.root_shape);
+        let realm = Realm::create(self.host_hooks, &self.root_shape);
 
         let old_realm = self.enter_realm(realm);
 
@@ -547,20 +545,20 @@ impl<'host> Context<'host> {
     /// Gets the host hooks.
     #[inline]
     #[must_use]
-    pub fn host_hooks(&self) -> MaybeShared<'host, dyn HostHooks> {
-        self.host_hooks.clone()
+    pub fn host_hooks(&self) -> &'static dyn HostHooks {
+        self.host_hooks
     }
 
     /// Gets the job queue.
     #[inline]
     #[must_use]
-    pub fn job_queue(&self) -> MaybeShared<'host, dyn JobQueue> {
+    pub fn job_queue(&self) -> Rc<dyn JobQueue> {
         self.job_queue.clone()
     }
 
     /// Gets the module loader.
     #[must_use]
-    pub fn module_loader(&self) -> MaybeShared<'host, dyn ModuleLoader> {
+    pub fn module_loader(&self) -> Rc<dyn ModuleLoader> {
         self.module_loader.clone()
     }
 
@@ -593,7 +591,7 @@ impl<'host> Context<'host> {
 
 // ==== Private API ====
 
-impl Context<'_> {
+impl Context {
     /// Swaps the currently active realm with `realm`.
     pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
         std::mem::swap(&mut self.vm.realm, realm);
@@ -831,18 +829,18 @@ impl Context<'_> {
     }
 }
 
-impl<'host> Context<'host> {
+impl Context {
     /// Creates a `ContextCleanupGuard` that executes some cleanup after being dropped.
-    pub(crate) fn guard<F>(&mut self, cleanup: F) -> ContextCleanupGuard<'_, 'host, F>
+    pub(crate) fn guard<F>(&mut self, cleanup: F) -> ContextCleanupGuard<'_, F>
     where
-        F: FnOnce(&mut Context<'_>) + 'static,
+        F: FnOnce(&mut Context) + 'static,
     {
         ContextCleanupGuard::new(self, cleanup)
     }
 
     /// Get the ICU related utilities
     #[cfg(feature = "intl")]
-    pub(crate) const fn icu(&self) -> &icu::Icu<'host> {
+    pub(crate) const fn icu(&self) -> &icu::Icu {
         &self.icu
     }
 }
@@ -859,21 +857,19 @@ impl<'host> Context<'host> {
     doc = "The required data in a valid provider is specified in [`BoaProvider`]"
 )]
 #[derive(Default)]
-pub struct ContextBuilder<'icu, 'hooks, 'queue, 'module> {
+pub struct ContextBuilder {
     interner: Option<Interner>,
-    host_hooks: Option<MaybeShared<'hooks, dyn HostHooks>>,
-    job_queue: Option<MaybeShared<'queue, dyn JobQueue>>,
-    module_loader: Option<MaybeShared<'module, dyn ModuleLoader>>,
+    host_hooks: Option<&'static dyn HostHooks>,
+    job_queue: Option<Rc<dyn JobQueue>>,
+    module_loader: Option<Rc<dyn ModuleLoader>>,
     can_block: bool,
     #[cfg(feature = "intl")]
-    icu: Option<icu::Icu<'icu>>,
-    #[cfg(not(feature = "intl"))]
-    icu: PhantomData<&'icu ()>,
+    icu: Option<icu::Icu>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
 }
 
-impl std::fmt::Debug for ContextBuilder<'_, '_, '_, '_> {
+impl std::fmt::Debug for ContextBuilder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[derive(Clone, Copy, Debug)]
         struct JobQueue;
@@ -903,7 +899,7 @@ impl std::fmt::Debug for ContextBuilder<'_, '_, '_, '_> {
     }
 }
 
-impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module> {
+impl ContextBuilder {
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
     /// and a default `BoaProvider` if the `intl` feature is enabled.
     #[must_use]
@@ -936,61 +932,32 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
     /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
     /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
     #[cfg(feature = "intl")]
-    pub fn icu_provider(
-        self,
-        provider: BoaProvider<'_>,
-    ) -> Result<ContextBuilder<'_, 'hooks, 'queue, 'module>, IcuError> {
-        Ok(ContextBuilder {
-            icu: Some(icu::Icu::new(provider)?),
-            ..self
-        })
+    pub fn icu_provider(mut self, provider: BoaProvider) -> Result<Self, IcuError> {
+        self.icu = Some(icu::Icu::new(provider)?);
+        Ok(self)
     }
 
     /// Initializes the [`HostHooks`] for the context.
     ///
     /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary
     #[must_use]
-    pub fn host_hooks<'new_hooks, H>(
-        self,
-        host_hooks: H,
-    ) -> ContextBuilder<'icu, 'new_hooks, 'queue, 'module>
-    where
-        H: Into<MaybeShared<'new_hooks, dyn HostHooks>>,
-    {
-        ContextBuilder {
-            host_hooks: Some(host_hooks.into()),
-            ..self
-        }
+    pub fn host_hooks<H: HostHooks + 'static>(mut self, host_hooks: &'static H) -> Self {
+        self.host_hooks = Some(host_hooks);
+        self
     }
 
     /// Initializes the [`JobQueue`] for the context.
     #[must_use]
-    pub fn job_queue<'new_queue, Q>(
-        self,
-        job_queue: Q,
-    ) -> ContextBuilder<'icu, 'hooks, 'new_queue, 'module>
-    where
-        Q: Into<MaybeShared<'new_queue, dyn JobQueue>>,
-    {
-        ContextBuilder {
-            job_queue: Some(job_queue.into()),
-            ..self
-        }
+    pub fn job_queue<Q: JobQueue + 'static>(mut self, job_queue: Rc<Q>) -> Self {
+        self.job_queue = Some(job_queue);
+        self
     }
 
     /// Initializes the [`ModuleLoader`] for the context.
     #[must_use]
-    pub fn module_loader<'new_module, M>(
-        self,
-        module_loader: M,
-    ) -> ContextBuilder<'icu, 'hooks, 'queue, 'new_module>
-    where
-        M: Into<MaybeShared<'new_module, dyn ModuleLoader>>,
-    {
-        ContextBuilder {
-            module_loader: Some(module_loader.into()),
-            ..self
-        }
+    pub fn module_loader<M: ModuleLoader + 'static>(mut self, module_loader: Rc<M>) -> Self {
+        self.module_loader = Some(module_loader);
+        self
     }
 
     /// [`AgentCanSuspend ( )`][spec] aka `[[CanBlock]]`
@@ -1006,10 +973,7 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
     /// [spec]: https://tc39.es/ecma262/#sec-agentcansuspend
     /// [wait]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/wait
     #[must_use]
-    pub const fn can_block(
-        mut self,
-        can_block: bool,
-    ) -> ContextBuilder<'icu, 'hooks, 'queue, 'module> {
+    pub const fn can_block(mut self, can_block: bool) -> Self {
         self.can_block = can_block;
         self
     }
@@ -1028,13 +992,7 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
     /// all missing parameters to their default values.
     // TODO: try to use a custom error here, since most of the `JsError` APIs
     // require having a `Context` in the first place.
-    pub fn build<'host>(self) -> JsResult<Context<'host>>
-    where
-        'icu: 'host,
-        'hooks: 'host,
-        'queue: 'host,
-        'module: 'host,
-    {
+    pub fn build(self) -> JsResult<Context> {
         if self.can_block {
             if CANNOT_BLOCK_COUNTER.get() > 0 {
                 return Err(JsNativeError::typ()
@@ -1049,27 +1007,21 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
 
         let root_shape = RootShape::default();
 
-        let host_hooks = self.host_hooks.unwrap_or_else(|| {
-            let hooks: &dyn HostHooks = &DefaultHooks;
-            hooks.into()
-        });
-        let realm = Realm::create(&*host_hooks, &root_shape);
+        let host_hooks = self.host_hooks.unwrap_or(&DefaultHooks);
+        let realm = Realm::create(host_hooks, &root_shape);
         let vm = Vm::new(realm);
 
-        let module_loader = if let Some(loader) = self.module_loader {
+        let module_loader: Rc<dyn ModuleLoader> = if let Some(loader) = self.module_loader {
             loader
+        } else if let Ok(loader) = SimpleModuleLoader::new(Path::new(".")) {
+            Rc::new(loader)
         } else {
-            SimpleModuleLoader::new(Path::new(".")).map_or_else(
-                |_| {
-                    let loader: &dyn ModuleLoader = &IdleModuleLoader;
-                    loader.into()
-                },
-                |loader| {
-                    let loader: Rc<dyn ModuleLoader> = Rc::new(loader);
-                    loader.into()
-                },
-            )
+            Rc::new(IdleModuleLoader)
         };
+
+        let job_queue = self
+            .job_queue
+            .unwrap_or_else(|| Rc::new(SimpleJobQueue::new()));
 
         let mut context = Context {
             interner: self.interner.unwrap_or_default(),
@@ -1077,18 +1029,16 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
             strict: false,
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
-                let buffer: &dyn icu_provider::BufferProvider = boa_icu_provider::buffer();
-                let provider = BoaProvider::Buffer(buffer);
+                let provider = BoaProvider::Buffer(Box::new(icu::StaticProviderAdapter(
+                    boa_icu_provider::buffer(),
+                )));
                 icu::Icu::new(provider).expect("Failed to initialize default icu data.")
             }),
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             kept_alive: Vec::new(),
             host_hooks,
-            job_queue: self.job_queue.unwrap_or_else(|| {
-                let queue: Rc<dyn JobQueue> = Rc::new(SimpleJobQueue::new());
-                queue.into()
-            }),
+            job_queue,
             module_loader,
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
@@ -1104,20 +1054,20 @@ impl<'icu, 'hooks, 'queue, 'module> ContextBuilder<'icu, 'hooks, 'queue, 'module
 
 /// A cleanup guard for a [`Context`] that is executed when dropped.
 #[derive(Debug)]
-pub(crate) struct ContextCleanupGuard<'a, 'host, F>
+pub(crate) struct ContextCleanupGuard<'a, F>
 where
-    F: FnOnce(&mut Context<'_>) + 'static,
+    F: FnOnce(&mut Context) + 'static,
 {
-    context: &'a mut Context<'host>,
+    context: &'a mut Context,
     cleanup: Option<F>,
 }
 
-impl<'a, 'host, F> ContextCleanupGuard<'a, 'host, F>
+impl<'a, F> ContextCleanupGuard<'a, F>
 where
-    F: FnOnce(&mut Context<'_>) + 'static,
+    F: FnOnce(&mut Context) + 'static,
 {
     /// Creates a new `ContextCleanupGuard` from the current context and its cleanup operation.
-    pub(crate) fn new(context: &'a mut Context<'host>, cleanup: F) -> Self {
+    pub(crate) fn new(context: &'a mut Context, cleanup: F) -> Self {
         Self {
             context,
             cleanup: Some(cleanup),
@@ -1125,29 +1075,29 @@ where
     }
 }
 
-impl<'host, F> std::ops::Deref for ContextCleanupGuard<'_, 'host, F>
+impl<F> std::ops::Deref for ContextCleanupGuard<'_, F>
 where
-    F: FnOnce(&mut Context<'_>) + 'static,
+    F: FnOnce(&mut Context) + 'static,
 {
-    type Target = Context<'host>;
+    type Target = Context;
 
     fn deref(&self) -> &Self::Target {
         self.context
     }
 }
 
-impl<F> std::ops::DerefMut for ContextCleanupGuard<'_, '_, F>
+impl<F> std::ops::DerefMut for ContextCleanupGuard<'_, F>
 where
-    F: FnOnce(&mut Context<'_>) + 'static,
+    F: FnOnce(&mut Context) + 'static,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.context
     }
 }
 
-impl<F> Drop for ContextCleanupGuard<'_, '_, F>
+impl<F> Drop for ContextCleanupGuard<'_, F>
 where
-    F: FnOnce(&mut Context<'_>) + 'static,
+    F: FnOnce(&mut Context) + 'static,
 {
     fn drop(&mut self) {
         if let Some(cleanup) = self.cleanup.take() {

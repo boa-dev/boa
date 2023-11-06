@@ -58,7 +58,7 @@ impl Eval {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
-    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? PerformEval(x, false, false).
         Self::perform_eval(args.get_or_undefined(0), false, false, context)
     }
@@ -73,7 +73,7 @@ impl Eval {
         x: &JsValue,
         direct: bool,
         mut strict: bool,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         bitflags::bitflags! {
             /// Flags used to throw early errors on invalid `eval` calls.

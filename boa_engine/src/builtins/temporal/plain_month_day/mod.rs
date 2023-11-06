@@ -51,7 +51,7 @@ impl BuiltInConstructor for PlainMonthDay {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("Not yet implemented.")
@@ -65,7 +65,7 @@ pub(crate) fn create_temporal_month_day(
     iso: IsoDateRecord,
     calendar: JsValue,
     new_target: Option<&JsValue>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
     if iso.is_valid() {

@@ -83,7 +83,7 @@ impl ArrayIterator {
     pub(crate) fn create_array_iterator(
         array: JsObject,
         kind: PropertyNameKind,
-        context: &Context<'_>,
+        context: &Context,
     ) -> JsValue {
         let array_iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
@@ -101,11 +101,7 @@ impl ArrayIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
-    pub(crate) fn next(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let mut array_iterator = this.as_object().map(JsObject::borrow_mut);
         let array_iterator = array_iterator
             .as_mut()

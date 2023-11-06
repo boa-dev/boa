@@ -6,22 +6,14 @@ use boa_engine::{
     Context, JsArgs, JsObject, JsResult, JsValue, NativeFunction,
 };
 
-fn get_constant_folding(
-    _: &JsValue,
-    _: &[JsValue],
-    context: &mut Context<'_>,
-) -> JsResult<JsValue> {
+fn get_constant_folding(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     Ok(context
         .optimizer_options()
         .contains(OptimizerOptions::CONSTANT_FOLDING)
         .into())
 }
 
-fn set_constant_folding(
-    _: &JsValue,
-    args: &[JsValue],
-    context: &mut Context<'_>,
-) -> JsResult<JsValue> {
+fn set_constant_folding(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_boolean();
     let mut options = context.optimizer_options();
     options.set(OptimizerOptions::CONSTANT_FOLDING, value);
@@ -29,14 +21,14 @@ fn set_constant_folding(
     Ok(JsValue::undefined())
 }
 
-fn get_statistics(_: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn get_statistics(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     Ok(context
         .optimizer_options()
         .contains(OptimizerOptions::STATISTICS)
         .into())
 }
 
-fn set_statistics(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn set_statistics(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_boolean();
     let mut options = context.optimizer_options();
     options.set(OptimizerOptions::STATISTICS, value);
@@ -44,7 +36,7 @@ fn set_statistics(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> J
     Ok(JsValue::undefined())
 }
 
-pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
+pub(super) fn create_object(context: &mut Context) -> JsObject {
     let get_constant_folding = FunctionObjectBuilder::new(
         context.realm(),
         NativeFunction::from_fn_ptr(get_constant_folding),

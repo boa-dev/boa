@@ -16,7 +16,7 @@ impl Operation for Inc {
     const INSTRUCTION: &'static str = "INST - Inc";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         match value {
             JsValue::Integer(number) if number < i32::MAX => {
@@ -45,7 +45,7 @@ impl Operation for IncPost {
     const INSTRUCTION: &'static str = "INST - IncPost";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         match value {
             JsValue::Integer(number) if number < i32::MAX => {

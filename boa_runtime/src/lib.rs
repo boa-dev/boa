@@ -126,7 +126,7 @@ pub(crate) mod test {
             source: Cow<'static, str>,
         },
         InspectContext {
-            op: fn(&mut Context<'_>),
+            op: fn(&mut Context),
         },
         Assert {
             source: Cow<'static, str>,
@@ -137,7 +137,7 @@ pub(crate) mod test {
         },
         AssertWithOp {
             source: Cow<'static, str>,
-            op: fn(JsValue, &mut Context<'_>) -> bool,
+            op: fn(JsValue, &mut Context) -> bool,
         },
         AssertOpaqueError {
             source: Cow<'static, str>,
@@ -149,7 +149,7 @@ pub(crate) mod test {
             message: &'static str,
         },
         AssertContext {
-            op: fn(&mut Context<'_>) -> bool,
+            op: fn(&mut Context) -> bool,
         },
     }
 
@@ -164,7 +164,7 @@ pub(crate) mod test {
         /// Executes `op` with the currently active context.
         ///
         /// Useful to make custom assertions that must be done from Rust code.
-        pub(crate) fn inspect_context(op: fn(&mut Context<'_>)) -> Self {
+        pub(crate) fn inspect_context(op: fn(&mut Context)) -> Self {
             Self(Inner::InspectContext { op })
         }
     }
@@ -181,10 +181,10 @@ pub(crate) mod test {
     #[allow(clippy::too_many_lines, clippy::missing_panics_doc)]
     pub(crate) fn run_test_actions_with(
         actions: impl IntoIterator<Item = TestAction>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) {
         #[track_caller]
-        fn forward_val(context: &mut Context<'_>, source: &str) -> JsResult<JsValue> {
+        fn forward_val(context: &mut Context, source: &str) -> JsResult<JsValue> {
             context.eval(Source::from_bytes(source))
         }
 

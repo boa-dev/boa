@@ -130,7 +130,7 @@ impl Intl {
     pub(crate) fn get_canonical_locales(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
 
@@ -172,7 +172,7 @@ trait Service {
     fn resolve(
         _locale: &mut icu_locid::Locale,
         _options: &mut Self::LocaleOptions,
-        _provider: BoaProvider<'_>,
+        _provider: &BoaProvider,
     ) {
     }
 }

@@ -17,7 +17,7 @@ enum StaticElement {
     StaticField((Gc<CodeBlock>, Option<u32>)),
 }
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// This function compiles a class declaration or expression.
     ///
     /// The compilation of a class declaration and expression is mostly equal.

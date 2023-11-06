@@ -18,7 +18,7 @@ impl Operation for CreateMappedArgumentsObject {
     const INSTRUCTION: &'static str = "INST - CreateMappedArgumentsObject";
     const COST: u8 = 8;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let arguments_start = context.vm.frame().fp as usize + CallFrame::FIRST_ARGUMENT_POSITION;
         let function_object = context
             .vm
@@ -54,7 +54,7 @@ impl Operation for CreateUnmappedArgumentsObject {
     const INSTRUCTION: &'static str = "INST - CreateUnmappedArgumentsObject";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let arguments_start = context.vm.frame().fp as usize + CallFrame::FIRST_ARGUMENT_POSITION;
         let args = context.vm.stack[arguments_start..].to_vec();
         let arguments = Arguments::create_unmapped_arguments_object(&args, context);

@@ -21,21 +21,16 @@ use crate::{
 /// - The second argument represents the list of all arguments passed to the function.
 ///
 /// - The last argument is the engine [`Context`].
-pub type NativeFunctionPointer = fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue>;
+pub type NativeFunctionPointer = fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>;
 
 trait TraceableClosure: Trace {
-    fn call(
-        &self,
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue>;
+    fn call(&self, this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue>;
 }
 
 #[derive(Trace, Finalize)]
 struct Closure<F, T>
 where
-    F: Fn(&JsValue, &[JsValue], &T, &mut Context<'_>) -> JsResult<JsValue>,
+    F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue>,
     T: Trace,
 {
     // SAFETY: `NativeFunction`'s safe API ensures only `Copy` closures are stored; its unsafe API,
@@ -48,15 +43,10 @@ where
 
 impl<F, T> TraceableClosure for Closure<F, T>
 where
-    F: Fn(&JsValue, &[JsValue], &T, &mut Context<'_>) -> JsResult<JsValue>,
+    F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue>,
     T: Trace,
 {
-    fn call(
-        &self,
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn call(&self, this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         (self.f)(this, args, &self.captures, context)
     }
 }
@@ -152,7 +142,7 @@ impl NativeFunction {
     /// async fn test(
     ///     _this: &JsValue,
     ///     args: &[JsValue],
-    ///     _context: &mut Context<'_>,
+    ///     _context: &mut Context,
     /// ) -> JsResult<JsValue> {
     ///     let arg = args.get(0).cloned();
     ///     std::future::ready(()).await;
@@ -171,7 +161,7 @@ impl NativeFunction {
     /// fn test<'a>(
     ///     _this: &JsValue,
     ///     args: &'a [JsValue],
-    ///     _context: &mut Context<'_>,
+    ///     _context: &mut Context,
     /// ) -> impl Future<Output = JsResult<JsValue>> + 'a {
     ///     async move {
     ///         let arg = args.get(0).cloned();
@@ -197,7 +187,7 @@ impl NativeFunction {
     /// fn test(
     ///     _this: &JsValue,
     ///     args: &[JsValue],
-    ///     _context: &mut Context<'_>,
+    ///     _context: &mut Context,
     /// ) -> impl Future<Output = JsResult<JsValue>> {
     ///     let arg = args.get(0).cloned();
     ///     async move {
@@ -212,7 +202,7 @@ impl NativeFunction {
     /// And this should always return a `'static` future.
     ///
     /// [`Future`]: std::future::Future
-    pub fn from_async_fn<Fut>(f: fn(&JsValue, &[JsValue], &mut Context<'_>) -> Fut) -> Self
+    pub fn from_async_fn<Fut>(f: fn(&JsValue, &[JsValue], &mut Context) -> Fut) -> Self
     where
         Fut: std::future::IntoFuture<Output = JsResult<JsValue>> + 'static,
     {
@@ -226,7 +216,7 @@ impl NativeFunction {
     /// Creates a `NativeFunction` from a `Copy` closure.
     pub fn from_copy_closure<F>(closure: F) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue> + Copy + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
         unsafe { Self::from_closure(closure) }
@@ -235,7 +225,7 @@ impl NativeFunction {
     /// Creates a `NativeFunction` from a `Copy` closure and a list of traceable captures.
     pub fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &T, &mut Context<'_>) -> JsResult<JsValue> + Copy + 'static,
+        F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue> + Copy + 'static,
         T: Trace + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
@@ -252,7 +242,7 @@ impl NativeFunction {
     /// on why that is the case.
     pub unsafe fn from_closure<F>(closure: F) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue> + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + 'static,
     {
         // SAFETY: The caller must ensure the invariants of the closure hold.
         unsafe {
@@ -273,7 +263,7 @@ impl NativeFunction {
     /// on why that is the case.
     pub unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &T, &mut Context<'_>) -> JsResult<JsValue> + 'static,
+        F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue> + 'static,
         T: Trace + 'static,
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
@@ -297,7 +287,7 @@ impl NativeFunction {
         &self,
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         match self.inner {
             Inner::PointerFn(f) => f(this, args, context),

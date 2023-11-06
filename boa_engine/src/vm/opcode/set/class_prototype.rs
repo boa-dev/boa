@@ -17,7 +17,7 @@ impl Operation for SetClassPrototype {
     const INSTRUCTION: &'static str = "INST - SetClassPrototype";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let prototype_value = context.vm.pop();
         let prototype = match &prototype_value {
             JsValue::Object(proto) => Some(proto.clone()),

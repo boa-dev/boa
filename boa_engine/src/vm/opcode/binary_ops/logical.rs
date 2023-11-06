@@ -15,7 +15,7 @@ impl Operation for LogicalAnd {
     const INSTRUCTION: &'static str = "INST - LogicalAnd";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.pop();
         if !lhs.to_boolean() {
@@ -38,7 +38,7 @@ impl Operation for LogicalOr {
     const INSTRUCTION: &'static str = "INST - LogicalOr";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.pop();
         if lhs.to_boolean() {
@@ -61,7 +61,7 @@ impl Operation for Coalesce {
     const INSTRUCTION: &'static str = "INST - Coalesce";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.pop();
         if !lhs.is_null_or_undefined() {

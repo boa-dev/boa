@@ -14,7 +14,7 @@ use crate::{
     vm::{BindingOpcode, Opcode},
 };
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     pub(crate) fn compile_for_loop(
         &mut self,
         for_loop: &ForLoop,

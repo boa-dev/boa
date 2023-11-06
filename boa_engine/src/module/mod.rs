@@ -145,7 +145,7 @@ impl Module {
     pub fn parse<R: Read>(
         src: Source<'_, R>,
         realm: Option<Realm>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Module parsing", "Main");
         let mut parser = Parser::new(src);
@@ -178,7 +178,7 @@ impl Module {
         export_names: &[JsString],
         evaluation_steps: SyntheticModuleInitializer,
         realm: Option<Realm>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> Self {
         let names: FxHashSet<Sym> = export_names
             .iter()
@@ -234,7 +234,7 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
     #[inline]
-    pub fn load(&self, context: &mut Context<'_>) -> JsPromise {
+    pub fn load(&self, context: &mut Context) -> JsPromise {
         match self.kind() {
             ModuleKind::SourceText(_) => {
                 // Concrete method [`LoadRequestedModules ( [ hostDefined ] )`][spec].
@@ -277,7 +277,7 @@ impl Module {
     /// Abstract operation [`InnerModuleLoading`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLoading
-    fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut Context<'_>) {
+    fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut Context) {
         // 1. Assert: state.[[IsLoading]] is true.
         assert!(state.loading.get());
 
@@ -364,7 +364,7 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
     #[inline]
-    pub fn link(&self, context: &mut Context<'_>) -> JsResult<()> {
+    pub fn link(&self, context: &mut Context) -> JsResult<()> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.link(context),
             ModuleKind::Synthetic(synth) => {
@@ -381,7 +381,7 @@ impl Module {
         &self,
         stack: &mut Vec<SourceTextModule>,
         index: usize,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<usize> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.inner_link(stack, index, context),
@@ -408,7 +408,7 @@ impl Module {
     ///
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[inline]
-    pub fn evaluate(&self, context: &mut Context<'_>) -> JsPromise {
+    pub fn evaluate(&self, context: &mut Context) -> JsPromise {
         match self.kind() {
             ModuleKind::SourceText(src) => src.evaluate(context),
             ModuleKind::Synthetic(synth) => synth.evaluate(context),
@@ -422,7 +422,7 @@ impl Module {
         &self,
         stack: &mut Vec<SourceTextModule>,
         index: usize,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<usize> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.inner_evaluate(stack, index, None, context),
@@ -450,14 +450,13 @@ impl Module {
     ///
     /// # Examples
     /// ```
-    /// # use std::path::Path;
+    /// # use std::{path::Path, rc::Rc};
     /// # use boa_engine::{Context, Source, Module, JsValue};
     /// # use boa_engine::builtins::promise::PromiseState;
     /// # use boa_engine::module::{ModuleLoader, SimpleModuleLoader};
-    /// let loader = &SimpleModuleLoader::new(Path::new(".")).unwrap();
-    /// let dyn_loader: &dyn ModuleLoader = loader;
+    /// let loader = Rc::new(SimpleModuleLoader::new(Path::new(".")).unwrap());
     /// let mut context = &mut Context::builder()
-    ///     .module_loader(dyn_loader)
+    ///     .module_loader(loader.clone())
     ///     .build()
     ///     .unwrap();
     ///
@@ -478,7 +477,7 @@ impl Module {
     /// ```
     #[allow(dropping_copy_types)]
     #[inline]
-    pub fn load_link_evaluate(&self, context: &mut Context<'_>) -> JsPromise {
+    pub fn load_link_evaluate(&self, context: &mut Context) -> JsPromise {
         let main_timer = Profiler::global().start_event("Module evaluation", "Main");
 
         let promise = self
@@ -522,7 +521,7 @@ impl Module {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmodulenamespace
     /// [ns]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects
-    pub fn namespace(&self, context: &mut Context<'_>) -> JsObject {
+    pub fn namespace(&self, context: &mut Context) -> JsObject {
         // 1. Assert: If module is a Cyclic Module Record, then module.[[Status]] is not new or unlinked.
         // 2. Let namespace be module.[[Namespace]].
         // 3. If namespace is empty, then
@@ -584,7 +583,7 @@ impl ModuleNamespace {
     /// Abstract operation [`ModuleNamespaceCreate ( module, exports )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-modulenamespacecreate
-    pub(crate) fn create(module: Module, names: Vec<Sym>, context: &mut Context<'_>) -> JsObject {
+    pub(crate) fn create(module: Module, names: Vec<Sym>, context: &mut Context) -> JsObject {
         // 1. Assert: module.[[Namespace]] is empty.
         // ignored since this is ensured by `Module::namespace`.
 

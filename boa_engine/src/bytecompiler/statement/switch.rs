@@ -1,7 +1,7 @@
 use crate::{bytecompiler::ByteCompiler, vm::Opcode};
 use boa_ast::statement::Switch;
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// Compile a [`Switch`] `boa_ast` node
     pub(crate) fn compile_switch(&mut self, switch: &Switch, use_expr: bool) {
         self.compile_expr(switch.val(), true);

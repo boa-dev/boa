@@ -77,7 +77,7 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
-    pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context<'_>) -> JsObject {
+    pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context) -> JsObject {
         JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context
@@ -97,11 +97,7 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
-    pub(crate) fn next(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let mut iterator = this.as_object().map(JsObject::borrow_mut);
         let iterator = iterator
             .as_mut()

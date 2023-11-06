@@ -190,7 +190,7 @@ impl JsError {
     ///
     /// assert!(error_val.as_object().unwrap().borrow().is_error());
     /// ```
-    pub fn to_opaque(&self, context: &mut Context<'_>) -> JsValue {
+    pub fn to_opaque(&self, context: &mut Context) -> JsValue {
         match &self.inner {
             Repr::Native(e) => e.to_opaque(context).into(),
             Repr::Opaque(v) => v.clone(),
@@ -235,7 +235,7 @@ impl JsError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
     /// assert_eq!(error.message(), "type error!");
     /// ```
-    pub fn try_native(&self, context: &mut Context<'_>) -> Result<JsNativeError, TryNativeError> {
+    pub fn try_native(&self, context: &mut Context) -> Result<JsNativeError, TryNativeError> {
         match &self.inner {
             Repr::Native(e) => Ok(e.clone()),
             Repr::Opaque(val) => {
@@ -247,7 +247,7 @@ impl JsError {
                     .as_error()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
-                let try_get_property = |key: JsString, name, context: &mut Context<'_>| {
+                let try_get_property = |key: JsString, name, context: &mut Context| {
                     obj.has_property(key.clone(), context)
                         .map_err(|e| TryNativeError::InaccessibleProperty {
                             property: name,
@@ -414,7 +414,7 @@ impl JsError {
     ///     "Symbol(error!)"
     /// );
     /// ```
-    pub fn into_erased(self, context: &mut Context<'_>) -> JsErasedError {
+    pub fn into_erased(self, context: &mut Context) -> JsErasedError {
         let Ok(native) = self.try_native(context) else {
             return JsErasedError {
                 inner: ErasedRepr::Opaque(self.to_string().into_boxed_str()),
@@ -910,7 +910,7 @@ impl JsNativeError {
     ///
     /// If converting a [`JsNativeErrorKind::RuntimeLimit`] to an opaque object.
     #[inline]
-    pub fn to_opaque(&self, context: &mut Context<'_>) -> JsObject {
+    pub fn to_opaque(&self, context: &mut Context) -> JsObject {
         let Self {
             kind,
             message,

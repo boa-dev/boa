@@ -17,7 +17,7 @@ macro_rules! implement_bin_ops {
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 2;
 
-            fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+            fn execute(context: &mut Context) -> JsResult<CompletionType> {
                 let rhs = context.vm.pop();
                 let lhs = context.vm.pop();
                 let value = lhs.$op(&rhs, context)?;

@@ -15,7 +15,7 @@ impl Operation for RequireObjectCoercible {
     const INSTRUCTION: &'static str = "INST - RequireObjectCoercible";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let value = value.require_object_coercible()?;
         context.vm.push(value.clone());

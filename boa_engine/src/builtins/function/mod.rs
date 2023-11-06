@@ -333,7 +333,7 @@ impl BuiltInConstructor for BuiltInFunctionObject {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let active_function = context
             .active_function_object()
@@ -356,7 +356,7 @@ impl BuiltInFunctionObject {
         args: &[JsValue],
         r#async: bool,
         generator: bool,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let currentRealm be the current Realm Record.
         // 2. Perform ? HostEnsureCanCompileStrings(currentRealm).
@@ -586,7 +586,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-    fn apply(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn apply(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
@@ -626,7 +626,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.bind
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
-    fn bind(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn bind(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let Target be the this value.
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
         let target = this.as_callable().ok_or_else(|| {
@@ -708,7 +708,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-    fn call(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn call(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
@@ -732,7 +732,7 @@ impl BuiltInFunctionObject {
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
     #[allow(clippy::wrong_self_convention)]
-    fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         let func = this;
 
@@ -794,18 +794,14 @@ impl BuiltInFunctionObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype-@@hasinstance
-    fn has_instance(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn has_instance(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let F be the this value.
         // 2. Return ? OrdinaryHasInstance(F, V).
         Ok(JsValue::ordinary_has_instance(this, args.get_or_undefined(0), context)?.into())
     }
 
     #[allow(clippy::unnecessary_wraps)]
-    fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::undefined())
     }
 }
@@ -820,7 +816,7 @@ pub(crate) fn set_function_name(
     function: &JsObject,
     name: &PropertyKey,
     prefix: Option<JsString>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) {
     // 1. Assert: F is an extensible object that does not have a "name" own property.
     // 2. If Type(name) is Symbol, then
@@ -888,7 +884,7 @@ impl BoundFunction {
         target_function: JsObject,
         this: JsValue,
         args: Vec<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let proto be ? targetFunction.[[GetPrototypeOf]]().
         let proto = target_function.__get_prototype_of__(context)?;

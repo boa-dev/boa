@@ -19,7 +19,7 @@ use std::{fmt, str::FromStr};
 #[inline]
 pub(crate) fn get_temporal_rounding_increment(
     options: &JsObject,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<u32> {
     // 1. Let increment be ? GetOption(normalizedOptions, "roundingIncrement", "number", undefined, 1𝔽).
     let value = options.get(js_string!("roundingIncrement"), context)?;
@@ -58,7 +58,7 @@ pub(crate) fn get_temporal_unit(
     key: &[u16],
     unit_group: TemporalUnitGroup,
     extra_values: Option<Vec<TemporalUnit>>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<Option<TemporalUnit>> {
     let extra = extra_values.unwrap_or_default();
     let mut unit_values = unit_group.group();

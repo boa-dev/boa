@@ -12,7 +12,7 @@ use crate::{
 pub(crate) struct New;
 
 impl New {
-    fn operation(context: &mut Context<'_>, argument_count: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, argument_count: usize) -> JsResult<CompletionType> {
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
 
@@ -33,17 +33,17 @@ impl Operation for New {
     const INSTRUCTION: &'static str = "INST - New";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u8>() as usize;
         Self::operation(context, argument_count)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u16>() as usize;
         Self::operation(context, argument_count)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u32>() as usize;
         Self::operation(context, argument_count)
     }
@@ -61,7 +61,7 @@ impl Operation for NewSpread {
     const INSTRUCTION: &'static str = "INST - NewSpread";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array

@@ -66,14 +66,14 @@ impl fmt::Display for OptimizerStatistics {
 
 /// This represents an AST optimizer.
 #[derive(Debug)]
-pub(crate) struct Optimizer<'context, 'host> {
+pub(crate) struct Optimizer<'context> {
     statistics: OptimizerStatistics,
-    context: &'context mut Context<'host>,
+    context: &'context mut Context,
 }
 
-impl<'context, 'host> Optimizer<'context, 'host> {
+impl<'context> Optimizer<'context> {
     /// Create a optimizer.
-    pub(crate) fn new(context: &'context mut Context<'host>) -> Self {
+    pub(crate) fn new(context: &'context mut Context) -> Self {
         Self {
             statistics: OptimizerStatistics::default(),
             context,
@@ -125,7 +125,7 @@ impl<'context, 'host> Optimizer<'context, 'host> {
     }
 }
 
-impl<'ast> VisitorMut<'ast> for Optimizer<'_, '_> {
+impl<'ast> VisitorMut<'ast> for Optimizer<'_> {
     type BreakTy = ();
 
     fn visit_expression_mut(&mut self, node: &'ast mut Expression) -> ControlFlow<Self::BreakTy> {

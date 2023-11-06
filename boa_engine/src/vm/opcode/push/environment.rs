@@ -15,7 +15,7 @@ pub(crate) struct PushDeclarativeEnvironment;
 impl PushDeclarativeEnvironment {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(
-        context: &mut Context<'_>,
+        context: &mut Context,
         compile_environments_index: usize,
     ) -> JsResult<CompletionType> {
         let compile_environment = context
@@ -33,17 +33,17 @@ impl Operation for PushDeclarativeEnvironment {
     const INSTRUCTION: &'static str = "INST - PushDeclarativeEnvironment";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let compile_environments_index = context.vm.read::<u8>() as usize;
         Self::operation(context, compile_environments_index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let compile_environments_index = context.vm.read::<u16>() as usize;
         Self::operation(context, compile_environments_index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let compile_environments_index = context.vm.read::<u32>() as usize;
         Self::operation(context, compile_environments_index)
     }
@@ -61,7 +61,7 @@ impl Operation for PushObjectEnvironment {
     const INSTRUCTION: &'static str = "INST - PushObjectEnvironment";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let object = context.vm.pop();
         let object = object.to_object(context)?;
 
@@ -82,7 +82,7 @@ impl Operation for PushPrivateEnvironment {
     const INSTRUCTION: &'static str = "INST - PushPrivateEnvironment";
     const COST: u8 = 5;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let class_value = context.vm.pop();
         let class = class_value.to_object(context)?;
 
@@ -126,7 +126,7 @@ impl Operation for PopPrivateEnvironment {
     const INSTRUCTION: &'static str = "INST - PopPrivateEnvironment";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         context.vm.environments.pop_private();
         Ok(CompletionType::Normal)
     }

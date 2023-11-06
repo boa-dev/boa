@@ -97,7 +97,7 @@ impl BuiltInConstructor for TimeZone {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         // 1a. Throw a TypeError exception.
@@ -130,7 +130,7 @@ impl BuiltInConstructor for TimeZone {
 
 impl TimeZone {
     // NOTE: id, toJSON, toString currently share the exact same implementation -> Consolidate into one function and define multiple accesors?
-    pub(crate) fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
         })?;
@@ -143,7 +143,7 @@ impl TimeZone {
     pub(crate) fn get_offset_nanoseconds_for(
         this: &JsValue,
         args: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
@@ -172,7 +172,7 @@ impl TimeZone {
     pub(crate) fn get_offset_string_for(
         this: &JsValue,
         args: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
@@ -200,7 +200,7 @@ impl TimeZone {
     pub(crate) fn get_plain_date_time_for(
         _: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
@@ -210,7 +210,7 @@ impl TimeZone {
     pub(crate) fn get_instant_for(
         _: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
@@ -220,7 +220,7 @@ impl TimeZone {
     pub(crate) fn get_possible_instants_for(
         _: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
@@ -230,7 +230,7 @@ impl TimeZone {
     pub(crate) fn get_next_transition(
         _: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
@@ -240,18 +240,14 @@ impl TimeZone {
     pub(crate) fn get_previous_transition(
         _: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         let o = this.as_object().ok_or_else(|| {
@@ -283,7 +279,7 @@ impl TimeZone {
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-defaulttimezone
 #[allow(unused)]
-pub(super) fn default_time_zone(context: &mut Context<'_>) -> String {
+pub(super) fn default_time_zone(context: &mut Context) -> String {
     // The minimum implementation of DefaultTimeZone for ECMAScript implementations that do not
     // include the ECMA-402 API, supporting only the "UTC" time zone, performs the following steps
     // when called:
@@ -304,7 +300,7 @@ pub(super) fn default_time_zone(context: &mut Context<'_>) -> String {
 pub(super) fn create_temporal_time_zone(
     identifier: String,
     new_target: Option<JsValue>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If newTarget is not present, set newTarget to %Temporal.TimeZone%.
     let new_target = new_target.unwrap_or_else(|| {
@@ -367,7 +363,7 @@ pub(super) fn create_temporal_time_zone(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-parsetimezoneoffsetstring
 #[allow(clippy::unnecessary_wraps, unused)]
-fn parse_timezone_offset_string(offset_string: &str, context: &mut Context<'_>) -> JsResult<i64> {
+fn parse_timezone_offset_string(offset_string: &str, context: &mut Context) -> JsResult<i64> {
     use boa_parser::temporal::{IsoCursor, TemporalTimeZoneString};
 
     // 1. Let parseResult be ParseText(StringToCodePoints(offsetString), UTCOffset).

@@ -19,7 +19,7 @@ impl Operation for TemplateLookup {
     const INSTRUCTION: &'static str = "INST - TemplateLookup";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let jump = context.vm.read::<u32>();
         let site = context.vm.read::<u64>();
 
@@ -41,7 +41,7 @@ pub(crate) struct TemplateCreate;
 
 impl TemplateCreate {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context<'_>, count: u32, site: u64) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, count: u32, site: u64) -> JsResult<CompletionType> {
         let template =
             Array::array_create(count.into(), None, context).expect("cannot fail per spec");
         let raw_obj =
@@ -104,19 +104,19 @@ impl Operation for TemplateCreate {
     const INSTRUCTION: &'static str = "INST - TemplateCreate";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let count = u32::from(context.vm.read::<u8>());
         let site = context.vm.read::<u64>();
         Self::operation(context, count, site)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let count = u32::from(context.vm.read::<u16>());
         let site = context.vm.read::<u64>();
         Self::operation(context, count, site)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let count = context.vm.read::<u32>();
         let site = context.vm.read::<u64>();
         Self::operation(context, count, site)

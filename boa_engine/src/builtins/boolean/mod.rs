@@ -61,7 +61,7 @@ impl BuiltInConstructor for Boolean {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // Get the argument, if any
         let data = args.get(0).map_or(false, JsValue::to_boolean);
@@ -107,11 +107,7 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean-object
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let boolean = Self::this_boolean_value(this)?;
         Ok(JsValue::new(js_string!(boolean.to_string())))
     }
@@ -124,11 +120,7 @@ impl Boolean {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
-    pub(crate) fn value_of(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_boolean_value(this)?))
     }
 }

@@ -15,7 +15,7 @@ impl Operation for Dup {
     const INSTRUCTION: &'static str = "INST - Dup";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         context.vm.push(value.clone());
         context.vm.push(value);

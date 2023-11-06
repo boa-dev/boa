@@ -12,7 +12,7 @@ use crate::{
 pub(crate) struct GetPropertyByName;
 
 impl GetPropertyByName {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let receiver = context.vm.pop();
         let value = context.vm.pop();
         let object = if let Some(object) = value.as_object() {
@@ -39,17 +39,17 @@ impl Operation for GetPropertyByName {
     const INSTRUCTION: &'static str = "INST - GetPropertyByName";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
         Self::operation(context, index as usize)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         Self::operation(context, index as usize)
     }
@@ -67,7 +67,7 @@ impl Operation for GetPropertyByValue {
     const INSTRUCTION: &'static str = "INST - GetPropertyByValue";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let key = context.vm.pop();
         let receiver = context.vm.pop();
         let value = context.vm.pop();
@@ -114,7 +114,7 @@ impl Operation for GetPropertyByValuePush {
     const INSTRUCTION: &'static str = "INST - GetPropertyByValuePush";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let key = context.vm.pop();
         let receiver = context.vm.pop();
         let value = context.vm.pop();

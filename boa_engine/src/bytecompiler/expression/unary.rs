@@ -8,7 +8,7 @@ use crate::{
     vm::Opcode,
 };
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     pub(crate) fn compile_unary(&mut self, unary: &Unary, use_expr: bool) {
         let opcode = match unary.op() {
             UnaryOp::Delete => {

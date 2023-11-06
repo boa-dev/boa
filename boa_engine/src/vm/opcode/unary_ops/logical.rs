@@ -15,7 +15,7 @@ impl Operation for LogicalNot {
     const INSTRUCTION: &'static str = "INST - LogicalNot";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         context.vm.push(!value.to_boolean());
         Ok(CompletionType::Normal)

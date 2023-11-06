@@ -171,7 +171,7 @@ impl BuiltInConstructor for Duration {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
@@ -288,57 +288,57 @@ impl Duration {
     }
 
     /// 7.3.3 get Temporal.Duration.prototype.years
-    fn get_years(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_years(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Year)
     }
 
     // 7.3.4 get Temporal.Duration.prototype.months
-    fn get_months(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_months(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Month)
     }
 
     /// 7.3.5 get Temporal.Duration.prototype.weeks
-    fn get_weeks(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_weeks(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Week)
     }
 
     /// 7.3.6 get Temporal.Duration.prototype.days
-    fn get_days(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_days(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Day)
     }
 
     /// 7.3.7 get Temporal.Duration.prototype.hours
-    fn get_hours(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_hours(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Hour)
     }
 
     /// 7.3.8 get Temporal.Duration.prototype.minutes
-    fn get_minutes(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_minutes(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Minute)
     }
 
     /// 7.3.9 get Temporal.Duration.prototype.seconds
-    fn get_seconds(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_seconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Second)
     }
 
     /// 7.3.10 get Temporal.Duration.prototype.milliseconds
-    fn get_milliseconds(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_milliseconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Millisecond)
     }
 
     /// 7.3.11 get Temporal.Duration.prototype.microseconds
-    fn get_microseconds(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_microseconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Microsecond)
     }
 
     /// 7.3.12 get Temporal.Duration.prototype.nanoseconds
-    fn get_nanoseconds(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_nanoseconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Nanosecond)
     }
 
     /// 7.3.13 get Temporal.Duration.prototype.sign
-    fn get_sign(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_sign(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -355,7 +355,7 @@ impl Duration {
     }
 
     /// 7.3.14 get Temporal.Duration.prototype.blank
-    fn get_blank(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_blank(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -386,7 +386,7 @@ impl Duration {
     pub(crate) fn with(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
@@ -518,7 +518,7 @@ impl Duration {
     }
 
     /// 7.3.16 `Temporal.Duration.prototype.negated ( )`
-    pub(crate) fn negated(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn negated(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         // 3. Return ! CreateNegatedTemporalDuration(duration).
@@ -529,11 +529,7 @@ impl Duration {
     }
 
     /// 7.3.17 `Temporal.Duration.prototype.abs ( )`
-    pub(crate) fn abs(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn abs(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         // 3. Return ! CreateTemporalDuration(abs(duration.[[Years]]), abs(duration.[[Months]]),
@@ -552,14 +548,14 @@ impl Duration {
     }
 
     /// 7.3.18 `Temporal.Duration.prototype.add ( other [ , options ] )`
-    pub(crate) fn add(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn add(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// 7.3.19 `Temporal.Duration.prototype.subtract ( other [ , options ] )`
-    pub(crate) fn subtract(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn subtract(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("not yet implemented.")
             .into())
@@ -570,7 +566,7 @@ impl Duration {
     pub(crate) fn round(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
@@ -809,7 +805,7 @@ impl Duration {
     pub(crate) fn total(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
@@ -874,22 +870,14 @@ impl Duration {
     }
 
     /// 7.3.22 `Temporal.Duration.prototype.toString ( [ options ] )`
-    pub(crate) fn to_string(
-        _this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_string(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// 7.3.23 `Temporal.Duration.prototype.toJSON ( )`
-    pub(crate) fn to_json(
-        _this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_json(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("not yet implemented.")
             .into())
@@ -933,7 +921,7 @@ pub(crate) fn to_temporal_duration_record(
 pub(crate) fn create_temporal_duration(
     record: DurationRecord,
     new_target: Option<&JsValue>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsObject> {
     // 1. If ! IsValidDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds) is false, throw a RangeError exception.
     if !record.is_valid_duration() {
@@ -993,7 +981,7 @@ fn move_relative_date(
     calendar: &JsValue,
     relative_to: &PlainDate,
     duration: &DurationRecord,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<(PlainDate, f64)> {
     let new_date = plain_date::add_date(
         calendar,

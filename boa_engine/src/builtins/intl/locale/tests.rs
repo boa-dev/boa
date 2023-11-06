@@ -7,7 +7,7 @@ use icu_locid::{
     locale, Locale,
 };
 use icu_plurals::provider::CardinalV1Marker;
-use icu_provider::{BufferProvider, DataLocale, DataProvider, DataRequest, DataRequestMetadata};
+use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata};
 
 use crate::{
     builtins::intl::{
@@ -15,7 +15,7 @@ use crate::{
         options::{IntlOptions, LocaleMatcher},
         Service,
     },
-    context::icu::{BoaProvider, Icu},
+    context::icu::{BoaProvider, Icu, StaticProviderAdapter},
 };
 
 #[derive(Debug)]
@@ -30,7 +30,7 @@ impl Service for TestService {
 
     type LocaleOptions = TestOptions;
 
-    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: BoaProvider<'_>) {
+    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &BoaProvider) {
         let loc_hc = locale
             .extensions
             .unicode
@@ -49,7 +49,7 @@ impl Service for TestService {
                 locale: &DataLocale::from(&*locale),
                 metadata: DataRequestMetadata::default(),
             };
-            let preferred = DataProvider::<TimeLengthsV1Marker>::load(&provider, req)
+            let preferred = DataProvider::<TimeLengthsV1Marker>::load(provider, req)
                 .unwrap()
                 .take_payload()
                 .unwrap()
@@ -73,8 +73,10 @@ impl Service for TestService {
 
 #[test]
 fn locale_resolution() {
-    let provider: &dyn BufferProvider = boa_icu_provider::buffer();
-    let icu = Icu::new(BoaProvider::Buffer(provider)).unwrap();
+    let icu = Icu::new(BoaProvider::Buffer(Box::new(StaticProviderAdapter(
+        boa_icu_provider::buffer(),
+    ))))
+    .unwrap();
     let mut default = default_locale(icu.locale_canonicalizer());
     default
         .extensions
@@ -103,7 +105,7 @@ fn locale_resolution() {
     let locale = resolve_locale::<TestService>(&[], &mut options, &icu);
     let best = best_locale_for_provider::<<TestService as Service>::LangMarker>(
         default.id.clone(),
-        &icu.provider(),
+        icu.provider(),
     )
     .unwrap();
     let mut best = Locale::from(best);

@@ -22,7 +22,7 @@ impl Operation for NotEq {
     const INSTRUCTION: &'static str = "INST - NotEq";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
         let value = !lhs.equals(&rhs, context)?;
@@ -43,7 +43,7 @@ impl Operation for StrictEq {
     const INSTRUCTION: &'static str = "INST - StrictEq";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
         context.vm.push(lhs.strict_equals(&rhs));
@@ -63,7 +63,7 @@ impl Operation for StrictNotEq {
     const INSTRUCTION: &'static str = "INST - StrictNotEq";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
         context.vm.push(!lhs.strict_equals(&rhs));
@@ -83,7 +83,7 @@ impl Operation for In {
     const INSTRUCTION: &'static str = "INST - In";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
 
@@ -110,7 +110,7 @@ impl Operation for In {
 pub(crate) struct InPrivate;
 
 impl InPrivate {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let name = context.vm.frame().code_block().constant_string(index);
         let rhs = context.vm.pop();
 
@@ -143,17 +143,17 @@ impl Operation for InPrivate {
     const INSTRUCTION: &'static str = "INST - InPrivate";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -171,7 +171,7 @@ impl Operation for InstanceOf {
     const INSTRUCTION: &'static str = "INST - InstanceOf";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let target = context.vm.pop();
         let v = context.vm.pop();
         let value = v.instance_of(&target, context)?;

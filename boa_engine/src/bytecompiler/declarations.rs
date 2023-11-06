@@ -25,7 +25,7 @@ use boa_ast::operations::annex_b_function_declarations_names;
 
 use super::Operand;
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// `GlobalDeclarationInstantiation ( script, env )`
     ///
     /// More information:

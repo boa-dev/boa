@@ -1,7 +1,7 @@
 use crate::{bytecompiler::ByteCompiler, vm::Opcode};
 use boa_ast::statement::Block;
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// Compile a [`Block`] `boa_ast` node
     pub(crate) fn compile_block(&mut self, block: &Block, use_expr: bool) {
         let old_lex_env = self.lexical_environment.clone();

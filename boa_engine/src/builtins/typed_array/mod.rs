@@ -108,7 +108,7 @@ impl<T: TypedArray> BuiltInConstructor for T {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -458,7 +458,7 @@ impl TypedArrayKind {
     pub(crate) fn get_element(
         self,
         value: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<TypedArrayElement> {
         match self {
             TypedArrayKind::Int8 => value.to_int8(context).map(TypedArrayElement::Int8),

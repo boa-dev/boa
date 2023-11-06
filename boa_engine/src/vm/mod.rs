@@ -252,7 +252,7 @@ pub(crate) enum CompletionType {
 }
 
 #[cfg(feature = "trace")]
-impl Context<'_> {
+impl Context {
     const COLUMN_WIDTH: usize = 26;
     const TIME_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH / 2;
     const OPCODE_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
@@ -293,7 +293,7 @@ impl Context<'_> {
 
     fn trace_execute_instruction<F>(&mut self, f: F) -> JsResult<CompletionType>
     where
-        F: FnOnce(Opcode, &mut Context<'_>) -> JsResult<CompletionType>,
+        F: FnOnce(Opcode, &mut Context) -> JsResult<CompletionType>,
     {
         let bytecodes = &self.vm.frame().code_block.bytecode;
         let pc = self.vm.frame().pc as usize;
@@ -371,10 +371,10 @@ impl Context<'_> {
     }
 }
 
-impl Context<'_> {
+impl Context {
     fn execute_instruction<F>(&mut self, f: F) -> JsResult<CompletionType>
     where
-        F: FnOnce(Opcode, &mut Context<'_>) -> JsResult<CompletionType>,
+        F: FnOnce(Opcode, &mut Context) -> JsResult<CompletionType>,
     {
         let opcode: Opcode = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
@@ -394,7 +394,7 @@ impl Context<'_> {
 
     fn execute_one<F>(&mut self, f: F) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(Opcode, &mut Context<'_>) -> JsResult<CompletionType>,
+        F: FnOnce(Opcode, &mut Context) -> JsResult<CompletionType>,
     {
         #[cfg(feature = "fuzz")]
         {

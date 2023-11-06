@@ -13,7 +13,7 @@ use crate::{
 pub(crate) struct DefineClassStaticSetterByName;
 
 impl DefineClassStaticSetterByName {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let class = context.vm.pop();
         let class = class.as_object().expect("class must be object");
@@ -59,17 +59,17 @@ impl Operation for DefineClassStaticSetterByName {
     const INSTRUCTION: &'static str = "INST - DefineClassStaticSetterByName";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -83,7 +83,7 @@ impl Operation for DefineClassStaticSetterByName {
 pub(crate) struct DefineClassSetterByName;
 
 impl DefineClassSetterByName {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let class_proto = context.vm.pop();
         let class_proto = class_proto.as_object().expect("class must be object");
@@ -130,17 +130,17 @@ impl Operation for DefineClassSetterByName {
     const INSTRUCTION: &'static str = "INST - DefineClassSetterByName";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -158,7 +158,7 @@ impl Operation for DefineClassStaticSetterByValue {
     const INSTRUCTION: &'static str = "INST - DefineClassStaticSetterByValue";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let key = context.vm.pop();
         let class = context.vm.pop();
@@ -210,7 +210,7 @@ impl Operation for DefineClassSetterByValue {
     const INSTRUCTION: &'static str = "INST - DefineClassSetterByValue";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let key = context.vm.pop();
         let class_proto = context.vm.pop();

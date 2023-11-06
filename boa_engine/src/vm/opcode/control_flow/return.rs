@@ -15,7 +15,7 @@ impl Operation for Return {
     const INSTRUCTION: &'static str = "INST - Return";
     const COST: u8 = 4;
 
-    fn execute(_context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(_context: &mut Context) -> JsResult<CompletionType> {
         Ok(CompletionType::Return)
     }
 }
@@ -32,7 +32,7 @@ impl Operation for CheckReturn {
     const INSTRUCTION: &'static str = "INST - CheckReturn";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         if !context.vm.frame().construct() {
             return Ok(CompletionType::Normal);
         }
@@ -84,7 +84,7 @@ impl Operation for GetReturnValue {
     const INSTRUCTION: &'static str = "INST - GetReturnValue";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.get_return_value();
         context.vm.push(value);
         Ok(CompletionType::Normal)
@@ -103,7 +103,7 @@ impl Operation for SetReturnValue {
     const INSTRUCTION: &'static str = "INST - SetReturnValue";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         context.vm.set_return_value(value);
         Ok(CompletionType::Normal)

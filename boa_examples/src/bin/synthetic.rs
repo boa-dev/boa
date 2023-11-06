@@ -2,10 +2,11 @@
 // This mirrors the `modules.rs` example but uses synthetic modules instead.
 
 use std::path::PathBuf;
+use std::rc::Rc;
 use std::{error::Error, path::Path};
 
 use boa_engine::builtins::promise::PromiseState;
-use boa_engine::module::{ModuleLoader, SimpleModuleLoader, SyntheticModuleInitializer};
+use boa_engine::module::{SimpleModuleLoader, SyntheticModuleInitializer};
 use boa_engine::object::FunctionObjectBuilder;
 use boa_engine::{
     js_string, Context, JsArgs, JsError, JsNativeError, JsValue, Module, NativeFunction, Source,
@@ -24,11 +25,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     "#;
 
     // This can be overriden with any custom implementation of `ModuleLoader`.
-    let loader = &SimpleModuleLoader::new("./scripts/modules")?;
-    let dyn_loader: &dyn ModuleLoader = loader;
+    let loader = Rc::new(SimpleModuleLoader::new("./scripts/modules")?);
 
     // Just need to cast to a `ModuleLoader` before passing it to the builder.
-    let context = &mut Context::builder().module_loader(dyn_loader).build()?;
+    let context = &mut Context::builder().module_loader(loader.clone()).build()?;
 
     // Now, create the synthetic module and insert it into the loader.
     let operations = create_operations_module(context);
@@ -101,7 +101,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 // Creates the synthetic equivalent to the `./modules/operations.mjs` file.
-fn create_operations_module(context: &mut Context<'_>) -> Module {
+fn create_operations_module(context: &mut Context) -> Module {
     // We first create the function objects that will be exported by the module. More
     // on that below.
     let sum = FunctionObjectBuilder::new(

@@ -65,7 +65,7 @@ impl BuiltInConstructor for AsyncFunction {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let active_function = context.active_function_object().unwrap_or_else(|| {
             context

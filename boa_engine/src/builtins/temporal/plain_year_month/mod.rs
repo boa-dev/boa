@@ -128,7 +128,7 @@ impl BuiltInConstructor for PlainYearMonth {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
@@ -170,53 +170,49 @@ impl BuiltInConstructor for PlainYearMonth {
 // ==== `PlainYearMonth` Accessor Implementations ====
 
 impl PlainYearMonth {
-    fn get_calendar_id(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_calendar_id(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_year(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_month(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_month(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_month_code(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_month_code(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_days_in_year(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_days_in_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_days_in_month(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_days_in_month(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_months_in_year(
-        _this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn get_months_in_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn get_in_leap_year(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_in_leap_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
@@ -226,37 +222,37 @@ impl PlainYearMonth {
 // ==== `PlainYearMonth` Method Implementations ====
 
 impl PlainYearMonth {
-    fn with(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn with(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn add(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn add(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn subtract(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn subtract(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn until(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn until(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn since(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn since(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
     }
 
-    fn equals(_this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn equals(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("not yet implemented.")
             .into())
@@ -273,7 +269,7 @@ pub(crate) fn create_temporal_year_month(
     year_month_record: IsoDateRecord,
     calendar: JsValue,
     new_target: Option<&JsValue>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(isoYear, isoMonth, referenceISODay) is false, throw a RangeError exception.
     if !year_month_record.is_valid() {

@@ -15,7 +15,7 @@ impl Operation for Void {
     const INSTRUCTION: &'static str = "INST - Void";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let _old = context.vm.pop();
         context.vm.push(JsValue::undefined());
         Ok(CompletionType::Normal)

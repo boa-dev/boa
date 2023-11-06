@@ -19,7 +19,7 @@ fn get_object(args: &[JsValue], position: usize) -> JsResult<&JsObject> {
 }
 
 /// Returns object's shape pointer in memory.
-fn id(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+fn id(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     let object = get_object(args, 0)?;
     let object = object.borrow();
     let shape = object.shape();
@@ -27,7 +27,7 @@ fn id(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
 }
 
 /// Returns object's shape type.
-fn r#type(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+fn r#type(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     let object = get_object(args, 0)?;
     let object = object.borrow();
     let shape = object.shape();
@@ -41,7 +41,7 @@ fn r#type(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValu
 }
 
 /// Returns object's shape type.
-fn same(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+fn same(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     let lhs = get_object(args, 0)?;
     let rhs = get_object(args, 1)?;
 
@@ -60,7 +60,7 @@ fn same(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue>
     Ok(JsValue::new(lhs_shape_ptr == rhs_shape_ptr))
 }
 
-pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
+pub(super) fn create_object(context: &mut Context) -> JsObject {
     ObjectInitializer::new(context)
         .function(NativeFunction::from_fn_ptr(id), js_string!("id"), 1)
         .function(NativeFunction::from_fn_ptr(r#type), js_string!("type"), 1)

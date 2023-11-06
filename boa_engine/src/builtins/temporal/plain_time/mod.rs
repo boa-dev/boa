@@ -53,7 +53,7 @@ impl BuiltInConstructor for PlainTime {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("Not yet implemented.")

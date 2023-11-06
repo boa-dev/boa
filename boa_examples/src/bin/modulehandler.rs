@@ -9,7 +9,7 @@ use boa_runtime::Console;
 use std::{error::Error, fs::read_to_string};
 
 /// Adds the custom runtime to the context.
-fn add_runtime(context: &mut Context<'_>) {
+fn add_runtime(context: &mut Context) {
     // We first add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 // Custom implementation that mimics the 'require' module loader
-fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context<'_>) -> JsResult<JsValue> {
+fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
     let arg = args.get_or_undefined(0);
 
     // BUG: Dev branch seems to be passing string arguments along with quotes

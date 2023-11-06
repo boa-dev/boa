@@ -15,7 +15,7 @@ impl Operation for Jump {
     const INSTRUCTION: &'static str = "INST - Jump";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
         context.vm.frame_mut().pc = address;
         Ok(CompletionType::Normal)
@@ -34,7 +34,7 @@ impl Operation for JumpIfTrue {
     const INSTRUCTION: &'static str = "INST - JumpIfTrue";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
         if context.vm.pop().to_boolean() {
             context.vm.frame_mut().pc = address;
@@ -55,7 +55,7 @@ impl Operation for JumpIfFalse {
     const INSTRUCTION: &'static str = "INST - JumpIfFalse";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
         if !context.vm.pop().to_boolean() {
             context.vm.frame_mut().pc = address;
@@ -76,7 +76,7 @@ impl Operation for JumpIfNotUndefined {
     const INSTRUCTION: &'static str = "INST - JumpIfNotUndefined";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
         let value = context.vm.pop();
         if !value.is_undefined() {
@@ -99,7 +99,7 @@ impl Operation for JumpIfNullOrUndefined {
     const INSTRUCTION: &'static str = "INST - JumpIfNullOrUndefined";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
         let value = context.vm.pop();
         if value.is_null_or_undefined() {
@@ -123,7 +123,7 @@ impl Operation for JumpTable {
     const INSTRUCTION: &'static str = "INST - JumpTable";
     const COST: u8 = 5;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let default = context.vm.read::<u32>();
         let count = context.vm.read::<u32>();
 

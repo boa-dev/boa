@@ -53,7 +53,7 @@ impl BuiltInConstructor for PlainDateTime {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         Err(JsNativeError::range()
             .with_message("Not yet implemented.")
@@ -64,79 +64,79 @@ impl BuiltInConstructor for PlainDateTime {
 // ==== `PlainDateTime` Accessor Properties ====
 
 impl PlainDateTime {
-    fn calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn year(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn month(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn month_code(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn day(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn day(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn hour(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn minute(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn second(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn millisecond(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn microsecond(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn era(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn era(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())
     }
 
-    fn era_year(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn era_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("calendars not yet implemented.")
             .into())

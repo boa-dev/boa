@@ -9,7 +9,7 @@ use boa_ast::{
     Statement, StatementListItem,
 };
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// Compile try statement.
     pub(crate) fn compile_try(&mut self, t: &Try, use_expr: bool) {
         let has_catch = t.catch().is_some();

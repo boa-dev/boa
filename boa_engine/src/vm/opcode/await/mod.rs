@@ -20,7 +20,7 @@ impl Operation for Await {
     const INSTRUCTION: &'static str = "INST - Await";
     const COST: u8 = 5;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
@@ -153,7 +153,7 @@ impl Operation for CreatePromiseCapability {
     const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
     const COST: u8 = 8;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         if context.vm.frame().promise_capability.is_some() {
             return Ok(CompletionType::Normal);
         }
@@ -181,7 +181,7 @@ impl Operation for CompletePromiseCapability {
     const INSTRUCTION: &'static str = "INST - CompletePromiseCapability";
     const COST: u8 = 8;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
         let Some(promise_capability) = context.vm.frame_mut().promise_capability.take() else {

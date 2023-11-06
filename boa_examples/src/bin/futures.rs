@@ -1,6 +1,7 @@
 use std::{
     cell::{Cell, RefCell},
     collections::VecDeque,
+    rc::Rc,
     time::{Duration, Instant},
 };
 
@@ -34,15 +35,15 @@ impl<'a> Queue<'a> {
 }
 
 impl<'a> JobQueue for Queue<'a> {
-    fn enqueue_promise_job(&self, job: NativeJob, _context: &mut boa_engine::Context<'_>) {
+    fn enqueue_promise_job(&self, job: NativeJob, _context: &mut boa_engine::Context) {
         self.jobs.borrow_mut().push_back(job);
     }
 
-    fn enqueue_future_job(&self, future: FutureJob, _context: &mut boa_engine::Context<'_>) {
+    fn enqueue_future_job(&self, future: FutureJob, _context: &mut boa_engine::Context) {
         self.futures.borrow().push(future)
     }
 
-    fn run_jobs(&self, context: &mut boa_engine::Context<'_>) {
+    fn run_jobs(&self, context: &mut boa_engine::Context) {
         // Early return in case there were no jobs scheduled.
         if self.jobs.borrow().is_empty() && self.futures.borrow().is_empty() {
             return;
@@ -117,7 +118,7 @@ impl<'a> JobQueue for Queue<'a> {
 fn delay(
     _this: &JsValue,
     args: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> impl Future<Output = JsResult<JsValue>> {
     let millis = args.get_or_undefined(0).to_u32(context);
 
@@ -132,7 +133,7 @@ fn delay(
 }
 
 /// Adds the custom runtime to the context.
-fn add_runtime(context: &mut Context<'_>) {
+fn add_runtime(context: &mut Context) {
     // First add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
@@ -152,8 +153,11 @@ fn add_runtime(context: &mut Context<'_>) {
 fn main() {
     // Initialize the required executors and the context
     let executor = LocalExecutor::new();
-    let queue: &dyn JobQueue = &Queue::new(executor);
-    let context = &mut ContextBuilder::new().job_queue(queue).build().unwrap();
+    let queue = Queue::new(executor);
+    let context = &mut ContextBuilder::new()
+        .job_queue(Rc::new(queue))
+        .build()
+        .unwrap();
 
     // Then, add a custom runtime.
     add_runtime(context);

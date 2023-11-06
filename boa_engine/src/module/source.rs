@@ -410,7 +410,7 @@ impl SourceTextModule {
     /// Abstract operation [`InnerModuleLoading`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLoading
-    pub(super) fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut Context<'_>) {
+    pub(super) fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut Context) {
         // 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
@@ -691,7 +691,7 @@ impl SourceTextModule {
     /// Concrete method [`Link ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
-    pub(super) fn link(&self, context: &mut Context<'_>) -> JsResult<()> {
+    pub(super) fn link(&self, context: &mut Context) -> JsResult<()> {
         // 1. Assert: module.[[Status]] is one of unlinked, linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
             &*self.inner.status.borrow(),
@@ -739,7 +739,7 @@ impl SourceTextModule {
         &self,
         stack: &mut Vec<Self>,
         mut index: usize,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<usize> {
         // 2. If module.[[Status]] is one of linking, linked, evaluating-async, or evaluated, then
         if matches!(
@@ -882,7 +882,7 @@ impl SourceTextModule {
     /// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduleevaluation
-    pub(super) fn evaluate(&self, context: &mut Context<'_>) -> JsPromise {
+    pub(super) fn evaluate(&self, context: &mut Context) -> JsPromise {
         // 1. Assert: This call to Evaluate is not happening at the same time as another call to Evaluate within the surrounding agent.
         let (module, promise) = {
             match &*self.inner.status.borrow() {
@@ -1012,7 +1012,7 @@ impl SourceTextModule {
         stack: &mut Vec<Self>,
         mut index: usize,
         capability: Option<PromiseCapability>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<usize> {
         /// Gets the next evaluation index of an async module.
         ///
@@ -1246,7 +1246,7 @@ impl SourceTextModule {
     /// Abstract operation [`ExecuteAsyncModule ( module )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-execute-async-module
-    fn execute_async(&self, context: &mut Context<'_>) {
+    fn execute_async(&self, context: &mut Context) {
         // 1. Assert: module.[[Status]] is either evaluating or evaluating-async.
         debug_assert!(matches!(
             &*self.inner.status.borrow(),
@@ -1359,7 +1359,7 @@ impl SourceTextModule {
     /// Abstract operation [`InitializeEnvironment ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-initialize-environment
-    fn initialize_environment(&self, context: &mut Context<'_>) -> JsResult<()> {
+    fn initialize_environment(&self, context: &mut Context) -> JsResult<()> {
         #[derive(Debug)]
         enum ImportBinding {
             Namespace {
@@ -1702,7 +1702,7 @@ impl SourceTextModule {
     fn execute(
         &self,
         capability: Option<PromiseCapability>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<()> {
         // 1. Let moduleContext be a new ECMAScript code execution context.
         let SourceTextContext {
@@ -1776,7 +1776,7 @@ impl SourceTextModule {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-async-module-execution-fulfilled
 #[allow(clippy::mutable_key_type)]
-fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut Context<'_>) {
+fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut Context) {
     // 1. If module.[[Status]] is evaluated, then
     if let Status::Evaluated { error, .. } = &*module.inner.status.borrow() {
         //     a. Assert: module.[[EvaluationError]] is not empty.
@@ -1904,7 +1904,7 @@ fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut Con
 fn async_module_execution_rejected(
     module: &SourceTextModule,
     error: &JsError,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) {
     // 1. If module.[[Status]] is evaluated, then
     if let Status::Evaluated { error, .. } = &*module.inner.status.borrow() {

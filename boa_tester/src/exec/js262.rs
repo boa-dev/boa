@@ -69,7 +69,7 @@ impl Drop for WorkerHandles {
 }
 
 /// Creates the object $262 in the context.
-pub(super) fn register_js262(handles: WorkerHandles, context: &mut Context<'_>) -> JsObject {
+pub(super) fn register_js262(handles: WorkerHandles, context: &mut Context) -> JsObject {
     let global_obj = context.global_object();
 
     let agent = agent_obj(handles, context);
@@ -119,7 +119,7 @@ pub(super) fn register_js262(handles: WorkerHandles, context: &mut Context<'_>) 
 /// Creates a new ECMAScript Realm, defines this API on the new realm's global object, and
 /// returns the `$262` property of the new realm's global object.
 #[allow(clippy::unnecessary_wraps)]
-fn create_realm(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+fn create_realm(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     let context = &mut Context::default();
 
     let js262 = register_js262(WorkerHandles::new(), context);
@@ -130,7 +130,7 @@ fn create_realm(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsV
 /// The `$262.detachArrayBuffer()` function.
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
-fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     fn type_err() -> JsNativeError {
         JsNativeError::typ().with_message("The provided object was not an ArrayBuffer")
     }
@@ -159,7 +159,7 @@ fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> Js
 /// The `$262.evalScript()` function.
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
-fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     args.get(0).and_then(JsValue::as_string).map_or_else(
         || Ok(JsValue::undefined()),
         |source_text| context.eval(Source::from_bytes(&source_text.to_std_string_escaped())),
@@ -172,13 +172,13 @@ fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> 
 /// Must throw an exception if no capability exists. This is necessary for testing the
 /// semantics of any feature that relies on garbage collection, e.g. the `WeakRef` API.
 #[allow(clippy::unnecessary_wraps)]
-fn gc(_this: &JsValue, _: &[JsValue], _context: &mut Context<'_>) -> JsResult<JsValue> {
+fn gc(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
     boa_gc::force_collect();
     Ok(JsValue::undefined())
 }
 
 /// The `$262.agent.sleep()` function.
-fn sleep(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+fn sleep(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     let ms = args.get_or_undefined(0).to_number(context)? / 1000.0;
     std::thread::sleep(Duration::from_secs_f64(ms));
     Ok(JsValue::undefined())
@@ -186,12 +186,12 @@ fn sleep(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<J
 
 /// The `$262.agent.monotonicNow()` function.
 #[allow(clippy::unnecessary_wraps)]
-fn monotonic_now(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+fn monotonic_now(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     Ok(JsValue::from(START.elapsed().as_millis() as f64))
 }
 
 /// Initializes the `$262.agent` object in the main agent.
-fn agent_obj(handles: WorkerHandles, context: &mut Context<'_>) -> JsObject {
+fn agent_obj(handles: WorkerHandles, context: &mut Context) -> JsObject {
     // TODO: improve initialization of this by using a `[[HostDefined]]` field on `Context`.
     let bus = Rc::new(RefCell::new(bus::Bus::new(1)));
 
@@ -273,7 +273,7 @@ fn agent_obj(handles: WorkerHandles, context: &mut Context<'_>) -> JsObject {
 fn register_js262_worker(
     rx: BusReader<SharedArrayBuffer>,
     tx: Sender<Vec<u16>>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) {
     let rx = RefCell::new(rx);
     let receive_broadcast = unsafe {

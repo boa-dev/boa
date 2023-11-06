@@ -6,7 +6,7 @@ use icu_locid::{
 use crate::{builtins::options::OptionType, Context, JsNativeError};
 
 impl OptionType for Value {
-    fn from_value(value: crate::JsValue, context: &mut Context<'_>) -> crate::JsResult<Self> {
+    fn from_value(value: crate::JsValue, context: &mut Context) -> crate::JsResult<Self> {
         let val = value.to_string(context)?.to_std_string_escaped();
 
         if val.len() < 3 {
@@ -21,7 +21,7 @@ impl OptionType for Value {
 }
 
 impl OptionType for Language {
-    fn from_value(value: crate::JsValue, context: &mut Context<'_>) -> crate::JsResult<Self> {
+    fn from_value(value: crate::JsValue, context: &mut Context) -> crate::JsResult<Self> {
         value
             .to_string(context)?
             .to_std_string_escaped()
@@ -31,7 +31,7 @@ impl OptionType for Language {
 }
 
 impl OptionType for Script {
-    fn from_value(value: crate::JsValue, context: &mut Context<'_>) -> crate::JsResult<Self> {
+    fn from_value(value: crate::JsValue, context: &mut Context) -> crate::JsResult<Self> {
         value
             .to_string(context)?
             .to_std_string_escaped()
@@ -41,7 +41,7 @@ impl OptionType for Script {
 }
 
 impl OptionType for Region {
-    fn from_value(value: crate::JsValue, context: &mut Context<'_>) -> crate::JsResult<Self> {
+    fn from_value(value: crate::JsValue, context: &mut Context) -> crate::JsResult<Self> {
         value
             .to_string(context)?
             .to_std_string_escaped()

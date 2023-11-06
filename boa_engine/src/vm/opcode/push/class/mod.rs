@@ -23,7 +23,7 @@ impl Operation for PushClassPrototype {
     const INSTRUCTION: &'static str = "INST - PushClassPrototype";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let superclass = context.vm.pop();
         let class = context.vm.pop();
 

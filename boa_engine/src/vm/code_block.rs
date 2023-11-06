@@ -826,7 +826,7 @@ impl ToInternedString for CodeBlock {
 pub(crate) fn create_function_object(
     code: Gc<CodeBlock>,
     prototype: JsObject,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsObject {
     let _timer = Profiler::global().start_event("create_function_object", "vm");
 
@@ -899,10 +899,7 @@ pub(crate) fn create_function_object(
 /// This is prefered over [`create_function_object`] if prototype is [`None`],
 /// because it constructs the function from a pre-initialized object template,
 /// with all the properties and prototype set.
-pub(crate) fn create_function_object_fast(
-    code: Gc<CodeBlock>,
-    context: &mut Context<'_>,
-) -> JsObject {
+pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
     let _timer = Profiler::global().start_event("create_function_object_fast", "vm");
 
     let name: JsValue = code.name().clone().into();

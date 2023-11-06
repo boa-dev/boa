@@ -48,7 +48,7 @@ impl BuiltInConstructor for ZonedDateTime {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO: Implement ZonedDateTime.
         Err(JsNativeError::error()

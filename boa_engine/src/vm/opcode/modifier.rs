@@ -14,14 +14,14 @@ impl Operation for U16Operands {
     const INSTRUCTION: &'static str = "INST - U16Operands";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let opcode = context.vm.read::<u8>() as usize;
 
         Opcode::EXECUTE_FNS[Opcode::MAX + opcode](context)
     }
 
     fn spend_budget_and_execute(
-        context: &mut Context<'_>,
+        context: &mut Context,
         budget: &mut u32,
     ) -> JsResult<CompletionType> {
         let opcode: Opcode = context.vm.read::<u8>().into();
@@ -43,14 +43,14 @@ impl Operation for U32Operands {
     const INSTRUCTION: &'static str = "INST - U32Operands";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let opcode = context.vm.read::<u8>() as usize;
 
         Opcode::EXECUTE_FNS[Opcode::MAX * 2 + opcode](context)
     }
 
     fn spend_budget_and_execute(
-        context: &mut Context<'_>,
+        context: &mut Context,
         budget: &mut u32,
     ) -> JsResult<CompletionType> {
         let opcode: Opcode = context.vm.read::<u8>().into();

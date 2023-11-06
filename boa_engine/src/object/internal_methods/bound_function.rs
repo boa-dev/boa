@@ -31,7 +31,7 @@ pub(crate) static BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS: InternalObjectMetho
 fn bound_function_exotic_call(
     obj: &JsObject,
     argument_count: usize,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<CallValue> {
     let obj = obj.borrow();
     let bound_function = obj
@@ -70,7 +70,7 @@ fn bound_function_exotic_call(
 fn bound_function_exotic_construct(
     function_object: &JsObject,
     argument_count: usize,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<CallValue> {
     let new_target = context.vm.pop();
 

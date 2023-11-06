@@ -5,7 +5,7 @@ use boa_ast::expression::operator::{
 
 use crate::{bytecompiler::ByteCompiler, vm::Opcode};
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     pub(crate) fn compile_binary(&mut self, binary: &Binary, use_expr: bool) {
         self.compile_expr(binary.lhs(), true);
         match binary.op() {

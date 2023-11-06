@@ -114,7 +114,7 @@ impl BuiltInConstructor for Segmenter {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -154,14 +154,14 @@ impl BuiltInConstructor for Segmenter {
 
         let native = match granularity {
             Granularity::Grapheme => {
-                GraphemeClusterSegmenter::try_new_unstable(&context.icu().provider())
+                GraphemeClusterSegmenter::try_new_unstable(context.icu().provider())
                     .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
             }
 
-            Granularity::Word => WordSegmenter::try_new_auto_unstable(&context.icu().provider())
+            Granularity::Word => WordSegmenter::try_new_auto_unstable(context.icu().provider())
                 .map(|s| NativeSegmenter::Word(Box::new(s))),
 
-            Granularity::Sentence => SentenceSegmenter::try_new_unstable(&context.icu().provider())
+            Granularity::Sentence => SentenceSegmenter::try_new_unstable(context.icu().provider())
                 .map(|s| NativeSegmenter::Sentence(Box::new(s))),
         }
         .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
@@ -199,7 +199,7 @@ impl Segmenter {
     fn supported_locales_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
@@ -223,11 +223,7 @@ impl Segmenter {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Segmenter.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter/resolvedOptions
-    fn resolved_options(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
         let segmenter = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -267,7 +263,7 @@ impl Segmenter {
     /// Segments a string according to the locale and granularity of this `Intl.Segmenter` object.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.segmenter.prototype.segment
-    fn segment(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn segment(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
         let segmenter = this
@@ -294,7 +290,7 @@ fn create_segment_data_object(
     string: JsString,
     range: Range<usize>,
     is_word_like: Option<bool>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsObject {
     // 1. Let len be the length of string.
     // 2. Assert: startIndex ≥ 0.

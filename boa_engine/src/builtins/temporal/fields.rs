@@ -116,7 +116,7 @@ impl TemporalFields {
         &mut self,
         field: &JsString,
         value: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<()> {
         match field.to_std_string_escaped().as_str() {
             "year" => self.set_year(value, context)?,
@@ -140,7 +140,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_year(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_year(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let y = super::to_integer_with_truncation(value, context)?;
         self.year = Some(y);
         self.bit_map.set(FieldMap::YEAR, true);
@@ -148,7 +148,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_month(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_month(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let mo = super::to_positive_integer_with_trunc(value, context)?;
         self.year = Some(mo);
         self.bit_map.set(FieldMap::MONTH, true);
@@ -156,7 +156,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_month_code(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_month_code(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let mc = value.to_primitive(context, PreferredType::String)?;
         if let Some(string) = mc.as_string() {
             self.month_code = Some(string.clone());
@@ -172,7 +172,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_day(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_day(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let d = super::to_positive_integer_with_trunc(value, context)?;
         self.day = Some(d);
         self.bit_map.set(FieldMap::DAY, true);
@@ -180,7 +180,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_hour(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_hour(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let h = super::to_integer_with_truncation(value, context)?;
         self.hour = h;
         self.bit_map.set(FieldMap::HOUR, true);
@@ -188,7 +188,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_minute(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_minute(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let m = super::to_integer_with_truncation(value, context)?;
         self.minute = m;
         self.bit_map.set(FieldMap::MINUTE, true);
@@ -196,7 +196,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_second(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_second(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let sec = super::to_integer_with_truncation(value, context)?;
         self.second = sec;
         self.bit_map.set(FieldMap::SECOND, true);
@@ -204,7 +204,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_milli(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_milli(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let milli = super::to_integer_with_truncation(value, context)?;
         self.millisecond = milli;
         self.bit_map.set(FieldMap::MILLISECOND, true);
@@ -212,7 +212,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_micro(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_micro(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let micro = super::to_integer_with_truncation(value, context)?;
         self.microsecond = micro;
         self.bit_map.set(FieldMap::MICROSECOND, true);
@@ -220,7 +220,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_nano(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_nano(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let nano = super::to_integer_with_truncation(value, context)?;
         self.nanosecond = nano;
         self.bit_map.set(FieldMap::NANOSECOND, true);
@@ -228,7 +228,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_offset(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_offset(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let mc = value.to_primitive(context, PreferredType::String)?;
         if let Some(string) = mc.as_string() {
             self.offset = Some(string.clone());
@@ -243,7 +243,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_era(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_era(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let mc = value.to_primitive(context, PreferredType::String)?;
         if let Some(string) = mc.as_string() {
             self.era = Some(string.clone());
@@ -258,7 +258,7 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_era_year(&mut self, value: &JsValue, context: &mut Context<'_>) -> JsResult<()> {
+    fn set_era_year(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         let ey = super::to_integer_with_truncation(value, context)?;
         self.era_year = Some(ey);
         self.bit_map.set(FieldMap::ERA_YEAR, true);
@@ -286,7 +286,7 @@ impl TemporalFields {
         extended_fields: Option<Vec<(JsString, bool)>>,
         partial: bool,
         dup_behaviour: Option<JsString>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<Self> {
         // 1. If duplicateBehaviour is not present, set duplicateBehaviour to throw.
         let dup_option = dup_behaviour.unwrap_or_else(|| js_string!("throw"));
@@ -392,7 +392,7 @@ impl TemporalFields {
     }
 
     /// Convert a `TemporalFields` struct into a `JsObject`.
-    pub(crate) fn as_object(&self, context: &mut Context<'_>) -> JsResult<JsObject> {
+    pub(crate) fn as_object(&self, context: &mut Context) -> JsResult<JsObject> {
         let obj = JsObject::with_null_proto();
 
         for bit in self.bit_map.iter() {

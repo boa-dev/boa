@@ -91,7 +91,7 @@ impl BuiltInConstructor for ListFormat {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -141,17 +141,17 @@ impl BuiltInConstructor for ListFormat {
         let data_locale = DataLocale::from(&locale);
         let formatter = match typ {
             ListFormatType::Conjunction => ListFormatter::try_new_and_with_length_unstable(
-                &context.icu().provider(),
+                context.icu().provider(),
                 &data_locale,
                 style,
             ),
             ListFormatType::Disjunction => ListFormatter::try_new_or_with_length_unstable(
-                &context.icu().provider(),
+                context.icu().provider(),
                 &data_locale,
                 style,
             ),
             ListFormatType::Unit => ListFormatter::try_new_unit_with_length_unstable(
-                &context.icu().provider(),
+                context.icu().provider(),
                 &data_locale,
                 style,
             ),
@@ -191,7 +191,7 @@ impl ListFormat {
     fn supported_locales_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
@@ -214,7 +214,7 @@ impl ListFormat {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat.prototype.format
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat/format
-    fn format(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn format(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
         let lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -250,7 +250,7 @@ impl ListFormat {
     fn format_to_parts(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO: maybe try to move this into icu4x?
         use writeable::{PartsWrite, Writeable};
@@ -406,11 +406,7 @@ impl ListFormat {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat/resolvedOptions
-    fn resolved_options(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
         let lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -473,10 +469,7 @@ impl ListFormat {
 /// Abstract operation [`StringListFromIterable ( iterable )`][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-createstringlistfromiterable
-fn string_list_from_iterable(
-    iterable: &JsValue,
-    context: &mut Context<'_>,
-) -> JsResult<Vec<JsString>> {
+fn string_list_from_iterable(iterable: &JsValue, context: &mut Context) -> JsResult<Vec<JsString>> {
     // 1. If iterable is undefined, then
     if iterable.is_undefined() {
         //     a. Return a new empty List.

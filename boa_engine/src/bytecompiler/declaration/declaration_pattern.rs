@@ -7,7 +7,7 @@ use boa_ast::{
     property::PropertyName,
 };
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     pub(crate) fn compile_declaration_pattern_impl(
         &mut self,
         pattern: &Pattern,

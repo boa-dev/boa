@@ -4,7 +4,7 @@ use boa_ast::{
     Statement,
 };
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// Compile a [`Labelled`] `boa_ast` node
     pub(crate) fn compile_labelled(&mut self, labelled: &Labelled, use_expr: bool) {
         let labelled_loc = self.next_opcode_location();
