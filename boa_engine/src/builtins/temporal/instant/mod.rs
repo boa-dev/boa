@@ -403,7 +403,11 @@ impl Instant {
         };
 
         // 16. Perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, true).
-        super::validate_temporal_rounding_increment(rounding_increment.into(), maximum as f64, true)?;
+        super::validate_temporal_rounding_increment(
+            rounding_increment.into(),
+            maximum as f64,
+            true,
+        )?;
 
         // 17. Let roundedNs be RoundTemporalInstant(instant.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode).
         let rounded_ns = round_temporal_instant(

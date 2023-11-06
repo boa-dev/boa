@@ -708,8 +708,7 @@ impl Duration {
         };
 
         // 28. If smallestUnit is "nanosecond" and roundingIncrement = 1, let roundingGranularityIsNoop be true; else let roundingGranularityIsNoop be false.
-        let is_noop = smallest_unit == TemporalUnit::Nanosecond
-            && rounding_increment == 1;
+        let is_noop = smallest_unit == TemporalUnit::Nanosecond && rounding_increment == 1;
 
         // 29. If duration.[[Years]] = 0 and duration.[[Months]] = 0 and duration.[[Weeks]] = 0, let calendarUnitsPresent be false; else let calendarUnitsPresent be true.
         let calendar_units_present = !(duration.inner.years() == 0f64
