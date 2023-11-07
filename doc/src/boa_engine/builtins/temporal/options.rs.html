@@ -404,7 +404,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_temporal_rounding_increment(
     options: <span class="kw-2">&amp;</span>JsObject,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;f64&gt; {
+) -&gt; JsResult&lt;u32&gt; {
     <span class="comment">// 1. Let increment be ? GetOption(normalizedOptions, &quot;roundingIncrement&quot;, &quot;number&quot;, undefined, 1𝔽).
     </span><span class="kw">let </span>value = options.get(<span class="macro">js_string!</span>(<span class="string">&quot;roundingIncrement&quot;</span>), context)<span class="question-mark">?</span>;
 
@@ -425,14 +425,14 @@
     </span><span class="kw">let </span>integer_increment = increment.trunc();
 
     <span class="comment">// 4. If integerIncrement &lt; 1 or integerIncrement &gt; 10^9, throw a RangeError exception.
-    </span><span class="kw">if </span>(<span class="number">1.0</span>..=<span class="number">1_000_000_000.0</span>).contains(<span class="kw-2">&amp;</span>integer_increment) {
+    </span><span class="kw">if </span>!(<span class="number">1.0</span>..=<span class="number">1_000_000_000.0</span>).contains(<span class="kw-2">&amp;</span>integer_increment) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;rounding increment was out of range.&quot;</span>)
             .into());
     }
 
     <span class="comment">// 5. Return integerIncrement.
-    </span><span class="prelude-val">Ok</span>(integer_increment)
+    </span><span class="prelude-val">Ok</span>(integer_increment <span class="kw">as </span>u32)
 }
 
 <span class="doccomment">/// Gets the `TemporalUnit` from an options object.

@@ -784,6 +784,16 @@
 <a href="#784" id="784">784</a>
 <a href="#785" id="785">785</a>
 <a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Temporal.Instant` builtin object.
 </span><span class="attr">#![allow(dead_code)]
 
@@ -791,7 +801,7 @@
     builtins::{
         options::{get_option, get_options_object, RoundingMode},
         temporal::{
-            duration::{DateDuration, TimeDuration},
+            duration::{DateDuration, DurationRecord, TimeDuration},
             options::{
                 get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
             },
@@ -1167,34 +1177,34 @@
         <span class="kw">let </span>maximum = <span class="kw">match </span>smallest_unit {
             <span class="comment">// 10. If smallestUnit is &quot;hour&quot;), then
             // a. Let maximum be HoursPerDay.
-            </span>TemporalUnit::Hour =&gt; <span class="number">24</span>,
+            </span>TemporalUnit::Hour =&gt; <span class="number">24u64</span>,
             <span class="comment">// 11. Else if smallestUnit is &quot;minute&quot;), then
             // a. Let maximum be MinutesPerHour × HoursPerDay.
-            </span>TemporalUnit::Minute =&gt; <span class="number">14400</span>,
+            </span>TemporalUnit::Minute =&gt; <span class="number">14400u64</span>,
             <span class="comment">// 12. Else if smallestUnit is &quot;second&quot;), then
             // a. Let maximum be SecondsPerMinute × MinutesPerHour × HoursPerDay.
-            </span>TemporalUnit::Second =&gt; <span class="number">86400</span>,
+            </span>TemporalUnit::Second =&gt; <span class="number">86400u64</span>,
             <span class="comment">// 13. Else if smallestUnit is &quot;millisecond&quot;), then
             // a. Let maximum be ℝ(msPerDay).
-            </span>TemporalUnit::Millisecond =&gt; i64::from(MS_PER_DAY),
+            </span>TemporalUnit::Millisecond =&gt; MS_PER_DAY <span class="kw">as </span>u64,
             <span class="comment">// 14. Else if smallestUnit is &quot;microsecond&quot;), then
             // a. Let maximum be 10^3 × ℝ(msPerDay).
-            </span>TemporalUnit::Microsecond =&gt; MIS_PER_DAY,
+            </span>TemporalUnit::Microsecond =&gt; MIS_PER_DAY <span class="kw">as </span>u64,
             <span class="comment">// 15. Else,
             // a. Assert: smallestUnit is &quot;nanosecond&quot;.
             // b. Let maximum be nsPerDay.
-            </span>TemporalUnit::Nanosecond =&gt; NS_PER_DAY,
+            </span>TemporalUnit::Nanosecond =&gt; NS_PER_DAY <span class="kw">as </span>u64,
             <span class="comment">// unreachable here functions as 15.a.
             </span><span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         };
 
         <span class="comment">// 16. Perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, true).
-        </span><span class="kw">super</span>::validate_temporal_rounding_increment(rounding_increment, maximum <span class="kw">as </span>f64, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+        </span><span class="kw">super</span>::validate_temporal_rounding_increment(rounding_increment.into(), maximum, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 17. Let roundedNs be RoundTemporalInstant(instant.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode).
         </span><span class="kw">let </span>rounded_ns = round_temporal_instant(
             <span class="kw-2">&amp;</span>instant.nanoseconds,
-            rounding_increment,
+            rounding_increment.into(),
             smallest_unit,
             rounding_mode,
         )<span class="question-mark">?</span>;
@@ -1362,7 +1372,7 @@
     largest_unit: TemporalUnit,
     rounding_mode: RoundingMode,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;duration::DurationRecord&gt; {
+) -&gt; JsResult&lt;DurationRecord&gt; {
     <span class="comment">// 1. Let difference be ℝ(ns2) - ℝ(ns1).
     </span><span class="kw">let </span>difference = JsBigInt::sub(ns1, ns2);
     <span class="comment">// 2. Let nanoseconds be remainder(difference, 1000).
@@ -1377,40 +1387,50 @@
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))<span class="question-mark">?</span>;
     <span class="kw">let </span>milliseconds = JsBigInt::rem(<span class="kw-2">&amp;</span>truncated_milli, <span class="kw-2">&amp;</span>JsBigInt::from(<span class="number">1000</span>));
 
-    <span class="comment">// 5. Let seconds be truncate(difference / 109).
+    <span class="comment">// 5. Let seconds be truncate(difference / 10^9).
     </span><span class="kw">let </span>seconds = (<span class="kw-2">&amp;</span>difference.to_f64() / <span class="number">1_000_000_000_f64</span>).trunc();
 
-    <span class="comment">// 6. Let roundResult be ! RoundDuration(0, 0, 0, 0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, largestUnit, roundingMode).
-    </span><span class="kw">let </span><span class="kw-2">mut </span>roundable_duration = duration::DurationRecord::new(
-        DateDuration::default(),
+    <span class="comment">// Create TimeDuration
+    </span><span class="kw">let </span><span class="kw-2">mut </span>time_duration = DurationRecord::from_day_and_time(
+        <span class="number">0f64</span>,
         TimeDuration::new(
-            <span class="number">0.0</span>,
-            <span class="number">0.0</span>,
+            <span class="number">0f64</span>,
+            <span class="number">0f64</span>,
             seconds,
             milliseconds.to_f64(),
             microseconds.to_f64(),
             nanoseconds.to_f64(),
         ),
     );
-    <span class="kw">let </span>_total = roundable_duration.round_duration(
+
+    <span class="comment">// 6. If smallestUnit is &quot;nanosecond&quot; and roundingIncrement is 1, then
+    </span><span class="kw">if </span>smallest_unit == TemporalUnit::Nanosecond &amp;&amp; (rounding_increment - <span class="number">1f64</span>).abs() &lt; f64::EPSILON
+    {
+        <span class="comment">// a. Return ! BalanceTimeDuration(0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, largestUnit).
+        </span>time_duration.balance_time_duration(largest_unit, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(time_duration);
+    }
+
+    <span class="comment">// 7. Let roundResult be ! RoundDuration(0, 0, 0, 0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, largestUnit, roundingMode).
+
+    </span><span class="kw">let </span>(<span class="kw-2">mut </span>round_result, _total) = time_duration.round_duration(
+        DateDuration::default(),
         rounding_increment,
         smallest_unit,
         rounding_mode,
-        <span class="prelude-val">None</span>,
-        <span class="prelude-val">None</span>,
-        <span class="prelude-val">None</span>,
+        (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>),
         context,
     )<span class="question-mark">?</span>;
 
-    <span class="comment">// 7. Assert: roundResult.[[Days]] is 0.
-    </span><span class="macro">assert_eq!</span>(roundable_duration.days() <span class="kw">as </span>i32, <span class="number">0</span>);
+    <span class="comment">// 8. Assert: roundResult.[[Days]] is 0.
+    </span><span class="macro">assert_eq!</span>(round_result.days() <span class="kw">as </span>i32, <span class="number">0</span>);
 
-    <span class="comment">// 8. Return ! BalanceTimeDuration(0, roundResult.[[Hours]], roundResult.[[Minutes]],
+    <span class="comment">// 9. Return ! BalanceTimeDuration(0, roundResult.[[Hours]], roundResult.[[Minutes]],
     //    roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]],
     //    roundResult.[[Nanoseconds]], largestUnit).
-    </span>roundable_duration.balance_time_duration(largest_unit, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+    </span>round_result.balance_time_duration(largest_unit, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(roundable_duration)
+    <span class="prelude-val">Ok</span>(round_result)
 }
 
 <span class="doccomment">/// 8.5.8 `RoundTemporalInstant ( ns, increment, unit, roundingMode )`

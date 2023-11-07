@@ -916,8 +916,8 @@
 </span><span class="doccomment">/// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
 </span><span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate_temporal_rounding_increment(
-    increment: f64,
-    dividend: f64,
+    increment: u64,
+    dividend: u64,
     inclusive: bool,
 ) -&gt; JsResult&lt;()&gt; {
     <span class="comment">// 1. If inclusive is true, then
@@ -927,9 +927,9 @@
     <span class="comment">// 2. Else,
     </span>} <span class="kw">else </span>{
         <span class="comment">// a. Assert: dividend &gt; 1.
-        </span><span class="macro">assert!</span>(dividend &gt; <span class="number">1.0</span>);
+        </span><span class="macro">assert!</span>(dividend &gt; <span class="number">1</span>);
         <span class="comment">// b. Let maximum be dividend - 1.
-        </span>dividend - <span class="number">1.0
+        </span>dividend - <span class="number">1
     </span>};
 
     <span class="comment">// 3. If increment &gt; maximum, throw a RangeError exception.
@@ -939,7 +939,7 @@
             .into());
     }
     <span class="comment">// 4. If dividend modulo increment ≠ 0, then
-    </span><span class="kw">if </span>dividend % increment != <span class="number">0.0 </span>{
+    </span><span class="kw">if </span>dividend % increment != <span class="number">0 </span>{
         <span class="comment">// a. Throw a RangeError exception.
         </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;Temporal rounding increment is not valid.&quot;</span>)
@@ -1214,7 +1214,7 @@
 
     <span class="comment">// 13. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max) = maximum {
-        validate_temporal_rounding_increment(rounding_increment, f64::from(max), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        validate_temporal_rounding_increment(rounding_increment.into(), max.into(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
     }
 
     <span class="comment">// 14. Return the Record { [[SmallestUnit]]: smallestUnit, [[LargestUnit]]: largestUnit, [[RoundingMode]]: roundingMode, [[RoundingIncrement]]: roundingIncrement, }.
@@ -1222,7 +1222,7 @@
         smallest_unit,
         largest_unit,
         rounding_mode,
-        rounding_increment,
+        rounding_increment.into(),
     ))
 }
 
