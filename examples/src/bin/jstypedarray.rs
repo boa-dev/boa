@@ -41,6 +41,25 @@ fn main() -> JsResult<()> {
         JsValue::new(sum)
     );
 
+    let greter_than_10_predicate = FunctionObjectBuilder::new(
+        context.realm(),
+        NativeFunction::from_fn_ptr(|_this, args, _context| {
+            let element = args
+                .get(0)
+                .cloned()
+                .unwrap_or_default()
+                .as_number()
+                .expect("error at number conversion");
+            Ok(JsValue::Boolean(element > 10.0))
+        }),
+    )
+    .build();
+
+    assert_eq!(
+        array.find_index(greter_than_10_predicate, None, context),
+        Ok(Some(11))
+    );
+
     context
         .register_global_property(
             js_string!("myUint8Array"),

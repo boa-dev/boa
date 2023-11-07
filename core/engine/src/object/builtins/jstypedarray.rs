@@ -273,6 +273,64 @@ impl JsTypedArray {
         )
     }
 
+    /// Returns the index of the first element in an array that satisfies the 
+    /// provided testing function.
+    /// If no elements satisfy the testing function, `JsResult::Ok(None)` is returned.
+    ///
+    /// Calls `TypedArray.prototype.findIndex()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let data: Vec<u8> = (0..=255).collect();
+    /// let array = JsUint8Array::from_iter(data, context)?;
+    ///
+    /// let greter_than_10_predicate = FunctionObjectBuilder::new(
+    ///     context.realm(),
+    ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
+    ///         let element = args
+    ///             .first()
+    ///             .cloned()
+    ///             .unwrap_or_default()
+    ///             .as_number()
+    ///             .expect("error at number conversion");
+    ///         Ok(JsValue::Boolean(element > 10.0))
+    ///     }),
+    /// )
+    /// .build();
+    /// assert_eq!(
+    ///     array.find_index(greter_than_10_predicate, None, context),
+    ///     Ok(Some(11))
+    /// );
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn find_index(
+        &self,
+        predicate: JsFunction,
+        this_arg: Option<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<Option<u64>> {
+        let index = BuiltinTypedArray::find_index(
+            &self.inner.clone().into(),
+            &[predicate.into(), this_arg.into_or_undefined()],
+            context,
+        )?
+        .as_number()
+        .expect("TypedArray.prototype.findIndex() should always return number");
+
+        if index >= 0.0 {
+            Ok(Some(index as u64))
+        } else {
+            Ok(None)
+        }
+    }
+
     /// Calls `TypedArray.prototype.indexOf()`.
     pub fn index_of<T>(
         &self,
