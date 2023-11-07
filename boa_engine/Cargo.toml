@@ -110,6 +110,7 @@ writeable = { workspace = true, optional = true }
 yoke = { workspace = true, optional = true }
 zerofrom = { workspace = true, optional = true }
 fixed_decimal = { workspace = true, features = ["ryu"], optional = true}
+hashbrown.workspace = true
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 web-time = { version = "0.2.3", optional = true }

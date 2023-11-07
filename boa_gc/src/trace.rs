@@ -349,6 +349,22 @@ unsafe impl<T: Trace> Trace for BTreeSet<T> {
     });
 }
 
+impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Finalize
+    for hashbrown::hash_map::HashMap<K, V, S>
+{
+}
+// SAFETY: All the elements of the `HashMap` are correctly marked.
+unsafe impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Trace
+    for hashbrown::hash_map::HashMap<K, V, S>
+{
+    custom_trace!(this, {
+        for (k, v) in this {
+            mark(k);
+            mark(v);
+        }
+    });
+}
+
 impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Finalize for HashMap<K, V, S> {}
 // SAFETY: All the elements of the `HashMap` are correctly marked.
 unsafe impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Trace for HashMap<K, V, S> {
