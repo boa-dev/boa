@@ -257,8 +257,8 @@ pub(crate) fn epoch_days_to_epoch_ms(day: i32, time: i32) -> f64 {
 /// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
 #[inline]
 pub(crate) fn validate_temporal_rounding_increment(
-    increment: f64,
-    dividend: f64,
+    increment: u64,
+    dividend: u64,
     inclusive: bool,
 ) -> JsResult<()> {
     // 1. If inclusive is true, then
@@ -268,9 +268,9 @@ pub(crate) fn validate_temporal_rounding_increment(
     // 2. Else,
     } else {
         // a. Assert: dividend > 1.
-        assert!(dividend > 1.0);
+        assert!(dividend > 1);
         // b. Let maximum be dividend - 1.
-        dividend - 1.0
+        dividend - 1
     };
 
     // 3. If increment > maximum, throw a RangeError exception.
@@ -280,7 +280,7 @@ pub(crate) fn validate_temporal_rounding_increment(
             .into());
     }
     // 4. If dividend modulo increment ≠ 0, then
-    if dividend % increment != 0.0 {
+    if dividend % increment != 0 {
         // a. Throw a RangeError exception.
         return Err(JsNativeError::range()
             .with_message("Temporal rounding increment is not valid.")
@@ -555,7 +555,7 @@ pub(crate) fn get_diff_settings(
 
     // 13. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
     if let Some(max) = maximum {
-        validate_temporal_rounding_increment(rounding_increment, f64::from(max), false)?;
+        validate_temporal_rounding_increment(rounding_increment.into(), max.into(), false)?;
     }
 
     // 14. Return the Record { [[SmallestUnit]]: smallestUnit, [[LargestUnit]]: largestUnit, [[RoundingMode]]: roundingMode, [[RoundingIncrement]]: roundingIncrement, }.
@@ -563,7 +563,7 @@ pub(crate) fn get_diff_settings(
         smallest_unit,
         largest_unit,
         rounding_mode,
-        rounding_increment,
+        rounding_increment.into(),
     ))
 }
 

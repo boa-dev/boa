@@ -21,7 +21,7 @@ use super::{
         get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
     },
     plain_date::{self, PlainDate},
-    to_integer_if_integral, DateTimeValues,
+    to_integer_if_integral, DateTimeValues, PlainDateTime,
 };
 
 mod record;
@@ -627,14 +627,14 @@ impl Duration {
         // 10. Let relativeToRecord be ? ToRelativeTemporalObject(roundTo).
         // 11. Let zonedRelativeTo be relativeToRecord.[[ZonedRelativeTo]].
         // 12. Let plainRelativeTo be relativeToRecord.[[PlainRelativeTo]].
-        let (_plain_relative_to, _zoned_relative_to) =
+        let (plain_relative_to, zoned_relative_to) =
             super::to_relative_temporal_object(&round_to, context)?;
 
         // 13. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
         let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let _rounding_mode = get_option(&round_to, utf16!("roundingMode"), context)?
+        let rounding_mode = get_option(&round_to, utf16!("roundingMode"), context)?
             .unwrap_or(RoundingMode::HalfExpand);
 
         // 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
@@ -695,10 +695,109 @@ impl Duration {
 
         // 24. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
         if let Some(max) = maximum {
-            validate_temporal_rounding_increment(rounding_increment, f64::from(max), false)?;
+            validate_temporal_rounding_increment(rounding_increment.into(), max.into(), false)?;
         }
 
-        // TODO: Complete the rest of the new `Temporal.Duration.prototype.round` impl.
+        // 25. Let hoursToDaysConversionMayOccur be false.
+        // 26. If duration.[[Days]] ≠ 0 and zonedRelativeTo is not undefined, set hoursToDaysConversionMayOccur to true.
+        // 27. Else if abs(duration.[[Hours]]) ≥ 24, set hoursToDaysConversionMayOccur to true.
+        let conversion_may_occur = if duration.inner.days() != 0.0 && zoned_relative_to.is_some() {
+            true
+        } else {
+            24f64 <= duration.inner.hours().abs()
+        };
+
+        // 28. If smallestUnit is "nanosecond" and roundingIncrement = 1, let roundingGranularityIsNoop be true; else let roundingGranularityIsNoop be false.
+        let is_noop = smallest_unit == TemporalUnit::Nanosecond && rounding_increment == 1;
+
+        // 29. If duration.[[Years]] = 0 and duration.[[Months]] = 0 and duration.[[Weeks]] = 0, let calendarUnitsPresent be false; else let calendarUnitsPresent be true.
+        let calendar_units_present = !(duration.inner.years() == 0f64
+            || duration.inner.months() == 0f64
+            || duration.inner.weeks() == 0f64);
+
+        // 30. If roundingGranularityIsNoop is true, and largestUnit is existingLargestUnit,
+        // and calendarUnitsPresent is false, and hoursToDaysConversionMayOccur is false,
+        // and abs(duration.[[Minutes]]) < 60, and abs(duration.[[Seconds]]) < 60,
+        // and abs(duration.[[Milliseconds]]) < 1000, and abs(duration.[[Microseconds]]) < 1000,
+        // and abs(duration.[[Nanoseconds]]) < 1000, then
+        if is_noop
+            && largest_unit == existing_largest_unit
+            && !calendar_units_present
+            && !conversion_may_occur
+            && duration.inner.is_time_within_range()
+        {
+            // a. NOTE: The above conditions mean that the operation will have no effect: the smallest unit and
+            // rounding increment will leave the total duration unchanged, and it can be determined without
+            // calling a calendar or time zone method that no balancing will take place.
+            // b. Return ! CreateTemporalDuration(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]]).
+        }
+
+        // 31. Let precalculatedPlainDateTime be undefined.
+        // let mut precalc_datetime = None;
+
+        // 32. If roundingGranularityIsNoop is false, or largestUnit is "year", or largestUnit is "month",
+        // or largestUnit is "week", or largestUnit is "day", or calendarUnitsPresent is true, or duration.[[Days]] ≠ 0,
+        // let plainDateTimeOrRelativeToWillBeUsed be true; else let plainDateTimeOrRelativeToWillBeUsed be false.
+        let pdt_or_rel_will_be_used = !is_noop
+            || largest_unit == TemporalUnit::Year
+            || largest_unit == TemporalUnit::Month
+            || largest_unit == TemporalUnit::Week
+            || largest_unit == TemporalUnit::Day
+            || calendar_units_present
+            || duration.inner.days() != 0f64;
+
+        // 33. If zonedRelativeTo is not undefined and plainDateTimeOrRelativeToWillBeUsed is true, then
+        let (plain_relative_to, precalc_pdt) = if zoned_relative_to.is_some()
+            && pdt_or_rel_will_be_used
+        {
+            // TODO(TimeZone): Implement GetPlainDateTimeFor
+            // TODO(ZonedDateTime): Implement ZonedDateTime related methods.
+            return Err(JsNativeError::range()
+                .with_message("not yet implemented.")
+                .into());
+
+            // a. NOTE: The above conditions mean that the corresponding Temporal.PlainDateTime or Temporal.PlainDate for zonedRelativeTo will be used in one of the operations below.
+            // b. Let instant be ! CreateTemporalInstant(zonedRelativeTo.[[Nanoseconds]]).
+            // c. Set precalculatedPlainDateTime to ? GetPlainDateTimeFor(zonedRelativeTo.[[TimeZone]], instant, zonedRelativeTo.[[Calendar]]).
+            // d. Set plainRelativeTo to ! CreateTemporalDate(precalculatedPlainDateTime.[[ISOYear]], precalculatedPlainDateTime.[[ISOMonth]], precalculatedPlainDateTime.[[ISODay]], zonedRelativeTo.[[Calendar]]).
+        } else {
+            // TODO: remove after ZonedDateTime is implemented
+            let non_zoned: (Option<PlainDate>, Option<PlainDateTime>) = (plain_relative_to, None);
+            non_zoned
+        };
+
+        // 34. Let unbalanceResult be ? UnbalanceDateDurationRelative(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], largestUnit, plainRelativeTo).
+        let unbalance_result = duration.inner.unbalance_duration_relative(
+            largest_unit,
+            plain_relative_to.as_ref(),
+            context,
+        )?;
+
+        // 35. Let roundRecord be ? RoundDuration(unbalanceResult.[[Years]], unbalanceResult.[[Months]],
+        // unbalanceResult.[[Weeks]], unbalanceResult.[[Days]], duration.[[Hours]], duration.[[Minutes]],
+        // duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]],
+        // roundingIncrement, smallestUnit, roundingMode, plainRelativeTo, zonedRelativeTo, precalculatedPlainDateTime).
+        let (_round_result, _) = duration.inner.round_duration(
+            unbalance_result,
+            rounding_increment.into(),
+            smallest_unit,
+            rounding_mode,
+            (
+                plain_relative_to.as_ref(),
+                zoned_relative_to.as_ref(),
+                precalc_pdt.as_ref(),
+            ),
+            context,
+        )?;
+
+        // 36. Let roundResult be roundRecord.[[DurationRecord]].
+        // 37. If zonedRelativeTo is not undefined, then
+        // a. Set roundResult to ? AdjustRoundedDurationDays(roundResult.[[Years]], roundResult.[[Months]], roundResult.[[Weeks]], roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode, zonedRelativeTo, precalculatedPlainDateTime).
+        // b. Let balanceResult be ? BalanceTimeDurationRelative(roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], largestUnit, zonedRelativeTo, precalculatedPlainDateTime).
+        // 38. Else,
+        // a. Let balanceResult be ? BalanceTimeDuration(roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], largestUnit).
+        // 39. Let result be ? BalanceDateDurationRelative(roundResult.[[Years]], roundResult.[[Months]], roundResult.[[Weeks]], balanceResult.[[Days]], largestUnit, plainRelativeTo).
+        // 40. Return ! CreateTemporalDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], balanceResult.[[Hours]], balanceResult.[[Minutes]], balanceResult.[[Seconds]], balanceResult.[[Milliseconds]], balanceResult.[[Microseconds]], balanceResult.[[Nanoseconds]]).
 
         // NOTE: Below is currently incorrect: Handling of zonedRelativeTo and precalculatedPlainDateTime is needed.
         Err(JsNativeError::range()

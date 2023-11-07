@@ -5,7 +5,7 @@ use crate::{
     builtins::{
         options::{get_option, get_options_object, RoundingMode},
         temporal::{
-            duration::{DateDuration, TimeDuration},
+            duration::{DateDuration, DurationRecord, TimeDuration},
             options::{
                 get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
             },
@@ -381,34 +381,34 @@ impl Instant {
         let maximum = match smallest_unit {
             // 10. If smallestUnit is "hour"), then
             // a. Let maximum be HoursPerDay.
-            TemporalUnit::Hour => 24,
+            TemporalUnit::Hour => 24u64,
             // 11. Else if smallestUnit is "minute"), then
             // a. Let maximum be MinutesPerHour × HoursPerDay.
-            TemporalUnit::Minute => 14400,
+            TemporalUnit::Minute => 14400u64,
             // 12. Else if smallestUnit is "second"), then
             // a. Let maximum be SecondsPerMinute × MinutesPerHour × HoursPerDay.
-            TemporalUnit::Second => 86400,
+            TemporalUnit::Second => 86400u64,
             // 13. Else if smallestUnit is "millisecond"), then
             // a. Let maximum be ℝ(msPerDay).
-            TemporalUnit::Millisecond => i64::from(MS_PER_DAY),
+            TemporalUnit::Millisecond => MS_PER_DAY as u64,
             // 14. Else if smallestUnit is "microsecond"), then
             // a. Let maximum be 10^3 × ℝ(msPerDay).
-            TemporalUnit::Microsecond => MIS_PER_DAY,
+            TemporalUnit::Microsecond => MIS_PER_DAY as u64,
             // 15. Else,
             // a. Assert: smallestUnit is "nanosecond".
             // b. Let maximum be nsPerDay.
-            TemporalUnit::Nanosecond => NS_PER_DAY,
+            TemporalUnit::Nanosecond => NS_PER_DAY as u64,
             // unreachable here functions as 15.a.
             _ => unreachable!(),
         };
 
         // 16. Perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, true).
-        super::validate_temporal_rounding_increment(rounding_increment, maximum as f64, true)?;
+        super::validate_temporal_rounding_increment(rounding_increment.into(), maximum, true)?;
 
         // 17. Let roundedNs be RoundTemporalInstant(instant.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode).
         let rounded_ns = round_temporal_instant(
             &instant.nanoseconds,
-            rounding_increment,
+            rounding_increment.into(),
             smallest_unit,
             rounding_mode,
         )?;
@@ -576,7 +576,7 @@ fn diff_instant(
     largest_unit: TemporalUnit,
     rounding_mode: RoundingMode,
     context: &mut Context<'_>,
-) -> JsResult<duration::DurationRecord> {
+) -> JsResult<DurationRecord> {
     // 1. Let difference be ℝ(ns2) - ℝ(ns1).
     let difference = JsBigInt::sub(ns1, ns2);
     // 2. Let nanoseconds be remainder(difference, 1000).
@@ -591,40 +591,50 @@ fn diff_instant(
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
     let milliseconds = JsBigInt::rem(&truncated_milli, &JsBigInt::from(1000));
 
-    // 5. Let seconds be truncate(difference / 109).
+    // 5. Let seconds be truncate(difference / 10^9).
     let seconds = (&difference.to_f64() / 1_000_000_000_f64).trunc();
 
-    // 6. Let roundResult be ! RoundDuration(0, 0, 0, 0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, largestUnit, roundingMode).
-    let mut roundable_duration = duration::DurationRecord::new(
-        DateDuration::default(),
+    // Create TimeDuration
+    let mut time_duration = DurationRecord::from_day_and_time(
+        0f64,
         TimeDuration::new(
-            0.0,
-            0.0,
+            0f64,
+            0f64,
             seconds,
             milliseconds.to_f64(),
             microseconds.to_f64(),
             nanoseconds.to_f64(),
         ),
     );
-    let _total = roundable_duration.round_duration(
+
+    // 6. If smallestUnit is "nanosecond" and roundingIncrement is 1, then
+    if smallest_unit == TemporalUnit::Nanosecond && (rounding_increment - 1f64).abs() < f64::EPSILON
+    {
+        // a. Return ! BalanceTimeDuration(0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, largestUnit).
+        time_duration.balance_time_duration(largest_unit, None)?;
+        return Ok(time_duration);
+    }
+
+    // 7. Let roundResult be ! RoundDuration(0, 0, 0, 0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, largestUnit, roundingMode).
+
+    let (mut round_result, _total) = time_duration.round_duration(
+        DateDuration::default(),
         rounding_increment,
         smallest_unit,
         rounding_mode,
-        None,
-        None,
-        None,
+        (None, None, None),
         context,
     )?;
 
-    // 7. Assert: roundResult.[[Days]] is 0.
-    assert_eq!(roundable_duration.days() as i32, 0);
+    // 8. Assert: roundResult.[[Days]] is 0.
+    assert_eq!(round_result.days() as i32, 0);
 
-    // 8. Return ! BalanceTimeDuration(0, roundResult.[[Hours]], roundResult.[[Minutes]],
+    // 9. Return ! BalanceTimeDuration(0, roundResult.[[Hours]], roundResult.[[Minutes]],
     //    roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]],
     //    roundResult.[[Nanoseconds]], largestUnit).
-    roundable_duration.balance_time_duration(largest_unit, None)?;
+    round_result.balance_time_duration(largest_unit, None)?;
 
-    Ok(roundable_duration)
+    Ok(round_result)
 }
 
 /// 8.5.8 `RoundTemporalInstant ( ns, increment, unit, roundingMode )`
