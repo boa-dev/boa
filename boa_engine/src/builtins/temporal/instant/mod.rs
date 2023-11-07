@@ -381,33 +381,29 @@ impl Instant {
         let maximum = match smallest_unit {
             // 10. If smallestUnit is "hour"), then
             // a. Let maximum be HoursPerDay.
-            TemporalUnit::Hour => 24,
+            TemporalUnit::Hour => 24u64,
             // 11. Else if smallestUnit is "minute"), then
             // a. Let maximum be MinutesPerHour × HoursPerDay.
-            TemporalUnit::Minute => 14400,
+            TemporalUnit::Minute => 14400u64,
             // 12. Else if smallestUnit is "second"), then
             // a. Let maximum be SecondsPerMinute × MinutesPerHour × HoursPerDay.
-            TemporalUnit::Second => 86400,
+            TemporalUnit::Second => 86400u64,
             // 13. Else if smallestUnit is "millisecond"), then
             // a. Let maximum be ℝ(msPerDay).
-            TemporalUnit::Millisecond => i64::from(MS_PER_DAY),
+            TemporalUnit::Millisecond => MS_PER_DAY as u64,
             // 14. Else if smallestUnit is "microsecond"), then
             // a. Let maximum be 10^3 × ℝ(msPerDay).
-            TemporalUnit::Microsecond => MIS_PER_DAY,
+            TemporalUnit::Microsecond => MIS_PER_DAY as u64,
             // 15. Else,
             // a. Assert: smallestUnit is "nanosecond".
             // b. Let maximum be nsPerDay.
-            TemporalUnit::Nanosecond => NS_PER_DAY,
+            TemporalUnit::Nanosecond => NS_PER_DAY as u64,
             // unreachable here functions as 15.a.
             _ => unreachable!(),
         };
 
         // 16. Perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, true).
-        super::validate_temporal_rounding_increment(
-            rounding_increment.into(),
-            maximum as f64,
-            true,
-        )?;
+        super::validate_temporal_rounding_increment(rounding_increment.into(), maximum, true)?;
 
         // 17. Let roundedNs be RoundTemporalInstant(instant.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode).
         let rounded_ns = round_temporal_instant(

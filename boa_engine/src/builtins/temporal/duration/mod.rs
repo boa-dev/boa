@@ -695,7 +695,7 @@ impl Duration {
 
         // 24. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
         if let Some(max) = maximum {
-            validate_temporal_rounding_increment(rounding_increment.into(), f64::from(max), false)?;
+            validate_temporal_rounding_increment(rounding_increment.into(), max.into(), false)?;
         }
 
         // 25. Let hoursToDaysConversionMayOccur be false.
